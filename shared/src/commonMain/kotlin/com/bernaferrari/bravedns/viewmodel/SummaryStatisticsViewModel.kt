@@ -16,9 +16,13 @@ import com.bernaferrari.bravedns.util.Constants
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.time.Clock
@@ -66,31 +70,55 @@ class SummaryStatisticsViewModel(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val getTopActiveConns: Flow<PagingData<AppConnection>> =
-        topActiveConnsTick.flatMapLatest { uptime ->
-            Pager(PagingConfig(Constants.PAGING_PAGE_SIZE)) { statsDao.getTopActiveConns(nowMillis() - uptime) }
-                .flow
-                .cachedIn(viewModelScope)
-        }
+    private val summaryCards: Flow<SummaryCardLists> =
+        combine(startTime, topActiveConnsTick, refreshTick) { start, uptime, _ ->
+            start to (nowMillis() - uptime)
+        }.flatMapLatest { (start, activeFrom) ->
+            combine(
+                listOf(
+                    statsDao.getTopActiveConns(activeFrom),
+                    statsDao.getMostAllowedApps(start),
+                    statsDao.getMostBlockedApps(start),
+                    statsDao.getMostConnectedASN(start),
+                    statsDao.getMostBlockedASN(start),
+                    statsDao.getMostBlockedDomains(start),
+                    statsDao.getMostContactedDomains(start),
+                    statsDao.getMostContactedCountries(start),
+                )
+            ) { lists ->
+                SummaryCardLists(
+                    topActiveConns = lists[0],
+                    allowedApps = lists[1],
+                    blockedApps = lists[2],
+                    connectedAsn = lists[3],
+                    blockedAsn = lists[4],
+                    blockedDomains = lists[5],
+                    contactedDomains = lists[6],
+                    contactedCountries = lists[7],
+                )
+            }
+        }.shareIn(viewModelScope, SharingStarted.Lazily, replay = 1)
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val getAllowedAppNetworkActivity = recentPaging { statsDao.getMostAllowedApps(startTime.value) }
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val getBlockedAppNetworkActivity = recentPaging { statsDao.getMostBlockedApps(startTime.value) }
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val getMostConnectedASN = recentPaging { statsDao.getMostConnectedASN(startTime.value) }
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val getMostBlockedASN = recentPaging { statsDao.getMostBlockedASN(startTime.value) }
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val mbd = recentPaging { statsDao.getMostBlockedDomains(startTime.value) }
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val mcd = recentPaging { statsDao.getMostContactedDomains(startTime.value) }
+    val getTopActiveConns: Flow<PagingData<AppConnection>> =
+        summaryCards.toPagingData { it.topActiveConns }
+    val getAllowedAppNetworkActivity: Flow<PagingData<AppConnection>> =
+        summaryCards.toPagingData { it.allowedApps }
+    val getBlockedAppNetworkActivity: Flow<PagingData<AppConnection>> =
+        summaryCards.toPagingData { it.blockedApps }
+    val getMostConnectedASN: Flow<PagingData<AppConnection>> =
+        summaryCards.toPagingData { it.connectedAsn }
+    val getMostBlockedASN: Flow<PagingData<AppConnection>> =
+        summaryCards.toPagingData { it.blockedAsn }
+    val mbd: Flow<PagingData<AppConnection>> =
+        summaryCards.toPagingData { it.blockedDomains }
+    val mcd: Flow<PagingData<AppConnection>> =
+        summaryCards.toPagingData { it.contactedDomains }
     @OptIn(ExperimentalCoroutinesApi::class)
     val getMostContactedIps = recentPaging { connectionTrackerDAO.getMostContactedIps(startTime.value) }
     @OptIn(ExperimentalCoroutinesApi::class)
     val getMostBlockedIps = recentPaging { connectionTrackerDAO.getMostBlockedIps(startTime.value) }
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val getMostContactedCountries = recentPaging { statsDao.getMostContactedCountries(startTime.value) }
+    val getMostContactedCountries: Flow<PagingData<AppConnection>> =
+        summaryCards.toPagingData { it.contactedCountries }
 
     suspend fun getTopAppsForCountry(flag: String, limit: Int = 5): List<AppConnection> =
         if (flag.isBlank()) emptyList()
@@ -105,6 +133,11 @@ class SummaryStatisticsViewModel(
             uiStateMutable.update { it.copy(dataUsage = usage) }
         }
     }
+
+    private fun Flow<SummaryCardLists>.toPagingData(
+        select: (SummaryCardLists) -> List<AppConnection>
+    ): Flow<PagingData<AppConnection>> =
+        map { PagingData.from(select(it)) }.cachedIn(viewModelScope)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun recentPaging(
@@ -122,6 +155,17 @@ class SummaryStatisticsViewModel(
             TimeCategory.TWENTY_FOUR_HOUR -> ONE_DAY_MILLIS
             TimeCategory.SEVEN_DAYS -> ONE_WEEK_MILLIS
         }
+
+    private data class SummaryCardLists(
+        val topActiveConns: List<AppConnection>,
+        val allowedApps: List<AppConnection>,
+        val blockedApps: List<AppConnection>,
+        val connectedAsn: List<AppConnection>,
+        val blockedAsn: List<AppConnection>,
+        val blockedDomains: List<AppConnection>,
+        val contactedDomains: List<AppConnection>,
+        val contactedCountries: List<AppConnection>,
+    )
 
     private companion object {
         const val ONE_HOUR_MILLIS = 60 * 60 * 1000L

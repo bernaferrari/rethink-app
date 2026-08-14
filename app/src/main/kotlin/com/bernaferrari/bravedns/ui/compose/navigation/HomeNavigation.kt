@@ -16,14 +16,9 @@
 package com.bernaferrari.bravedns.ui.compose.navigation
 
 import android.graphics.drawable.Drawable
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Star
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -33,12 +28,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.bernaferrari.bravedns.R
@@ -50,10 +45,11 @@ import com.bernaferrari.bravedns.ui.compose.about.AboutUiState
 import com.bernaferrari.bravedns.ui.compose.app.AppInfoScreen
 import com.bernaferrari.bravedns.ui.compose.configure.ConfigureScreen
 import com.bernaferrari.bravedns.ui.compose.configure.SettingsSearchDestination
+import com.bernaferrari.bravedns.ui.compose.configure.isAppearanceFocus
 import com.bernaferrari.bravedns.ui.compose.events.EventsScreen
 import com.bernaferrari.bravedns.ui.compose.firewall.FirewallSettingsScreen
 import com.bernaferrari.bravedns.ui.compose.home.HomeScreen
-import com.bernaferrari.bravedns.ui.compose.home.HomeGuidedTour
+
 import com.bernaferrari.bravedns.ui.compose.settings.AdvancedSettingsScreen
 import com.bernaferrari.bravedns.ui.compose.settings.AntiCensorshipScreen
 import com.bernaferrari.bravedns.ui.compose.settings.AppLockScreen
@@ -139,14 +135,13 @@ import com.bernaferrari.bravedns.viewmodel.ServerOrderHistoryViewModel
 import com.bernaferrari.bravedns.viewmodel.BlockFreeDnsViewModel
 import com.bernaferrari.bravedns.ui.compose.logs.AppWiseDomainLogsScreen
 import com.bernaferrari.bravedns.ui.compose.theme.rememberReducedMotion
+import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 import com.bernaferrari.bravedns.viewmodel.WgConfigViewModel
 import com.bernaferrari.bravedns.ui.compose.wireguard.WgMainScreen
 import com.bernaferrari.bravedns.util.Constants.Companion.UID_EVERYBODY
 import com.bernaferrari.bravedns.util.Utilities
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import androidx.compose.foundation.layout.Box
-import androidx.compose.ui.Alignment
 
 enum class HomeDestination(
     val root: RethinkRootDestination,
@@ -154,9 +149,24 @@ enum class HomeDestination(
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector
 ) {
-    HOME(RethinkRootDestination.Home, R.string.txt_home, Icons.Filled.Home, Icons.Filled.Home),
-    STATS(RethinkRootDestination.Statistics, R.string.title_statistics, Icons.Filled.Star, Icons.Filled.Star),
-    CONFIGURE(RethinkRootDestination.Configure, R.string.title_settings, Icons.Filled.Settings, Icons.Filled.Settings);
+    HOME(
+        RethinkRootDestination.Home,
+        R.string.txt_home,
+        MaterialSymbols.Filled.Home,
+        MaterialSymbols.Outlined.Home,
+    ),
+    STATS(
+        RethinkRootDestination.Statistics,
+        R.string.title_statistics,
+        MaterialSymbols.Filled.BarChart,
+        MaterialSymbols.Filled.BarChart,
+    ),
+    CONFIGURE(
+        RethinkRootDestination.Configure,
+        R.string.title_settings,
+        MaterialSymbols.Filled.Settings,
+        MaterialSymbols.Outlined.Settings,
+    );
 
     val route: RethinkRoute get() = root.route
 }
@@ -177,7 +187,7 @@ sealed interface HomeNavRequest {
     data object TunnelSettings : HomeNavRequest
     data object MiscSettings : HomeNavRequest
     data object ConsoleLogs : HomeNavRequest
-    data object NetworkLogs : HomeNavRequest
+    data class NetworkLogs(val query: String = "") : HomeNavRequest
     data object AppList : HomeNavRequest
     data class CustomRules(
         val uid: Int = UID_EVERYBODY,
@@ -223,6 +233,15 @@ sealed interface HomeNavRequest {
 }
 
 
+private fun RethinkRoute.forAndroid(): RethinkRoute = when (this) {
+    RethinkRoute.DnsSettings -> RethinkRoute.DnsDetail()
+    RethinkRoute.Blocklists -> RethinkRoute.ConfigureRethinkBasic(
+        screenTypeOrdinal = ConfigureRethinkScreenType.REMOTE.ordinal,
+    )
+    is RethinkRoute.RpnServerDetails -> RethinkRoute.CountryProxy(key)
+    else -> this
+}
+
 private fun HomeNavRequest.toRethinkRoute(): RethinkRoute = when (this) {
     is HomeNavRequest.DetailedStats ->
         RethinkRoute.DetailedStatistics(type.tid, timeCategory.value)
@@ -236,7 +255,7 @@ private fun HomeNavRequest.toRethinkRoute(): RethinkRoute = when (this) {
     HomeNavRequest.TunnelSettings -> RethinkRoute.TunnelSettings()
     HomeNavRequest.MiscSettings -> RethinkRoute.MiscSettings()
     HomeNavRequest.ConsoleLogs -> RethinkRoute.ConsoleLogs
-    HomeNavRequest.NetworkLogs -> RethinkRoute.NetworkLogs
+    is HomeNavRequest.NetworkLogs -> RethinkRoute.NetworkLogs(query)
     HomeNavRequest.AppList -> RethinkRoute.AppList
     is HomeNavRequest.CustomRules ->
         RethinkRoute.CustomRules(uid = uid, tab = tab.value, mode = mode.value)
@@ -278,7 +297,72 @@ private fun HomeNavRequest.toRethinkRoute(): RethinkRoute = when (this) {
     HomeNavRequest.RpnAccount -> RethinkRoute.RpnAccount
     HomeNavRequest.WgMain -> RethinkRoute.WireGuard
     HomeNavRequest.Database -> RethinkRoute.Database
-}
+}.forAndroid()
+
+data class HomeConfigureActions(
+    val onConfigureAppsClick: () -> Unit,
+    val onConfigureDnsClick: () -> Unit,
+    val onConfigureFirewallClick: () -> Unit,
+    val onFirewallUniversalClick: () -> Unit,
+    val onFirewallCustomIpClick: () -> Unit,
+    val onFirewallAppWiseIpClick: () -> Unit,
+    val onConfigureProxyClick: () -> Unit,
+    val onConfigureNetworkClick: () -> Unit,
+    val onConfigureOthersClick: () -> Unit,
+    val onConfigureLogsClick: () -> Unit,
+    val onConfigureAntiCensorshipClick: () -> Unit,
+    val onConfigureAdvancedClick: () -> Unit,
+    val onNavigateToLogs: (String) -> Unit,
+    val onOpenAccessibilitySettings: () -> Unit,
+    val onNavigateToProxy: () -> Unit,
+)
+
+data class HomeAboutActions(
+    val onSponsorClick: () -> Unit,
+    val onTelegramClick: () -> Unit,
+    val onBugReportClick: () -> Unit,
+    val onWhatsNewClick: () -> Unit,
+    val onAppUpdateClick: () -> Unit,
+    val onContributorsClick: () -> Unit,
+    val onTranslateClick: () -> Unit,
+    val onWebsiteClick: () -> Unit,
+    val onGithubClick: () -> Unit,
+    val onFaqClick: () -> Unit,
+    val onDocsClick: () -> Unit,
+    val onPrivacyPolicyClick: () -> Unit,
+    val onTermsOfServiceClick: () -> Unit,
+    val onLicenseClick: () -> Unit,
+    val onTwitterClick: () -> Unit,
+    val onEmailClick: () -> Unit,
+    val onRedditClick: () -> Unit,
+    val onElementClick: () -> Unit,
+    val onMastodonClick: () -> Unit,
+    val onGeneralSettingsClick: () -> Unit,
+    val onAppInfoClick: () -> Unit,
+    val onVpnProfileClick: () -> Unit,
+    val onNotificationClick: () -> Unit,
+    val onStatsClick: () -> Unit,
+    val onDbStatsClick: () -> Unit,
+    val onFlightRecordClick: () -> Unit,
+    val onEventLogsClick: () -> Unit,
+    val onTokenClick: () -> Unit,
+    val onTokenDoubleTap: () -> Unit,
+    val onFossClick: () -> Unit,
+    val onFlossFundsClick: () -> Unit,
+)
+
+data class HomeDnsActions(
+    val onDnsCustomDnsClick: () -> Unit,
+    val onDnsRethinkPlusDnsClick: () -> Unit,
+    val onDnsLocalBlocklistConfigureClick: () -> Unit,
+    val onConfigureOtherDns: (Int) -> Unit,
+)
+
+data class HomeWgActions(
+    val onWgCreateClick: () -> Unit,
+    val onWgImportClick: () -> Unit,
+    val onWgQrScanClick: () -> Unit,
+)
 
 @Composable
 fun HomeScreenRoot(
@@ -288,50 +372,9 @@ fun HomeScreenRoot(
     onOpenDetailedStats: (SummaryStatisticsType) -> Unit,
     startDestination: RethinkRoute,
     isDebug: Boolean,
-    onConfigureAppsClick: () -> Unit,
-    onConfigureDnsClick: () -> Unit,
-    onConfigureFirewallClick: () -> Unit,
-    onFirewallUniversalClick: () -> Unit,
-    onFirewallCustomIpClick: () -> Unit,
-    onFirewallAppWiseIpClick: () -> Unit,
-    onConfigureProxyClick: () -> Unit,
-    onConfigureNetworkClick: () -> Unit,
-    onConfigureOthersClick: () -> Unit,
-    onConfigureLogsClick: () -> Unit,
-    onConfigureAntiCensorshipClick: () -> Unit,
-    onConfigureAdvancedClick: () -> Unit,
+    configureActions: HomeConfigureActions,
     aboutUiState: AboutUiState,
-    onSponsorClick: () -> Unit,
-    onTelegramClick: () -> Unit,
-    onBugReportClick: () -> Unit,
-    onWhatsNewClick: () -> Unit,
-    onAppUpdateClick: () -> Unit,
-    onContributorsClick: () -> Unit,
-    onTranslateClick: () -> Unit,
-    onWebsiteClick: () -> Unit,
-    onGithubClick: () -> Unit,
-    onFaqClick: () -> Unit,
-    onDocsClick: () -> Unit,
-    onPrivacyPolicyClick: () -> Unit,
-    onTermsOfServiceClick: () -> Unit,
-    onLicenseClick: () -> Unit,
-    onTwitterClick: () -> Unit,
-    onEmailClick: () -> Unit,
-    onRedditClick: () -> Unit,
-    onElementClick: () -> Unit,
-    onMastodonClick: () -> Unit,
-    onGeneralSettingsClick: () -> Unit,
-    onAppInfoClick: () -> Unit,
-    onVpnProfileClick: () -> Unit,
-    onNotificationClick: () -> Unit,
-    onStatsClick: () -> Unit,
-    onDbStatsClick: () -> Unit,
-    onFlightRecordClick: () -> Unit,
-    onEventLogsClick: () -> Unit,
-    onTokenClick: () -> Unit,
-    onTokenDoubleTap: () -> Unit,
-    onFossClick: () -> Unit,
-    onFlossFundsClick: () -> Unit,
+    aboutActions: HomeAboutActions,
     snackbarHostState: SnackbarHostState,
     detailedStatsViewModel: DetailedStatisticsViewModel,
     domainConnectionsViewModel: DomainConnectionsViewModel,
@@ -354,13 +397,10 @@ fun HomeScreenRoot(
     proxyAppsMappingViewModel: ProxyAppsMappingViewModel,
     dnsSettingsViewModel: DnsSettingsViewModel,
     appDownloadManager: AppDownloadManager,
-    onDnsCustomDnsClick: () -> Unit,
-    onDnsRethinkPlusDnsClick: () -> Unit,
-    onDnsLocalBlocklistConfigureClick: () -> Unit,
+    dnsActions: HomeDnsActions,
     homeNavRequest: HomeNavRequest?,
     onHomeNavConsumed: () -> Unit,
     onAppLockResult: (AppLockResult) -> Unit = {},
-    // ConfigureRethinkBasic dependencies
     rethinkEndpointViewModel: RethinkEndpointViewModel,
     remoteFileTagViewModel: RethinkRemoteFileTagViewModel,
     localFileTagViewModel: RethinkLocalFileTagViewModel,
@@ -374,32 +414,22 @@ fun HomeScreenRoot(
     connectionTrackerRepository: ConnectionTrackerRepository,
     dnsLogRepository: DnsLogRepository,
     rethinkLogRepository: RethinkLogRepository,
-    onConfigureOtherDns: (Int) -> Unit,
-    // ConfigureOtherDns dependencies
     dohViewModel: DoHEndpointViewModel,
     dotViewModel: DoTEndpointViewModel,
     dnsProxyViewModel: DnsProxyEndpointViewModel,
     dnsCryptViewModel: DnsCryptEndpointViewModel,
     dnsCryptRelayViewModel: DnsCryptRelayEndpointViewModel,
     oDohViewModel: ODoHEndpointViewModel,
-    // UniversalFirewallSettings callbacks
-    onNavigateToLogs: (String) -> Unit,
-    onOpenAccessibilitySettings: () -> Unit,
-    // WireGuard dependencies
     wgConfigViewModel: WgConfigViewModel,
-    // Checkout dependencies
     checkoutViewModel: CheckoutViewModel?,
     managePurchaseViewModel: ManagePurchaseViewModel,
     purchaseHistoryViewModel: PurchaseHistoryViewModel,
     serverOrderHistoryViewModel: ServerOrderHistoryViewModel,
     blockFreeDnsViewModel: BlockFreeDnsViewModel,
-    onNavigateToProxy: () -> Unit,
-    // WgMain callbacks
-    onWgCreateClick: () -> Unit,
-    onWgImportClick: () -> Unit,
-    onWgQrScanClick: () -> Unit,
+    wgActions: HomeWgActions,
     appDatabase: AppDatabase
 ) {
+    val latestHomeUiState = rememberUpdatedState(homeUiState)
     val navigationItems = HomeDestination.entries.map { destination ->
         RethinkNavigationItem(
             id = destination.root.name,
@@ -409,40 +439,49 @@ fun HomeScreenRoot(
         )
     }
 
-    // Map external activity requests onto the shared route type (pendingRoute).
+    // Intents/notifications still arrive as Activity [homeNavRequest]. The nav host
+    // pushes when the pending route shares the current tab root; it only replaces
+    // the stack on a different-root / cold-start open().
     var pendingRoute by remember { mutableStateOf<RethinkRoute?>(null) }
     LaunchedEffect(homeNavRequest) {
         val request = homeNavRequest ?: return@LaunchedEffect
         pendingRoute = request.toRethinkRoute()
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        RethinkAppNavigation(
-            destinations = navigationItems,
-            startRoute = startDestination,
-            pendingRoute = pendingRoute,
-            onRouteNavigated = {
-                pendingRoute = null
-                onHomeNavConsumed()
-            },
-            modifier = Modifier.fillMaxSize(),
-            entryBuilder = { nav ->
+    RethinkAppNavigation(
+        destinations = navigationItems,
+        startRoute = startDestination,
+        pendingRoute = pendingRoute,
+        onRouteNavigated = {
+            pendingRoute = null
+            onHomeNavConsumed()
+        },
+        modifier = Modifier.fillMaxSize(),
+        snackbar = {
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        },
+        entryBuilder = { hostNav ->
+            val nav = RethinkNavOps(
+                pop = { hostNav.popBackStack() },
+                pushRoute = { hostNav.push(it.forAndroid()) },
+                openRoute = { hostNav.open(it.forAndroid()) },
+                selectRootTab = { hostNav.selectRoot(it) },
+                current = hostNav.current,
+            )
 
             entry<RethinkRoute.Home> {
-                var showGuidedTour by remember {
-                    mutableStateOf(!persistentState.guidedTourCompleted || persistentState.guidedTourVersion < 1)
-                }
                 HomeScreen(
-                    uiState = homeUiState,
+                    uiState = latestHomeUiState.value,
                     onStartStopClick = onHomeStartStopClick,
                 )
-                if (showGuidedTour) HomeGuidedTour {
-                    persistentState.guidedTourCompleted = true
-                    persistentState.guidedTourVersion = 1
-                    showGuidedTour = false
-                }
             }
             entry<RethinkRoute.Statistics> {
+                BackHandler(enabled = nav.current() is RethinkRoute.Statistics) {
+                    nav.popBackStack()
+                }
                 SummaryStatisticsScreen(
                     viewModel = summaryViewModel,
                     persistentState = persistentState,
@@ -474,9 +513,9 @@ fun HomeScreenRoot(
             }
             entry<RethinkRoute.FirewallSettings> { args ->
                 FirewallSettingsScreen(
-                    onUniversalFirewallClick = onFirewallUniversalClick,
-                    onCustomIpDomainClick = onFirewallCustomIpClick,
-                    onAppWiseIpDomainClick = onFirewallAppWiseIpClick,
+                    onUniversalFirewallClick = configureActions.onFirewallUniversalClick,
+                    onCustomIpDomainClick = configureActions.onFirewallCustomIpClick,
+                    onAppWiseIpDomainClick = configureActions.onFirewallAppWiseIpClick,
                     initialFocusKey = args.focusKey.takeIf { it.isNotBlank() },
                     onBackClick = { nav.popBackStack() }
                 )
@@ -620,9 +659,21 @@ fun HomeScreenRoot(
                     persistentState = persistentState,
                     appDownloadManager = appDownloadManager,
                     initialFocusKey = args.focusKey.takeIf { it.isNotBlank() },
-                    onCustomDnsClick = onDnsCustomDnsClick,
-                    onRethinkPlusDnsClick = onDnsRethinkPlusDnsClick,
-                    onLocalBlocklistConfigureClick = onDnsLocalBlocklistConfigureClick,
+                    onCustomDnsClick = dnsActions.onDnsCustomDnsClick,
+                    onRethinkPlusDnsClick = dnsActions.onDnsRethinkPlusDnsClick,
+                    onLocalBlocklistConfigureClick = dnsActions.onDnsLocalBlocklistConfigureClick,
+                    onBlockFreeDnsClick = { nav.push(RethinkRoute.BlockFreeDns) },
+                    onBackClick = { nav.popBackStack() }
+                )
+            }
+            entry<RethinkRoute.DnsSettings> {
+                DnsDetailScreen(
+                    viewModel = dnsSettingsViewModel,
+                    persistentState = persistentState,
+                    appDownloadManager = appDownloadManager,
+                    onCustomDnsClick = dnsActions.onDnsCustomDnsClick,
+                    onRethinkPlusDnsClick = dnsActions.onDnsRethinkPlusDnsClick,
+                    onLocalBlocklistConfigureClick = dnsActions.onDnsLocalBlocklistConfigureClick,
                     onBlockFreeDnsClick = { nav.push(RethinkRoute.BlockFreeDns) },
                     onBackClick = { nav.popBackStack() }
                 )
@@ -640,6 +691,9 @@ fun HomeScreenRoot(
                     onBackClick = { nav.popBackStack() },
                     onAppWiseIpLogsClick = { u, isAsn ->
                         nav.push(RethinkRoute.AppWiseIpLogs(u, isAsn))
+                    },
+                    onAppWiseDomainLogsClick = { u ->
+                        nav.push(RethinkRoute.AppWiseDomainLogs(u))
                     },
                     onCustomIpRulesClick = { u ->
                         nav.push(
@@ -664,7 +718,7 @@ fun HomeScreenRoot(
             entry<RethinkRoute.DnsList> {
                 DnsListScreen(
                     appConfig = appConfig,
-                    onConfigureOtherDns = onConfigureOtherDns,
+                    onConfigureOtherDns = dnsActions.onConfigureOtherDns,
                     onConfigureRethinkBasic = { type ->
                         nav.push(
                             RethinkRoute.ConfigureRethinkBasic(
@@ -691,6 +745,12 @@ fun HomeScreenRoot(
             entry<RethinkRoute.CountryProxy> { args ->
                 RpnWinProxyDetailsScreen(
                     countryCode = args.countryCode,
+                    onBackClick = { nav.popBackStack() }
+                )
+            }
+            entry<RethinkRoute.RpnServerDetails> { args ->
+                RpnWinProxyDetailsScreen(
+                    countryCode = args.key,
                     onBackClick = { nav.popBackStack() }
                 )
             }
@@ -749,17 +809,21 @@ fun HomeScreenRoot(
                 )
             }
             entry<RethinkRoute.Configure> {
+                BackHandler(enabled = nav.current() is RethinkRoute.Configure) {
+                    nav.popBackStack()
+                }
                 ConfigureScreen(
                     isDebug = isDebug,
-                    onAppsClick = onConfigureAppsClick,
-                    onDnsClick = onConfigureDnsClick,
-                    onFirewallClick = onConfigureFirewallClick,
-                    onProxyClick = onConfigureProxyClick,
-                    onNetworkClick = onConfigureNetworkClick,
-                    onOthersClick = onConfigureOthersClick,
-                    onLogsClick = onConfigureLogsClick,
-                    onAntiCensorshipClick = onConfigureAntiCensorshipClick,
-                    onAdvancedClick = onConfigureAdvancedClick,
+                    onAppsClick = { nav.push(RethinkRoute.AppList) },
+                    // Private-DNS dialog lives on the Activity; consume via same-root push.
+                    onDnsClick = configureActions.onConfigureDnsClick,
+                    onFirewallClick = { nav.push(RethinkRoute.FirewallSettings()) },
+                    onProxyClick = { nav.push(RethinkRoute.ProxySettings()) },
+                    onNetworkClick = { nav.push(RethinkRoute.TunnelSettings()) },
+                    onOthersClick = { nav.push(RethinkRoute.MiscSettings()) },
+                    onLogsClick = { nav.push(RethinkRoute.NetworkLogs()) },
+                    onAntiCensorshipClick = { nav.push(RethinkRoute.AntiCensorship) },
+                    onAdvancedClick = { nav.push(RethinkRoute.AdvancedSettings) },
                     persistentState = persistentState,
                     eventLogger = appInfoEventLogger,
                     onThemeModeChanged = onThemeModeChanged,
@@ -781,18 +845,11 @@ fun HomeScreenRoot(
                             )
                             is SettingsSearchDestination.General -> {
                                 // Appearance is on the Settings root; other general keys open Misc.
-                                val focus = destination.focusKey
-                                if (
-                                    focus == "general_appearance" ||
-                                    focus == "general_theme_mode" ||
-                                    focus == "general_theme_color"
-                                ) {
-                                    // Already on Configure; appearance is at the top.
-                                } else {
-                                    nav.push(RethinkRoute.MiscSettings(focus))
+                                if (!destination.isAppearanceFocus()) {
+                                    nav.push(RethinkRoute.MiscSettings(destination.focusKey))
                                 }
                             }
-                            SettingsSearchDestination.Logs -> nav.push(RethinkRoute.NetworkLogs)
+                            SettingsSearchDestination.Logs -> nav.push(RethinkRoute.NetworkLogs())
                             SettingsSearchDestination.AntiCensorship -> nav.push(RethinkRoute.AntiCensorship)
                             SettingsSearchDestination.Advanced -> nav.push(RethinkRoute.AdvancedSettings)
                         }
@@ -802,38 +859,53 @@ fun HomeScreenRoot(
             entry<RethinkRoute.About> {
                 AboutScreen(
                     uiState = aboutUiState,
-                    onSponsorClick = onSponsorClick,
-                    onTelegramClick = onTelegramClick,
-                    onBugReportClick = onBugReportClick,
-                    onWhatsNewClick = onWhatsNewClick,
-                    onAppUpdateClick = onAppUpdateClick,
-                    onContributorsClick = onContributorsClick,
-                    onTranslateClick = onTranslateClick,
-                    onWebsiteClick = onWebsiteClick,
-                    onGithubClick = onGithubClick,
-                    onFaqClick = onFaqClick,
-                    onDocsClick = onDocsClick,
-                    onPrivacyPolicyClick = onPrivacyPolicyClick,
-                    onTermsOfServiceClick = onTermsOfServiceClick,
-                    onLicenseClick = onLicenseClick,
-                    onTwitterClick = onTwitterClick,
-                    onEmailClick = onEmailClick,
-                    onRedditClick = onRedditClick,
-                    onElementClick = onElementClick,
-                    onMastodonClick = onMastodonClick,
-                    onGeneralSettingsClick = onGeneralSettingsClick,
-                    onAppInfoClick = onAppInfoClick,
-                    onVpnProfileClick = onVpnProfileClick,
-                    onNotificationClick = onNotificationClick,
-                    onStatsClick = onStatsClick,
-                    onDbStatsClick = onDbStatsClick,
-                    onFlightRecordClick = onFlightRecordClick,
-                    onEventLogsClick = onEventLogsClick,
-                    onTokenClick = onTokenClick,
-                    onTokenDoubleTap = onTokenDoubleTap,
-                    onFossClick = onFossClick,
-                    onFlossFundsClick = onFlossFundsClick,
+                    onSponsorClick = aboutActions.onSponsorClick,
+                    onTelegramClick = aboutActions.onTelegramClick,
+                    onBugReportClick = aboutActions.onBugReportClick,
+                    onWhatsNewClick = aboutActions.onWhatsNewClick,
+                    onAppUpdateClick = aboutActions.onAppUpdateClick,
+                    onContributorsClick = aboutActions.onContributorsClick,
+                    onTranslateClick = aboutActions.onTranslateClick,
+                    onWebsiteClick = aboutActions.onWebsiteClick,
+                    onGithubClick = aboutActions.onGithubClick,
+                    onFaqClick = aboutActions.onFaqClick,
+                    onDocsClick = aboutActions.onDocsClick,
+                    onPrivacyPolicyClick = aboutActions.onPrivacyPolicyClick,
+                    onTermsOfServiceClick = aboutActions.onTermsOfServiceClick,
+                    onLicenseClick = aboutActions.onLicenseClick,
+                    onTwitterClick = aboutActions.onTwitterClick,
+                    onEmailClick = aboutActions.onEmailClick,
+                    onRedditClick = aboutActions.onRedditClick,
+                    onElementClick = aboutActions.onElementClick,
+                    onMastodonClick = aboutActions.onMastodonClick,
+                    onGeneralSettingsClick = aboutActions.onGeneralSettingsClick,
+                    onAppInfoClick = aboutActions.onAppInfoClick,
+                    onVpnProfileClick = aboutActions.onVpnProfileClick,
+                    onNotificationClick = aboutActions.onNotificationClick,
+                    onStatsClick = aboutActions.onStatsClick,
+                    onDbStatsClick = aboutActions.onDbStatsClick,
+                    onFlightRecordClick = aboutActions.onFlightRecordClick,
+                    onEventLogsClick = aboutActions.onEventLogsClick,
+                    onTokenClick = aboutActions.onTokenClick,
+                    onTokenDoubleTap = aboutActions.onTokenDoubleTap,
+                    onFossClick = aboutActions.onFossClick,
+                    onFlossFundsClick = aboutActions.onFlossFundsClick,
                     onBackClick = { nav.popBackStack() },
+                )
+            }
+            entry<RethinkRoute.Blocklists> {
+                ConfigureRethinkBasicScreen(
+                    screenType = ConfigureRethinkScreenType.REMOTE,
+                    uid = -1,
+                    persistentState = persistentState,
+                    appConfig = appConfig,
+                    appDownloadManager = appDownloadManager,
+                    rethinkEndpointViewModel = rethinkEndpointViewModel,
+                    remoteFileTagViewModel = remoteFileTagViewModel,
+                    localFileTagViewModel = localFileTagViewModel,
+                    remoteBlocklistPacksMapViewModel = remoteBlocklistPacksMapViewModel,
+                    localBlocklistPacksMapViewModel = localBlocklistPacksMapViewModel,
+                    onBackClick = { nav.popBackStack() }
                 )
             }
             entry<RethinkRoute.ConfigureRethinkBasic> { args ->
@@ -873,8 +945,8 @@ fun HomeScreenRoot(
                     persistentState = persistentState,
                     eventLogger = appInfoEventLogger,
                     connTrackerRepository = connectionTrackerRepository,
-                    onNavigateToLogs = onNavigateToLogs,
-                    onOpenAccessibilitySettings = onOpenAccessibilitySettings,
+                    onNavigateToLogs = configureActions.onNavigateToLogs,
+                    onOpenAccessibilitySettings = configureActions.onOpenAccessibilitySettings,
                     onBackClick = { nav.popBackStack() }
                 )
             }
@@ -895,7 +967,7 @@ fun HomeScreenRoot(
                     CheckoutScreen(
                         paymentStatus = paymentStatus,
                         onStartPayment = { currentCheckoutViewModel.startPayment() },
-                        onNavigateToProxy = onNavigateToProxy,
+                        onNavigateToProxy = configureActions.onNavigateToProxy,
                         onManageAccount = { nav.push(RethinkRoute.RpnAccount) },
                         onBackClick = { nav.popBackStack() }
                     )
@@ -924,9 +996,9 @@ fun HomeScreenRoot(
                     appConfig = appConfig,
                     eventLogger = appInfoEventLogger,
                     onBackClick = { nav.popBackStack() },
-                    onCreateClick = onWgCreateClick,
-                    onImportClick = onWgImportClick,
-                    onQrScanClick = onWgQrScanClick,
+                    onCreateClick = wgActions.onWgCreateClick,
+                    onImportClick = wgActions.onWgImportClick,
+                    onQrScanClick = wgActions.onWgQrScanClick,
                     onConfigDetailClick = { configId, wgType ->
                         nav.push(RethinkRoute.WireGuardDetail(configId, wgType.value))
                     }
@@ -940,12 +1012,5 @@ fun HomeScreenRoot(
             }
 
             },
-        )
-        SnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth(),
-        )
-    }
+    )
 }

@@ -13,18 +13,16 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -37,8 +35,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkModalBottomSheet
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkRadioChoiceList
@@ -130,7 +126,6 @@ fun RethinkConsoleLogsScreen(
                     selectedLogLevel = initialLogLevel
                     filterVisible = true
                 },
-                onShareClick = onShareClick,
                 onClearClick = onClearClick,
             )
             Box(Modifier.fillMaxSize()) { content() }
@@ -144,51 +139,50 @@ private fun RethinkConsoleLogSearchRow(
     strings: RethinkConsoleLogStrings,
     onQueryChange: (String) -> Unit,
     onFilterClick: () -> Unit,
-    onShareClick: () -> Unit,
     onClearClick: () -> Unit,
 ) {
-    Surface(
-        modifier = Modifier.fillMaxWidth().padding(
-            horizontal = SharedDimensions.screenPaddingHorizontal,
-            vertical = SharedDimensions.spacingMd,
-        ),
-        shape = RoundedCornerShape(SharedDimensions.cardCornerRadiusLarge),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+    val searchShape = RoundedCornerShape(SharedDimensions.cornerRadiusLg)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(
+                horizontal = SharedDimensions.screenPaddingHorizontal,
+                vertical = SharedDimensions.spacingMd,
+            ),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = SharedDimensions.spacingSm, vertical = 2.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                MaterialSymbols.Filled.Search,
-                null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(start = SharedDimensions.spacingSm).size(SharedDimensions.iconSizeMd),
-            )
-            OutlinedTextField(
-                value = query,
-                onValueChange = onQueryChange,
-                modifier = Modifier.weight(1f),
-                singleLine = true,
-                placeholder = { Text(strings.searchHint, style = MaterialTheme.typography.bodyMedium) },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.Transparent,
-                    unfocusedBorderColor = Color.Transparent,
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                ),
-            )
-            Row {
-                IconButton(onClick = onFilterClick) {
-                    Icon(MaterialSymbols.Filled.FilterList, strings.filterDescription, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        TextField(
+            value = query,
+            onValueChange = onQueryChange,
+            modifier = Modifier.weight(1f),
+            singleLine = true,
+            placeholder = { Text(strings.searchHint, style = MaterialTheme.typography.bodyMedium) },
+            leadingIcon = {
+                Icon(MaterialSymbols.Filled.Search, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            },
+            trailingIcon = {
+                if (query.isNotEmpty()) {
+                    IconButton(onClick = { onQueryChange("") }) {
+                        Icon(MaterialSymbols.Filled.Close, strings.clearDescription, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
                 }
-                IconButton(onClick = onShareClick) {
-                    Icon(MaterialSymbols.Filled.Share, strings.shareDescription, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-                IconButton(onClick = onClearClick) {
-                    Icon(MaterialSymbols.Filled.Clear, strings.clearDescription, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
+            },
+            shape = searchShape,
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent,
+            ),
+        )
+        IconButton(onClick = onFilterClick) {
+            Icon(MaterialSymbols.Filled.FilterList, strings.filterDescription, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        IconButton(onClick = onClearClick) {
+            Icon(MaterialSymbols.Filled.Clear, strings.clearDescription, tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

@@ -36,12 +36,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkFilterChip
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSearchField
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBar
@@ -101,7 +100,7 @@ fun RethinkDatabaseScreen(
                 onBackClick = onBackClick,
                 actions = {
                     IconButton(onClick = onCopy, enabled = selectedTable != null && preview != null && !isCopying) {
-                        if (isCopying) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                        if (isCopying) CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp)
                         else Icon(MaterialSymbols.Filled.ContentCopy, strings.copyFull)
                     }
                 },
@@ -127,7 +126,7 @@ fun RethinkDatabaseScreen(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
             )
             if (isLoadingTables) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator(Modifier.size(36.dp)) }
             } else {
                 BoxWithConstraints(Modifier.fillMaxSize()) {
                     val wide = maxWidth >= 860.dp
@@ -166,16 +165,14 @@ private fun RethinkDatabaseInlineSelector(tables: List<String>, selected: String
         horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
     ) {
         tables.forEach { table ->
-            val active = selected == table
-            val chipShape = RoundedCornerShape(SharedDimensions.cornerRadiusPill)
-            Surface(
-                onClick = { if (!active) onSelect(table) },
-                shape = chipShape,
-                color = if (active) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
-                modifier = Modifier.clip(chipShape),
-            ) {
-                Text(table, style = MaterialTheme.typography.labelMedium, fontWeight = if (active) FontWeight.SemiBold else FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(horizontal = SharedDimensions.spacingMd, vertical = SharedDimensions.spacingSm))
-            }
+            RethinkFilterChip(
+                label = table,
+                selected = selected == table,
+                onClick = { if (selected != table) onSelect(table) },
+                minHeight = SharedDimensions.touchTargetMin,
+                selectedLabelWeight = FontWeight.SemiBold,
+                defaultLabelWeight = FontWeight.Medium,
+            )
         }
     }
 }
@@ -275,7 +272,7 @@ private fun RethinkDatabaseDetail(
                 }
             }
             if (loadingPreview) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator(Modifier.size(36.dp)) }
             } else if (preview != null) {
                 SelectionContainer {
                     Column(

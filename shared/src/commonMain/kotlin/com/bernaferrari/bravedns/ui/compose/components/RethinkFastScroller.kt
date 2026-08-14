@@ -47,29 +47,26 @@ import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
+data class RethinkFastScrollerMark(
+    val label: String,
+    val listIndex: Int,
+)
+
 @Composable
-fun <T> RethinkIndexedFastScroller(
-    items: List<T>,
+fun RethinkIndexedFastScroller(
+    marks: List<RethinkFastScrollerMark>,
     listState: LazyListState,
-    getIndexKey: (T) -> String,
     modifier: Modifier = Modifier,
-    minItemCount: Int = 24,
+    minMarkCount: Int = 4,
     onInteractionStart: () -> Unit = {},
     onInteractionEnd: () -> Unit = {},
-    scrollItemOffset: Int = 0,
 ) {
-    if (items.size < minItemCount) return
-
-    val motion = LocalRethinkMotion.current
-    val density = LocalDensity.current
-    val hapticFeedback = LocalHapticFeedback.current
-    val coroutineScope = rememberCoroutineScope()
     val labelToIndex =
-        remember(items, items.hashCode()) {
-            val map = mutableMapOf<String, Int>()
-            items.forEachIndexed { index, item ->
-                val label = indexLabel(getIndexKey(item))
-                if (label !in map) map[label] = index
+        remember(marks) {
+            val map = linkedMapOf<String, Int>()
+            marks.forEach { mark ->
+                val label = indexLabel(mark.label)
+                if (label !in map) map[label] = mark.listIndex
             }
             map
         }
@@ -79,8 +76,12 @@ fun <T> RethinkIndexedFastScroller(
                 compareBy<String> { if (it == "#") 0 else 1 }.thenBy { it },
             )
         }
-    if (labels.isEmpty()) return
+    if (labels.size < minMarkCount) return
 
+    val motion = LocalRethinkMotion.current
+    val density = LocalDensity.current
+    val hapticFeedback = LocalHapticFeedback.current
+    val coroutineScope = rememberCoroutineScope()
     val trackInset = 14.dp
     val labelSlotHeight = 22.dp
     val bubbleSize = 72.dp
@@ -102,7 +103,7 @@ fun <T> RethinkIndexedFastScroller(
     fun scrollToLabel(label: String) {
         val targetIndex = labelToIndex[label] ?: return
         coroutineScope.launch {
-            listState.scrollToItem((targetIndex - scrollItemOffset).coerceAtLeast(0))
+            listState.scrollToItem(targetIndex.coerceAtLeast(0))
         }
     }
 
@@ -134,7 +135,7 @@ fun <T> RethinkIndexedFastScroller(
     Box(
         modifier =
             modifier
-                .width(SharedDimensions.touchTargetSm)
+                .width(SharedDimensions.touchTargetMin)
                 .heightIn(max = maxTrackHeight)
                 .height(preferredTrackHeight),
     ) {
@@ -144,7 +145,7 @@ fun <T> RethinkIndexedFastScroller(
                     .fillMaxHeight()
                     .padding(vertical = trackInset)
                     .onGloballyPositioned { trackSize = it.size }
-                    .pointerInput(labels, items.hashCode()) {
+                    .pointerInput(labels) {
                         awaitPointerEventScope {
                             while (true) {
                                 val down = awaitFirstDown()

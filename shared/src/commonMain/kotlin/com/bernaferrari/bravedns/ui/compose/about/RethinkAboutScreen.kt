@@ -316,7 +316,7 @@ private fun AboutCommunitySection(
                     icon = assets.bugReport,
                     onClick = actions.onBugReport,
                     trailing = if (uiState.isBugReportRunning) {
-                        { CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp, color = accent) }
+                        { CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp, color = accent) }
                     } else {
                         null
                     },
@@ -372,7 +372,7 @@ private fun AboutSocialIcon(
 ) {
     IconButton(
         onClick = onClick,
-        modifier = Modifier.size(SharedDimensions.touchTargetSm).semantics { contentDescription = label },
+        modifier = Modifier.size(SharedDimensions.touchTargetMin).semantics { contentDescription = label },
     ) {
         icon(tint)
     }
@@ -402,7 +402,7 @@ private fun AboutPartners(strings: RethinkAboutStrings, actions: RethinkAboutAct
             assets.fossLogo(
                 Modifier
                     .width(100.dp)
-                    .heightIn(min = SharedDimensions.touchTargetSm)
+                    .heightIn(min = SharedDimensions.touchTargetMin)
                     .clip(logoShape)
                     .clickable(onClick = actions.onFoss)
                     .padding(SharedDimensions.spacingXs),
@@ -410,7 +410,7 @@ private fun AboutPartners(strings: RethinkAboutStrings, actions: RethinkAboutAct
             assets.flossFundsLogo(
                 Modifier
                     .width(100.dp)
-                    .heightIn(min = SharedDimensions.touchTargetSm)
+                    .heightIn(min = SharedDimensions.touchTargetMin)
                     .clip(logoShape)
                     .clickable(onClick = actions.onFlossFunds)
                     .padding(SharedDimensions.spacingXs),
@@ -430,10 +430,10 @@ private fun AboutFooter(uiState: RethinkAboutUiState, actions: RethinkAboutActio
                 text = uiState.firebaseToken,
                 style = MaterialTheme.typography.labelSmall,
                 textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(min = SharedDimensions.touchTargetSm)
-                    .alpha(0.5f)
+                    .heightIn(min = SharedDimensions.touchTargetMin)
                     .clickable(onClick = actions.onToken)
                     .padding(bottom = SharedDimensions.spacingMd),
             )

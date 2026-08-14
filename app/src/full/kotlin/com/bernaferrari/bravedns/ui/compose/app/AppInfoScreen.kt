@@ -122,6 +122,7 @@ fun AppInfoScreen(
     networkLogsViewModel: AppConnectionsViewModel,
     onBackClick: () -> Unit,
     onAppWiseIpLogsClick: (Int, Boolean) -> Unit,
+    onAppWiseDomainLogsClick: (Int) -> Unit,
     onCustomIpRulesClick: (Int) -> Unit,
     onCustomDomainRulesClick: (Int) -> Unit
 ) {
@@ -482,7 +483,7 @@ fun AppInfoScreen(
         onIpRules = { onCustomIpRulesClick(uid) },
         onDomainRules = { onCustomDomainRulesClick(uid) },
         onActiveConnections = { onAppWiseIpLogsClick(uid, false) },
-        onDomains = { onAppWiseIpLogsClick(uid, false) },
+        onDomains = { onAppWiseDomainLogsClick(uid) },
         onIps = { onAppWiseIpLogsClick(uid, false) },
         onActiveEntry = { entry -> activePreview.getOrNull(entry.id.toIntOrNull() ?: -1)?.let { closeDialogConn = it } },
         onDomainEntry = { entry -> domainPreview.getOrNull(entry.id.toIntOrNull() ?: -1)?.let { selectedDomain = it.appOrDnsName.orEmpty(); showDomainRulesSheet = true } },

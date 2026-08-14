@@ -29,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFilterChip
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormActionRow
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSearchField
@@ -64,6 +65,7 @@ data class RethinkBlocklistEditorStrings(
     val discard: String,
     val blocklistCount: (Int) -> String,
     val entries: (Int) -> String,
+    val empty: String = "",
 )
 
 /** Complete target-neutral packs/advanced blocklist editor body. */
@@ -203,6 +205,10 @@ private fun RethinkBlocklistSubgroupMenu(selected: Set<String>, all: List<String
 
 @Composable
 private fun RethinkBlocklistPackList(feed: RethinkBlocklistFeed<RethinkBlocklistPack>, strings: RethinkBlocklistEditorStrings, onToggle: (RethinkBlocklistPack, Boolean) -> Unit, modifier: Modifier) {
+    if (feed.itemCount == 0) {
+        RethinkEmptyState(title = strings.empty.ifBlank { strings.filterHint }, message = "", modifier = modifier)
+        return
+    }
     LazyColumn(modifier, contentPadding = PaddingValues(vertical = SharedDimensions.spacingSm), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         items(feed.itemCount) { index ->
             val pack = feed[index] ?: return@items
@@ -213,6 +219,10 @@ private fun RethinkBlocklistPackList(feed: RethinkBlocklistFeed<RethinkBlocklist
 
 @Composable
 private fun RethinkBlocklistFileTagList(feed: RethinkBlocklistFeed<RethinkBlocklistFileTag>, strings: RethinkBlocklistEditorStrings, onToggle: (RethinkBlocklistFileTag, Boolean) -> Unit, onOpenUrl: (String) -> Unit, modifier: Modifier) {
+    if (feed.itemCount == 0) {
+        RethinkEmptyState(title = strings.empty.ifBlank { strings.filterHint }, message = "", modifier = modifier)
+        return
+    }
     LazyColumn(modifier, contentPadding = PaddingValues(vertical = SharedDimensions.spacingSm), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         items(feed.itemCount) { index ->
             val tag = feed[index] ?: return@items

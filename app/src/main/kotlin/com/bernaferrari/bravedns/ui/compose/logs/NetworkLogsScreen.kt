@@ -41,23 +41,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Block
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.NetworkPing
-import androidx.compose.material.icons.filled.Public
-import androidx.compose.material.icons.filled.Shield
-import androidx.compose.material.icons.filled.Apps
-import androidx.compose.material.icons.filled.Block
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.NetworkPing
-import androidx.compose.material.icons.filled.Public
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ButtonGroupDefaults
@@ -87,7 +70,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -128,6 +110,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkModalBottomSheet
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSearchField
 import com.bernaferrari.bravedns.ui.compose.rememberDrawablePainter
+import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 import com.bernaferrari.bravedns.util.Utilities
 import com.bernaferrari.bravedns.viewmodel.ConnectionTrackerViewModel
 import com.bernaferrari.bravedns.viewmodel.DnsLogViewModel
@@ -301,7 +284,7 @@ private fun ConnectionLogsContent(
                     )
 
                     RethinkLogCompactIconAction(
-                        icon = Icons.Filled.FilterList,
+                        icon = MaterialSymbols.Filled.FilterList,
                         contentDescription = stringResource(R.string.lbl_rules),
                         selected = childFilters.isNotEmpty(),
                         enabled = hasRulesFilter,
@@ -310,7 +293,7 @@ private fun ConnectionLogsContent(
                     )
 
                     RethinkLogCompactIconAction(
-                        icon = Icons.Filled.Apps,
+                        icon = MaterialSymbols.Filled.Apps,
                         contentDescription = stringResource(R.string.lbl_apps),
                         selected = selectedAppFilter != null,
                         enabled = true,
@@ -472,7 +455,7 @@ private fun DnsLogsContent(
                 )
 
                 RethinkLogCompactIconAction(
-                    icon = Icons.Filled.Apps,
+                    icon = MaterialSymbols.Filled.Apps,
                     contentDescription = stringResource(R.string.lbl_apps),
                     selected = selectedAppFilter != null,
                     enabled = true,

@@ -1,30 +1,30 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.firewall
 
-import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
-
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.ButtonGroupDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 
 /** Target-neutral state of a firewall rule. Platform adapters map their manager-specific enums here. */
@@ -66,8 +66,9 @@ fun RethinkRuleSectionTitle(
 ) {
     Text(
         text,
-        style = MaterialTheme.typography.titleMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        style = MaterialTheme.typography.titleSmall,
+        fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.primary,
         modifier = modifier.fillMaxWidth().padding(horizontal = SharedDimensions.screenPaddingHorizontal),
     )
 }
@@ -101,7 +102,8 @@ fun RethinkRuleValue(
     }
 }
 
-/** Full-width rule target with expressive trust/block toggles. */
+/** Full-width rule target with labeled trust/block toggles. */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun RethinkRuleTrustBlockRow(
     value: String,
@@ -119,42 +121,29 @@ fun RethinkRuleTrustBlockRow(
         SelectionContainer(Modifier.weight(1f)) {
             Text(value, style = valueTextStyle, color = MaterialTheme.colorScheme.onSurface)
         }
-        RethinkRuleActionIcon(
-            icon = MaterialSymbols.Filled.Security,
-            label = strings.trust,
-            selected = action == RethinkRuleAction.Trust,
-            selectedColor = MaterialTheme.colorScheme.tertiary,
-            onClick = { onActionChange(if (action == RethinkRuleAction.Trust) RethinkRuleAction.None else RethinkRuleAction.Trust) },
-        )
-        RethinkRuleActionIcon(
-            icon = MaterialSymbols.Filled.Block,
-            label = strings.block,
-            selected = action == RethinkRuleAction.Block,
-            selectedColor = MaterialTheme.colorScheme.error,
-            onClick = { onActionChange(if (action == RethinkRuleAction.Block) RethinkRuleAction.None else RethinkRuleAction.Block) },
-        )
+        RethinkRuleTrustBlockToggles(action = action, strings = strings, onActionChange = onActionChange, modifier = Modifier.weight(1f))
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun RethinkRuleActionIcon(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String,
-    selected: Boolean,
-    selectedColor: Color,
-    onClick: () -> Unit,
+private fun RethinkRuleTrustBlockToggles(
+    action: RethinkRuleAction,
+    strings: RethinkRuleEditorStrings,
+    onActionChange: (RethinkRuleAction) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    Surface(
-        shape = androidx.compose.foundation.shape.CircleShape,
-        color = if (selected) selectedColor.copy(alpha = 0.18f) else Color.Transparent,
-    ) {
-        IconButton(onClick = onClick) {
-            Icon(icon, label, tint = if (selected) selectedColor else MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-    }
+    RethinkConnectedChoiceRow(
+        options = listOf(RethinkRuleAction.Trust, RethinkRuleAction.Block),
+        selected = action,
+        onSelected = { next -> onActionChange(if (next == action) RethinkRuleAction.None else next) },
+        label = { option -> if (option == RethinkRuleAction.Trust) strings.trust else strings.block },
+        modifier = modifier,
+    )
 }
 
 /** Portable selector for persisted custom IP/domain rules. */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun RethinkRuleActionSelector(
     options: List<RethinkRuleActionOption>,
@@ -162,39 +151,58 @@ fun RethinkRuleActionSelector(
     onActionChange: (RethinkRuleAction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Row(
+    RethinkConnectedChoiceRow(
+        options = options,
+        selected = options.firstOrNull { it.action == selectedAction },
+        onSelected = { onActionChange(it.action) },
+        label = { it.label },
         modifier = modifier.fillMaxWidth().padding(horizontal = SharedDimensions.screenPaddingHorizontal),
-        horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
+    )
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun <T> RethinkConnectedChoiceRow(
+    options: List<T>,
+    selected: T?,
+    onSelected: (T) -> Unit,
+    label: (T) -> String,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
     ) {
-        options.forEach { option ->
-            val selected = option.action == selectedAction
-            FilterChip(
-                modifier = Modifier.weight(1f),
-                selected = selected,
-                onClick = { onActionChange(option.action) },
-                label = { Text(option.label, maxLines = 1, fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium) },
-                colors = androidx.compose.material3.FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = ruleActionContainer(option.action),
-                    selectedLabelColor = ruleActionContent(option.action),
+        options.forEachIndexed { index, option ->
+            val isSelected = option == selected
+            ToggleButton(
+                checked = isSelected,
+                onCheckedChange = { checked -> if (checked || isSelected) onSelected(option) },
+                shapes = when (index) {
+                    0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                    options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                },
+                colors = ToggleButtonDefaults.toggleButtonColors(
+                    checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 ),
-                border = if (selected) BorderStroke(SharedDimensions.dividerThicknessBold, ruleActionContent(option.action).copy(alpha = 0.28f)) else null,
-            )
+                border = null,
+                modifier = Modifier.weight(1f).semantics { role = Role.RadioButton },
+            ) {
+                Text(
+                    label(option),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
+                )
+            }
         }
     }
-}
-
-@Composable
-private fun ruleActionContainer(action: RethinkRuleAction): Color = when (action) {
-    RethinkRuleAction.Block -> MaterialTheme.colorScheme.errorContainer
-    RethinkRuleAction.Trust, RethinkRuleAction.Bypass -> MaterialTheme.colorScheme.tertiaryContainer
-    RethinkRuleAction.None -> MaterialTheme.colorScheme.surfaceVariant
-}
-
-@Composable
-private fun ruleActionContent(action: RethinkRuleAction): Color = when (action) {
-    RethinkRuleAction.Block -> MaterialTheme.colorScheme.error
-    RethinkRuleAction.Trust, RethinkRuleAction.Bypass -> MaterialTheme.colorScheme.tertiary
-    RethinkRuleAction.None -> MaterialTheme.colorScheme.onSurfaceVariant
 }
 
 /** Compact list row for domain rules attached to an IP rule. */
@@ -206,19 +214,17 @@ fun RethinkDomainRuleRow(
     onActionChange: (RethinkRuleAction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.cornerRadiusMdLg),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        border = BorderStroke(SharedDimensions.dividerThickness, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.32f)),
-    ) {
-        RethinkRuleTrustBlockRow(
-            value = domain,
-            action = action,
-            strings = strings,
-            onActionChange = onActionChange,
-            modifier = Modifier.padding(horizontal = SharedDimensions.spacingXs),
-            valueTextStyle = MaterialTheme.typography.bodyMedium,
-        )
-    }
+    RethinkListItem(
+        modifier = modifier,
+        headline = domain,
+        position = CardPosition.Single,
+        trailing = {
+            RethinkRuleTrustBlockToggles(
+                action = action,
+                strings = strings,
+                onActionChange = onActionChange,
+                modifier = Modifier.width(SharedDimensions.touchTargetMin * 4),
+            )
+        },
+    )
 }

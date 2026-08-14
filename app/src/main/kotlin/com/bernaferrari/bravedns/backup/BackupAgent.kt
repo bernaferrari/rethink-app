@@ -19,7 +19,6 @@ import Logger
 import Logger.LOG_TAG_BACKUP_RESTORE
 import android.content.Context
 import android.net.Uri
-import android.os.SystemClock
 import androidx.core.net.toUri
 import androidx.work.Worker
 import androidx.work.WorkerParameters
@@ -36,6 +35,8 @@ import com.bernaferrari.bravedns.backup.BackupHelper.Companion.getFileNameFromPa
 import com.bernaferrari.bravedns.backup.BackupHelper.Companion.getRethinkDatabase
 import com.bernaferrari.bravedns.backup.BackupHelper.Companion.getTempDir
 import com.bernaferrari.bravedns.backup.BackupHelper.Companion.startVpn
+import com.bernaferrari.bravedns.database.AppDatabase
+import com.bernaferrari.bravedns.database.LogDatabase
 import com.bernaferrari.bravedns.service.EncryptedFileManager
 import com.bernaferrari.bravedns.service.PersistentState
 import com.bernaferrari.bravedns.service.WireguardManager
@@ -54,6 +55,7 @@ import java.io.ObjectOutputStream
 import java.io.OutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
+import kotlinx.coroutines.runBlocking
 
 // ref:
 // https://gavingt.medium.com/refactoring-my-backup-and-restore-feature-to-comply-with-scoped-storage-e2b6c792c3b
@@ -62,6 +64,8 @@ class BackupAgent(val context: Context, workerParams: WorkerParameters) :
 
     var filesPathToZip: MutableList<String> = ArrayList()
     private val persistentState by inject<PersistentState>()
+    private val appDatabase by inject<AppDatabase>()
+    private val logDatabase by inject<LogDatabase>()
 
     companion object {
         const val TAG = "BackupExport"
@@ -220,7 +224,7 @@ class BackupAgent(val context: Context, workerParams: WorkerParameters) :
     }
 
     private fun backupMetadata(): String {
-        return "$VERSION:${persistentState.appVersion}|$PACKAGE_NAME:${context.packageName}|$CREATED_TIME:${SystemClock.elapsedRealtime()}"
+        return "$VERSION:${persistentState.appVersion}|$PACKAGE_NAME:${context.packageName}|$CREATED_TIME:${System.currentTimeMillis()}"
     }
 
     private fun zipAndCopyToDestination(tempDir: File, destUri: Uri): Boolean {
@@ -263,6 +267,9 @@ class BackupAgent(val context: Context, workerParams: WorkerParameters) :
     }
 
     private fun saveDatabasesToFile(path: String): Boolean {
+        runBlocking {
+            BackupHelper.checkpointRoomDatabases(appDatabase, logDatabase)
+        }
         val files = getRethinkDatabase(context)?.listFiles() ?: return false
 
         for (f in files) {
@@ -270,13 +277,6 @@ class BackupAgent(val context: Context, workerParams: WorkerParameters) :
                     LOG_TAG_BACKUP_RESTORE,
                     "file ${f.name} found in database dir (${f.absolutePath})"
                 )
-            // looks like the journal, shm and wal files are needed for proper restore, so
-            // commenting out the below code. still testing it out.
-            // TODO: check if the journal files are needed for restore
-            // skip journal files, they are not needed for restore
-            /*if (f.path.endsWith("-journal") || f.path.endsWith("-shm") || f.path.endsWith("-wal")) {
-                continue
-            }*/
             val databaseFile =
                 backUpFile(f.absolutePath, constructDbFileName(path, f.name)) ?: return false
             Logger.i(LOG_TAG_BACKUP_RESTORE, "file ${databaseFile.name} added to backup dir")

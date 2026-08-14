@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -23,18 +22,17 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
-import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormSection
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListShape
 
 enum class RethinkTunnelSettingKind { Action, Toggle }
 
@@ -87,7 +85,7 @@ fun RethinkTunnelSettingsScreen(
                 scrollBehavior = scrollBehavior,
             )
         },
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = MaterialTheme.colorScheme.surface,
     ) { padding ->
         LazyColumn(
             state = listState,
@@ -114,30 +112,40 @@ fun RethinkTunnelSettingsScreen(
             }
             item { RethinkTunnelSettingGroup(coreRows, focusedRowId, onActionClick, onToggleChange) }
             item {
-                SectionHeader(strings.advanced)
-                RethinkTunnelSettingGroup(advancedRows, focusedRowId, onActionClick, onToggleChange)
-            }
-            item {
-                RethinkListGroup {
-                    Surface(
-                        modifier = Modifier.fillMaxWidth(),
-                        color = if (focusedRowId == "network_dial_timeout") MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f) else Color.Transparent,
-                        shape = RoundedCornerShape(SharedDimensions.cornerRadiusLg),
+                RethinkFormSection(strings.advanced) {
+                    RethinkTunnelSettingGroup(
+                        rows = advancedRows,
+                        focusedRowId = focusedRowId,
+                        onActionClick = onActionClick,
+                        onToggleChange = onToggleChange,
+                        lastIndexOverride = advancedRows.lastIndex + 1,
                     ) {
-                        Column(Modifier.fillMaxWidth().padding(SharedDimensions.cardPadding)) {
-                            Text(strings.dialTimeout, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                            Text(dialTimeoutDescription, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Spacer(Modifier.height(SharedDimensions.spacingSm))
-                            Slider(
-                                value = dialTimeoutMinutes.toFloat(),
-                                onValueChange = { onDialTimeoutChange(it.toInt()) },
-                                valueRange = 0f..60f,
-                                colors = SliderDefaults.colors(
-                                    thumbColor = MaterialTheme.colorScheme.primary,
-                                    activeTrackColor = MaterialTheme.colorScheme.primary,
-                                    inactiveTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                                ),
-                            )
+                        val timeoutPosition = cardPositionFor(advancedRows.lastIndex + 1, advancedRows.lastIndex + 1)
+                        val timeoutHighlighted = focusedRowId == "network_dial_timeout"
+                        Surface(
+                            modifier = Modifier.fillMaxWidth().padding(top = SharedDimensions.spacingGridTile),
+                            color = if (timeoutHighlighted) {
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.34f)
+                            } else {
+                                MaterialTheme.colorScheme.surfaceContainerLow
+                            },
+                            shape = rethinkGroupedListShape(timeoutPosition),
+                        ) {
+                            Column(Modifier.fillMaxWidth().padding(SharedDimensions.cardPadding)) {
+                                Text(strings.dialTimeout, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+                                Text(dialTimeoutDescription, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Spacer(Modifier.height(SharedDimensions.spacingSm))
+                                Slider(
+                                    value = dialTimeoutMinutes.toFloat(),
+                                    onValueChange = { onDialTimeoutChange(it.toInt()) },
+                                    valueRange = 0f..60f,
+                                    colors = SliderDefaults.colors(
+                                        thumbColor = MaterialTheme.colorScheme.primary,
+                                        activeTrackColor = MaterialTheme.colorScheme.primary,
+                                        inactiveTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                    ),
+                                )
+                            }
                         }
                     }
                 }
@@ -152,10 +160,12 @@ private fun RethinkTunnelSettingGroup(
     focusedRowId: String?,
     onActionClick: (String) -> Unit,
     onToggleChange: (String, Boolean) -> Unit,
+    lastIndexOverride: Int? = null,
+    footer: (@Composable () -> Unit)? = null,
 ) {
     RethinkListGroup {
         rows.forEachIndexed { index, row ->
-            val position = cardPositionFor(index, rows.lastIndex)
+            val position = cardPositionFor(index, lastIndexOverride ?: rows.lastIndex)
             if (row.kind == RethinkTunnelSettingKind.Toggle) {
                 RethinkListItem(
                     headline = row.title,
@@ -183,6 +193,7 @@ private fun RethinkTunnelSettingGroup(
                 )
             }
         }
+        footer?.invoke()
     }
 }
 

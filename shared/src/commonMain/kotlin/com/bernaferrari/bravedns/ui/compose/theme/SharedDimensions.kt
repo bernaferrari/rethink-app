@@ -25,14 +25,14 @@ object SharedDimensions {
 
     val cornerRadius2xs = 3.dp
     val cornerRadiusXs = 4.dp
-    val cornerRadiusSm = 6.dp
+    val cornerRadiusSm = 8.dp
     val cornerRadiusSmMd = 10.dp
     val cornerRadiusMd = 12.dp
     val cornerRadiusMdLg = 14.dp
     val cornerRadiusLg = 16.dp
     val cornerRadiusXl = 20.dp
-    val cornerRadius2xl = 20.dp
-    val cornerRadius3xl = 20.dp
+    val cornerRadius2xl = 28.dp
+    val cornerRadius3xl = 32.dp
     val cornerRadius4xl = 24.dp
     val cornerRadius5xl = 28.dp
     val cornerRadiusPill = 50.dp
@@ -41,6 +41,7 @@ object SharedDimensions {
     val cardCornerRadius = 20.dp
     val cardCornerRadiusLarge = 28.dp
     val heroCornerRadius = 32.dp
+    val beaconCornerRadius = 72.dp
     val chipCornerRadius = 50.dp
     val iconContainerRadius = 12.dp
     val buttonCornerRadius = 50.dp
@@ -61,11 +62,11 @@ object SharedDimensions {
     val iconContainerLg = 48.dp
 
     val touchTargetMin = 48.dp
-    val touchTargetSm = 44.dp
-    val buttonHeight = 52.dp
-    val buttonHeightSm = 44.dp
-    val buttonHeightLg = 60.dp
-    val heroButtonHeight = 48.dp
+    val brandMarkSize = 120.dp
+    val buttonHeight = 56.dp
+    val buttonHeightSm = 40.dp
+    val buttonHeightLg = 56.dp
+    val heroButtonHeight = 56.dp
     val listItemHeight = 64.dp
     val listItemHeightSm = 56.dp
     val listItemHeightLg = 72.dp

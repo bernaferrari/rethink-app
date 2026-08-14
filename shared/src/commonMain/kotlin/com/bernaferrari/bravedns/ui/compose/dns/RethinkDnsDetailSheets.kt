@@ -6,7 +6,6 @@ import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,7 +22,6 @@ import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -35,11 +33,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormSection
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkModalBottomSheet
-import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 
 data class RethinkDnsRecordType(val id: String, val name: String, val description: String)
 
@@ -70,21 +69,12 @@ fun RethinkDnsRecordTypesSheet(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
         ) {
-            RethinkDnsSheetCard {
-                Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd), verticalAlignment = Alignment.Top) {
-                    Surface(shape = RoundedCornerShape(SharedDimensions.iconContainerRadius), color = MaterialTheme.colorScheme.primaryContainer, modifier = Modifier.size(SharedDimensions.iconContainerMd)) {
-                        Box(contentAlignment = Alignment.Center) { Icon(MaterialSymbols.Filled.Security, null, tint = MaterialTheme.colorScheme.onPrimaryContainer) }
-                    }
-                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
-                        Text(strings.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                        Text(strings.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                }
+            RethinkFormSection(strings.title, strings.description) {
                 Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
                     RethinkDnsSheetPill(if (autoMode) strings.auto else strings.manual)
                     RethinkDnsSheetPill(strings.selected(selectedCount, types.size))
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)) {
                     ToggleButton(
                         checked = autoMode,
                         onCheckedChange = { if (it && !autoMode) onAutoModeChange(true) },
@@ -92,7 +82,10 @@ fun RethinkDnsRecordTypesSheet(
                         colors = ToggleButtonDefaults.toggleButtonColors(
                             checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                             checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         ),
+                        border = null,
                         modifier = Modifier.weight(1f),
                     ) { Text(strings.auto, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold) }
                     ToggleButton(
@@ -102,32 +95,36 @@ fun RethinkDnsRecordTypesSheet(
                         colors = ToggleButtonDefaults.toggleButtonColors(
                             checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                             checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         ),
+                        border = null,
                         modifier = Modifier.weight(1f),
                     ) { Text(strings.manual, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold) }
                 }
             }
-            SectionHeader(strings.allowed)
-            LazyColumn(
-                modifier = Modifier.fillMaxWidth().heightIn(max = 380.dp),
-                contentPadding = PaddingValues(bottom = SharedDimensions.spacing2xl),
-                verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
-            ) {
-                itemsIndexed(types, key = { _, type -> type.id }) { index, type ->
-                    val checked = type.id in selectedIds
-                    RethinkListItem(
-                        headline = type.name,
-                        supporting = type.description,
-                        position = dnsCardPosition(index, types.lastIndex),
-                        enabled = !autoMode,
-                        defaultContainerColor = if (checked && !autoMode) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.48f) else MaterialTheme.colorScheme.surfaceContainerLow,
-                        onClick = { if (!autoMode) onToggle(type.id) },
-                        trailing = {
-                            Box(Modifier.width(SharedDimensions.touchTargetMin), contentAlignment = Alignment.CenterEnd) {
-                                Checkbox(checked = checked, enabled = !autoMode, onCheckedChange = { if (!autoMode) onToggle(type.id) })
-                            }
-                        },
-                    )
+            RethinkFormSection(strings.allowed) {
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth().heightIn(max = 380.dp),
+                    contentPadding = PaddingValues(bottom = SharedDimensions.spacing2xl),
+                    verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
+                ) {
+                    itemsIndexed(types, key = { _, type -> type.id }) { index, type ->
+                        val checked = type.id in selectedIds
+                        RethinkListItem(
+                            headline = type.name,
+                            supporting = type.description,
+                            position = cardPositionFor(index, types.lastIndex),
+                            enabled = !autoMode,
+                            highlighted = checked && !autoMode,
+                            onClick = { if (!autoMode) onToggle(type.id) },
+                            trailing = {
+                                Box(Modifier.width(SharedDimensions.touchTargetMin), contentAlignment = Alignment.CenterEnd) {
+                                    Checkbox(checked = checked, enabled = !autoMode, onCheckedChange = { if (!autoMode) onToggle(type.id) })
+                                }
+                            },
+                        )
+                    }
                 }
             }
         }
@@ -188,44 +185,47 @@ fun RethinkLocalBlocklistSheet(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
         ) {
-            RethinkDnsSheetCard {
+            Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
                 Text(state.heading, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                 if (state.version.isNotBlank()) Text(state.version, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            SectionHeader(strings.state)
-            RethinkListGroup {
-                RethinkListItem(
-                    headline = if (state.enabled) strings.disable else strings.enable,
-                    supporting = strings.toggleDescription,
-                    leadingIcon = MaterialSymbols.Filled.Security,
-                    position = CardPosition.Single,
-                    onClick = onEnableToggle,
-                )
-            }
-            SectionHeader(strings.actions)
-            RethinkListGroup {
-                RethinkListItem(headline = strings.configure, leadingIcon = MaterialSymbols.Filled.Settings, position = CardPosition.First, enabled = state.canConfigure, onClick = onConfigure)
-                RethinkListItem(headline = strings.copy, leadingIcon = MaterialSymbols.Filled.ContentCopy, position = CardPosition.Middle, enabled = state.canCopy, onClick = onCopy)
-                RethinkListItem(headline = strings.search, leadingIcon = MaterialSymbols.Filled.Search, position = CardPosition.Last, enabled = state.canSearch, onClick = onSearch)
-            }
-            SectionHeader(strings.maintenance)
-            RethinkListGroup {
-                val maintenance = buildList {
-                    if (state.showCheckUpdate) add(RethinkLocalBlocklistAction(strings.checkUpdate, MaterialSymbols.Filled.Refresh, !state.checking, state.checking, onCheckUpdate))
-                    if (state.showDownload) add(RethinkLocalBlocklistAction(strings.download, MaterialSymbols.Filled.Download, !state.downloading, state.downloading, onDownload))
-                    if (state.showRedownload) add(RethinkLocalBlocklistAction(strings.redownload, MaterialSymbols.Filled.Download, !state.redownloading, state.redownloading, onRedownload))
-                    add(RethinkLocalBlocklistAction(strings.delete, MaterialSymbols.Filled.Delete, true, false, onDelete))
-                }
-                maintenance.forEachIndexed { index, item ->
+            RethinkFormSection(strings.state) {
+                RethinkListGroup {
                     RethinkListItem(
-                        headline = item.label,
-                        leadingIcon = item.icon,
-                        leadingIconTint = if (item.label == strings.delete) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
-                        position = dnsCardPosition(index, maintenance.lastIndex),
-                        enabled = item.enabled,
-                        onClick = item.onClick,
-                        trailing = if (item.showProgress) ({ CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp) }) else null,
+                        headline = if (state.enabled) strings.disable else strings.enable,
+                        supporting = strings.toggleDescription,
+                        leadingIcon = MaterialSymbols.Filled.Security,
+                        position = CardPosition.Single,
+                        onClick = onEnableToggle,
                     )
+                }
+            }
+            RethinkFormSection(strings.actions) {
+                RethinkListGroup {
+                    RethinkListItem(headline = strings.configure, leadingIcon = MaterialSymbols.Filled.Settings, position = CardPosition.First, enabled = state.canConfigure, onClick = onConfigure)
+                    RethinkListItem(headline = strings.copy, leadingIcon = MaterialSymbols.Filled.ContentCopy, position = CardPosition.Middle, enabled = state.canCopy, onClick = onCopy)
+                    RethinkListItem(headline = strings.search, leadingIcon = MaterialSymbols.Filled.Search, position = CardPosition.Last, enabled = state.canSearch, onClick = onSearch)
+                }
+            }
+            RethinkFormSection(strings.maintenance) {
+                RethinkListGroup {
+                    val maintenance = buildList {
+                        if (state.showCheckUpdate) add(RethinkLocalBlocklistAction(strings.checkUpdate, MaterialSymbols.Filled.Refresh, !state.checking, state.checking, onCheckUpdate))
+                        if (state.showDownload) add(RethinkLocalBlocklistAction(strings.download, MaterialSymbols.Filled.Download, !state.downloading, state.downloading, onDownload))
+                        if (state.showRedownload) add(RethinkLocalBlocklistAction(strings.redownload, MaterialSymbols.Filled.Download, !state.redownloading, state.redownloading, onRedownload))
+                        add(RethinkLocalBlocklistAction(strings.delete, MaterialSymbols.Filled.Delete, true, false, onDelete))
+                    }
+                    maintenance.forEachIndexed { index, item ->
+                        RethinkListItem(
+                            headline = item.label,
+                            leadingIcon = item.icon,
+                            leadingIconTint = if (item.label == strings.delete) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                            position = cardPositionFor(index, maintenance.lastIndex),
+                            enabled = item.enabled,
+                            onClick = item.onClick,
+                            trailing = if (item.showProgress) ({ CircularProgressIndicator(Modifier.size(SharedDimensions.iconSizeMd), strokeWidth = 2.dp) }) else null,
+                        )
+                    }
                 }
             }
         }
@@ -241,27 +241,8 @@ private data class RethinkLocalBlocklistAction(
 )
 
 @Composable
-private fun RethinkDnsSheetCard(content: @Composable ColumnScope.() -> Unit) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(SharedDimensions.cornerRadius3xl),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        border = androidx.compose.foundation.BorderStroke(SharedDimensions.dividerThicknessBold, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)),
-    ) {
-        Column(Modifier.padding(SharedDimensions.cardPadding), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm), content = content)
-    }
-}
-
-@Composable
 private fun RethinkDnsSheetPill(text: String) {
     Surface(shape = RoundedCornerShape(SharedDimensions.chipCornerRadius), color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f)) {
         Text(text, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSecondaryContainer, modifier = Modifier.padding(horizontal = SharedDimensions.spacingSm, vertical = SharedDimensions.spacingXs))
     }
-}
-
-private fun dnsCardPosition(index: Int, lastIndex: Int) = when {
-    lastIndex <= 0 -> CardPosition.Single
-    index == 0 -> CardPosition.First
-    index == lastIndex -> CardPosition.Last
-    else -> CardPosition.Middle
 }

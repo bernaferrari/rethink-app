@@ -178,7 +178,7 @@ fun RethinkRpnSupportSheet(
             TextButton(
                 onClick = dismissSheet,
                 enabled = !sending,
-                modifier = Modifier.heightIn(min = SharedDimensions.touchTargetSm),
+                modifier = Modifier.heightIn(min = SharedDimensions.touchTargetMin),
             ) {
                 Text(strings.cancel)
             }

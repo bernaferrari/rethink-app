@@ -1,44 +1,44 @@
 /* Copyright 2026 RethinkDNS and its authors */
-package com.bernaferrari.bravedns.ui.compose.settings
+@file:OptIn(ExperimentalMaterial3Api::class)
 
-import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
+package com.bernaferrari.bravedns.ui.compose.settings
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.ui.draw.clip
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
+import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormActionRow
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormTextField
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkModalBottomSheet
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkRadioChoiceList
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 
 enum class RethinkProxyConfigurationKind { Socks5, Http }
 
@@ -93,7 +93,7 @@ fun RethinkProxyConfigurationDialog(
     ) { dismissSheet ->
         Text(strings.title, style = MaterialTheme.typography.headlineSmall)
         Column(
-            modifier = Modifier.heightIn(max = 560.dp).verticalScroll(rememberScrollState()),
+            modifier = Modifier.verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
         ) {
             strings.description?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
@@ -101,7 +101,7 @@ fun RethinkProxyConfigurationDialog(
             if (kind == RethinkProxyConfigurationKind.Socks5) {
                 RethinkProxyTextField(state.port, strings.port) { onStateChange(state.copy(port = it, error = null)) }
                 RethinkProxyTextField(state.username, strings.username) { onStateChange(state.copy(username = it, error = null)) }
-                RethinkProxyTextField(state.password, strings.password) { onStateChange(state.copy(password = it, error = null)) }
+                RethinkProxyPasswordField(state.password, strings.password) { onStateChange(state.copy(password = it, error = null)) }
             }
             Text(strings.appDescription, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             RethinkProxyAppSelector(
@@ -110,19 +110,24 @@ fun RethinkProxyConfigurationDialog(
                 onSelected = { onStateChange(state.copy(selectedAppId = it, error = null)) },
                 appIcon = appIcon,
             )
-            if (kind == RethinkProxyConfigurationKind.Socks5) {
+            val toggleCount = if (kind == RethinkProxyConfigurationKind.Socks5) 2 else 1
+            RethinkListGroup {
+                if (kind == RethinkProxyConfigurationKind.Socks5) {
+                    RethinkProxyToggleRow(
+                        label = strings.udpBlocked,
+                        checked = state.udpBlocked,
+                        position = cardPositionFor(0, toggleCount - 1),
+                        onCheckedChange = { onStateChange(state.copy(udpBlocked = it, error = null)) },
+                    )
+                }
                 RethinkProxyToggleRow(
-                    label = strings.udpBlocked,
-                    checked = state.udpBlocked,
-                    onCheckedChange = { onStateChange(state.copy(udpBlocked = it, error = null)) },
+                    label = strings.includeProxyApps,
+                    checked = state.includeProxyApps,
+                    enabled = !state.lockdown,
+                    position = cardPositionFor(toggleCount - 1, toggleCount - 1),
+                    onCheckedChange = { onStateChange(state.copy(includeProxyApps = it, error = null)) },
                 )
             }
-            RethinkProxyToggleRow(
-                label = strings.includeProxyApps,
-                checked = state.includeProxyApps,
-                enabled = !state.lockdown,
-                onCheckedChange = { onStateChange(state.copy(includeProxyApps = it, error = null)) },
-            )
             if (state.lockdown) {
                 Text(
                     strings.lockdownDescription,
@@ -132,7 +137,7 @@ fun RethinkProxyConfigurationDialog(
                         Modifier
                     } else {
                         Modifier
-                            .heightIn(min = SharedDimensions.touchTargetSm)
+                            .heightIn(min = SharedDimensions.touchTargetMin)
                             .clickable(onClick = onLockdownInfo)
                     },
                 )
@@ -184,23 +189,34 @@ private fun RethinkProxyTextField(value: String, label: String, onValueChange: (
 }
 
 @Composable
-private fun RethinkProxyToggleRow(label: String, checked: Boolean, enabled: Boolean = true, onCheckedChange: (Boolean) -> Unit) {
-    Surface(
-        onClick = { onCheckedChange(!checked) },
+private fun RethinkProxyPasswordField(value: String, label: String, onValueChange: (String) -> Unit) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true,
+        visualTransformation = PasswordVisualTransformation(),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+        shape = RoundedCornerShape(SharedDimensions.cornerRadiusLg),
+    )
+}
+
+@Composable
+private fun RethinkProxyToggleRow(
+    label: String,
+    checked: Boolean,
+    position: CardPosition,
+    enabled: Boolean = true,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    RethinkListItem(
+        headline = label,
+        position = position,
         enabled = enabled,
-        shape = MaterialTheme.shapes.medium,
-        color = Color.Transparent,
-        modifier = Modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = SharedDimensions.spacingSm, vertical = SharedDimensions.spacingXs),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Text(label, modifier = Modifier.weight(1f))
-            Switch(checked = checked, enabled = enabled, onCheckedChange = onCheckedChange)
-        }
-    }
+        trailing = { Switch(checked = checked, enabled = enabled, onCheckedChange = null) },
+        onClick = { onCheckedChange(!checked) },
+    )
 }
 
 @Composable
@@ -212,39 +228,37 @@ private fun RethinkProxyAppSelector(
 ) {
     var expanded by remember { mutableStateOf(false) }
     val selected = apps.firstOrNull { it.id == selectedId } ?: apps.firstOrNull()
-    val selectorShape = MaterialTheme.shapes.medium
-    Box(Modifier.fillMaxWidth()) {
-        Surface(
-            onClick = { expanded = true },
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { if (apps.isNotEmpty()) expanded = it },
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        OutlinedTextField(
+            value = selected?.label.orEmpty(),
+            onValueChange = {},
+            readOnly = true,
             enabled = apps.isNotEmpty(),
-            shape = selectorShape,
-            color = MaterialTheme.colorScheme.surfaceContainerLow,
-            border = androidx.compose.foundation.BorderStroke(SharedDimensions.dividerThicknessBold, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.24f)),
-            // Compose Web's hover indication can otherwise paint outside the rounded selector.
-            modifier = Modifier.fillMaxWidth().clip(selectorShape),
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor(MenuAnchorType.PrimaryNotEditable, enabled = apps.isNotEmpty()),
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            leadingIcon = selected?.let { option ->
+                { appIcon?.invoke(option, SharedDimensions.iconSizeMd) }
+            },
+            shape = RoundedCornerShape(SharedDimensions.cornerRadiusLg),
+        )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = SharedDimensions.spacingMd, vertical = SharedDimensions.spacingSm),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
-            ) {
-                selected?.let { option -> appIcon?.invoke(option, SharedDimensions.iconSizeMd) }
-                Text(
-                    selected?.label.orEmpty(),
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Icon(MaterialSymbols.Filled.KeyboardArrowDown, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             apps.forEach { option ->
-                DropdownMenuItem(
+                androidx.compose.material3.DropdownMenuItem(
                     leadingIcon = { appIcon?.invoke(option, SharedDimensions.iconSizeSm) },
-                    text = { Text(option.label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                    onClick = { expanded = false; onSelected(option.id) },
+                    text = { Text(option.label) },
+                    onClick = {
+                        expanded = false
+                        onSelected(option.id)
+                    },
                 )
             }
         }

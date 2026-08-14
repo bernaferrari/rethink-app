@@ -98,7 +98,7 @@ fun RethinkLogCompactIconAction(
     count: Int = 0,
     onClick: () -> Unit,
 ) {
-    Box(modifier = Modifier.size(SharedDimensions.touchTargetSm)) {
+    Box(modifier = Modifier.size(SharedDimensions.touchTargetMin)) {
         IconButton(onClick = onClick, enabled = enabled, modifier = Modifier.matchParentSize()) {
             Icon(
                 imageVector = icon,
@@ -179,7 +179,7 @@ fun RethinkLogAppFilterDialog(
                     textStyle = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
                     iconSize = 18.dp,
                     trailingIconSize = 16.dp,
-                    trailingIconButtonSize = SharedDimensions.touchTargetSm,
+                    trailingIconButtonSize = SharedDimensions.touchTargetMin,
                 )
                 if (selectedId != null) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
@@ -321,7 +321,7 @@ fun RethinkLogRulesDialog(
                     if (selectedCount > 0) TextButton(onClick = onClear) { Text(strings.clear, fontWeight = FontWeight.SemiBold) }
                     IconButton(
                         onClick = dismissSheet,
-                        modifier = Modifier.size(SharedDimensions.touchTargetSm),
+                        modifier = Modifier.size(SharedDimensions.touchTargetMin),
                     ) {
                         Icon(MaterialSymbols.Filled.Close, strings.dismissDescription, modifier = Modifier.size(18.dp))
                     }

@@ -15,7 +15,8 @@
         <activity android:name=".ui.HomeScreenActivity"
             android:launchMode="singleTask" />
 
-        <!-- Alias for AppLockActivity -->
+        <!-- Sole launcher entry, kept as an alias so existing home-screen shortcuts keep
+             resolving to the same component across upgrades. -->
         <activity-alias
             android:name=".ui.activity.LauncherAliasAppLock"
             android:enabled="true"
@@ -28,21 +29,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity-alias>
-
-        <!-- Alias for HomeScreenActivity -->
-        <activity-alias
-            android:name=".ui.LauncherAliasHome"
-            android:enabled="false"
-            android:exported="true"
-            android:icon="@mipmap/ic_launcher"
-            android:label="@string/app_name"
-            android:targetActivity=".ui.HomeScreenActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity-alias>
-
 
         <activity
             android:name="com.journeyapps.barcodescanner.CaptureActivity"

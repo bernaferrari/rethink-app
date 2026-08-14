@@ -83,6 +83,7 @@ fun RethinkPingTestScreen(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     androidx.compose.material3.Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             RethinkLargeTopBar(
                 title = strings.title,

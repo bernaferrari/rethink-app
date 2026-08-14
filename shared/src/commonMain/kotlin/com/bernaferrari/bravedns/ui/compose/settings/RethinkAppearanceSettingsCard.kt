@@ -5,24 +5,28 @@ package com.bernaferrari.bravedns.ui.compose.settings
 
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
+import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -46,17 +50,18 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
-import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
-import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListShape
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
+import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
+import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
+import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListShape
 
 enum class RethinkAppearanceMode { System, Light, Dark }
 
@@ -77,17 +82,20 @@ data class RethinkAppearanceStrings(
 /** Product palette used by Settings. Android maps these ids onto [RethinkColorPreset]. */
 val rethinkAppearancePresets = listOf(
     RethinkAppearancePreset(1, "Dynamic", null, isDynamic = true),
-    RethinkAppearancePreset(2, "Coral", Color(0xFF804136)),
-    RethinkAppearancePreset(11, "Rose", Color(0xFFB23A5E)),
-    RethinkAppearancePreset(6, "Orange", Color(0xFFC76519)),
-    RethinkAppearancePreset(8, "Amber", Color(0xFFA86800)),
-    RethinkAppearancePreset(7, "Green", Color(0xFF27854A)),
-    RethinkAppearancePreset(3, "Teal", Color(0xFF167D70)),
-    RethinkAppearancePreset(9, "Cyan", Color(0xFF007C91)),
-    RethinkAppearancePreset(4, "Blue", Color(0xFF3568B7)),
-    RethinkAppearancePreset(10, "Indigo", Color(0xFF545CC9)),
-    RethinkAppearancePreset(5, "Purple", Color(0xFF7855B4)),
+    RethinkAppearancePreset(2, "Coral", Color(0xFFFF5D73)),
+    RethinkAppearancePreset(11, "Rose", Color(0xFFEC4899)),
+    RethinkAppearancePreset(6, "Orange", Color(0xFFF97316)),
+    RethinkAppearancePreset(8, "Amber", Color(0xFFF2B705)),
+    RethinkAppearancePreset(7, "Green", Color(0xFF22C55E)),
+    RethinkAppearancePreset(3, "Teal", Color(0xFF14B8A6)),
+    RethinkAppearancePreset(9, "Cyan", Color(0xFF06B6D4)),
+    RethinkAppearancePreset(4, "Blue", Color(0xFF3B82F6)),
+    RethinkAppearancePreset(10, "Indigo", Color(0xFF6366F1)),
+    RethinkAppearancePreset(5, "Purple", Color(0xFFA855F7)),
 )
+
+fun rethinkSeedColorForPresetId(id: Int): Color? =
+    rethinkAppearancePresets.firstOrNull { it.id == id }?.color
 
 val rethinkAppearanceStrings = RethinkAppearanceStrings(
     heading = "Appearance",
@@ -96,11 +104,7 @@ val rethinkAppearanceStrings = RethinkAppearanceStrings(
     dark = "Dark",
 )
 
-/**
- * Common theme picker. It intentionally always retains the responsive selection animation; hosts
- * are responsible only for applying the new persisted preference and, on Android, querying the
- * platform dynamic swatch.
- */
+/** Common theme picker. Hosts persist the preference and, on Android, supply the dynamic swatch. */
 @Composable
 fun RethinkAppearanceSettingsCard(
     selectedMode: RethinkAppearanceMode,
@@ -137,27 +141,21 @@ fun RethinkAppearanceSettingsCard(
         verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
     ) {
         if (showSectionHeader) {
-            Text(
-                text = strings.heading.uppercase(),
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
-                color = sectionHeaderColor,
-                modifier = Modifier.padding(start = SharedDimensions.spacingLg),
-            )
+            SectionHeader(strings.heading, color = sectionHeaderColor)
         }
-        // Mode + palette as stacked cards (2.dp gap), matching the rest of Settings.
-        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile)) {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = rethinkGroupedListShape(CardPosition.First),
                 color = MaterialTheme.colorScheme.surfaceContainerLow,
             ) {
-                FlowRow(
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState())
                         .padding(SharedDimensions.cardPadding),
                     horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     modes.forEachIndexed { index, (mode, label) ->
                         val selected = mode == appearanceMode
@@ -188,7 +186,7 @@ fun RethinkAppearanceSettingsCard(
                                 modifier = Modifier.size(ToggleButtonDefaults.IconSize),
                             )
                             Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-                            Text(label, style = MaterialTheme.typography.labelLarge)
+                            Text(label, style = MaterialTheme.typography.labelLarge, maxLines = 1)
                         }
                     }
                 }
@@ -201,9 +199,13 @@ fun RethinkAppearanceSettingsCard(
                 FlowRow(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(SharedDimensions.cardPadding),
-                    horizontalArrangement = Arrangement.spacedBy(0.dp, Alignment.CenterHorizontally),
-                    verticalArrangement = Arrangement.spacedBy(0.dp),
+                        .padding(horizontal = SharedDimensions.spacingSm, vertical = SharedDimensions.spacingXs),
+                    horizontalArrangement = Arrangement.spacedBy(
+                        SharedDimensions.spacingNone,
+                        Alignment.CenterHorizontally,
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingNone),
+                    itemVerticalAlignment = Alignment.CenterVertically,
                 ) {
                     visiblePresets.forEach { preset ->
                         RethinkThemeColorSwatch(
@@ -225,6 +227,10 @@ fun RethinkAppearanceSettingsCard(
     }
 }
 
+private val ColorTileHitSize = 50.dp
+private val ColorTileGlowSize = 56.dp
+private val ColorTileSize = 40.dp
+
 @Composable
 private fun RethinkThemeColorSwatch(
     preset: RethinkAppearancePreset,
@@ -236,39 +242,47 @@ private fun RethinkThemeColorSwatch(
     val motion = LocalRethinkMotion.current
     val baseColor = if (preset.isDynamic) dynamicColor else preset.color ?: dynamicColor
     val displayColor = if (enabled) baseColor else baseColor.copy(alpha = 0.42f)
-    val interactionSource = remember { MutableInteractionSource() }
+    val onSwatch = if (displayColor.luminance() < 0.5f) Color.White else Color(0xFF1C1B18)
+    val springOrSnap: AnimationSpec<Float> =
+        if (motion.reducedMotion) snap() else spring(dampingRatio = 0.7f, stiffness = 520f)
     val cornerFraction by animateFloatAsState(
         targetValue = if (selected) 0.5f else 0.26f,
-        animationSpec = if (motion.reducedMotion) snap() else spring(dampingRatio = 0.7f, stiffness = 520f),
-        label = "appearance_swatch_corner_${preset.id}",
+        animationSpec = springOrSnap,
+        label = "swatchCorner_${preset.id}",
     )
-    val orbScale by animateFloatAsState(
+    val scale by animateFloatAsState(
         targetValue = if (selected) 1.02f else 0.86f,
         animationSpec = if (motion.reducedMotion) snap() else spring(dampingRatio = 0.56f, stiffness = 600f),
-        label = "appearance_swatch_scale_${preset.id}",
+        label = "swatchScale_${preset.id}",
     )
-    val orbRotation by animateFloatAsState(
+    val rotation by animateFloatAsState(
         targetValue = if (selected) 8f else 0f,
         animationSpec = if (motion.reducedMotion) snap() else spring(dampingRatio = 0.66f, stiffness = 420f),
-        label = "appearance_swatch_rotation_${preset.id}",
+        label = "swatchRotation_${preset.id}",
     )
     val glowAlpha by animateFloatAsState(
         targetValue = if (selected) 1f else 0f,
-        animationSpec = tween(durationMillis = if (motion.reducedMotion) 0 else 240, easing = FastOutSlowInEasing),
-        label = "appearance_swatch_glow_${preset.id}",
+        animationSpec = tween(durationMillis = if (motion.reducedMotion) 0 else motion.durationMedium, easing = FastOutSlowInEasing),
+        label = "swatchGlow_${preset.id}",
     )
     val iconAlpha by animateFloatAsState(
-        targetValue = if (selected) 1f else 0f,
-        animationSpec = tween(durationMillis = if (motion.reducedMotion) 0 else 180, easing = FastOutSlowInEasing),
-        label = "appearance_swatch_icon_${preset.id}",
+        targetValue = if (selected || preset.isDynamic) 1f else 0f,
+        animationSpec = tween(durationMillis = if (motion.reducedMotion) 0 else motion.durationFast, easing = FastOutSlowInEasing),
+        label = "swatchIcon_${preset.id}",
     )
-    val orbShape = RoundedCornerShape(percent = (cornerFraction * 100).toInt())
+    val interactionSource = remember { MutableInteractionSource() }
+    val shape = RoundedCornerShape(percent = (cornerFraction * 100).toInt().coerceIn(1, 50))
 
     Box(
         modifier = Modifier
-            .size(50.dp)
+            .size(ColorTileHitSize)
             .graphicsLayer { alpha = if (enabled) 1f else 0.52f }
-            .clickable(enabled = enabled, interactionSource = interactionSource, indication = null, onClick = onClick)
+            .clickable(
+                enabled = enabled,
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick,
+            )
             .semantics {
                 role = Role.RadioButton
                 this.selected = selected
@@ -277,31 +291,59 @@ private fun RethinkThemeColorSwatch(
         contentAlignment = Alignment.Center,
     ) {
         Box(
-            modifier = Modifier.size(56.dp).graphicsLayer { alpha = glowAlpha }.drawBehind {
-                drawCircle(color = displayColor.copy(alpha = 0.44f), radius = size.minDimension * 0.5f)
-            },
+            modifier = Modifier
+                .size(ColorTileGlowSize)
+                .graphicsLayer { alpha = glowAlpha }
+                .drawBehind {
+                    drawCircle(
+                        color = displayColor.copy(alpha = 0.44f),
+                        radius = size.minDimension * 0.5f,
+                    )
+                },
         )
         Box(
             modifier = Modifier
-                .size(40.dp)
-                .graphicsLayer { scaleX = orbScale; scaleY = orbScale; rotationZ = orbRotation }
-                .clip(orbShape)
-                .indication(interactionSource, ripple(bounded = true, radius = 18.dp, color = Color.White.copy(alpha = 0.32f)))
+                .size(ColorTileSize)
+                .graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                    rotationZ = rotation
+                }
+                .clip(shape)
+                .indication(
+                    interactionSource = interactionSource,
+                    indication = ripple(
+                        bounded = true,
+                        radius = 18.dp,
+                        color = Color.White.copy(alpha = 0.32f),
+                    ),
+                )
                 .background(displayColor),
             contentAlignment = Alignment.Center,
         ) {
             Box(
-                modifier = Modifier.fillMaxSize().background(
-                    Brush.linearGradient(
-                        colors = listOf(Color.White.copy(alpha = 0.28f), Color.Transparent),
-                        start = Offset.Zero,
-                        end = Offset(60f, 60f),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        brush = Brush.linearGradient(
+                            colors = listOf(Color.White.copy(alpha = 0.28f), Color.Transparent),
+                            start = Offset.Zero,
+                            end = Offset(60f, 60f),
+                        ),
                     ),
-                ),
             )
-            when {
-                selected -> Icon(MaterialSymbols.Filled.Check, null, Modifier.size(18.dp).graphicsLayer { alpha = iconAlpha; rotationZ = -orbRotation }, Color.White)
-                preset.isDynamic -> Icon(MaterialSymbols.Filled.Palette, null, Modifier.size(16.dp), Color.White.copy(alpha = 0.88f))
+            if (selected || preset.isDynamic) {
+                Icon(
+                    imageVector = if (selected) MaterialSymbols.Filled.Check else MaterialSymbols.Filled.Palette,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(if (selected) 18.dp else 16.dp)
+                        .graphicsLayer {
+                            alpha = iconAlpha
+                            rotationZ = -rotation
+                        },
+                    tint = onSwatch.copy(alpha = if (selected) 1f else 0.9f),
+                )
             }
         }
     }

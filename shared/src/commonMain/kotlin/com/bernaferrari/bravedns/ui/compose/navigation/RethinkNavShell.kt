@@ -42,13 +42,11 @@ fun RethinkNavShell(
     modifier: Modifier = Modifier,
     showNavigation: Boolean = true,
     background: @Composable () -> Unit = {},
+    snackbar: @Composable () -> Unit = {},
     content: @Composable () -> Unit,
 ) {
     if (!showNavigation) {
-        Box(modifier = modifier.fillMaxSize()) {
-            background()
-            content()
-        }
+        RethinkNavSurface(modifier, background, snackbar, content)
         return
     }
     BoundedNavigationSuiteScaffold(
@@ -72,9 +70,26 @@ fun RethinkNavShell(
             }
         },
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            background()
-            content()
+        RethinkNavSurface(Modifier.fillMaxSize(), background, snackbar, content)
+    }
+}
+
+@Composable
+private fun RethinkNavSurface(
+    modifier: Modifier,
+    background: @Composable () -> Unit,
+    snackbar: @Composable () -> Unit,
+    content: @Composable () -> Unit,
+) {
+    Box(modifier = modifier.fillMaxSize()) {
+        background()
+        content()
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth(),
+        ) {
+            snackbar()
         }
     }
 }

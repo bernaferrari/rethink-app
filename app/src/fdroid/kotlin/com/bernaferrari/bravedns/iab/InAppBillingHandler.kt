@@ -18,7 +18,7 @@ package com.bernaferrari.bravedns.iab
 import android.app.Activity
 import android.content.Context
 import androidx.lifecycle.MutableLiveData
-import com.google.gson.JsonObject
+import kotlinx.serialization.json.JsonObject
 
 /**
  * Stub: in-app billing is not available on the F-Droid build.

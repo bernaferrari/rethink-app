@@ -462,10 +462,26 @@ internal fun DemoAppInfoScreen(modifier: Modifier, app: RethinkFirewallApp?, onB
         onBackClick = onBack,
         onWifiClick = { wifiBlocked = !wifiBlocked },
         onMobileClick = { mobileBlocked = !mobileBlocked },
-        onIsolateClick = { isolated = !isolated },
-        onBypassDnsClick = { bypassDns = !bypassDns },
-        onBypassUniversalClick = { bypassUniversal = !bypassUniversal },
-        onExcludeClick = { excluded = !excluded },
+        onIsolateClick = {
+            val next = !isolated
+            isolated = next
+            if (next) { bypassDns = false; bypassUniversal = false; excluded = false }
+        },
+        onBypassDnsClick = {
+            val next = !bypassDns
+            bypassDns = next
+            if (next) { isolated = false; bypassUniversal = false; excluded = false }
+        },
+        onBypassUniversalClick = {
+            val next = !bypassUniversal
+            bypassUniversal = next
+            if (next) { isolated = false; bypassDns = false; excluded = false }
+        },
+        onExcludeClick = {
+            val next = !excluded
+            excluded = next
+            if (next) { isolated = false; bypassDns = false; bypassUniversal = false }
+        },
         onProxyExcludedChange = { proxyExcluded = it },
         onTempAllowChange = { tempAllowed = it },
         onSystemAppInfo = {}, onIpRules = {}, onDomainRules = {}, onActiveConnections = null, onDomains = null, onIps = null,

@@ -91,7 +91,7 @@ fun RethinkListGroup(
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    Column(modifier = modifier.fillMaxWidth().padding(vertical = 2.dp), content = content)
+    Column(modifier = modifier.fillMaxWidth().padding(vertical = SharedDimensions.spacingGridTile), content = content)
 }
 
 /** Shared expressive grouped list row. Resources and side effects are injected by each host. */
@@ -114,7 +114,7 @@ fun RethinkListItem(
     enabled: Boolean = true,
     highlighted: Boolean = false,
     defaultContainerColor: Color = MaterialTheme.colorScheme.surfaceContainerLow,
-    highlightContainerColor: Color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.34f),
+    highlightContainerColor: Color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.56f),
     showTrailingChevron: Boolean = false,
     onClick: (() -> Unit)? = null,
 ) {
@@ -141,7 +141,7 @@ fun RethinkListItem(
 
     val surfaceModifier = Modifier
         .fillMaxWidth()
-        .padding(top = if (position == CardPosition.First || position == CardPosition.Single) 0.dp else 2.dp)
+        .padding(top = if (position == CardPosition.First || position == CardPosition.Single) 0.dp else SharedDimensions.spacingGridTile)
         .clip(shape)
     val border = if (highlighted) {
         BorderStroke(
@@ -156,9 +156,11 @@ fun RethinkListItem(
                 headlineContent = {
                     Text(
                         text = headlineAnnotated ?: AnnotatedString(headline),
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha),
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha),
+                        ),
+                        color = if (headlineAnnotated != null) Color.Unspecified else MaterialTheme.colorScheme.onSurface.copy(alpha = alpha),
                         modifier = contentOffset,
                     )
                 },
@@ -166,8 +168,10 @@ fun RethinkListItem(
                     {
                         Text(
                             text = supportingAnnotated ?: AnnotatedString(supporting.orEmpty()),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.82f * alpha),
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.82f * alpha),
+                            ),
+                            color = if (supportingAnnotated != null) Color.Unspecified else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.82f * alpha),
                             modifier = contentOffset.then(Modifier.padding(top = SharedDimensions.spacingXs)),
                         )
                     }
@@ -196,7 +200,7 @@ fun RethinkListItem(
                 trailingContent = when {
                     trailing != null -> trailing
                     showTrailingChevron && onClick != null && enabled -> {
-                        { androidx.compose.material3.Icon(MaterialSymbols.AutoMirrored.Filled.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) }
+                        { androidx.compose.material3.Icon(MaterialSymbols.AutoMirrored.Filled.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) }
                     }
                     else -> null
                 },

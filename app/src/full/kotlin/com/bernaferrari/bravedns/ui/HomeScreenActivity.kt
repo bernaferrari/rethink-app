@@ -18,7 +18,6 @@ package com.bernaferrari.bravedns.ui
 
 import Logger
 import Logger.LOG_TAG_APP_UPDATE
-import Logger.LOG_TAG_BACKUP_RESTORE
 import Logger.LOG_TAG_DOWNLOAD
 import Logger.LOG_TAG_UI
 import Logger.LOG_TAG_VPN
@@ -35,29 +34,20 @@ import android.content.pm.PackageManager
 import android.graphics.Color as AndroidColor
 import android.content.res.Configuration
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
-import android.database.Cursor
 import android.net.VpnService
 import android.net.Uri
 import android.os.Bundle
-import android.os.Build
 import android.os.SystemClock
 import android.provider.Settings
-import android.view.Gravity
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.SystemBarStyle
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
-import androidx.activity.ComponentActivity
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -68,31 +58,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -101,42 +76,24 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.fragment.app.FragmentActivity
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.work.BackoffPolicy
-import androidx.work.Data
-import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
-import androidx.work.WorkRequest
 import com.bernaferrari.bravedns.BuildConfig
 import com.bernaferrari.bravedns.NonStoreAppUpdater
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.RethinkDnsApplication.Companion.DEBUG
-import com.bernaferrari.bravedns.backup.BackupHelper
-import com.bernaferrari.bravedns.backup.BackupHelper.Companion.BACKUP_FILE_EXTN
-import com.bernaferrari.bravedns.backup.BackupHelper.Companion.INTENT_RESTART_APP
-import com.bernaferrari.bravedns.backup.BackupHelper.Companion.INTENT_SCHEME
-import com.bernaferrari.bravedns.backup.RestoreAgent
 import com.bernaferrari.bravedns.data.AppConfig
-import com.bernaferrari.bravedns.iab.InAppBillingHandler
-import com.bernaferrari.bravedns.iab.ServerApiError
 import com.bernaferrari.bravedns.data.SummaryStatisticsType
 import com.bernaferrari.bravedns.database.AppDatabase
 import com.bernaferrari.bravedns.database.AppInfoRepository
@@ -154,20 +111,27 @@ import com.bernaferrari.bravedns.service.VpnController
 import com.bernaferrari.bravedns.service.WireguardManager
 
 import com.bernaferrari.bravedns.ui.compose.dns.ConfigureRethinkScreenType
+import com.bernaferrari.bravedns.ui.compose.navigation.HomeAboutActions
+import com.bernaferrari.bravedns.ui.compose.navigation.HomeConfigureActions
+import com.bernaferrari.bravedns.ui.compose.navigation.HomeDnsActions
 import com.bernaferrari.bravedns.ui.compose.navigation.HomeNavRequest
 import com.bernaferrari.bravedns.ui.compose.navigation.CustomRulesMode
 import com.bernaferrari.bravedns.ui.compose.navigation.CustomRulesTab
+import com.bernaferrari.bravedns.ui.compose.navigation.HomeWgActions
 import com.bernaferrari.bravedns.ui.compose.navigation.RethinkRoute
 import com.bernaferrari.bravedns.ui.compose.wireguard.WgType
 import com.bernaferrari.bravedns.ui.compose.navigation.HomeScreenRoot
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.Dimensions
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormActionRow
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkModalBottomSheet
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkTheme
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkColorPreset
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
+import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 import com.bernaferrari.bravedns.ui.compose.settings.AppLockScreen
 import com.bernaferrari.bravedns.ui.compose.settings.AppLockResult
 import com.bernaferrari.bravedns.ui.compose.home.PauseScreen
@@ -185,11 +149,6 @@ import com.bernaferrari.bravedns.util.FirebaseErrorReporting.TOKEN_REGENERATION_
 import com.bernaferrari.bravedns.util.NewSettingsManager
 import com.bernaferrari.bravedns.util.RemoteFileTagUtil
 import com.bernaferrari.bravedns.util.UIUtils
-import com.journeyapps.barcodescanner.ScanContract
-import com.journeyapps.barcodescanner.ScanOptions
-import com.bernaferrari.bravedns.util.QrCodeFromFileScanner
-import com.bernaferrari.bravedns.util.TunnelImporter
-import com.google.zxing.qrcode.QRCodeReader
 import com.bernaferrari.bravedns.util.UIUtils.openNetworkSettings
 import com.bernaferrari.bravedns.util.UIUtils.openUrl
 import com.bernaferrari.bravedns.util.UIUtils.openVpnProfile
@@ -198,8 +157,6 @@ import com.bernaferrari.bravedns.util.Themes
 import com.bernaferrari.bravedns.util.Utilities
 import com.bernaferrari.bravedns.util.Utilities.getPackageMetadata
 import com.bernaferrari.bravedns.util.Utilities.getRandomString
-import com.bernaferrari.bravedns.util.Utilities.isAtleastO_MR1
-import com.bernaferrari.bravedns.util.Utilities.isAtleastQ
 import com.bernaferrari.bravedns.util.Utilities.isPlayStoreFlavour
 import com.bernaferrari.bravedns.util.Utilities.isWebsiteFlavour
 import com.bernaferrari.bravedns.util.Utilities.showToastUiCentered
@@ -213,6 +170,7 @@ import com.bernaferrari.bravedns.viewmodel.DomainConnectionsViewModel
 import com.bernaferrari.bravedns.viewmodel.EventsViewModel
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.get
@@ -230,7 +188,7 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
 
-class HomeScreenActivity : ComponentActivity() {
+class HomeScreenActivity : FragmentActivity() {
     private val persistentState by inject<PersistentState>()
     private val appInfoDb by inject<AppInfoRepository>()
     private val appUpdateManager by inject<AppUpdater>()
@@ -252,6 +210,7 @@ class HomeScreenActivity : ComponentActivity() {
     private val appInfoNetworkLogsViewModel by viewModel<AppConnectionsViewModel>()
     private val consoleLogViewModel by inject<com.bernaferrari.bravedns.viewmodel.ConsoleLogViewModel>()
     private val consoleLogRepository by inject<com.bernaferrari.bravedns.database.ConsoleLogRepository>()
+    private val consoleLogDao by inject<com.bernaferrari.bravedns.database.ConsoleLogDAO>()
     private val proxyAppsMappingViewModel by viewModel<com.bernaferrari.bravedns.viewmodel.ProxyAppsMappingViewModel>()
     private val dnsSettingsViewModel by viewModel<com.bernaferrari.bravedns.ui.compose.dns.DnsSettingsViewModel>()
     private val appDownloadManager by inject<com.bernaferrari.bravedns.download.AppDownloadManager>()
@@ -285,73 +244,22 @@ class HomeScreenActivity : ComponentActivity() {
     private val wgConfigViewModel by viewModel<com.bernaferrari.bravedns.viewmodel.WgConfigViewModel>()
 
 
-    // TODO: see if this can be replaced with a more robust solution
-    // keep track of when app went to background
     private var appInBackground = false
-    private var showBugReportSheet by mutableStateOf(false)
-    private var homeDialogState by mutableStateOf<HomeDialog?>(null)
+    private val pendingDialog = MutableStateFlow<HomeDialog?>(null)
+    private val pendingBugReportSheet = MutableStateFlow(false)
     private var snackbarHostState: SnackbarHostState? = null
     private var homeNavRequest by mutableStateOf<HomeNavRequest?>(null)
 
+    private val intentRouter = HomeIntentRouter()
+    private val billingController = HomeBillingController()
+    private val backupController = HomeBackupController(
+        activity = this,
+        onRestorePrompt = { showRestoreDialog(it) },
+        onRestartRefresh = { io { rdb.refresh(RefreshDatabase.ACTION_REFRESH_RESTORE) } },
+    )
+
     private lateinit var startForResult: androidx.activity.result.ActivityResultLauncher<Intent>
     private lateinit var notificationPermissionResult: androidx.activity.result.ActivityResultLauncher<String>
-
-    // WireGuard Import Launchers
-    private val tunnelFileImportResultLauncher =
-        registerForActivityResult(ActivityResultContracts.GetContent()) { data ->
-            if (data == null) return@registerForActivityResult
-            val contentResolver = contentResolver ?: return@registerForActivityResult
-            lifecycleScope.launch {
-                if (QrCodeFromFileScanner.validContentType(contentResolver, data)) {
-                    try {
-                        val qrCodeFromFileScanner =
-                            QrCodeFromFileScanner(contentResolver, QRCodeReader())
-                        val result = qrCodeFromFileScanner.scan(data)
-                        if (result != null) {
-                            withContext(Dispatchers.Main) {
-                                TunnelImporter.importTunnel(result.text) {
-                                    showToastUiCentered(
-                                        this@HomeScreenActivity,
-                                        it.toString(),
-                                        Toast.LENGTH_LONG
-                                    )
-                                }
-                            }
-                        } else {
-                            val message = resources.getString(R.string.invalid_file_error)
-                            showToastUiCentered(this@HomeScreenActivity, message, Toast.LENGTH_LONG)
-                        }
-                    } catch (e: Exception) {
-                        val message = resources.getString(R.string.invalid_file_error)
-                        showToastUiCentered(this@HomeScreenActivity, message, Toast.LENGTH_LONG)
-                    }
-                } else {
-                    TunnelImporter.importTunnel(contentResolver, data) {
-                        showToastUiCentered(
-                            this@HomeScreenActivity,
-                            it.toString(),
-                            Toast.LENGTH_LONG
-                        )
-                    }
-                }
-            }
-        }
-
-    private val qrImportResultLauncher =
-        registerForActivityResult(ScanContract()) { result ->
-            val qrCode = result.contents
-            if (qrCode != null) {
-                lifecycleScope.launch {
-                    TunnelImporter.importTunnel(qrCode) {
-                        showToastUiCentered(
-                            this@HomeScreenActivity,
-                            it.toString(),
-                            Toast.LENGTH_LONG
-                        )
-                    }
-                }
-            }
-        }
 
     // TODO - #324 - Usage of isDarkTheme() in all activities.
     private fun Context.isDarkThemeOn(): Boolean {
@@ -400,9 +308,7 @@ class HomeScreenActivity : ComponentActivity() {
 
         updateNewVersion()
 
-        // handle intent receiver for backup/restore
-        handleIntent()
-        handleNavigationIntent(intent)
+        handleIncomingIntents(intent)
 
         initUpdateCheck()
 
@@ -433,201 +339,26 @@ class HomeScreenActivity : ComponentActivity() {
                 val homeState by homeViewModel.uiState.collectAsStateWithLifecycle()
                 val aboutState by aboutViewModel.uiState.collectAsStateWithLifecycle()
 
-                var isUnlocked by remember { mutableStateOf(false) }
+                var isUnlocked by rememberSaveable { mutableStateOf(false) }
+                var homeDialogState by rememberSaveable(stateSaver = HomeDialog.Saver) {
+                    mutableStateOf(pendingDialog.value ?: HomeDialog.Hidden)
+                }
+                var showBugReportSheet by rememberSaveable { mutableStateOf(false) }
+                val incomingDialog by pendingDialog.collectAsStateWithLifecycle()
+                val incomingBugReport by pendingBugReportSheet.collectAsStateWithLifecycle()
+                LaunchedEffect(incomingDialog) {
+                    val dialog = incomingDialog ?: return@LaunchedEffect
+                    homeDialogState = dialog
+                    pendingDialog.value = null
+                }
+                LaunchedEffect(incomingBugReport) {
+                    if (!incomingBugReport) return@LaunchedEffect
+                    showBugReportSheet = true
+                    pendingBugReportSheet.value = false
+                }
                 val vpnState by VpnController.connectionStatus.collectAsStateWithLifecycle()
 
-                if (vpnState == BraveVPNService.State.PAUSED) {
-                    PauseScreen(onFinish = { })
-                } else if (isUnlocked) {
-                    HomeScreenRoot(
-                        homeUiState = homeState,
-                        onHomeStartStopClick = { handleMainScreenBtnClickEvent() },
-                        summaryViewModel = summaryViewModel,
-                        onOpenDetailedStats = { type -> openDetailedStatsUi(type) },
-                        startDestination = homeStartDestination,
-                        isDebug = DEBUG,
-                        onConfigureAppsClick = { homeNavRequest = HomeNavRequest.AppList },
-                        onConfigureDnsClick = { navigateToDnsDetailIfAllowed() },
-                        onConfigureFirewallClick = {
-                            homeNavRequest = HomeNavRequest.FirewallSettings
-                        },
-                        onFirewallUniversalClick = {
-                            homeNavRequest = HomeNavRequest.UniversalFirewallSettings
-                        },
-                        onFirewallCustomIpClick = {
-                            homeNavRequest =
-                                HomeNavRequest.CustomRules(
-                                    uid = UID_EVERYBODY,
-                                    tab = CustomRulesTab.IP,
-                                    mode = CustomRulesMode.APP_SPECIFIC
-                                )
-                        },
-                        onFirewallAppWiseIpClick = { openAppWiseIpScreen() },
-                        onConfigureProxyClick = { homeNavRequest = HomeNavRequest.ProxySettings },
-                        onConfigureNetworkClick = {
-                            homeNavRequest = HomeNavRequest.TunnelSettings
-                        },
-                        onConfigureOthersClick = { homeNavRequest = HomeNavRequest.MiscSettings },
-                        onConfigureLogsClick = { homeNavRequest = HomeNavRequest.NetworkLogs },
-                        onConfigureAntiCensorshipClick = {
-                            homeNavRequest = HomeNavRequest.AntiCensorship
-                        },
-                        onConfigureAdvancedClick = {
-                            homeNavRequest = HomeNavRequest.AdvancedSettings
-                        },
-                        aboutUiState = aboutState,
-                        onSponsorClick = { openUrl(this, RETHINKDNS_SPONSOR_LINK) },
-                        onTelegramClick = {
-                            openUrl(
-                                this,
-                                getString(R.string.about_telegram_link)
-                            )
-                        },
-                        onBugReportClick = { aboutViewModel.triggerBugReport() },
-                        onWhatsNewClick = { showNewFeaturesDialog() },
-                        onAppUpdateClick = { checkForUpdate(AppUpdater.UserPresent.INTERACTIVE) },
-                        onContributorsClick = { showContributors() },
-                        onTranslateClick = {
-                            openUrl(
-                                this,
-                                getString(R.string.about_translate_link)
-                            )
-                        },
-                        onWebsiteClick = { openUrl(this, getString(R.string.about_website_link)) },
-                        onGithubClick = { openUrl(this, getString(R.string.about_github_link)) },
-                        onFaqClick = { openUrl(this, getString(R.string.about_faq_link)) },
-                        onDocsClick = { openUrl(this, getString(R.string.about_docs_link)) },
-                        onPrivacyPolicyClick = {
-                            openUrl(
-                                this,
-                                getString(R.string.about_privacy_policy_link)
-                            )
-                        },
-                        onTermsOfServiceClick = {
-                            openUrl(
-                                this,
-                                getString(R.string.about_terms_link)
-                            )
-                        },
-                        onLicenseClick = { openUrl(this, getString(R.string.about_license_link)) },
-                        onTwitterClick = {
-                            openUrl(
-                                this,
-                                getString(R.string.about_twitter_handle)
-                            )
-                        },
-                        onEmailClick = { disableFrostTemporarily(); sendEmailIntent(this) },
-                        onRedditClick = { openUrl(this, getString(R.string.about_reddit_handle)) },
-                        onElementClick = { openUrl(this, getString(R.string.about_matrix_handle)) },
-                        onMastodonClick = {
-                            openUrl(
-                                this,
-                                getString(R.string.about_mastodom_handle)
-                            )
-                        },
-                        onGeneralSettingsClick = { homeNavRequest = HomeNavRequest.MiscSettings },
-                        onAppInfoClick = { UIUtils.openAndroidAppInfo(this, packageName) },
-                        onVpnProfileClick = { openVpnProfile(this) },
-                        onNotificationClick = { openNotificationSettings() },
-                        onStatsClick = { openStatsDialog() },
-                        onDbStatsClick = { openDatabaseDumpDialog() },
-                        onFlightRecordClick = { initiateFlightRecord() },
-                        onEventLogsClick = { openEventLogs() },
-                        onTokenClick = { copyTokenToClipboard() },
-                        onTokenDoubleTap = { aboutViewModel.generateNewToken() },
-                        onFossClick = { openUrl(this, getString(R.string.about_foss_link)) },
-                        onFlossFundsClick = {
-                            openUrl(
-                                this,
-                                getString(R.string.about_floss_fund_link)
-                            )
-                        },
-                        snackbarHostState = hostState,
-                        detailedStatsViewModel = detailedStatsViewModel,
-                        domainConnectionsViewModel = domainConnectionsViewModel,
-                        eventsViewModel = eventsViewModel,
-                        eventDao = eventDao,
-                        appInfoEventLogger = eventLogger,
-                        appInfoIpRulesViewModel = appInfoIpRulesViewModel,
-                        appInfoDomainRulesViewModel = appInfoDomainRulesViewModel,
-                        appInfoNetworkLogsViewModel = appInfoNetworkLogsViewModel,
-                        persistentState = persistentState,
-                        appConfig = appConfig,
-                        onOpenVpnProfile = { UIUtils.openVpnProfile(this@HomeScreenActivity) },
-                        onRefreshDatabase = { lifecycleScope.launch { rdb.refresh(RefreshDatabase.ACTION_REFRESH_INTERACTIVE) } },
-                        onThemeModeChanged = { composeThemePreference = it },
-                        onThemeColorChanged = { composeThemeColorPreset = it },
-                        consoleLogViewModel = consoleLogViewModel,
-                        consoleLogRepository = consoleLogRepository,
-                        onShareConsoleLogs = {
-                            homeNavRequest = HomeNavRequest.NetworkLogs
-                        }, // Fallback to Activity for complex share
-                        onConsoleLogsDeleteComplete = {
-                            showToastUiCentered(
-                                this@HomeScreenActivity,
-                                getString(R.string.config_add_success_toast),
-                                Toast.LENGTH_SHORT
-                            )
-                        },
-                        proxyAppsMappingViewModel = proxyAppsMappingViewModel,
-                        dnsSettingsViewModel = dnsSettingsViewModel,
-                        appDownloadManager = appDownloadManager,
-                        onDnsCustomDnsClick = { startCustomDnsActivity() },
-                        onDnsLocalBlocklistConfigureClick = { startLocalBlocklistConfigureActivity() },
-                        onDnsRethinkPlusDnsClick = { startRethinkPlusDnsActivity() },
-                        homeNavRequest = homeNavRequest,
-                        onHomeNavConsumed = { homeNavRequest = null },
-                        rethinkEndpointViewModel = rethinkEndpointViewModel,
-                        remoteFileTagViewModel = remoteFileTagViewModel,
-                        localFileTagViewModel = localFileTagViewModel,
-                        remoteBlocklistPacksMapViewModel = remoteBlocklistPacksMapViewModel,
-                        localBlocklistPacksMapViewModel = localBlocklistPacksMapViewModel,
-                        appInfoViewModel = appInfoViewModel,
-                        refreshDatabase = rdb,
-                        connectionTrackerViewModel = connectionTrackerViewModel,
-                        dnsLogViewModel = dnsLogViewModel,
-                        rethinkLogViewModel = rethinkLogViewModel,
-                        connectionTrackerRepository = connectionTrackerRepository,
-                        dnsLogRepository = dnsLogRepository,
-                        rethinkLogRepository = rethinkLogRepository,
-                        onConfigureOtherDns = { index ->
-                            homeNavRequest = HomeNavRequest.ConfigureOtherDns(index)
-                        },
-                        // ConfigureOtherDns ViewModels
-                        dohViewModel = dohViewModel,
-                        dotViewModel = dotViewModel,
-                        dnsProxyViewModel = dnsProxyViewModel,
-                        dnsCryptViewModel = dnsCryptViewModel,
-                        dnsCryptRelayViewModel = dnsCryptRelayViewModel,
-                        oDohViewModel = oDohViewModel,
-                        // UniversalFirewallSettings callbacks
-                        onNavigateToLogs = { searchQuery ->
-                            homeNavRequest = HomeNavRequest.NetworkLogs
-                        },
-                        onOpenAccessibilitySettings = {
-                            startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
-                        },
-                        // WireGuard dependencies
-                        wgConfigViewModel = wgConfigViewModel,
-                        // Checkout dependencies
-                        checkoutViewModel = checkoutViewModel,
-                        managePurchaseViewModel = managePurchaseViewModel,
-                        purchaseHistoryViewModel = purchaseHistoryViewModel,
-                        serverOrderHistoryViewModel = serverOrderHistoryViewModel,
-                        blockFreeDnsViewModel = blockFreeDnsViewModel,
-                        onNavigateToProxy = { homeNavRequest = HomeNavRequest.ProxySettings },
-                        // WgMain callbacks
-                        onWgCreateClick = {
-                            homeNavRequest = HomeNavRequest.WgConfigEditor(
-                                com.bernaferrari.bravedns.service.WireguardManager.INVALID_CONF_ID,
-                                com.bernaferrari.bravedns.ui.compose.wireguard.WgType.DEFAULT
-                            )
-                        },
-                        onWgImportClick = { launchFileImport() },
-                        onWgQrScanClick = { launchQrScanner() },
-                        appDatabase = appDatabase
-                    )
-                } else {
+                if (!isUnlocked) {
                     AppLockScreen(
                         persistentState = persistentState,
                         onAuthResult = { result ->
@@ -646,42 +377,266 @@ class HomeScreenActivity : ComponentActivity() {
                             }
                         }
                     )
+                } else {
+                    // Keep HomeScreenRoot composed while paused so rememberNavBackStack survives.
+                    PauseOverlayHost {
+                        HomeScreenRoot(
+                        homeUiState = homeState,
+                        onHomeStartStopClick = { handleMainScreenBtnClickEvent() },
+                        summaryViewModel = summaryViewModel,
+                        onOpenDetailedStats = { type -> openDetailedStatsUi(type) },
+                        startDestination = homeStartDestination,
+                        isDebug = DEBUG,
+                        configureActions = HomeConfigureActions(
+                            onConfigureAppsClick = { homeNavRequest = HomeNavRequest.AppList },
+                            onConfigureDnsClick = { navigateToDnsDetailIfAllowed() },
+                            onConfigureFirewallClick = {
+                                homeNavRequest = HomeNavRequest.FirewallSettings
+                            },
+                            onFirewallUniversalClick = {
+                                homeNavRequest = HomeNavRequest.UniversalFirewallSettings
+                            },
+                            onFirewallCustomIpClick = {
+                                homeNavRequest =
+                                    HomeNavRequest.CustomRules(
+                                        uid = UID_EVERYBODY,
+                                        tab = CustomRulesTab.IP,
+                                        mode = CustomRulesMode.APP_SPECIFIC
+                                    )
+                            },
+                            onFirewallAppWiseIpClick = { openAppWiseIpScreen() },
+                            onConfigureProxyClick = {
+                                homeNavRequest = HomeNavRequest.ProxySettings
+                            },
+                            onConfigureNetworkClick = {
+                                homeNavRequest = HomeNavRequest.TunnelSettings
+                            },
+                            onConfigureOthersClick = {
+                                homeNavRequest = HomeNavRequest.MiscSettings
+                            },
+                            onConfigureLogsClick = {
+                                homeNavRequest = HomeNavRequest.NetworkLogs()
+                            },
+                            onConfigureAntiCensorshipClick = {
+                                homeNavRequest = HomeNavRequest.AntiCensorship
+                            },
+                            onConfigureAdvancedClick = {
+                                homeNavRequest = HomeNavRequest.AdvancedSettings
+                            },
+                            onNavigateToLogs = { searchQuery ->
+                                homeNavRequest = HomeNavRequest.NetworkLogs(searchQuery)
+                            },
+                            onOpenAccessibilitySettings = {
+                                startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+                            },
+                            onNavigateToProxy = {
+                                homeNavRequest = HomeNavRequest.ProxySettings
+                            },
+                        ),
+                        aboutUiState = aboutState,
+                        aboutActions = HomeAboutActions(
+                            onSponsorClick = { openUrl(this, RETHINKDNS_SPONSOR_LINK) },
+                            onTelegramClick = {
+                                openUrl(this, getString(R.string.about_telegram_link))
+                            },
+                            onBugReportClick = { aboutViewModel.triggerBugReport() },
+                            onWhatsNewClick = { showNewFeaturesDialog() },
+                            onAppUpdateClick = {
+                                checkForUpdate(AppUpdater.UserPresent.INTERACTIVE)
+                            },
+                            onContributorsClick = { showContributors() },
+                            onTranslateClick = {
+                                openUrl(this, getString(R.string.about_translate_link))
+                            },
+                            onWebsiteClick = {
+                                openUrl(this, getString(R.string.about_website_link))
+                            },
+                            onGithubClick = {
+                                openUrl(this, getString(R.string.about_github_link))
+                            },
+                            onFaqClick = { openUrl(this, getString(R.string.about_faq_link)) },
+                            onDocsClick = { openUrl(this, getString(R.string.about_docs_link)) },
+                            onPrivacyPolicyClick = {
+                                openUrl(this, getString(R.string.about_privacy_policy_link))
+                            },
+                            onTermsOfServiceClick = {
+                                openUrl(this, getString(R.string.about_terms_link))
+                            },
+                            onLicenseClick = {
+                                openUrl(this, getString(R.string.about_license_link))
+                            },
+                            onTwitterClick = {
+                                openUrl(this, getString(R.string.about_twitter_handle))
+                            },
+                            onEmailClick = { disableFrostTemporarily(); sendEmailIntent(this) },
+                            onRedditClick = {
+                                openUrl(this, getString(R.string.about_reddit_handle))
+                            },
+                            onElementClick = {
+                                openUrl(this, getString(R.string.about_matrix_handle))
+                            },
+                            onMastodonClick = {
+                                openUrl(this, getString(R.string.about_mastodom_handle))
+                            },
+                            onGeneralSettingsClick = {
+                                homeNavRequest = HomeNavRequest.MiscSettings
+                            },
+                            onAppInfoClick = { UIUtils.openAndroidAppInfo(this, packageName) },
+                            onVpnProfileClick = { openVpnProfile(this) },
+                            onNotificationClick = { openNotificationSettings() },
+                            onStatsClick = { openStatsDialog() },
+                            onDbStatsClick = { openDatabaseDumpDialog() },
+                            onFlightRecordClick = { initiateFlightRecord() },
+                            onEventLogsClick = { openEventLogs() },
+                            onTokenClick = { copyTokenToClipboard() },
+                            onTokenDoubleTap = { aboutViewModel.generateNewToken() },
+                            onFossClick = {
+                                openUrl(this, getString(R.string.about_foss_link))
+                            },
+                            onFlossFundsClick = {
+                                openUrl(this, getString(R.string.about_floss_fund_link))
+                            },
+                        ),
+                        snackbarHostState = hostState,
+                        detailedStatsViewModel = detailedStatsViewModel,
+                        domainConnectionsViewModel = domainConnectionsViewModel,
+                        eventsViewModel = eventsViewModel,
+                        eventDao = eventDao,
+                        appInfoEventLogger = eventLogger,
+                        appInfoIpRulesViewModel = appInfoIpRulesViewModel,
+                        appInfoDomainRulesViewModel = appInfoDomainRulesViewModel,
+                        appInfoNetworkLogsViewModel = appInfoNetworkLogsViewModel,
+                        persistentState = persistentState,
+                        appConfig = appConfig,
+                        onOpenVpnProfile = { UIUtils.openVpnProfile(this@HomeScreenActivity) },
+                        onRefreshDatabase = { lifecycleScope.launch { rdb.refresh(RefreshDatabase.ACTION_REFRESH_INTERACTIVE) } },
+                        onThemeModeChanged = { composeThemePreference = it },
+                        onThemeColorChanged = { composeThemeColorPreset = it },
+                        consoleLogViewModel = consoleLogViewModel,
+                        consoleLogRepository = consoleLogRepository,
+                        onShareConsoleLogs = { shareConsoleLogs() },
+                        onConsoleLogsDeleteComplete = {
+                            showToastUiCentered(
+                                this@HomeScreenActivity,
+                                getString(R.string.config_add_success_toast),
+                                Toast.LENGTH_SHORT
+                            )
+                        },
+                        proxyAppsMappingViewModel = proxyAppsMappingViewModel,
+                        dnsSettingsViewModel = dnsSettingsViewModel,
+                        appDownloadManager = appDownloadManager,
+                        dnsActions = HomeDnsActions(
+                            onDnsCustomDnsClick = { startCustomDnsActivity() },
+                            onDnsRethinkPlusDnsClick = { startRethinkPlusDnsActivity() },
+                            onDnsLocalBlocklistConfigureClick = {
+                                startLocalBlocklistConfigureActivity()
+                            },
+                            onConfigureOtherDns = { index ->
+                                homeNavRequest = HomeNavRequest.ConfigureOtherDns(index)
+                            },
+                        ),
+                        homeNavRequest = homeNavRequest,
+                        onHomeNavConsumed = { homeNavRequest = null },
+                        rethinkEndpointViewModel = rethinkEndpointViewModel,
+                        remoteFileTagViewModel = remoteFileTagViewModel,
+                        localFileTagViewModel = localFileTagViewModel,
+                        remoteBlocklistPacksMapViewModel = remoteBlocklistPacksMapViewModel,
+                        localBlocklistPacksMapViewModel = localBlocklistPacksMapViewModel,
+                        appInfoViewModel = appInfoViewModel,
+                        refreshDatabase = rdb,
+                        connectionTrackerViewModel = connectionTrackerViewModel,
+                        dnsLogViewModel = dnsLogViewModel,
+                        rethinkLogViewModel = rethinkLogViewModel,
+                        connectionTrackerRepository = connectionTrackerRepository,
+                        dnsLogRepository = dnsLogRepository,
+                        rethinkLogRepository = rethinkLogRepository,
+                        dohViewModel = dohViewModel,
+                        dotViewModel = dotViewModel,
+                        dnsProxyViewModel = dnsProxyViewModel,
+                        dnsCryptViewModel = dnsCryptViewModel,
+                        dnsCryptRelayViewModel = dnsCryptRelayViewModel,
+                        oDohViewModel = oDohViewModel,
+                        wgConfigViewModel = wgConfigViewModel,
+                        checkoutViewModel = checkoutViewModel,
+                        managePurchaseViewModel = managePurchaseViewModel,
+                        purchaseHistoryViewModel = purchaseHistoryViewModel,
+                        serverOrderHistoryViewModel = serverOrderHistoryViewModel,
+                        blockFreeDnsViewModel = blockFreeDnsViewModel,
+                        wgActions = HomeWgActions(
+                            onWgCreateClick = {
+                                homeNavRequest = HomeNavRequest.WgConfigEditor(
+                                    WireguardManager.INVALID_CONF_ID,
+                                    WgType.DEFAULT
+                                )
+                            },
+                            onWgImportClick = { backupController.launchFileImport() },
+                            onWgQrScanClick = { backupController.launchQrScanner() },
+                        ),
+                        appDatabase = appDatabase
+                        )
+                        if (vpnState == BraveVPNService.State.PAUSED) {
+                            PauseScreen(onFinish = { })
+                        }
+                    }
                 }
 
 
                 if (showBugReportSheet) {
                     BugReportFilesSheet(onDismiss = { showBugReportSheet = false })
                 }
-                HomeDialogHost()
+                HomeDialogHost(
+                    dialog = homeDialogState,
+                    onDismiss = { homeDialogState = HomeDialog.Hidden },
+                    actions = HomeDialogHostActions(
+                        onRestoreConfirm = { uriString ->
+                            val uri = uriString.toUri()
+                            backupController.startRestore(uri)
+                            backupController.observeRestoreWorker()
+                        },
+                        onDownloadConfirm = { download, isUpdateAvailable ->
+                            if (isUpdateAvailable) {
+                                if (download.source == AppUpdater.InstallSource.STORE) {
+                                    appUpdateManager.completeUpdate()
+                                } else {
+                                    initiateDownload()
+                                }
+                            }
+                        },
+                        onDownloadLater = {
+                            persistentState.lastAppUpdateCheck = System.currentTimeMillis()
+                        },
+                        onAlwaysOnStop = { stopVpnService() },
+                        onOpenVpnProfile = { openVpnProfile(this@HomeScreenActivity) },
+                        onPrivateDnsSettings = {
+                            openNetworkSettings(
+                                this@HomeScreenActivity,
+                                Settings.ACTION_WIRELESS_SETTINGS
+                            )
+                        },
+                        onFirstTimeVpnProceed = { proceedFirstTimeVpn() },
+                        onCopyStats = { dump ->
+                            copyToClipboard("stats_dump", dump)
+                            showToastUiCentered(
+                                this@HomeScreenActivity,
+                                getString(R.string.copied_clipboard),
+                                Toast.LENGTH_SHORT
+                            )
+                        },
+                        onNoLogEmail = { sendEmailIntent(this@HomeScreenActivity) },
+                        onContactEmail = { sendEmailIntent(this@HomeScreenActivity) },
+                        onAccessibilityAppInfo = {
+                            UIUtils.openAndroidAppInfo(this@HomeScreenActivity, packageName)
+                        },
+                    )
+                )
             }
         }
-
-        // enable in-app messaging, will be used to show in-app messages in case of billing issues
-        //enableInAppMessaging()
     }
-
-
-    /*private fun enableInAppMessaging() {
-        initiateBillingIfNeeded()
-        // enable in-app messaging
-        InAppBillingHandler.enableInAppMessaging(this)
-        Logger.v(LOG_IAB, "enableInAppMessaging: enabled")
-    }
-
-    private fun initiateBillingIfNeeded() {
-        if (InAppBillingHandler.isBillingClientSetup()) {
-            Logger.i(LOG_IAB, "ensureBillingSetup: billing client already setup")
-            return
-        }
-
-        InAppBillingHandler.initiate(this.applicationContext)
-        Logger.i(LOG_IAB, "ensureBillingSetup: billing client initiated")
-    }*/
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        handleNavigationIntent(intent)
+        handleIncomingIntents(intent)
         Logger.v(LOG_TAG_UI, "home screen activity received new intent")
     }
 
@@ -708,162 +663,27 @@ class HomeScreenActivity : ComponentActivity() {
         return !this.isFinishing && !this.isDestroyed
     }
 
-    private fun handleIntent() {
-        val intent = this.intent ?: return
-        if (
-            intent.scheme?.equals(INTENT_SCHEME) == true &&
-            intent.data?.path?.contains(BACKUP_FILE_EXTN) == true
-        ) {
-            handleRestoreProcess(intent.data)
-        } else if (intent.scheme?.equals(INTENT_SCHEME) == true) {
-            showToastUiCentered(
-                this,
-                getString(R.string.brbs_restore_no_uri_toast),
-                Toast.LENGTH_SHORT
-            )
-        } else if (intent.getBooleanExtra(INTENT_RESTART_APP, false)) {
-            Logger.i(LOG_TAG_UI, "Restart from restore, so refreshing app database...")
-            io { rdb.refresh(RefreshDatabase.ACTION_REFRESH_RESTORE) }
+    private fun handleIncomingIntents(intent: Intent?) {
+        backupController.handleIncomingIntent()
+        applyIntentResult(intentRouter.parse(intent), intent)
+    }
+
+    private fun applyIntentResult(result: HomeIntentResult?, intent: Intent?) {
+        when (result) {
+            is HomeIntentResult.Navigate -> homeNavRequest = result.request
+            HomeIntentResult.AccessibilityCrash -> showDialog(HomeDialog.AccessibilityCrash)
+            HomeIntentResult.RpnAccountAlert -> {
+                if (intent != null) {
+                    billingController.applyNotification(intent)
+                }
+                homeNavRequest = HomeNavRequest.RpnAccount
+            }
+            HomeIntentResult.Ignored, null -> Unit
         }
     }
 
-    private fun handleNavigationIntent(intent: Intent?) {
-        if (intent == null) return
-        handleNotificationAction(intent)
-        val target = intent.getStringExtra(EXTRA_NAV_TARGET) ?: return
-        when (target) {
-            NAV_TARGET_DOMAIN_CONNECTIONS -> {
-                val typeValue = intent.getIntExtra(EXTRA_DC_TYPE, 0)
-                val flag = intent.getStringExtra(EXTRA_DC_FLAG).orEmpty()
-                val domain = intent.getStringExtra(EXTRA_DC_DOMAIN).orEmpty()
-                val asn = intent.getStringExtra(EXTRA_DC_ASN).orEmpty()
-                val ip = intent.getStringExtra(EXTRA_DC_IP).orEmpty()
-                val isBlocked = intent.getBooleanExtra(EXTRA_DC_IS_BLOCKED, false)
-                val timeCategoryValue = intent.getIntExtra(EXTRA_DC_TIME_CATEGORY, 0)
-                val type =
-                    com.bernaferrari.bravedns.ui.compose.logs.DomainConnectionsInputType.fromValue(
-                        typeValue
-                    )
-                val timeCategory =
-                    DomainConnectionsViewModel.TimeCategory.fromValue(timeCategoryValue)
-                        ?: DomainConnectionsViewModel.TimeCategory.ONE_HOUR
-                homeNavRequest =
-                    HomeNavRequest.DomainConnections(
-                        type = type,
-                        flag = flag,
-                        domain = domain,
-                        asn = asn,
-                        ip = ip,
-                        isBlocked = isBlocked,
-                        timeCategory = timeCategory
-                    )
-            }
-
-            NAV_TARGET_APP_INFO -> {
-                val uid = intent.getIntExtra(EXTRA_APP_INFO_UID, Constants.INVALID_UID)
-                if (uid == Constants.INVALID_UID) return
-                homeNavRequest = HomeNavRequest.AppInfo(uid = uid)
-            }
-
-            NAV_TARGET_NETWORK_LOGS -> {
-                // Navigate to network logs screen
-                homeNavRequest = HomeNavRequest.NetworkLogs
-            }
-
-            NAV_TARGET_WG_MAIN -> {
-                homeNavRequest = HomeNavRequest.WgMain
-            }
-        }
-    }
-
-    private fun handleNotificationAction(intent: Intent) {
-        if (intent.extras == null) return
-
-        val accessibility = intent.getStringExtra(Constants.NOTIF_INTENT_EXTRA_ACCESSIBILITY_NAME)
-        if (Constants.NOTIF_INTENT_EXTRA_ACCESSIBILITY_VALUE == accessibility) {
-            homeDialogState = HomeDialog.AccessibilityCrash
-            return
-        }
-
-        val newApp = intent.getStringExtra(Constants.NOTIF_INTENT_EXTRA_NEW_APP_NAME)
-        if (Constants.NOTIF_INTENT_EXTRA_NEW_APP_VALUE == newApp) {
-            val uid =
-                intent.getIntExtra(Constants.NOTIF_INTENT_EXTRA_APP_UID, Constants.INVALID_UID)
-            if (uid > 0) {
-                homeNavRequest = HomeNavRequest.AppInfo(uid = uid)
-            }
-            return
-        }
-
-        val wg = intent.getStringExtra(Constants.NOTIF_WG_PERMISSION_NAME)
-        if (Constants.NOTIF_WG_PERMISSION_VALUE == wg) {
-            homeNavRequest = HomeNavRequest.WgMain
-            return
-        }
-
-        val hasRpnAccountAlert =
-            intent.getStringExtra(Constants.NOTIF_INTENT_EXTRA_IAB_CONFLICT_NAME) ==
-                Constants.NOTIF_INTENT_EXTRA_IAB_CONFLICT_VALUE ||
-                intent.getStringExtra(Constants.NOTIF_INTENT_EXTRA_IAB_DEVICE_NOT_REGISTERED_NAME) ==
-                Constants.NOTIF_INTENT_EXTRA_IAB_DEVICE_NOT_REGISTERED_VALUE ||
-                intent.getStringExtra(Constants.NOTIF_INTENT_EXTRA_IAB_DEVICE_AUTH_ERROR_NAME) ==
-                Constants.NOTIF_INTENT_EXTRA_IAB_DEVICE_AUTH_ERROR_VALUE
-        if (hasRpnAccountAlert) {
-            // Notification actions outlive the process that produced them. Recreate the typed
-            // error here so the Compose account screen can offer the same recovery path as an
-            // in-process server failure.
-            InAppBillingHandler.serverApiErrorLiveData.value = notificationServerApiError(intent)
-            homeNavRequest = HomeNavRequest.RpnAccount
-        }
-    }
-
-    private fun notificationServerApiError(intent: Intent): ServerApiError? {
-        fun operation(extra: String): ServerApiError.Operation =
-            intent.getStringExtra(extra)
-                ?.let { name -> ServerApiError.Operation.entries.firstOrNull { it.name == name } }
-                ?: ServerApiError.Operation.CUSTOMER
-
-        return when {
-            intent.getStringExtra(Constants.NOTIF_INTENT_EXTRA_IAB_CONFLICT_NAME) ==
-                Constants.NOTIF_INTENT_EXTRA_IAB_CONFLICT_VALUE ->
-                ServerApiError.Conflict409(
-                    endpoint = intent.getStringExtra("conflict_endpoint").orEmpty(),
-                    operation = operation("conflict_operation"),
-                    serverMessage = intent.getStringExtra("conflict_server_msg"),
-                    accountId = intent.getStringExtra("conflict_account_id").orEmpty(),
-                    purchaseToken = intent.getStringExtra("conflict_purchase_token").orEmpty(),
-                    sku = intent.getStringExtra("conflict_sku").orEmpty(),
-                )
-            intent.getStringExtra(Constants.NOTIF_INTENT_EXTRA_IAB_DEVICE_AUTH_ERROR_NAME) ==
-                Constants.NOTIF_INTENT_EXTRA_IAB_DEVICE_AUTH_ERROR_VALUE ->
-                ServerApiError.Unauthorized401(
-                    operation = operation("auth_error_operation"),
-                    accountId = intent.getStringExtra("auth_error_account_id").orEmpty(),
-                    deviceIdPrefix = intent.getStringExtra("auth_error_device_id_prefix").orEmpty(),
-                )
-            intent.getStringExtra(Constants.NOTIF_INTENT_EXTRA_IAB_DEVICE_NOT_REGISTERED_NAME) ==
-                Constants.NOTIF_INTENT_EXTRA_IAB_DEVICE_NOT_REGISTERED_VALUE ->
-                ServerApiError.DeviceNotRegistered(
-                    entitlementCid = intent.getStringExtra("dnr_entitlement_cid").orEmpty(),
-                    storedCid = intent.getStringExtra("dnr_stored_cid").orEmpty(),
-                    deviceIdPrefix = intent.getStringExtra("dnr_device_id_prefix").orEmpty(),
-                )
-            else -> null
-        }
-    }
-
-
-    private fun handleRestoreProcess(uri: Uri?) {
-        if (uri == null) {
-            showToastUiCentered(
-                this,
-                getString(R.string.brbs_restore_no_uri_toast),
-                Toast.LENGTH_SHORT
-            )
-            return
-        }
-
-        showRestoreDialog(uri)
+    private fun showDialog(dialog: HomeDialog) {
+        pendingDialog.value = dialog
     }
 
     private fun regenerateFirebaseTokenIfNeeded() {
@@ -886,58 +706,7 @@ class HomeScreenActivity : ComponentActivity() {
 
     private fun showRestoreDialog(uri: Uri) {
         if (!isInForeground()) return
-        homeDialogState = HomeDialog.Restore(uri)
-    }
-
-    private fun startRestore(fileUri: Uri) {
-        Logger.i(LOG_TAG_BACKUP_RESTORE, "invoke worker to initiate the restore process")
-        val data = Data.Builder()
-        data.putString(BackupHelper.DATA_BUILDER_RESTORE_URI, fileUri.toString())
-
-        val importWorker =
-            OneTimeWorkRequestBuilder<RestoreAgent>()
-                .setInputData(data.build())
-                .setBackoffCriteria(
-                    BackoffPolicy.LINEAR,
-                    WorkRequest.MIN_BACKOFF_MILLIS,
-                    TimeUnit.MILLISECONDS
-                )
-                .addTag(RestoreAgent.TAG)
-                .build()
-        WorkManager.getInstance(this).beginWith(importWorker).enqueue()
-    }
-
-    private fun observeRestoreWorker() {
-        val workManager = WorkManager.getInstance(this.applicationContext)
-
-        lifecycleScope.launch {
-            workManager.workInfosByTagFlow(RestoreAgent.TAG).collect { workInfoList ->
-                val workInfo = workInfoList.getOrNull(0) ?: return@collect
-                Logger.i(
-                    LOG_TAG_BACKUP_RESTORE,
-                    "WorkManager state: ${workInfo.state} for ${RestoreAgent.TAG}"
-                )
-                if (WorkInfo.State.SUCCEEDED == workInfo.state) {
-                    showToastUiCentered(
-                        this@HomeScreenActivity,
-                        getString(R.string.brbs_restore_complete_toast),
-                        Toast.LENGTH_SHORT
-                    )
-                    workManager.pruneWork()
-                } else if (
-                    WorkInfo.State.CANCELLED == workInfo.state ||
-                    WorkInfo.State.FAILED == workInfo.state
-                ) {
-                    showToastUiCentered(
-                        this@HomeScreenActivity,
-                        getString(R.string.brbs_restore_no_uri_toast),
-                        Toast.LENGTH_SHORT
-                    )
-                    workManager.pruneWork()
-                    workManager.cancelAllWorkByTag(RestoreAgent.TAG)
-                }
-            }
-        }
+        showDialog(HomeDialog.Restore(uri.toString()))
     }
 
     private fun removeThisMethod() {
@@ -1216,7 +985,7 @@ class HomeScreenActivity : ComponentActivity() {
         message: String
     ) {
         if (!isInForeground()) return
-        homeDialogState = HomeDialog.Download(source, title, message)
+        showDialog(HomeDialog.Download(source, title, message))
     }
 
     private fun initiateDownload() {
@@ -1247,53 +1016,12 @@ class HomeScreenActivity : ComponentActivity() {
     }
 
 
-    private sealed interface HomeDialog {
-        data class Restore(val uri: Uri) : HomeDialog
-        data class Download(
-            val source: AppUpdater.InstallSource,
-            val title: String,
-            val message: String
-        ) : HomeDialog
-
-        data class AlwaysOnStop(val message: String) : HomeDialog
-        data object AlwaysOnDisable : HomeDialog
-        data object PrivateDns : HomeDialog
-        data class FirstTimeVpn(val intent: Intent) : HomeDialog
-        data class Stats(val displayText: String, val dump: String) : HomeDialog
-        data class Sponsor(val usageMessage: String, val amount: String) : HomeDialog
-        data object Contributors : HomeDialog
-        data object NoLog : HomeDialog
-        data object AccessibilityCrash : HomeDialog
-        data class NewFeatures(val title: String) : HomeDialog
-    }
-
     private fun openDetailedStatsUi(type: SummaryStatisticsType) {
         val timeCategory = summaryViewModel.uiState.value.timeCategory.value
         val category =
             SummaryStatisticsViewModel.TimeCategory.fromValue(timeCategory)
                 ?: SummaryStatisticsViewModel.TimeCategory.ONE_HOUR
         homeNavRequest = HomeNavRequest.DetailedStats(type, category)
-    }
-
-    private fun promptForAppSponsorship() {
-        val installTime = packageManager.getPackageInfo(packageName, 0).firstInstallTime
-        val timeDiff = System.currentTimeMillis() - installTime
-        val days = (timeDiff / (1000L * 60L * 60L * 24L)).toDouble()
-        val month = days / 30.0
-        val amount = month * (0.60 + 0.20)
-
-        val msg = getString(
-            R.string.sponser_dialog_usage_msg,
-            days.toInt().toString(),
-            "%.2f".format(amount)
-        )
-        val formattedAmount =
-            getString(
-                R.string.two_argument_no_space,
-                getString(R.string.symbol_dollar),
-                "%.2f".format(amount)
-            )
-        homeDialogState = HomeDialog.Sponsor(msg, formattedAmount)
     }
 
     private fun handleMainScreenBtnClickEvent() {
@@ -1333,14 +1061,14 @@ class HomeScreenActivity : ComponentActivity() {
             } else {
                 getString(R.string.always_on_dialog_stop_message)
             }
-        homeDialogState = HomeDialog.AlwaysOnStop(message)
+        showDialog(HomeDialog.AlwaysOnStop(message))
     }
 
     private fun showAlwaysOnDisableDialog() {
-        homeDialogState = HomeDialog.AlwaysOnDisable
+        showDialog(HomeDialog.AlwaysOnDisable)
     }
 
-    private fun startDnsActivity(screenToLoad: Int) {
+    private fun startDnsActivity() {
         if (Utilities.isPrivateDnsActive(this)) {
             showPrivateDnsDialog()
             return
@@ -1391,11 +1119,45 @@ class HomeScreenActivity : ComponentActivity() {
     }
 
     private fun showPrivateDnsDialog() {
-        homeDialogState = HomeDialog.PrivateDns
+        showDialog(HomeDialog.PrivateDns)
     }
 
-    private fun startFirewallActivity(screenToLoad: Int) {
+    private fun startFirewallActivity() {
         homeNavRequest = HomeNavRequest.FirewallSettings
+    }
+
+    private fun shareConsoleLogs() {
+        lifecycleScope.launch {
+            val logs = withContext(Dispatchers.IO) {
+                consoleLogDao.getLogsCursor(
+                    androidx.room3.RoomRawQuery("SELECT * FROM ConsoleLog order by id"),
+                )
+            }
+            if (logs.isEmpty()) {
+                showToastUiCentered(
+                    this@HomeScreenActivity,
+                    getString(R.string.about_bug_no_log_dialog_title),
+                    Toast.LENGTH_SHORT,
+                )
+                return@launch
+            }
+            val text = buildString {
+                for (log in logs) {
+                    append(log.timestamp)
+                    append('\t')
+                    append(log.message)
+                    append('\n')
+                }
+            }
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_SUBJECT, getString(R.string.console_log_title))
+                putExtra(Intent.EXTRA_TEXT, text)
+            }
+            startActivity(
+                Intent.createChooser(intent, getString(R.string.about_bug_report_desc)),
+            )
+        }
     }
 
     private fun openUniversalFirewallScreen() {
@@ -1470,15 +1232,38 @@ class HomeScreenActivity : ComponentActivity() {
             }
         if (prepareVpnIntent != null) {
             Logger.i(LOG_TAG_VPN, "VPN service is prepared")
-            showFirstTimeVpnDialog(prepareVpnIntent)
+            showFirstTimeVpnDialog()
             return false
         }
         Logger.i(LOG_TAG_VPN, "VPN service is prepared, starting VPN service")
         return true
     }
 
-    private fun showFirstTimeVpnDialog(prepareVpnIntent: Intent) {
-        homeDialogState = HomeDialog.FirstTimeVpn(prepareVpnIntent)
+    private fun showFirstTimeVpnDialog() {
+        showDialog(HomeDialog.FirstTimeVpn)
+    }
+
+    private fun proceedFirstTimeVpn() {
+        val prepareVpnIntent = try {
+            VpnService.prepare(this)
+        } catch (e: NullPointerException) {
+            Logger.e(LOG_TAG_VPN, "Device does not support system-wide VPN mode.", e)
+            null
+        }
+        if (prepareVpnIntent == null) {
+            startVpnService()
+            return
+        }
+        try {
+            startForResult.launch(prepareVpnIntent)
+        } catch (e: ActivityNotFoundException) {
+            Logger.e(LOG_TAG_VPN, "Activity not found to start VPN service", e)
+            showToastUiCentered(
+                this,
+                getString(R.string.hsf_vpn_prepare_failure),
+                Toast.LENGTH_LONG
+            )
+        }
     }
 
     private fun registerForActivityResult() {
@@ -1549,7 +1334,7 @@ class HomeScreenActivity : ComponentActivity() {
             val stats = formatedStat + vpnStats
             uiCtx {
                 val displayText = if (formatedStat == null) "No Stats" else stats
-                homeDialogState = HomeDialog.Stats(displayText, stats)
+                showDialog(HomeDialog.Stats(displayText, stats))
             }
         }
     }
@@ -1578,7 +1363,7 @@ class HomeScreenActivity : ComponentActivity() {
     }
 
     private fun showNoLogDialog() {
-        homeDialogState = HomeDialog.NoLog
+        showDialog(HomeDialog.NoLog)
     }
 
     private fun openNotificationSettings() {
@@ -1607,11 +1392,11 @@ class HomeScreenActivity : ComponentActivity() {
     private fun showNewFeaturesDialog() {
         val v = getVersionName().slice(0..6)
         val title = getString(R.string.about_whats_new, v)
-        homeDialogState = HomeDialog.NewFeatures(title)
+        showDialog(HomeDialog.NewFeatures(title))
     }
 
     private fun showContributors() {
-        homeDialogState = HomeDialog.Contributors
+        showDialog(HomeDialog.Contributors)
     }
 
     private fun promptCrashLogAction() {
@@ -1638,7 +1423,7 @@ class HomeScreenActivity : ComponentActivity() {
             return
         }
 
-        showBugReportSheet = true
+        pendingBugReportSheet.value = true
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -1688,7 +1473,10 @@ class HomeScreenActivity : ComponentActivity() {
                         Checkbox(
                             checked = allSelected,
                             onCheckedChange = { checked ->
-                                bugReportFiles.forEach { it.isSelected = checked }
+                                bugReportFiles.indices.forEach { i ->
+                                    bugReportFiles[i] =
+                                        bugReportFiles[i].copy(isSelected = checked)
+                                }
                             }
                         )
                         Text(
@@ -1700,7 +1488,11 @@ class HomeScreenActivity : ComponentActivity() {
                                         .replaceFirstChar(Char::titlecase)
                                 },
                             modifier = Modifier.clickable {
-                                bugReportFiles.forEach { it.isSelected = !allSelected }
+                                val selectAll = !allSelected
+                                bugReportFiles.indices.forEach { i ->
+                                    bugReportFiles[i] =
+                                        bugReportFiles[i].copy(isSelected = selectAll)
+                                }
                             }
                         )
                     }
@@ -1714,14 +1506,25 @@ class HomeScreenActivity : ComponentActivity() {
                 if (bugReportFiles.isEmpty()) {
                     Text(text = getString(R.string.bug_report_no_files_available))
                 } else {
-                    LazyColumn(
+                    RethinkListGroup(
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1f, fill = false)
                     ) {
-                        items(bugReportFiles, key = { it.file.absolutePath }) { item ->
+                        bugReportFiles.forEachIndexed { index, item ->
                             BugReportFileRow(
                                 fileItem = item,
+                                position = cardPositionFor(index, bugReportFiles.lastIndex),
+                                onToggle = { selected ->
+                                    val path = item.file.absolutePath
+                                    val fileIndex = bugReportFiles.indexOfFirst {
+                                        it.file.absolutePath == path
+                                    }
+                                    if (fileIndex >= 0) {
+                                        bugReportFiles[fileIndex] =
+                                            bugReportFiles[fileIndex].copy(isSelected = selected)
+                                    }
+                                },
                                 onShare = { openBugReportFile(item.file) },
                                 onDelete = { pendingDelete = item }
                             )
@@ -1731,41 +1534,41 @@ class HomeScreenActivity : ComponentActivity() {
 
                 Spacer(modifier = Modifier.height(Dimensions.spacingMd))
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (isSending) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            CircularProgressIndicator(modifier = Modifier.size(Dimensions.iconSizeSm))
-                            Spacer(modifier = Modifier.width(Dimensions.spacingSm))
-                            Text(text = progressText)
-                        }
-                    }
-                    Spacer(modifier = Modifier.weight(1f))
-                    TextButton(
-                        onClick = {
-                            if (!isSending) {
-                                scope.launch {
-                                    sendBugReport(
-                                        bugReportFiles = bugReportFiles,
-                                        onSending = { sending, text ->
-                                            isSending = sending
-                                            progressText = text
-                                        },
-                                        onDone = {
-                                            showBugReportSheet = false
-                                        }
-                                    )
-                                }
-                            }
-                        },
-                        enabled = hasSelection && !isSending
+                if (isSending) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = Dimensions.spacingSm),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(text = getString(R.string.about_bug_report_dialog_positive_btn))
+                        CircularProgressIndicator(modifier = Modifier.size(Dimensions.iconSizeSm))
+                        Spacer(modifier = Modifier.width(Dimensions.spacingSm))
+                        Text(
+                            text = progressText,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
+                RethinkFormActionRow(
+                    confirmLabel = getString(R.string.about_bug_report_dialog_positive_btn),
+                    onConfirm = {
+                        scope.launch {
+                            sendBugReport(
+                                bugReportFiles = bugReportFiles,
+                                onSending = { sending, text ->
+                                    isSending = sending
+                                    progressText = text
+                                },
+                                onDone = onDismiss
+                            )
+                        }
+                    },
+                    dismissLabel = getString(R.string.lbl_cancel),
+                    onDismiss = onDismiss,
+                    dismissEnabled = !isSending,
+                    confirmEnabled = hasSelection && !isSending
+                )
             }
         }
 
@@ -1795,50 +1598,42 @@ class HomeScreenActivity : ComponentActivity() {
     @Composable
     private fun BugReportFileRow(
         fileItem: BugReportFile,
+        position: CardPosition,
+        onToggle: (Boolean) -> Unit,
         onShare: () -> Unit,
         onDelete: () -> Unit
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = Dimensions.spacingSm)
-                .background(
-                    MaterialTheme.colorScheme.surfaceVariant,
-                    RoundedCornerShape(Dimensions.cornerRadiusMd)
+        RethinkListItem(
+            headline = fileItem.name,
+            supporting =
+                "${formatFileSize(fileItem.file.length())} - ${formatDate(fileItem.file.lastModified())}",
+            position = position,
+            highlighted = fileItem.isSelected,
+            onClick = { onToggle(!fileItem.isSelected) },
+            leadingContent = {
+                Checkbox(
+                    checked = fileItem.isSelected,
+                    onCheckedChange = null
                 )
-                .padding(Dimensions.spacingMd),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Checkbox(
-                checked = fileItem.isSelected,
-                onCheckedChange = { checked -> fileItem.isSelected = checked }
-            )
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = fileItem.name,
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium)
-                )
-                Text(
-                    text =
-                        "${formatFileSize(fileItem.file.length())} - ${formatDate(fileItem.file.lastModified())}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+            },
+            trailing = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = onShare) {
+                        Icon(
+                            imageVector = MaterialSymbols.Filled.Share,
+                            contentDescription = getString(R.string.about_bug_report_desc)
+                        )
+                    }
+                    IconButton(onClick = onDelete) {
+                        Icon(
+                            imageVector = MaterialSymbols.Filled.Delete,
+                            contentDescription = getString(R.string.lbl_delete),
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
             }
-            IconButton(onClick = onShare) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_share),
-                    contentDescription = getString(R.string.about_bug_report_desc)
-                )
-            }
-            IconButton(onClick = onDelete) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_delete),
-                    contentDescription = getString(R.string.lbl_delete),
-                    tint = MaterialTheme.colorScheme.error
-                )
-            }
-        }
+        )
     }
 
     private fun collectAllBugReportFiles(): List<BugReportFile> {
@@ -2158,7 +1953,7 @@ class HomeScreenActivity : ComponentActivity() {
         val file: File,
         val name: String,
         val type: FileType,
-        var isSelected: Boolean
+        val isSelected: Boolean
     )
 
     enum class FileType {
@@ -2185,376 +1980,6 @@ class HomeScreenActivity : ComponentActivity() {
         const val EXTRA_APP_INFO_UID = "extra_app_info_uid"
     }
 
-    @Composable
-    private fun WhatsNewDialogContent() {
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(Dimensions.spacingLg)
-                    .verticalScroll(rememberScrollState())
-        ) {
-            HtmlText(
-                text = getString(R.string.whats_new_version_update),
-                textAlign = TextAlign.Start
-            )
-        }
-    }
-
-    @Composable
-    private fun HomeDialogHost() {
-        when (val dialog = homeDialogState) {
-            is HomeDialog.Restore -> {
-                HomeConfirmDialog(
-                    onDismissRequest = { homeDialogState = null },
-                    title = getString(R.string.brbs_restore_dialog_title),
-                    message = getString(R.string.brbs_restore_dialog_message),
-                    confirmText = getString(R.string.brbs_restore_dialog_positive),
-                    onConfirm = {
-                        homeDialogState = null
-                        startRestore(dialog.uri)
-                        observeRestoreWorker()
-                    },
-                    dismissText = getString(R.string.lbl_cancel),
-                    onDismiss = { homeDialogState = null }
-                )
-            }
-
-            is HomeDialog.Download -> {
-                val isUpdateAvailable =
-                    dialog.title == getString(R.string.download_update_dialog_title)
-                val resolvedMessage =
-                    if (isUpdateAvailable && dialog.source == AppUpdater.InstallSource.STORE) {
-                        "A new version is available. Please update from Play Store."
-                    } else {
-                        dialog.message
-                    }
-                val primaryLabel =
-                    if (isUpdateAvailable && dialog.source != AppUpdater.InstallSource.STORE) {
-                        getString(R.string.hs_download_positive_website)
-                    } else {
-                        getString(R.string.hs_download_positive_default)
-                    }
-
-                HomeConfirmDialog(
-                    onDismissRequest = {
-                        if (!isUpdateAvailable) {
-                            homeDialogState = null
-                        }
-                    },
-                    title = dialog.title,
-                    message = resolvedMessage,
-                    confirmText = primaryLabel,
-                    dismissText =
-                        if (isUpdateAvailable) {
-                            getString(R.string.hs_download_negative_default)
-                        } else {
-                            null
-                        },
-                    onConfirm = {
-                        if (isUpdateAvailable) {
-                            if (dialog.source == AppUpdater.InstallSource.STORE) {
-                                appUpdateManager.completeUpdate()
-                            } else {
-                                initiateDownload()
-                            }
-                        }
-                        homeDialogState = null
-                    },
-                    onDismiss = {
-                        if (isUpdateAvailable) {
-                            persistentState.lastAppUpdateCheck = System.currentTimeMillis()
-                            homeDialogState = null
-                        }
-                    }
-                )
-
-            }
-
-            is HomeDialog.AlwaysOnStop -> {
-                HomeAlwaysOnStopDialog(
-                    title = getString(R.string.always_on_dialog_stop_heading),
-                    message = dialog.message,
-                    stopText = getString(R.string.always_on_dialog_positive),
-                    openSettingsText = getString(R.string.always_on_dialog_neutral),
-                    cancelText = getString(R.string.lbl_cancel),
-                    onStop = {
-                        homeDialogState = null
-                        stopVpnService()
-                    },
-                    onOpenSettings = {
-                        homeDialogState = null
-                        openVpnProfile(this@HomeScreenActivity)
-                    },
-                    onCancel = {
-                        homeDialogState = null
-                    }
-                )
-            }
-
-            HomeDialog.AlwaysOnDisable -> {
-                HomeConfirmDialog(
-                    onDismissRequest = {},
-                    title = getString(R.string.always_on_dialog_heading),
-                    message = getString(R.string.always_on_dialog),
-                    confirmText = getString(R.string.always_on_dialog_positive_btn),
-                    dismissText = getString(R.string.lbl_cancel),
-                    onConfirm = {
-                        homeDialogState = null
-                        openVpnProfile(this@HomeScreenActivity)
-                    },
-                    onDismiss = { homeDialogState = null }
-                )
-            }
-
-            HomeDialog.PrivateDns -> {
-                HomeConfirmDialog(
-                    onDismissRequest = {},
-                    title = getString(R.string.private_dns_dialog_heading),
-                    message = getString(R.string.private_dns_dialog_desc),
-                    confirmText = getString(R.string.private_dns_dialog_positive),
-                    dismissText = getString(R.string.lbl_dismiss),
-                    onConfirm = {
-                        homeDialogState = null
-                        openNetworkSettings(
-                            this@HomeScreenActivity,
-                            Settings.ACTION_WIRELESS_SETTINGS
-                        )
-                    },
-                    onDismiss = { homeDialogState = null }
-                )
-            }
-
-            is HomeDialog.FirstTimeVpn -> {
-                HomeConfirmDialog(
-                    onDismissRequest = {},
-                    title = getString(R.string.hsf_vpn_dialog_header),
-                    message = getString(R.string.hsf_vpn_dialog_message),
-                    confirmText = getString(R.string.lbl_proceed),
-                    dismissText = getString(R.string.lbl_cancel),
-                    onConfirm = {
-                        homeDialogState = null
-                        try {
-                            startForResult.launch(dialog.intent)
-                        } catch (e: ActivityNotFoundException) {
-                            Logger.e(LOG_TAG_VPN, "Activity not found to start VPN service", e)
-                            showToastUiCentered(
-                                this@HomeScreenActivity,
-                                getString(R.string.hsf_vpn_prepare_failure),
-                                Toast.LENGTH_LONG
-                            )
-                        }
-                    },
-                    onDismiss = { homeDialogState = null }
-                )
-            }
-
-            is HomeDialog.Stats -> {
-                HomeStatsDialog(
-                    onDismissRequest = { homeDialogState = null },
-                    title = getString(R.string.title_statistics),
-                    displayText = dialog.displayText,
-                    dismissText = getString(R.string.fapps_info_dialog_positive_btn),
-                    copyText = getString(R.string.dns_info_neutral),
-                    onDismiss = { homeDialogState = null },
-                    onCopy = {
-                        copyToClipboard("stats_dump", dialog.dump)
-                        showToastUiCentered(
-                            this@HomeScreenActivity,
-                            getString(R.string.copied_clipboard),
-                            Toast.LENGTH_SHORT
-                        )
-                    }
-                )
-            }
-
-            is HomeDialog.Sponsor -> {
-                /*
-                 * Sponsor dialog intentionally hidden for now.
-                 *
-                 * Dialog(
-                 *     onDismissRequest = { homeDialogState = null },
-                 *     properties = DialogProperties(usePlatformDefaultWidth = false)
-                 * ) {
-                 *     Surface(color = MaterialTheme.colorScheme.background) {
-                 *         Column(modifier = Modifier
-                 *             .fillMaxWidth()
-                 *             .padding(Dimensions.spacingLg)) {
-                 *             Text(
-                 *                 text = getString(R.string.about_sponsor_link_text),
-                 *                 style = MaterialTheme.typography.titleLarge
-                 *             )
-                 *             Spacer(modifier = Modifier.height(Dimensions.spacingSm))
-                 *             SponsorInfoDialogContent(
-                 *                 amount = dialog.amount,
-                 *                 usageMessage = dialog.usageMessage,
-                 *                 onSponsorClick = {
-                 *                     openUrl(
-                 *                         this@HomeScreenActivity,
-                 *                         RETHINKDNS_SPONSOR_LINK
-                 *                     )
-                 *                 }
-                 *             )
-                 *             Spacer(modifier = Modifier.height(Dimensions.spacingMd))
-                 *             Row(
-                 *                 modifier = Modifier.fillMaxWidth(),
-                 *                 horizontalArrangement = Arrangement.End
-                 *             ) {
-                 *                 TextButton(onClick = { homeDialogState = null }) {
-                 *                     Text(text = getString(R.string.lbl_cancel))
-                 *                 }
-                 *             }
-                 *         }
-                 *     }
-                 * }
-                 */
-                LaunchedEffect(Unit) {
-                    homeDialogState = null
-                }
-            }
-
-            HomeDialog.Contributors -> {
-                Dialog(
-                    onDismissRequest = { homeDialogState = null },
-                    properties = DialogProperties(usePlatformDefaultWidth = false)
-                ) {
-                    Surface(color = MaterialTheme.colorScheme.background) {
-                        ContributorsDialogContent(onDismiss = { homeDialogState = null })
-                    }
-                }
-            }
-
-            HomeDialog.NoLog -> {
-                HomeConfirmDialog(
-                    onDismissRequest = { homeDialogState = null },
-                    title = getString(R.string.about_bug_no_log_dialog_title),
-                    message = getString(R.string.about_bug_no_log_dialog_message),
-                    confirmText = getString(R.string.about_bug_no_log_dialog_positive_btn),
-                    dismissText = getString(R.string.lbl_cancel),
-                    onConfirm = {
-                        homeDialogState = null
-                        sendEmailIntent(this@HomeScreenActivity)
-                    },
-                    onDismiss = { homeDialogState = null }
-                )
-            }
-
-            is HomeDialog.NewFeatures -> {
-                HomeNewFeaturesDialog(
-                    onDismissRequest = { homeDialogState = null },
-                    title = dialog.title,
-                    dismissText = getString(R.string.about_dialog_positive_button),
-                    contactText = getString(R.string.about_dialog_neutral_button),
-                    onDismiss = { homeDialogState = null },
-                    onContact = {
-                        homeDialogState = null
-                        sendEmailIntent(this@HomeScreenActivity)
-                    },
-                    content = { WhatsNewDialogContent() }
-                )
-            }
-
-            HomeDialog.AccessibilityCrash -> {
-                HomeConfirmDialog(
-                    onDismissRequest = { homeDialogState = null },
-                    title = getString(R.string.lbl_action_required),
-                    message = getString(R.string.alert_firewall_accessibility_regrant_explanation),
-                    confirmText = getString(R.string.univ_accessibility_crash_dialog_positive),
-                    dismissText = getString(R.string.lbl_cancel),
-                    onConfirm = {
-                        UIUtils.openAndroidAppInfo(this@HomeScreenActivity, packageName)
-                        homeDialogState = null
-                    },
-                    onDismiss = { homeDialogState = null }
-                )
-            }
-
-            null -> Unit
-        }
-    }
-
-    @Composable
-    private fun ContributorsDialogContent(onDismiss: () -> Unit) {
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(Dimensions.spacingXl)
-                    .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Box(modifier = Modifier.fillMaxWidth()) {
-                IconButton(onClick = onDismiss, modifier = Modifier.align(Alignment.TopEnd)) {
-                    Image(
-                        painter = painterResource(id = android.R.drawable.ic_menu_close_clear_cancel),
-                        contentDescription = getString(R.string.lbl_dismiss)
-                    )
-                }
-                Row(
-                    modifier = Modifier.align(Alignment.Center),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_authors),
-                        contentDescription = null,
-                        modifier = Modifier.size(Dimensions.iconSizeMd)
-                    )
-                    Spacer(modifier = Modifier.width(Dimensions.spacingSm))
-                    Text(
-                        text = getString(R.string.contributors_dialog_title),
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(Dimensions.spacingMd))
-
-            HtmlText(
-                text = getString(R.string.contributors_list),
-                textAlign = TextAlign.Center
-            )
-        }
-    }
-
-    @Suppress("unused")
-    @Composable
-    private fun SponsorInfoDialogContent(
-        amount: String,
-        usageMessage: String,
-        onSponsorClick: () -> Unit
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Text(text = amount, style = MaterialTheme.typography.titleLarge)
-            Text(text = usageMessage, style = MaterialTheme.typography.bodyMedium)
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                TextButton(onClick = onSponsorClick) {
-                    Text(text = getString(R.string.about_sponsor_link_text))
-                }
-            }
-        }
-    }
-
-    @Composable
-    private fun HtmlText(text: String, textAlign: TextAlign) {
-        val textValue = remember(text) { UIUtils.htmlToSpannedText(text).toString() }
-        Text(
-            text = textValue,
-            modifier = Modifier.fillMaxWidth(),
-            style =
-                MaterialTheme.typography.bodyLarge.copy(
-                    color = MaterialTheme.colorScheme.onSurface,
-                    textAlign = textAlign
-                )
-        )
-    }
-
     private fun onAppExitInfoFailure() {
         showToastUiCentered(
             this,
@@ -2579,45 +2004,10 @@ class HomeScreenActivity : ComponentActivity() {
     private suspend fun uiCtx(f: suspend () -> Unit) {
         withContext(Dispatchers.Main) { f() }
     }
+}
 
-    private fun launchFileImport() {
-        try {
-            tunnelFileImportResultLauncher.launch("*/*")
-        } catch (e: ActivityNotFoundException) {
-            showToastUiCentered(
-                this,
-                getString(R.string.blocklist_update_check_failure),
-                Toast.LENGTH_SHORT
-            )
-        } catch (e: Exception) {
-            showToastUiCentered(
-                this,
-                getString(R.string.blocklist_update_check_failure),
-                Toast.LENGTH_SHORT
-            )
-        }
-    }
-
-    private fun launchQrScanner() {
-        try {
-            qrImportResultLauncher.launch(
-                ScanOptions()
-                    .setOrientationLocked(false)
-                    .setBeepEnabled(false)
-                    .setPrompt(resources.getString(R.string.lbl_qr_code))
-            )
-        } catch (e: ActivityNotFoundException) {
-            showToastUiCentered(
-                this,
-                getString(R.string.blocklist_update_check_failure),
-                Toast.LENGTH_SHORT
-            )
-        } catch (e: Exception) {
-            showToastUiCentered(
-                this,
-                getString(R.string.blocklist_update_check_failure),
-                Toast.LENGTH_SHORT
-            )
-        }
-    }
+// No-receiver host so HomeScreenRoot callbacks keep Activity `this`, not BoxScope.
+@Composable
+private fun PauseOverlayHost(content: @Composable () -> Unit) {
+    Box(Modifier.fillMaxSize()) { content() }
 }

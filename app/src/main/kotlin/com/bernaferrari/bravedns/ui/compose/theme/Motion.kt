@@ -16,59 +16,49 @@
 package com.bernaferrari.bravedns.ui.compose.theme
 
 import android.animation.ValueAnimator
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
+import android.database.ContentObserver
+import android.os.Handler
+import android.os.Looper
+import android.provider.Settings
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.delay
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 
 @Composable
 fun rememberReducedMotion(): Boolean {
-    return remember {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    fun readReduced(): Boolean =
         runCatching { !ValueAnimator.areAnimatorsEnabled() }.getOrDefault(false)
-    }
-}
+    var reduced by remember { mutableStateOf(readReduced()) }
 
-@Composable
-fun RethinkAnimatedSection(
-    index: Int,
-    content: @Composable () -> Unit
-) {
-    val reduceMotion = rememberReducedMotion()
-    var entered by remember(index) { mutableStateOf(reduceMotion) }
-
-    LaunchedEffect(index, reduceMotion) {
-        if (!reduceMotion) {
-            // Keep staggered sections perceptible without making frequent settings screens feel slow.
-            delay((index.coerceIn(0, 5) * 32L))
-            entered = true
+    DisposableEffect(context, lifecycleOwner) {
+        val resolver = context.contentResolver
+        val uri = Settings.Global.getUriFor(Settings.Global.ANIMATOR_DURATION_SCALE)
+        val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
+            override fun onChange(selfChange: Boolean) {
+                reduced = readReduced()
+            }
+        }
+        if (uri != null) {
+            resolver.registerContentObserver(uri, false, observer)
+        }
+        val lifecycleObserver = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) reduced = readReduced()
+        }
+        lifecycleOwner.lifecycle.addObserver(lifecycleObserver)
+        reduced = readReduced()
+        onDispose {
+            if (uri != null) resolver.unregisterContentObserver(observer)
+            lifecycleOwner.lifecycle.removeObserver(lifecycleObserver)
         }
     }
-
-    val progress by
-        animateFloatAsState(
-            targetValue = if (entered) 1f else 0f,
-            animationSpec = tween(durationMillis = 180, easing = FastOutSlowInEasing),
-            label = "rethinkSectionEntrance"
-        )
-
-    androidx.compose.foundation.layout.Box(
-        modifier =
-            Modifier
-                .alpha(if (reduceMotion) 1f else progress)
-                .graphicsLayer {
-                    translationY = if (reduceMotion) 0f else (1f - progress) * 8.dp.toPx()
-                }
-    ) {
-        content()
-    }
+    return reduced
 }

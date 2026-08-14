@@ -9,7 +9,6 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
@@ -53,9 +52,9 @@ fun RethinkAntiCensorshipScreen(
         subtitle = "${strings.split}: $selectedDialLabel · ${strings.retryHeading}: $selectedRetryLabel",
         onBackClick = onBackClick,
         modifier = modifier,
-        containerColor = MaterialTheme.colorScheme.background,
-        topBarContainerColor = Color.Transparent,
-        topBarScrolledContainerColor = Color.Transparent,
+        containerColor = MaterialTheme.colorScheme.surface,
+        topBarContainerColor = MaterialTheme.colorScheme.surface,
+        topBarScrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) {
         item {
             RethinkListGroup {

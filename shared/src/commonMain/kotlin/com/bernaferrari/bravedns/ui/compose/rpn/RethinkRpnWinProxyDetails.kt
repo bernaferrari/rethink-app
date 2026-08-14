@@ -11,11 +11,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -27,8 +25,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
+import com.bernaferrari.bravedns.ui.compose.theme.PrimaryButton
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormSection
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
@@ -118,11 +118,12 @@ fun RethinkRpnWinProxyDetailsScreen(
                     onEditSsids = onEditSsids,
                 )
             }
-            Button(onClick = onSelectApps, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(SharedDimensions.buttonCornerRadius)) {
-                androidx.compose.material3.Icon(MaterialSymbols.Filled.Apps, null)
-                Spacer(Modifier.width(SharedDimensions.spacingXs))
-                Text(strings.selectApps)
-            }
+            PrimaryButton(
+                text = strings.selectApps,
+                onClick = onSelectApps,
+                modifier = Modifier.fillMaxWidth(),
+                icon = MaterialSymbols.Filled.Apps,
+            )
         }
     }
 }
@@ -194,14 +195,7 @@ private fun RethinkRpnWinServerOptions(
     onSsidChanged: (Boolean) -> Unit,
     onEditSsids: () -> Unit,
 ) {
-    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
-        Text(
-            strings.serverOptions.uppercase(),
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(start = SharedDimensions.spacingLg),
-        )
+    RethinkFormSection(strings.serverOptions) {
         RethinkListGroup {
             RethinkRpnWinOption(strings.hop, options.hopEnabled, CardPosition.First, onHopChanged)
             RethinkRpnWinOption(strings.catchAll, options.catchAll, CardPosition.Middle, onCatchAllChanged)

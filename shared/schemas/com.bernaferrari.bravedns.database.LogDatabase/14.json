@@ -1,0 +1,841 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 14,
+    "identityHash": "7e1c536d125af8320ef94f422e6698b3",
+    "entities": [
+      {
+        "tableName": "ConnectionTracker",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `appName` TEXT NOT NULL, `uid` INTEGER NOT NULL, `packageName` TEXT NOT NULL, `usrId` INTEGER NOT NULL, `ipAddress` TEXT NOT NULL, `port` INTEGER NOT NULL, `protocol` INTEGER NOT NULL, `isBlocked` INTEGER NOT NULL, `blockedByRule` TEXT NOT NULL, `blocklists` TEXT NOT NULL, `proxyDetails` TEXT NOT NULL, `flag` TEXT NOT NULL, `dnsQuery` TEXT, `timeStamp` INTEGER NOT NULL, `connId` TEXT NOT NULL, `downloadBytes` INTEGER NOT NULL, `uploadBytes` INTEGER NOT NULL, `duration` INTEGER NOT NULL, `synack` INTEGER NOT NULL, `rpid` TEXT NOT NULL, `message` TEXT NOT NULL, `connType` TEXT NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "appName",
+            "columnName": "appName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "uid",
+            "columnName": "uid",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "packageName",
+            "columnName": "packageName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "usrId",
+            "columnName": "usrId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ipAddress",
+            "columnName": "ipAddress",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "port",
+            "columnName": "port",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "protocol",
+            "columnName": "protocol",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isBlocked",
+            "columnName": "isBlocked",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "blockedByRule",
+            "columnName": "blockedByRule",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "blocklists",
+            "columnName": "blocklists",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "proxyDetails",
+            "columnName": "proxyDetails",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "flag",
+            "columnName": "flag",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dnsQuery",
+            "columnName": "dnsQuery",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "timeStamp",
+            "columnName": "timeStamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "connId",
+            "columnName": "connId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "downloadBytes",
+            "columnName": "downloadBytes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "uploadBytes",
+            "columnName": "uploadBytes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "duration",
+            "columnName": "duration",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "synack",
+            "columnName": "synack",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rpid",
+            "columnName": "rpid",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "message",
+            "columnName": "message",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "connType",
+            "columnName": "connType",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_ConnectionTracker_ipAddress",
+            "unique": false,
+            "columnNames": [
+              "ipAddress"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_ConnectionTracker_ipAddress` ON `${TABLE_NAME}` (`ipAddress`)"
+          },
+          {
+            "name": "index_ConnectionTracker_appName",
+            "unique": false,
+            "columnNames": [
+              "appName"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_ConnectionTracker_appName` ON `${TABLE_NAME}` (`appName`)"
+          },
+          {
+            "name": "index_ConnectionTracker_dnsQuery",
+            "unique": false,
+            "columnNames": [
+              "dnsQuery"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_ConnectionTracker_dnsQuery` ON `${TABLE_NAME}` (`dnsQuery`)"
+          },
+          {
+            "name": "index_ConnectionTracker_blockedByRule",
+            "unique": false,
+            "columnNames": [
+              "blockedByRule"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_ConnectionTracker_blockedByRule` ON `${TABLE_NAME}` (`blockedByRule`)"
+          },
+          {
+            "name": "index_ConnectionTracker_isBlocked_timeStamp",
+            "unique": false,
+            "columnNames": [
+              "isBlocked",
+              "timeStamp"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_ConnectionTracker_isBlocked_timeStamp` ON `${TABLE_NAME}` (`isBlocked`, `timeStamp`)"
+          },
+          {
+            "name": "index_ConnectionTracker_connId",
+            "unique": false,
+            "columnNames": [
+              "connId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_ConnectionTracker_connId` ON `${TABLE_NAME}` (`connId`)"
+          },
+          {
+            "name": "index_ConnectionTracker_proxyDetails",
+            "unique": false,
+            "columnNames": [
+              "proxyDetails"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_ConnectionTracker_proxyDetails` ON `${TABLE_NAME}` (`proxyDetails`)"
+          },
+          {
+            "name": "index_ConnectionTracker_timeStamp",
+            "unique": false,
+            "columnNames": [
+              "timeStamp"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_ConnectionTracker_timeStamp` ON `${TABLE_NAME}` (`timeStamp`)"
+          },
+          {
+            "name": "index_ConnectionTracker_uid_timeStamp",
+            "unique": false,
+            "columnNames": [
+              "uid",
+              "timeStamp"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_ConnectionTracker_uid_timeStamp` ON `${TABLE_NAME}` (`uid`, `timeStamp`)"
+          }
+        ]
+      },
+      {
+        "tableName": "DNSLogs",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `uid` INTEGER NOT NULL, `appName` TEXT NOT NULL, `packageName` TEXT NOT NULL, `queryStr` TEXT NOT NULL, `time` INTEGER NOT NULL, `flag` TEXT NOT NULL, `resolver` TEXT NOT NULL, `latency` INTEGER NOT NULL, `ttl` INTEGER NOT NULL, `typeName` TEXT NOT NULL, `isBlocked` INTEGER NOT NULL, `blockLists` TEXT NOT NULL, `serverIP` TEXT NOT NULL, `proxyId` TEXT NOT NULL, `relayIP` TEXT NOT NULL, `responseTime` INTEGER NOT NULL, `response` TEXT NOT NULL, `status` TEXT NOT NULL, `dnsType` INTEGER NOT NULL, `responseIps` TEXT NOT NULL, `resolverId` TEXT NOT NULL, `msg` TEXT NOT NULL, `upstreamBlock` INTEGER NOT NULL, `region` TEXT NOT NULL, `isCached` INTEGER NOT NULL, `dnssecOk` INTEGER NOT NULL, `dnssecValid` INTEGER NOT NULL, `blockedTarget` TEXT NOT NULL, `isEch` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "uid",
+            "columnName": "uid",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "appName",
+            "columnName": "appName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "packageName",
+            "columnName": "packageName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "queryStr",
+            "columnName": "queryStr",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "time",
+            "columnName": "time",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "flag",
+            "columnName": "flag",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "resolver",
+            "columnName": "resolver",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "latency",
+            "columnName": "latency",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ttl",
+            "columnName": "ttl",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "typeName",
+            "columnName": "typeName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isBlocked",
+            "columnName": "isBlocked",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "blockLists",
+            "columnName": "blockLists",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "serverIP",
+            "columnName": "serverIP",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "proxyId",
+            "columnName": "proxyId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "relayIP",
+            "columnName": "relayIP",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "responseTime",
+            "columnName": "responseTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "response",
+            "columnName": "response",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dnsType",
+            "columnName": "dnsType",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "responseIps",
+            "columnName": "responseIps",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "resolverId",
+            "columnName": "resolverId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "msg",
+            "columnName": "msg",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "upstreamBlock",
+            "columnName": "upstreamBlock",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "region",
+            "columnName": "region",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isCached",
+            "columnName": "isCached",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dnssecOk",
+            "columnName": "dnssecOk",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dnssecValid",
+            "columnName": "dnssecValid",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "blockedTarget",
+            "columnName": "blockedTarget",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isEch",
+            "columnName": "isEch",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_DNSLogs_queryStr",
+            "unique": false,
+            "columnNames": [
+              "queryStr"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_DNSLogs_queryStr` ON `${TABLE_NAME}` (`queryStr`)"
+          },
+          {
+            "name": "index_DNSLogs_responseIps",
+            "unique": false,
+            "columnNames": [
+              "responseIps"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_DNSLogs_responseIps` ON `${TABLE_NAME}` (`responseIps`)"
+          },
+          {
+            "name": "index_DNSLogs_isBlocked",
+            "unique": false,
+            "columnNames": [
+              "isBlocked"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_DNSLogs_isBlocked` ON `${TABLE_NAME}` (`isBlocked`)"
+          },
+          {
+            "name": "index_DNSLogs_blockLists",
+            "unique": false,
+            "columnNames": [
+              "blockLists"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_DNSLogs_blockLists` ON `${TABLE_NAME}` (`blockLists`)"
+          },
+          {
+            "name": "index_DNSLogs_time",
+            "unique": false,
+            "columnNames": [
+              "time"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_DNSLogs_time` ON `${TABLE_NAME}` (`time`)"
+          }
+        ]
+      },
+      {
+        "tableName": "RethinkLog",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `appName` TEXT NOT NULL, `uid` INTEGER NOT NULL, `usrId` INTEGER NOT NULL, `ipAddress` TEXT NOT NULL, `port` INTEGER NOT NULL, `protocol` INTEGER NOT NULL, `isBlocked` INTEGER NOT NULL, `blockedByRule` TEXT NOT NULL, `blocklists` TEXT NOT NULL, `proxyDetails` TEXT NOT NULL, `flag` TEXT NOT NULL, `dnsQuery` TEXT, `timeStamp` INTEGER NOT NULL, `connId` TEXT NOT NULL, `downloadBytes` INTEGER NOT NULL, `uploadBytes` INTEGER NOT NULL, `duration` INTEGER NOT NULL, `synack` INTEGER NOT NULL, `rpid` TEXT NOT NULL, `message` TEXT NOT NULL, `connType` TEXT NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "appName",
+            "columnName": "appName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "uid",
+            "columnName": "uid",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "usrId",
+            "columnName": "usrId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ipAddress",
+            "columnName": "ipAddress",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "port",
+            "columnName": "port",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "protocol",
+            "columnName": "protocol",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isBlocked",
+            "columnName": "isBlocked",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "blockedByRule",
+            "columnName": "blockedByRule",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "blocklists",
+            "columnName": "blocklists",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "proxyDetails",
+            "columnName": "proxyDetails",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "flag",
+            "columnName": "flag",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dnsQuery",
+            "columnName": "dnsQuery",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "timeStamp",
+            "columnName": "timeStamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "connId",
+            "columnName": "connId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "downloadBytes",
+            "columnName": "downloadBytes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "uploadBytes",
+            "columnName": "uploadBytes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "duration",
+            "columnName": "duration",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "synack",
+            "columnName": "synack",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rpid",
+            "columnName": "rpid",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "message",
+            "columnName": "message",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "connType",
+            "columnName": "connType",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_RethinkLog_ipAddress",
+            "unique": false,
+            "columnNames": [
+              "ipAddress"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_RethinkLog_ipAddress` ON `${TABLE_NAME}` (`ipAddress`)"
+          },
+          {
+            "name": "index_RethinkLog_appName",
+            "unique": false,
+            "columnNames": [
+              "appName"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_RethinkLog_appName` ON `${TABLE_NAME}` (`appName`)"
+          },
+          {
+            "name": "index_RethinkLog_dnsQuery",
+            "unique": false,
+            "columnNames": [
+              "dnsQuery"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_RethinkLog_dnsQuery` ON `${TABLE_NAME}` (`dnsQuery`)"
+          },
+          {
+            "name": "index_RethinkLog_connId",
+            "unique": false,
+            "columnNames": [
+              "connId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_RethinkLog_connId` ON `${TABLE_NAME}` (`connId`)"
+          }
+        ]
+      },
+      {
+        "tableName": "IpInfo",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`ip` TEXT NOT NULL, `asn` TEXT NOT NULL, `asName` TEXT NOT NULL, `asDomain` TEXT NOT NULL, `countryCode` TEXT NOT NULL, `country` TEXT NOT NULL, `continentCode` TEXT NOT NULL, `continent` TEXT NOT NULL, `createdTs` INTEGER NOT NULL, PRIMARY KEY(`ip`))",
+        "fields": [
+          {
+            "fieldPath": "ip",
+            "columnName": "ip",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "asn",
+            "columnName": "asn",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "asName",
+            "columnName": "asName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "asDomain",
+            "columnName": "asDomain",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "countryCode",
+            "columnName": "countryCode",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "country",
+            "columnName": "country",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "continentCode",
+            "columnName": "continentCode",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "continent",
+            "columnName": "continent",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdTs",
+            "columnName": "createdTs",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "ip"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_IpInfo_asName",
+            "unique": false,
+            "columnNames": [
+              "asName"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_IpInfo_asName` ON `${TABLE_NAME}` (`asName`)"
+          }
+        ]
+      },
+      {
+        "tableName": "Events",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `timestamp` INTEGER NOT NULL, `eventType` TEXT NOT NULL, `severity` TEXT NOT NULL, `message` TEXT NOT NULL, `details` TEXT, `source` TEXT NOT NULL, `userAction` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "eventType",
+            "columnName": "eventType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "severity",
+            "columnName": "severity",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "message",
+            "columnName": "message",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "details",
+            "columnName": "details",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "source",
+            "columnName": "source",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "userAction",
+            "columnName": "userAction",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_Events_timestamp",
+            "unique": false,
+            "columnNames": [
+              "timestamp"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Events_timestamp` ON `${TABLE_NAME}` (`timestamp`)"
+          },
+          {
+            "name": "index_Events_eventType",
+            "unique": false,
+            "columnNames": [
+              "eventType"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Events_eventType` ON `${TABLE_NAME}` (`eventType`)"
+          },
+          {
+            "name": "index_Events_severity",
+            "unique": false,
+            "columnNames": [
+              "severity"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Events_severity` ON `${TABLE_NAME}` (`severity`)"
+          },
+          {
+            "name": "index_Events_source",
+            "unique": false,
+            "columnNames": [
+              "source"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Events_source` ON `${TABLE_NAME}` (`source`)"
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '7e1c536d125af8320ef94f422e6698b3')"
+    ]
+  }
+}

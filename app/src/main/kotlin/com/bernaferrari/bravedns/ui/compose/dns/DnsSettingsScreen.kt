@@ -34,6 +34,7 @@ fun DnsSettingsScreen(
     onBlockFreeDnsModeChange: (BlockFreeDnsMode) -> Unit,
     onBlockFreeDnsClick: () -> Unit,
     onPreventLeaksChange: (Boolean) -> Unit,
+    onBackClick: (() -> Unit)? = null,
 ) {
     RethinkDnsSettingsScreen(
         state = uiState.toRethinkDnsSettingsState(),
@@ -60,6 +61,7 @@ fun DnsSettingsScreen(
         onBlockFreeModeChange = { onBlockFreeDnsModeChange(it.toAndroidBlockFreeDnsMode()) },
         onTrustedEndpoint = onBlockFreeDnsClick,
         onPreventLeaksChange = onPreventLeaksChange,
+        onBackClick = onBackClick,
         focusedSettingId = initialFocusKey,
     )
 }

@@ -18,23 +18,18 @@ package com.bernaferrari.bravedns.ui.bottomsheet
 
 import android.app.Activity
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.widget.Toast
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -43,10 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
-import androidx.fragment.app.FragmentActivity
 import com.bernaferrari.bravedns.util.workInfosByTagFlow
 import androidx.lifecycle.lifecycleScope
 import androidx.work.BackoffPolicy
@@ -77,7 +69,6 @@ import com.bernaferrari.bravedns.ui.compose.settings.RethinkBackupRestoreFailure
 import com.bernaferrari.bravedns.ui.compose.settings.RethinkBackupRestoreSheet
 import com.bernaferrari.bravedns.ui.compose.settings.RethinkBackupRestoreStrings
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleSheetModal
-import com.bernaferrari.bravedns.util.UIUtils
 import com.bernaferrari.bravedns.util.Utilities
 import com.bernaferrari.bravedns.util.Utilities.delay
 import Logger
@@ -87,49 +78,58 @@ import java.util.Date
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
+private tailrec fun Context.findActivity(): ComponentActivity? = when (this) {
+    is ComponentActivity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BackupRestoreSheet(
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
-    val activity = context as? FragmentActivity ?: return
-    val workManager = remember { WorkManager.getInstance(activity.applicationContext) }
+    val activity = remember(context) { context.findActivity() }
+    val workManager = remember(context) { WorkManager.getInstance(context.applicationContext) }
     var versionText by remember { mutableStateOf("") }
     var failure by remember { mutableStateOf<RethinkBackupRestoreFailure?>(null) }
 
     val backupLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val host = activity ?: return@rememberLauncherForActivityResult
             handleBackupResult(
-                activity,
+                host,
                 result,
                 onFailure = { failure = RethinkBackupRestoreFailure.Backup },
-                onBackup = { uri -> startBackupProcess(activity, uri, workManager) }
+                onBackup = { uri -> startBackupProcess(host, uri, workManager) }
             )
         }
     val restoreLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val host = activity ?: return@rememberLauncherForActivityResult
             handleRestoreResult(
-                activity,
+                host,
                 result,
                 onFailure = { failure = RethinkBackupRestoreFailure.Restore },
-                onRestore = { uri -> startRestoreProcess(activity, uri, workManager) }
+                onRestore = { uri -> startRestoreProcess(host, uri, workManager) }
             )
         }
 
-    LaunchedEffect(Unit) {
-        versionText = showVersion(activity)
+    LaunchedEffect(activity) {
+        if (activity != null) versionText = showVersion(activity)
     }
 
-    LaunchedEffect(workManager) {
+    LaunchedEffect(workManager, activity) {
+        val host = activity ?: return@LaunchedEffect
         workManager.workInfosByTagFlow(BackupAgent.TAG).collect { workInfoList ->
             val workInfo = workInfoList.getOrNull(0) ?: return@collect
             Logger.i(LOG_TAG_UI, "WorkManager state: ${workInfo.state} for ${BackupAgent.TAG}")
             when (workInfo.state) {
                 WorkInfo.State.SUCCEEDED -> {
                     Utilities.showToastUiCentered(
-                        activity,
-                        activity.getString(R.string.brbs_backup_complete_toast),
+                        host,
+                        host.getString(R.string.brbs_backup_complete_toast),
                         Toast.LENGTH_SHORT
                     )
                     workManager.pruneWork()
@@ -144,18 +144,19 @@ fun BackupRestoreSheet(
         }
     }
 
-    LaunchedEffect(workManager) {
+    LaunchedEffect(workManager, activity) {
+        val host = activity ?: return@LaunchedEffect
         workManager.workInfosByTagFlow(RestoreAgent.TAG).collect { workInfoList ->
             val workInfo = workInfoList.getOrNull(0) ?: return@collect
             Logger.i(LOG_TAG_UI, "WorkManager state: ${workInfo.state} for ${RestoreAgent.TAG}")
             if (WorkInfo.State.SUCCEEDED == workInfo.state) {
                 Utilities.showToastUiCentered(
-                    activity,
-                    activity.getString(R.string.brbs_restore_complete_toast),
+                    host,
+                    host.getString(R.string.brbs_restore_complete_toast),
                     Toast.LENGTH_LONG
                 )
-                delay(TimeUnit.MILLISECONDS.toMillis(1000), activity.lifecycleScope) {
-                    restartApp(activity)
+                delay(TimeUnit.MILLISECONDS.toMillis(1000), host.lifecycleScope) {
+                    restartApp(host)
                 }
                 workManager.pruneWork()
             } else if (
@@ -205,18 +206,29 @@ fun BackupRestoreSheet(
                 ),
             ),
             failure = failure,
-            onBackup = { backup(activity, backupLauncher) },
-            onRestore = { restore(activity, restoreLauncher) },
+            onBackup = {
+                if (activity != null) {
+                    backup(activity, backupLauncher)
+                } else {
+                    Logger.e(LOG_TAG_UI, "backup requested without a ComponentActivity host")
+                    failure = RethinkBackupRestoreFailure.Backup
+                }
+            },
+            onRestore = {
+                if (activity != null) {
+                    restore(activity, restoreLauncher)
+                } else {
+                    Logger.e(LOG_TAG_UI, "restore requested without a ComponentActivity host")
+                    failure = RethinkBackupRestoreFailure.Restore
+                }
+            },
             onFailureDismiss = { failure = null },
-            modifier = Modifier.padding(
-                horizontal = Dimensions.screenPaddingHorizontal,
-                vertical = Dimensions.spacingLg,
-            ),
+            modifier = Modifier.padding(vertical = Dimensions.spacingLg),
         )
     }
 }
 
-private fun showVersion(activity: FragmentActivity): String {
+private fun showVersion(activity: ComponentActivity): String {
     val version = getVersionName(activity)
     return activity.getString(
         R.string.about_version_install_source,
@@ -225,20 +237,20 @@ private fun showVersion(activity: FragmentActivity): String {
     )
 }
 
-private fun getVersionName(activity: FragmentActivity): String {
+private fun getVersionName(activity: ComponentActivity): String {
     val pInfo: PackageInfo? =
         Utilities.getPackageMetadata(activity.packageManager, activity.packageName)
     return pInfo?.versionName ?: ""
 }
 
-private fun getDownloadSource(activity: FragmentActivity): String {
+private fun getDownloadSource(activity: ComponentActivity): String {
     if (Utilities.isFdroidFlavour()) return activity.getString(R.string.build__flavor_fdroid)
     if (Utilities.isPlayStoreFlavour()) return activity.getString(R.string.build__flavor_play_store)
     return activity.getString(R.string.build__flavor_website)
 }
 
 private fun backup(
-    activity: FragmentActivity,
+    activity: ComponentActivity,
     launcher: androidx.activity.result.ActivityResultLauncher<Intent>
 ) {
     try {
@@ -282,7 +294,7 @@ private fun backup(
 }
 
 private fun restore(
-    activity: FragmentActivity,
+    activity: ComponentActivity,
     launcher: androidx.activity.result.ActivityResultLauncher<Intent>
 ) {
     try {
@@ -297,14 +309,14 @@ private fun restore(
         Logger.e(LOG_TAG_UI, "err opening file picker: ${e.message}")
         Utilities.showToastUiCentered(
             activity,
-            activity.getString(R.string.blocklist_update_check_failure),
+            activity.getString(R.string.brbs_restore_dialog_failure_message),
             Toast.LENGTH_SHORT
         )
     }
 }
 
 private fun handleBackupResult(
-    activity: FragmentActivity,
+    activity: ComponentActivity,
     result: ActivityResult,
     onFailure: () -> Unit,
     onBackup: (Uri?) -> Unit
@@ -317,7 +329,7 @@ private fun handleBackupResult(
             onBackup(backupFileUri)
         }
         Activity.RESULT_CANCELED -> {
-            onFailure()
+            Logger.i(LOG_TAG_UI, "backup file picker cancelled")
         }
         else -> {
             onFailure()
@@ -326,7 +338,7 @@ private fun handleBackupResult(
 }
 
 private fun handleRestoreResult(
-    activity: FragmentActivity,
+    activity: ComponentActivity,
     result: ActivityResult,
     onFailure: () -> Unit,
     onRestore: (Uri?) -> Unit
@@ -339,7 +351,7 @@ private fun handleRestoreResult(
             onRestore(fileUri)
         }
         Activity.RESULT_CANCELED -> {
-            onFailure()
+            Logger.i(LOG_TAG_UI, "restore file picker cancelled")
         }
         else -> {
             onFailure()
@@ -347,7 +359,7 @@ private fun handleRestoreResult(
     }
 }
 
-private fun startRestoreProcess(activity: FragmentActivity, fileUri: Uri?, workManager: WorkManager) {
+private fun startRestoreProcess(activity: ComponentActivity, fileUri: Uri?, workManager: WorkManager) {
     if (fileUri == null) {
         Logger.w(LOG_TAG_UI, "uri received from activity result is null, cancel restore process")
         return
@@ -370,7 +382,7 @@ private fun startRestoreProcess(activity: FragmentActivity, fileUri: Uri?, workM
     workManager.beginWith(importWorker).enqueue()
 }
 
-private fun startBackupProcess(activity: FragmentActivity, backupUri: Uri?, workManager: WorkManager) {
+private fun startBackupProcess(activity: ComponentActivity, backupUri: Uri?, workManager: WorkManager) {
     if (backupUri == null) {
         Logger.w(LOG_TAG_UI, "uri received from activity result is null, cancel backup process")
         return

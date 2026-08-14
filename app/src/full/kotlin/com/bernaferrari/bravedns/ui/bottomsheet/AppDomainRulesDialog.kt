@@ -281,10 +281,6 @@ private fun WireguardListSheet(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
                     ) {
-                        Text(
-                            text = ID_WG_BASE.uppercase(),
-                            style = MaterialTheme.typography.titleMedium
-                        )
                         Column(modifier = Modifier.weight(1f)) {
                             Text(text = name, style = MaterialTheme.typography.bodyLarge)
                             Text(

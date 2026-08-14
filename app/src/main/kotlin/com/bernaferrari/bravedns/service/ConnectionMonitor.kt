@@ -145,8 +145,8 @@ class ConnectionMonitor(private val context: Context, private val networkListene
         lastConnectivityCheckState = ConnectivityCheckState(time, networkHandles)
     }
 
-    fun internetValidatedCallback(): ConnectivityManager.NetworkCallback {
-        return if (isAtleastS()) {
+    private val internetValidatedNetworkCallback: ConnectivityManager.NetworkCallback by lazy {
+        if (isAtleastS()) {
             // Only called on S+ devices
             object : ConnectivityManager.NetworkCallback(FLAG_INCLUDE_LOCATION_INFO) {
                 override fun onCapabilitiesChanged(network: Network, capabilities: NetworkCapabilities) {
@@ -252,8 +252,10 @@ class ConnectionMonitor(private val context: Context, private val networkListene
         }
     }
 
-    fun transportCallback(): ConnectivityManager.NetworkCallback {
-        return if (isAtleastS()) {
+    fun internetValidatedCallback(): ConnectivityManager.NetworkCallback = internetValidatedNetworkCallback
+
+    private val transportNetworkCallback: ConnectivityManager.NetworkCallback by lazy {
+        if (isAtleastS()) {
             object : ConnectivityManager.NetworkCallback(FLAG_INCLUDE_LOCATION_INFO) {
                 override fun onCapabilitiesChanged(network: Network, capabilities: NetworkCapabilities) {
                     scope.launch(CoroutineName("cmTransCap") + serializer) {
@@ -342,6 +344,7 @@ class ConnectionMonitor(private val context: Context, private val networkListene
         }
     }
 
+    fun transportCallback(): ConnectivityManager.NetworkCallback = transportNetworkCallback
 
     /**
      * Fetches the SSID for the given network if it's a WiFi network.
@@ -786,31 +789,32 @@ class ConnectionMonitor(private val context: Context, private val networkListene
     }
 
 
-    // Always called from the main thread
-    suspend fun onVpnStop() {
-        scope.launch(CoroutineName("cmStop") + serializer) {
-            try {
-                // check if connectivity manager is initialized as it is lazy initialized
-                if (::cm.isInitialized) {
-                    try {
-                        cm.unregisterNetworkCallback(internetValidatedCallback())
-                    } catch (_: Exception) { }
-                    try {
-                        cm.unregisterNetworkCallback(transportCallback())
-                    } catch (_: Exception) { }
+    // Always called from the main thread. Must run synchronously: BraveVPNService
+    // cancels vpnScope (this monitor's scope) immediately after onVpnStop returns.
+    fun onVpnStop() {
+        try {
+            // check if connectivity manager is initialized as it is lazy initialized
+            if (::cm.isInitialized) {
+                try {
+                    cm.unregisterNetworkCallback(internetValidatedCallback())
+                } catch (e: Exception) {
+                    Logger.w(LOG_TAG_CONNECTION, "err unregistering internetValidatedCallBack, ${e.message}")
                 }
-                if (isAtleastR()) {
-                    unregisterDiags()
+                try {
+                    cm.unregisterNetworkCallback(transportCallback())
+                } catch (e: Exception) {
+                    Logger.w(LOG_TAG_CONNECTION, "err unregistering transportCallback, ${e.message}")
                 }
-                networkSet.clear()
-                if (::channel.isInitialized) {
-                    channel.close()
-                }
-
-            } catch (e: Exception) {
-                Logger.w(LOG_TAG_CONNECTION, "err while unregistering; ${e.message}")
             }
-
+            if (isAtleastR()) {
+                unregisterDiags()
+            }
+            networkSet.clear()
+            if (::channel.isInitialized) {
+                channel.close()
+            }
+        } catch (e: Exception) {
+            Logger.w(LOG_TAG_CONNECTION, "err while unregistering; ${e.message}")
         }
     }
 

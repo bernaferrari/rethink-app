@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.ui.components.ConnectionRow
@@ -55,12 +56,16 @@ fun DomainConnectionsScreen(
         DomainConnectionsInputType.IP -> viewModel.ipConnectionList
     }
     val items = connectionFlow.collectAsLazyPagingItems()
-    val isEmpty = items.itemCount == 0 && items.loadState.append.endOfPaginationReached
+    val refreshState = items.loadState.refresh
+    val isLoading = refreshState is LoadState.Loading && items.itemCount == 0
+    val isEmpty = refreshState is LoadState.NotLoading && items.itemCount == 0
     RethinkDomainConnectionsScreen(
         title = title,
         subtitle = subtitleFor(timeCategory),
         emptyMessage = stringResource(R.string.ada_ip_no_connection),
         isEmpty = isEmpty,
+        isLoading = isLoading,
+        loadingMessage = stringResource(R.string.lbl_loading),
         onBackClick = onBackClick,
     ) {
         LazyColumn(

@@ -6,34 +6,22 @@
  */
 package com.bernaferrari.bravedns.ui.compose.home
 
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.snap
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.font.FontWeight
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
-import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
 
 @Composable
 fun StartStopButtonShared(
@@ -43,27 +31,14 @@ fun StartStopButtonShared(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val motion = LocalRethinkMotion.current
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed && !motion.reducedMotion) 0.97f else 1f,
-        animationSpec = if (motion.reducedMotion) snap() else spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessMedium),
-        label = "buttonScale",
-    )
-    val containerColor =
-        if (isActive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
-    val contentColor =
-        if (isActive) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onPrimary
-
+    val scheme = MaterialTheme.colorScheme
     Button(
         onClick = onClick,
-        modifier = modifier.height(SharedDimensions.heroButtonHeight).scale(scale),
-        interactionSource = interactionSource,
+        modifier = modifier.height(SharedDimensions.heroButtonHeight),
         shape = RoundedCornerShape(SharedDimensions.buttonCornerRadius),
         colors = ButtonDefaults.buttonColors(
-            containerColor = containerColor,
-            contentColor = contentColor,
+            containerColor = if (isActive) scheme.onSurface else scheme.primary,
+            contentColor = if (isActive) scheme.surface else scheme.onPrimary,
         ),
     ) {
         Text(
@@ -75,33 +50,20 @@ fun StartStopButtonShared(
 }
 
 @Composable
-fun StatCardShared(
-    value: String,
-    label: String,
-    modifier: Modifier = Modifier,
-) {
-    Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(SharedDimensions.cardCornerRadius),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-    ) {
-        Column(
-            modifier = Modifier.padding(SharedDimensions.spacingLg),
-            verticalArrangement = Arrangement.Center,
-        ) {
-            Text(
-                text = value,
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(modifier = Modifier.height(SharedDimensions.spacingXs))
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-            )
-        }
+private fun QuietMetric(value: String, label: String, modifier: Modifier = Modifier) {
+    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+        )
     }
 }
 
@@ -146,23 +108,12 @@ fun HomeDashboardShared(
         )
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            StatCardShared(
-                value = statBlocked,
-                label = statBlockedLabel,
-                modifier = Modifier.weight(1f),
-            )
-            StatCardShared(
-                value = statQueries,
-                label = statQueriesLabel,
-                modifier = Modifier.weight(1f),
-            )
-            StatCardShared(
-                value = statApps,
-                label = statAppsLabel,
-                modifier = Modifier.weight(1f),
-            )
+            QuietMetric(statBlocked, statBlockedLabel, Modifier.weight(1f))
+            QuietMetric(statQueries, statQueriesLabel, Modifier.weight(1f))
+            QuietMetric(statApps, statAppsLabel, Modifier.weight(1f))
         }
     }
 }

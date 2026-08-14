@@ -3,7 +3,6 @@ package com.bernaferrari.bravedns.ui.compose.theme
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -15,9 +14,10 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -35,7 +35,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun RethinkLargeTopBar(
     title: String,
@@ -44,12 +44,12 @@ fun RethinkLargeTopBar(
     scrollBehavior: TopAppBarScrollBehavior? = null,
     containerColor: Color = MaterialTheme.colorScheme.surface,
     scrolledContainerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
-    titleTextStyle: TextStyle = MaterialTheme.typography.titleLarge,
+    titleTextStyle: TextStyle = MaterialTheme.typography.headlineSmall,
     titleStartPadding: Dp = 0.dp,
     titleLeading: (@Composable () -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
     backDescription: String = "Navigate back",
-) = LargeTopAppBar(
+) = LargeFlexibleTopAppBar(
     title = {
         Row(
             modifier = Modifier.fillMaxWidth().padding(start = titleStartPadding),
@@ -57,29 +57,26 @@ fun RethinkLargeTopBar(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             titleLeading?.invoke()
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-            ) {
-                Text(
-                    text = title,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    style = titleTextStyle,
-                    fontWeight = FontWeight.SemiBold,
-                )
-                if (!subtitle.isNullOrBlank()) {
-                    Text(
-                        text = subtitle,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
+            Text(
+                text = title,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                style = titleTextStyle,
+            )
         }
+    },
+    subtitle = if (!subtitle.isNullOrBlank()) {
+        {
+            Text(
+                text = subtitle,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    } else {
+        {}
     },
     navigationIcon = {
         if (onBackClick != null) {
@@ -121,7 +118,7 @@ fun RethinkTopBar(
 @Composable
 fun RethinkLazyColumnScreenScaffold(
     modifier: Modifier = Modifier,
-    containerColor: Color = MaterialTheme.colorScheme.background,
+    containerColor: Color = MaterialTheme.colorScheme.surface,
     topBar: @Composable () -> Unit,
     listState: LazyListState? = null,
     contentPadding: PaddingValues = PaddingValues(
@@ -156,7 +153,7 @@ fun RethinkTopBarLazyColumnScreen(
     subtitle: String? = null,
     onBackClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
-    containerColor: Color = MaterialTheme.colorScheme.background,
+    containerColor: Color = MaterialTheme.colorScheme.surface,
     topBarContainerColor: Color = MaterialTheme.colorScheme.surface,
     topBarScrolledContainerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
     topBarTitleTextStyle: TextStyle = MaterialTheme.typography.titleLarge,

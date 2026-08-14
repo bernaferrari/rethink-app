@@ -10,10 +10,13 @@ config:
   warningsAsErrors: false
 
 complexity:
+  # Size rules ratchet: baseline absorbs existing debt; new violations fail the build.
   LongMethod:
-    active: false
+    active: true
+    threshold: 120
   LargeClass:
-    active: false
+    active: true
+    threshold: 600
   LongParameterList:
     functionThreshold: 20
     constructorThreshold: 25

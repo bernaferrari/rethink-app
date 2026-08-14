@@ -26,23 +26,16 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -71,14 +64,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.service.FirewallManager
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkFilterChip
 import com.bernaferrari.bravedns.ui.compose.theme.rememberReducedMotion
-import com.bernaferrari.bravedns.ui.compose.theme.Dimensions
+import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 import com.bernaferrari.bravedns.util.Constants.Companion.INVALID_UID
 import com.bernaferrari.bravedns.util.Utilities
 import com.bernaferrari.bravedns.viewmodel.AppConnectionsViewModel
@@ -144,19 +138,31 @@ internal fun <T : Any> AppWiseLogsPagedList(
     modifier: Modifier = Modifier,
     row: @Composable (T) -> Unit
 ) {
-    androidx.compose.foundation.lazy.LazyColumn(
-        modifier = modifier.fillMaxSize(),
-        contentPadding =
-            PaddingValues(
-                horizontal = Dimensions.screenPaddingHorizontal,
-                vertical = Dimensions.spacingSm
-            ),
-        verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
-    ) {
-        items(count = items.itemCount) { index ->
-            val item = items[index] ?: return@items
-            row(item)
-        }
+    val refreshState = items.loadState.refresh
+    val itemCount = items.itemCount
+    val listContentState = when {
+        refreshState is LoadState.Loading && itemCount == 0 -> RethinkPagedLogListState.Loading
+        refreshState is LoadState.NotLoading && itemCount == 0 -> RethinkPagedLogListState.Empty
+        refreshState is LoadState.Error && itemCount == 0 -> RethinkPagedLogListState.Error { items.retry() }
+        else -> RethinkPagedLogListState.Content
+    }
+    RethinkPagedLogList(
+        itemCount = itemCount,
+        state = listContentState,
+        strings = RethinkLogListStrings(
+            all = "",
+            allowed = "",
+            blocked = "",
+            loading = stringResource(R.string.lbl_loading),
+            empty = stringResource(R.string.lbl_no_logs),
+            error = stringResource(R.string.error_loading_log_file),
+            retry = stringResource(R.string.cd_refresh),
+        ),
+        listState = rememberLazyListState(),
+        modifier = modifier,
+    ) { index, _ ->
+        val item = items[index] ?: return@RethinkPagedLogList
+        row(item)
     }
 }
 
@@ -191,6 +197,6 @@ internal fun AppWiseLogsAndroidIcon(appIcon: Drawable?) {
     if (bitmap != null) {
         Image(bitmap.asImageBitmap(), null, modifier = Modifier.size(20.dp))
     } else {
-        Icon(Icons.Filled.Search, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+        Icon(MaterialSymbols.Filled.Search, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
     }
 }

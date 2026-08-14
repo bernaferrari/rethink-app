@@ -25,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.components.RethinkSharedIconContainer
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
@@ -105,7 +106,7 @@ fun RethinkRpnServerSettingsScreen(
                 RethinkRpnDnsMode.entries.forEachIndexed { index, mode ->
                     RpnToggleRow(
                         title = strings.dnsModeTitle(mode),
-                        description = mode.name,
+                        description = "",
                         icon = MaterialSymbols.Filled.Security,
                         checked = mode in selectedDnsModes,
                         position = cardPositionFor(index, RethinkRpnDnsMode.entries.lastIndex),
@@ -170,8 +171,16 @@ private fun RethinkRpnServerSettingsStrings.dnsModeTitle(mode: RethinkRpnDnsMode
 
 @Composable
 private fun SettingsSectionHeader(title: String, subtitle: String) {
-    Column(Modifier.padding(top = SharedDimensions.spacingMd, start = SharedDimensions.spacingLg, bottom = SharedDimensions.spacingXs)) {
-        Text(title.uppercase(), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+    Column(
+        modifier = Modifier.padding(top = SharedDimensions.spacingMd),
+        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
+    ) {
+        Text(
+            title,
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary,
+        )
         Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
@@ -182,7 +191,7 @@ private fun RpnToggleRow(
     checked: Boolean, position: CardPosition, onCheckedChange: (Boolean) -> Unit,
 ) {
     RethinkListItem(
-        headline = title, supporting = description, position = position, onClick = { onCheckedChange(!checked) },
+        headline = title, supporting = description.takeIf(String::isNotBlank), position = position, onClick = { onCheckedChange(!checked) },
         leadingContent = { RethinkSharedIconContainer(MaterialTheme.colorScheme.primary) { Icon(icon, null, tint = MaterialTheme.colorScheme.primary) } },
         trailing = { Switch(checked = checked, onCheckedChange = null) },
     )
@@ -215,8 +224,7 @@ private fun RethinkCountryExclusionDialog(
     ) { dismissSheet ->
         Text(strings.excludeLocationsTitle, style = MaterialTheme.typography.headlineSmall)
         LazyColumn(
-            // Keep the actions visible at phone height; this list, rather than the sheet, scrolls.
-            modifier = Modifier.fillMaxWidth().heightIn(max = 220.dp),
+            modifier = Modifier.fillMaxWidth().heightIn(min = 360.dp, max = 640.dp),
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile),
         ) {
             items(countries, key = RethinkRpnCountryOption::code) { country ->

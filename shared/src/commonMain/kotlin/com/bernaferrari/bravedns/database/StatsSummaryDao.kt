@@ -19,6 +19,7 @@ import androidx.paging.PagingSource
 import androidx.room3.Dao
 import androidx.room3.Query
 import com.bernaferrari.bravedns.data.AppConnection
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface StatsSummaryDao {
@@ -45,7 +46,7 @@ interface StatsSummaryDao {
         LIMIT 7
         """
     )
-    fun getMostConnectedASN(to: Long): PagingSource<Int, AppConnection>
+    fun getMostConnectedASN(to: Long): Flow<List<AppConnection>>
 
     @Query(
         """
@@ -117,7 +118,7 @@ interface StatsSummaryDao {
         LIMIT 7
         """
     )
-    fun getMostBlockedASN(to: Long): PagingSource<Int, AppConnection>
+    fun getMostBlockedASN(to: Long): Flow<List<AppConnection>>
 
     @Query(
         """
@@ -249,14 +250,14 @@ interface StatsSummaryDao {
                    AND isBlocked = 0
                    AND duration = 0
                    AND synack = 0
-                   AND message = ''
-                   AND timeStamp > :to
-               GROUP BY appName
-               ORDER BY count DESC
-               LIMIT 7
-               """
+                    AND message = ''
+                    AND timeStamp > :to
+                GROUP BY uid
+                ORDER BY count DESC
+                LIMIT 7
+                """
     )
-    fun getTopActiveConns(to: Long): PagingSource<Int, AppConnection>
+    fun getTopActiveConns(to: Long): Flow<List<AppConnection>>
 
     @Query(
         """
@@ -278,7 +279,7 @@ interface StatsSummaryDao {
                 AND synack = 0
                 AND message = ''
                 AND timeStamp >= :to
-            GROUP BY appName
+            GROUP BY uid
             ORDER BY count DESC
             """
     )
@@ -444,7 +445,7 @@ interface StatsSummaryDao {
             LIMIT 7
         """
     )
-    fun getMostAllowedApps(to: Long): PagingSource<Int, AppConnection>
+    fun getMostAllowedApps(to: Long): Flow<List<AppConnection>>
 
     @Query(
         """
@@ -533,7 +534,7 @@ interface StatsSummaryDao {
             LIMIT 7
         """
     )
-    fun getMostBlockedApps(to: Long): PagingSource<Int, AppConnection>
+    fun getMostBlockedApps(to: Long): Flow<List<AppConnection>>
 
 
     @Query(
@@ -618,7 +619,7 @@ interface StatsSummaryDao {
           LIMIT 7
         """
     )
-    fun getMostBlockedDomains(to: Long): PagingSource<Int, AppConnection>
+    fun getMostBlockedDomains(to: Long): Flow<List<AppConnection>>
 
     @Query(
         """
@@ -704,7 +705,7 @@ interface StatsSummaryDao {
             LIMIT 7
             """
     )
-    fun getMostContactedDomains(to: Long): PagingSource<Int, AppConnection>
+    fun getMostContactedDomains(to: Long): Flow<List<AppConnection>>
 
     @Query(
         """
@@ -787,7 +788,7 @@ interface StatsSummaryDao {
             LIMIT 7
         """
     )
-    fun getMostContactedCountries(to: Long): PagingSource<Int, AppConnection>
+    fun getMostContactedCountries(to: Long): Flow<List<AppConnection>>
 
     @Query(
         """

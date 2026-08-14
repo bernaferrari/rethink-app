@@ -41,6 +41,7 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
+import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 
 enum class RethinkLogTab { Network, Dns }
 
@@ -124,7 +125,7 @@ private fun RethinkLogsTabSwitch(
                     contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 ),
                 border = null,
-                modifier = Modifier.heightIn(min = 34.dp).semantics { role = Role.RadioButton },
+                modifier = Modifier.heightIn(min = SharedDimensions.touchTargetMin).semantics { role = Role.RadioButton },
             ) {
                 Icon(if (tab == RethinkLogTab.Network) MaterialSymbols.Filled.NetworkPing else MaterialSymbols.Filled.Shield, null, modifier = Modifier.size(14.dp))
                 Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))

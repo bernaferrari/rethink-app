@@ -9,7 +9,6 @@ import androidx.room3.DaoReturnTypeConverters
 import androidx.room3.RoomDatabase
 import androidx.room3.RoomDatabaseConstructor
 import androidx.room3.paging.PagingSourceDaoReturnTypeConverter
-import androidx.sqlite.SQLiteConnection
 
 @Suppress("NO_ACTUAL_FOR_EXPECT")
 expect object ConsoleLogDatabaseConstructor : RoomDatabaseConstructor<ConsoleLogDatabase> {
@@ -20,14 +19,6 @@ expect object ConsoleLogDatabaseConstructor : RoomDatabaseConstructor<ConsoleLog
 @ConstructedBy(ConsoleLogDatabaseConstructor::class)
 @Database(entities = [ConsoleLog::class], version = 2, exportSchema = false)
 abstract class ConsoleLogDatabase : RoomDatabase() {
-    companion object {
-        internal val MIGRATION_1_2 = object : androidx.room3.migration.Migration(1, 2) {
-            override suspend fun migrate(connection: SQLiteConnection) {
-                connection.execSQL("ALTER TABLE ConsoleLog ADD COLUMN level INTEGER DEFAULT 3")
-            }
-        }
-    }
-
     abstract fun consoleLogDAO(): ConsoleLogDAO
 
     fun consoleLogRepository() = ConsoleLogRepository(consoleLogDAO())

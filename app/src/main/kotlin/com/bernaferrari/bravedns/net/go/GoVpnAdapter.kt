@@ -158,9 +158,6 @@ class GoVpnAdapter : KoinComponent {
             return
         }
 
-        // setTcpProxyIfNeeded()
-        // no need to add default in init as it is already added in connect
-        // addDefaultTransport(appConfig.getDefaultDns())
         // TODO: ideally the values required for transport, alg and rdns should be set in the
         // opts itself.
         setRDNS()
@@ -225,19 +222,6 @@ class GoVpnAdapter : KoinComponent {
         }
         Logger.v(LOG_TAG_VPN, "$TAG setPcapMode done")
     }
-
-    /*
-    // commented as the setCrashFd is not working as expected, need to revisit
-    private suspend fun setCrashFd() {
-        Logger.v(LOG_TAG_VPN, "GoVpnAdapter setCrashFd")
-        val crashFd = EnhancedBugReport.getFileToWrite(context)
-        if (crashFd != null) {
-            val set = Intra.setCrashFd(crashFd.absolutePath)
-            Logger.i(LOG_TAG_VPN, "set crash fd: $crashFd, set? $set")
-        } else {
-            Logger.w(LOG_TAG_VPN, "crash fd is null, cannot set")
-        }
-    }*/
 
     suspend fun addTransport() {
         Logger.v(LOG_TAG_VPN, "$TAG addTransport")
@@ -598,16 +582,10 @@ class GoVpnAdapter : KoinComponent {
     private suspend fun addRdnsTransport(id: String, url: String) {
         Logger.v(LOG_TAG_VPN, "$TAG addRdnsTransport, id: $id, url: $url")
         try {
-            val useDot = false
             val ips: String = getIpString(context, url)
             val convertedUrl = getRdnsUrl(url) ?: return
-            if (url.contains(RETHINK_BASE_URL_SKY) || !useDot) {
-                Intra.addDoHTransport(tunnel, id, convertedUrl, ips)
-                Logger.i(LOG_TAG_VPN, "$TAG new doh (rdns): $id, url: $convertedUrl, ips: $ips")
-            } else {
-                Intra.addDoTTransport(tunnel, id, convertedUrl, ips)
-                Logger.i(LOG_TAG_VPN, "$TAG new dot (rdns): $id, url: $convertedUrl, ips: $ips")
-            }
+            Intra.addDoHTransport(tunnel, id, convertedUrl, ips)
+            Logger.i(LOG_TAG_VPN, "$TAG new doh (rdns): $id, url: $convertedUrl, ips: $ips")
             logEvent(
                 Severity.LOW,
                 "rdns transport added",
@@ -627,36 +605,18 @@ class GoVpnAdapter : KoinComponent {
         Logger.v(LOG_TAG_VPN, "$TAG addRdnsTransport done")
     }
 
-    private suspend fun getRdnsUrl(url: String, useDot: Boolean = false): String? {
-        val tls = "tls://"
-        val default = "dns-query"
+    private suspend fun getRdnsUrl(url: String): String? {
         // do not proceed if rethinkdns.com is not available
         if (!url.contains(RETHINKDNS_DOMAIN)) return null
 
-        // if url is MAX, convert it to dot format, DOT format stamp.max.rethinkdns.com
-        // if url is SKY, convert it to doh format, DOH format https://sky.rethikdns.com/stamp
-
-        // for blockfree, the url is https://max.rethinkdns.com/dns-query
-        if (url == Constants.BLOCK_FREE_DNS_MAX && useDot) {
-            return "$tls$MAX_ENDPOINT.$RETHINKDNS_DOMAIN"
-        } else if (url == Constants.BLOCK_FREE_DNS_SKY || url == Constants.BLOCK_FREE_DNS_MAX || url == Constants.BLOCK_FREE_DNS_ZERO) {
+        if (url == Constants.BLOCK_FREE_DNS_SKY || url == Constants.BLOCK_FREE_DNS_MAX || url == Constants.BLOCK_FREE_DNS_ZERO) {
             return url
-        } else {
-            // no-op, pass-through
         }
         val stamp = getRdnsStamp(url)
-        return if (url.contains(MAX_ENDPOINT) && useDot) {
-            // if the stamp is empty or "dns-query", then remove it
-            if (stamp.isEmpty() || stamp == default) {
-                return "$tls$MAX_ENDPOINT.$RETHINKDNS_DOMAIN"
-            }
-            "$tls$stamp.$MAX_ENDPOINT.$RETHINKDNS_DOMAIN"
+        return if (url.contains(MAX_ENDPOINT)) {
+            "$RETHINK_BASE_URL_MAX$stamp"
         } else {
-            if (url.contains(MAX_ENDPOINT)) {
-                return "$RETHINK_BASE_URL_MAX$stamp"
-            } else {
-                return "$RETHINK_BASE_URL_SKY$stamp"
-            }
+            "$RETHINK_BASE_URL_SKY$stamp"
         }
     }
 
@@ -1276,7 +1236,6 @@ class GoVpnAdapter : KoinComponent {
         } catch (e: Exception) {
             Logger.e(LOG_TAG_VPN, "$TAG err adding wireguard proxy: ${e.message}", e)
             // do not auto remove failed wg proxy, let the user decide hop UI
-            // WireguardManager.disableConfig(id)
             showWireguardFailureToast(
                 e.message ?: context.getString(R.string.wireguard_connection_error)
             )
@@ -1372,7 +1331,6 @@ class GoVpnAdapter : KoinComponent {
     }
 
     suspend fun refreshOrPauseOrResumeOrReAddProxies(isMobileActive: Boolean, ssid: String) {
-        val avoidReaddingProxies = true
         if (!tunnel.isConnected) {
             Logger.e(LOG_TAG_VPN, "$TAG no tunnel, skip refreshing proxies")
             return
@@ -1412,17 +1370,10 @@ class GoVpnAdapter : KoinComponent {
                 )
                 val stats = getProxyStatusById(id).first
                 if (stats == null || stats == Backend.TNT) {
-                    Logger.w(LOG_TAG_VPN, "$TAG proxy stats for $id is null or tnt, $stats, re-adding? $avoidReaddingProxies")
-                    // there are cases where the proxy needs to be re-added, so pingOrReAddProxy
-                    // case: some of the wg proxies are added to tunnel but erring out, so
-                    // re-adding those proxies seems working, work around for now until the
-                    // re-add logic is handled in go-tun
+                    Logger.w(LOG_TAG_VPN, "$TAG proxy stats for $id is null or tnt, $stats, refreshing")
+                    // TNT / missing stats: refresh rather than re-add until go-tun handles it
                     // (github.com/celzero/firestack/blob/61187f88c1/intra/ipn/wgproxy.go#L404)
-                    if (avoidReaddingProxies) {
-                        refreshWgProxy(id)
-                    } else {
-                        addWgProxy(id, true)
-                    }
+                    refreshWgProxy(id)
                 }
                 if (stats == Backend.TPU && canResume) {
                     // if the proxy is paused, then resume it
@@ -1491,23 +1442,13 @@ class GoVpnAdapter : KoinComponent {
                 val rpn = getWinByKey(key)
                 val status = rpn?.status()
                 if (status == Backend.TNT) {
-                    if (avoidReaddingProxies) {
-                        refreshRpnProxy(key)
-                        Logger.i(LOG_TAG_VPN, "$TAG refreshed rpn proxy: $key")
-                        logEvent(
-                            Severity.LOW,
-                            "refresh rpn proxy",
-                            "refreshed rpn proxy with key: $key"
-                        )
-                    } else {
-                        reconnectRpnProxy(key)
-                        Logger.i(LOG_TAG_VPN, "$TAG re-added rpn proxy: $key")
-                        logEvent(
-                            Severity.LOW,
-                            "re-add rpn proxy",
-                            "re-added rpn proxy with key: $key"
-                        )
-                    }
+                    refreshRpnProxy(key)
+                    Logger.i(LOG_TAG_VPN, "$TAG refreshed rpn proxy: $key")
+                    logEvent(
+                        Severity.LOW,
+                        "refresh rpn proxy",
+                        "refreshed rpn proxy with key: $key"
+                    )
                 }
 
                 if (status == Backend.TPU && canResume) {
@@ -1731,39 +1672,6 @@ class GoVpnAdapter : KoinComponent {
         }
         return null
     }
-
-    // v055, unused
-    /*suspend fun setTcpProxy() {
-        if (!appConfig.isTcpProxyEnabled()) {
-            Logger.i(LOG_TAG_VPN, "$TAG tcp proxy not enabled")
-            return
-        }
-
-        val u = TcpProxyHelper.getActiveTcpProxy()
-        if (u == null) {
-            Logger.w(LOG_TAG_VPN, "$TAG could not fetch tcp proxy details")
-            return
-        }
-
-        val ips = getIpString(context, "https://sky.rethinkdns.com/")
-        Logger.d(LOG_TAG_VPN, "$TAG ips: $ips")
-        // svc.rethinkdns.com / duplex.deno.dev
-        val testpipwsurl = "pipws://proxy.nile.workers.dev/ws/nosig"
-        val ok = getProxies()?.addProxy(ProxyManager.ID_TCP_BASE, testpipwsurl)
-        Logger.d(LOG_TAG_VPN, "$TAG tcp-mode(${ProxyManager.ID_TCP_BASE}): ${u.url}, ok? $ok")
-
-        val secWarp = RpnProxyManager.getSecWarpConfig()
-        if (secWarp == null) {
-            Logger.w(LOG_TAG_VPN, "$TAG no sec warp config found")
-            return
-        }
-        val wgUserSpaceString = secWarp.toWgUserspaceString()
-        val ok2 = getProxies()?.addProxy(ID_WG_BASE + secWarp.getId(), wgUserSpaceString)
-        Logger.d(
-            LOG_TAG_VPN,
-            "$TAG tcp-mode(wg) set(${ID_WG_BASE + secWarp.getId()}): ${secWarp.getName()}, res: $ok2"
-        )
-    }*/
 
     fun hasTunnel(): Boolean {
         return tunnel.isConnected
@@ -2001,9 +1909,6 @@ class GoVpnAdapter : KoinComponent {
             // TODO: system dns may be non existent; see: AppConfig#updateSystemDnsServers
             // convert list to comma separated string, as Intra expects as csv
             val sysDnsStr = systemDns.filter { it?.isNotEmpty() == true }.joinToString(",")
-            // below code is commented out, add the code to set the system dns via resolver
-            // val transport = Intra.newDNSProxy("ID", dnsProxy.host, dnsProxy.port.toString())
-            // tunnel?.resolver?.addSystemDNS(transport)
             Logger.i(LOG_TAG_VPN, "$TAG set system dns: $sysDnsStr")
             // no need to send the dnsProxy.port for the below method, as it is not expecting port
             Intra.setSystemDNS(tunnel, sysDnsStr)
@@ -2277,7 +2182,6 @@ class GoVpnAdapter : KoinComponent {
             // depth to include the file trace, 9 - max, 0 - min
             val depth = if (includeFileTrace) 9 else 0
             Intra.logLevel(goLogLevel, consoleLogLevel, depth)
-            //Intra.logLevel(goLogLevel, consoleLogLevel)
             Logger.i(LOG_TAG_VPN, "$TAG set go-log level: $l1, $l2, $depth")
         }
 
@@ -3231,8 +3135,6 @@ class GoVpnAdapter : KoinComponent {
         try {
             // modified from overall experimental settings to only wireguard experimental settings
             Intra.experimentalWireGuard(value)
-            // refresh proxies on experimental settings change (required for wireguard)
-            //refreshOrReAddProxies()
             Logger.i(LOG_TAG_VPN, "$TAG set experimental settings: $value")
             logEvent(
                 Severity.LOW,

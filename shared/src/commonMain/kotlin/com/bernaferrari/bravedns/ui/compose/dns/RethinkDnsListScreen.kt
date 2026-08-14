@@ -4,37 +4,31 @@ package com.bernaferrari.bravedns.ui.compose.dns
 
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.font.FontWeight
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormSection
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLazyColumnScreenScaffold
-import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 
 enum class RethinkDnsCapability {
@@ -60,6 +54,7 @@ data class RethinkDnsListStrings(
     val private: String,
     val secure: String,
     val anonymous: String,
+    val notWorking: String = "",
 )
 
 /** Target-neutral DNS protocol chooser; the host owns the selected protocol and navigation. */
@@ -75,7 +70,7 @@ fun RethinkDnsListScreen(
 ) {
     RethinkLazyColumnScreenScaffold(
         modifier = modifier,
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             RethinkLargeTopBar(
                 title = strings.title,
@@ -92,16 +87,17 @@ fun RethinkDnsListScreen(
         ),
         verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
     ) {
-            item {
-                SectionHeader(title = strings.configure)
+        item {
+            RethinkFormSection(strings.configure) {
                 DnsProtocolGrid(
                     protocols = protocols,
                     selectedProtocolId = selectedProtocolId,
                     selectedProtocolWorking = selectedProtocolWorking,
+                    strings = strings,
                     onProtocolClick = onProtocolClick,
                 )
             }
-            item { DnsCapabilityLegend(strings) }
+        }
     }
 }
 
@@ -110,16 +106,18 @@ private fun DnsProtocolGrid(
     protocols: List<RethinkDnsProtocol>,
     selectedProtocolId: Int?,
     selectedProtocolWorking: Boolean,
+    strings: RethinkDnsListStrings,
     onProtocolClick: (RethinkDnsProtocol) -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd)) {
+    Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
         protocols.chunked(2).forEach { row ->
-            Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
                 row.forEach { protocol ->
                     DnsProtocolCard(
                         protocol = protocol,
                         selected = selectedProtocolId == protocol.id,
                         selectedWorking = selectedProtocolWorking,
+                        strings = strings,
                         modifier = Modifier.weight(1f),
                         onClick = { onProtocolClick(protocol) },
                     )
@@ -135,67 +133,73 @@ private fun DnsProtocolCard(
     protocol: RethinkDnsProtocol,
     selected: Boolean,
     selectedWorking: Boolean,
+    strings: RethinkDnsListStrings,
     modifier: Modifier,
     onClick: () -> Unit,
 ) {
-    val containerColor = when {
-        selected && selectedWorking -> MaterialTheme.colorScheme.primaryContainer
-        selected -> MaterialTheme.colorScheme.errorContainer
-        else -> MaterialTheme.colorScheme.surfaceContainerLow
+    val containerColor = if (selected) {
+        MaterialTheme.colorScheme.primaryContainer
+    } else {
+        MaterialTheme.colorScheme.surfaceContainerLow
     }
-    val labelColor = when {
-        selected && selectedWorking -> MaterialTheme.colorScheme.onPrimaryContainer
-        selected -> MaterialTheme.colorScheme.onErrorContainer
-        else -> MaterialTheme.colorScheme.onSurfaceVariant
+    val labelColor = if (selected) {
+        MaterialTheme.colorScheme.onPrimaryContainer
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
     }
-    val titleColor = when {
-        selected && selectedWorking -> MaterialTheme.colorScheme.primary
-        selected -> MaterialTheme.colorScheme.error
-        else -> MaterialTheme.colorScheme.onSurface
+    val titleColor = if (selected) {
+        MaterialTheme.colorScheme.onPrimaryContainer
+    } else {
+        MaterialTheme.colorScheme.onSurface
     }
-    val cardShape = RoundedCornerShape(SharedDimensions.cornerRadius3xl)
+    val cardShape = RoundedCornerShape(SharedDimensions.cornerRadiusXl)
     Surface(
-        modifier = modifier.height(164.dp).clip(cardShape),
+        modifier = modifier.clip(cardShape),
         shape = cardShape,
         color = containerColor,
-        tonalElevation = 0.dp,
+        tonalElevation = SharedDimensions.spacingNone,
         onClick = onClick,
     ) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(SharedDimensions.spacingMd),
-            horizontalAlignment = Alignment.Start,
-            verticalArrangement = Arrangement.SpaceEvenly,
+            modifier = Modifier.fillMaxWidth().padding(SharedDimensions.spacingMd),
+            verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
+            Surface(
+                shape = RoundedCornerShape(SharedDimensions.iconContainerRadius),
+                color = titleColor.copy(alpha = 0.12f),
+                modifier = Modifier.size(SharedDimensions.iconContainerSm),
             ) {
-                Surface(
-                    shape = RoundedCornerShape(SharedDimensions.iconContainerRadius),
-                    color = titleColor.copy(alpha = 0.12f),
-                    modifier = Modifier.size(42.dp),
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(protocol.icon, contentDescription = null, tint = titleColor, modifier = Modifier.size(22.dp))
-                    }
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
-                    protocol.capabilities.forEach { DnsCapabilityDot(it) }
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(protocol.icon, contentDescription = null, tint = titleColor, modifier = Modifier.size(SharedDimensions.iconSizeSm))
                 }
             }
             Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
                 Text(
+                    protocol.label,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = titleColor,
+                )
+                Text(
                     protocol.title,
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.Medium,
                     color = labelColor,
                 )
+            }
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
+                verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
+            ) {
+                protocol.capabilities.forEach { capability ->
+                    DnsCapabilityChip(capability, strings.labelFor(capability))
+                }
+            }
+            if (selected && !selectedWorking && strings.notWorking.isNotBlank()) {
                 Text(
-                    protocol.label,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = titleColor,
+                    strings.notWorking,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -203,42 +207,33 @@ private fun DnsProtocolCard(
 }
 
 @Composable
-private fun DnsCapabilityLegend(strings: RethinkDnsListStrings) {
+private fun DnsCapabilityChip(capability: RethinkDnsCapability, label: String) {
+    val color = capability.tint()
     Surface(
-        shape = RoundedCornerShape(SharedDimensions.cornerRadiusLg),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        shape = RoundedCornerShape(SharedDimensions.cornerRadiusPill),
+        color = color.copy(alpha = 0.14f),
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(
-                horizontal = SharedDimensions.spacingLg,
-                vertical = SharedDimensions.spacingMd,
-            ).horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXl),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            DnsLegendItem(RethinkDnsCapability.Fast, strings.fast)
-            DnsLegendItem(RethinkDnsCapability.Private, strings.private)
-            DnsLegendItem(RethinkDnsCapability.Secure, strings.secure)
-            DnsLegendItem(RethinkDnsCapability.Anonymous, strings.anonymous)
-        }
+        Text(
+            label,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Medium,
+            color = color,
+            modifier = Modifier.padding(horizontal = SharedDimensions.spacingSm, vertical = SharedDimensions.spacingXs),
+        )
     }
 }
 
 @Composable
-private fun DnsLegendItem(capability: RethinkDnsCapability, label: String) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
-        DnsCapabilityDot(capability)
-        Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
+private fun RethinkDnsCapability.tint(): Color = when (this) {
+    RethinkDnsCapability.Fast -> MaterialTheme.colorScheme.primary
+    RethinkDnsCapability.Private -> MaterialTheme.colorScheme.secondary
+    RethinkDnsCapability.Secure -> MaterialTheme.colorScheme.tertiary
+    RethinkDnsCapability.Anonymous -> MaterialTheme.colorScheme.secondary
 }
 
-@Composable
-private fun DnsCapabilityDot(capability: RethinkDnsCapability, modifier: Modifier = Modifier) {
-    val color = when (capability) {
-        RethinkDnsCapability.Fast -> MaterialTheme.colorScheme.error
-        RethinkDnsCapability.Private -> MaterialTheme.colorScheme.tertiary
-        RethinkDnsCapability.Secure -> MaterialTheme.colorScheme.primary
-        RethinkDnsCapability.Anonymous -> MaterialTheme.colorScheme.secondary
-    }
-    Box(modifier.size(10.dp).background(color = color, shape = CircleShape))
+private fun RethinkDnsListStrings.labelFor(capability: RethinkDnsCapability): String = when (capability) {
+    RethinkDnsCapability.Fast -> fast
+    RethinkDnsCapability.Private -> private
+    RethinkDnsCapability.Secure -> secure
+    RethinkDnsCapability.Anonymous -> anonymous
 }

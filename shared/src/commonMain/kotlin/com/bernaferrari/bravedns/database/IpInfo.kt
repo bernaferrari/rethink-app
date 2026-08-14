@@ -16,12 +16,13 @@
 package com.bernaferrari.bravedns.database
 
 import androidx.room3.Entity
+import androidx.room3.Index
 import androidx.room3.PrimaryKey
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-@Entity(tableName = "IpInfo")
+@Entity(tableName = "IpInfo", indices = [Index(value = arrayOf("asName"), unique = false)])
 class IpInfo {
     @PrimaryKey var ip: String = ""
     var asn: String = ""

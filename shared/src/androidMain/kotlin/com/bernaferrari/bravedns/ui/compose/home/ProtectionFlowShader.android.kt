@@ -7,6 +7,7 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Canvas
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -56,6 +57,7 @@ internal fun ProtectionFlowShader(
     }
 
     val paint = remember { Paint().apply { isAntiAlias = false } }
+    val error = MaterialTheme.colorScheme.error
     Canvas(modifier = modifier) {
         shader.setFloatUniform("iResolution", size.width, size.height)
         shader.setFloatUniform("iPhase", phase)
@@ -72,6 +74,7 @@ internal fun ProtectionFlowShader(
         )
         shader.setFloatUniform("uField", field.red, field.green, field.blue, field.alpha)
         shader.setFloatUniform("uSurface", surface.red, surface.green, surface.blue, surface.alpha)
+        shader.setFloatUniform("uError", error.red, error.green, error.blue, error.alpha)
         paint.shader = shader
         drawContext.canvas.nativeCanvas.drawRect(0f, 0f, size.width, size.height, paint)
     }
@@ -88,6 +91,7 @@ uniform half4 uAccent;
 uniform half4 uSecondary;
 uniform half4 uField;
 uniform half4 uSurface;
+uniform half4 uError;
 
 half3 blend3(half3 a, half3 b, float t) {
     return a + (b - a) * half(t);
@@ -195,10 +199,10 @@ half4 main(float2 fragCoord) {
     shape = max(shape, rejected * (0.38 + 0.42 * recoveringMix));
     float mark = step(bayer4(cell), shape);
 
-    half3 inactiveInk = blend3(half3(0.80, 0.27, 0.31), uField.rgb, 0.28);
+    half3 inactiveInk = blend3(uError.rgb, uField.rgb, 0.28);
     half3 protectedInk = blend3(uAccent.rgb, uSecondary.rgb, cipherWeave * 0.72);
     half3 ink = blend3(inactiveInk, protectedInk, enabledMix);
-    ink = blend3(ink, half3(0.94, 0.34, 0.20), rejected * recoveringMix);
+    ink = blend3(ink, uError.rgb, rejected * recoveringMix);
     float centerQuiet =
         0.12 + 0.88 * smoothstep(0.13, 0.37, length(p * float2(0.8, 1.0)));
     float texture = 0.78 + 0.22 * (noise * 0.5 + 0.5);

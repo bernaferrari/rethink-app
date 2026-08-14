@@ -452,7 +452,9 @@ class PersistentState(context: Context) : KoinComponent {
     var showRethinkBlockNotification by store.boolean("show_rethink_block_notification", true)
 
     val orbotConnectionStatus = MutableStateFlow(false)
-    val vpnEnabled = MutableStateFlow(false)
+
+    // Seed from disk: the UI collects this before any setVpnEnabled() call.
+    val vpnEnabled = MutableStateFlow(_vpnEnabled)
     val universalRulesCount = MutableStateFlow(0)
     private val proxyStatus = MutableStateFlow(-1)
 
@@ -461,7 +463,7 @@ class PersistentState(context: Context) : KoinComponent {
 
     val dnsCryptRelays = MutableStateFlow<DnsCryptRelayDetails?>(null)
 
-    val remoteBlocklistCount = MutableStateFlow(0)
+    val remoteBlocklistCount = MutableStateFlow(numberOfRemoteBlocklists)
 
     fun setVpnEnabled(isOn: Boolean) {
         vpnEnabled.value = isOn

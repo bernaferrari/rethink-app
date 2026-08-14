@@ -17,23 +17,14 @@ package com.bernaferrari.bravedns.ui.compose.settings
 
 import android.app.UiModeManager
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.res.Configuration
 import android.os.SystemClock
 import android.widget.Toast
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -41,7 +32,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -51,7 +41,6 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.service.PersistentState
-import com.bernaferrari.bravedns.ui.compose.theme.Dimensions
 import com.bernaferrari.bravedns.util.BioMetricType
 import com.bernaferrari.bravedns.util.Utilities.showToastUiCentered
 import Logger
@@ -98,6 +87,7 @@ fun AppLockScreen(
 
     var authState by remember { mutableStateOf<AppLockResult>(AppLockResult.Pending) }
     var biometricPrompt by remember { mutableStateOf<BiometricPrompt?>(null) }
+    var promptInfo by remember { mutableStateOf<BiometricPrompt.PromptInfo?>(null) }
 
     // Check if authentication is required
     LaunchedEffect(Unit) {
@@ -111,9 +101,20 @@ fun AppLockScreen(
 
     // Set up biometric prompt when the composable is first composed
     DisposableEffect(context) {
-        val activity = context as? FragmentActivity
-        if (activity != null && authState == AppLockResult.Pending) {
-            val shouldShow = checkBiometricRequired(context, persistentState)
+        val activity = context.findFragmentActivity()
+        val shouldShow = checkBiometricRequired(context, persistentState)
+        if (activity == null) {
+            if (shouldShow && authState == AppLockResult.Pending) {
+                Logger.e(TAG, "$TAG no FragmentActivity host for BiometricPrompt (context=$context)")
+                showToastUiCentered(
+                    context,
+                    context.getString(R.string.hs_biometeric_error),
+                    Toast.LENGTH_SHORT
+                )
+                authState = AppLockResult.Failure
+                onAuthResult(AppLockResult.Failure)
+            }
+        } else if (authState == AppLockResult.Pending) {
             if (shouldShow) {
                 val executor = ContextCompat.getMainExecutor(context)
                 val callback = object : BiometricPrompt.AuthenticationCallback() {
@@ -142,7 +143,7 @@ fun AppLockScreen(
 
                 biometricPrompt = BiometricPrompt(activity, executor, callback)
 
-                val promptInfo = BiometricPrompt.PromptInfo.Builder()
+                val info = BiometricPrompt.PromptInfo.Builder()
                     .setTitle(biometricTitle)
                     .setSubtitle(biometricDesc)
                     .setAllowedAuthenticators(
@@ -151,9 +152,10 @@ fun AppLockScreen(
                     )
                     .setConfirmationRequired(false)
                     .build()
+                promptInfo = info
 
                 Logger.v(TAG, "$TAG showing biometric prompt")
-                biometricPrompt?.authenticate(promptInfo)
+                biometricPrompt?.authenticate(info)
             }
         }
 
@@ -166,7 +168,11 @@ fun AppLockScreen(
     AppLockContent(
         appName = appName,
         title = biometricTitle,
-        subtitle = biometricDesc
+        subtitle = biometricDesc,
+        onUnlockClick = {
+            val info = promptInfo
+            if (info != null) biometricPrompt?.authenticate(info)
+        },
     )
 }
 
@@ -177,12 +183,15 @@ fun AppLockScreen(
 private fun AppLockContent(
     appName: String,
     title: String,
-    subtitle: String
+    subtitle: String,
+    onUnlockClick: () -> Unit,
 ) {
     RethinkAppLockContent(
         appName = appName,
         title = title,
         subtitle = subtitle,
+        unlockLabel = title,
+        onUnlockClick = onUnlockClick,
         brandMark = {
             Image(
                 painter = painterResource(id = R.drawable.ic_launcher),
@@ -251,4 +260,11 @@ private fun isAppRunningOnTv(context: Context): Boolean {
     } catch (_: Exception) {
         false
     }
+}
+
+// LocalContext is often a themed ContextWrapper; BiometricPrompt needs the FragmentActivity.
+private tailrec fun Context.findFragmentActivity(): FragmentActivity? = when (this) {
+    is FragmentActivity -> this
+    is ContextWrapper -> baseContext.findFragmentActivity()
+    else -> null
 }

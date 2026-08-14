@@ -5,22 +5,17 @@ import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -30,12 +25,10 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
-import com.bernaferrari.bravedns.ui.compose.theme.PrimaryButton
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormActionRow
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormSection
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormTextField
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
-import com.bernaferrari.bravedns.ui.compose.theme.SecondaryButton
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 
 data class RethinkWireguardEditorState(
@@ -88,12 +81,17 @@ fun RethinkWireguardEditor(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = { RethinkLargeTopBar(strings.title, onBackClick = onBackClick, scrollBehavior = scrollBehavior) },
         bottomBar = {
-            RethinkWireguardEditorActions(
-                bottomInset = actionBottomInset,
-                cancelLabel = strings.cancel,
-                saveLabel = strings.save,
-                onCancelClick = onBackClick,
-                onSaveClick = onSaveClick,
+            RethinkFormActionRow(
+                confirmLabel = strings.save,
+                onConfirm = onSaveClick,
+                dismissLabel = strings.cancel,
+                onDismiss = onBackClick,
+                modifier = Modifier.padding(
+                    start = SharedDimensions.screenPaddingHorizontal,
+                    end = SharedDimensions.screenPaddingHorizontal,
+                    top = SharedDimensions.spacingSm,
+                    bottom = SharedDimensions.spacingSm + actionBottomInset,
+                ),
             )
         },
     ) { padding ->
@@ -183,36 +181,6 @@ fun RethinkWireguardEditor(
                         Text(state.advancedProperties, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
-            }
-        }
-    }
-}
-
-@Composable
-private fun RethinkWireguardEditorActions(
-    bottomInset: Dp,
-    cancelLabel: String,
-    saveLabel: String,
-    onCancelClick: () -> Unit,
-    onSaveClick: () -> Unit,
-) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surfaceContainer,
-    ) {
-        Column {
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(
-                    start = SharedDimensions.screenPaddingHorizontal,
-                    end = SharedDimensions.screenPaddingHorizontal,
-                    top = SharedDimensions.spacingSm,
-                    bottom = SharedDimensions.spacingSm + bottomInset,
-                ),
-                horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
-            ) {
-                SecondaryButton(cancelLabel, onCancelClick, Modifier.weight(1f))
-                PrimaryButton(saveLabel, onSaveClick, Modifier.weight(1f))
             }
         }
     }

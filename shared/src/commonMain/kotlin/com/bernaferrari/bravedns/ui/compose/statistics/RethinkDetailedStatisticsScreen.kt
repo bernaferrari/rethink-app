@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
@@ -150,7 +151,7 @@ private fun StatisticsLoading(label: String, modifier: Modifier) {
             horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            CircularProgressIndicator(Modifier.size(SharedDimensions.iconSizeSm), strokeWidth = 2.dp)
+            CircularProgressIndicator(Modifier.size(SharedDimensions.iconSizeMd), strokeWidth = 3.dp)
             Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
@@ -163,14 +164,11 @@ private fun StatisticsEmpty(label: String, modifier: Modifier) {
         shape = RoundedCornerShape(SharedDimensions.cornerRadius4xl),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
-        Row(
-            Modifier.padding(SharedDimensions.cardPadding),
-            horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(MaterialSymbols.Filled.Info, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
+        RethinkEmptyState(
+            icon = MaterialSymbols.Filled.Info,
+            title = label,
+            message = "",
+        )
     }
 }
 

@@ -9,7 +9,6 @@
 | **:shared** `commonMain` | Models, Ktor core, prefs API, Room entities/DAOs (`room-runtime` + `paging-common`), WG config model, CMP theme/shells |
 | **:shared** `androidMain` | Firestack WG keys, DataStore prefs, CIO, DNS resolve |
 | **:shared** `jvmMain` | CIO, in-memory prefs, `JvmDemo` |
-| **:shared** `iosMain` | Optional; not a product goal |
 | **shared** `wasmJs` (always on) | The same `commonMain` UI and state graph as Android, hosted in a Compose viewport |
 
 ## Browser target

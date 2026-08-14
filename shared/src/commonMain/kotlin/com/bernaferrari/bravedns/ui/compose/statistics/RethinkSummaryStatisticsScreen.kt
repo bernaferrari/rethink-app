@@ -3,6 +3,7 @@
 
 package com.bernaferrari.bravedns.ui.compose.statistics
 
+import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
@@ -112,9 +113,6 @@ fun RethinkSummaryStatisticsScreen(
             top = SharedDimensions.spacingMd,
             bottom = SharedDimensions.spacing3xl,
         ),
-        topBarActions = {
-            RethinkStatisticsWindowSelector(selectedWindow, strings, onWindowSelected)
-        },
     ) {
         item {
             RethinkUsageOverviewCard(
@@ -124,6 +122,9 @@ fun RethinkSummaryStatisticsScreen(
                 uploadLabel = strings.upload,
                 connectionsLabel = strings.connections,
             )
+        }
+        item {
+            RethinkStatisticsWindowSelector(selectedWindow, strings, onWindowSelected)
         }
         sections.forEach { section ->
             item(key = section.id) { RethinkSummaryStatisticsSectionCard(section, strings) }
@@ -142,7 +143,7 @@ private fun RethinkStatisticsWindowSelector(
         RethinkStatisticsWindow.TwentyFourHours to strings.twentyFourHours,
         RethinkStatisticsWindow.SevenDays to strings.sevenDays,
     )
-    Row(horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)) {
         options.forEachIndexed { index, (window, label) ->
             val selected = window == selectedWindow
             ToggleButton(
@@ -159,9 +160,9 @@ private fun RethinkStatisticsWindowSelector(
                     containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                     contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 ),
-                modifier = Modifier.semantics { role = Role.RadioButton },
+                modifier = Modifier.weight(1f).semantics { role = Role.RadioButton },
             ) {
-                Text(label, style = MaterialTheme.typography.labelLarge, fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium)
+                Text(label, style = MaterialTheme.typography.labelLarge, fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium, maxLines = 1)
             }
         }
     }
@@ -275,11 +276,10 @@ private fun RethinkSummaryEmptyCard(message: String) {
         shape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.cornerRadius4xl),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
-        Text(
-            message,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(SharedDimensions.cardPadding),
+        RethinkEmptyState(
+            icon = MaterialSymbols.Filled.Info,
+            title = message,
+            message = "",
         )
     }
 }

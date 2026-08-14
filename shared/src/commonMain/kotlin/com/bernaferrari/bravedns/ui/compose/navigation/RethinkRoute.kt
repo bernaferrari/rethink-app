@@ -22,7 +22,7 @@ sealed interface RethinkRoute : NavKey {
     @Serializable data object Alerts : RethinkRoute
     @Serializable data object Events : RethinkRoute
     @Serializable data object AppList : RethinkRoute
-    @Serializable data object NetworkLogs : RethinkRoute
+    @Serializable data class NetworkLogs(val query: String = "") : RethinkRoute
     @Serializable data object ConsoleLogs : RethinkRoute
     @Serializable data object DnsList : RethinkRoute
     @Serializable data class DnsDetail(val focusKey: String = "") : RethinkRoute
@@ -89,7 +89,7 @@ fun RethinkRoute.rootDestination(): RethinkRootDestination? = when (this) {
     RethinkRoute.Statistics, is RethinkRoute.DetailedStatistics, is RethinkRoute.DomainConnections ->
         RethinkRootDestination.Statistics
     RethinkRoute.Configure, RethinkRoute.About, RethinkRoute.Alerts, RethinkRoute.Events,
-    RethinkRoute.AppList, RethinkRoute.NetworkLogs, RethinkRoute.ConsoleLogs, RethinkRoute.DnsList,
+    RethinkRoute.AppList, is RethinkRoute.NetworkLogs, RethinkRoute.ConsoleLogs, RethinkRoute.DnsList,
     is RethinkRoute.DnsDetail, RethinkRoute.DnsSettings, is RethinkRoute.ConfigureOtherDns,
     RethinkRoute.BlockFreeDns, RethinkRoute.Blocklists, is RethinkRoute.FirewallSettings,
     RethinkRoute.UniversalFirewall, is RethinkRoute.CustomRules, is RethinkRoute.ProxySettings,
@@ -113,6 +113,71 @@ fun canonicalStackFor(destination: RethinkRoute): List<RethinkRoute> = when (des
     else -> {
         val root = destination.rootDestination()?.route ?: RethinkRoute.Home
         listOf(root, destination)
+    }
+}
+
+/** True when an external request should push (same tab) instead of replacing the stack. */
+fun shouldPushExternal(current: RethinkRoute?, destination: RethinkRoute): Boolean =
+    current != null &&
+        current.rootDestination() == destination.rootDestination() &&
+        canonicalStackFor(destination).size > 1
+
+/**
+ * Stack after [RethinkNavOps.open]. Same-root nested destinations push, or pop back to an
+ * existing entry. Switching roots (or opening a tab/fullscreen root) uses [canonicalStackFor].
+ */
+fun stackAfterOpen(current: List<RethinkRoute>, destination: RethinkRoute): List<RethinkRoute> {
+    if (!shouldPushExternal(current.lastOrNull(), destination)) {
+        return canonicalStackFor(destination)
+    }
+    val existing = current.indexOf(destination)
+    return if (existing >= 0) current.take(existing + 1) else current + destination
+}
+
+/**
+ * In-app / intent jump: same-root nested destinations push; other roots become
+ * [canonicalStackFor]. Unlike [stackAfterOpen], does not pop back to an existing entry.
+ */
+fun stackAfterOpenFromApp(
+    current: List<RethinkRoute>,
+    destination: RethinkRoute,
+): List<RethinkRoute> {
+    val currentRoot = current.lastOrNull()?.rootDestination()
+    if (currentRoot != null && currentRoot == destination.rootDestination()) {
+        return if (current.lastOrNull() == destination) current else current + destination
+    }
+    return canonicalStackFor(destination)
+}
+
+/** Deep stack to persist when leaving a root, or null when already at that root. */
+fun stackToSaveForRoot(current: List<RethinkRoute>): Pair<RethinkRootDestination, List<RethinkRoute>>? {
+    val root = current.lastOrNull()?.rootDestination() ?: return null
+    return if (current.size > 1) root to current else null
+}
+
+/**
+ * Next stack after a tab select, or null for a no-op (already on [destination], including
+ * when sitting on a nested screen of that tab).
+ */
+fun stackAfterSelectRoot(
+    current: List<RethinkRoute>,
+    destination: RethinkRootDestination,
+    savedForDestination: List<RethinkRoute>?,
+): List<RethinkRoute>? {
+    val last = current.lastOrNull() ?: return savedForDestination ?: listOf(destination.route)
+    if (last == destination.route || last.rootDestination() == destination) return null
+    return savedForDestination ?: listOf(destination.route)
+}
+
+/**
+ * Stack after a back press, or null to leave the stack so the host can finish
+ * (Home as the only entry). Configure/Statistics roots go to Home instead of no-op.
+ */
+fun stackAfterPop(current: List<RethinkRoute>): List<RethinkRoute>? {
+    if (current.size > 1) return current.dropLast(1)
+    return when (current.singleOrNull()) {
+        RethinkRoute.Configure, RethinkRoute.Statistics -> listOf(RethinkRoute.Home)
+        else -> null
     }
 }
 

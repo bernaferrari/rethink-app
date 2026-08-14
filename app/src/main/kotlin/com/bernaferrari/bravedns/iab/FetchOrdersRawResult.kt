@@ -15,7 +15,7 @@
  */
 package com.bernaferrari.bravedns.iab
 
-import com.google.gson.JsonObject
+import kotlinx.serialization.json.JsonObject
 
 /**
  * Typed result for [BillingBackendClient.fetchPurchaseHistory].
@@ -30,7 +30,7 @@ sealed class FetchOrdersRawResult {
 
     /**
      * HTTP 2xx: the `/g/tx` endpoint responded successfully.
-     * [body] is the raw Gson [JsonObject] of the full response; callers are
+     * [body] is the raw [JsonObject] of the full response; callers are
      * responsible for interpreting the `tx` array and mapping it to domain objects.
      */
     data class Success(val body: JsonObject) : FetchOrdersRawResult()

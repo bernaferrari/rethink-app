@@ -3,18 +3,16 @@ package com.bernaferrari.bravedns.ui.compose.dns
 
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
@@ -24,11 +22,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBar
+import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
+import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormSection
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBar
+import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 
 /** A small bridge keeps Paging Android-only while every endpoint-list visual is portable. */
 interface RethinkEndpointFeed<T> {
@@ -52,7 +54,7 @@ fun RethinkEndpointConfigurationScaffold(
 ) {
     Scaffold(
         modifier = modifier,
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = { RethinkLargeTopBar(title = title, subtitle = subtitle, onBackClick = onBackClick) },
     ) { padding ->
         Box(
@@ -73,34 +75,47 @@ fun <T> RethinkEndpointListWithAdd(
     onCreate: () -> Unit,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
+    emptyTitle: String = createLabel,
+    emptyMessage: String = "",
     itemContent: @Composable (T) -> Unit,
 ) {
     Box(modifier.fillMaxSize().padding(contentPadding)) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(top = SharedDimensions.spacingXs, bottom = 84.dp),
-            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(SharedDimensions.spacingXs),
-        ) {
-            items(feed.itemCount) { index ->
-                val item = feed[index] ?: return@items
-                itemContent(item)
+        if (feed.itemCount == 0) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                RethinkEmptyState(title = emptyTitle, message = emptyMessage)
+                Button(onClick = onCreate) { Text(createLabel) }
             }
-        }
-        ExtendedFloatingActionButton(
-            onClick = onCreate,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(SharedDimensions.spacingLg),
-            elevation = FloatingActionButtonDefaults.elevation(
-                defaultElevation = 0.dp,
-                focusedElevation = 0.dp,
-                hoveredElevation = 1.dp,
-                pressedElevation = 1.dp,
-            ),
-        ) {
-            Icon(MaterialSymbols.Filled.Add, contentDescription = createLabel)
-            Spacer(Modifier.width(SharedDimensions.spacingSm))
-            Text(createLabel)
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(top = SharedDimensions.spacingXs, bottom = 84.dp),
+                verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
+            ) {
+                items(feed.itemCount) { index ->
+                    val item = feed[index] ?: return@items
+                    itemContent(item)
+                }
+            }
+            ExtendedFloatingActionButton(
+                onClick = onCreate,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(SharedDimensions.spacingLg),
+                elevation = FloatingActionButtonDefaults.elevation(
+                    defaultElevation = 0.dp,
+                    focusedElevation = 0.dp,
+                    hoveredElevation = 1.dp,
+                    pressedElevation = 1.dp,
+                ),
+            ) {
+                Icon(MaterialSymbols.Filled.Add, contentDescription = null)
+                Spacer(Modifier.width(SharedDimensions.spacingSm))
+                Text(createLabel)
+            }
         }
     }
 }
@@ -117,17 +132,25 @@ fun <T> RethinkEndpointPicker(
 ) {
     Scaffold(
         modifier = modifier,
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = { RethinkTopBar(title = title, onBackClick = onBackClick) },
     ) { padding ->
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(horizontal = SharedDimensions.screenPaddingHorizontal, vertical = SharedDimensions.spacingXs),
-            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(SharedDimensions.spacingXs),
-        ) {
-            items(feed.itemCount) { index ->
-                val item = feed[index] ?: return@items
-                itemContent(item)
+        if (feed.itemCount == 0) {
+            RethinkEmptyState(
+                title = title,
+                message = "",
+                modifier = Modifier.fillMaxSize().padding(padding),
+            )
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize().padding(padding),
+                contentPadding = PaddingValues(horizontal = SharedDimensions.screenPaddingHorizontal, vertical = SharedDimensions.spacingXs),
+                verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
+            ) {
+                items(feed.itemCount) { index ->
+                    val item = feed[index] ?: return@items
+                    itemContent(item)
+                }
             }
         }
     }
@@ -142,31 +165,17 @@ fun RethinkDnsCryptRelayShortcut(
     onConfigure: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Text(
-            text = sectionTitle,
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 4.dp),
-        )
-        val configureShape = RoundedCornerShape(SharedDimensions.cornerRadiusXl)
-        androidx.compose.material3.Surface(
-            shape = configureShape,
-            color = MaterialTheme.colorScheme.surfaceContainerLow,
-            onClick = onConfigure,
-            modifier = Modifier.clip(configureShape),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(relayTitle, style = MaterialTheme.typography.bodyLarge)
-                Text(configureLabel, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
-            }
+    RethinkFormSection(sectionTitle, modifier = modifier) {
+        RethinkListGroup {
+            RethinkListItem(
+                headline = relayTitle,
+                position = CardPosition.Single,
+                showTrailingChevron = true,
+                onClick = onConfigure,
+                trailing = {
+                    Text(configureLabel, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                },
+            )
         }
     }
 }

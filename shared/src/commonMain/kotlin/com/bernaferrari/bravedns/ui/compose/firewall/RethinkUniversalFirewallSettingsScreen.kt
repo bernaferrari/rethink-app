@@ -32,7 +32,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
-import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormSection
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 
@@ -94,7 +94,7 @@ fun RethinkUniversalFirewallSettingsScreen(
             ),
         ) {
             item {
-                SectionHeader(strings.title)
+                RethinkFormSection(strings.title, strings.explanation) {
                 RethinkListGroup {
                     settings.forEachIndexed { index, setting ->
                         val countText = if (isLoadingStats) strings.loading else strings.blocked(setting.blockedCount)
@@ -110,7 +110,7 @@ fun RethinkUniversalFirewallSettingsScreen(
                                     if (!isLoadingStats && setting.blockedCount > 0) {
                                         IconButton(
                                             onClick = { onLogsClick(setting.id) },
-                                            modifier = Modifier.size(SharedDimensions.touchTargetSm),
+                                            modifier = Modifier.size(SharedDimensions.touchTargetMin),
                                         ) {
                                             Icon(MaterialSymbols.AutoMirrored.Filled.KeyboardArrowRight, strings.logs, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                                         }
@@ -128,6 +128,7 @@ fun RethinkUniversalFirewallSettingsScreen(
                             },
                         )
                     }
+                }
                 }
             }
         }

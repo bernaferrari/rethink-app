@@ -63,12 +63,9 @@ fun EntryProviderScope<NavKey>.rethinkPreviewEntries(
     nav: RethinkNavOps,
     demoDependencies: RethinkWebDemoDependencies,
     vpnOn: MutableState<Boolean>,
-    statisticsWindow: RethinkStatisticsWindow,
-    onStatisticsWindowChange: (RethinkStatisticsWindow) -> Unit,
-    configureSearchOpen: Boolean,
-    onConfigureSearchOpenChange: (Boolean) -> Unit,
-    configureQuery: String,
-    onConfigureQueryChange: (String) -> Unit,
+    statisticsWindow: MutableState<RethinkStatisticsWindow>,
+    configureSearchOpen: MutableState<Boolean>,
+    configureQuery: MutableState<String>,
     appearanceContent: @Composable () -> Unit,
 ) {
     entry<RethinkRoute.Home> {
@@ -91,8 +88,8 @@ fun EntryProviderScope<NavKey>.rethinkPreviewEntries(
         RethinkCenteredScreen {
             RethinkSummaryStatisticsScreen(
                 overview = RethinkUsageOverview(download = "1.8 GB", upload = "248 MB", connections = "4,320"),
-                selectedWindow = statisticsWindow,
-                onWindowSelected = onStatisticsWindowChange,
+                selectedWindow = statisticsWindow.value,
+                onWindowSelected = { statisticsWindow.value = it },
                 strings = RethinkSummaryStatisticsStrings(
                     title = "Statistics",
                     overall = "Overall",
@@ -188,10 +185,10 @@ fun EntryProviderScope<NavKey>.rethinkPreviewEntries(
                     }
                 },
                 strings = demoConfigureStrings,
-                searchOpen = configureSearchOpen,
-                query = configureQuery,
-                onSearchOpenChange = onConfigureSearchOpenChange,
-                onQueryChange = onConfigureQueryChange,
+                searchOpen = configureSearchOpen.value,
+                query = configureQuery.value,
+                onSearchOpenChange = { configureSearchOpen.value = it },
+                onQueryChange = { configureQuery.value = it },
                 appearanceContent = appearanceContent,
             )
         }

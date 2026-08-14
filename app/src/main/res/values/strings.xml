@@ -17,6 +17,11 @@
     <string name="home_activity_subtitle">Since logs were last cleared</string>
     <string name="home_connections">Connections</string>
     <string name="home_dns_queries">DNS queries</string>
+    <string name="home_protected">Protected</string>
+    <string name="home_not_active">Not active</string>
+    <string name="home_network_protection">Network protection</string>
+    <string name="home_live">Live</string>
+    <string name="home_offline">Offline</string>
 
     <string name="accessibility_service_description" translatable="true">
         Rethink uses accessibility service to detect and firewall background applications.
@@ -1266,6 +1271,7 @@
     <string name="fapps_isolate_block_dialog_message" translatable="true">Isolate <i>listed</i> apps?</string>
 
     <string name="fapps_firewall_filter_hint" translatable="true">Showing all apps</string>
+    <string name="fapps_bulk_selected_apps" translatable="true">%1$d apps</string>
 
     <string name="fapps_firewall_filter_desc" translatable="true"><![CDATA[Showing <u>%1$s</u> %2$s apps]]></string>
     <string name="fapps_firewall_filter_desc_category" translatable="true"><![CDATA[Showing <u>%1$s</u> %2$s apps in categories: %3$s]]></string>
@@ -1315,6 +1321,8 @@
     <!-- Pause Activity -->
     <string name="pause_text" translatable="true">paused</string>
     <string name="pause_desc" translatable="true">Note: %1$s blocked apps will continue to be firewalled.</string>
+    <string name="pause_decrease_duration" translatable="true">Decrease duration</string>
+    <string name="pause_increase_duration" translatable="true">Increase duration</string>
 
     <!-- Other DNS list -->
     <string name="other_dns_list_tab1" translatable="true">DoH</string>

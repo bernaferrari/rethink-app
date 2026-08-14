@@ -109,15 +109,15 @@ private fun RethinkWelcomeHero(content: RethinkWelcomeContent) {
         verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
     ) {
         Surface(
-            modifier = Modifier.size(104.dp),
-            shape = RoundedCornerShape(36.dp),
+            modifier = Modifier.size(SharedDimensions.iconSizeXl * 2),
+            shape = RoundedCornerShape(SharedDimensions.heroCornerRadius),
             color = MaterialTheme.colorScheme.primaryContainer,
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
                     imageVector = content.heroIcon,
                     contentDescription = null,
-                    modifier = Modifier.size(52.dp),
+                    modifier = Modifier.size(SharedDimensions.iconSizeXl),
                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
             }
@@ -164,7 +164,7 @@ private fun RethinkWelcomeFeatures(features: List<RethinkWelcomeFeature>) {
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Surface(
-                        modifier = Modifier.size(40.dp),
+                        modifier = Modifier.size(SharedDimensions.iconContainerMd),
                         shape = RoundedCornerShape(SharedDimensions.iconContainerRadius),
                         color = MaterialTheme.colorScheme.secondaryContainer,
                     ) {
@@ -172,7 +172,7 @@ private fun RethinkWelcomeFeatures(features: List<RethinkWelcomeFeature>) {
                             Icon(
                                 imageVector = feature.icon,
                                 contentDescription = null,
-                                modifier = Modifier.size(20.dp),
+                                modifier = Modifier.size(SharedDimensions.iconSizeSm),
                                 tint = MaterialTheme.colorScheme.onSecondaryContainer,
                             )
                         }

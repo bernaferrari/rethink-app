@@ -49,7 +49,7 @@ fun RethinkWireguardDialog(
                     Surface(
                         modifier = contentModifier,
                         shape = if (wideWindow) RoundedCornerShape(SharedDimensions.cornerRadius4xl) else androidx.compose.ui.graphics.RectangleShape,
-                        color = MaterialTheme.colorScheme.background,
+                        color = MaterialTheme.colorScheme.surface,
                         content = content,
                     )
                 } else {

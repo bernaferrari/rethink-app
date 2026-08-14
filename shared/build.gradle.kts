@@ -43,17 +43,6 @@ kotlin {
         binaries.executable()
     }
 
-    // iOS optional (not a product goal)
-    listOf(
-        iosArm64(),
-        iosSimulatorArm64(),
-    ).forEach { iosTarget ->
-        iosTarget.binaries.framework {
-            baseName = "Shared"
-            isStatic = true
-        }
-    }
-
     sourceSets {
         commonMain.dependencies {
             implementation(project.dependencies.platform(libs.koin.bom))
@@ -108,11 +97,9 @@ kotlin {
         }
         jvmMain.dependencies {
             implementation(libs.ktor.client.cio)
-            implementation(libs.androidx.room.sqlite.wrapper)
+            // room-runtime + sqlite-bundled are KMP; room3-sqlite-wrapper is
+            // Android-only (AAR) and unresolvable on JVM.
             implementation(libs.androidx.sqlite.bundled)
-        }
-        iosMain.dependencies {
-            implementation(libs.ktor.client.darwin)
         }
         wasmJsMain.dependencies {
             implementation(libs.kotlinx.coroutines.core)

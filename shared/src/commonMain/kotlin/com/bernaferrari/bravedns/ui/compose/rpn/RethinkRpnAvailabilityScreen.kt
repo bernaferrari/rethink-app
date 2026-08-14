@@ -3,7 +3,6 @@
 
 package com.bernaferrari.bravedns.ui.compose.rpn
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -17,7 +16,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -32,7 +30,10 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 
 enum class RethinkRpnAvailabilityStatus { Loading, Active, Inactive, Unavailable }
 
@@ -137,39 +138,24 @@ private fun EmptyAvailabilityMessage(message: String) {
 
 @Composable
 private fun AvailabilityList(items: List<RethinkRpnAvailabilityItem>, strings: RethinkRpnAvailabilityStrings) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(SharedDimensions.cornerRadius4xl),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-    ) {
-        Column(Modifier.fillMaxWidth()) {
-            items.forEachIndexed { index, item ->
-                AvailabilityRow(item, strings)
-                if (index != items.lastIndex) {
-                    HorizontalDivider(
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.42f),
-                        modifier = Modifier.padding(horizontal = SharedDimensions.spacingLg),
-                    )
-                }
-            }
+    RethinkListGroup {
+        items.forEachIndexed { index, item ->
+            RethinkListItem(
+                headline = item.name,
+                position = cardPositionFor(index, items.lastIndex),
+                trailing = { AvailabilityStatus(item.status, strings) },
+            )
         }
     }
 }
 
 @Composable
-private fun AvailabilityRow(item: RethinkRpnAvailabilityItem, strings: RethinkRpnAvailabilityStrings) {
-    androidx.compose.foundation.layout.Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = SharedDimensions.spacingLg, vertical = SharedDimensions.spacingMd),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Text(item.name, style = MaterialTheme.typography.bodyLarge)
-        when (item.status) {
-            RethinkRpnAvailabilityStatus.Loading -> CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
-            RethinkRpnAvailabilityStatus.Active -> AvailabilityStatusText(strings.active, MaterialTheme.colorScheme.primary)
-            RethinkRpnAvailabilityStatus.Inactive -> AvailabilityStatusText(strings.inactive, MaterialTheme.colorScheme.error)
-            RethinkRpnAvailabilityStatus.Unavailable -> AvailabilityStatusText(strings.unavailable, MaterialTheme.colorScheme.onSurfaceVariant)
-        }
+private fun AvailabilityStatus(status: RethinkRpnAvailabilityStatus, strings: RethinkRpnAvailabilityStrings) {
+    when (status) {
+        RethinkRpnAvailabilityStatus.Loading -> CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp)
+        RethinkRpnAvailabilityStatus.Active -> AvailabilityStatusText(strings.active, MaterialTheme.colorScheme.primary)
+        RethinkRpnAvailabilityStatus.Inactive -> AvailabilityStatusText(strings.inactive, MaterialTheme.colorScheme.error)
+        RethinkRpnAvailabilityStatus.Unavailable -> AvailabilityStatusText(strings.unavailable, MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 

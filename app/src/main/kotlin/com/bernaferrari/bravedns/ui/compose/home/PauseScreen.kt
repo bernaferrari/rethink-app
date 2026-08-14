@@ -15,6 +15,7 @@
  */
 package com.bernaferrari.bravedns.ui.compose.home
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -56,6 +57,9 @@ fun PauseScreen(onFinish: () -> Unit) {
     var autoAdjustment by remember { mutableStateOf<RethinkPauseAdjustment?>(null) }
     var longPressJob by remember { mutableStateOf<Job?>(null) }
 
+    // Overlay sits on a live NavDisplay. Consume OS back so it does not pop the hidden stack.
+    BackHandler { }
+
     LaunchedEffect(Unit) {
         if (!VpnController.isAppPaused()) onFinish()
     }
@@ -92,6 +96,8 @@ fun PauseScreen(onFinish: () -> Unit) {
             title = stringResource(R.string.pause_text),
             pauseLabel = stringResource(R.string.pause_text),
             resume = stringResource(R.string.notif_dialog_pause_dialog_positive),
+            decreaseDuration = stringResource(R.string.pause_decrease_duration),
+            increaseDuration = stringResource(R.string.pause_increase_duration),
         ),
         onDecrease = { VpnController.decreasePauseDuration(PAUSE_VPN_EXTRA_MILLIS) },
         onIncrease = { VpnController.increasePauseDuration(PAUSE_VPN_EXTRA_MILLIS) },

@@ -31,6 +31,11 @@ sealed interface SettingsSearchDestination {
     data object Advanced : SettingsSearchDestination
 }
 
+fun SettingsSearchDestination.General.isAppearanceFocus(): Boolean = when (focusKey) {
+    "general_appearance", "general_theme_mode", "general_theme_color" -> true
+    else -> false
+}
+
 data class SettingsSearchIndexEntry(
     val id: String,
     val title: String,

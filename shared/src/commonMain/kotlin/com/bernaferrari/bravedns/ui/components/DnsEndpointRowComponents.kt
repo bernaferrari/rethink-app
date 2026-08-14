@@ -87,7 +87,7 @@ private fun DnsEndpointActionButton(action: DnsRowAction, onClick: () -> Unit) {
     IconButton(
         onClick = onClick,
         colors = IconButtonDefaults.iconButtonColors(containerColor = containerColor, contentColor = contentColor),
-        modifier = Modifier.size(SharedDimensions.touchTargetSm),
+        modifier = Modifier.size(SharedDimensions.touchTargetMin),
     ) {
         Icon(icon, contentDescription = null, modifier = Modifier.size(SharedDimensions.iconSizeSm))
     }

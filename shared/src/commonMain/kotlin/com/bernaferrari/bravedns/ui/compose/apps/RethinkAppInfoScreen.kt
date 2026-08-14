@@ -4,7 +4,10 @@ package com.bernaferrari.bravedns.ui.compose.apps
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
@@ -31,6 +34,7 @@ import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -41,6 +45,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -51,9 +58,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
+import com.bernaferrari.bravedns.ui.compose.common.RethinkLoadingState
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
+import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormSection
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
@@ -152,6 +160,7 @@ fun RethinkAppInfoScreen(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             RethinkLargeTopBar(
                 title = state.title,
@@ -178,7 +187,11 @@ fun RethinkAppInfoScreen(
                         Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
                     ) {
-                        RethinkEmptyState(title = strings.unavailable, message = "")
+                        RethinkEmptyState(
+                            icon = MaterialSymbols.Filled.Apps,
+                            title = strings.unavailable,
+                            message = "",
+                        )
                         RethinkListGroup {
                             RethinkListItem(
                                 headline = strings.back,
@@ -190,10 +203,13 @@ fun RethinkAppInfoScreen(
                     }
                 }
             } else {
-                item { RethinkAppStatusCard(state, strings) }
                 item {
-                    // Compact network cards sit above the firewall settings rows.
-                    RethinkFormSection(strings.firewall) {
+                    val firewallDescription = buildString {
+                        append(state.status)
+                        if (state.temporaryAllowed) append(" · ").append(strings.temporaryAllow)
+                        if (state.proxyDetails.isNotBlank()) append('\n').append(state.proxyDetails)
+                    }
+                    RethinkFormSection(strings.firewall, firewallDescription) {
                         RethinkAppNetworkPair(state, strings, onWifiClick, onMobileClick)
                         RethinkListGroup {
                             RethinkAppExclusiveRow(strings.isolate, strings.isolateDescription, state.isolated, MaterialSymbols.Filled.Security, MaterialTheme.colorScheme.error, CardPosition.First, onIsolateClick)
@@ -212,10 +228,7 @@ fun RethinkAppInfoScreen(
                     }
                 }
                 item {
-                    RethinkFormSection(
-                        title = strings.rules,
-                        titleModifier = Modifier.padding(horizontal = SharedDimensions.spacingSm),
-                    ) {
+                    RethinkFormSection(strings.rules) {
                         RethinkListGroup {
                             RethinkAppNavigationRow(strings.systemAppInfo, MaterialSymbols.Filled.Settings, CardPosition.First, onSystemAppInfo)
                             RethinkAppNavigationRow(strings.ipRules, MaterialSymbols.Filled.Public, CardPosition.Middle, onIpRules)
@@ -233,23 +246,9 @@ fun RethinkAppInfoScreen(
 }
 
 @Composable
-private fun RethinkAppStatusCard(state: RethinkAppInfoState, strings: RethinkAppInfoStrings) {
-    Surface(shape = RoundedCornerShape(SharedDimensions.cornerRadius3xl), color = MaterialTheme.colorScheme.surfaceContainerLow, modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(SharedDimensions.cardPadding), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
-            Text(strings.status, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs), verticalAlignment = Alignment.CenterVertically) {
-                RethinkAppStatusPill(state.status, true)
-                if (state.temporaryAllowed) RethinkAppStatusPill(strings.temporaryAllow, true)
-            }
-            if (state.proxyDetails.isNotBlank()) Text(state.proxyDetails, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-    }
-}
-
-@Composable
 private fun RethinkAppStatusPill(label: String, active: Boolean) {
     Surface(shape = RoundedCornerShape(SharedDimensions.chipCornerRadius), color = if (active) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHighest) {
-        Text(label, style = MaterialTheme.typography.labelSmall, color = if (active) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(horizontal = SharedDimensions.spacingSm, vertical = 3.dp))
+        Text(label, style = MaterialTheme.typography.labelSmall, color = if (active) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(horizontal = SharedDimensions.spacingSm, vertical = SharedDimensions.spacingXs))
     }
 }
 
@@ -262,7 +261,7 @@ private fun RethinkAppNetworkPair(
 ) {
     // Compact horizontal network cards with a 2.dp gap like list rows.
     Row(
-        horizontalArrangement = Arrangement.spacedBy(2.dp),
+                horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile),
         modifier = Modifier.fillMaxWidth(),
     ) {
         RethinkAppNetworkTile(
@@ -307,12 +306,14 @@ private fun RethinkAppNetworkTile(
     onClick: () -> Unit,
 ) {
     val density = LocalDensity.current
-    val baseRounded = shape as? RoundedCornerShape ?: RoundedCornerShape(20.dp)
+    val motion = LocalRethinkMotion.current
+    val colorSpec: AnimationSpec<Color> = tween(motion.durationMedium, easing = FastOutSlowInEasing)
+    val baseRounded = shape as? RoundedCornerShape ?: RoundedCornerShape(SharedDimensions.cardCornerRadius)
     val animatedShape = RoundedCornerShape(
-        topStart = animateCorner(baseRounded.topStart, 28.dp, blocked, density),
-        topEnd = animateCorner(baseRounded.topEnd, 28.dp, blocked, density),
-        bottomEnd = animateCorner(baseRounded.bottomEnd, 28.dp, blocked, density),
-        bottomStart = animateCorner(baseRounded.bottomStart, 28.dp, blocked, density),
+        topStart = animateCorner(baseRounded.topStart, SharedDimensions.cardCornerRadiusLarge, blocked, density),
+        topEnd = animateCorner(baseRounded.topEnd, SharedDimensions.cardCornerRadiusLarge, blocked, density),
+        bottomEnd = animateCorner(baseRounded.bottomEnd, SharedDimensions.cardCornerRadiusLarge, blocked, density),
+        bottomStart = animateCorner(baseRounded.bottomStart, SharedDimensions.cardCornerRadiusLarge, blocked, density),
     )
     val containerColor by animateColorAsState(
         targetValue = if (blocked) {
@@ -320,7 +321,7 @@ private fun RethinkAppNetworkTile(
         } else {
             MaterialTheme.colorScheme.surfaceContainerLow
         },
-        animationSpec = tween(400, easing = FastOutSlowInEasing),
+        animationSpec = colorSpec,
         label = "app_network_tile_bg",
     )
     val contentColor by animateColorAsState(
@@ -329,7 +330,7 @@ private fun RethinkAppNetworkTile(
         } else {
             MaterialTheme.colorScheme.onSurface
         },
-        animationSpec = tween(400),
+        animationSpec = colorSpec,
         label = "app_network_tile_title",
     )
     val secondaryColor by animateColorAsState(
@@ -338,7 +339,7 @@ private fun RethinkAppNetworkTile(
         } else {
             MaterialTheme.colorScheme.onSurfaceVariant
         },
-        animationSpec = tween(400),
+        animationSpec = colorSpec,
         label = "app_network_tile_status",
     )
     val iconContainerColor by animateColorAsState(
@@ -347,7 +348,7 @@ private fun RethinkAppNetworkTile(
         } else {
             MaterialTheme.colorScheme.surfaceContainerHigh
         },
-        animationSpec = tween(400),
+        animationSpec = colorSpec,
         label = "app_network_tile_icon_bg",
     )
     val iconBlockedTint = if (blocked) {
@@ -363,20 +364,20 @@ private fun RethinkAppNetworkTile(
 
     Surface(
         onClick = onClick,
-        modifier = modifier.height(72.dp),
+        modifier = modifier.height(SharedDimensions.listItemHeightLg),
         shape = animatedShape,
         color = containerColor,
     ) {
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = SharedDimensions.spacingLg, vertical = SharedDimensions.spacingMd),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
         ) {
             Box(
                 modifier = Modifier
-                    .size(44.dp)
+                    .size(SharedDimensions.iconContainerMd)
                     .clip(CircleShape)
                     .background(iconContainerColor),
                 contentAlignment = Alignment.Center,
@@ -388,7 +389,7 @@ private fun RethinkAppNetworkTile(
                     allowedTint = iconAllowedTint,
                     blockedTint = iconBlockedTint,
                     contentDescription = null,
-                    modifier = Modifier.size(24.dp),
+                    modifier = Modifier.size(SharedDimensions.iconSizeMd),
                 )
             }
             Column(
@@ -406,8 +407,12 @@ private fun RethinkAppNetworkTile(
                 AnimatedContent(
                     targetState = blocked,
                     transitionSpec = {
-                        (slideInVertically { height -> if (targetState) height else -height } + fadeIn()) togetherWith
-                            (slideOutVertically { height -> if (targetState) -height else height } + fadeOut())
+                        if (motion.reducedMotion) {
+                            EnterTransition.None togetherWith ExitTransition.None
+                        } else {
+                            (slideInVertically { height -> if (targetState) height else -height } + fadeIn()) togetherWith
+                                (slideOutVertically { height -> if (targetState) -height else height } + fadeOut())
+                        }
                     },
                     label = "app_network_tile_status_text",
                 ) { isBlocked ->
@@ -436,7 +441,7 @@ private fun animateCorner(
     val baseDp = with(density) { basePx.toDp() }
     val currentDp by animateDpAsState(
         targetValue = if (blocked) targetDp else baseDp,
-        animationSpec = tween(400, easing = FastOutSlowInEasing),
+        animationSpec = tween(LocalRethinkMotion.current.durationMedium, easing = FastOutSlowInEasing),
         label = "app_network_tile_corner",
     )
     return CornerSize(currentDp)
@@ -450,13 +455,9 @@ private fun RethinkAppExclusiveRow(title: String, description: String, enabled: 
         leadingIcon = icon,
         leadingIconTint = tint,
         position = position,
-        defaultContainerColor = if (enabled) {
-            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.32f)
-        } else {
-            MaterialTheme.colorScheme.surfaceContainerLow
-        },
-        trailing = { Switch(checked = enabled, onCheckedChange = null) },
+        trailing = { RadioButton(selected = enabled, onClick = null) },
         onClick = onClick,
+        modifier = Modifier.semantics { role = Role.RadioButton },
     )
 }
 
@@ -467,11 +468,6 @@ private fun RethinkAppToggleRow(title: String, description: String, checked: Boo
         supporting = description,
         leadingIcon = icon,
         position = position,
-        defaultContainerColor = if (checked) {
-            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.32f)
-        } else {
-            MaterialTheme.colorScheme.surfaceContainerLow
-        },
         onClick = { onChange(!checked) },
         trailing = { Switch(checked = checked, onCheckedChange = null) },
     )
@@ -512,8 +508,12 @@ private fun RethinkAppLogCard(section: RethinkAppInfoLogSection, strings: Rethin
             header()
         }
         when {
-            section.loading -> RethinkEmptyState(title = strings.loading, message = "")
-            section.empty -> RethinkEmptyState(title = strings.empty, message = "")
+            section.loading -> RethinkLoadingState(label = strings.loading)
+            section.empty -> RethinkEmptyState(
+                icon = MaterialSymbols.Filled.Info,
+                title = strings.empty,
+                message = "",
+            )
             else -> RethinkListGroup {
                 section.entries.forEachIndexed { index, item ->
                     RethinkListItem(

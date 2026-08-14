@@ -41,7 +41,7 @@ fun DnsCryptRelaysDialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
-        Surface(color = MaterialTheme.colorScheme.background) {
+        Surface(color = MaterialTheme.colorScheme.surface) {
             DnsCryptRelaysContent(appConfig = appConfig, relays = relays, onDismiss = onDismiss)
         }
     }

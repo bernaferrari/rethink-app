@@ -28,8 +28,6 @@ import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
 
 @Immutable
 object DiagonalWipeIconDefaults {
-    const val EnableDurationMillis = 530
-    const val DisableDurationMillis = 610
     val EnableEasing: Easing = CubicBezierEasing(0.22f, 1f, 0.36f, 1f)
     val DisableEasing: Easing = CubicBezierEasing(0.4f, 0f, 0.2f, 1f)
     const val SeamOverlapPx = 0.8f
@@ -45,8 +43,8 @@ fun DiagonalWipeIcon(
     blockedTint: Color,
     contentDescription: String?,
     modifier: Modifier = Modifier,
-    enableDurationMillis: Int = DiagonalWipeIconDefaults.EnableDurationMillis,
-    disableDurationMillis: Int = DiagonalWipeIconDefaults.DisableDurationMillis,
+    enableDurationMillis: Int = LocalRethinkMotion.current.durationWipe,
+    disableDurationMillis: Int = LocalRethinkMotion.current.durationWipeExit,
     enableEasing: Easing = DiagonalWipeIconDefaults.EnableEasing,
     disableEasing: Easing = DiagonalWipeIconDefaults.DisableEasing,
     seamOverlapPx: Float = DiagonalWipeIconDefaults.SeamOverlapPx,

@@ -14,8 +14,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,8 +28,10 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.components.RethinkSharedIconContainer
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormSection
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
 import kotlinx.coroutines.delay
@@ -94,7 +94,7 @@ fun RethinkFirewallSettingsScreen(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     androidx.compose.material3.Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             RethinkLargeTopBar(
                 title = strings.title,
@@ -116,47 +116,43 @@ fun RethinkFirewallSettingsScreen(
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
         ) {
             item {
-                FirewallSectionTitle(strings.universalSection)
-                FirewallNavigationRow(
-                    title = strings.universalTitle,
-                    description = strings.universalDescription,
-                    icon = MaterialSymbols.Filled.Public,
-                    position = CardPosition.First,
-                    highlighted = activeFocus == "firewall_universal_main",
-                    onClick = onUniversalFirewallClick,
-                )
-                FirewallNavigationRow(
-                    title = strings.blockedTitle,
-                    description = strings.blockedDescription,
-                    icon = MaterialSymbols.Filled.GppBad,
-                    position = CardPosition.Last,
-                    highlighted = activeFocus == "firewall_universal_blocked",
-                    onClick = onCustomIpDomainClick,
-                )
+                RethinkFormSection(strings.universalSection) {
+                    RethinkListGroup {
+                        FirewallNavigationRow(
+                            title = strings.universalTitle,
+                            description = strings.universalDescription,
+                            icon = MaterialSymbols.Filled.Public,
+                            position = CardPosition.First,
+                            highlighted = activeFocus == "firewall_universal_main",
+                            onClick = onUniversalFirewallClick,
+                        )
+                        FirewallNavigationRow(
+                            title = strings.blockedTitle,
+                            description = strings.blockedDescription,
+                            icon = MaterialSymbols.Filled.GppBad,
+                            position = CardPosition.Last,
+                            highlighted = activeFocus == "firewall_universal_blocked",
+                            onClick = onCustomIpDomainClick,
+                        )
+                    }
+                }
             }
             item {
-                FirewallSectionTitle(strings.appWiseSection)
-                FirewallNavigationRow(
-                    title = strings.appWiseTitle,
-                    description = strings.appWiseDescription,
-                    icon = MaterialSymbols.Filled.Apps,
-                    position = CardPosition.Single,
-                    highlighted = activeFocus == "firewall_apps_rules",
-                    onClick = onAppWiseIpDomainClick,
-                )
+                RethinkFormSection(strings.appWiseSection) {
+                    RethinkListGroup {
+                        FirewallNavigationRow(
+                            title = strings.appWiseTitle,
+                            description = strings.appWiseDescription,
+                            icon = MaterialSymbols.Filled.Apps,
+                            position = CardPosition.Single,
+                            highlighted = activeFocus == "firewall_apps_rules",
+                            onClick = onAppWiseIpDomainClick,
+                        )
+                    }
+                }
             }
         }
     }
-}
-
-@Composable
-private fun FirewallSectionTitle(title: String) {
-    Text(
-        title.uppercase(),
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(start = SharedDimensions.spacingLg, bottom = SharedDimensions.spacingSm),
-    )
 }
 
 @Composable

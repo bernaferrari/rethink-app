@@ -3,12 +3,13 @@
     <!-- Base application theme. -->
     <style name="AppThemeInitial" parent="@android:style/Theme.Material.NoActionBar">
         <item name="android:windowDisablePreview">true</item>
-        <item name="android:colorPrimary">@color/colorPrimary</item>
-        <item name="android:colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="android:colorAccent">@color/colorSecondary</item>
-        <item name="android:colorBackground">@color/background</item>
-        <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowBackground">@color/rethinkLaunchSurface</item>
+        <item name="android:colorPrimary">@color/rethinkLaunchSurface</item>
+        <item name="android:colorPrimaryDark">@color/rethinkLaunchSurface</item>
+        <item name="android:colorAccent">@color/rethinkLaunchAccent</item>
+        <item name="android:colorBackground">@color/rethinkLaunchSurface</item>
+        <item name="android:statusBarColor">@color/rethinkLaunchSurface</item>
+        <item name="android:navigationBarColor">@color/rethinkLaunchSurface</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
         <item name="android:enforceStatusBarContrast">false</item>
         <item name="android:enforceNavigationBarContrast">false</item>
@@ -55,11 +56,10 @@
         <item name="chipBgColorPositive">@color/chipBgPositive</item>
         <item name="chipBgColorNegative">@color/chipBgNegative</item>
         <item name="chipBgColorNeutral">@color/chipBgNeutral</item>
-        <item name="fabBackgroundColor">@color/fabBackground</item>
         <item name="controlActivated">@color/colorControlActivated</item>
         <item name="controlActivatedBad">@color/colorControlActivatedBad</item>
         <item name="primaryColor">@color/colorPrimary</item>
         <item name="primaryDarkColor">@color/colorPrimaryDark</item>
-        <item name="primaryColorAccent">@color/accentGood</item>
+        <item name="primaryColorAccent">@color/rethinkLaunchAccent</item>
     </style>
 </resources>

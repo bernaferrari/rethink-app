@@ -11,15 +11,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import com.bernaferrari.bravedns.ui.compose.components.RethinkSharedIconContainer
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
@@ -71,9 +70,11 @@ fun RethinkAdvancedSettingsScreen(
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
         ) {
             item {
-                AdvancedToggleRow(strings.experimentalTitle, null, MaterialSymbols.Filled.Build, experimentalEnabled, CardPosition.First, onExperimentalChange)
-                AdvancedToggleRow(strings.autoDialTitle, strings.autoDialDescription, MaterialSymbols.Filled.Tune, autoDialEnabled, CardPosition.Middle, onAutoDialChange)
-                AdvancedToggleRow(strings.panicTitle, strings.panicDescription, MaterialSymbols.Filled.Warning, panicEnabled, CardPosition.Last, onPanicChange, destructive = true)
+                RethinkListGroup {
+                    AdvancedToggleRow(strings.experimentalTitle, null, MaterialSymbols.Filled.Build, experimentalEnabled, CardPosition.First, onExperimentalChange)
+                    AdvancedToggleRow(strings.autoDialTitle, strings.autoDialDescription, MaterialSymbols.Filled.Tune, autoDialEnabled, CardPosition.Middle, onAutoDialChange)
+                    AdvancedToggleRow(strings.panicTitle, strings.panicDescription, MaterialSymbols.Filled.Warning, panicEnabled, CardPosition.Last, onPanicChange, destructive = true)
+                }
             }
         }
     }
@@ -89,13 +90,18 @@ private fun AdvancedToggleRow(
     onCheckedChange: (Boolean) -> Unit,
     destructive: Boolean = false,
 ) {
-    val accent = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
     RethinkListItem(
         headline = title,
         supporting = description,
+        leadingIcon = icon,
+        leadingIconTint = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+        leadingIconContainerColor = if (destructive) {
+            MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.6f)
+        } else {
+            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
+        },
         position = position,
         onClick = { onCheckedChange(!checked) },
-        leadingContent = { RethinkSharedIconContainer(accent) { Icon(icon, null, tint = accent) } },
         trailing = { Switch(checked = checked, onCheckedChange = null) },
     )
 }

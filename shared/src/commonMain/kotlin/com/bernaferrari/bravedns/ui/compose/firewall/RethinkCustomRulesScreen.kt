@@ -6,7 +6,6 @@ package com.bernaferrari.bravedns.ui.compose.firewall
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -16,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -44,11 +44,13 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormActionRow
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormTextField
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormTextField
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkModalBottomSheet
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSearchField
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
@@ -179,7 +181,7 @@ fun RethinkCustomRulesScreen(
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = { RethinkTopBar(title = title, onBackClick = onBackClick) },
         floatingActionButton = {
-            if (effectiveMode == RethinkRulesMode.APP_SPECIFIC) {
+            if (effectiveMode == RethinkRulesMode.APP_SPECIFIC && (rules.isLoading || rules.itemCount > 0)) {
                 ExtendedFloatingActionButton(
                     onClick = { showAddDialog = true },
                     icon = { Icon(MaterialSymbols.Filled.Add, null) },
@@ -207,6 +209,11 @@ fun RethinkCustomRulesScreen(
                 strings = strings,
                 onDeleteRule = { onDeleteRule(selectedTab, it) },
                 onRuleOwnerVisible = onRuleOwnerVisible,
+                onAddRule = if (effectiveMode == RethinkRulesMode.APP_SPECIFIC) {
+                    { showAddDialog = true }
+                } else {
+                    null
+                },
             )
         }
     }
@@ -340,11 +347,12 @@ private fun RethinkRulesContent(
     strings: RethinkCustomRulesStrings,
     onDeleteRule: (RethinkFirewallRule) -> Unit,
     onRuleOwnerVisible: (Int) -> Unit,
+    onAddRule: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     when {
         rules.isLoading && rules.itemCount == 0 -> RethinkRulesInfo(strings.loading, modifier)
-        !rules.isLoading && rules.itemCount == 0 -> RethinkRulesEmptyState(selectedTab, strings, modifier)
+        !rules.isLoading && rules.itemCount == 0 -> RethinkRulesEmptyState(selectedTab, strings, onAddRule, modifier)
         else -> androidx.compose.foundation.lazy.LazyColumn(
             modifier = modifier.fillMaxSize(),
             contentPadding = PaddingValues(
@@ -398,43 +406,20 @@ private fun RethinkRulesInfo(text: String, modifier: Modifier) {
 private fun RethinkRulesEmptyState(
     tab: RethinkRulesTab,
     strings: RethinkCustomRulesStrings,
+    onAddRule: (() -> Unit)?,
     modifier: Modifier,
 ) {
-    val isIp = tab == RethinkRulesTab.IP
-    val accent = if (isIp) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary
-    Box(
+    Column(
         modifier.fillMaxSize().padding(horizontal = SharedDimensions.screenPaddingHorizontal),
-        contentAlignment = Alignment.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
     ) {
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.cornerRadius4xl),
-            color = MaterialTheme.colorScheme.surfaceContainerLow,
-        ) {
-            Column(
-                Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                Surface(
-                    shape = androidx.compose.foundation.shape.CircleShape,
-                    color = accent.copy(alpha = .14f),
-                ) {
-                    Icon(
-                        if (isIp) MaterialSymbols.Filled.Public else MaterialSymbols.Filled.Language,
-                        null,
-                        Modifier.padding(10.dp),
-                        tint = accent,
-                    )
-                }
-                Text(
-                    if (isIp) strings.noIpRules else strings.noDomainRules,
-                    modifier = Modifier.fillMaxWidth(),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    textAlign = TextAlign.Center,
-                )
-            }
+        RethinkEmptyState(
+            title = if (tab == RethinkRulesTab.IP) strings.noIpRules else strings.noDomainRules,
+            message = "",
+        )
+        if (onAddRule != null) {
+            Button(onClick = onAddRule) { Text(strings.add) }
         }
     }
 }
@@ -511,15 +496,12 @@ private fun RethinkAddFirewallRuleDialog(
     var value by remember(tab) { mutableStateOf("") }
     var error by remember(tab) { mutableStateOf<String?>(null) }
     val title = if (tab == RethinkRulesTab.IP) strings.ipRules else strings.domainRules
-    RethinkConfirmDialog(
+    RethinkModalBottomSheet(
         onDismissRequest = onDismiss,
-        title = title,
-        confirmText = strings.add,
-        dismissText = strings.cancel,
-        confirmEnabled = value.isNotBlank(),
-        onConfirm = { error = onAdd(value.trim()).error },
-        onDismiss = onDismiss,
-        text = {
+        expandOnShow = true,
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd)) {
+            Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
             RethinkFormTextField(
                 value = value,
                 onValueChange = { value = it; error = null },
@@ -528,8 +510,15 @@ private fun RethinkAddFirewallRuleDialog(
                 supportingText = error?.let { { Text(it) } },
                 singleLine = true,
             )
-        },
-    )
+            RethinkFormActionRow(
+                confirmLabel = strings.add,
+                onConfirm = { error = onAdd(value.trim()).error },
+                dismissLabel = strings.cancel,
+                onDismiss = onDismiss,
+                confirmEnabled = value.isNotBlank(),
+            )
+        }
+    }
 }
 
 @Composable

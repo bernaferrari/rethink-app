@@ -59,8 +59,19 @@ class NetLogBatcher<T, V>(
     // signal waits min waitms and max waitms*2
     private val waitms = 2500L
 
+    // Each DROP_OLDEST victim is up to batchSize lost entries; count so loss is observable.
+    private val droppedBuffers = java.util.concurrent.atomic.AtomicInteger()
+
+    private fun onBufferDropped(buffer: List<T>) {
+        val n = droppedBuffers.incrementAndGet()
+        if (n % 32 == 1) {
+            Log.w(LOG_BATCH_LOGGER, "$tag; dropped ${n} buffers so far (last: ${buffer.size} entries)")
+        }
+    }
+
     // buffer channel, holds at most 2 buffers, and drops the oldest
-    private val buffersCh = Channel<List<T>>(qsize, BufferOverflow.DROP_OLDEST)
+    private val buffersCh =
+        Channel<List<T>>(qsize, BufferOverflow.DROP_OLDEST, onUndeliveredElement = ::onBufferDropped)
 
     // update channel, holds at most 2 buffers, and drops the oldest
     private val updatesCh = Channel<List<V>>(qsize, BufferOverflow.DROP_OLDEST)

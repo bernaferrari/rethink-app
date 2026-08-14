@@ -49,7 +49,7 @@ fun AppearanceSettingsCard(
     val dynamicColor = if (dynamicSupported) {
         if (isSystemInDarkTheme()) dynamicDarkColorScheme(context).primary else dynamicLightColorScheme(context).primary
     } else {
-        Color(0xff7C8BFF)
+        MaterialTheme.colorScheme.primary
     }
     val labels = mapOf(
         RethinkColorPreset.DYNAMIC to stringResource(R.string.settings_theme_color_dynamic),

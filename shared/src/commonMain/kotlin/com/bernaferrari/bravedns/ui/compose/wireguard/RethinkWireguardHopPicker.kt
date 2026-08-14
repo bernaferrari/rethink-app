@@ -12,13 +12,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -56,6 +56,7 @@ data class RethinkWireguardHopPickerStrings(
     val amnezia: String,
     val hopSource: String,
     val alreadyHop: String,
+    val empty: String = "No hops available",
 )
 
 /** Result of a platform-owned hop test and persistence operation. */
@@ -99,14 +100,16 @@ fun RethinkWireguardHopPicker(
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface,
         )
-        Card(
-            modifier = Modifier.fillMaxWidth().weight(1f, fill = false),
-            shape = RoundedCornerShape(SharedDimensions.cornerRadius3xl),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-            border = BorderStroke(SharedDimensions.dividerThicknessBold, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)),
-        ) {
+        if (items.isEmpty()) {
+            Text(
+                text = strings.empty,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.fillMaxWidth().padding(vertical = SharedDimensions.spacingLg),
+            )
+        } else {
             LazyColumn(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().weight(1f, fill = false),
                 verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
             ) {
                 items(items, key = { it.id }) { item ->
@@ -181,7 +184,9 @@ private fun RethinkWireguardHopRow(
             }
             if (chips.isNotEmpty()) {
                 Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
-                    chips.forEach { label -> AssistChip(onClick = {}, label = { Text(label) }) }
+                    chips.forEach { label ->
+                        RethinkWireguardHopTag(label)
+                    }
                 }
             }
             if (inProgress) {
@@ -189,5 +194,23 @@ private fun RethinkWireguardHopRow(
                 LinearProgressIndicator(Modifier.fillMaxWidth())
             }
         }
+    }
+}
+
+@Composable
+private fun RethinkWireguardHopTag(label: String) {
+    Surface(
+        shape = RoundedCornerShape(SharedDimensions.chipCornerRadius),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(
+                horizontal = SharedDimensions.spacingSm,
+                vertical = SharedDimensions.spacingXs,
+            ),
+        )
     }
 }

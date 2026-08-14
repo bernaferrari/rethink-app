@@ -18,7 +18,6 @@ package com.bernaferrari.bravedns.ui.compose.dns
 import android.content.Context
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -31,14 +30,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -47,9 +48,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -80,8 +79,8 @@ import com.bernaferrari.bravedns.service.RethinkBlocklistManager.getStamp
 import com.bernaferrari.bravedns.service.RethinkBlocklistManager.getTagsFromStamp
 import com.bernaferrari.bravedns.service.VpnController
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormSection
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkMultiActionDialog
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkTwoOptionSegmentedRow
 import com.bernaferrari.bravedns.ui.rethink.RethinkBlocklistState
 import com.bernaferrari.bravedns.util.Constants
 import com.bernaferrari.bravedns.util.Constants.Companion.DEAD_PACK
@@ -643,112 +642,124 @@ private fun RethinkListContent(
                 else -> false
             }
 
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(Dimensions.cornerRadius3xl),
-            color = MaterialTheme.colorScheme.surfaceContainerLow,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)),
-            tonalElevation = 0.dp
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 14.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                if (persistentState.remoteBlocklistTimestamp != Constants.INIT_TIME_MS || actionText != null) {
-                    Text(
-                        text = localBlocklistVersionTemplate.format(
-                            Utilities.convertLongToTime(
-                                persistentState.remoteBlocklistTimestamp,
-                                Constants.TIME_FORMAT_2
-                            )
-                        ),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-
-                if (actionText != null) {
-                    FilledTonalButton(
-                        onClick = {
-                            when {
-                                updateAvailable -> {
-                                    onUpdateInProgressChanged(true)
-                                    onDownload(persistentState.remoteBlocklistTimestamp, false)
-                                }
-                                checkUpdateVisible -> {
-                                    onCheckUpdateInProgressChanged(true)
-                                    onCheckBlocklistUpdate()
-                                }
-                                redownloadVisible -> {
-                                    onUpdateInProgressChanged(true)
-                                    onDownload(persistentState.remoteBlocklistTimestamp, true)
-                                }
-                            }
-                        },
-                        enabled = !actionInProgress
-                    ) {
-                        if (actionInProgress) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.height(16.dp).width(16.dp),
-                                strokeWidth = 2.dp
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                        }
-                        Text(text = actionText)
-                    }
-                }
-            }
-        }
-
-        RethinkTwoOptionSegmentedRow(
-            leftLabel = stringResource(id = R.string.radio_sky_btn),
-            rightLabel = stringResource(id = R.string.radio_max_btn),
-            leftSelected = !isMax,
-            onLeftClick = {
-                scope.launch(Dispatchers.IO) { appConfig.switchRethinkDnsToSky() }
-                onMaxChanged(false)
+        RethinkFormSection(
+            title = stringResource(R.string.dc_rethink_dns_radio),
+            description = if (isMax) {
+                stringResource(id = R.string.rethink_max_desc)
+            } else {
+                stringResource(id = R.string.rethink_sky_desc)
             },
-            onRightClick = {
-                scope.launch(Dispatchers.IO) { appConfig.switchRethinkDnsToMax() }
-                onMaxChanged(true)
-            }
-        )
-
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(Dimensions.cornerRadiusXl),
-            color = MaterialTheme.colorScheme.surfaceContainerLow
         ) {
-            Text(
-                text = if (isMax) {
-                    stringResource(id = R.string.rethink_max_desc)
-                } else {
-                    stringResource(id = R.string.rethink_sky_desc)
+            if (persistentState.remoteBlocklistTimestamp != Constants.INIT_TIME_MS || actionText != null) {
+                Text(
+                    text = localBlocklistVersionTemplate.format(
+                        Utilities.convertLongToTime(
+                            persistentState.remoteBlocklistTimestamp,
+                            Constants.TIME_FORMAT_2
+                        )
+                    ),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+
+            if (actionText != null) {
+                FilledTonalButton(
+                    onClick = {
+                        when {
+                            updateAvailable -> {
+                                onUpdateInProgressChanged(true)
+                                onDownload(persistentState.remoteBlocklistTimestamp, false)
+                            }
+                            checkUpdateVisible -> {
+                                onCheckUpdateInProgressChanged(true)
+                                onCheckBlocklistUpdate()
+                            }
+                            redownloadVisible -> {
+                                onUpdateInProgressChanged(true)
+                                onDownload(persistentState.remoteBlocklistTimestamp, true)
+                            }
+                        }
+                    },
+                    enabled = !actionInProgress
+                ) {
+                    if (actionInProgress) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(Dimensions.iconSizeSm),
+                            strokeWidth = 2.dp
+                        )
+                        Spacer(modifier = Modifier.width(Dimensions.spacingSm))
+                    }
+                    Text(text = actionText)
+                }
+            }
+
+            RethinkSkyMaxToggleRow(
+                skyLabel = stringResource(id = R.string.radio_sky_btn),
+                maxLabel = stringResource(id = R.string.radio_max_btn),
+                isMax = isMax,
+                onSky = {
+                    scope.launch(Dispatchers.IO) { appConfig.switchRethinkDnsToSky() }
+                    onMaxChanged(false)
                 },
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)
+                onMax = {
+                    scope.launch(Dispatchers.IO) { appConfig.switchRethinkDnsToMax() }
+                    onMaxChanged(true)
+                },
             )
         }
-
-        Text(
-            text = stringResource(R.string.dc_rethink_dns_radio),
-            style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(start = 2.dp)
-        )
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = Dimensions.spacing2xl),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
         ) {
             items(count = pagingItems.itemCount) { index ->
                 val item = pagingItems[index] ?: return@items
                 RethinkEndpointRow(endpoint = item, appConfig = appConfig)
             }
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun RethinkSkyMaxToggleRow(
+    skyLabel: String,
+    maxLabel: String,
+    isMax: Boolean,
+    onSky: () -> Unit,
+    onMax: () -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+    ) {
+        ToggleButton(
+            checked = !isMax,
+            onCheckedChange = { checked -> if (checked && isMax) onSky() },
+            shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
+            colors = ToggleButtonDefaults.toggleButtonColors(
+                checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            ),
+            border = null,
+            modifier = Modifier.weight(1f),
+        ) { Text(skyLabel) }
+        ToggleButton(
+            checked = isMax,
+            onCheckedChange = { checked -> if (checked && !isMax) onMax() },
+            shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
+            colors = ToggleButtonDefaults.toggleButtonColors(
+                checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            ),
+            border = null,
+            modifier = Modifier.weight(1f),
+        ) { Text(maxLabel) }
     }
 }
 
@@ -941,6 +952,7 @@ private fun RethinkBlocklistContent(
             discard = stringResource(R.string.notif_dialog_pause_dialog_negative),
             blocklistCount = { context.getString(R.string.rsv_blocklist_count_text, it.toString()) },
             entries = { context.getString(R.string.dc_entries, it.toString()) },
+            empty = context.getString(R.string.configure_search_empty_title),
         ),
         onViewChange = { onActiveViewChanged(if (it == RethinkBlocklistEditorView.Packs) RethinkBlocklistState.BlocklistView.PACKS else RethinkBlocklistState.BlocklistView.ADVANCED) },
         onQueryChange = { query -> if (!restoreStampIfPresent(query)) updateFilters { it.query = formatQuery(query) } },

@@ -29,16 +29,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -62,6 +58,7 @@ import com.bernaferrari.bravedns.service.DomainRulesManager
 import com.bernaferrari.bravedns.service.IpRulesManager
 import com.bernaferrari.bravedns.service.ProxyManager
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormTextField
 import com.bernaferrari.bravedns.ui.compose.theme.Dimensions
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.util.Utilities
@@ -235,16 +232,25 @@ fun RpnWinProxyDetailsScreen(
 @Composable
 private fun SsidEditorDialog(initialValue: String, onDismiss: () -> Unit, onSave: (String) -> Unit) {
     var value by remember(initialValue) { mutableStateOf(SsidItem.parseStorageList(initialValue).joinToString("\n") { it.name }) }
-    AlertDialog(
+    RethinkConfirmDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.rpn_server_wifi_networks_title)) },
-        text = { OutlinedTextField(value = value, onValueChange = { value = it }, label = { Text(stringResource(R.string.rpn_server_wifi_networks_hint)) }, minLines = 3) },
-        confirmButton = { TextButton(onClick = {
+        title = stringResource(R.string.rpn_server_wifi_networks_title),
+        confirmText = stringResource(R.string.lbl_save),
+        dismissText = stringResource(R.string.lbl_cancel),
+        onConfirm = {
             onSave(SsidItem.toStorageList(value.lines().map(String::trim).filter(String::isNotBlank).distinct().map {
                 SsidItem(it, SsidItem.SsidType.EQUAL_WILDCARD)
             }))
-        }) { Text(stringResource(R.string.lbl_save)) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.lbl_cancel)) } },
+        },
+        onDismiss = onDismiss,
+        text = {
+            RethinkFormTextField(
+                value = value,
+                onValueChange = { value = it },
+                label = stringResource(R.string.rpn_server_wifi_networks_hint),
+                minLines = 3,
+            )
+        },
     )
 }
 

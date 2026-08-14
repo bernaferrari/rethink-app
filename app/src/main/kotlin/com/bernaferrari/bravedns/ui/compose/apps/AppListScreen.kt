@@ -311,6 +311,7 @@ private fun androidFirewallAppListStrings(dialogs: AndroidBulkDialogCopy): Rethi
         noCategories = stringResource(R.string.fapps_empty_subtitle),
         apply = stringResource(R.string.lbl_apply),
         cancel = stringResource(R.string.lbl_cancel),
+        close = stringResource(R.string.lbl_done),
         enabled = stringResource(R.string.lbbs_enabled),
         disabled = stringResource(R.string.lbl_disabled),
         proxy = stringResource(R.string.lbl_proxy),
@@ -329,7 +330,7 @@ private fun androidFirewallAppListStrings(dialogs: AndroidBulkDialogCopy): Rethi
             )
         },
         bulkDescription = stringResource(R.string.fapps_info_dialog_message),
-        selectedApps = { count -> stringResource(R.string.two_argument_colon, stringResource(R.string.lbl_apply), count.toString()) },
+        selectedApps = { count -> stringResource(R.string.fapps_bulk_selected_apps, count) },
         actionLabel = { action ->
             when (action) {
                 RethinkFirewallBulkAction.Wifi -> wifi

@@ -2,7 +2,9 @@
 
 package com.bernaferrari.bravedns.ui.compose.theme
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -27,17 +29,21 @@ fun RethinkConfirmDialog(
     text: (@Composable (() -> Unit))? = null,
 ) {
     val confirmColors = if (isConfirmDestructive) {
-        ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+        ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.error,
+            contentColor = MaterialTheme.colorScheme.onError,
+        )
     } else {
-        ButtonDefaults.textButtonColors()
+        ButtonDefaults.buttonColors()
     }
     AlertDialog(
         modifier = modifier,
         onDismissRequest = onDismissRequest,
-        title = title?.let { { Text(it) } },
+        shape = RoundedCornerShape(SharedDimensions.cardCornerRadiusLarge),
+        title = title?.let { { Text(it, style = MaterialTheme.typography.headlineSmall) } },
         text = text ?: message?.let { { Text(it) } },
         confirmButton = {
-            TextButton(onClick = onConfirm, colors = confirmColors, enabled = confirmEnabled) { Text(confirmText) }
+            Button(onClick = onConfirm, colors = confirmColors, enabled = confirmEnabled) { Text(confirmText) }
         },
         dismissButton = if (dismissText != null && onDismiss != null) {
             { TextButton(onClick = onDismiss, enabled = dismissEnabled) { Text(dismissText) } }

@@ -104,7 +104,11 @@ internal constructor(
     init {
         io("RefreshDatabase") {
             for (action in actions) {
-                process(action)
+                try {
+                    process(action)
+                } catch (e: Exception) {
+                    Logger.e(LOG_TAG_APP_DB, "refresh consumer failed, continuing", e)
+                }
             }
         }
     }
@@ -229,7 +233,6 @@ internal constructor(
             showDatabaseCorruptionNotification()
         } catch (e: RuntimeException) {
             Logger.crash(LOG_TAG_APP_DB, e.message ?: "refresh err", e)
-            throw e
         } finally {
             notifyEmptyFirewallRulesIfNeeded()
             a.cb()

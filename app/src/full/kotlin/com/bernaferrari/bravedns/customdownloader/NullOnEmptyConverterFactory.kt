@@ -26,7 +26,7 @@ import java.lang.reflect.Type
 
 /**
  * Retrofit [Converter.Factory] that guards against non-JSON server responses before
- * they reach [retrofit2.converter.gson.GsonConverterFactory].
+ * they reach the kotlinx.serialization Retrofit converter.
  *
  * ### Cases handled
  *
@@ -36,7 +36,7 @@ import java.lang.reflect.Type
  * | Chunked response whose body is empty or whitespace-only | return `null` |
  * | Body starts with `<` (HTML/XML error page) | return `null`, log warning |
  * | Body is whitespace-only after trim | return `null` |
- * | Body starts with `{` or `[` (valid JSON) | forward to Gson delegate unchanged |
+ * | Body starts with `{` or `[` (valid JSON) | forward to kotlinx delegate unchanged |
  * | Any other non-JSON content | return `null`, log warning |
  *
  * ### Registration order (CRITICAL)
@@ -44,7 +44,7 @@ import java.lang.reflect.Type
  * ```kotlin
  * Retrofit.Builder()
  *     .addConverterFactory(SafeResponseConverterFactory())  // MUST be first
- *     .addConverterFactory(GsonConverterFactory.create(lenientGson))
+ *     .addConverterFactory(json.asConverterFactory(jsonMediaType))
  *     .build()
  * ```
  *

@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 /*
  * Copyright 2026 RethinkDNS and its authors
  *
@@ -32,13 +34,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -52,7 +55,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -86,6 +88,9 @@ data class RethinkHomeStrings(
     val failingSubtitle: String,
     val connections: String,
     val dnsQueries: String,
+    val networkProtection: String,
+    val live: String,
+    val offline: String,
 )
 
 private enum class ProtectionVisualState { Protected, Recovering, Off }
@@ -172,6 +177,9 @@ fun RethinkHomeScreen(
             ) {
                 HomeMasthead(
                     name = strings.productName,
+                    networkProtection = strings.networkProtection,
+                    live = strings.live,
+                    offline = strings.offline,
                     isProtected = visualState == ProtectionVisualState.Protected,
                     accent = palette.accent,
                     modifier = Modifier.padding(top = SharedDimensions.spacingLg),
@@ -208,6 +216,9 @@ fun RethinkHomeScreen(
 @Composable
 private fun HomeMasthead(
     name: String,
+    networkProtection: String,
+    live: String,
+    offline: String,
     isProtected: Boolean,
     accent: Color,
     modifier: Modifier = Modifier,
@@ -217,53 +228,36 @@ private fun HomeMasthead(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
             Text(
-                text = name.uppercase(),
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 1.8.sp,
+                text = name,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
-                text = "NETWORK PROTECTION",
+                text = networkProtection,
                 style = MaterialTheme.typography.labelSmall,
-                letterSpacing = 1.2.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        Surface(
-            shape = RoundedCornerShape(SharedDimensions.cornerRadiusPill),
-            color = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.88f),
-            border = BorderStroke(
-                SharedDimensions.dividerThickness,
-                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.42f),
-            ),
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Row(
-                modifier = Modifier.padding(
-                    horizontal = SharedDimensions.spacingMd,
-                    vertical = SharedDimensions.spacingSm,
-                ),
-                horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(
-                    Modifier
-                        .size(7.dp)
-                        .background(
-                            if (isProtected) accent else MaterialTheme.colorScheme.outline,
-                            androidx.compose.foundation.shape.CircleShape,
-                        ),
-                )
-                Text(
-                    text = if (isProtected) "LIVE" else "OFFLINE",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 0.8.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+            Box(
+                Modifier
+                    .size(6.dp)
+                    .background(
+                        if (isProtected) accent else MaterialTheme.colorScheme.outline,
+                        androidx.compose.foundation.shape.CircleShape,
+                    ),
+            )
+            Text(
+                text = if (isProtected) live else offline,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
@@ -279,27 +273,23 @@ private data class BeaconPalette(
 private fun rememberBeaconPalette(state: ProtectionVisualState): BeaconPalette {
     val motion = LocalRethinkMotion.current
     val scheme = MaterialTheme.colorScheme
-    val dark = scheme.surface.luminance() < 0.5f
-    val protectedAccent = if (dark) Color(0xFF80E4C6) else Color(0xFF147D67)
-    val protectedSecondary = if (dark) Color(0xFF72C9F3) else Color(0xFF2D75A4)
-    val protectedField = if (dark) Color(0xFF143E34) else Color(0xFFE0F4ED)
     val accentTarget = when (state) {
-        ProtectionVisualState.Protected -> protectedAccent
+        ProtectionVisualState.Protected -> scheme.tertiary
         ProtectionVisualState.Recovering -> scheme.error
         ProtectionVisualState.Off -> scheme.outline
     }
     val fieldTarget = when (state) {
-        ProtectionVisualState.Protected -> protectedField
+        ProtectionVisualState.Protected -> scheme.tertiaryContainer
         ProtectionVisualState.Recovering -> scheme.errorContainer
         ProtectionVisualState.Off -> scheme.surfaceContainerLow
     }
     val secondaryTarget = when (state) {
-        ProtectionVisualState.Protected -> protectedSecondary
+        ProtectionVisualState.Protected -> scheme.primary
         ProtectionVisualState.Recovering -> scheme.tertiary
         ProtectionVisualState.Off -> scheme.outlineVariant
     }
     val iconTarget = when (state) {
-        ProtectionVisualState.Protected -> if (dark) Color(0xFF063C30) else Color.White
+        ProtectionVisualState.Protected -> scheme.onTertiary
         ProtectionVisualState.Recovering -> scheme.onError
         ProtectionVisualState.Off -> scheme.onSurfaceVariant
     }
@@ -409,7 +399,6 @@ private fun ProtectionBeacon(
         BeaconAction(
             isActive = visualState != ProtectionVisualState.Off,
             label = action,
-            accent = palette.accent,
             onClick = onToggle,
         )
     }
@@ -445,7 +434,7 @@ private fun ProtectionTunnel(
     Surface(
         modifier = Modifier
             .size(width = 184.dp, height = 220.dp),
-        shape = RoundedCornerShape(72.dp),
+        shape = RoundedCornerShape(SharedDimensions.beaconCornerRadius),
         color = palette.field.copy(alpha = 0.96f - activeProgress * 0.06f),
         border = BorderStroke(
             1.dp,
@@ -558,20 +547,12 @@ private fun ProtectionTunnel(
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     when (visualState) {
-                        ProtectionVisualState.Off -> {
-                            Icon(
-                                imageVector = MaterialSymbols.Filled.Shield,
-                                contentDescription = null,
-                                tint = palette.icon,
-                                modifier = Modifier.size(30.dp),
-                            )
-                            Icon(
-                                imageVector = MaterialSymbols.Filled.Shield,
-                                contentDescription = null,
-                                tint = palette.accent,
-                                modifier = Modifier.size(22.dp),
-                            )
-                        }
+                        ProtectionVisualState.Off -> Icon(
+                            imageVector = MaterialSymbols.Filled.Shield,
+                            contentDescription = null,
+                            tint = palette.icon,
+                            modifier = Modifier.size(30.dp),
+                        )
                         ProtectionVisualState.Recovering -> Icon(
                             imageVector = MaterialSymbols.Filled.WarningAmber,
                             contentDescription = null,
@@ -673,40 +654,27 @@ private fun cubicBezier(
 private fun BeaconAction(
     isActive: Boolean,
     label: String,
-    accent: Color,
     onClick: () -> Unit,
 ) {
-    val motion = LocalRethinkMotion.current
     val scheme = MaterialTheme.colorScheme
-    val dark = scheme.surface.luminance() < 0.5f
-    val container by animateColorAsState(
-        targetValue = if (isActive) scheme.onSurface else accent,
-        animationSpec = tween(if (motion.reducedMotion) 0 else STATE_CHANGE_MILLIS, easing = FastOutSlowInEasing),
-        label = "beaconActionContainer",
-    )
-    val content by animateColorAsState(
-        targetValue = if (isActive) {
-            scheme.surface
-        } else if (dark) {
-            Color(0xFF063C30)
-        } else {
-            Color.White
-        },
-        animationSpec = tween(if (motion.reducedMotion) 0 else STATE_CHANGE_MILLIS, easing = FastOutSlowInEasing),
-        label = "beaconActionContent",
-    )
-    Button(
-        onClick = onClick,
-        modifier = Modifier.height(SharedDimensions.buttonHeight),
-        colors = ButtonDefaults.buttonColors(containerColor = container, contentColor = content),
+    ToggleButton(
+        checked = isActive,
+        onCheckedChange = { onClick() },
+        modifier = Modifier.height(56.dp),
+        colors = ToggleButtonDefaults.toggleButtonColors(
+            checkedContainerColor = scheme.onSurface,
+            checkedContentColor = scheme.surface,
+            containerColor = scheme.primary,
+            contentColor = scheme.onPrimary,
+        ),
     ) {
         Icon(
             imageVector = if (isActive) MaterialSymbols.Filled.Stop else MaterialSymbols.Filled.PlayArrow,
             contentDescription = null,
-            modifier = Modifier.size(SharedDimensions.iconSizeSm),
+            modifier = Modifier.size(SharedDimensions.iconSizeMd),
         )
         Spacer(Modifier.width(SharedDimensions.spacingSm))
-        Text(text = label, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+        Text(text = label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
     }
 }
 
@@ -718,29 +686,21 @@ private fun HomeActivityFooter(
     dnsQueries: Long,
     modifier: Modifier = Modifier,
 ) {
-    Surface(
+    Row(
         modifier = modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.88f),
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.cornerRadiusXl),
-        border = BorderStroke(
-            SharedDimensions.dividerThickness,
-            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.40f),
-        ),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = SharedDimensions.spacingLg, vertical = SharedDimensions.spacingMd),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            ActivityMetric(value = formatCompactCount(connections), label = connectionsLabel, modifier = Modifier.weight(1f))
-            Box(
-                modifier = Modifier
-                    .width(1.dp)
-                    .height(34.dp)
-                    .background(MaterialTheme.colorScheme.outlineVariant),
-            )
-            ActivityMetric(value = formatCompactCount(dnsQueries), label = dnsQueriesLabel, modifier = Modifier.weight(1f))
-        }
+        ActivityMetric(
+            value = formatCompactCount(connections),
+            label = connectionsLabel,
+            modifier = Modifier.weight(1f),
+        )
+        ActivityMetric(
+            value = formatCompactCount(dnsQueries),
+            label = dnsQueriesLabel,
+            modifier = Modifier.weight(1f),
+        )
     }
 }
 
@@ -749,13 +709,16 @@ private fun ActivityMetric(value: String, label: String, modifier: Modifier = Mo
     Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = value,
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = (-0.4f).sp,
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = (-0.2f).sp,
+                fontFeatureSettings = "tnum",
+            ),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Text(
             text = label,
-            style = MaterialTheme.typography.labelMedium,
+            style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1,
         )

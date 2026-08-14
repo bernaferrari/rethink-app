@@ -42,6 +42,7 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.bernaferrari.bravedns.ui.compose.components.RethinkFastScrollerMark
 import com.bernaferrari.bravedns.ui.compose.components.RethinkIndexedFastScroller
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSearchField
@@ -93,7 +94,7 @@ fun RethinkIncludeAppsPicker(
     val showFastScroller = items.size >= 8
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = MaterialTheme.colorScheme.surface,
         floatingActionButtonPosition = FabPosition.Center,
         floatingActionButton = {
             ExtendedFloatingActionButton(
@@ -138,7 +139,7 @@ fun RethinkIncludeAppsPicker(
                         textStyle = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
                         iconSize = 18.dp,
                         trailingIconSize = 16.dp,
-                        trailingIconButtonSize = SharedDimensions.touchTargetSm,
+                        trailingIconButtonSize = SharedDimensions.touchTargetMin,
                         modifier = Modifier.fillMaxWidth().padding(bottom = SharedDimensions.spacingSm),
                     )
                 }
@@ -173,11 +174,8 @@ fun RethinkIncludeAppsPicker(
             }
             if (showFastScroller) {
                 RethinkIndexedFastScroller(
-                    items = items,
+                    marks = remember(items) { rethinkIncludeAppsScrollerMarks(items) },
                     listState = listState,
-                    getIndexKey = { it.title },
-                    scrollItemOffset = 2,
-                    minItemCount = 8,
                     modifier = Modifier.align(Alignment.CenterEnd).padding(vertical = SharedDimensions.spacingSm).padding(end = 2.dp),
                 )
             }
@@ -241,4 +239,23 @@ private fun RethinkIncludeAppsOverflow(
             )
         }
     }
+}
+
+internal fun rethinkIncludeAppsScrollerMarks(
+    items: List<RethinkIncludeAppsPickerItem>,
+    searchHeaderCount: Int = 1,
+): List<RethinkFastScrollerMark> {
+    val marks = mutableListOf<RethinkFastScrollerMark>()
+    var listIndex = searchHeaderCount
+    var previous: String? = null
+    items.forEach { item ->
+        val label = item.sectionKey.ifBlank { item.title }
+        if (previous != item.sectionKey) {
+            marks += RethinkFastScrollerMark(label, listIndex)
+            listIndex++
+            previous = item.sectionKey
+        }
+        listIndex++
+    }
+    return marks
 }

@@ -15,10 +15,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -47,7 +45,12 @@ fun SectionHeader(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, letterSpacing = 0.1.sp, color = color)
+        Text(
+            title,
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Medium,
+            color = color,
+        )
         if (actionLabel != null && onAction != null) {
             TextButton(onClick = onAction, contentPadding = PaddingValues(horizontal = SharedDimensions.spacingSm, vertical = 0.dp)) {
                 Text(actionLabel, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold, color = color, letterSpacing = 0.1.sp)
@@ -68,7 +71,12 @@ fun SectionHeaderWithSubtitle(
 ) {
     Column(modifier = modifier.fillMaxWidth().padding(start = horizontalPadding, end = horizontalPadding, top = SharedDimensions.spacingMd, bottom = SharedDimensions.spacingSm)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, letterSpacing = 0.1.sp, color = color)
+            Text(
+                title,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Medium,
+                color = color,
+            )
             if (actionLabel != null && onAction != null) {
                 TextButton(onClick = onAction, contentPadding = PaddingValues(horizontal = SharedDimensions.spacingSm, vertical = 0.dp)) {
                     Text(actionLabel, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold, color = color, letterSpacing = 0.1.sp)
@@ -201,26 +209,8 @@ fun PrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifi
         onClick = onClick,
         modifier = modifier.height(SharedDimensions.buttonHeight),
         enabled = enabled,
-        shape = RoundedCornerShape(SharedDimensions.buttonCornerRadius),
-        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary),
     ) {
-        icon?.let { Icon(it, null, modifier = Modifier.size(SharedDimensions.iconSizeSm)); Spacer(Modifier.width(SharedDimensions.spacingSm)) }
-        Text(text, fontWeight = FontWeight.SemiBold)
-    }
-}
-
-@Composable
-fun SecondaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, icon: ImageVector? = null) {
-    OutlinedButton(onClick = onClick, modifier = modifier.height(SharedDimensions.buttonHeight), enabled = enabled, shape = RoundedCornerShape(SharedDimensions.buttonCornerRadius)) {
-        icon?.let { Icon(it, null, modifier = Modifier.size(SharedDimensions.iconSizeSm)); Spacer(Modifier.width(SharedDimensions.spacingSm)) }
-        Text(text)
-    }
-}
-
-@Composable
-fun StatItem(label: String, value: String, modifier: Modifier = Modifier, isHighlighted: Boolean = false) {
-    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(value, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = if (isHighlighted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface, letterSpacing = (-0.5).sp)
-        Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f), letterSpacing = 0.2.sp)
+        icon?.let { Icon(it, null, modifier = Modifier.size(SharedDimensions.iconSizeMd)); Spacer(Modifier.width(SharedDimensions.spacingSm)) }
+        Text(text, style = MaterialTheme.typography.titleMedium)
     }
 }

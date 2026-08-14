@@ -102,7 +102,10 @@ private fun RethinkEndpointEditorForm(
     ) {
         Text(title, style = MaterialTheme.typography.titleLarge)
         Column(
-            modifier = Modifier.fillMaxWidth().heightIn(max = 220.dp).verticalScroll(rememberScrollState()),
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 520.dp)
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSmMd),
             content = content,
         )

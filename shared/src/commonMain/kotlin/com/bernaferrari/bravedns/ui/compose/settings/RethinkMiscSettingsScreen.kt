@@ -4,27 +4,20 @@ package com.bernaferrari.bravedns.ui.compose.settings
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLazyColumnScreenScaffold
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
-import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormSection
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
 
@@ -93,8 +86,7 @@ fun RethinkMiscSettingsScreen(
         verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
     ) {
             item {
-                Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
-                    SectionHeader(strings.backupSection)
+                RethinkFormSection(strings.backupSection) {
                     RethinkListGroup {
                         RethinkListItem(
                             headline = strings.backupTitle,
@@ -110,8 +102,7 @@ fun RethinkMiscSettingsScreen(
                 }
             }
             item {
-                Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
-                    SectionHeader(strings.generalSection)
+                RethinkFormSection(strings.generalSection) {
                     RethinkListGroup {
                         toggles.forEachIndexed { index, toggle ->
                             RethinkMiscToggleRow(
@@ -130,8 +121,7 @@ fun RethinkMiscSettingsScreen(
                 }
             }
             item {
-                Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
-                    SectionHeader(strings.aboutSection)
+                RethinkFormSection(strings.aboutSection) {
                     RethinkListGroup {
                         RethinkListItem(
                             headline = strings.websiteTitle,

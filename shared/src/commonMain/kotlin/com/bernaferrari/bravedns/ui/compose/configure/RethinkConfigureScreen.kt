@@ -1,10 +1,12 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.configure
 
+import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -19,7 +21,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -29,17 +31,27 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.text.KeyboardOptions
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
+import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListPairShape
@@ -51,15 +63,14 @@ data class RethinkConfigureEntry(
     val id: String,
     val title: String,
     val icon: @Composable () -> Unit,
-    val accent: Color,
     val onClick: () -> Unit,
     val subtitle: String? = null,
     val keywords: List<String> = emptyList(),
+    val accent: Color = Color.Unspecified,
 )
 
 data class RethinkConfigureSection(
     val title: String,
-    val accent: Color,
     val entries: List<RethinkConfigureEntry>,
     val layout: RethinkConfigureLayout,
     val subtitle: String? = null,
@@ -93,12 +104,18 @@ fun RethinkConfigureScreen(
     /** Optional appearance block shown at the top of Settings (theme mode + color swatches). */
     appearanceContent: (@Composable () -> Unit)? = null,
 ) {
-    val scrollBehavior = if (searchOpen) TopAppBarDefaults.pinnedScrollBehavior() else TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    val normalizedQuery = query.normalize()
-    val results = if (normalizedQuery.isBlank()) emptyList() else searchEntries
-        .filter { candidate -> candidate.matches(normalizedQuery) }
-        .sortedBy { it.entry.title }
-        .take(12)
+    val searchScroll = TopAppBarDefaults.pinnedScrollBehavior()
+    val browseScroll = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = if (searchOpen) searchScroll else browseScroll
+    val focusRequester = remember { FocusRequester() }
+    val showBrowse = rethinkConfigureShowsBrowse(searchOpen, query)
+    val results = rethinkConfigureFilterResults(searchEntries, query)
+    fun setSearchOpen(open: Boolean) {
+        rethinkConfigureOnSearchOpenChange(open, onSearchOpenChange, onQueryChange)
+    }
+    LaunchedEffect(searchOpen) {
+        if (searchOpen) focusRequester.requestFocus()
+    }
 
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -106,33 +123,59 @@ fun RethinkConfigureScreen(
         topBar = {
             if (searchOpen) {
                 TopAppBar(
-                    navigationIcon = { IconButton(onClick = { onSearchOpenChange(false) }) { Icon(MaterialSymbols.AutoMirrored.Filled.ArrowBack, strings.closeSearch) } },
+                    navigationIcon = {
+                        IconButton(onClick = { setSearchOpen(false) }) {
+                            Icon(MaterialSymbols.AutoMirrored.Filled.ArrowBack, strings.closeSearch)
+                        }
+                    },
                     title = {
+                        val searchShape = RoundedCornerShape(SharedDimensions.cornerRadiusLg)
                         TextField(
                             value = query,
                             onValueChange = onQueryChange,
-                            modifier = Modifier.fillMaxWidth().padding(vertical = SharedDimensions.spacingSm),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .focusRequester(focusRequester)
+                                .clip(searchShape),
                             singleLine = true,
-                            placeholder = { Text(strings.searchHint, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                            shape = RoundedCornerShape(SharedDimensions.cornerRadiusMdLg),
+                            textStyle = MaterialTheme.typography.bodyLarge,
+                            placeholder = {
+                                Text(strings.searchHint, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            },
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                            shape = searchShape,
                             colors = TextFieldDefaults.colors(
-                                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                                 focusedIndicatorColor = Color.Transparent,
                                 unfocusedIndicatorColor = Color.Transparent,
+                                disabledIndicatorColor = Color.Transparent,
                             ),
                         )
                     },
-                    actions = { if (query.isNotEmpty()) IconButton(onClick = { onQueryChange("") }) { Icon(MaterialSymbols.Filled.Close, strings.clearSearch) } },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface, scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer),
+                    actions = {
+                        if (query.isNotEmpty()) {
+                            IconButton(onClick = { onQueryChange("") }) {
+                                Icon(MaterialSymbols.Filled.Close, strings.clearSearch)
+                            }
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                    ),
                     scrollBehavior = scrollBehavior,
                 )
             } else {
-                LargeTopAppBar(
-                    title = { Text(strings.title) },
-                    actions = { IconButton(onClick = { onSearchOpenChange(true) }) { Icon(MaterialSymbols.Filled.Search, strings.openSearch) } },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface, scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer),
+                RethinkLargeTopBar(
+                    title = strings.title,
                     scrollBehavior = scrollBehavior,
+                    actions = {
+                        IconButton(onClick = { setSearchOpen(true) }) {
+                            Icon(MaterialSymbols.Filled.Search, strings.openSearch)
+                        }
+                    },
                 )
             }
         },
@@ -151,7 +194,7 @@ fun RethinkConfigureScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
         ) {
-            if (normalizedQuery.isBlank()) {
+            if (showBrowse) {
                 appearanceContent?.let { content ->
                     item { content() }
                 }
@@ -159,7 +202,7 @@ fun RethinkConfigureScreen(
                 item { Spacer(Modifier.height(SharedDimensions.spacingSm)) }
             } else {
                 item {
-                    if (results.isEmpty()) NoResults(strings) else SearchResults(results)
+                    if (results.isEmpty()) NoResults(strings) else SearchResults(results, query)
                 }
             }
         }
@@ -169,9 +212,15 @@ fun RethinkConfigureScreen(
 @Composable
 private fun ConfigureSection(section: RethinkConfigureSection) {
     Column {
-        Text(section.title.uppercase(), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = section.accent, modifier = Modifier.padding(start = SharedDimensions.spacingLg))
-        section.subtitle?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(start = SharedDimensions.spacingLg, top = 2.dp)) }
-        Spacer(Modifier.height(SharedDimensions.spacingSm))
+        SectionHeader(section.title, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        section.subtitle?.let {
+            Text(
+                it,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = SharedDimensions.spacingLg, top = SharedDimensions.spacingGridTile),
+            )
+        }
         when (section.layout) {
             RethinkConfigureLayout.GridFour -> FourGrid(section.entries)
             RethinkConfigureLayout.GridTriad -> TriadGrid(section.entries)
@@ -182,49 +231,123 @@ private fun ConfigureSection(section: RethinkConfigureSection) {
 
 @Composable private fun FourGrid(entries: List<RethinkConfigureEntry>) {
     if (entries.size != 4) return
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        GridRow(entries[0], entries[1], rethinkGroupedListPairShape(true, CardPosition.First), rethinkGroupedListPairShape(false, CardPosition.First))
-        GridRow(entries[2], entries[3], rethinkGroupedListPairShape(true, CardPosition.Last), rethinkGroupedListPairShape(false, CardPosition.Last))
+    Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile)) {
+        GridRow(entries[0], entries[1], rethinkGroupedListPairShape(true, CardPosition.First), rethinkGroupedListPairShape(false, CardPosition.First), 0)
+        GridRow(entries[2], entries[3], rethinkGroupedListPairShape(true, CardPosition.Last), rethinkGroupedListPairShape(false, CardPosition.Last), 2)
     }
 }
 @Composable private fun TriadGrid(entries: List<RethinkConfigureEntry>) {
     if (entries.size < 2) return
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        GridRow(entries[0], entries[1], rethinkGroupedListPairShape(true, CardPosition.First), rethinkGroupedListPairShape(false, CardPosition.First))
+    Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile)) {
+        GridRow(entries[0], entries[1], rethinkGroupedListPairShape(true, CardPosition.First), rethinkGroupedListPairShape(false, CardPosition.First), 0)
         entries.drop(2).forEachIndexed { index, entry ->
             val isLast = index == entries.lastIndex - 2
             GridTile(
                 entry,
                 rethinkGroupedListShape(if (isLast) CardPosition.Last else CardPosition.Middle),
                 Modifier.fillMaxWidth(),
+                index + 2,
             )
         }
     }
 }
-@Composable private fun GridRow(first: RethinkConfigureEntry, second: RethinkConfigureEntry, firstShape: Shape, secondShape: Shape) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(2.dp)) { GridTile(first, firstShape, Modifier.weight(1f)); GridTile(second, secondShape, Modifier.weight(1f)) }
+@Composable private fun GridRow(
+    first: RethinkConfigureEntry,
+    second: RethinkConfigureEntry,
+    firstShape: Shape,
+    secondShape: Shape,
+    startIndex: Int,
+) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile)) {
+        GridTile(first, firstShape, Modifier.weight(1f), startIndex)
+        GridTile(second, secondShape, Modifier.weight(1f), startIndex + 1)
+    }
 }
-@Composable private fun GridTile(entry: RethinkConfigureEntry, shape: Shape, modifier: Modifier) {
-    Surface(onClick = entry.onClick, shape = shape, color = entry.accent.copy(alpha = 0.22f), modifier = modifier.clip(shape)) {
-        Column(Modifier.padding(SharedDimensions.cardPadding), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
-            Surface(shape = RoundedCornerShape(SharedDimensions.iconContainerRadius), color = entry.accent, modifier = Modifier.size(SharedDimensions.iconContainerSm)) { androidx.compose.foundation.layout.Box(contentAlignment = Alignment.Center) { entry.icon() } }
-            Text(entry.title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+@Composable private fun GridTile(entry: RethinkConfigureEntry, shape: Shape, modifier: Modifier, index: Int) {
+    val colors = configureTileColors(entry.accent)
+    Surface(
+        onClick = entry.onClick,
+        shape = shape,
+        color = colors.fill,
+        modifier = modifier.clip(shape),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(SharedDimensions.cardPadding),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
+        ) {
+            ConfigureIconWell(colors) { entry.icon() }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    entry.title,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = colors.title,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                entry.subtitle?.let { subtitle ->
+                    Text(
+                        subtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
         }
     }
 }
 @Composable private fun EntryList(entries: List<RethinkConfigureEntry>) = Column {
     entries.forEachIndexed { index, entry ->
-        RethinkListItem(headline = entry.title, supporting = entry.subtitle, position = cardPositionFor(index, entries.lastIndex), onClick = entry.onClick, leadingContent = {
-            Surface(shape = RoundedCornerShape(SharedDimensions.iconContainerRadius), color = entry.accent, modifier = Modifier.size(SharedDimensions.iconContainerSm)) { androidx.compose.foundation.layout.Box(contentAlignment = Alignment.Center) { entry.icon() } }
-        })
+        val colors = configureTileColors(entry.accent)
+        RethinkListItem(
+            headline = entry.title,
+            supporting = entry.subtitle,
+            position = cardPositionFor(index, entries.lastIndex),
+            onClick = entry.onClick,
+            defaultContainerColor = colors.fill,
+            leadingContent = { ConfigureIconWell(colors) { entry.icon() } },
+        )
     }
 }
-@Composable private fun NoResults(strings: RethinkConfigureStrings) = Surface(shape = RoundedCornerShape(SharedDimensions.cornerRadiusXl), color = MaterialTheme.colorScheme.surfaceContainerLow, border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))) {
-    Column(Modifier.padding(horizontal = 16.dp, vertical = 14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) { Text(strings.noResultsTitle, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold); Text(strings.noResultsSubtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+
+@Composable
+private fun ConfigureIconWell(colors: ConfigureTileColors, icon: @Composable () -> Unit) {
+    Surface(
+        shape = RoundedCornerShape(SharedDimensions.cornerRadiusMdLg),
+        color = colors.well,
+        modifier = Modifier.size(SharedDimensions.iconContainerMd),
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            CompositionLocalProvider(LocalContentColor provides colors.icon) { icon() }
+        }
+    }
 }
-@Composable private fun SearchResults(results: List<RethinkConfigureSearchEntry>) = EntryList(results.map { it.entry.copy(subtitle = it.path) })
-private fun String.normalize() = lowercase().trim().replace(Regex("\\s+"), " ")
-private fun RethinkConfigureSearchEntry.matches(query: String): Boolean {
-    val e = entry
-    return listOf(e.title, e.subtitle.orEmpty(), path, e.keywords.joinToString(" ")).any { it.normalize().contains(query) }
+@Composable private fun NoResults(strings: RethinkConfigureStrings) = Surface(shape = RoundedCornerShape(SharedDimensions.cornerRadiusXl), color = MaterialTheme.colorScheme.surfaceContainerLow, border = BorderStroke(SharedDimensions.dividerThicknessBold, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))) {
+    RethinkEmptyState(icon = MaterialSymbols.Filled.Search, title = strings.noResultsTitle, message = strings.noResultsSubtitle)
+}
+@Composable
+private fun SearchResults(results: List<RethinkConfigureSearchEntry>, query: String) {
+    val matchStyle = SpanStyle(color = MaterialTheme.colorScheme.primary)
+    Column {
+        results.forEachIndexed { index, result ->
+            val colors = configureTileColors(result.entry.accent)
+            val supporting = rethinkConfigureSearchSupporting(result, query)
+            RethinkListItem(
+                headline = result.entry.title,
+                headlineAnnotated = highlightConfigureQuery(result.entry.title, query, matchStyle),
+                supporting = supporting,
+                supportingAnnotated = highlightConfigureQuery(supporting, query, matchStyle),
+                position = cardPositionFor(index, results.lastIndex),
+                onClick = result.entry.onClick,
+                defaultContainerColor = colors.fill,
+                showTrailingChevron = true,
+                leadingContent = { ConfigureIconWell(colors) { result.entry.icon() } },
+            )
+        }
+    }
 }

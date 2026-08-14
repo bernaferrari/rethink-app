@@ -60,7 +60,7 @@ internal fun DemoMiscSettingsScreen(
                 onBackup = {},
                 onRestore = {},
                 onFailureDismiss = {},
-                modifier = Modifier.padding(padding).padding(SharedDimensions.screenPaddingHorizontal),
+                modifier = Modifier.padding(padding),
             )
         }
         return

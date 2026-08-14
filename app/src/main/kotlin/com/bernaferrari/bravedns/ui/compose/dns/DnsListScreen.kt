@@ -56,6 +56,7 @@ fun DnsListScreen(
             private = stringResource(R.string.lbl_private),
             secure = stringResource(R.string.lbl_secure),
             anonymous = stringResource(R.string.lbl_anonymous),
+            notWorking = stringResource(R.string.status_failing),
         ),
         onProtocolClick = { protocol ->
             when (protocol.id) {

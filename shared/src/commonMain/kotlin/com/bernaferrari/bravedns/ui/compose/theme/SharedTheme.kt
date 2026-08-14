@@ -22,25 +22,25 @@ import com.materialkolor.PaletteStyle
 import com.materialkolor.dynamicColorScheme
 import com.materialkolor.dynamiccolor.ColorSpec
 
-private val RethinkDefaultSeed = Color(0xFF804136)
+private val RethinkDefaultSeed = Color(0xFFFF5D73)
 
 private val RethinkSharedShapes = Shapes(
-    extraSmall = RoundedCornerShape(SharedDimensions.cornerRadiusSm),
-    small = RoundedCornerShape(SharedDimensions.cornerRadiusSmMd),
+    extraSmall = RoundedCornerShape(SharedDimensions.cornerRadiusXs),
+    small = RoundedCornerShape(SharedDimensions.cornerRadiusSm),
     medium = RoundedCornerShape(SharedDimensions.cornerRadiusLg),
-    large = RoundedCornerShape(SharedDimensions.cornerRadius2xl),
-    extraLarge = RoundedCornerShape(SharedDimensions.heroCornerRadius),
+    large = RoundedCornerShape(SharedDimensions.cornerRadiusXl),
+    extraLarge = RoundedCornerShape(SharedDimensions.cardCornerRadiusLarge),
 )
 
-private val RethinkSharedTypography = Typography(
-    displayLarge = TextStyle(fontWeight = FontWeight.Bold, fontSize = 57.sp, lineHeight = 64.sp, letterSpacing = (-0.25).sp),
-    displayMedium = TextStyle(fontWeight = FontWeight.Bold, fontSize = 45.sp, lineHeight = 52.sp),
-    displaySmall = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 36.sp, lineHeight = 44.sp),
-    headlineLarge = TextStyle(fontWeight = FontWeight.Bold, fontSize = 32.sp, lineHeight = 40.sp),
-    headlineMedium = TextStyle(fontWeight = FontWeight.Bold, fontSize = 28.sp, lineHeight = 36.sp),
-    headlineSmall = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 24.sp, lineHeight = 32.sp),
-    titleLarge = TextStyle(fontWeight = FontWeight.Bold, fontSize = 22.sp, lineHeight = 28.sp),
-    titleMedium = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 16.sp, lineHeight = 24.sp, letterSpacing = 0.15.sp),
+val RethinkTypography = Typography(
+    displayLarge = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 57.sp, lineHeight = 64.sp, letterSpacing = (-0.25).sp),
+    displayMedium = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 45.sp, lineHeight = 52.sp, letterSpacing = 0.sp),
+    displaySmall = TextStyle(fontWeight = FontWeight.Medium, fontSize = 36.sp, lineHeight = 44.sp, letterSpacing = 0.sp),
+    headlineLarge = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 32.sp, lineHeight = 40.sp, letterSpacing = 0.sp),
+    headlineMedium = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 28.sp, lineHeight = 36.sp, letterSpacing = 0.sp),
+    headlineSmall = TextStyle(fontWeight = FontWeight.Medium, fontSize = 24.sp, lineHeight = 32.sp, letterSpacing = 0.sp),
+    titleLarge = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 22.sp, lineHeight = 28.sp, letterSpacing = 0.sp),
+    titleMedium = TextStyle(fontWeight = FontWeight.Medium, fontSize = 16.sp, lineHeight = 24.sp, letterSpacing = 0.15.sp),
     titleSmall = TextStyle(fontWeight = FontWeight.Medium, fontSize = 14.sp, lineHeight = 20.sp, letterSpacing = 0.1.sp),
     bodyLarge = TextStyle(fontWeight = FontWeight.Normal, fontSize = 16.sp, lineHeight = 24.sp, letterSpacing = 0.5.sp),
     bodyMedium = TextStyle(fontWeight = FontWeight.Normal, fontSize = 14.sp, lineHeight = 20.sp, letterSpacing = 0.25.sp),
@@ -65,7 +65,7 @@ fun RethinkSharedTheme(
                 style = PaletteStyle.TonalSpot,
                 specVersion = ColorSpec.SpecVersion.SPEC_2025,
             ),
-            typography = RethinkSharedTypography,
+            typography = RethinkTypography,
             shapes = RethinkSharedShapes,
             content = content,
         )

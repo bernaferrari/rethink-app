@@ -19,6 +19,7 @@ import Logger
 import android.content.Context
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.database.AppDatabase
+import com.bernaferrari.bravedns.database.LogDatabase
 import com.bernaferrari.bravedns.service.VpnController
 import java.io.BufferedInputStream
 import java.io.ByteArrayOutputStream
@@ -119,35 +120,85 @@ class BackupHelper {
             }
         }
 
+        suspend fun checkpointRoomDatabases(
+            appDatabase: AppDatabase,
+            logDatabase: LogDatabase
+        ) {
+            appDatabase.checkPoint()
+            logDatabase.checkPoint()
+        }
+
         fun unzip(inputStream: InputStream?, path: String): Boolean {
             var zis: ZipInputStream? = null
             try {
+                val destDir = File(path).canonicalFile
                 zis = ZipInputStream(BufferedInputStream(inputStream))
                 var ze: ZipEntry? = zis.nextEntry
                 while (ze != null) {
+                    val filename: String = ze.name
+                    val outFile = sanitizedZipEntryFile(destDir, filename) ?: return false
+                    if (ze.isDirectory) {
+                        if (!outFile.exists() && !outFile.mkdirs()) {
+                            Logger.w(
+                                Logger.LOG_TAG_BACKUP_RESTORE,
+                                "failed to create zip directory entry: $filename"
+                            )
+                            return false
+                        }
+                        zis.closeEntry()
+                        ze = zis.nextEntry
+                        continue
+                    }
+                    outFile.parentFile?.let { parent ->
+                        if (!parent.exists() && !parent.mkdirs()) {
+                            Logger.w(
+                                Logger.LOG_TAG_BACKUP_RESTORE,
+                                "failed to create parent for zip entry: $filename"
+                            )
+                            return false
+                        }
+                    }
                     val baos = ByteArrayOutputStream()
                     val buffer = ByteArray(1024)
                     var count: Int
-                    val filename: String = ze.name
-                    val fout = FileOutputStream(path + File.separator + filename)
-
-                    // reading and writing
-                    while (zis.read(buffer).also { r -> count = r } != -1) {
-                        baos.write(buffer, 0, count)
-                        val bytes = baos.toByteArray()
-                        fout.write(bytes)
-                        baos.reset()
+                    FileOutputStream(outFile).use { fout ->
+                        while (zis.read(buffer).also { r -> count = r } != -1) {
+                            baos.write(buffer, 0, count)
+                            fout.write(baos.toByteArray())
+                            baos.reset()
+                        }
                     }
-                    fout.close()
                     zis.closeEntry()
                     ze = zis.nextEntry
                 }
             } catch (e: Exception) {
+                Logger.e(Logger.LOG_TAG_BACKUP_RESTORE, "unzip failed: ${e.message}", e)
                 return false
             } finally {
                 zis?.close()
             }
             return true
+        }
+
+        internal fun sanitizedZipEntryFile(destDir: File, filename: String): File? {
+            if (filename.isBlank() || filename.contains("..") || File(filename).isAbsolute) {
+                Logger.w(
+                    Logger.LOG_TAG_BACKUP_RESTORE,
+                    "rejected zip entry with unsafe name: $filename"
+                )
+                return null
+            }
+            val destPath = destDir.canonicalPath
+            val outFile = File(destDir, filename).canonicalFile
+            val outPath = outFile.path
+            if (outPath != destPath && !outPath.startsWith(destPath + File.separator)) {
+                Logger.w(
+                    Logger.LOG_TAG_BACKUP_RESTORE,
+                    "rejected zip-slip entry: $filename -> $outPath"
+                )
+                return null
+            }
+            return outFile
         }
 
         fun getFileNameFromPath(file: String): String {

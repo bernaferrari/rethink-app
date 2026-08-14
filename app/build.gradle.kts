@@ -30,16 +30,22 @@ java {
 }
 
 
-// apply Google Services and Firebase Crashlytics plugins conditionally
+// Apply Google Services and Firebase Crashlytics plugins only for the release channels that
+// actually ship Firebase (play, website). Gradle applies plugins at configuration time, so we
+// must inspect the requested tasks: Firebase builds are keyed on the CHANNEL flavor names —
+// never on the releaseType ("full") substring, which every variant contains.
+// fdroid and the fdroid CI server always stay de-Googled.
 val taskNames = gradle.startParameter.taskNames.joinToString(",").lowercase()
-val apkBuild = taskNames.contains("full")
+val buildsPlayOrWebsiteChannel = taskNames.split(",").any {
+    it.contains("play", true) || it.contains("website", true)
+}
 val fdroidBuild = taskNames.contains("fdroid")
 val fdroidBuildServer = System.getenv("fdroidserver")
 val isFdroidBuildServer = !fdroidBuildServer.isNullOrEmpty() && fdroidBuildServer != "null"
-val deGoogled = !apkBuild || fdroidBuild || isFdroidBuildServer
+val deGoogled = fdroidBuild || isFdroidBuildServer || !buildsPlayOrWebsiteChannel
 
 println("app-task names: '$taskNames'")
-println("gradle deGoogled? $deGoogled (fdroidBuild: $fdroidBuild, fdroidBuildServer: $isFdroidBuildServer, apkBuild: $apkBuild)")
+println("gradle deGoogled? $deGoogled (fdroidBuild: $fdroidBuild, fdroidBuildServer: $isFdroidBuildServer, playOrWebsite: $buildsPlayOrWebsiteChannel)")
 
 if (!deGoogled) {
     apply(plugin = "com.google.gms.google-services")
@@ -245,7 +251,8 @@ configure<DetektExtension> {
     source.setFrom(
         files(
             "src/main/kotlin",
-            "src/full/kotlin"
+            "src/full/kotlin",
+            "src/billing/kotlin",
         )
     )
 }
@@ -298,7 +305,6 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
-    implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.compose.lifecycle.viewmodel.navigation3)
@@ -325,9 +331,8 @@ dependencies {
     implementation(libs.androidx.paging.compose)
     "fullImplementation"(libs.ktor.client.core)
     "fullImplementation"(libs.ktor.client.cio)
-    implementation(libs.gson)
     "fullImplementation"(libs.retrofit)
-    "fullImplementation"(libs.retrofit.converter.gson)
+    "fullImplementation"(libs.retrofit.converter.kotlinx.serialization)
     "fullImplementation"(libs.okhttp)
     "fullImplementation"(libs.okhttp.dnsoverhttps)
 
@@ -358,6 +363,10 @@ dependencies {
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)
+
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.ui.test.junit4)
+    debugImplementation(libs.androidx.ui.test.manifest)
 
     androidTestImplementation(libs.androidx.test.rules)
     testImplementation(libs.robolectric)
@@ -402,6 +411,31 @@ dependencies {
 }
 
 androidComponents {
+    // Billing (Play Billing + backend client) is shared verbatim by the play and website
+    // channels; each channel keeps only its thin wiring (BillingModule, Security, updater).
+    // fdroid must never see Play Billing classes.
+    onVariants { variant ->
+        val channels = variant.productFlavors.map { it.second }
+        if ("play" in channels || "website" in channels) {
+            variant.sources.java?.addStaticSourceDirectory("src/billing/kotlin")
+            variant.sources.kotlin?.addStaticSourceDirectory("src/billing/kotlin")
+        }
+    }
+
+    // Release artifacts must never silently ship versionCode 0 — a fresh install would then
+    // treat every future update as an upgrade from 0. Same source the `full` flavor reads.
+    val validateReleaseVersionCode =
+        tasks.register("validateReleaseVersionCode") {
+            doLast {
+                require(getVersionCode(project) > 0) {
+                    "versionCode is 0: set VERSION_CODE (env or -PVERSION_CODE=...) for release builds."
+                }
+            }
+        }
+    tasks
+        .matching { (it.name.startsWith("assemble") || it.name.startsWith("bundle")) && it.name.endsWith("Release") }
+        .configureEach { dependsOn(validateReleaseVersionCode) }
+
     onVariants { variant ->
         val versionCodes = mapOf(
             "armeabi-v7a" to 2,
@@ -429,6 +463,5 @@ androidComponents {
 kotlin {
     compilerOptions {
         jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
-        freeCompilerArgs.add("-Xwarning-level=SENSELESS_COMPARISON:disabled")
     }
 }

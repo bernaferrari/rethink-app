@@ -7,6 +7,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -46,10 +47,21 @@ private const val CONFETTI_GRAVITY = 0.55f
 
 @Composable
 private fun RethinkConfettiOverlay() {
-    val palette = remember {
-        listOf(Color(0xfff0efe4), Color(0xffe6e5de), Color(0xfff4306d), Color(0xfffbfbf7), Color(0xffd8d6c2))
-    }
-    val particles = remember {
+    val colors = MaterialTheme.colorScheme
+    val particles = remember(
+        colors.primary,
+        colors.secondary,
+        colors.tertiary,
+        colors.error,
+        colors.surfaceContainer,
+    ) {
+        val palette = listOf(
+            colors.primary,
+            colors.secondary,
+            colors.tertiary,
+            colors.error,
+            colors.surfaceContainer,
+        )
         val random = Random(42)
         List(CONFETTI_COUNT) {
             RethinkConfettiParticle(

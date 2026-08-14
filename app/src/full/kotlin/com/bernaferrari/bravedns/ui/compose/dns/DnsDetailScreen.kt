@@ -72,15 +72,8 @@ import com.bernaferrari.bravedns.data.AppConfig.Companion.DOT_INDEX
 import com.bernaferrari.bravedns.download.AppDownloadManager
 import com.bernaferrari.bravedns.download.DownloadConstants
 import com.bernaferrari.bravedns.service.PersistentState
-import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
-import com.bernaferrari.bravedns.ui.compose.theme.Dimensions
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkBottomSheetCard
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkMultiActionDialog
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkTwoOptionSegmentedRow
-import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.service.VpnController
 import com.bernaferrari.bravedns.util.Constants
 import com.bernaferrari.bravedns.util.Constants.Companion.INIT_TIME_MS
@@ -594,7 +587,8 @@ fun DnsDetailScreen(
         onFallbackChange = { viewModel.setUseFallbackDnsToBypass(it) },
         onBlockFreeDnsModeChange = { viewModel.setBlockFreeDnsMode(it) },
         onBlockFreeDnsClick = onBlockFreeDnsClick,
-        onPreventLeaksChange = { viewModel.setPreventDnsLeaksEnabled(it) }
+        onPreventLeaksChange = { viewModel.setPreventDnsLeaksEnabled(it) },
+        onBackClick = onBackClick,
     )
 
     // DNS Record Types Sheet

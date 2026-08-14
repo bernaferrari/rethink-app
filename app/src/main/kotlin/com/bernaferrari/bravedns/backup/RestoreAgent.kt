@@ -15,12 +15,11 @@
  */
 package com.bernaferrari.bravedns.backup
 
-import androidx.room3.support.getSupportWrapper
-
 import Logger
 import Logger.LOG_TAG_BACKUP_RESTORE
 import android.content.Context
 import android.content.pm.PackageInfo
+import android.database.sqlite.SQLiteDatabase
 import android.net.Uri
 import androidx.core.net.toUri
 import androidx.work.CoroutineWorker
@@ -185,8 +184,9 @@ class RestoreAgent(val context: Context, workerParams: WorkerParameters) :
     }
 
         private fun handleDatabaseInit() {
-        // Room 3 opens on first access; touch DAOs/builders by resolving databases via Koin inject.
-        Logger.i(LOG_TAG_BACKUP_RESTORE, "Room3: databases initialized via injection")
+        // Room connections are closed before the file replace. The restore success path
+        // restarts the process (BackupRestoreDialog), which rebuilds Koin/Room singletons.
+        Logger.i(LOG_TAG_BACKUP_RESTORE, "restore copied db files; Room will reopen after process restart")
     }
 
     // Restore database file stored at tempDir/nameOfFileToRestore.
@@ -205,6 +205,10 @@ class RestoreAgent(val context: Context, workerParams: WorkerParameters) :
             LOG_TAG_BACKUP_RESTORE,
             "List of files in backup folder: ${files.size}, path: ${tempDir.path}"
         )
+        if (!validateRestoredSchemaVersions(files)) {
+            return false
+        }
+        closeRoomDatabases()
         for (file in files) {
             val currentDbFile = File(context.getDatabasePath(file.name).path)
             if (
@@ -232,6 +236,70 @@ class RestoreAgent(val context: Context, workerParams: WorkerParameters) :
 
         deleteResidue(tempDir)
         return true
+    }
+
+    private fun validateRestoredSchemaVersions(files: Array<File>): Boolean {
+        for (file in files) {
+            if (isSqliteSidecar(file.name)) continue
+            val maxVersion =
+                when {
+                    file.name == AppDatabase.DATABASE_NAME -> AppDatabase.SCHEMA_VERSION
+                    file.name == LogDatabase.LOGS_DATABASE_NAME -> LogDatabase.SCHEMA_VERSION
+                    else -> continue
+                }
+            val restoredVersion = readSqliteUserVersion(file)
+            if (restoredVersion == null) {
+                Logger.e(
+                    LOG_TAG_BACKUP_RESTORE,
+                    "restore rejected: could not read user_version from ${file.name}"
+                )
+                return false
+            }
+            if (restoredVersion > maxVersion) {
+                Logger.e(
+                    LOG_TAG_BACKUP_RESTORE,
+                    "restore rejected: ${file.name} schema $restoredVersion is newer than $maxVersion"
+                )
+                return false
+            }
+            Logger.i(
+                LOG_TAG_BACKUP_RESTORE,
+                "restore schema ok: ${file.name} user_version=$restoredVersion (max $maxVersion)"
+            )
+        }
+        return true
+    }
+
+    private fun isSqliteSidecar(name: String): Boolean {
+        return name.endsWith("-wal") || name.endsWith("-shm") || name.endsWith("-journal")
+    }
+
+    private fun readSqliteUserVersion(file: File): Int? {
+        return try {
+            SQLiteDatabase.openDatabase(file.path, null, SQLiteDatabase.OPEN_READONLY).use { db ->
+                db.version
+            }
+        } catch (e: Exception) {
+            Logger.e(
+                LOG_TAG_BACKUP_RESTORE,
+                "failed to read PRAGMA user_version from ${file.path}: ${e.message}",
+                e
+            )
+            null
+        }
+    }
+
+    private fun closeRoomDatabases() {
+        try {
+            appDatabase.close()
+        } catch (e: Exception) {
+            Logger.w(LOG_TAG_BACKUP_RESTORE, "failed to close AppDatabase before restore copy", e)
+        }
+        try {
+            logDatabase.close()
+        } catch (e: Exception) {
+            Logger.w(LOG_TAG_BACKUP_RESTORE, "failed to close LogDatabase before restore copy", e)
+        }
     }
 
     private fun restoreWireGuardFiles(dir: File): Boolean {
@@ -310,9 +378,7 @@ class RestoreAgent(val context: Context, workerParams: WorkerParameters) :
 
     private suspend fun checkPoint() {
         Logger.i(LOG_TAG_BACKUP_RESTORE, "database checkpoint() during restore process")
-        appDatabase.checkPoint()
-        logDatabase.checkPoint()
-        return
+        BackupHelper.checkpointRoomDatabases(appDatabase, logDatabase)
     }
 
     private fun validateMetadata(tempDirectory: String?): Boolean {
@@ -376,9 +442,9 @@ class RestoreAgent(val context: Context, workerParams: WorkerParameters) :
                 if (key == PersistentState.APP_VERSION) {
                     val appVersion = v as Int
                     if (appVersion >= minVersionSupported) {
-                        Logger.w(
+                        Logger.i(
                             LOG_TAG_BACKUP_RESTORE,
-                            "app version is less than minAppVersion, proceed with restore"
+                            "app version $appVersion is compatible (>= $minVersionSupported), proceed with restore"
                         )
                         return true
                     } else {

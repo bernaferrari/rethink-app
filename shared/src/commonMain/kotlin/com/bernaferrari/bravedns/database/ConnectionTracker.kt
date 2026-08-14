@@ -30,7 +30,10 @@ import com.bernaferrari.bravedns.util.Constants.Companion.INIT_TIME_MS
             Index(value = arrayOf("blockedByRule"), unique = false),
             Index(value = arrayOf("isBlocked", "timeStamp"), unique = false),
             Index(value = arrayOf("connId"), unique = false),
-            Index(value = arrayOf("proxyDetails"), unique = false)
+            Index(value = arrayOf("proxyDetails"), unique = false),
+            // Stats queries aggregate by time window and per-uid; these avoid full scans.
+            Index(value = arrayOf("timeStamp"), unique = false),
+            Index(value = arrayOf("uid", "timeStamp"), unique = false)
         ]
 )
 class ConnectionTracker {

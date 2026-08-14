@@ -53,13 +53,13 @@ fun RethinkAppContent(
     val vpnOn = remember { mutableStateOf(false) }
     var appearanceMode by remember { mutableStateOf(RethinkAppearanceMode.System) }
     var appearancePresetId by remember { mutableIntStateOf(2) }
-    var statisticsWindow by remember { mutableStateOf(RethinkStatisticsWindow.TwentyFourHours) }
-    var configureSearchOpen by remember { mutableStateOf(false) }
-    var configureQuery by remember { mutableStateOf("") }
+    val statisticsWindow = remember { mutableStateOf(RethinkStatisticsWindow.TwentyFourHours) }
+    val configureSearchOpen = remember { mutableStateOf(false) }
+    val configureQuery = remember { mutableStateOf("") }
     val seedColor = rethinkAppearancePresets
         .firstOrNull { it.id == appearancePresetId && it.color != null }
         ?.color
-        ?: Color(0xFF804136)
+        ?: Color(0xFFFF5D73)
 
     RethinkSharedTheme(
         darkTheme = when (appearanceMode) {
@@ -119,18 +119,15 @@ fun RethinkAppContent(
                             demoDependencies = demoDependencies,
                             vpnOn = vpnOn,
                             statisticsWindow = statisticsWindow,
-                            onStatisticsWindowChange = { statisticsWindow = it },
                             configureSearchOpen = configureSearchOpen,
-                            onConfigureSearchOpenChange = { configureSearchOpen = it },
                             configureQuery = configureQuery,
-                            onConfigureQueryChange = { configureQuery = it },
                             appearanceContent = {
                                 RethinkAppearanceSettingsCard(
                                     selectedMode = appearanceMode,
                                     selectedPresetId = appearancePresetId,
                                     presets = rethinkAppearancePresets,
                                     strings = rethinkAppearanceStrings,
-                                    dynamicColor = Color(0xFF7C8BFF),
+                                    dynamicColor = MaterialTheme.colorScheme.primary,
                                     dynamicSupported = false,
                                     onModeSelected = { appearanceMode = it },
                                     onPresetSelected = { appearancePresetId = it.id },

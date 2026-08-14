@@ -1,4 +1,5 @@
 /* Copyright 2026 RethinkDNS and its authors */
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
 
 package com.bernaferrari.bravedns.ui.compose.events
 
@@ -21,17 +22,19 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,7 +42,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -50,6 +54,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -87,6 +94,7 @@ data class RethinkEventRow(
     val message: String,
     val details: String? = null,
     val userAction: Boolean = false,
+    val severityLabel: String = "",
 )
 
 /** Kept as a source-compatible name while all grouped UI uses one shared shape policy. */
@@ -202,39 +210,38 @@ private fun RethinkEventControls(
             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
         )
         Spacer(Modifier.height(SharedDimensions.spacingSm))
-        Row(
-            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
-        ) {
-            RethinkEventFilterChip(strings.all, filters.mode == RethinkEventFilterMode.All) {
-                onFiltersChange(RethinkEventFilters(RethinkEventFilterMode.All))
-            }
-            RethinkEventFilterChip(strings.severity, filters.mode == RethinkEventFilterMode.Severity) {
-                onFiltersChange(filters.copy(mode = RethinkEventFilterMode.Severity, sources = emptySet()))
-            }
-            RethinkEventFilterChip(strings.source, filters.mode == RethinkEventFilterMode.Source) {
-                onFiltersChange(filters.copy(mode = RethinkEventFilterMode.Source, severity = null))
-            }
-        }
+        RethinkEventExclusiveToggleRow(
+            options = listOf(
+                strings.all to (filters.mode == RethinkEventFilterMode.All),
+                strings.severity to (filters.mode == RethinkEventFilterMode.Severity),
+                strings.source to (filters.mode == RethinkEventFilterMode.Source),
+            ),
+            onSelect = { index ->
+                onFiltersChange(
+                    when (index) {
+                        1 -> filters.copy(mode = RethinkEventFilterMode.Severity, sources = emptySet())
+                        2 -> filters.copy(mode = RethinkEventFilterMode.Source, severity = null)
+                        else -> RethinkEventFilters(RethinkEventFilterMode.All)
+                    },
+                )
+            },
+        )
         when (filters.mode) {
             RethinkEventFilterMode.All -> Unit
             RethinkEventFilterMode.Severity -> {
                 Spacer(Modifier.height(SharedDimensions.spacingSm))
-                Row(
-                    modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
-                ) {
-                    listOf(
-                        RethinkEventSeverity.Low to strings.low,
-                        RethinkEventSeverity.Medium to strings.medium,
-                        RethinkEventSeverity.High to strings.high,
-                        RethinkEventSeverity.Critical to strings.critical,
-                    ).forEach { (severity, label) ->
-                        RethinkEventFilterChip(label, filters.severity == severity) {
-                            onFiltersChange(RethinkEventFilters(RethinkEventFilterMode.Severity, severity = severity))
-                        }
-                    }
-                }
+                val severities = listOf(
+                    RethinkEventSeverity.Low to strings.low,
+                    RethinkEventSeverity.Medium to strings.medium,
+                    RethinkEventSeverity.High to strings.high,
+                    RethinkEventSeverity.Critical to strings.critical,
+                )
+                RethinkEventExclusiveToggleRow(
+                    options = severities.map { (severity, label) -> label to (filters.severity == severity) },
+                    onSelect = { index ->
+                        onFiltersChange(RethinkEventFilters(RethinkEventFilterMode.Severity, severity = severities[index].first))
+                    },
+                )
             }
             RethinkEventFilterMode.Source -> {
                 Spacer(Modifier.height(SharedDimensions.spacingSm))
@@ -255,11 +262,45 @@ private fun RethinkEventControls(
 }
 
 @Composable
+private fun RethinkEventExclusiveToggleRow(
+    options: List<Pair<String, Boolean>>,
+    onSelect: (Int) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+    ) {
+        options.forEachIndexed { index, (label, selected) ->
+            ToggleButton(
+                checked = selected,
+                onCheckedChange = { if (it && !selected) onSelect(index) },
+                shapes = when (index) {
+                    0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                    options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                },
+                colors = ToggleButtonDefaults.toggleButtonColors(
+                    checkedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    checkedContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                ),
+                border = null,
+                modifier = Modifier.weight(1f).heightIn(min = SharedDimensions.touchTargetMin).semantics { role = Role.RadioButton },
+            ) {
+                Text(label, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+        }
+    }
+}
+
+@Composable
 private fun RethinkEventFilterChip(label: String, selected: Boolean, onClick: () -> Unit) {
     RethinkFilterChip(
         label = label,
         selected = selected,
         onClick = onClick,
+        minHeight = SharedDimensions.touchTargetMin,
         selectedLabelWeight = FontWeight.Medium,
         defaultLabelWeight = FontWeight.Medium,
     )
@@ -311,7 +352,7 @@ fun RethinkEventCard(
                     Text(event.timestampLabel, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f))
                 }
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
-                    CompactEventBadge(event.severity.name, accent.copy(alpha = 0.14f), accent)
+                    CompactEventBadge(event.severityLabel.ifBlank { event.severity.name }, accent.copy(alpha = 0.14f), accent)
                     CompactEventBadge(event.sourceLabel, MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f), MaterialTheme.colorScheme.onSurfaceVariant)
                     CompactEventBadge(event.eventTypeLabel, MaterialTheme.colorScheme.surfaceContainerHighest, MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f))
                     if (event.userAction) CompactEventBadge("User", MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f), MaterialTheme.colorScheme.primary)
@@ -329,7 +370,7 @@ fun RethinkEventCard(
             }
             IconButton(
                 onClick = { onCopy(event.clipboardText()) },
-                modifier = Modifier.size(SharedDimensions.touchTargetSm),
+                modifier = Modifier.size(SharedDimensions.touchTargetMin),
             ) {
                 Icon(MaterialSymbols.Filled.ContentCopy, copyDescription, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f), modifier = Modifier.size(16.dp))
             }
@@ -358,7 +399,9 @@ private fun CompactEventBadge(text: String, containerColor: Color, contentColor:
 
 @Composable
 private fun RethinkEventsLoadingState() {
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = MaterialTheme.colorScheme.primary, strokeWidth = 3.dp) }
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        CircularProgressIndicator(Modifier.size(36.dp), color = MaterialTheme.colorScheme.primary, strokeWidth = 3.dp)
+    }
 }
 
 @Composable
@@ -374,11 +417,12 @@ private fun RethinkEventsEmptyState(strings: RethinkEventsStrings) {
     }
 }
 
+@Composable
 private fun RethinkEventSeverity.accentColor() = when (this) {
-    RethinkEventSeverity.Low -> Color(0xFF2E7D32)
-    RethinkEventSeverity.Medium -> Color(0xFFAD7F00)
-    RethinkEventSeverity.High -> Color(0xFFB85C00)
-    RethinkEventSeverity.Critical -> Color(0xFFB3261E)
+    RethinkEventSeverity.Low -> MaterialTheme.colorScheme.primary
+    RethinkEventSeverity.Medium -> MaterialTheme.colorScheme.tertiary
+    RethinkEventSeverity.High -> MaterialTheme.colorScheme.error
+    RethinkEventSeverity.Critical -> MaterialTheme.colorScheme.error
 }
 
 private fun RethinkEventRow.clipboardText() = buildString {

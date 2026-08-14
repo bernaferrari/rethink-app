@@ -3,24 +3,17 @@ package com.bernaferrari.bravedns.ui.compose.dns
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 
 data class RethinkBlocklistGroup(
@@ -66,34 +59,19 @@ fun RethinkBlocklistPackRow(
     onToggle: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val rowShape = RoundedCornerShape(SharedDimensions.cornerRadiusXl)
     Column(
         modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
     ) {
         if (showGroupHeader) RethinkBlocklistGroupHeader(pack.group)
-        Surface(
+        RethinkListItem(
+            headline = pack.name.replaceFirstChar(Char::titlecase),
+            supporting = strings.blocklistCount(pack.blocklistCount),
+            position = CardPosition.Single,
+            highlighted = pack.selected,
             onClick = { onToggle(!pack.selected) },
-            modifier = Modifier.fillMaxWidth().clip(rowShape),
-            shape = rowShape,
-            color = if (pack.selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerLow,
-        ) {
-            Row(
-                Modifier.padding(
-                    horizontal = SharedDimensions.cardPadding,
-                    vertical = SharedDimensions.spacingSmMd,
-                ),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
-            ) {
-                Column(Modifier.weight(1f)) {
-                    Text(pack.name.replaceFirstChar(Char::titlecase), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                    Text(strings.blocklistCount(pack.blocklistCount), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-                Spacer(Modifier.width(SharedDimensions.spacingSm))
-                Checkbox(pack.selected, onCheckedChange = onToggle)
-            }
-        }
+            trailing = { Checkbox(pack.selected, onCheckedChange = onToggle) },
+        )
     }
 }
 
@@ -108,48 +86,20 @@ fun RethinkBlocklistFileTagRow(
     modifier: Modifier = Modifier,
 ) {
     val subgroup = tag.subgroup.ifBlank { tag.group.title }
-    val (chipText, chipBackground) = tag.level.chipColors()
-    val rowShape = RoundedCornerShape(SharedDimensions.cornerRadiusXl)
+    val entries = strings.entries(tag.entries)
     Column(
         modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
     ) {
         if (showGroupHeader) RethinkBlocklistGroupHeader(tag.group)
-        Surface(
+        RethinkListItem(
+            headline = tag.name,
+            supporting = "$subgroup · $entries",
+            position = CardPosition.Single,
+            highlighted = tag.selected,
             onClick = { onToggle(!tag.selected) },
-            modifier = Modifier.fillMaxWidth().clip(rowShape),
-            shape = rowShape,
-            color = if (tag.selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerLow,
-        ) {
-            Row(
-                Modifier.padding(
-                    horizontal = SharedDimensions.cardPadding,
-                    vertical = SharedDimensions.spacingSmMd,
-                ),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
-            ) {
-                Column(Modifier.weight(1f)) {
-                    Text(tag.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            subgroup,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(end = SharedDimensions.spacingXs),
-                        )
-                        AssistChip(
-                            onClick = { tag.url?.let(onOpenUrl) },
-                            enabled = !tag.url.isNullOrBlank(),
-                            label = { Text(strings.entries(tag.entries)) },
-                            colors = AssistChipDefaults.assistChipColors(containerColor = chipBackground, labelColor = chipText),
-                        )
-                    }
-                }
-                Spacer(Modifier.width(SharedDimensions.spacingSm))
-                Checkbox(tag.selected, onCheckedChange = onToggle)
-            }
-        }
+            trailing = { Checkbox(tag.selected, onCheckedChange = onToggle) },
+        )
     }
 }
 
@@ -162,15 +112,7 @@ private fun RethinkBlocklistGroupHeader(group: RethinkBlocklistGroup) {
         ),
         horizontalAlignment = Alignment.Start,
     ) {
-        Text(group.title, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
+        Text(group.title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
         if (group.description.isNotBlank()) Text(group.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
-}
-
-@Composable
-private fun Int?.chipColors(): Pair<Color, Color> = when (this) {
-    0 -> MaterialTheme.colorScheme.tertiary to MaterialTheme.colorScheme.tertiaryContainer
-    1 -> MaterialTheme.colorScheme.onSurfaceVariant to MaterialTheme.colorScheme.surfaceVariant
-    2 -> MaterialTheme.colorScheme.error to MaterialTheme.colorScheme.errorContainer
-    else -> MaterialTheme.colorScheme.onSurface to MaterialTheme.colorScheme.surface
 }

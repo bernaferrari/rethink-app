@@ -3,11 +3,17 @@ package com.bernaferrari.bravedns.ui.compose.firewall
 
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
@@ -67,17 +73,25 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import com.bernaferrari.bravedns.ui.compose.components.RethinkFastScrollerMark
 import com.bernaferrari.bravedns.ui.compose.components.RethinkIndexedFastScroller
 import com.bernaferrari.bravedns.ui.compose.apps.DiagonalWipeIcon
+import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFilterChip
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormActionRow
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkModalBottomSheet
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSearchField
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusColors
+import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListShape
 
 /** Data the portable firewall app-list renderer needs from a host. */
@@ -132,6 +146,7 @@ data class RethinkFirewallAppListStrings(
     val noCategories: String,
     val apply: String,
     val cancel: String,
+    val close: String,
     val enabled: String,
     val disabled: String,
     val proxy: String,
@@ -177,8 +192,8 @@ fun RethinkFirewallAppListScreen(
     var showFilters by remember { mutableStateOf(false) }
     var showRules by remember { mutableStateOf(false) }
     var pendingBulkAction by remember { mutableStateOf<RethinkFirewallBulkAction?>(null) }
-    val hasActiveFilters = filters.topLevel != RethinkFirewallTopLevelFilter.Installed ||
-        filters.categories.isNotEmpty() || selectedQuickFilter != RethinkFirewallFilter.All
+    val hasAdvancedFilters = filters.topLevel != RethinkFirewallTopLevelFilter.Installed ||
+        filters.categories.isNotEmpty()
     val refreshRotation = rememberInfiniteTransition(label = "firewall_refresh").animateFloat(
         initialValue = 0f,
         targetValue = if (isRefreshing && !motion.reducedMotion) 360f else 0f,
@@ -197,17 +212,6 @@ fun RethinkFirewallAppListScreen(
                     IconButton(onClick = onRefresh, enabled = !isRefreshing) {
                         Icon(MaterialSymbols.Filled.Refresh, strings.refresh, Modifier.rotate(refreshRotation.value))
                     }
-                    IconButton(onClick = { showFilters = true }) {
-                        Box {
-                            Icon(MaterialSymbols.Filled.FilterList, strings.filter)
-                            if (hasActiveFilters) {
-                                Box(
-                                    Modifier.size(8.dp).align(Alignment.TopEnd).clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.primary),
-                                )
-                            }
-                        }
-                    }
                     IconButton(onClick = { showRules = true }) { Icon(MaterialSymbols.Filled.Tune, strings.rules) }
                 },
             )
@@ -218,9 +222,11 @@ fun RethinkFirewallAppListScreen(
                 query = query,
                 count = apps.size,
                 selected = selectedQuickFilter,
+                hasAdvancedFilters = hasAdvancedFilters,
                 strings = strings,
                 onQueryChange = onQueryChange,
                 onQuickFilterChange = onQuickFilterChange,
+                onOpenAdvancedFilters = { showFilters = true },
             )
             RethinkFirewallAppList(
                 modifier = Modifier.weight(1f),
@@ -277,9 +283,11 @@ private fun RethinkFirewallAppControls(
     query: String,
     count: Int,
     selected: RethinkFirewallFilter,
+    hasAdvancedFilters: Boolean,
     strings: RethinkFirewallAppListStrings,
     onQueryChange: (String) -> Unit,
     onQuickFilterChange: (RethinkFirewallFilter) -> Unit,
+    onOpenAdvancedFilters: () -> Unit,
 ) {
     val quickFilters = listOf(
         RethinkFirewallFilter.All,
@@ -289,6 +297,25 @@ private fun RethinkFirewallAppControls(
         RethinkFirewallFilter.Excluded,
         RethinkFirewallFilter.Lockdown,
     )
+    val hasQuickFilter = selected != RethinkFirewallFilter.All
+    var filtersExpanded by remember { mutableStateOf(hasQuickFilter || hasAdvancedFilters) }
+    val motion = LocalRethinkMotion.current
+    val expandSpec = tween<IntSize>(
+        durationMillis = motion.durationMedium,
+        easing = motion.easingStandard,
+    )
+    val fadeSpec = tween<Float>(
+        durationMillis = motion.durationMedium,
+        easing = motion.easingStandard,
+    )
+    val collapseSpec = tween<IntSize>(
+        durationMillis = motion.durationExit,
+        easing = motion.easingStandard,
+    )
+    val fadeOutSpec = tween<Float>(
+        durationMillis = motion.durationExit,
+        easing = motion.easingStandard,
+    )
     Column(
         Modifier.fillMaxWidth().padding(
             start = SharedDimensions.screenPaddingHorizontal,
@@ -296,29 +323,93 @@ private fun RethinkFirewallAppControls(
             top = SharedDimensions.spacingSm,
             bottom = SharedDimensions.spacingXs,
         ),
-        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
     ) {
-        RethinkSearchField(
-            query = query,
-            onQueryChange = onQueryChange,
-            placeholder = strings.searchHint(count),
-            clearQueryContentDescription = strings.clearSearch,
-            onClearQuery = { onQueryChange("") },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(SharedDimensions.cornerRadiusMdLg),
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-        )
         Row(
-            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
         ) {
-            quickFilters.forEach { filter ->
+            RethinkSearchField(
+                query = query,
+                onQueryChange = onQueryChange,
+                placeholder = strings.searchHint(count),
+                clearQueryContentDescription = strings.clearSearch,
+                onClearQuery = { onQueryChange("") },
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(SharedDimensions.cornerRadiusMdLg),
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            )
+            Surface(
+                onClick = { filtersExpanded = !filtersExpanded },
+                shape = RoundedCornerShape(SharedDimensions.cornerRadiusMdLg),
+                color = if (filtersExpanded || hasQuickFilter || hasAdvancedFilters) {
+                    MaterialTheme.colorScheme.secondaryContainer
+                } else {
+                    MaterialTheme.colorScheme.surfaceContainerLow
+                },
+                modifier = Modifier.size(56.dp),
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        MaterialSymbols.Filled.FilterList,
+                        strings.filter,
+                        tint = if (filtersExpanded || hasQuickFilter || hasAdvancedFilters) {
+                            MaterialTheme.colorScheme.onSecondaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        },
+                    )
+                    if (hasQuickFilter || hasAdvancedFilters) {
+                        Box(
+                            Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(top = 10.dp, end = 10.dp)
+                                .size(8.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary),
+                        )
+                    }
+                }
+            }
+        }
+        AnimatedVisibility(
+            visible = filtersExpanded,
+            enter = fadeIn(fadeSpec) + expandVertically(
+                animationSpec = expandSpec,
+                expandFrom = Alignment.Top,
+            ),
+            exit = fadeOut(fadeOutSpec) + shrinkVertically(
+                animationSpec = collapseSpec,
+                shrinkTowards = Alignment.Top,
+            ),
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = SharedDimensions.spacingSm)
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                quickFilters.forEach { filter ->
+                    RethinkFilterChip(
+                        label = strings.filterLabel(filter),
+                        selected = selected == filter,
+                        onClick = {
+                            onQuickFilterChange(if (selected == filter) RethinkFirewallFilter.All else filter)
+                        },
+                        leadingIcon = { RethinkFirewallFilterIcon(filter, Modifier.size(14.dp)) },
+                        minHeight = SharedDimensions.touchTargetMin,
+                        selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    )
+                }
                 RethinkFilterChip(
-                    label = strings.filterLabel(filter),
-                    selected = selected == filter,
-                    onClick = { if (selected != filter) onQuickFilterChange(filter) },
-                    leadingIcon = { RethinkFirewallFilterIcon(filter, Modifier.size(14.dp)) },
-                    minHeight = SharedDimensions.touchTargetSm,
+                    label = strings.filter,
+                    selected = hasAdvancedFilters,
+                    onClick = onOpenAdvancedFilters,
+                    leadingIcon = { Icon(MaterialSymbols.Filled.Tune, null, Modifier.size(14.dp)) },
+                    minHeight = SharedDimensions.touchTargetMin,
                     selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
                     selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                 )
@@ -339,14 +430,12 @@ private fun RethinkFirewallAppList(
     modifier: Modifier = Modifier,
 ) {
     if (apps.isEmpty()) {
-        Box(modifier.fillMaxSize().padding(SharedDimensions.screenPaddingHorizontal), Alignment.Center) {
-            Surface(shape = RoundedCornerShape(SharedDimensions.cornerRadius3xl), color = MaterialTheme.colorScheme.surfaceContainerLow) {
-                Column(Modifier.padding(SharedDimensions.cardPadding), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
-                    Text(strings.emptyTitle, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                    Text(strings.emptyDescription, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-        }
+        RethinkEmptyState(
+            icon = MaterialSymbols.Filled.Apps,
+            title = strings.emptyTitle,
+            message = strings.emptyDescription,
+            modifier = modifier.fillMaxSize().padding(SharedDimensions.screenPaddingHorizontal),
+        )
         return
     }
 
@@ -361,7 +450,7 @@ private fun RethinkFirewallAppList(
         )
     }
     val state = rememberLazyListState()
-    val indexKeys = remember(orderedApps) { orderedApps.flatMap { app -> listOf(appInitial(app), app.appName.ifBlank { app.packageName }) } }
+    val scrollerMarks = remember(orderedApps) { rethinkFirewallScrollerMarks(orderedApps) }
     Box(modifier.fillMaxSize()) {
         RethinkFirewallAppRows(
             apps = orderedApps,
@@ -377,11 +466,8 @@ private fun RethinkFirewallAppList(
             mobileActionLabel = strings.mobileActionLabel,
         )
         RethinkIndexedFastScroller(
-            items = indexKeys,
+            marks = scrollerMarks,
             listState = state,
-            getIndexKey = { it },
-            scrollItemOffset = 2,
-            minItemCount = 8,
             modifier = Modifier.align(Alignment.CenterEnd).padding(end = 2.dp, bottom = SharedDimensions.spacingLg),
         )
     }
@@ -486,15 +572,19 @@ private fun RethinkFirewallAppRow(
         color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
         Row(
-            Modifier.fillMaxWidth().padding(horizontal = SharedDimensions.spacingMd, vertical = 9.dp),
+            Modifier.fillMaxWidth().padding(horizontal = SharedDimensions.spacingMd, vertical = SharedDimensions.spacingSm),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
         ) {
-            Box(Modifier.size(38.dp).clip(RoundedCornerShape(11.dp)), contentAlignment = Alignment.Center) { appIcon() }
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Box(Modifier.size(SharedDimensions.iconContainerMd).clip(RoundedCornerShape(SharedDimensions.iconContainerRadius)), contentAlignment = Alignment.Center) { appIcon() }
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile)) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
                     Text(
-                        text = highlighted(app.appName.ifBlank { app.packageName }, query),
+                        text = highlighted(
+                            app.appName.ifBlank { app.packageName },
+                            query,
+                            MaterialTheme.colorScheme.primary,
+                        ),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (app.hasInternetPermission) 1f else .42f),
@@ -515,7 +605,7 @@ private fun RethinkFirewallAppRow(
                 }
             }
             if (app.canToggleConnections) {
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
                     RethinkFirewallNetworkToggle(
                         blocked = app.wifiBlocked,
                         allowedIcon = MaterialSymbols.Filled.Wifi,
@@ -544,7 +634,7 @@ private fun RethinkFirewallStatusBadge(label: String, color: Color) {
 }
 
 @Composable
-private fun RethinkFirewallNetworkToggle(
+fun RethinkFirewallNetworkToggle(
     blocked: Boolean,
     allowedIcon: ImageVector,
     blockedIcon: ImageVector,
@@ -563,22 +653,38 @@ private fun RethinkFirewallNetworkToggle(
         },
         label = "firewall_network_toggle_press",
     )
-    // Layout boxes stay fixed (34 / 30 / 18.dp). Bubble + icon springs run only via
+    // Hit box is 48.dp; visual bubble/icon stay 30 / 18.dp. Springs run only via
     // graphicsLayer so on/off never remeasure the row.
     val stateTransition = androidx.compose.animation.core.updateTransition(
         targetState = blocked,
         label = "firewall_network_toggle_state",
     )
+    val unblockSpec: FiniteAnimationSpec<Float> = if (motion.reducedMotion) {
+        snap()
+    } else {
+        keyframes {
+            durationMillis = motion.durationFast + 100
+            1f at 0
+            1f at 64
+            0.64f at 160
+            0f at durationMillis
+        }
+    }
+    val unblockScaleSpec: FiniteAnimationSpec<Float> = if (motion.reducedMotion) {
+        snap()
+    } else {
+        keyframes {
+            durationMillis = motion.durationFast + 100
+            1f at 0
+            1.1f at 64
+            0.68f at 160
+            0f at durationMillis
+        }
+    }
     val bubbleAlpha by stateTransition.animateFloat(
         transitionSpec = {
             if (true isTransitioningTo false) {
-                keyframes {
-                    durationMillis = motion.durationFast + 100
-                    1f at 0
-                    1f at 64
-                    0.64f at 160
-                    0f at durationMillis
-                }
+                unblockSpec
             } else {
                 if (motion.reducedMotion) {
                     snap()
@@ -595,13 +701,7 @@ private fun RethinkFirewallNetworkToggle(
     val bubbleScale by stateTransition.animateFloat(
         transitionSpec = {
             if (true isTransitioningTo false) {
-                keyframes {
-                    durationMillis = motion.durationFast + 100
-                    1f at 0
-                    1.1f at 64
-                    0.68f at 160
-                    0f at durationMillis
-                }
+                unblockScaleSpec
             } else {
                 if (motion.reducedMotion) {
                     snap()
@@ -640,7 +740,7 @@ private fun RethinkFirewallNetworkToggle(
     Surface(
         onClick = onClick,
         modifier = Modifier
-            .size(34.dp)
+            .size(SharedDimensions.touchTargetMin)
             .graphicsLayer {
                 scaleX = pressScale
                 scaleY = pressScale
@@ -771,7 +871,7 @@ private fun RethinkFirewallFilterDialog(
                                         if (category in selectedCategories) selectedCategories.remove(category) else selectedCategories.add(category)
                                         publish()
                                     },
-                                    minHeight = SharedDimensions.touchTargetSm,
+                                    minHeight = SharedDimensions.touchTargetMin,
                                     selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
                                     selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                                 )
@@ -780,9 +880,10 @@ private fun RethinkFirewallFilterDialog(
                     }
                 }
         }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-            TextButton(onClick = dismissSheet) { Text(strings.cancel) }
-        }
+        RethinkFormActionRow(
+            confirmLabel = strings.close,
+            onConfirm = dismissSheet,
+        )
     }
 }
 
@@ -813,7 +914,7 @@ private fun <T> RethinkFirewallFilterOptions(
                 selected = option == selected,
                 onClick = { if (option != selected) onSelect(option) },
                 leadingIcon = icon?.let { { it(option) } },
-                minHeight = SharedDimensions.touchTargetSm,
+                minHeight = SharedDimensions.touchTargetMin,
                 selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
                 selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
             )
@@ -845,29 +946,32 @@ private fun RethinkFirewallRulesDialog(
                 Text(strings.selectedApps(appsCount), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
                 Text(strings.bulkDescription, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 HorizontalDivider()
-                RethinkFirewallBulkAction.entries.forEach { action ->
-                    val active = action in activeActions
-                    Surface(
-                        onClick = { onAction(action) },
-                        shape = RoundedCornerShape(SharedDimensions.cornerRadiusMd),
-                        color = if (active) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerLow,
-                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(SharedDimensions.cornerRadiusMd)),
-                    ) {
-                        Row(Modifier.padding(SharedDimensions.spacingMd), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
-                            RethinkFirewallBulkIcon(action)
-                            Column(Modifier.weight(1f)) {
-                                Text(strings.actionLabel(action), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
-                                Text(strings.actionDescription(action), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                            Text(if (active) strings.enabled else strings.disabled, style = MaterialTheme.typography.labelMedium, color = if (active) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
+                RethinkListGroup {
+                    RethinkFirewallBulkAction.entries.forEachIndexed { index, action ->
+                        val active = action in activeActions
+                        RethinkListItem(
+                            headline = strings.actionLabel(action),
+                            supporting = strings.actionDescription(action),
+                            leadingContent = { RethinkFirewallBulkIcon(action) },
+                            position = cardPositionFor(index, RethinkFirewallBulkAction.entries.lastIndex),
+                            highlighted = active,
+                            onClick = { onAction(action) },
+                            trailing = {
+                                Text(
+                                    if (active) strings.enabled else strings.disabled,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            },
+                        )
                     }
                 }
             }
         }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-            TextButton(onClick = dismissSheet) { Text(strings.cancel) }
-        }
+        RethinkFormActionRow(
+            confirmLabel = strings.close,
+            onConfirm = dismissSheet,
+        )
     }
 }
 
@@ -905,23 +1009,57 @@ private fun appInitial(app: RethinkFirewallApp): String {
     return source.firstOrNull()?.takeIf(Char::isLetter)?.uppercaseChar()?.toString() ?: "#"
 }
 
-private fun highlighted(value: String, query: String): AnnotatedString {
-    if (query.isBlank()) return AnnotatedString(value)
-    val start = value.indexOf(query, ignoreCase = true)
-    if (start < 0) return AnnotatedString(value)
-    return buildAnnotatedString {
-        append(value.substring(0, start))
-        pushStyle(SpanStyle(color = Color.Unspecified, fontWeight = FontWeight.ExtraBold))
-        append(value.substring(start, start + query.length))
-        pop()
-        append(value.substring(start + query.length))
+fun rethinkFirewallScrollerMarks(apps: List<RethinkFirewallApp>): List<RethinkFastScrollerMark> {
+    val marks = mutableListOf<RethinkFastScrollerMark>()
+    var listIndex = 0
+    var previous: String? = null
+    apps.forEach { app ->
+        val initial = appInitial(app)
+        if (previous != initial) {
+            marks += RethinkFastScrollerMark(initial, listIndex)
+            listIndex++
+            previous = initial
+        }
+        listIndex++
     }
+    return marks
+}
+
+private fun highlighted(value: String, query: String, color: Color): AnnotatedString {
+    val indices = findSubsequenceMatchIndices(value, query) ?: return AnnotatedString(value)
+    if (indices.isEmpty()) return AnnotatedString(value)
+    return buildAnnotatedString {
+        value.forEachIndexed { index, char ->
+            if (index in indices) {
+                pushStyle(SpanStyle(color = color))
+                append(char)
+                pop()
+            } else {
+                append(char)
+            }
+        }
+    }
+}
+
+private fun findSubsequenceMatchIndices(text: String, query: String): Set<Int>? {
+    val needle = query.filterNot(Char::isWhitespace)
+    if (needle.isEmpty()) return emptySet()
+    val matched = mutableSetOf<Int>()
+    var queryIndex = 0
+    for (index in text.indices) {
+        if (queryIndex >= needle.length) break
+        if (text[index].equals(needle[queryIndex], ignoreCase = true)) {
+            matched += index
+            queryIndex++
+        }
+    }
+    return if (queryIndex == needle.length) matched else null
 }
 
 @Composable
 private fun statusColor(status: RethinkFirewallAppStatus, hasBlockedNetwork: Boolean): Color = when (status) {
-    RethinkFirewallAppStatus.Allowed -> if (hasBlockedNetwork) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
-    RethinkFirewallAppStatus.Blocked, RethinkFirewallAppStatus.Lockdown -> MaterialTheme.colorScheme.error
-    RethinkFirewallAppStatus.Bypass, RethinkFirewallAppStatus.Excluded -> MaterialTheme.colorScheme.tertiary
-    RethinkFirewallAppStatus.Unknown -> MaterialTheme.colorScheme.onSurfaceVariant
+    RethinkFirewallAppStatus.Allowed -> if (hasBlockedNetwork) RethinkStatusColors.mixed else RethinkStatusColors.allowed
+    RethinkFirewallAppStatus.Blocked, RethinkFirewallAppStatus.Lockdown -> RethinkStatusColors.blocked
+    RethinkFirewallAppStatus.Bypass, RethinkFirewallAppStatus.Excluded -> RethinkStatusColors.mixed
+    RethinkFirewallAppStatus.Unknown -> RethinkStatusColors.idle
 }

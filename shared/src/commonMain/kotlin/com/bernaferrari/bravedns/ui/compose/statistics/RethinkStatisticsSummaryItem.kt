@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -22,10 +21,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListShape
 
 /** Portable connection-summary row. Hosts provide platform artwork and the navigation action. */
 @Composable
@@ -40,28 +42,29 @@ fun RethinkStatisticsSummaryItem(
     showIndicator: Boolean,
     onClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
+    position: CardPosition = CardPosition.Single,
     leadingContent: (@Composable () -> Unit)? = null,
 ) {
-    val rowShape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.cornerRadiusMd)
+    val rowShape = rethinkGroupedListShape(position)
     Surface(
         onClick = onClick ?: {},
         enabled = onClick != null,
-        modifier = modifier.fillMaxWidth().clip(rowShape),
+        modifier = modifier.fillMaxWidth().padding(top = if (position == CardPosition.First || position == CardPosition.Single) 0.dp else SharedDimensions.spacingGridTile).clip(rowShape),
         shape = rowShape,
-        color = Color.Transparent,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
-        Column(Modifier.padding(horizontal = 8.dp, vertical = 6.dp)) {
+        Column(Modifier.padding(horizontal = SharedDimensions.spacingMd, vertical = SharedDimensions.cardPaddingSm)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.size(32.dp), contentAlignment = Alignment.Center) {
+                Box(Modifier.size(SharedDimensions.iconContainerMd), contentAlignment = Alignment.Center) {
                     when {
                         !flagText.isNullOrEmpty() -> Text(flagText, fontSize = 22.sp)
                         leadingContent != null -> leadingContent()
                     }
                 }
 
-                Spacer(Modifier.width(12.dp))
+                Spacer(Modifier.width(SharedDimensions.spacingMd))
                 Column(Modifier.weight(1f)) {
-                    Text(title, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     if (!subtitle.isNullOrEmpty()) {
                         Text(
                             subtitle,
@@ -74,30 +77,25 @@ fun RethinkStatisticsSummaryItem(
                     if (showProgress) {
                         LinearProgressIndicator(
                             progress = { progress.coerceIn(0f, 1f) },
-                            modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+                            modifier = Modifier.fillMaxWidth().padding(top = SharedDimensions.spacingXs),
                             color = progressColor,
-                            trackColor = MaterialTheme.colorScheme.surface,
+                            trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                         )
                     }
                 }
 
-                Spacer(Modifier.width(8.dp))
-                Text(countText, style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.width(SharedDimensions.spacingSm))
+                Text(countText, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                 if (showIndicator && onClick != null) {
-                    Spacer(Modifier.width(8.dp))
+                    Spacer(Modifier.width(SharedDimensions.spacingSm))
                     Icon(
                         MaterialSymbols.AutoMirrored.Filled.ArrowForward,
                         contentDescription = null,
-                        modifier = Modifier.size(16.dp),
+                        modifier = Modifier.size(SharedDimensions.iconSizeXs),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
-            HorizontalDivider(
-                modifier = Modifier.padding(top = 8.dp),
-                thickness = 0.5.dp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f),
-            )
         }
     }
 }

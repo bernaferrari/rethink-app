@@ -5,10 +5,13 @@ import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Tab
@@ -30,6 +33,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.SectionHeaderWithSubtitle
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 
 data class RethinkRpnAccountEntry(val title: String, val supporting: String? = null)
 
@@ -165,7 +169,7 @@ private fun RethinkRpnManageTab(state: RethinkRpnAccountOperation, strings: Reth
                 }
             }
         }
-        if (state.busy) item { Column(Modifier.fillMaxWidth().padding(SharedDimensions.spacingLg), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) { CircularProgressIndicator(); Text(strings.loading) } }
+        if (state.busy) item { Column(Modifier.fillMaxWidth().padding(SharedDimensions.spacingLg), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) { CircularProgressIndicator(Modifier.size(SharedDimensions.iconSizeLg)); Text(strings.loading) } }
         item { SectionHeaderWithSubtitle(title = strings.actionsHeading, subtitle = strings.actionsDescription) }
         item {
             RethinkListGroup {
@@ -208,23 +212,25 @@ private fun RethinkRpnEntitlementTab(loading: Boolean, error: String?, entries: 
 
 @Composable
 private fun RethinkRpnAccountLoading(label: String) {
-    Column(Modifier.fillMaxWidth().padding(SharedDimensions.spacingXl), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) { CircularProgressIndicator(); Text(label) }
+    Column(Modifier.fillMaxWidth().padding(SharedDimensions.spacingXl), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
+        CircularProgressIndicator(Modifier.size(SharedDimensions.iconSizeLg))
+        Text(label)
+    }
 }
 
 @Composable
 private fun RethinkRpnAccountEntries(entries: List<RethinkRpnAccountEntry>) {
-    LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = androidx.compose.foundation.layout.PaddingValues(SharedDimensions.screenPaddingHorizontal)) {
-        item {
-            RethinkListGroup {
-                entries.forEachIndexed { index, item ->
-                    RethinkListItem(headline = item.title, supporting = item.supporting, position = when {
-                        entries.size == 1 -> CardPosition.Single
-                        index == 0 -> CardPosition.First
-                        index == entries.lastIndex -> CardPosition.Last
-                        else -> CardPosition.Middle
-                    })
-                }
-            }
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(SharedDimensions.screenPaddingHorizontal),
+        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile),
+    ) {
+        itemsIndexed(entries, key = { index, item -> "${item.title}_${item.supporting}_$index" }) { index, item ->
+            RethinkListItem(
+                headline = item.title,
+                supporting = item.supporting,
+                position = cardPositionFor(index, entries.lastIndex),
+            )
         }
     }
 }

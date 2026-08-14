@@ -36,12 +36,6 @@ class HomeScreenTest {
     fun homeScreen_displaysCorrectInitialState() {
         val uiState = HomeScreenUiState(
             isVpnActive = false,
-            dnsLatency = "-- ms",
-            dnsConnectedName = "None",
-            firewallUniversalRules = 0,
-            appsTotal = 0,
-            appsAllowed = 0,
-            appsBlocked = 0
         )
 
         composeTestRule.setContent {
@@ -60,12 +54,6 @@ class HomeScreenTest {
     fun homeScreen_displaysStopButton_whenVpnIsActive() {
         val uiState = HomeScreenUiState(
             isVpnActive = true,
-            dnsLatency = "24ms",
-            dnsConnectedName = "Cloudflare",
-            firewallUniversalRules = 12,
-            appsTotal = 100,
-            appsAllowed = 95,
-            appsBlocked = 5
         )
 
         composeTestRule.setContent {

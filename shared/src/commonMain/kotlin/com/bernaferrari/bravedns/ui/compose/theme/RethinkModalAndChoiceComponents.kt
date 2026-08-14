@@ -1,9 +1,7 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.theme
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
@@ -13,21 +11,23 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SheetValue
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.rememberBottomSheetState
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
 /** Two-target shared choice control for compact manual/automatic configuration modes. */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun RethinkTwoOptionSegmentedRow(
     leftLabel: String,
@@ -55,18 +56,39 @@ fun RethinkTwoOptionSegmentedRow(
     onLeftClick: () -> Unit,
     onRightClick: () -> Unit,
     modifier: Modifier = Modifier,
-    minHeight: Dp = SharedDimensions.spacingNone,
+    minHeight: Dp = SharedDimensions.buttonHeightSm,
 ) {
-    SingleChoiceSegmentedButtonRow(modifier = modifier.fillMaxWidth()) {
-        listOf(true, false).forEachIndexed { index, selected ->
-            val isSelected = selected == leftSelected
-            SegmentedButton(
-                modifier = Modifier.weight(1f).heightIn(min = minHeight),
-                selected = isSelected,
-                onClick = { if (!isSelected) if (selected) onLeftClick() else onRightClick() },
-                shape = SegmentedButtonDefaults.itemShape(index = index, count = 2),
-                label = { Text(if (selected) leftLabel else rightLabel) },
-            )
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+    ) {
+        ToggleButton(
+            checked = leftSelected,
+            onCheckedChange = { if (it) onLeftClick() },
+            modifier = Modifier.weight(1f).heightIn(min = minHeight),
+            shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
+            colors = ToggleButtonDefaults.toggleButtonColors(
+                checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            ),
+        ) {
+            Text(leftLabel)
+        }
+        ToggleButton(
+            checked = !leftSelected,
+            onCheckedChange = { if (it) onRightClick() },
+            modifier = Modifier.weight(1f).heightIn(min = minHeight),
+            shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
+            colors = ToggleButtonDefaults.toggleButtonColors(
+                checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            ),
+        ) {
+            Text(rightLabel)
         }
     }
 }
@@ -132,14 +154,21 @@ fun RethinkMultiActionDialog(
     text: (@Composable (() -> Unit))? = null,
 ) {
     val primaryColors =
-        if (isPrimaryDestructive) ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
-        else ButtonDefaults.textButtonColors()
+        if (isPrimaryDestructive) {
+            ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.error,
+                contentColor = MaterialTheme.colorScheme.onError,
+            )
+        } else {
+            ButtonDefaults.buttonColors()
+        }
     AlertDialog(
         modifier = modifier,
         onDismissRequest = onDismissRequest,
-        title = { Text(title) },
+        shape = RoundedCornerShape(SharedDimensions.cardCornerRadiusLarge),
+        title = { Text(title, style = MaterialTheme.typography.headlineSmall) },
         text = text ?: message?.let { { Text(it) } },
-        confirmButton = { TextButton(onClick = onPrimary, colors = primaryColors) { Text(primaryText) } },
+        confirmButton = { Button(onClick = onPrimary, colors = primaryColors) { Text(primaryText) } },
         dismissButton = {
             Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
                 if (secondaryText != null && onSecondary != null) TextButton(onClick = onSecondary) { Text(secondaryText) }
@@ -149,18 +178,10 @@ fun RethinkMultiActionDialog(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RethinkBottomSheetDragHandle(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier.fillMaxWidth().padding(top = SharedDimensions.spacingXs, bottom = SharedDimensions.spacingSm),
-        contentAlignment = Alignment.Center,
-    ) {
-        Surface(
-            modifier = Modifier.width(44.dp).height(5.dp),
-            shape = RoundedCornerShape(100.dp),
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.42f),
-        ) {}
-    }
+    BottomSheetDefaults.DragHandle(modifier = modifier)
 }
 
 /** Shared M3 sheet chrome. Hosts retain only their source of state and mutations. */
@@ -171,7 +192,7 @@ fun RethinkModalBottomSheet(
     modifier: Modifier = Modifier,
     dragHandle: @Composable (() -> Unit)? = { RethinkBottomSheetDragHandle() },
     containerColor: Color = Color.Unspecified,
-    contentPadding: PaddingValues = PaddingValues(horizontal = SharedDimensions.screenPaddingHorizontal, vertical = SharedDimensions.spacingSm),
+    contentPadding: PaddingValues = PaddingValues(horizontal = SharedDimensions.spacingXl, vertical = SharedDimensions.spacingLg),
     verticalSpacing: Dp = SharedDimensions.spacingLg,
     includeBottomSpacer: Boolean = true,
     expandOnShow: Boolean = false,
@@ -206,7 +227,7 @@ fun RethinkModalBottomSheet(
     ModalBottomSheet(
         onDismissRequest = dismiss,
         dragHandle = dragHandle,
-        containerColor = if (containerColor == Color.Unspecified) MaterialTheme.colorScheme.surface else containerColor,
+        containerColor = if (containerColor == Color.Unspecified) MaterialTheme.colorScheme.surfaceContainerLow else containerColor,
         sheetState = sheetState,
     ) {
         Column(
@@ -229,8 +250,7 @@ fun RethinkBottomSheetCard(
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = shape,
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        border = BorderStroke(SharedDimensions.dividerThicknessBold, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
         tonalElevation = SharedDimensions.spacingNone,
     ) {
         Column(

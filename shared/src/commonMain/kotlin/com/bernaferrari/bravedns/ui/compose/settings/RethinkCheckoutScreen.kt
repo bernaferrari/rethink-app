@@ -2,10 +2,7 @@
 
 package com.bernaferrari.bravedns.ui.compose.settings
 
-import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
-
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,10 +18,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -37,7 +34,6 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
@@ -83,10 +79,11 @@ fun RethinkCheckoutScreen(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     androidx.compose.material3.Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = { RethinkLargeTopBar(strings.appName, onBackClick = onBackClick, scrollBehavior = scrollBehavior) },
     ) { paddingValues ->
         Column(
-            Modifier.fillMaxSize().padding(paddingValues).verticalScroll(rememberScrollState()).background(MaterialTheme.colorScheme.background),
+            Modifier.fillMaxSize().padding(paddingValues).verticalScroll(rememberScrollState()),
         ) {
             when (paymentStatus) {
                 RethinkCheckoutPaymentStatus.NotPaid -> CheckoutPaymentContent(plans, selectedPlanId, strings, { selectedPlanId = it }, onStartPayment, onNavigateToProxy)
@@ -94,11 +91,12 @@ fun RethinkCheckoutScreen(
                 RethinkCheckoutPaymentStatus.Paid -> CheckoutStatus(strings.successTitle, strings.successMessage, strings.successButton, onNavigateToProxy)
                 RethinkCheckoutPaymentStatus.Failed -> CheckoutStatus(strings.failedTitle, strings.failedMessage, strings.failedButton, onNavigateToProxy)
             }
-            OutlinedButton(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = SharedDimensions.screenPaddingHorizontal, vertical = SharedDimensions.spacingMd).height(50.dp),
-                onClick = onManageAccount,
-                shape = RoundedCornerShape(SharedDimensions.buttonCornerRadius),
-            ) { Text(strings.manageAccount) }
+            if (paymentStatus == RethinkCheckoutPaymentStatus.Paid) {
+                TextButton(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = SharedDimensions.screenPaddingHorizontal, vertical = SharedDimensions.spacingMd),
+                    onClick = onManageAccount,
+                ) { Text(strings.manageAccount) }
+            }
         }
     }
 }
@@ -140,21 +138,21 @@ private fun CheckoutPaymentContent(
                         headline = plan.title,
                         supporting = plan.subtitle,
                         position = cardPositionFor(index, plans.lastIndex),
-                        leadingIcon = if (selected) MaterialSymbols.Filled.RadioButtonChecked else MaterialSymbols.Filled.RadioButtonUnchecked,
-                        leadingIconTint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                         onClick = { onPlanSelected(plan.id) },
                         trailing = { RadioButton(selected = selected, onClick = null) },
                     )
                 }
             }
-            Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd)) {
-                Button(modifier = Modifier.fillMaxWidth().height(50.dp), onClick = onStartPayment, shape = RoundedCornerShape(SharedDimensions.buttonCornerRadius)) { Text(strings.purchase, style = MaterialTheme.typography.labelLarge) }
-                OutlinedButton(
-                    modifier = Modifier.fillMaxWidth().height(50.dp),
-                    onClick = onNavigateToProxy,
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
+            ) {
+                Button(
+                    modifier = Modifier.fillMaxWidth().height(SharedDimensions.buttonHeight),
+                    onClick = onStartPayment,
                     shape = RoundedCornerShape(SharedDimensions.buttonCornerRadius),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
-                ) { Text(strings.restore) }
+                ) { Text(strings.purchase, style = MaterialTheme.typography.labelLarge) }
+                TextButton(onClick = onNavigateToProxy) { Text(strings.restore) }
             }
             Spacer(Modifier.height(SharedDimensions.spacingMd))
             Surface(shape = RoundedCornerShape(SharedDimensions.cornerRadius2xl), color = MaterialTheme.colorScheme.surfaceContainerLow, tonalElevation = 1.dp) {

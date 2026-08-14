@@ -43,24 +43,44 @@ fun RethinkAppNavigation(
     onRouteNavigated: () -> Unit = {},
     modifier: Modifier = Modifier,
     background: @Composable (current: RethinkRoute?) -> Unit = {},
+    snackbar: @Composable () -> Unit = {},
     entryBuilder: EntryProviderScope<NavKey>.(RethinkNavOps) -> Unit,
 ) {
     val startStack = remember(startRoute) { canonicalStackFor(startRoute).toTypedArray() }
     val backStack = rememberNavBackStack(rethinkNavSavedStateConfiguration, *startStack)
+    val savedStacks = remember { mutableMapOf<RethinkRootDestination, List<RethinkRoute>>() }
     val motion = LocalRethinkMotion.current
     // Tab bar switches replace the stack; they must not inherit the detail slide.
     var tabTransition by remember { mutableStateOf(false) }
 
     fun currentRoute(): RethinkRoute? = backStack.lastOrNull() as? RethinkRoute
 
-    fun popBackStack() {
-        tabTransition = false
-        if (backStack.size > 1) backStack.removeAt(backStack.lastIndex)
-    }
+    fun currentStack(): List<RethinkRoute> = backStack.mapNotNull { it as? RethinkRoute }
 
     fun setStack(vararg keys: RethinkRoute) {
         backStack.clear()
         backStack.addAll(keys.toList())
+    }
+
+    /** Apply [next] with a pop/push mutation when possible so Nav3 can animate. */
+    fun applyStack(current: List<RethinkRoute>, next: List<RethinkRoute>) {
+        if (next == current) return
+        if (next.size < current.size && current.take(next.size) == next) {
+            repeat(current.size - next.size) { backStack.removeAt(backStack.lastIndex) }
+            return
+        }
+        if (next.size == current.size + 1 && next.dropLast(1) == current) {
+            backStack.add(next.last())
+            return
+        }
+        setStack(*next.toTypedArray())
+    }
+
+    fun popBackStack() {
+        val current = currentStack()
+        val next = stackAfterPop(current) ?: return
+        tabTransition = current.size == 1 && next.singleOrNull() == RethinkRoute.Home
+        applyStack(current, next)
     }
 
     fun push(destination: RethinkRoute) {
@@ -70,18 +90,41 @@ fun RethinkAppNavigation(
         }
     }
 
+    fun rememberLeavingRoot(current: List<RethinkRoute>) {
+        val root = current.lastOrNull()?.rootDestination() ?: return
+        val saved = stackToSaveForRoot(current)
+        if (saved != null) {
+            savedStacks[saved.first] = saved.second
+        } else {
+            savedStacks.remove(root)
+        }
+    }
+
     fun open(destination: RethinkRoute) {
-        val next = canonicalStackFor(destination)
+        val current = currentStack()
+        val next = stackAfterOpen(current, destination)
         tabTransition = next.size == 1 &&
-            currentRoute()?.rootDestination() != destination.rootDestination()
-        setStack(*next.toTypedArray())
+            current.lastOrNull()?.rootDestination() != destination.rootDestination()
+        applyStack(current, next)
+    }
+
+    fun openFromApp(destination: RethinkRoute) {
+        val current = currentStack()
+        val currentRoot = current.lastOrNull()?.rootDestination()
+        val destRoot = destination.rootDestination()
+        tabTransition = currentRoot != destRoot
+        if (currentRoot != null && currentRoot != destRoot) {
+            rememberLeavingRoot(current)
+        }
+        applyStack(current, stackAfterOpenFromApp(current, destination))
     }
 
     fun selectRoot(destination: RethinkRootDestination) {
-        val current = currentRoute()
-        if (current == destination.route) return
-        tabTransition = current?.rootDestination() != destination
-        setStack(destination.route)
+        val current = currentStack()
+        val next = stackAfterSelectRoot(current, destination, savedStacks[destination]) ?: return
+        tabTransition = current.lastOrNull()?.rootDestination() != destination
+        rememberLeavingRoot(current)
+        applyStack(current, next)
     }
 
     val currentKey = backStack.lastOrNull() as? RethinkRoute
@@ -99,7 +142,7 @@ fun RethinkAppNavigation(
 
     LaunchedEffect(pendingRoute) {
         val route = pendingRoute ?: return@LaunchedEffect
-        open(route)
+        openFromApp(route)
         onRouteNavigated()
     }
 
@@ -151,10 +194,12 @@ fun RethinkAppNavigation(
         showNavigation = showNavigation,
         modifier = modifier,
         background = { background(currentKey) },
+        snackbar = snackbar,
     ) {
         NavDisplay(
             backStack = backStack,
             modifier = Modifier.fillMaxSize(),
+            onBack = { popBackStack() },
             entryDecorators = listOf(
                 rememberSaveableStateHolderNavEntryDecorator(),
                 rememberViewModelStoreNavEntryDecorator(),

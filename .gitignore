@@ -38,3 +38,6 @@ web-build/build/
 /.vercel/
 .vercel
 .env*
+
+# OpenCode session state
+.omo/

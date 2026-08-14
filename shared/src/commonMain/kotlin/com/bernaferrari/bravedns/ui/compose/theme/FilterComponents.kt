@@ -37,7 +37,7 @@ fun RethinkSearchField(
     trailingIcon = {
         val action = if (query.isNotEmpty()) onClearQuery ?: { onQueryChange("") } else onCloseWhenEmpty
         val actionModifier = trailingIconButtonSize?.let { requestedSize ->
-            Modifier.size(requestedSize.coerceAtLeast(SharedDimensions.touchTargetSm))
+            Modifier.size(requestedSize.coerceAtLeast(SharedDimensions.touchTargetMin))
         } ?: Modifier
         if (action != null) IconButton(action, actionModifier) {
             Icon(MaterialSymbols.Filled.Close, if (query.isNotEmpty()) clearQueryContentDescription else closeWhenEmptyContentDescription, Modifier.size(trailingIconSize))
@@ -54,7 +54,7 @@ fun RethinkFilterChip(
     containerColor: Color = MaterialTheme.colorScheme.surfaceContainerLow, labelColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     textStyle: TextStyle = MaterialTheme.typography.labelMedium, leadingIcon: (@Composable () -> Unit)? = null,
     selectedLeadingIconColor: Color = selectedLabelColor, leadingIconColor: Color = labelColor, border: BorderStroke? = null,
-    minHeight: Dp = 0.dp, selectedLabelWeight: FontWeight = FontWeight.SemiBold, defaultLabelWeight: FontWeight = FontWeight.Normal,
+    minHeight: Dp = SharedDimensions.buttonHeightSm, selectedLabelWeight: FontWeight = FontWeight.Medium, defaultLabelWeight: FontWeight = FontWeight.Medium,
     labelMaxLines: Int = 1, labelOverflow: TextOverflow = TextOverflow.Ellipsis,
 ) = FilterChip(
     modifier = modifier.heightIn(min = minHeight), selected = selected, onClick = onClick,

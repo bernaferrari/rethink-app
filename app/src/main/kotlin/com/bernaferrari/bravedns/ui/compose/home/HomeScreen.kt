@@ -10,23 +10,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.bernaferrari.bravedns.R
 
+enum class HomeProtectionStatus {
+    Protected,
+    UltraSecure,
+    Failing,
+    Waiting,
+    Exposed,
+    NoNetwork,
+}
+
 data class HomeScreenUiState(
     val isVpnActive: Boolean = false,
-    val dnsLatency: String = "-- ms",
-    val dnsConnectedName: String = "",
-    val firewallUniversalRules: Int = 0,
-    val firewallIpRules: Int = 0,
-    val firewallDomainRules: Int = 0,
-    val proxyStatus: String = "",
     val networkLogsCount: Long = 0,
     val dnsLogsCount: Long = 0,
-    val appsAllowed: Int = 0,
-    val appsBlocked: Int = 0,
-    val appsTotal: Int = 0,
-    val appsBypassed: Int = 0,
-    val appsIsolated: Int = 0,
-    val appsExcluded: Int = 0,
-    val protectionStatus: String = "",
+    val protectionStatus: HomeProtectionStatus? = null,
     val isProtectionFailing: Boolean = false,
 )
 
@@ -42,19 +39,35 @@ fun HomeScreen(
     )
 }
 
+@Composable
 private fun HomeScreenUiState.toCommonUiState() = RethinkHomeUiState(
     isVpnActive = isVpnActive,
     networkLogsCount = networkLogsCount,
     dnsLogsCount = dnsLogsCount,
-    protectionStatus = protectionStatus,
+    protectionStatus = protectionStatusLabel(protectionStatus),
     isProtectionFailing = isProtectionFailing,
 )
 
 @Composable
+private fun protectionStatusLabel(status: HomeProtectionStatus?): String {
+    if (status == null) return ""
+    return stringResource(
+        when (status) {
+            HomeProtectionStatus.Protected -> R.string.home_protected
+            HomeProtectionStatus.UltraSecure -> R.string.lbl_ultra_secure
+            HomeProtectionStatus.Failing -> R.string.status_failing
+            HomeProtectionStatus.Waiting -> R.string.status_waiting
+            HomeProtectionStatus.Exposed -> R.string.status_exposed
+            HomeProtectionStatus.NoNetwork -> R.string.status_no_network
+        }
+    )
+}
+
+@Composable
 private fun androidHomeStrings() = RethinkHomeStrings(
     productName = stringResource(R.string.app_name),
-    protected = "Protected",
-    notActive = "Not active",
+    protected = stringResource(R.string.home_protected),
+    notActive = stringResource(R.string.home_not_active),
     start = stringResource(R.string.lbl_start),
     stop = stringResource(R.string.lbl_stop),
     protectedSubtitle = stringResource(R.string.home_protected_subtitle),
@@ -62,4 +75,7 @@ private fun androidHomeStrings() = RethinkHomeStrings(
     failingSubtitle = stringResource(R.string.home_failing_subtitle),
     connections = stringResource(R.string.home_connections),
     dnsQueries = stringResource(R.string.home_dns_queries),
+    networkProtection = stringResource(R.string.home_network_protection),
+    live = stringResource(R.string.home_live),
+    offline = stringResource(R.string.home_offline),
 )

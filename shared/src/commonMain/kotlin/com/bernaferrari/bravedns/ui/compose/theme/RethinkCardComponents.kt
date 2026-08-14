@@ -19,7 +19,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 
@@ -65,7 +64,7 @@ fun CompactEmptyState(
             Icon(
                 imageVector = it,
                 contentDescription = null,
-                modifier = Modifier.size(SharedDimensions.iconSizeSm).alpha(0.6f),
+                modifier = Modifier.size(SharedDimensions.iconSizeSm),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Spacer(Modifier.width(SharedDimensions.spacingSm))
@@ -75,7 +74,6 @@ fun CompactEmptyState(
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
-            modifier = Modifier.alpha(0.6f),
         )
     }
 }

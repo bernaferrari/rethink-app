@@ -2,6 +2,7 @@
 package com.bernaferrari.bravedns.ui.compose.home
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -33,6 +34,7 @@ internal fun ProtectionFlowCanvas(
     opacity: Float,
     modifier: Modifier = Modifier,
 ) {
+    val error = MaterialTheme.colorScheme.error
     Canvas(modifier = modifier) {
         if (size.width <= 0f || size.height <= 0f) return@Canvas
 
@@ -45,7 +47,7 @@ internal fun ProtectionFlowCanvas(
         val pixelSize = max(11f * density, size.minDimension * 0.008f)
         val columns = ceil(size.width / pixelSize).toInt()
         val rows = ceil(size.height / pixelSize).toInt()
-        val inactiveInk = lerp(Color(0xFFCC454F), field, 0.28f)
+        val inactiveInk = lerp(error, field, 0.28f)
 
         for (row in 0 until rows) {
             for (column in 0 until columns) {
@@ -93,7 +95,7 @@ internal fun ProtectionFlowCanvas(
 
                 val protectedInk = lerp(accent, secondary, cipherWeave * 0.72f)
                 var ink = lerp(inactiveInk, protectedInk, enabled)
-                ink = lerp(ink, Color(0xFFF05733), rejected * recovering)
+                ink = lerp(ink, error, rejected * recovering)
                 val centerQuiet =
                     0.12f +
                         0.88f * smoothstep(

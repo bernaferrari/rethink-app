@@ -15,7 +15,7 @@
  */
 package com.bernaferrari.bravedns.iab
 
-import com.google.gson.JsonObject
+import kotlinx.serialization.json.JsonObject
 
 
 /**
@@ -76,9 +76,10 @@ class BillingBackendClient(
         @Suppress("UNUSED_PARAMETER") purchaseToken: String
     ): Boolean = false
 
-    fun buildDeviceMeta(@Suppress("UNUSED_PARAMETER") prodId: String = ""): JsonObject = JsonObject()
+    fun buildDeviceMeta(@Suppress("UNUSED_PARAMETER") prodId: String = ""): JsonObject =
+        JsonObject(emptyMap())
 
-    fun buildCustomerMeta(): JsonObject = JsonObject()
+    fun buildCustomerMeta(): JsonObject = JsonObject(emptyMap())
 
     suspend fun fetchPurchaseHistory(
         @Suppress("UNUSED_PARAMETER") accountId: String,

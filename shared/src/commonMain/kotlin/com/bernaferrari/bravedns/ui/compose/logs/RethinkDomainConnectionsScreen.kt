@@ -49,6 +49,8 @@ fun RethinkDomainConnectionsScreen(
     isEmpty: Boolean,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
+    isLoading: Boolean = false,
+    loadingMessage: String = "",
     connectionsContent: @Composable () -> Unit,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -64,8 +66,13 @@ fun RethinkDomainConnectionsScreen(
         },
     ) { paddingValues ->
         Box(Modifier.fillMaxSize().padding(paddingValues)) {
-            connectionsContent()
-            if (isEmpty) RethinkDomainConnectionsEmptyState(emptyMessage)
+            when {
+                isLoading -> Box(Modifier.fillMaxSize().padding(horizontal = SharedDimensions.screenPaddingHorizontal), contentAlignment = Alignment.Center) {
+                    RethinkLogLoadingState(loadingMessage.ifBlank { emptyMessage })
+                }
+                isEmpty -> RethinkDomainConnectionsEmptyState(emptyMessage)
+                else -> connectionsContent()
+            }
         }
     }
 }

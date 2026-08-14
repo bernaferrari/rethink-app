@@ -34,8 +34,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import com.bernaferrari.bravedns.util.Themes
+import com.materialkolor.PaletteStyle
+import com.materialkolor.dynamicColorScheme
 import com.materialkolor.dynamiccolor.ColorSpec
-import com.materialkolor.rememberDynamicMaterialThemeState
+
 
 private val RethinkCoralSeed = Color(0xffFF5D73)
 private val RethinkRoseSeed = Color(0xffEC4899)
@@ -50,11 +52,11 @@ private val RethinkIndigoSeed = Color(0xff6366F1)
 
 // M3 Expressive shape scale — generous corner radii throughout
 val RethinkShapes = Shapes(
-    extraSmall = RoundedCornerShape(Dimensions.cornerRadiusSm),
-    small = RoundedCornerShape(Dimensions.cornerRadiusSmMd),
-    medium = RoundedCornerShape(Dimensions.cornerRadiusLg),
-    large = RoundedCornerShape(Dimensions.cornerRadius2xl),
-    extraLarge = RoundedCornerShape(Dimensions.heroCornerRadius)
+    extraSmall = RoundedCornerShape(SharedDimensions.cornerRadiusXs),
+    small = RoundedCornerShape(SharedDimensions.cornerRadiusSm),
+    medium = RoundedCornerShape(SharedDimensions.cornerRadiusLg),
+    large = RoundedCornerShape(SharedDimensions.cornerRadiusXl),
+    extraLarge = RoundedCornerShape(SharedDimensions.cardCornerRadiusLarge),
 )
 
 enum class RethinkColorPreset(val id: Int, val seedColor: Color?) {
@@ -91,8 +93,8 @@ fun RethinkTheme(
     val darkTheme = resolvedThemePreference == Themes.DARK.id || resolvedThemePreference == Themes.DARK_PLUS.id
 
     val useDynamicColor = when (colorPreset) {
+        RethinkColorPreset.DYNAMIC -> true
         RethinkColorPreset.AUTO -> Themes.useDynamicColor(themePreference)
-        RethinkColorPreset.DYNAMIC -> Themes.useDynamicColor(themePreference)
         else -> false
     } && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
@@ -101,19 +103,26 @@ fun RethinkTheme(
     val colorScheme = when {
         useDynamicColor -> {
             val context = LocalContext.current
-            if (darkTheme) {
+            val systemScheme = if (darkTheme) {
                 dynamicDarkColorScheme(context)
             } else {
                 dynamicLightColorScheme(context)
             }
+            dynamicColorScheme(
+                seedColor = systemScheme.primary,
+                isDark = darkTheme,
+                style = PaletteStyle.TonalSpot,
+                specVersion = ColorSpec.SpecVersion.SPEC_2025,
+            )
         }
 
         else ->
-            rememberDynamicMaterialThemeState(
+            dynamicColorScheme(
                 seedColor = seedColor,
                 isDark = darkTheme,
+                style = PaletteStyle.TonalSpot,
                 specVersion = ColorSpec.SpecVersion.SPEC_2025,
-            ).colorScheme
+            )
     }
 
     val view = LocalView.current

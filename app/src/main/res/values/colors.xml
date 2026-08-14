@@ -13,6 +13,10 @@
     <!-- 4th Gradient color -->
     <color name="colorRed_A400">#FF1744</color>
 
+    <!-- Launch / window surface used by AppThemeInitial (RethinkTheme coral seed). -->
+    <color name="rethinkLaunchSurface">#1A1110</color>
+    <color name="rethinkLaunchAccent">#FF5D73</color>
+
     <!-- app theme (Default Dark) -->
     <color name="colorPrimary">#2D2F33</color>
     <color name="colorPrimaryDark">#3F4145</color>
@@ -70,8 +74,6 @@
     <color name="secondaryText">#18ffff</color>
     <color name="textColorAccentBad">#CCC51162</color>
     <color name="homeScreenHeaderTextColor">#FDFDFD</color>
-
-    <color name="fabBackground">#77959595</color>
 
     <color name="selectedCardBg">#636363</color>
 
@@ -149,8 +151,6 @@
     <color name="textColorAccentBadLight">#CCC51162</color>
     <color name="homeScreenHeaderTextColorLight">#FFFFFF</color>
 
-    <color name="fabBackgroundLight">#FFFFFF</color>
-
     <color name="selectedCardBgLight">#c7c7c7</color>
 
     <color name="firewallNoRuleToggleBtnTxtLight">#C5E1A5</color>
@@ -219,8 +219,6 @@
     <color name="chipColorBgHighlightBlack">#904fc3f7</color>
     <color name="chipBgNeutralBlack">#33c17900</color>
     <color name="chipTextNeutralBlack">#CCffd149</color>
-
-    <color name="fabBackgroundBlack">#77959595</color>
 
     <color name="selectedCardBgBlack">#282525</color>
 
@@ -298,8 +296,6 @@
     <color name="textColorAccentBadLightPlus">#ff5e61</color>
     <color name="homeScreenHeaderTextColorLightPlus">#000000</color>
 
-    <color name="fabBackgroundLightPlus">#FFFFFF</color>
-
     <color name="selectedCardBgLightPlus">#daf3f0</color>
 
     <color name="firewallNoRuleToggleBtnTxtLightPlus">#C5E1A5</color>
@@ -374,8 +370,6 @@
     <color name="chipBgNeutralBlackPlus">#37454F</color>
     <color name="chipTextNeutralBlackPlus">#FFB84A</color>
 
-    <color name="fabBackgroundBlackPlus">#1E3A4B</color>
-
     <color name="selectedCardBgBlackPlus">#2D404E</color>
 
     <color name="firewallNoRuleToggleBtnTxtBlackPlus">#8EE6A9</color>
@@ -442,8 +436,6 @@
     <color name="chipColorBgHighlightBG">#904fc3f7</color>
     <color name="chipBgNeutralBG">#33c17900</color>
     <color name="chipTextNeutralBG">#CCffd149</color>
-
-    <color name="fabBackgroundBG">#77959595</color>
 
     <color name="selectedCardBgBG">#282525</color>
 
