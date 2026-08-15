@@ -44,7 +44,7 @@ expect object AppDatabaseConstructor : RoomDatabaseConstructor<AppDatabase> {
         SubscriptionStatus::class,
         SubscriptionStateHistory::class
     ],
-    version = 30,
+    version = 1,
     exportSchema = true
 )
 @ColumnTypeConverters(Converters::class)
@@ -54,19 +54,9 @@ abstract class AppDatabase : RoomDatabase() {
 
     companion object {
         const val DATABASE_NAME = "bravedns.db"
-        const val SCHEMA_VERSION = 30
+        const val SCHEMA_VERSION = 1
         private const val PRAGMA = "pragma wal_checkpoint(full)"
 
-        // setJournalMode() is added as part of issue #344
-        // modified the journal mode from TRUNCATE to AUTOMATIC.
-        // The actual value will be TRUNCATE when the it is a low-RAM device.
-        // Otherwise, WRITE_AHEAD_LOGGING will be used.
-        // Ref:
-        // https://developer.android.com/reference/android/arch/persistence/room/RoomDatabase.JournalMode#automatic
-
-        // Kept for DatabaseBuilders.jvm.kt. Shared has no Logger; the old println
-        // callbacks were noise and are intentionally empty.
-        internal val roomCallback: Callback = object : Callback() {}
     }
 
     // fixme: revisit the links to remove the pragma for each table

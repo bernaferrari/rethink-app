@@ -80,69 +80,15 @@ class RestoreAgentTest {
     }
 
     @Test
-    fun `prefs appVersion 24 is compatible`() {
-        val dir = prefsDir(mapOf(PersistentState.APP_VERSION to 24))
-        assertTrue(isMetadataCompatible(dir))
-    }
-
-    @Test
-    fun `prefs appVersion greater than 24 is compatible`() {
-        val dir = prefsDir(mapOf(PersistentState.APP_VERSION to 30))
-        assertTrue(isMetadataCompatible(dir))
-    }
-
-    @Test
-    fun `prefs appVersion below 24 is incompatible`() {
-        val dir = prefsDir(mapOf(PersistentState.APP_VERSION to 23))
-        assertFalse(isMetadataCompatible(dir))
-    }
-
-    @Test
-    fun `prefs without appVersion is incompatible`() {
-        val dir = prefsDir(mapOf("unrelated" to true))
-        assertFalse(isMetadataCompatible(dir))
-    }
-
-    @Test
-    fun `metadata version 24 is compatible when installed app is newer`() {
-        every { persistentState.appVersion } returns 30
-        assertTrue(isVersionSupported(metadata(version = 24)))
-    }
-
-    @Test
-    fun `metadata version below 24 is incompatible`() {
-        assertFalse(isVersionSupported(metadata(version = 23)))
-    }
-
-    @Test
-    fun `metadata version newer than installed app is incompatible`() {
-        every { persistentState.appVersion } returns 24
-        assertFalse(isVersionSupported(metadata(version = 25)))
-    }
-
-    @Test
-    fun `metadata without version key is incompatible`() {
-        assertFalse(isVersionSupported("package:com.bernaferrari.bravedns|createdTs:1700000000000"))
-    }
-
-    @Test
-    fun `validateMetadata accepts prefs at min version`() {
-        val dir = prefsDir(mapOf(PersistentState.APP_VERSION to 24))
+    fun `validateMetadata accepts a backup with a metadata file`() {
+        val dir = prefsDir(mapOf(PersistentState.APP_VERSION to 1))
+        File(dir, METADATA_FILENAME).writeText(metadata(version = 1))
         assertTrue(validateMetadata(dir))
     }
 
     @Test
-    fun `validateMetadata falls back to metadata file when prefs are too old`() {
-        val dir = prefsDir(mapOf(PersistentState.APP_VERSION to 23))
-        File(dir, METADATA_FILENAME).writeText(metadata(version = 24))
-        every { persistentState.appVersion } returns 30
-        assertTrue(validateMetadata(dir))
-    }
-
-    @Test
-    fun `validateMetadata rejects prefs and metadata both below 24`() {
-        val dir = prefsDir(mapOf(PersistentState.APP_VERSION to 23))
-        File(dir, METADATA_FILENAME).writeText(metadata(version = 23))
+    fun `validateMetadata rejects a backup without a metadata file`() {
+        val dir = prefsDir(mapOf(PersistentState.APP_VERSION to 1))
         assertFalse(validateMetadata(dir))
     }
 
@@ -185,14 +131,6 @@ class RestoreAgentTest {
     fun `unreadable sqlite file is rejected`() {
         val bogus = File(tmp.newFolder(), AppDatabase.DATABASE_NAME).apply { writeText("not a database") }
         assertFalse(validateRestoredSchemaVersions(arrayOf(bogus)))
-    }
-
-    private fun isMetadataCompatible(dir: File): Boolean {
-        return invoke("isMetadataCompatible", String::class.java, dir.path) as Boolean
-    }
-
-    private fun isVersionSupported(metadata: String): Boolean {
-        return invoke("isVersionSupported", String::class.java, metadata) as Boolean
     }
 
     private fun validateMetadata(dir: File): Boolean {

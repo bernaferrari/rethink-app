@@ -24,9 +24,9 @@
     <ID>CyclomaticComplexMethod:AppListScreen.kt$@Composable private fun androidFirewallAppListStrings(dialogs: AndroidBulkDialogCopy): RethinkFirewallAppListStrings</ID>
     <ID>CyclomaticComplexMethod:AppListScreen.kt$AndroidBulkDialogCopy$fun copyFor(action: RethinkFirewallBulkAction, active: Boolean): RethinkFirewallBulkDialogCopy</ID>
     <ID>CyclomaticComplexMethod:BackupRestoreDialog.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun BackupRestoreSheet( onDismiss: () -&gt; Unit )</ID>
-    <ID>CyclomaticComplexMethod:BillingBackendClient.kt$BillingBackendClient$private suspend fun executeAckWithRetry( caller: String, attempt: suspend (ApiHandle) -&gt; Response&lt;JsonObject?&gt;? ): Pair&lt;Boolean, String&gt;</ID>
-    <ID>CyclomaticComplexMethod:BillingBackendClient.kt$BillingBackendClient$suspend fun queryEntitlement( accountId: String, deviceId: String, purchase: PurchaseDetail, purchaseToken: String ): QueryEntitlementResult</ID>
     <ID>CyclomaticComplexMethod:BillingBackendClient.kt$BillingBackendClient$suspend fun refreshIdentity(): RefreshIdentityResult</ID>
+    <ID>CyclomaticComplexMethod:BillingEntitlementApi.kt$BillingEntitlementApi$private suspend fun executeAckWithRetry( caller: String, attempt: suspend (ApiHandle) -&gt; Response&lt;JsonObject?&gt;? ): Pair&lt;Boolean, String&gt;</ID>
+    <ID>CyclomaticComplexMethod:BillingEntitlementApi.kt$BillingEntitlementApi$suspend fun queryEntitlement( accountId: String, deviceId: String, purchase: PurchaseDetail, purchaseToken: String ): QueryEntitlementResult</ID>
     <ID>CyclomaticComplexMethod:BillingProductCatalog.kt$BillingProductCatalog$fun processProductList(pds: List&lt;ProductDetails&gt;)</ID>
     <ID>CyclomaticComplexMethod:BraveVPNService.kt$BraveVPNService$fun parseIpAndPort(endpoint: String?): Pair&lt;String, Int&gt;</ID>
     <ID>CyclomaticComplexMethod:BraveVPNService.kt$BraveVPNService$override fun flow( protocol: Int, _uid: Int, src: String?, dst: String?, realIps: String?, d: String?, possibleDomains: String?, blocklists: String? ): Mark</ID>
@@ -35,8 +35,6 @@
     <ID>CyclomaticComplexMethod:BraveVPNService.kt$BraveVPNService$private suspend fun determineProxyDetails( connTracker: ConnTrackerMetaData, doubleLoopback: Boolean, rinr: Boolean, proxySnapshot: ProxyRoutingSnapshot ): Mark</ID>
     <ID>CyclomaticComplexMethod:BraveVPNService.kt$BraveVPNService$suspend fun onNetworkConnected(networks: ConnectionMonitor.UnderlyingNetworks, forceRestart: Boolean = false)</ID>
     <ID>CyclomaticComplexMethod:BugReportZipper.kt$BugReportZipper$@RequiresApi(Build.VERSION_CODES.O) fun rezipAll(dir: File, file: File)</ID>
-    <ID>CyclomaticComplexMethod:ConfigureRethinkBasicScreen.kt$@Composable private fun RethinkBlocklistContent( modifier: Modifier = Modifier, context: Context, blocklistType: RethinkBlocklistManager.RethinkBlocklistType, filters: MutableStateFlow&lt;RethinkBlocklistState.Filters&gt;, remoteFileTagViewModel: RethinkRemoteFileTagViewModel, localFileTagViewModel: RethinkLocalFileTagViewModel, remoteBlocklistPacksMapViewModel: RemoteBlocklistPacksMapViewModel, localBlocklistPacksMapViewModel: LocalBlocklistPacksMapViewModel, showDownload: Boolean, showConfigure: Boolean, isDownloading: Boolean, showRemoteProgress: Boolean, activeView: RethinkBlocklistState.BlocklistView, filterLabelText: String, plusFilterTags: List&lt;FileTag&gt;, onActiveViewChanged: (RethinkBlocklistState.BlocklistView) -&gt; Unit, onFilterLabelTextChanged: (String) -&gt; Unit, onPlusFilterTagsChanged: (List&lt;FileTag&gt;) -&gt; Unit, onDownloadBlocklist: () -&gt; Unit, onCancelDownload: () -&gt; Unit, onApplyChanges: () -&gt; Unit, onRevertChanges: () -&gt; Unit, onRefreshBlocklistAvailability: () -&gt; Unit, onProcessSelectedFileTags: (String) -&gt; Unit, onModifiedStampChanged: (String) -&gt; Unit, getStampValue: () -&gt; String, onDownloadStart: () -&gt; Unit, onDownloadFail: () -&gt; Unit, onDownloadSuccess: () -&gt; Unit, filterDescriptionTemplate: String, filterDescriptionSubgroupsTemplate: String )</ID>
-    <ID>CyclomaticComplexMethod:ConfigureRethinkBasicScreen.kt$@Composable private fun RethinkListContent( modifier: Modifier = Modifier, context: Context, persistentState: PersistentState, appConfig: AppConfig, appDownloadManager: AppDownloadManager, rethinkEndpointViewModel: RethinkEndpointViewModel, uid: Int, isMax: Boolean, updateAvailable: Boolean, checkUpdateVisible: Boolean, redownloadVisible: Boolean, checkUpdateInProgress: Boolean, updateInProgress: Boolean, onMaxChanged: (Boolean) -&gt; Unit, onUpdateMaxSwitchUi: () -&gt; Unit, onRefreshUpdateUi: () -&gt; Unit, onCheckUpdateInProgressChanged: (Boolean) -&gt; Unit, onUpdateInProgressChanged: (Boolean) -&gt; Unit, onCheckBlocklistUpdate: () -&gt; Unit, onDownload: (Long, Boolean) -&gt; Unit, localBlocklistVersionTemplate: String, downloadFailureMessage: String )</ID>
     <ID>CyclomaticComplexMethod:ConfigureRethinkBasicScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun ConfigureRethinkBasicScreen( screenType: ConfigureRethinkScreenType, remoteName: String = "", remoteUrl: String = "", uid: Int = Constants.MISSING_UID, persistentState: PersistentState, appConfig: AppConfig, appDownloadManager: AppDownloadManager, rethinkEndpointViewModel: RethinkEndpointViewModel, remoteFileTagViewModel: RethinkRemoteFileTagViewModel, localFileTagViewModel: RethinkLocalFileTagViewModel, remoteBlocklistPacksMapViewModel: RemoteBlocklistPacksMapViewModel, localBlocklistPacksMapViewModel: LocalBlocklistPacksMapViewModel, onBackClick: (() -&gt; Unit)? = null )</ID>
     <ID>CyclomaticComplexMethod:ConfigureScreen.kt$@Composable fun ConfigureScreen( isDebug: Boolean, onAppsClick: () -&gt; Unit, onDnsClick: () -&gt; Unit, onFirewallClick: () -&gt; Unit, onProxyClick: () -&gt; Unit, onNetworkClick: () -&gt; Unit, onOthersClick: () -&gt; Unit, onLogsClick: () -&gt; Unit, onAntiCensorshipClick: () -&gt; Unit, onAdvancedClick: () -&gt; Unit, persistentState: PersistentState, eventLogger: EventLogger, onThemeModeChanged: ((Int) -&gt; Unit)? = null, onThemeColorChanged: ((Int) -&gt; Unit)? = null, onSearchDestinationClick: ((SettingsSearchDestination) -&gt; Unit)? = null, )</ID>
     <ID>CyclomaticComplexMethod:ConnectionFirewall.kt$ConnectionFirewall$suspend fun evaluate(request: ConnectionRequest): FirewallVerdict</ID>
@@ -110,14 +108,14 @@
     <ID>CyclomaticComplexMethod:WgConfigAdapter.kt$@Composable fun WgConfigRow( config: WgConfigFiles, eventLogger: EventLogger, onDnsStatusChanged: () -&gt; Unit, onConfigDetailClick: (Int, WgType) -&gt; Unit )</ID>
     <ID>CyclomaticComplexMethod:WgConfigDetailScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun WgConfigDetailScreen( configId: Int, wgType: WgType, persistentState: PersistentState, eventLogger: EventLogger, mappingViewModel: ProxyAppsMappingViewModel, onEditConfig: (Int, WgType) -&gt; Unit, onBackClick: () -&gt; Unit )</ID>
     <ID>CyclomaticComplexMethod:WgConfigEditorScreen.kt$@Composable fun WgConfigEditorScreen( configId: Int, wgType: WgType, persistentState: PersistentState, onBackClick: () -&gt; Unit, onSaveSuccess: () -&gt; Unit, )</ID>
+    <ID>CyclomaticComplexMethod:WgConfigStore.kt$WgConfigStore$suspend fun performRestore()</ID>
     <ID>CyclomaticComplexMethod:WgHopPlatformAdapter.kt$suspend fun updateWireguardHop( context: Context, sourceId: Int, target: Config, shouldSelect: Boolean, ): RethinkWireguardHopToggleResult</ID>
+    <ID>CyclomaticComplexMethod:WgHopSelector.kt$WgHopSelector$fun collectProxyIds( uid: Int, ip: String, port: Int, domain: String, usesMobileNw: Boolean, ssid: String, default: String, oneWireGuardId: Int?, wgProxyIdsForApp: List&lt;String&gt;, mappings: Collection&lt;WgConfigFilesImmutable&gt;, ): List&lt;String&gt;</ID>
     <ID>CyclomaticComplexMethod:WgIncludeAppsDialog.kt$@Composable private fun WgIncludeAppsDialogScreen( viewModel: ProxyAppsMappingViewModel, proxyId: String, proxyName: String, onDismiss: () -&gt; Unit, inDialog: Boolean = true )</ID>
     <ID>CyclomaticComplexMethod:WgMainScreen.kt$@Composable fun WgMainScreen( wgConfigViewModel: WgConfigViewModel, persistentState: PersistentState, appConfig: AppConfig, eventLogger: EventLogger, onBackClick: () -&gt; Unit, onCreateClick: () -&gt; Unit, onImportClick: () -&gt; Unit, onQrScanClick: () -&gt; Unit, onConfigDetailClick: (Int, WgType) -&gt; Unit )</ID>
-    <ID>CyclomaticComplexMethod:WireguardManager.kt$WireguardManager$suspend fun getAllPossibleConfigIdsForApp(uid: Int, ip: String, port: Int, domain: String, usesMobileNw: Boolean, ssid: String, default: String): List&lt;String&gt;</ID>
     <ID>CyclomaticComplexMethod:WireguardManager.kt$WireguardManager$suspend fun load(forceRefresh: Boolean): Int</ID>
-    <ID>CyclomaticComplexMethod:WireguardManager.kt$WireguardManager$suspend fun performRestore()</ID>
     <ID>ExplicitItLambdaParameter:AppDownloadManager.kt$AppDownloadManager${ i, it -&gt; val fileName = it.filename // url: https://dl.rethinkdns.com/update/blocklists?tstamp=1696197375609&amp;vcode=33 Logger.d(LOG_TAG_DOWNLOAD, "v: ($timestamp), f: $fileName, u: $it.url") downloadIds[i] = enqueueDownload(it.url, fileName, timestamp.toString()) if (downloadIds[i] == INVALID_DOWNLOAD_ID) { return DownloadManagerStatus.FAILURE } }</ID>
-    <ID>ExplicitItLambdaParameter:WireguardManager.kt$WireguardManager${ it -&gt; val confId = convertStringIdToId(it) val conf = mappings.find { it.id == confId } lockdown = conf?.isLockdown ?: false if (lockdown) return true }</ID>
+    <ID>ExplicitItLambdaParameter:WgHopSelector.kt$WgHopSelector${ it -&gt; val confId = convertStringIdToId(it) val conf = mappings.find { mapping -&gt; mapping.id == confId } lockdown = conf?.isLockdown ?: false if (lockdown) return true }</ID>
     <ID>ForbiddenComment:BackgroundAccessibilityService.kt$BackgroundAccessibilityService$// FIXME: Figure out a fool-proof way to determine is launcher visible</ID>
     <ID>ForbiddenComment:BackgroundAccessibilityService.kt$BackgroundAccessibilityService$// TODO: Handle widgets on the homescreen</ID>
     <ID>ForbiddenComment:BraveTileService.kt$BraveTileService$// TODO: should we check for last unlock time here?</ID>
@@ -139,9 +137,7 @@
     <ID>ForbiddenComment:GoDnsTransports.kt$GoDnsTransports$// TODO: #321 As of now there is no block free transport for dns types other than Rethink.</ID>
     <ID>ForbiddenComment:GoVpnAdapter.kt$GoVpnAdapter$// TODO: ideally the values required for transport, alg and rdns should be set in the</ID>
     <ID>ForbiddenComment:GoVpnAdapter.kt$GoVpnAdapter$// TODO: see if the hop is already added, if so no need to redo this</ID>
-    <ID>ForbiddenComment:HomeScreenActivity.kt$HomeScreenActivity$// FIXME: remove this post v054</ID>
     <ID>ForbiddenComment:HomeScreenActivity.kt$HomeScreenActivity$// TODO: prompt dialog to user that Playservice is disabled, so switch to update</ID>
-    <ID>ForbiddenComment:HomeScreenActivity.kt$HomeScreenActivity$// TODO: remove this post v054.</ID>
     <ID>ForbiddenComment:IpRulesManager.kt$IpRulesManager$// TODO: is this needed in database?</ID>
     <ID>ForbiddenComment:KernelProc.kt$KernelProc$// TODO: for known pointer types (e.g. AT_PLATFORM, AT_RANDOM) we could</ID>
     <ID>ForbiddenComment:LocalBlocklistCoordinator.kt$LocalBlocklistCoordinator$// downloaded. TODO: Later add checksum matching as well</ID>
@@ -149,7 +145,6 @@
     <ID>ForbiddenComment:PipKeyManager.kt$PipKeyManager$// TODO: should we get the response from the publicKeyUsable method instead of</ID>
     <ID>ForbiddenComment:ProxyManager.kt$ProxyManager.ProxyMode$// TODO: consider adding other proxy modes (e.g, Wireguard, Rethink, etc.)</ID>
     <ID>ForbiddenComment:RefreshDatabase.kt$RefreshDatabase$// TODO: implement upsert logic handling all the edge cases</ID>
-    <ID>ForbiddenComment:RestoreAgent.kt$RestoreAgent$// TODO: revisit this after v055 release</ID>
     <ID>ForbiddenComment:RethinkBlocklistManager.kt$RethinkBlocklistManager$// TODO: merge both the remote and local json parsing into one</ID>
     <ID>ForbiddenComment:RpnProxyManager.kt$RpnProxyManager$// TODO: perform the validation of purchaseToken and accountId with the subscription data</ID>
     <ID>ForbiddenComment:VpnController.kt$VpnController$// FIXME: Publish VpnState through this state-flow to relieve direct access</ID>
@@ -160,13 +155,10 @@
     <ID>ForbiddenComment:VpnTunAppPolicy.kt$VpnTunAppPolicy$// TODO: should allowFamily be set?</ID>
     <ID>ForbiddenComment:VpnTunRoutes.kt$VpnTunRoutes$// TODO: as of now, vpn lockdown mode is not handled, check if this is required</ID>
     <ID>ForbiddenComment:VpnTunRoutes.kt$VpnTunRoutes$// TODO: do we need to still exclude the routes in case of noRoutes?</ID>
-    <ID>ForbiddenComment:WireguardManager.kt$WireguardManager$* migration that converts encrypted wg config files created by older app versions into plain * text files. files already containing a valid Interface section are skipped, * completion is tracked by [PersistentState.wireguardPlainFileMigrationDone]. * TODO: better way to find whether the file is encrypted other than reading like this * but adding this as it is one time thing * * if a file cannot be decrypted (keystore invalidated, corrupted keyset, etc.) the * config is marked inactive in the database and removed from the tunnel so the app * continues to work. The encrypted file is deleted to prevent repeated failures.</ID>
-    <ID>ForbiddenComment:WireguardManager.kt$WireguardManager$// TODO: delete the warp config from the wireguard directory, now part of rpn proxy</ID>
     <ID>FunctionNaming:Utilities.kt$Utilities$fun isAtleastO_MR1(): Boolean</ID>
     <ID>FunctionParameterNaming:BraveVPNService.kt$BraveVPNService$_new: ConnectionMonitor.UnderlyingNetworks? = null</ID>
     <ID>FunctionParameterNaming:BraveVPNService.kt$BraveVPNService$_proxyId: String</ID>
     <ID>ImplicitDefaultLocale:Utilities.kt$Utilities$String.format("%s (%s)", countryCode, ipAddress)</ID>
-    <ID>LargeClass:BillingBackendClient.kt$BillingBackendClient : KoinComponent</ID>
     <ID>LargeClass:BraveVPNService.kt$BraveVPNService : VpnServiceNetworkListenerBridge</ID>
     <ID>LargeClass:GoVpnAdapter.kt$GoVpnAdapter : KoinComponent</ID>
     <ID>LargeClass:HomeScreenActivity.kt$HomeScreenActivity : FragmentActivity</ID>
@@ -174,13 +166,10 @@
     <ID>LargeClass:RpnProxyManager.kt$RpnProxyManager : KoinComponent</ID>
     <ID>LargeClass:RpnWinServerController.kt$RpnWinServerController</ID>
     <ID>LargeClass:SubscriptionStateMachineV2.kt$SubscriptionStateMachineV2 : KoinComponent</ID>
-    <ID>LargeClass:WireguardManager.kt$WireguardManager : KoinComponent</ID>
     <ID>LongMethod:AppInfoScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun AppInfoScreen( uid: Int, eventLogger: EventLogger, ipRulesViewModel: CustomIpViewModel, domainRulesViewModel: CustomDomainViewModel, networkLogsViewModel: AppConnectionsViewModel, onBackClick: () -&gt; Unit, onAppWiseIpLogsClick: (Int, Boolean) -&gt; Unit, onAppWiseDomainLogsClick: (Int) -&gt; Unit, onCustomIpRulesClick: (Int) -&gt; Unit, onCustomDomainRulesClick: (Int) -&gt; Unit )</ID>
     <ID>LongMethod:AppIpRulesDialog.kt$@Composable fun AppIpRulesSheet( uid: Int, ipAddress: String, domains: String, eventLogger: EventLogger, onDismiss: () -&gt; Unit, onUpdated: () -&gt; Unit )</ID>
     <ID>LongMethod:BackupRestoreDialog.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun BackupRestoreSheet( onDismiss: () -&gt; Unit )</ID>
     <ID>LongMethod:BillingProductCatalog.kt$BillingProductCatalog$fun processProductList(pds: List&lt;ProductDetails&gt;)</ID>
-    <ID>LongMethod:ConfigureRethinkBasicScreen.kt$@Composable private fun RethinkBlocklistContent( modifier: Modifier = Modifier, context: Context, blocklistType: RethinkBlocklistManager.RethinkBlocklistType, filters: MutableStateFlow&lt;RethinkBlocklistState.Filters&gt;, remoteFileTagViewModel: RethinkRemoteFileTagViewModel, localFileTagViewModel: RethinkLocalFileTagViewModel, remoteBlocklistPacksMapViewModel: RemoteBlocklistPacksMapViewModel, localBlocklistPacksMapViewModel: LocalBlocklistPacksMapViewModel, showDownload: Boolean, showConfigure: Boolean, isDownloading: Boolean, showRemoteProgress: Boolean, activeView: RethinkBlocklistState.BlocklistView, filterLabelText: String, plusFilterTags: List&lt;FileTag&gt;, onActiveViewChanged: (RethinkBlocklistState.BlocklistView) -&gt; Unit, onFilterLabelTextChanged: (String) -&gt; Unit, onPlusFilterTagsChanged: (List&lt;FileTag&gt;) -&gt; Unit, onDownloadBlocklist: () -&gt; Unit, onCancelDownload: () -&gt; Unit, onApplyChanges: () -&gt; Unit, onRevertChanges: () -&gt; Unit, onRefreshBlocklistAvailability: () -&gt; Unit, onProcessSelectedFileTags: (String) -&gt; Unit, onModifiedStampChanged: (String) -&gt; Unit, getStampValue: () -&gt; String, onDownloadStart: () -&gt; Unit, onDownloadFail: () -&gt; Unit, onDownloadSuccess: () -&gt; Unit, filterDescriptionTemplate: String, filterDescriptionSubgroupsTemplate: String )</ID>
-    <ID>LongMethod:ConfigureRethinkBasicScreen.kt$@Composable private fun RethinkListContent( modifier: Modifier = Modifier, context: Context, persistentState: PersistentState, appConfig: AppConfig, appDownloadManager: AppDownloadManager, rethinkEndpointViewModel: RethinkEndpointViewModel, uid: Int, isMax: Boolean, updateAvailable: Boolean, checkUpdateVisible: Boolean, redownloadVisible: Boolean, checkUpdateInProgress: Boolean, updateInProgress: Boolean, onMaxChanged: (Boolean) -&gt; Unit, onUpdateMaxSwitchUi: () -&gt; Unit, onRefreshUpdateUi: () -&gt; Unit, onCheckUpdateInProgressChanged: (Boolean) -&gt; Unit, onUpdateInProgressChanged: (Boolean) -&gt; Unit, onCheckBlocklistUpdate: () -&gt; Unit, onDownload: (Long, Boolean) -&gt; Unit, localBlocklistVersionTemplate: String, downloadFailureMessage: String )</ID>
     <ID>LongMethod:ConfigureRethinkBasicScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun ConfigureRethinkBasicScreen( screenType: ConfigureRethinkScreenType, remoteName: String = "", remoteUrl: String = "", uid: Int = Constants.MISSING_UID, persistentState: PersistentState, appConfig: AppConfig, appDownloadManager: AppDownloadManager, rethinkEndpointViewModel: RethinkEndpointViewModel, remoteFileTagViewModel: RethinkRemoteFileTagViewModel, localFileTagViewModel: RethinkLocalFileTagViewModel, remoteBlocklistPacksMapViewModel: RemoteBlocklistPacksMapViewModel, localBlocklistPacksMapViewModel: LocalBlocklistPacksMapViewModel, onBackClick: (() -&gt; Unit)? = null )</ID>
     <ID>LongMethod:ConnectionFirewall.kt$ConnectionFirewall$suspend fun evaluate(request: ConnectionRequest): FirewallVerdict</ID>
     <ID>LongMethod:CustomDomainRulesDialog.kt$@Composable fun CustomDomainRulesSheet( customDomain: CustomDomain, eventLogger: EventLogger, onDismiss: () -&gt; Unit, onDeleted: () -&gt; Unit )</ID>
@@ -204,12 +193,10 @@
     <ID>LongMethod:VpnPrefObservers.kt$VpnPrefObservers$private fun handlePreferenceKeyChanged(key: String)</ID>
     <ID>LongMethod:WgConfigDetailScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun WgConfigDetailScreen( configId: Int, wgType: WgType, persistentState: PersistentState, eventLogger: EventLogger, mappingViewModel: ProxyAppsMappingViewModel, onEditConfig: (Int, WgType) -&gt; Unit, onBackClick: () -&gt; Unit )</ID>
     <ID>LongParameterList:AboutScreen.kt$( uiState: AboutUiState, onTelegramClick: () -&gt; Unit, onBugReportClick: () -&gt; Unit, onWhatsNewClick: () -&gt; Unit, onAppUpdateClick: () -&gt; Unit, onWebsiteClick: () -&gt; Unit, onGithubClick: () -&gt; Unit, onFaqClick: () -&gt; Unit, onDocsClick: () -&gt; Unit, onPrivacyPolicyClick: () -&gt; Unit, onTermsOfServiceClick: () -&gt; Unit, onLicenseClick: () -&gt; Unit, onTwitterClick: () -&gt; Unit, onEmailClick: () -&gt; Unit, onRedditClick: () -&gt; Unit, onElementClick: () -&gt; Unit, onMastodonClick: () -&gt; Unit, onGeneralSettingsClick: () -&gt; Unit, onAppInfoClick: () -&gt; Unit, onVpnProfileClick: () -&gt; Unit, onNotificationClick: () -&gt; Unit, onStatsClick: () -&gt; Unit, onDbStatsClick: () -&gt; Unit, onFlightRecordClick: () -&gt; Unit, onEventLogsClick: () -&gt; Unit, onTokenClick: () -&gt; Unit, onFossClick: () -&gt; Unit, onFlossFundsClick: () -&gt; Unit, onBackClick: () -&gt; Unit, )</ID>
-    <ID>LongParameterList:ConfigureRethinkBasicScreen.kt$( modifier: Modifier = Modifier, context: Context, blocklistType: RethinkBlocklistManager.RethinkBlocklistType, filters: MutableStateFlow&lt;RethinkBlocklistState.Filters&gt;, remoteFileTagViewModel: RethinkRemoteFileTagViewModel, localFileTagViewModel: RethinkLocalFileTagViewModel, remoteBlocklistPacksMapViewModel: RemoteBlocklistPacksMapViewModel, localBlocklistPacksMapViewModel: LocalBlocklistPacksMapViewModel, showDownload: Boolean, showConfigure: Boolean, isDownloading: Boolean, showRemoteProgress: Boolean, activeView: RethinkBlocklistState.BlocklistView, filterLabelText: String, plusFilterTags: List&lt;FileTag&gt;, onActiveViewChanged: (RethinkBlocklistState.BlocklistView) -&gt; Unit, onFilterLabelTextChanged: (String) -&gt; Unit, onPlusFilterTagsChanged: (List&lt;FileTag&gt;) -&gt; Unit, onDownloadBlocklist: () -&gt; Unit, onCancelDownload: () -&gt; Unit, onApplyChanges: () -&gt; Unit, onRevertChanges: () -&gt; Unit, onRefreshBlocklistAvailability: () -&gt; Unit, onProcessSelectedFileTags: (String) -&gt; Unit, onModifiedStampChanged: (String) -&gt; Unit, getStampValue: () -&gt; String, onDownloadStart: () -&gt; Unit, onDownloadFail: () -&gt; Unit, onDownloadSuccess: () -&gt; Unit, filterDescriptionTemplate: String, filterDescriptionSubgroupsTemplate: String )</ID>
-    <ID>LongParameterList:ConfigureRethinkBasicScreen.kt$( modifier: Modifier = Modifier, context: Context, persistentState: PersistentState, appConfig: AppConfig, appDownloadManager: AppDownloadManager, rethinkEndpointViewModel: RethinkEndpointViewModel, uid: Int, isMax: Boolean, updateAvailable: Boolean, checkUpdateVisible: Boolean, redownloadVisible: Boolean, checkUpdateInProgress: Boolean, updateInProgress: Boolean, onMaxChanged: (Boolean) -&gt; Unit, onUpdateMaxSwitchUi: () -&gt; Unit, onRefreshUpdateUi: () -&gt; Unit, onCheckUpdateInProgressChanged: (Boolean) -&gt; Unit, onUpdateInProgressChanged: (Boolean) -&gt; Unit, onCheckBlocklistUpdate: () -&gt; Unit, onDownload: (Long, Boolean) -&gt; Unit, localBlocklistVersionTemplate: String, downloadFailureMessage: String )</ID>
     <ID>LongParameterList:DnsDetailScreen.kt$( headingText: String, versionText: String, canConfigure: Boolean, canCopy: Boolean, canSearch: Boolean, showCheckDownload: Boolean, showDownload: Boolean, showRedownload: Boolean, isChecking: Boolean, isDownloading: Boolean, isRedownloading: Boolean, isBlocklistEnabled: Boolean, onDismiss: () -&gt; Unit, onEnableBlocklist: () -&gt; Unit, onConfigure: () -&gt; Unit, onCopy: () -&gt; Unit, onSearch: () -&gt; Unit, onCheckUpdate: () -&gt; Unit, onDownload: () -&gt; Unit, onRedownload: () -&gt; Unit, onDelete: () -&gt; Unit, )</ID>
     <ID>LongParameterList:DnsSettingsScreen.kt$( uiState: DnsSettingsUiState, initialFocusKey: String? = null, onRefreshClick: () -&gt; Unit, onSystemDnsClick: () -&gt; Unit, onSystemDnsInfoClick: () -&gt; Unit, onCustomDnsClick: () -&gt; Unit, onRethinkPlusDnsClick: () -&gt; Unit, onSmartDnsClick: () -&gt; Unit, onSmartDnsInfoClick: () -&gt; Unit, onLocalBlocklistClick: () -&gt; Unit, onCustomDownloaderChange: (Boolean) -&gt; Unit, onPeriodicUpdateChange: (Boolean) -&gt; Unit, onDnsAlgChange: (Boolean) -&gt; Unit, onSplitDnsChange: (Boolean) -&gt; Unit, onBypassDnsBlockChange: (Boolean) -&gt; Unit, onAllowedRecordTypesClick: () -&gt; Unit, onFavIconChange: (Boolean) -&gt; Unit, onDnsCacheChange: (Boolean) -&gt; Unit, onProxyDnsChange: (Boolean) -&gt; Unit, onUndelegatedDomainsChange: (Boolean) -&gt; Unit, onFallbackChange: (Boolean) -&gt; Unit, onBlockFreeDnsModeChange: (BlockFreeDnsMode) -&gt; Unit, onBlockFreeDnsClick: () -&gt; Unit, onPreventLeaksChange: (Boolean) -&gt; Unit, onBackClick: (() -&gt; Unit)? = null, )</ID>
     <ID>LongParameterList:HomeNavigation.kt$( homeUiState: HomeScreenUiState, onHomeStartStopClick: () -&gt; Unit, summaryViewModel: SummaryStatisticsViewModel, onOpenDetailedStats: (SummaryStatisticsType) -&gt; Unit, startDestination: RethinkRoute, isDebug: Boolean, configureActions: HomeConfigureActions, aboutUiState: AboutUiState, aboutActions: HomeAboutActions, snackbarHostState: SnackbarHostState, detailedStatsViewModel: DetailedStatisticsViewModel, domainConnectionsViewModel: DomainConnectionsViewModel, eventsViewModel: EventsViewModel, eventDao: EventDao, appInfoEventLogger: EventLogger, appInfoIpRulesViewModel: CustomIpViewModel, appInfoDomainRulesViewModel: CustomDomainViewModel, appInfoNetworkLogsViewModel: AppConnectionsViewModel, persistentState: PersistentState, appConfig: AppConfig, onOpenVpnProfile: () -&gt; Unit, onRefreshDatabase: (() -&gt; Unit)? = null, onThemeModeChanged: ((Int) -&gt; Unit)? = null, onThemeColorChanged: ((Int) -&gt; Unit)? = null, consoleLogViewModel: ConsoleLogViewModel, consoleLogRepository: ConsoleLogRepository, onShareConsoleLogs: () -&gt; Unit, onConsoleLogsDeleteComplete: () -&gt; Unit, proxyAppsMappingViewModel: ProxyAppsMappingViewModel, dnsSettingsViewModel: DnsSettingsViewModel, appDownloadManager: AppDownloadManager, dnsActions: HomeDnsActions, homeNavRequest: HomeNavRequest?, onHomeNavConsumed: () -&gt; Unit, onAppLockResult: (AppLockResult) -&gt; Unit = {}, rethinkEndpointViewModel: RethinkEndpointViewModel, remoteFileTagViewModel: RethinkRemoteFileTagViewModel, localFileTagViewModel: RethinkLocalFileTagViewModel, remoteBlocklistPacksMapViewModel: RemoteBlocklistPacksMapViewModel, localBlocklistPacksMapViewModel: LocalBlocklistPacksMapViewModel, appInfoViewModel: AppInfoViewModel, refreshDatabase: RefreshDatabase, connectionTrackerViewModel: ConnectionTrackerViewModel, dnsLogViewModel: DnsLogViewModel, rethinkLogViewModel: RethinkLogViewModel, connectionTrackerRepository: ConnectionTrackerRepository, dnsLogRepository: DnsLogRepository, rethinkLogRepository: RethinkLogRepository, dohViewModel: DoHEndpointViewModel, dotViewModel: DoTEndpointViewModel, dnsProxyViewModel: DnsProxyEndpointViewModel, dnsCryptViewModel: DnsCryptEndpointViewModel, dnsCryptRelayViewModel: DnsCryptRelayEndpointViewModel, oDohViewModel: ODoHEndpointViewModel, wgConfigViewModel: WgConfigViewModel, checkoutViewModel: CheckoutViewModel?, managePurchaseViewModel: ManagePurchaseViewModel, purchaseHistoryViewModel: PurchaseHistoryViewModel, serverOrderHistoryViewModel: ServerOrderHistoryViewModel, blockFreeDnsViewModel: BlockFreeDnsViewModel, wgActions: HomeWgActions, appDatabase: AppDatabase )</ID>
-    <ID>LoopWithTooManyJumpStatements:BillingBackendClient.kt$BillingBackendClient$for</ID>
+    <ID>LoopWithTooManyJumpStatements:BillingEntitlementApi.kt$BillingEntitlementApi$for</ID>
     <ID>LoopWithTooManyJumpStatements:ErrorMessages.kt$ErrorMessages$while</ID>
     <ID>LoopWithTooManyJumpStatements:IpRulesManager.kt$IpRulesManager$for</ID>
     <ID>LoopWithTooManyJumpStatements:NetLogBatcher.kt$NetLogBatcher$for</ID>
@@ -246,7 +233,6 @@
     <ID>NestedBlockDepth:NetworkBindingService.kt$NetworkBindingService$private suspend fun bindAny( who: String, addrPort: String, fid: Long, networks: List&lt;NetworkProperties&gt; ): Boolean</ID>
     <ID>NestedBlockDepth:NetworkSsidLookup.kt$NetworkSsidLookup$fun getNetworkSSID(network: Network?, cap: NetworkCapabilities?): String?</ID>
     <ID>NestedBlockDepth:PurchaseResultProcessor.kt$PurchaseResultProcessor$suspend fun handlePurchase( purchasesList: List&lt;Purchase&gt;?, queriedProductType: String? = null )</ID>
-    <ID>NestedBlockDepth:RestoreAgent.kt$RestoreAgent$private fun isMetadataCompatible(tempDirectory: String?): Boolean</ID>
     <ID>NestedBlockDepth:RpnHopSelector.kt$RpnHopSelector$suspend fun collectProxyIds( uid: Int, ip: String, port: Int, domain: String, usesMobileNw: Boolean, ssid: String, allProxyIdsForApp: List&lt;String&gt;, rpnProxyIdsForApp: List&lt;String&gt;, servers: List&lt;CountryConfig&gt;, resolveAutoId: suspend () -&gt; String, ): List&lt;String&gt;</ID>
     <ID>NestedBlockDepth:RpnProxyManager.kt$RpnProxyManager$private suspend fun handleStateChange(state: SubscriptionStateMachineV2.SubscriptionState)</ID>
     <ID>NestedBlockDepth:RpnProxyManager.kt$RpnProxyManager$suspend fun load(): Int</ID>
@@ -321,7 +307,6 @@
     <ID>TooGenericExceptionCaught:RefreshDatabase.kt$RefreshDatabase$e: Exception</ID>
     <ID>TooGenericExceptionCaught:RefreshDatabase.kt$RefreshDatabase$e: RuntimeException</ID>
     <ID>TooGenericExceptionCaught:RestoreAgent.kt$RestoreAgent$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:RestoreAgent.kt$RestoreAgent$ex: Exception</ID>
     <ID>TooGenericExceptionCaught:RethinkBlocklistManager.kt$RethinkBlocklistManager$e: Exception</ID>
     <ID>TooGenericExceptionCaught:RpnHopManager.kt$RpnHopManager$e: Exception</ID>
     <ID>TooGenericExceptionCaught:RpnHopSelector.kt$RpnHopSelector$e: Exception</ID>
@@ -345,18 +330,17 @@
     <ID>TooGenericExceptionCaught:WgAddPeerDialog.kt$error: Throwable</ID>
     <ID>TooGenericExceptionCaught:WgConfigEditorScreen.kt$error: Throwable</ID>
     <ID>TooGenericExceptionCaught:WgHopManager.kt$WgHopManager$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:WireguardManager.kt$WireguardManager$e: Exception</ID>
     <ID>TooManyFunctions:AppDownloadManager.kt$AppDownloadManager</ID>
     <ID>TooManyFunctions:BackupAgent.kt$BackupAgent : WorkerKoinComponent</ID>
     <ID>TooManyFunctions:BackupRestoreDialog.kt$com.bernaferrari.bravedns.ui.bottomsheet.BackupRestoreDialog.kt</ID>
     <ID>TooManyFunctions:BillingBackendClient.kt$BillingBackendClient : KoinComponent</ID>
     <ID>TooManyFunctions:BillingConnectionController.kt$BillingConnectionController</ID>
+    <ID>TooManyFunctions:BillingEntitlementApi.kt$BillingEntitlementApi</ID>
     <ID>TooManyFunctions:BlocklistDownloadHelper.kt$BlocklistDownloadHelper$Companion</ID>
     <ID>TooManyFunctions:BraveVPNService.kt$BraveVPNService : VpnServiceNetworkListenerBridge</ID>
     <ID>TooManyFunctions:BubbleHelper.kt$BubbleHelper</ID>
     <ID>TooManyFunctions:BugReportZipper.kt$BugReportZipper</ID>
     <ID>TooManyFunctions:ConfigureOtherDnsScreen.kt$com.bernaferrari.bravedns.ui.compose.dns.ConfigureOtherDnsScreen.kt</ID>
-    <ID>TooManyFunctions:ConfigureRethinkBasicScreen.kt$com.bernaferrari.bravedns.ui.compose.dns.ConfigureRethinkBasicScreen.kt</ID>
     <ID>TooManyFunctions:ConnectionFirewall.kt$ConnectionFirewall</ID>
     <ID>TooManyFunctions:ConnectionMonitor.kt$ConnectionMonitor : KoinComponentDiagnosticsListener</ID>
     <ID>TooManyFunctions:ConnectionTrackerAdapter.kt$com.bernaferrari.bravedns.ui.components.ConnectionTrackerAdapter.kt</ID>
@@ -395,9 +379,9 @@
     <ID>TooManyFunctions:ProxyManager.kt$ProxyManager : KoinComponent</ID>
     <ID>TooManyFunctions:ProxySettings.kt$ProxySettings : ProxySettingsApi</ID>
     <ID>TooManyFunctions:ProxySettings.kt$ProxySettingsApi</ID>
-    <ID>TooManyFunctions:ProxySettingsScreen.kt$com.bernaferrari.bravedns.ui.compose.settings.ProxySettingsScreen.kt</ID>
     <ID>TooManyFunctions:PurchaseAckController.kt$PurchaseAckController</ID>
     <ID>TooManyFunctions:PurchaseDetailFactory.kt$PurchaseDetailFactory</ID>
+    <ID>TooManyFunctions:PurchaseHistoryParser.kt$PurchaseHistoryParser</ID>
     <ID>TooManyFunctions:QueryUtils.kt$QueryUtils</ID>
     <ID>TooManyFunctions:RefreshDatabase.kt$RefreshDatabase</ID>
     <ID>TooManyFunctions:RestoreAgent.kt$RestoreAgent : CoroutineWorkerKoinComponent</ID>
@@ -423,19 +407,18 @@
     <ID>TooManyFunctions:VpnPrefObservers.kt$VpnPrefObservers</ID>
     <ID>TooManyFunctions:VpnTunRoutes.kt$VpnTunRoutes</ID>
     <ID>TooManyFunctions:WgConfigAdapter.kt$com.bernaferrari.bravedns.ui.components.WgConfigAdapter.kt</ID>
+    <ID>TooManyFunctions:WgConfigRegistry.kt$WgConfigRegistry</ID>
     <ID>TooManyFunctions:WgHopManager.kt$WgHopManager : KoinComponent</ID>
     <ID>TooManyFunctions:WireguardManager.kt$WireguardManager : KoinComponent</ID>
     <ID>TopLevelPropertyNaming:EventsScreen.kt$private const val EventsSeverityFilterLabel = "Severity"</ID>
     <ID>UnusedParameter:BackupRestoreDialog.kt$activity: ComponentActivity</ID>
     <ID>UnusedParameter:BraveVPNService.kt$BraveVPNService$_proxyId: String</ID>
     <ID>UnusedParameter:ConfigureOtherDnsScreen.kt$context: android.content.Context</ID>
-    <ID>UnusedParameter:ConfigureRethinkBasicScreen.kt$appDownloadManager: AppDownloadManager</ID>
     <ID>UnusedParameter:GoVpnAdapter.kt$GoVpnAdapter$option: Long</ID>
     <ID>UnusedParameter:MiscSettingsScreen.kt$onRefreshDatabase: (() -&gt; Unit)? = null</ID>
     <ID>UnusedParameter:NetworkLogsScreen.kt$eventLogger: EventLogger</ID>
     <ID>UnusedParameter:NetworkLogsScreen.kt$rethinkLogRepository: RethinkLogRepository</ID>
     <ID>UnusedParameter:NetworkLogsScreen.kt$rethinkLogViewModel: RethinkLogViewModel</ID>
-    <ID>UnusedParameter:ProxySettingsScreen.kt$context: android.content.Context</ID>
     <ID>UnusedParameter:PurchaseAckController.kt$PurchaseAckController$deviceId: String</ID>
     <ID>UnusedParameter:SsidPermissionManager.kt$SsidPermissionManager$permissions: Array&lt;out String&gt;</ID>
     <ID>UnusedParameter:VpnAppFunctions.kt$VpnAppFunctions$appFunctionContext: AppFunctionContext</ID>
@@ -449,6 +432,7 @@
     <ID>UnusedPrivateProperty:AppInfoScreen.kt$val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()</ID>
     <ID>UnusedPrivateProperty:CheckoutViewModel.kt$CheckoutViewModel$@Provided private val persistentState: PersistentState</ID>
     <ID>UnusedPrivateProperty:CheckoutViewModel.kt$CheckoutViewModel$val accountId = id.substring(0, 64)</ID>
+    <ID>UnusedPrivateProperty:HomeScreenActivity.kt$HomeScreenActivity$private val appInfoDb by inject&lt;AppInfoRepository&gt;()</ID>
     <ID>UnusedPrivateProperty:OneTimePurchaseProcessor.kt$OneTimePurchaseProcessor$private val activateRpn: suspend (purchaseDetail: PurchaseDetail) -&gt; Unit</ID>
     <ID>UnusedPrivateProperty:PipKeyManager.kt$PipKeyManager$private const val ERR_UNSUPPORTED_DEVICE = "Rethink+ is not supported on this device"</ID>
     <ID>UnusedPrivateProperty:PipKeyManager.kt$PipKeyManager$private const val ERR_UPDATE_REQUIRED = "Rethink+ requires an update to the app"</ID>

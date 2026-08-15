@@ -374,29 +374,6 @@ object Utilities {
         return metadata
     }
 
-    fun isFreshInstall(ctx: Context): Boolean {
-        try {
-            with(
-                if (isAtleastT()) {
-                    ctx.packageManager.getPackageInfo(
-                        ctx.packageName,
-                        PackageManager.PackageInfoFlags.of(PackageManager.GET_META_DATA.toLong())
-                    )
-                } else {
-                    ctx.packageManager.getPackageInfo(ctx.packageName, PackageManager.GET_META_DATA)
-                }
-            ) {
-                return firstInstallTime == lastUpdateTime
-            }
-        } catch (e: PackageManager.NameNotFoundException) {
-            // assign value as true as the package name not found, should not be the
-            // case but some devices seems to return package not found immediately
-            // after install
-            Logger.w(LOG_TAG_APP_DB, "app not found ${ctx.packageName}" + e.message, e)
-            return true
-        }
-    }
-
     @Suppress("ReturnCount", "TooGenericExceptionCaught")
     fun copy(from: String, to: String): Boolean {
         val copied = appFileSystem.copy(from, to)

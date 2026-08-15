@@ -15,26 +15,16 @@ fun buildAppDatabase(context: Context): AppDatabase =
     ) { AppDatabaseConstructor.initialize() }
         .setDriver(BundledSQLiteDriver())
         .setJournalMode(RoomDatabase.JournalMode.AUTOMATIC)
-        .addMigrations(MIGRATION_27_30)
         .build()
 
-fun buildLogDatabase(
-    context: Context,
-    rethinkDnsDbPath: String,
-    isFreshInstall: Boolean
-): LogDatabase {
-    LogDatabase.rethinkDnsDbPath = rethinkDnsDbPath
-    LogDatabase.isFreshInstall = isFreshInstall
-    return Room.databaseBuilder(
+fun buildLogDatabase(context: Context): LogDatabase =
+    Room.databaseBuilder(
         context.applicationContext,
         LogDatabase.LOGS_DATABASE_NAME
     ) { LogDatabaseConstructor.initialize() }
         .setDriver(BundledSQLiteDriver())
         .setJournalMode(RoomDatabase.JournalMode.AUTOMATIC)
-        .addCallback(LogDatabase.roomCallback)
-        .addMigrations(*logDatabaseMigrations())
         .build()
-}
 
 fun buildConsoleLogDatabase(context: Context): ConsoleLogDatabase =
     Room.inMemoryDatabaseBuilder(context.applicationContext) {

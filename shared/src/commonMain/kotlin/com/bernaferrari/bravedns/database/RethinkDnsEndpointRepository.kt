@@ -72,10 +72,6 @@ class RethinkDnsEndpointRepository(private val rethinkDnsEndpointDao: RethinkDns
         return withContext(Dispatchers.Default) { rethinkDnsEndpointDao.getCount() }
     }
 
-    suspend fun updatePlusBlocklistCount(count: Int) {
-        withContext(Dispatchers.Default) { rethinkDnsEndpointDao.updatePlusBlocklistCount(count) }
-    }
-
     suspend fun updateEndpoint(name: String, url: String, count: Int) {
         withContext(Dispatchers.Default) { rethinkDnsEndpointDao.updateEndpoint(name, url, count) }
     }

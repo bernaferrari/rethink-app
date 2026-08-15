@@ -36,10 +36,6 @@ class WgConfigFilesRepository(private val wgConfigFilesDAO: WgConfigFilesDAO) {
         return wgConfigFilesDAO.getWgConfigs()
     }
 
-    suspend fun getWarpSecWarpConfig(): List<WgConfigFiles> {
-        return wgConfigFilesDAO.getWarpSecWarpConfig()
-    }
-
     suspend fun getLastAddedConfigId(): Int {
         return wgConfigFilesDAO.getLastAddedConfigId()
     }

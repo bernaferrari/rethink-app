@@ -18,12 +18,7 @@ class DatabaseModule {
     fun appDatabase(@Provided context: Context): AppDatabase = buildAppDatabase(context)
 
     @Single
-    fun logDatabase(@Provided context: Context): LogDatabase =
-        buildLogDatabase(
-            context,
-            rethinkDnsDbPath = context.getDatabasePath(AppDatabase.DATABASE_NAME).toString(),
-            isFreshInstall = Utilities.isFreshInstall(context),
-        )
+    fun logDatabase(@Provided context: Context): LogDatabase = buildLogDatabase(context)
 
     @Single
     fun consoleLogDatabase(@Provided context: Context): ConsoleLogDatabase = buildConsoleLogDatabase(context)

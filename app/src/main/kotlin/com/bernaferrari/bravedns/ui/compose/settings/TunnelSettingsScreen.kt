@@ -85,7 +85,6 @@ import com.bernaferrari.bravedns.ui.dialog.CustomLanIpSheet
 import com.bernaferrari.bravedns.ui.dialog.NetworkReachabilitySheet
 import com.bernaferrari.bravedns.util.Constants
 import com.bernaferrari.bravedns.util.InternetProtocol
-import com.bernaferrari.bravedns.util.NewSettingsManager
 import com.bernaferrari.bravedns.util.UIUtils
 import com.bernaferrari.bravedns.util.Utilities
 import com.bernaferrari.bravedns.util.Utilities.isAtleastQ
@@ -544,7 +543,6 @@ fun TunnelSettingsScreen(
                 "network_wg_lockdown" -> {
                     wgLockdown = checked
                     persistentState.wgGlobalLockdown = checked
-                    NewSettingsManager.markSettingSeen(NewSettingsManager.WG_GLOBAL_LOCKDOWN_MODE_SETTING)
                     logEvent("wg lockdown", "WG global lockdown: $checked")
                 }
                 "network_endpoint_independence" -> {

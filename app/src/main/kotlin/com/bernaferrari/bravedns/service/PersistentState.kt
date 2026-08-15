@@ -387,9 +387,6 @@ class PersistentState(context: Context) : KoinComponent {
     // repopulateTrackedNetworks also fails open see isAnyNwValidated
     var stallOnNoNetwork by store.boolean("fail_open_on_no_network", false)
 
-    var newSettings by store.string("new_settings", "")
-    var newSettingsSeen by store.string("new_settings_seen", "")
-    var appUpdateTimeTs by store.long("app_update_time_ts", INIT_TIME_MS)
 
     // 0 - auto, 1 - relaxed, 2 - aggressive, 3 - fixed
     var vpnBuilderPolicy by store.int("tun_network_handling_policy", 0)

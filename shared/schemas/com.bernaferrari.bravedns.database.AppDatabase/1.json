@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 27,
-    "identityHash": "de12b01429f4b83c24b8ca745adf9bd0",
+    "version": 1,
+    "identityHash": "5e469cbc6c632546e9487b0c210721bd",
     "entities": [
       {
         "tableName": "AppInfo",
@@ -938,7 +938,7 @@
       },
       {
         "tableName": "WgConfigFiles",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `configPath` TEXT NOT NULL, `serverResponse` TEXT NOT NULL, `isActive` INTEGER NOT NULL, `isCatchAll` INTEGER NOT NULL, `oneWireGuard` INTEGER NOT NULL, `useOnlyOnMetered` INTEGER NOT NULL, `isDeletable` INTEGER NOT NULL, `ssidEnabled` INTEGER NOT NULL, `ssids` TEXT NOT NULL, `modifiedTs` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `configPath` TEXT NOT NULL, `serverResponse` TEXT NOT NULL, `isActive` INTEGER NOT NULL, `isCatchAll` INTEGER NOT NULL, `isLockdown` INTEGER NOT NULL, `oneWireGuard` INTEGER NOT NULL, `useOnlyOnMetered` INTEGER NOT NULL, `isDeletable` INTEGER NOT NULL, `ssidEnabled` INTEGER NOT NULL, `ssids` TEXT NOT NULL, `modifiedTs` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -973,6 +973,12 @@
           {
             "fieldPath": "isCatchAll",
             "columnName": "isCatchAll",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isLockdown",
+            "columnName": "isLockdown",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -1381,8 +1387,181 @@
         }
       },
       {
+        "tableName": "CountryConfig",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `cc` TEXT NOT NULL, `name` TEXT NOT NULL, `address` TEXT NOT NULL, `city` TEXT NOT NULL, `key` TEXT NOT NULL, `load` INTEGER NOT NULL, `link` INTEGER NOT NULL, `count` INTEGER NOT NULL, `premium` INTEGER NOT NULL, `isActive` INTEGER NOT NULL, `isEnabled` INTEGER NOT NULL, `catchAll` INTEGER NOT NULL, `lockdown` INTEGER NOT NULL, `mobileOnly` INTEGER NOT NULL, `ssidBased` INTEGER NOT NULL, `priority` INTEGER NOT NULL, `ssids` TEXT NOT NULL, `lastModified` INTEGER NOT NULL, `selectionCount` INTEGER NOT NULL, `isFavourite` INTEGER NOT NULL, `hopEnabled` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cc",
+            "columnName": "cc",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "address",
+            "columnName": "address",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "city",
+            "columnName": "city",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "key",
+            "columnName": "key",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "load",
+            "columnName": "load",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "link",
+            "columnName": "link",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "count",
+            "columnName": "count",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "premium",
+            "columnName": "premium",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isActive",
+            "columnName": "isActive",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isEnabled",
+            "columnName": "isEnabled",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "catchAll",
+            "columnName": "catchAll",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lockdown",
+            "columnName": "lockdown",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mobileOnly",
+            "columnName": "mobileOnly",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ssidBased",
+            "columnName": "ssidBased",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "priority",
+            "columnName": "priority",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ssids",
+            "columnName": "ssids",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastModified",
+            "columnName": "lastModified",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "selectionCount",
+            "columnName": "selectionCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isFavourite",
+            "columnName": "isFavourite",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "hopEnabled",
+            "columnName": "hopEnabled",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_CountryConfig_cc",
+            "unique": false,
+            "columnNames": [
+              "cc"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_CountryConfig_cc` ON `${TABLE_NAME}` (`cc`)"
+          },
+          {
+            "name": "index_CountryConfig_isActive",
+            "unique": false,
+            "columnNames": [
+              "isActive"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_CountryConfig_isActive` ON `${TABLE_NAME}` (`isActive`)"
+          },
+          {
+            "name": "index_CountryConfig_isFavourite",
+            "unique": false,
+            "columnNames": [
+              "isFavourite"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_CountryConfig_isFavourite` ON `${TABLE_NAME}` (`isFavourite`)"
+          }
+        ]
+      },
+      {
         "tableName": "SubscriptionStatus",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `accountId` TEXT NOT NULL, `purchaseToken` TEXT NOT NULL, `productId` TEXT NOT NULL, `planId` TEXT NOT NULL, `sessionToken` TEXT NOT NULL, `productTitle` TEXT NOT NULL, `state` INTEGER NOT NULL, `purchaseTime` INTEGER NOT NULL, `accountExpiry` INTEGER NOT NULL, `billingExpiry` INTEGER NOT NULL, `developerPayload` TEXT NOT NULL, `status` INTEGER NOT NULL, `lastUpdatedTs` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `accountId` TEXT NOT NULL, `deviceId` TEXT NOT NULL, `purchaseToken` TEXT NOT NULL, `orderId` TEXT NOT NULL, `productId` TEXT NOT NULL, `planId` TEXT NOT NULL, `sessionToken` TEXT NOT NULL, `productTitle` TEXT NOT NULL, `state` INTEGER NOT NULL, `purchaseTime` INTEGER NOT NULL, `accountExpiry` INTEGER NOT NULL, `billingExpiry` INTEGER NOT NULL, `developerPayload` TEXT NOT NULL, `status` INTEGER NOT NULL, `windowDays` INTEGER NOT NULL, `lastUpdatedTs` INTEGER NOT NULL, `previousProductId` TEXT NOT NULL, `previousPurchaseToken` TEXT NOT NULL, `replacedAt` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -1397,8 +1576,20 @@
             "notNull": true
           },
           {
+            "fieldPath": "deviceId",
+            "columnName": "deviceId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
             "fieldPath": "purchaseToken",
             "columnName": "purchaseToken",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "orderId",
+            "columnName": "orderId",
             "affinity": "TEXT",
             "notNull": true
           },
@@ -1463,8 +1654,32 @@
             "notNull": true
           },
           {
+            "fieldPath": "windowDays",
+            "columnName": "windowDays",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
             "fieldPath": "lastUpdatedTs",
             "columnName": "lastUpdatedTs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "previousProductId",
+            "columnName": "previousProductId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "previousPurchaseToken",
+            "columnName": "previousPurchaseToken",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "replacedAt",
+            "columnName": "replacedAt",
             "affinity": "INTEGER",
             "notNull": true
           }
@@ -1526,7 +1741,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'de12b01429f4b83c24b8ca745adf9bd0')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '5e469cbc6c632546e9487b0c210721bd')"
     ]
   }
 }

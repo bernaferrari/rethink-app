@@ -28,7 +28,6 @@ import com.bernaferrari.bravedns.backup.BackupHelper.Companion.DATA_BUILDER_REST
 import com.bernaferrari.bravedns.backup.BackupHelper.Companion.METADATA_FILENAME
 import com.bernaferrari.bravedns.backup.BackupHelper.Companion.SHARED_PREFS_BACKUP_FILE_NAME
 import com.bernaferrari.bravedns.backup.BackupHelper.Companion.TEMP_WG_DIR
-import com.bernaferrari.bravedns.backup.BackupHelper.Companion.VERSION
 import com.bernaferrari.bravedns.backup.BackupHelper.Companion.deleteResidue
 import com.bernaferrari.bravedns.backup.BackupHelper.Companion.getTempDir
 import com.bernaferrari.bravedns.backup.BackupHelper.Companion.stopVpn
@@ -381,40 +380,6 @@ class RestoreAgent(val context: Context, workerParams: WorkerParameters) :
         BackupHelper.checkpointRoomDatabases(appDatabase, logDatabase)
     }
 
-    private fun validateMetadata(tempDirectory: String?): Boolean {
-        // TODO: revisit this after v055 release
-        if (isMetadataCompatible(tempDirectory)) {
-            return true
-        } else {
-            // proceed with META_DATA_FILE validation
-        }
-
-        val file = File(tempDirectory, METADATA_FILENAME)
-        var stream: InputStream? = null
-        return try {
-            stream = file.inputStream()
-            val metadata = stream.bufferedReader().use { it.readText() }
-            isVersionSupported(metadata)
-        } catch (ex: Exception) {
-            Logger.crash(
-                LOG_TAG_BACKUP_RESTORE,
-                "err while restoring metadata, reason? ${ex.message}",
-                ex
-            )
-            false
-        } finally {
-            try {
-                stream?.close()
-            } catch (ex: IOException) {
-                Logger.e(
-                    LOG_TAG_BACKUP_RESTORE,
-                    "err while restoring metadata, reason? ${ex.message}",
-                    ex
-                )
-            }
-        }
-    }
-
     private fun wireGuardCleanup() {
         if (appConfig.isWireGuardEnabled()) {
             Logger.i(LOG_TAG_BACKUP_RESTORE, "wireGuard is enabled, reset the wireguard entries")
@@ -423,71 +388,8 @@ class RestoreAgent(val context: Context, workerParams: WorkerParameters) :
         // cleaning up the wireguard entries are handled in RefreshDatabase
     }
 
-    private fun isMetadataCompatible(tempDirectory: String?): Boolean {
-
-        val minVersionSupported = 24
-
-        val input: ObjectInputStream?
-        val prefsBackupFile = File(tempDirectory, SHARED_PREFS_BACKUP_FILE_NAME)
-        try {
-            input = ObjectInputStream(FileInputStream(prefsBackupFile))
-
-            @Suppress("UNCHECKED_CAST")
-            val pref: Map<String, *> = input.readObject() as Map<String, *>
-
-            for (e in pref.entries) {
-                val v: Any? = e.value
-                val key: String = e.key
-
-                if (key == PersistentState.APP_VERSION) {
-                    val appVersion = v as Int
-                    if (appVersion >= minVersionSupported) {
-                        Logger.i(
-                            LOG_TAG_BACKUP_RESTORE,
-                            "app version $appVersion is compatible (>= $minVersionSupported), proceed with restore"
-                        )
-                        return true
-                    } else {
-                        // no-op
-                    }
-                } else {
-                    // no-op
-                }
-            }
-            return false
-        } catch (e: Exception) {
-            Logger.crash(
-                LOG_TAG_BACKUP_RESTORE,
-                "exception while restoring shared pref, reason? ${e.message}",
-                e
-            )
-            return false
-        }
-    }
-
-    private fun isVersionSupported(metadata: String): Boolean {
-        try {
-            val minVersionSupported = 24
-
-            if (!metadata.contains(VERSION)) return false
-
-            val versionDetails = metadata.split("|")
-            if (versionDetails[0].isEmpty()) return false
-
-            val version = versionDetails[0].split(":")[1].toIntOrNull() ?: 0
-
-            // backup version should be equal to minVersionSupported (prior to that version
-            // there is only one database), so do not consider the backups prior to that
-            return version >= minVersionSupported && persistentState.appVersion >= version
-        } catch (e: Exception) {
-            Logger.crash(
-                LOG_TAG_BACKUP_RESTORE,
-                "error while reading metadata, reason? ${e.message}",
-                e
-            )
-            return false
-        }
-    }
+    private fun validateMetadata(tempDirectory: String?): Boolean =
+        File(tempDirectory, METADATA_FILENAME).exists()
 
     private fun restoreSharedPreferencesFromFile(tempDirectory: String?): Boolean {
         var input: ObjectInputStream? = null

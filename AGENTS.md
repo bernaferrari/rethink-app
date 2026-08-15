@@ -36,7 +36,7 @@ play/website channels only.
 | `app/src/main/.../rpnproxy/` | RPN (ReThink Proxy Network): `SubscriptionStateMachineV2` (Uninitialized/Entitled/NotEntitled/Pending — **72 tests**; Play snapshot is single writer; 3-strike empty-snapshot guard) + `RpnProxyManager` facade over 8 collaborators (hop/SSID/CSV logic extracted — **114 tests**). |
 | `app/src/billing/` | Play Billing (shared by play/website): `InAppBillingHandler` + processors/notifiers. Lock order: connectionMutex → SM stateLock → repo mutex (documented in SM KDoc). |
 | `app/src/main/.../data/` | `AppConfig` is a **façade** (interface delegation) over `DnsSettings`/`DnsEndpointSettings`/`DnsConnectionSettings`/`FirewallSettings`/`ProxySettings`/`TunnelSettings`/`LogSettings`. Callers use `appConfig.*` unchanged. |
-| `app/src/main/.../database/` + `shared/.../database/` | Room 3 KMP. Entities/DAOs/@Database/migrations live in `:shared` commonMain (schemas in `shared/schemas/`); Android drivers in androidMain. **Every schema bump needs a verified Migration** — destructive fallback exists only for pre-13 LogDatabase. Stats cards read materialized `daily_*` tables (app/country/asn/domain/ip), maintained O(batch) by `StatsMaterializer` on the `NetLogBatcher` flush path (bridge in androidMain keeps commonMain Koin-free). |
+| `app/src/main/.../database/` + `shared/.../database/` | Room 3 KMP. Entities/DAOs/@Database/migrations live in `:shared` commonMain (schemas in `shared/schemas/`); Android drivers in androidMain. **The app is **v0**: both DBs are at version 1, no migrations exist, and schema changes simply re-emit v1. Stats cards read materialized `daily_*` tables (app/country/asn/domain/ip), maintained O(batch) by `StatsMaterializer` on the `NetLogBatcher` flush path (bridge in androidMain keeps commonMain Koin-free). |
 | `app/src/main/.../backup/` | `BackupAgent` (checkpoint → zip), `BackupHelper` (zip-slip-guarded extraction), `RestoreAgent` (close DBs → copy → user_version gate). Tests under `app/src/test/.../backup/`. |
 | `app/src/full/.../ui/` | `HomeScreenActivity` (thin host) + `HomeIntentRouter`/`HomeBillingController`/`HomeBackupController` + saveable `HomeDialog` host. `ui/components/*Adapter.kt` are Compose rows (legacy names), strings resolved via `stringResource`. |
 | `shared/.../ui/compose/` | Shared Compose screens + design system: `SharedDimensions` (M3 shape scale), `RethinkMotion` (+ live reduced-motion), `RethinkStatusColors`, `RethinkEmptyState`/`RethinkLoadingState`, `RethinkWindowClass` (600/840dp adaptive). Navigation: `RethinkAppNavigation` (Nav3, per-tab back stacks, push-vs-open semantics). |
@@ -60,7 +60,9 @@ play/website channels only.
    home-screen shortcuts resolve through it.
 6. **startForeground** must be synchronous in `onStartCommand`; ConnectionMonitor unregister/quit must
    complete before `vpnScope.cancel` in `onDestroy`.
-7. **v054 one-shot migrations** in HomeScreenActivity stay until every install is past v054.
+7. **This app is v0**: both databases are at schema version 1 with no migrations and no
+   upgrade archaeology — schema changes bump the version and ship as v1 again. Never add
+   version-gated migration code or "remove post vX" residue; delete old paths outright.
 
 ## Conventions
 

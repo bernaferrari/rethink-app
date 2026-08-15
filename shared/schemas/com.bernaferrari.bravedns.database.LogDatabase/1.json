@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 15,
-    "identityHash": "fa6aeda1a5869eb64b58c1006f51f254",
+    "version": 1,
+    "identityHash": "3090a78aca3dd480c0b0ecb4d28b9628",
     "entities": [
       {
         "tableName": "ConnectionTracker",
@@ -1117,11 +1117,87 @@
             "createSql": "CREATE INDEX IF NOT EXISTS `index_daily_domain_stats_date_domain` ON `${TABLE_NAME}` (`date`, `domain`)"
           }
         ]
+      },
+      {
+        "tableName": "daily_ip_stats",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`date` INTEGER NOT NULL, `ipAddress` TEXT NOT NULL, `flag` TEXT NOT NULL, `contactedCount` INTEGER NOT NULL, `blockedCount` INTEGER NOT NULL, `downloadBytes` INTEGER NOT NULL, `uploadBytes` INTEGER NOT NULL, PRIMARY KEY(`date`, `ipAddress`))",
+        "fields": [
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ipAddress",
+            "columnName": "ipAddress",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "flag",
+            "columnName": "flag",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contactedCount",
+            "columnName": "contactedCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "blockedCount",
+            "columnName": "blockedCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "downloadBytes",
+            "columnName": "downloadBytes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "uploadBytes",
+            "columnName": "uploadBytes",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "date",
+            "ipAddress"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_daily_ip_stats_date",
+            "unique": false,
+            "columnNames": [
+              "date"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_daily_ip_stats_date` ON `${TABLE_NAME}` (`date`)"
+          },
+          {
+            "name": "index_daily_ip_stats_date_ipAddress",
+            "unique": false,
+            "columnNames": [
+              "date",
+              "ipAddress"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_daily_ip_stats_date_ipAddress` ON `${TABLE_NAME}` (`date`, `ipAddress`)"
+          }
+        ]
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'fa6aeda1a5869eb64b58c1006f51f254')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '3090a78aca3dd480c0b0ecb4d28b9628')"
     ]
   }
 }

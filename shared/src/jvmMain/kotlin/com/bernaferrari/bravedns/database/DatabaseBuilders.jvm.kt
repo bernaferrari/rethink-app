@@ -16,7 +16,6 @@ fun buildAppDatabaseJvm(dbFile: File? = null): AppDatabase {
         }
     return builder
         .setDriver(BundledSQLiteDriver())
-        .addCallback(AppDatabase.roomCallback)
         .fallbackToDestructiveMigration()
         .build()
 }

@@ -142,7 +142,6 @@ import com.bernaferrari.bravedns.viewmodel.SummaryStatisticsViewModel
 import com.bernaferrari.bravedns.util.FirebaseErrorReporting
 import com.bernaferrari.bravedns.util.FirebaseErrorReporting.TOKEN_LENGTH
 import com.bernaferrari.bravedns.util.FirebaseErrorReporting.TOKEN_REGENERATION_PERIOD_DAYS
-import com.bernaferrari.bravedns.util.NewSettingsManager
 import com.bernaferrari.bravedns.util.RemoteFileTagUtil
 import com.bernaferrari.bravedns.util.UIUtils
 import com.bernaferrari.bravedns.util.UIUtils.openNetworkSettings
@@ -300,13 +299,10 @@ class HomeScreenActivity : FragmentActivity() {
 
         registerForActivityResult()
 
-        updateNewVersion()
-
         handleIncomingIntents(intent)
 
         initUpdateCheck()
 
-        NewSettingsManager.handleNewSettings()
 
         regenerateFirebaseTokenIfNeeded()
 
@@ -697,113 +693,6 @@ class HomeScreenActivity : FragmentActivity() {
         showDialog(HomeDialog.Restore(uri.toString()))
     }
 
-    private fun removeThisMethod() {
-        // set allowBypass to false for all versions, overriding the user's preference.
-        // the default was true for Play Store and website versions, and false for F-Droid.
-        // when allowBypass is true, some OEMs bypass the VPN service, causing connections
-        // to fail due to the "Block connections without VPN" option.
-        persistentState.allowBypass = false
-
-        io {
-            appInfoDb.setRethinkToBypassDnsAndFirewall()
-            appInfoDb.setRethinkToBypassProxy(true)
-        }
-
-        // change the persistent state for defaultDnsUrl, if its google.com (only for v055d)
-        // TODO: remove this post v054.
-        // this is to fix the default dns url, as the default dns url is changed from
-        // dns.google.com to dns.google. In servers.xml default ips available for dns.google
-        // so changing the default dns url to dns.google
-        if (persistentState.defaultDnsUrl.contains("dns.google.com")) {
-            persistentState.defaultDnsUrl = Constants.DEFAULT_DNS_LIST[2].url
-        }
-        moveRemoteBlocklistFileFromAsset()
-        // if biometric auth is enabled, then set the biometric auth type to 3 (15 minutes)
-        if (persistentState.biometricAuth) {
-            persistentState.biometricAuthType =
-                BioMetricType.FIFTEEN_MIN.action
-            // reset the bio metric auth time, as now the value is changed from System.currentTimeMillis
-            // to SystemClock.elapsedRealtime
-            persistentState.biometricAuthTime = SystemClock.elapsedRealtime()
-        }
-
-        // reset the local blocklist download from android download manager to custom in v055o
-        persistentState.useCustomDownloadManager = true
-
-        // delete residue wgs from database, remove this post v055o
-        io { WireguardManager.deleteResidueWgs() }
-        // reset the plus url to empty if it is set as /rec
-        io {
-            val rpe = appConfig.getRethinkPlusEndpoint()
-            val url = rpe?.url ?: return@io
-            if (url == "https://max.rethinkdns.com/rec" || url == "https://rplus.rethinkdns.com/rec") {
-                val newUrl = if (rpe.url.contains(MAX_ENDPOINT)) {
-                    Constants.RETHINK_BASE_URL_MAX
-                } else {
-                    Constants.RETHINK_BASE_URL_SKY
-                }
-                appConfig.updateRethinkEndpoint(Constants.RETHINK_DNS_PLUS, newUrl, 0)
-            }
-        }
-    }
-
-    // fixme: find a cleaner way to implement this, move this to some other place
-    private fun moveRemoteBlocklistFileFromAsset() {
-        io {
-            // already there is a remote blocklist file available
-            if (
-                persistentState.remoteBlocklistTimestamp >
-                Constants.PACKAGED_REMOTE_FILETAG_TIMESTAMP
-            ) {
-                RethinkBlocklistManager.readJson(
-                    this,
-                    RethinkBlocklistManager.DownloadType.REMOTE,
-                    persistentState.remoteBlocklistTimestamp
-                )
-                return@io
-            }
-
-            RemoteFileTagUtil.moveFileToLocalDir(this.applicationContext, persistentState)
-        }
-    }
-
-
-    private fun updateNewVersion() {
-        if (!isNewVersion()) return
-
-        // no need to show new settings on first time launch
-        if (persistentState.appVersion != 0) {
-            // if app version is not 0, then it means the app is updated
-            NewSettingsManager.initializeNewSettings()
-            Logger.i(LOG_TAG_UI, "app version already set, so its update, showing new settings")
-        }
-        val version = getLatestVersion()
-        Logger.i(LOG_TAG_UI, "new version detected, updating the app version, version: $version")
-        persistentState.appVersion = version
-        persistentState.showWhatsNewChip = true
-        persistentState.appUpdateTimeTs = System.currentTimeMillis()
-
-        // FIXME: remove this post v054
-        removeThisMethod()
-    }
-
-    private fun isNewVersion(): Boolean {
-        val versionStored = persistentState.appVersion
-        val version = getLatestVersion()
-        return (version != 0 && version != versionStored)
-    }
-
-    private fun getLatestVersion(): Int {
-        val pInfo: PackageInfo? = getPackageMetadata(this.packageManager, this.packageName)
-        val v = pInfo?.let { PackageInfoCompat.getLongVersionCode(it) } ?: 0L
-        // latest version has apk variant (baseAbiVersionCode * 10000000 + variant.versionCode)
-        // so we need to mod the version code by 10000000 to get the actual version code
-        // for example: 10000000 + 45 = 10000045, so the version code is 1
-        // see build.gradle (:app), #project.ext.versionCodes
-        val latestVersionCode = (v % 10000000L).toInt()
-        Logger.i(LOG_TAG_UI, "latest version code: $latestVersionCode")
-        return latestVersionCode
-    }
 
     private fun initUpdateCheck() {
         if (!isUpdateRequired()) return

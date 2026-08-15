@@ -86,12 +86,6 @@ interface RethinkDnsEndpointDao {
     @Query("update RethinkDnsEndpoint set isActive = 1 where uid = $MISSING_UID and name = :plus")
     suspend fun setRethinkPlus(plus: String = RETHINK_PLUS)
 
-    // TODO: remove this method post v054 versions
-    @Query(
-        "update RethinkDnsEndpoint set blocklistCount = :count where uid = $MISSING_UID and name = :plus"
-    )
-    suspend fun updatePlusBlocklistCount(count: Int, plus: String = RETHINK_PLUS)
-
     @Query("update RethinkDnsEndpoint set url = REPLACE(url, 'sky', 'max')") suspend fun switchToMax()
 
     @Query("update RethinkDnsEndpoint set url = REPLACE(url, 'max', 'sky')") suspend fun switchToSky()

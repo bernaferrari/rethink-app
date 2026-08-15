@@ -101,7 +101,6 @@ class WireguardManagerTest : KoinTest {
         // Setup database defaults
         coEvery { mockDb.getLastAddedConfigId() } returns 0
         coEvery { mockDb.getWgConfigs() } returns emptyList()
-        coEvery { mockDb.getWarpSecWarpConfig() } returns emptyList()
         coEvery { mockDb.update(any()) } just Runs
         coEvery { mockDb.disableConfig(any()) } just Runs
         coEvery { mockDb.delete(any()) } just Runs
@@ -125,21 +124,18 @@ class WireguardManagerTest : KoinTest {
         println("✅ tearDown completed successfully")
     }
 
+    private fun registry(): WgConfigRegistry {
+        val registryField = WireguardManager::class.java.getDeclaredField("registry")
+        registryField.isAccessible = true
+        return registryField.get(WireguardManager) as WgConfigRegistry
+    }
+
     @Suppress("UNCHECKED_CAST")
     private fun clearWireguardManagerState() {
-        val mappingsField = WireguardManager::class.java.getDeclaredField("mappings")
-        mappingsField.isAccessible = true
-        val mappings = mappingsField.get(WireguardManager) as java.util.concurrent.CopyOnWriteArraySet<WgConfigFilesImmutable>
-        mappings.clear()
-
-        val configsField = WireguardManager::class.java.getDeclaredField("configs")
-        configsField.isAccessible = true
-        val configs = configsField.get(WireguardManager) as java.util.concurrent.CopyOnWriteArraySet<WgConfig>
-        configs.clear()
-
-        val lastAddedConfigIdField = WireguardManager::class.java.getDeclaredField("lastAddedConfigId")
-        lastAddedConfigIdField.isAccessible = true
-        lastAddedConfigIdField.set(WireguardManager, 0)
+        val registry = registry()
+        registry.mappings.clear()
+        registry.configs.clear()
+        registry.lastAddedConfigId = 0
     }
 
     private fun createMockWgConfigFilesImmutable(
@@ -181,17 +177,11 @@ class WireguardManagerTest : KoinTest {
 
     @Suppress("UNCHECKED_CAST")
     private fun addConfigToManager(configFiles: WgConfigFilesImmutable, config: WgConfig) {
-        val mappingsField = WireguardManager::class.java.getDeclaredField("mappings")
-        mappingsField.isAccessible = true
-        val mappings = mappingsField.get(WireguardManager) as java.util.concurrent.CopyOnWriteArraySet<WgConfigFilesImmutable>
-        mappings.removeAll { it.id == configFiles.id }
-        mappings.add(configFiles)
-
-        val configsField = WireguardManager::class.java.getDeclaredField("configs")
-        configsField.isAccessible = true
-        val configs = configsField.get(WireguardManager) as java.util.concurrent.CopyOnWriteArraySet<WgConfig>
-        configs.removeAll { it.getId() == config.getId() }
-        configs.add(config)
+        val registry = registry()
+        registry.mappings.removeAll { it.id == configFiles.id }
+        registry.mappings.add(configFiles)
+        registry.configs.removeAll { it.getId() == config.getId() }
+        registry.configs.add(config)
     }
 
     // BASIC FUNCTIONALITY TESTS - FOCUSING ON CORE LOGIC WITHOUT COMPLEX DEPENDENCIES
@@ -682,11 +672,7 @@ class WireguardManagerTest : KoinTest {
 
         // Setup - add config to configs but not to mappings
         try {
-            val configsField = WireguardManager::class.java.getDeclaredField("configs")
-            configsField.isAccessible = true
-            @Suppress("UNCHECKED_CAST")
-            val configs = configsField.get(WireguardManager) as java.util.concurrent.CopyOnWriteArraySet<WgConfig>
-            configs.add(setupMockConfig(1))
+            registry().configs.add(setupMockConfig(1))
         } catch (e: Exception) {
             println("⚠️ Warning: Could not add config without mapping: ${e.message}")
         }
@@ -1055,7 +1041,6 @@ class WireguardManagerTest : KoinTest {
             "canDisableAllActiveConfigs() - Bulk disable validation",
             "matchesSsidList() - SSID matching logic (exact, wildcard, edge cases)",
             "getPeers() - Peer retrieval (existing, non-existing, empty, multiple)",
-            "deleteResidueWgs() - Database cleanup operations",
             "Comprehensive state management - Complex multi-config scenarios",
             "Boundary condition testing - Maximum configuration scenarios",
             "Error handling - Invalid inputs, edge cases, malformed data",
@@ -1706,7 +1691,6 @@ class WireguardManagerTest : KoinTest {
 
         val completeTestedMethods = listOf(
             "✅ load() - Force refresh and existing config scenarios",
-            "✅ deleteResidueWgs() - Database cleanup operations",
             "✅ getAllMappings() - Empty, single, multiple, concurrent access scenarios",
             "✅ getNumberOfMappings() - Empty, single, multiple, boundary scenarios",
             "✅ getConfigById() - Existing, non-existing, boundary ID scenarios",
