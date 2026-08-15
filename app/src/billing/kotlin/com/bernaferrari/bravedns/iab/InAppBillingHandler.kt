@@ -2480,9 +2480,9 @@ object InAppBillingHandler : KoinComponent {
      * Updates all billing-related LiveData based on the current subscription [state].
      *
      * Design:
-     * - **Active / Grace / OnHold / Paused / Canceled**: the user has (or recently had) a
+     * - **Active / Cancelled**: the user has (or recently had) a
      *   valid subscription: post current purchase details so the UI can show subscription
-     *   info. For Active/Grace also clear any stale transaction error LiveData.
+     *   info. For Active also clear any stale transaction error LiveData.
      * - **PurchasePending / PurchaseInitiated**: purchase is in flight, keep whatever the
      *   UI currently shows; do not clear or update mid-flight.
      * - **Expired / Revoked / Error / Initial / Uninitialized**: no valid purchase, post
@@ -2494,16 +2494,11 @@ object InAppBillingHandler : KoinComponent {
         withContext(Dispatchers.Main) {
             when (state) {
                 is SubscriptionStateMachineV2.SubscriptionState.Active,
-                is SubscriptionStateMachineV2.SubscriptionState.Grace,
-                is SubscriptionStateMachineV2.SubscriptionState.OnHold,
-                is SubscriptionStateMachineV2.SubscriptionState.Paused,
                 is SubscriptionStateMachineV2.SubscriptionState.Cancelled -> {
                     val purchaseDetails = buildPurchaseListFromState()
                     logd("updateUIForState", "state=${state.name} → posting ${purchaseDetails.size} purchases")
                     purchasesLiveData.postValue(purchaseDetails)
-                    // Clear stale error banners when subscription is confirmed active/valid.
-                    if (state is SubscriptionStateMachineV2.SubscriptionState.Active ||
-                        state is SubscriptionStateMachineV2.SubscriptionState.Grace) {
+                    if (state is SubscriptionStateMachineV2.SubscriptionState.Active) {
                         transactionErrorLiveData.postValue(null)
                     }
                 }
@@ -2556,9 +2551,6 @@ object InAppBillingHandler : KoinComponent {
             is SubscriptionStateMachineV2.SubscriptionState.Active ->
                 logd(mname, "subscription is active")
 
-            is SubscriptionStateMachineV2.SubscriptionState.Grace ->
-                logd(mname, "subscription in grace period; still valid but payment failing")
-
             is SubscriptionStateMachineV2.SubscriptionState.Cancelled ->
                 logd(mname, "subscription cancelled; still valid until billing expiry")
 
@@ -2570,12 +2562,6 @@ object InAppBillingHandler : KoinComponent {
 
             is SubscriptionStateMachineV2.SubscriptionState.Error ->
                 loge(mname, "state machine entered error state; Play will re-confirm on next query")
-
-            is SubscriptionStateMachineV2.SubscriptionState.OnHold ->
-                logd(mname, "subscription on hold; payment pending")
-
-            is SubscriptionStateMachineV2.SubscriptionState.Paused ->
-                logd(mname, "subscription paused")
 
             is SubscriptionStateMachineV2.SubscriptionState.PurchasePending,
             is SubscriptionStateMachineV2.SubscriptionState.PurchaseInitiated ->

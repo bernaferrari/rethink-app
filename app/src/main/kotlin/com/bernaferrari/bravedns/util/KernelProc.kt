@@ -324,20 +324,6 @@ object KernelProc {
         }
     }
 
-    private fun readDirAsLines(dirPath: String, title: String): String {
-        return runCatching {
-            val dir = File(dirPath)
-            if (!dir.exists()) return@runCatching "$title: missing"
-            val files = dir.listFiles()?.sortedBy { it.name } ?: emptyList()
-            if (files.isEmpty()) return@runCatching "$title: empty"
-            val body = files.joinToString(separator = "\n") { f ->
-                val target = runCatching { f.canonicalPath }.getOrDefault(f.path)
-                "${f.name} -> $target"
-            }
-            "$title\n$body"
-        }.getOrElse { err -> "$title: error: ${err.message ?: err::class.java.simpleName}" }
-    }
-
     private fun readAuxvHumanReadable(title: String): String {
         return runCatching {
             val file = File(AUXV_PATH)

@@ -28,6 +28,7 @@ import com.bernaferrari.bravedns.database.WgConfigFilesRepository
 import com.bernaferrari.bravedns.service.ProxyManager.ID_WG_BASE
 import com.bernaferrari.bravedns.util.Constants.Companion.WIREGUARD_FOLDER_NAME
 import com.bernaferrari.bravedns.util.Utilities
+import com.bernaferrari.bravedns.wireguard.BadConfigException
 import com.bernaferrari.bravedns.wireguard.Config
 import com.bernaferrari.bravedns.wireguard.Peer
 import com.bernaferrari.bravedns.wireguard.WgHopManager
@@ -125,7 +126,13 @@ object WireguardManager : KoinComponent {
             val config = try {
                 val bytes = WireguardConfigFileManager.read(File(path))
                 Config.parse(bytes.toString(StandardCharsets.UTF_8))
-            } catch (e: Exception) {
+            } catch (e: BadConfigException) {
+                Logger.e(LOG_TAG_PROXY, "Config parse failure for wg config: $path", e)
+                continue
+            } catch (e: java.io.IOException) {
+                Logger.e(LOG_TAG_PROXY, "Config parse failure for wg config: $path", e)
+                continue
+            } catch (e: IllegalArgumentException) {
                 Logger.e(LOG_TAG_PROXY, "Config parse failure for wg config: $path", e)
                 continue
             }
@@ -215,7 +222,6 @@ object WireguardManager : KoinComponent {
                         db.disableConfig(entry.id)
                         VpnController.removeWireGuardProxy(entry.id)
                     }
-                    // rmv the unreadable file so further loads will not retry it.
                     if (file.exists() && !file.delete()) {
                         Logger.w(LOG_TAG_PROXY, "migrate: could not delete unreadable file ${file.absolutePath}")
                     }
@@ -250,7 +256,10 @@ object WireguardManager : KoinComponent {
         } catch (e: EncryptionException) {
             Logger.e(LOG_TAG_PROXY, "failed to decrypt wg config at $path", e)
             false
-        } catch (e: Exception) {
+        } catch (e: java.io.IOException) {
+            Logger.e(LOG_TAG_PROXY, "unexpected error decrypting wg config at $path", e)
+            false
+        } catch (e: SecurityException) {
             Logger.e(LOG_TAG_PROXY, "unexpected error decrypting wg config at $path", e)
             false
         }
@@ -324,17 +333,9 @@ object WireguardManager : KoinComponent {
     }
 
     fun isConfigActive(configId: String): Boolean {
-        try {
-            val id = configId.split(ID_WG_BASE).last().toIntOrNull() ?: return false
-            val mapping = mappings.find { it.id == id }
-            if (mapping != null) {
-                return mapping.isActive
-            }
-            return false
-        } catch (e: Exception) {
-            Logger.w(LOG_TAG_PROXY, "err while checking active config: ${e.message}")
-        }
-        return false
+        val id = configId.split(ID_WG_BASE).last().toIntOrNull() ?: return false
+        val mapping = mappings.find { it.id == id }
+        return mapping?.isActive == true
     }
 
     suspend fun enableConfig(unmapped: WgConfigFilesImmutable) {
@@ -523,7 +524,6 @@ object WireguardManager : KoinComponent {
 
     // no need to check for app excluded from proxy here, expected to call this fn after that
     suspend fun getAllPossibleConfigIdsForApp(uid: Int, ip: String, port: Int, domain: String, usesMobileNw: Boolean, ssid: String, default: String): List<String> {
-        val block = Backend.Block
         val proxyIds: MutableList<String> = mutableListOf()
 
         if (oneWireGuardEnabled()) {
@@ -631,8 +631,8 @@ object WireguardManager : KoinComponent {
 
         return try {
             text.matches(Regex(regexPattern, RegexOption.IGNORE_CASE)) || text.contains(pattern, ignoreCase = true)
-        } catch (e: Exception) {
-            Logger.w(LOG_TAG_PROXY, "Invalid wildcard pattern: $pattern, error: ${e.message}")
+        } catch (e: IllegalArgumentException) {
+            Logger.w(LOG_TAG_PROXY, "Invalid wildcard pattern: $pattern, error: ${e.message}", e)
             false
         }
     }
@@ -685,7 +685,7 @@ object WireguardManager : KoinComponent {
         return try {
             val configId = id.substring(ID_WG_BASE.length)
             configId.toIntOrNull() ?: INVALID_CONF_ID
-        } catch (_: Exception) {
+        } catch (_: IndexOutOfBoundsException) {
             Logger.i(LOG_TAG_PROXY, "err converting string id to int: $id")
             INVALID_CONF_ID
         }
@@ -1338,7 +1338,13 @@ object WireguardManager : KoinComponent {
                 )
                 tempDir.deleteRecursively()
             }
-        } catch (e: Exception) {
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: java.io.IOException) {
+            Logger.e(LOG_TAG_PROXY, "performRestore: err restoring wg configs, ${e.message}", e)
+        } catch (e: SecurityException) {
+            Logger.e(LOG_TAG_PROXY, "performRestore: err restoring wg configs, ${e.message}", e)
+        } catch (e: IllegalStateException) {
             Logger.e(LOG_TAG_PROXY, "performRestore: err restoring wg configs, ${e.message}", e)
         }
     }

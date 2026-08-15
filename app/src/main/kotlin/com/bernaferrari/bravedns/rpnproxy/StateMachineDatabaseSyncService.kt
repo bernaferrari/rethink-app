@@ -87,7 +87,10 @@ class StateMachineDatabaseSyncService : KoinComponent {
 
         return when (SubscriptionStatus.SubscriptionState.fromId(sub.status)) {
 
-            SubscriptionStatus.SubscriptionState.STATE_ACTIVE -> {
+            SubscriptionStatus.SubscriptionState.STATE_ACTIVE,
+            SubscriptionStatus.SubscriptionState.STATE_GRACE,
+            SubscriptionStatus.SubscriptionState.STATE_ON_HOLD,
+            SubscriptionStatus.SubscriptionState.STATE_PAUSED -> {
                 when {
                     // INAPP: fixed access window, local expiry IS authoritative
                     isInApp && isLocallyExpired -> {
@@ -137,15 +140,6 @@ class StateMachineDatabaseSyncService : KoinComponent {
             SubscriptionStatus.SubscriptionState.STATE_ACK_PENDING,
             SubscriptionStatus.SubscriptionState.STATE_PURCHASED ->
                 SubscriptionStateMachineV2.SubscriptionState.PurchasePending
-
-            SubscriptionStatus.SubscriptionState.STATE_GRACE ->
-                SubscriptionStateMachineV2.SubscriptionState.Grace
-
-            SubscriptionStatus.SubscriptionState.STATE_ON_HOLD ->
-                SubscriptionStateMachineV2.SubscriptionState.OnHold
-
-            SubscriptionStatus.SubscriptionState.STATE_PAUSED ->
-                SubscriptionStateMachineV2.SubscriptionState.Paused
 
             // STATE_INITIAL, STATE_PURCHASE_FAILED, STATE_UNKNOWN → Initial
             else -> {
@@ -420,9 +414,6 @@ class StateMachineDatabaseSyncService : KoinComponent {
             is SubscriptionStateMachineV2.SubscriptionState.PurchasePending -> SubscriptionStatus.SubscriptionState.STATE_ACK_PENDING.id
             is SubscriptionStateMachineV2.SubscriptionState.PurchaseInitiated -> SubscriptionStatus.SubscriptionState.STATE_ACK_PENDING.id
             is SubscriptionStateMachineV2.SubscriptionState.Error           -> SubscriptionStatus.SubscriptionState.STATE_PURCHASE_FAILED.id
-            is SubscriptionStateMachineV2.SubscriptionState.Grace           -> SubscriptionStatus.SubscriptionState.STATE_GRACE.id
-            is SubscriptionStateMachineV2.SubscriptionState.OnHold          -> SubscriptionStatus.SubscriptionState.STATE_ON_HOLD.id
-            is SubscriptionStateMachineV2.SubscriptionState.Paused          -> SubscriptionStatus.SubscriptionState.STATE_PAUSED.id
             else -> SubscriptionStatus.SubscriptionState.STATE_INITIAL.id
         }
     }

@@ -117,8 +117,10 @@ object BubbleHelper {
                 existing.setAllowBubbles(true)
                 existing.setShowBadge(true)
                 nm.createNotificationChannel(existing)
-            } catch (e: Exception) {
-                Logger.w(LOG_TAG_FIREWALL, "Unable to update existing bubble channel: ${e.message}")
+            } catch (e: SecurityException) {
+                Logger.w(LOG_TAG_FIREWALL, "Unable to update existing bubble channel: ${e.message}", e)
+            } catch (e: IllegalStateException) {
+                Logger.w(LOG_TAG_FIREWALL, "Unable to update existing bubble channel: ${e.message}", e)
             }
 
             nm.getNotificationChannel(BUBBLE_CHANNEL_ID)?.let { refreshed ->
@@ -386,7 +388,11 @@ object BubbleHelper {
 
             val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             nm.notify(BUBBLE_NOTIFICATION_ID, notification)
-        } catch (e: Exception) {
+        } catch (e: SecurityException) {
+            Logger.e(LOG_TAG_FIREWALL, "Error updating bubble: ${e.message}", e)
+        } catch (e: IllegalStateException) {
+            Logger.e(LOG_TAG_FIREWALL, "Error updating bubble: ${e.message}", e)
+        } catch (e: IllegalArgumentException) {
             Logger.e(LOG_TAG_FIREWALL, "Error updating bubble: ${e.message}", e)
         }
     }
@@ -424,7 +430,9 @@ object BubbleHelper {
             // again. Also, users may have explicitly enabled bubbles on the channel; deleting loses that.
 
             Logger.i(LOG_TAG_FIREWALL, "Bubble state reset")
-        } catch (e: Exception) {
+        } catch (e: SecurityException) {
+            Logger.e(LOG_TAG_FIREWALL, "Error resetting bubble state: ${e.message}", e)
+        } catch (e: IllegalStateException) {
             Logger.e(LOG_TAG_FIREWALL, "Error resetting bubble state: ${e.message}", e)
         }
     }
@@ -563,8 +571,11 @@ object BubbleHelper {
             } else {
                 IconCompat.createWithResource(context, R.drawable.ic_firewall_bubble)
             }
-        } catch (e: Exception) {
-            Logger.w(LOG_TAG_FIREWALL, "Failed to create adaptive bubble icon: ${e.message}")
+        } catch (e: IllegalArgumentException) {
+            Logger.w(LOG_TAG_FIREWALL, "Failed to create adaptive bubble icon: ${e.message}", e)
+            IconCompat.createWithResource(context, R.drawable.ic_firewall_bubble)
+        } catch (e: android.content.res.Resources.NotFoundException) {
+            Logger.w(LOG_TAG_FIREWALL, "Failed to create adaptive bubble icon: ${e.message}", e)
             IconCompat.createWithResource(context, R.drawable.ic_firewall_bubble)
         }
     }

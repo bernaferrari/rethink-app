@@ -72,6 +72,22 @@ private val MIGRATION_14_15 =
         }
     }
 
+private val MIGRATION_15_16 =
+    object : Migration(15, 16) {
+        override suspend fun migrate(connection: SQLiteConnection) {
+            connection.execSQL(
+                "CREATE TABLE IF NOT EXISTS `daily_ip_stats` (`date` INTEGER NOT NULL, `ipAddress` TEXT NOT NULL, `flag` TEXT NOT NULL, `contactedCount` INTEGER NOT NULL, `blockedCount` INTEGER NOT NULL, `downloadBytes` INTEGER NOT NULL, `uploadBytes` INTEGER NOT NULL, PRIMARY KEY(`date`, `ipAddress`))"
+            )
+            connection.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_daily_ip_stats_date` ON `daily_ip_stats` (`date`)"
+            )
+            connection.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_daily_ip_stats_date_ipAddress` ON `daily_ip_stats` (`date`, `ipAddress`)"
+            )
+            backfillDailyIpStats(connection)
+        }
+    }
+
 private suspend fun backfillDailyAppStats(connection: SQLiteConnection) {
     connection.execSQL(
         """
@@ -207,4 +223,25 @@ private suspend fun backfillDailyDomainStats(connection: SQLiteConnection) {
     )
 }
 
-internal fun logDatabaseMigrations(): Array<Migration> = arrayOf(MIGRATION_13_14, MIGRATION_14_15)
+private suspend fun backfillDailyIpStats(connection: SQLiteConnection) {
+    connection.execSQL(
+        """
+        INSERT INTO daily_ip_stats (
+            date, ipAddress, flag, contactedCount, blockedCount, downloadBytes, uploadBytes
+        )
+        SELECT
+            CAST(timeStamp / 86400000 AS INTEGER),
+            ipAddress,
+            flag,
+            SUM(CASE WHEN isBlocked = 0 THEN 1 ELSE 0 END),
+            SUM(CASE WHEN isBlocked = 1 THEN 1 ELSE 0 END),
+            SUM(CASE WHEN isBlocked = 0 THEN downloadBytes ELSE 0 END),
+            SUM(CASE WHEN isBlocked = 0 THEN uploadBytes ELSE 0 END)
+        FROM ConnectionTracker
+        WHERE ipAddress != ''
+        GROUP BY CAST(timeStamp / 86400000 AS INTEGER), ipAddress
+        """.trimIndent()
+    )
+}
+
+internal fun logDatabaseMigrations(): Array<Migration> = arrayOf(MIGRATION_13_14, MIGRATION_14_15, MIGRATION_15_16)

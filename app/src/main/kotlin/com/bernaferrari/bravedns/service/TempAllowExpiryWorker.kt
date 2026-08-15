@@ -38,7 +38,12 @@ class TempAllowExpiryWorker(
             // schedule the next nearest expiry
             scheduleNext(applicationContext)
             Result.success()
-        } catch (e: Exception) {
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: android.database.SQLException) {
+            Logger.e(LOG_TAG_FIREWALL, "TempAllowExpiryWorker failed: ${e.message}", e)
+            Result.retry()
+        } catch (e: IllegalStateException) {
             Logger.e(LOG_TAG_FIREWALL, "TempAllowExpiryWorker failed: ${e.message}", e)
             Result.retry()
         }

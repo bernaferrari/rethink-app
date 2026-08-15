@@ -192,19 +192,6 @@ class SubscriptionStateMachineV2Test : KoinTest {
         assertTrue(s.canMakePurchase)
     }
 
-    @Test fun `decorative Play leaves inherit Entitled flags and are never required`() {
-        listOf(
-            SubscriptionStateMachineV2.SubscriptionState.Grace,
-            SubscriptionStateMachineV2.SubscriptionState.OnHold,
-            SubscriptionStateMachineV2.SubscriptionState.Paused
-        ).forEach { s ->
-            assertTrue(s is SubscriptionStateMachineV2.SubscriptionState.Entitled)
-            assertTrue(s.hasValidSubscription)
-            assertFalse(s.canMakePurchase)
-        }
-        assertTrue(SubscriptionStateMachineV2.SubscriptionState.Grace.isActive)
-    }
-
     @Test fun `Cancelled isCancelled is true`()    { assertTrue(SubscriptionStateMachineV2.SubscriptionState.Cancelled.isCancelled) }
     @Test fun `Active isCancelled is false`()      { assertFalse(SubscriptionStateMachineV2.SubscriptionState.Active.isCancelled) }
     @Test fun `Expired isExpired is true`()        { assertTrue(SubscriptionStateMachineV2.SubscriptionState.Expired.isExpired) }

@@ -21,6 +21,8 @@ import com.bernaferrari.bravedns.database.EventDao
 import com.bernaferrari.bravedns.database.EventSource
 import com.bernaferrari.bravedns.database.EventType
 import com.bernaferrari.bravedns.database.Severity
+import android.database.SQLException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -95,8 +97,11 @@ class EventLogger(private val eventDao: EventDao) {
                     userAction = userAction
                 )
                 eventDao.insert(event)
-            } catch (e: Exception) {
-                // Log the error but don't crash - logging should never break the app
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: SQLException) {
+                Logger.e(LOG_TAG, "Failed to insert event: ${e.message}", e)
+            } catch (e: IllegalStateException) {
                 Logger.e(LOG_TAG, "Failed to insert event: ${e.message}", e)
             }
         }
@@ -169,7 +174,11 @@ class EventLogger(private val eventDao: EventDao) {
                 val cutoffTime = System.currentTimeMillis() - (days * MILLIS_PER_DAY)
                 val deletedCount = eventDao.deleteOlderThan(cutoffTime)
                 Logger.i(LOG_TAG, "Purged $deletedCount events older than $days days")
-            } catch (e: Exception) {
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: SQLException) {
+                Logger.e(LOG_TAG, "Failed to purge old events: ${e.message}", e)
+            } catch (e: IllegalStateException) {
                 Logger.e(LOG_TAG, "Failed to purge old events: ${e.message}", e)
             }
         }
@@ -193,7 +202,12 @@ class EventLogger(private val eventDao: EventDao) {
     suspend fun getEventCount(): Int {
         return try {
             eventDao.getCount()
-        } catch (e: Exception) {
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: SQLException) {
+            Logger.e(LOG_TAG, "Failed to get event count: ${e.message}", e)
+            0
+        } catch (e: IllegalStateException) {
             Logger.e(LOG_TAG, "Failed to get event count: ${e.message}", e)
             0
         }
@@ -208,7 +222,12 @@ class EventLogger(private val eventDao: EventDao) {
     suspend fun getRecentEvents(limit: Int = 100): List<Event> {
         return try {
             eventDao.getLatest(limit)
-        } catch (e: Exception) {
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: SQLException) {
+            Logger.e(LOG_TAG, "Failed to get recent events: ${e.message}", e)
+            emptyList()
+        } catch (e: IllegalStateException) {
             Logger.e(LOG_TAG, "Failed to get recent events: ${e.message}", e)
             emptyList()
         }
@@ -224,7 +243,12 @@ class EventLogger(private val eventDao: EventDao) {
     suspend fun getEventsByType(type: EventType, limit: Int = 100): List<Event> {
         return try {
             eventDao.getByType(type, limit)
-        } catch (e: Exception) {
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: SQLException) {
+            Logger.e(LOG_TAG, "Failed to get events by type: ${e.message}", e)
+            emptyList()
+        } catch (e: IllegalStateException) {
             Logger.e(LOG_TAG, "Failed to get events by type: ${e.message}", e)
             emptyList()
         }
@@ -240,7 +264,12 @@ class EventLogger(private val eventDao: EventDao) {
     suspend fun getEventsBySeverity(severity: Severity, limit: Int = 100): List<Event> {
         return try {
             eventDao.getBySeverity(severity, limit)
-        } catch (e: Exception) {
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: SQLException) {
+            Logger.e(LOG_TAG, "Failed to get events by severity: ${e.message}", e)
+            emptyList()
+        } catch (e: IllegalStateException) {
             Logger.e(LOG_TAG, "Failed to get events by severity: ${e.message}", e)
             emptyList()
         }
@@ -256,7 +285,12 @@ class EventLogger(private val eventDao: EventDao) {
     suspend fun getEventsBySource(source: EventSource, limit: Int = 100): List<Event> {
         return try {
             eventDao.getBySource(source, limit)
-        } catch (e: Exception) {
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: SQLException) {
+            Logger.e(LOG_TAG, "Failed to get events by source: ${e.message}", e)
+            emptyList()
+        } catch (e: IllegalStateException) {
             Logger.e(LOG_TAG, "Failed to get events by source: ${e.message}", e)
             emptyList()
         }
@@ -272,7 +306,12 @@ class EventLogger(private val eventDao: EventDao) {
     suspend fun getEventsByTimeRange(startTime: Long, endTime: Long): List<Event> {
         return try {
             eventDao.getByTimeRange(startTime, endTime)
-        } catch (e: Exception) {
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: SQLException) {
+            Logger.e(LOG_TAG, "Failed to get events by time range: ${e.message}", e)
+            emptyList()
+        } catch (e: IllegalStateException) {
             Logger.e(LOG_TAG, "Failed to get events by time range: ${e.message}", e)
             emptyList()
         }
@@ -286,7 +325,11 @@ class EventLogger(private val eventDao: EventDao) {
         try {
             eventDao.deleteAll()
             Logger.i(LOG_TAG, "Cleared all events from database")
-        } catch (e: Exception) {
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: SQLException) {
+            Logger.e(LOG_TAG, "Failed to clear events: ${e.message}", e)
+        } catch (e: IllegalStateException) {
             Logger.e(LOG_TAG, "Failed to clear events: ${e.message}", e)
         }
     }

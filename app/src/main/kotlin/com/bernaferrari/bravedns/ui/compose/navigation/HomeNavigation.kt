@@ -318,13 +318,10 @@ data class HomeConfigureActions(
 )
 
 data class HomeAboutActions(
-    val onSponsorClick: () -> Unit,
     val onTelegramClick: () -> Unit,
     val onBugReportClick: () -> Unit,
     val onWhatsNewClick: () -> Unit,
     val onAppUpdateClick: () -> Unit,
-    val onContributorsClick: () -> Unit,
-    val onTranslateClick: () -> Unit,
     val onWebsiteClick: () -> Unit,
     val onGithubClick: () -> Unit,
     val onFaqClick: () -> Unit,
@@ -346,7 +343,6 @@ data class HomeAboutActions(
     val onFlightRecordClick: () -> Unit,
     val onEventLogsClick: () -> Unit,
     val onTokenClick: () -> Unit,
-    val onTokenDoubleTap: () -> Unit,
     val onFossClick: () -> Unit,
     val onFlossFundsClick: () -> Unit,
 )
@@ -859,13 +855,10 @@ fun HomeScreenRoot(
             entry<RethinkRoute.About> {
                 AboutScreen(
                     uiState = aboutUiState,
-                    onSponsorClick = aboutActions.onSponsorClick,
                     onTelegramClick = aboutActions.onTelegramClick,
                     onBugReportClick = aboutActions.onBugReportClick,
                     onWhatsNewClick = aboutActions.onWhatsNewClick,
                     onAppUpdateClick = aboutActions.onAppUpdateClick,
-                    onContributorsClick = aboutActions.onContributorsClick,
-                    onTranslateClick = aboutActions.onTranslateClick,
                     onWebsiteClick = aboutActions.onWebsiteClick,
                     onGithubClick = aboutActions.onGithubClick,
                     onFaqClick = aboutActions.onFaqClick,
@@ -887,7 +880,6 @@ fun HomeScreenRoot(
                     onFlightRecordClick = aboutActions.onFlightRecordClick,
                     onEventLogsClick = aboutActions.onEventLogsClick,
                     onTokenClick = aboutActions.onTokenClick,
-                    onTokenDoubleTap = aboutActions.onTokenDoubleTap,
                     onFossClick = aboutActions.onFossClick,
                     onFlossFundsClick = aboutActions.onFlossFundsClick,
                     onBackClick = { nav.popBackStack() },

@@ -95,7 +95,11 @@ class BubbleController(
                 .onEach { handleBlockedConnectionsCount(it) }
                 .launchIn(scope)
             bubbleObserverRegistered = true
-        } catch (e: Exception) {
+        } catch (e: SecurityException) {
+            Logger.e(TAG, "Bubble init failed: ${e.message}", e)
+            persistentState.firewallBubbleEnabled = false
+            unobserveBlockedConns()
+        } catch (e: IllegalStateException) {
             Logger.e(TAG, "Bubble init failed: ${e.message}", e)
             persistentState.firewallBubbleEnabled = false
             unobserveBlockedConns()
@@ -109,8 +113,10 @@ class BubbleController(
             try {
                 BubbleHelper.dismissBubble(context)
                 removeBubbleObserver()
-            } catch (e: Exception) {
-                Logger.w(TAG, "err stopping bubble observer: ${e.message}")
+            } catch (e: SecurityException) {
+                Logger.w(TAG, "err stopping bubble observer: ${e.message}", e)
+            } catch (e: IllegalStateException) {
+                Logger.w(TAG, "err stopping bubble observer: ${e.message}", e)
             }
             return
         }

@@ -125,12 +125,13 @@ object SsidPermissionManager {
             val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
             intent.data = android.net.Uri.fromParts("package", context.packageName, null)
             context.startActivity(intent)
-        } catch (e: Exception) {
-            // Fallback to general app settings if specific intent fails
+        } catch (e: android.content.ActivityNotFoundException) {
+            Logger.w(LOG_TAG_UI, "openAppSettings primary intent failed: ${e.message}", e)
             try {
                 val fallbackIntent = Intent(android.provider.Settings.ACTION_MANAGE_APPLICATIONS_SETTINGS)
                 context.startActivity(fallbackIntent)
-            } catch (_: Exception) {
+            } catch (fallback: android.content.ActivityNotFoundException) {
+                Logger.w(LOG_TAG_UI, "openAppSettings fallback intent failed: ${fallback.message}", fallback)
                 // If all else fails, show a toast message
                 if (context is Activity) {
                     Utilities.showToastUiCentered(
@@ -213,12 +214,13 @@ object SsidPermissionManager {
         try {
             val intent = Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS)
             context.startActivity(intent)
-        } catch (_: Exception) {
-            // Fallback to general location settings if specific intent fails
+        } catch (e: android.content.ActivityNotFoundException) {
+            Logger.w(LOG_TAG_UI, "requestLocationEnable primary intent failed: ${e.message}", e)
             try {
                 val fallbackIntent = Intent(android.provider.Settings.ACTION_PRIVACY_SETTINGS)
                 context.startActivity(fallbackIntent)
-            } catch (_: Exception) {
+            } catch (fallback: android.content.ActivityNotFoundException) {
+                Logger.w(LOG_TAG_UI, "requestLocationEnable fallback intent failed: ${fallback.message}", fallback)
                 // If all else fails, show a toast message
                 if (context is Activity) {
                     android.widget.Toast.makeText(

@@ -65,7 +65,7 @@ class BraveTileService : TileService(), KoinComponent {
                     .onEach { updateTile(it) }
                     .launchIn(tileScope)
             }
-        } catch (e: Exception) {
+        } catch (e: IllegalStateException) {
             Logger.w(Logger.LOG_TAG_UI, "Tile: err in observing VPN state", e)
         }
         updateTile(persistentState.getVpnEnabled())
@@ -76,7 +76,7 @@ class BraveTileService : TileService(), KoinComponent {
         try {
             vpnEnabledCollectorJob?.cancel()
             vpnEnabledCollectorJob = null
-        } catch (e: Exception) {
+        } catch (e: IllegalStateException) {
             Logger.w(Logger.LOG_TAG_UI, "Tile: err in removing observer", e)
         }
     }
@@ -86,7 +86,7 @@ class BraveTileService : TileService(), KoinComponent {
             vpnEnabledCollectorJob?.cancel()
             vpnEnabledCollectorJob = null
             tileScope.cancel()
-        } catch (e: Exception) {
+        } catch (e: IllegalStateException) {
             Logger.w(Logger.LOG_TAG_UI, "Tile: err in removing observer on destroy", e)
         }
         super.onDestroy()
@@ -96,7 +96,7 @@ class BraveTileService : TileService(), KoinComponent {
         return try {
             val uiModeManager: UiModeManager = getSystemService(UI_MODE_SERVICE) as UiModeManager
             uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
-        } catch (_: Exception) {
+        } catch (_: ClassCastException) {
             false
         }
     }
@@ -136,7 +136,11 @@ class BraveTileService : TileService(), KoinComponent {
                 // use PendingIntent instead
                 Logger.w(Logger.LOG_TAG_UI, "Tile: unsupported operation, use send()", e)
                 pendingIntent.send()
-            } catch (e: Exception) {
+            } catch (e: android.content.ActivityNotFoundException) {
+                Logger.w(Logger.LOG_TAG_UI, "Tile: err in starting activity", e)
+            } catch (e: SecurityException) {
+                Logger.w(Logger.LOG_TAG_UI, "Tile: err in starting activity", e)
+            } catch (e: IllegalStateException) {
                 Logger.w(Logger.LOG_TAG_UI, "Tile: err in starting activity", e)
             }
         }

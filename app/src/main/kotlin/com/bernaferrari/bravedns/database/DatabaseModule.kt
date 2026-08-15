@@ -55,6 +55,7 @@ class DatabaseModule {
     @Single fun dnsLogDao(database: LogDatabase) = database.dnsLogDAO()
     @Single fun rethinkLogDao(database: LogDatabase) = database.rethinkConnectionLogDAO()
     @Single fun statsSummaryDao(database: LogDatabase) = database.statsSummaryDAO()
+    @Single fun dailyStatsDao(database: LogDatabase) = database.dailyStatsDAO()
     @Single fun ipInfoDao(database: LogDatabase) = database.ipInfoDao()
     @Single fun eventDao(database: LogDatabase) = database.eventDao()
     @Single fun consoleLogDao(database: ConsoleLogDatabase) = database.consoleLogDAO()

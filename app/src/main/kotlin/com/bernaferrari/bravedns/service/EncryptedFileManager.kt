@@ -84,7 +84,9 @@ object EncryptedFileManager {
                 ist?.close()
                 bos?.flush()
                 bos?.close()
-            } catch (_: Exception) { } // no-op
+            } catch (e: java.io.IOException) {
+                Logger.w(Logger.LOG_TAG_PROXY, "Encrypted File close: ${e.message}", e)
+            }
         }
 
         return config
@@ -135,8 +137,12 @@ object EncryptedFileManager {
             }
             val bytes = cfg.toByteArray(StandardCharsets.UTF_8)
             return write(ctx, bytes, fileToWrite)
-        } catch (e: Exception) {
-            Logger.w(Logger.LOG_TAG_PROXY, "err write wg file: ${e.message}")
+        } catch (e: EncryptionException) {
+            Logger.w(Logger.LOG_TAG_PROXY, "err write wg file: ${e.message}", e)
+        } catch (e: java.io.IOException) {
+            Logger.w(Logger.LOG_TAG_PROXY, "err write wg file: ${e.message}", e)
+        } catch (e: SecurityException) {
+            Logger.w(Logger.LOG_TAG_PROXY, "err write wg file: ${e.message}", e)
         }
         return false
     }
@@ -159,8 +165,12 @@ object EncryptedFileManager {
                 fileToWrite.createNewFile()
             }
             return write(ctx, cfg, fileToWrite)
-        } catch (e: Exception) {
-            Logger.w(Logger.LOG_TAG_PROXY, "err write tcp config: ${e.message}")
+        } catch (e: EncryptionException) {
+            Logger.w(Logger.LOG_TAG_PROXY, "err write tcp config: ${e.message}", e)
+        } catch (e: java.io.IOException) {
+            Logger.w(Logger.LOG_TAG_PROXY, "err write tcp config: ${e.message}", e)
+        } catch (e: SecurityException) {
+            Logger.w(Logger.LOG_TAG_PROXY, "err write tcp config: ${e.message}", e)
         }
         return false
     }

@@ -5,6 +5,8 @@ package com.bernaferrari.bravedns.database
 
 import androidx.room3.Dao
 import androidx.room3.Query
+import com.bernaferrari.bravedns.data.AppConnection
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface DailyStatsDao {
@@ -94,6 +96,31 @@ interface DailyStatsDao {
         blockedCount: Int,
     )
 
+    @Query(
+        """
+        INSERT INTO daily_ip_stats (
+            date, ipAddress, flag, contactedCount, blockedCount, downloadBytes, uploadBytes
+        ) VALUES (
+            :date, :ipAddress, :flag, :contactedCount, :blockedCount, :downloadBytes, :uploadBytes
+        )
+        ON CONFLICT(date, ipAddress) DO UPDATE SET
+            flag = CASE WHEN excluded.flag != '' THEN excluded.flag ELSE flag END,
+            contactedCount = contactedCount + excluded.contactedCount,
+            blockedCount = blockedCount + excluded.blockedCount,
+            downloadBytes = downloadBytes + excluded.downloadBytes,
+            uploadBytes = uploadBytes + excluded.uploadBytes
+        """
+    )
+    suspend fun upsertIp(
+        date: Long,
+        ipAddress: String,
+        flag: String,
+        contactedCount: Int,
+        blockedCount: Int,
+        downloadBytes: Long,
+        uploadBytes: Long,
+    )
+
     @Query("DELETE FROM daily_app_stats WHERE date < :fromDay")
     suspend fun purgeAppsBefore(fromDay: Long)
 
@@ -105,4 +132,51 @@ interface DailyStatsDao {
 
     @Query("DELETE FROM daily_domain_stats WHERE date < :fromDay")
     suspend fun purgeDomainsBefore(fromDay: Long)
+
+    @Query("DELETE FROM daily_ip_stats WHERE date < :fromDay")
+    suspend fun purgeIpsBefore(fromDay: Long)
+
+    @Query(
+        """
+            SELECT 0 AS uid,
+              ipAddress AS ipAddress,
+              0 AS port,
+              SUM(contactedCount) AS count,
+              MAX(flag) AS flag,
+              0 AS blocked,
+              '' AS appOrDnsName,
+              SUM(downloadBytes) AS downloadBytes,
+              SUM(uploadBytes) AS uploadBytes,
+              SUM(downloadBytes + uploadBytes) AS totalBytes
+            FROM daily_ip_stats
+            WHERE date >= (:to / 86400000)
+            GROUP BY ipAddress
+            HAVING SUM(contactedCount) > 0
+            ORDER BY count DESC
+            LIMIT 7
+        """
+    )
+    fun getMostContactedIpsDaily(to: Long): Flow<List<AppConnection>>
+
+    @Query(
+        """
+            SELECT 0 AS uid,
+              ipAddress AS ipAddress,
+              0 AS port,
+              SUM(blockedCount) AS count,
+              MAX(flag) AS flag,
+              1 AS blocked,
+              '' AS appOrDnsName,
+              0 AS downloadBytes,
+              0 AS uploadBytes,
+              0 AS totalBytes
+            FROM daily_ip_stats
+            WHERE date >= (:to / 86400000)
+            GROUP BY ipAddress
+            HAVING SUM(blockedCount) > 0
+            ORDER BY count DESC
+            LIMIT 7
+        """
+    )
+    fun getMostBlockedIpsDaily(to: Long): Flow<List<AppConnection>>
 }

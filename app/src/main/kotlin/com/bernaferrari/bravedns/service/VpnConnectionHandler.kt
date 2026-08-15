@@ -47,9 +47,6 @@ class VpnConnectionHandler(
         const val VPN_INTERFACE_MTU = 1500
         const val MIN_MTU = 1280
         const val MAX_MTU = 10000
-
-        private const val IPV4_DNS_ADDR = 44
-        private const val IPV6_DNS_ADDR = 44
     }
 
     enum class LanIp(val id: Int) {

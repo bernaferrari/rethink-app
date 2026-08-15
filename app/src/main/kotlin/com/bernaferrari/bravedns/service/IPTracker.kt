@@ -166,8 +166,10 @@ internal constructor(
             } else {
                 inetAddress
             }
-        } catch (e: Exception) {
-            Logger.w(LOG_TAG_FIREWALL, "err while converting IP to InetAddress: $ip")
+        } catch (e: inet.ipaddr.AddressStringException) {
+            Logger.w(LOG_TAG_FIREWALL, "err while converting IP to InetAddress: $ip", e)
+        } catch (e: inet.ipaddr.HostNameException) {
+            Logger.w(LOG_TAG_FIREWALL, "err while converting IP to InetAddress: $ip", e)
         }
         return null
     }
@@ -212,8 +214,9 @@ internal constructor(
             Logger.i(LOG_TAG_FIREWALL, "app, $appName, not tracked by FirewallManager")
             appName = try {
                 ctx.packageManager.getApplicationLabel(appInfo).toString()
-            } catch (_: Exception) {
-                // fallback if base.apk is not accessible
+            } catch (_: android.content.pm.PackageManager.NameNotFoundException) {
+                ctx.getString(R.string.network_log_app_name_unnamed, uid.toString())
+            } catch (_: android.content.res.Resources.NotFoundException) {
                 ctx.getString(R.string.network_log_app_name_unnamed, uid.toString())
             }
         }

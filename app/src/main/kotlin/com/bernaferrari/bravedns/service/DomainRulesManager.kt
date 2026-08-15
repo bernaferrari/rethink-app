@@ -254,7 +254,8 @@ object DomainRulesManager : KoinComponent {
                 proxyCC = wildParts[2]
                 return Pair(proxyId, proxyCC)
             }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            Logger.w(LOG_TAG_DNS, "getProxyForDomain parse err: ${e.message}", e)
             return Pair("", "")
         }
     }
@@ -559,7 +560,7 @@ object DomainRulesManager : KoinComponent {
                     // should not be removed
                     val uri = java.net.URI(trimmedInput)
                     uri.host?.removePrefix("www.") // remove 'www.' prefix if present
-                } catch (e: Exception) {
+                } catch (_: java.net.URISyntaxException) {
                     null
                 }
             }

@@ -25,12 +25,9 @@ import android.net.NetworkRequest
 import com.bernaferrari.bravedns.util.Utilities.isAtleastO
 import com.bernaferrari.bravedns.util.Utilities.isAtleastP
 import com.bernaferrari.bravedns.util.Utilities.isAtleastS
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 
 /**
  * Manages underlying network monitoring and callbacks.
@@ -38,7 +35,6 @@ import kotlinx.coroutines.launch
  */
 class UnderlyingNetworkManager(
     private val context: Context,
-    private val scope: CoroutineScope
 ) {
 
     companion object {
@@ -149,8 +145,10 @@ class UnderlyingNetworkManager(
                     _hasIpv6.value = has6
                 }
             }
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_VPN, "$TAG Error updating capabilities: ${e.message}")
+        } catch (e: SecurityException) {
+            Logger.e(LOG_TAG_VPN, "$TAG Error updating capabilities: ${e.message}", e)
+        } catch (e: IllegalStateException) {
+            Logger.e(LOG_TAG_VPN, "$TAG Error updating capabilities: ${e.message}", e)
         }
     }
 
@@ -190,8 +188,10 @@ class UnderlyingNetworkManager(
         networkCallback?.let {
             try {
                 connectivityManager?.unregisterNetworkCallback(it)
-            } catch (e: Exception) {
-                Logger.w(LOG_TAG_VPN, "$TAG Error unregistering network callback: ${e.message}")
+            } catch (e: IllegalArgumentException) {
+                Logger.w(LOG_TAG_VPN, "$TAG Error unregistering network callback: ${e.message}", e)
+            } catch (e: IllegalStateException) {
+                Logger.w(LOG_TAG_VPN, "$TAG Error unregistering network callback: ${e.message}", e)
             }
         }
         networkCallback = null

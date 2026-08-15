@@ -9,6 +9,7 @@ import com.bernaferrari.bravedns.data.AppConnection
 import com.bernaferrari.bravedns.data.DataUsageSummary
 import com.bernaferrari.bravedns.database.ConnectionTracker
 import com.bernaferrari.bravedns.database.ConnectionTrackerDAO
+import com.bernaferrari.bravedns.database.DailyStatsDao
 import com.bernaferrari.bravedns.database.StatsSummaryDao
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -30,6 +31,7 @@ import org.koin.core.annotation.Provided
 class SummaryStatisticsViewModel(
     @Provided private val connectionTrackerDAO: ConnectionTrackerDAO,
     @Provided private val statsDao: StatsSummaryDao,
+    @Provided private val dailyStatsDao: DailyStatsDao,
     @Provided private val uptimeProvider: NetworkUptimeProvider,
     private val nowMillis: () -> Long = { Clock.System.now().toEpochMilliseconds() }
 ) : ViewModel() {
@@ -84,8 +86,8 @@ class SummaryStatisticsViewModel(
                     if (useDaily) statsDao.getMostBlockedDomainsDaily(start) else statsDao.getMostBlockedDomains(start),
                     if (useDaily) statsDao.getMostContactedDomainsDaily(start) else statsDao.getMostContactedDomains(start),
                     if (useDaily) statsDao.getMostContactedCountriesDaily(start) else statsDao.getMostContactedCountries(start),
-                    connectionTrackerDAO.getMostContactedIps(start),
-                    connectionTrackerDAO.getMostBlockedIps(start),
+                    if (useDaily) dailyStatsDao.getMostContactedIpsDaily(start) else connectionTrackerDAO.getMostContactedIps(start),
+                    if (useDaily) dailyStatsDao.getMostBlockedIpsDaily(start) else connectionTrackerDAO.getMostBlockedIps(start),
                 )
             ) { lists ->
                 SummaryCardLists(

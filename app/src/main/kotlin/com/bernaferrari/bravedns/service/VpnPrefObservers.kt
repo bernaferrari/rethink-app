@@ -133,7 +133,13 @@ class VpnPrefObservers(
 
             val reason = "excludeApps: ${latestExcludedApps.size} apps, at: ${elapsedRealtime()}"
             requestRestart(reason)
-        } catch (e: Exception) { // NoSuchElementException, ConcurrentModification
+        } catch (e: ConcurrentModificationException) {
+            Logger.e(
+                LOG_TAG_VPN,
+                "error retrieving value from appInfos observer ${e.message}",
+                e
+            )
+        } catch (e: NoSuchElementException) {
             Logger.e(
                 LOG_TAG_VPN,
                 "error retrieving value from appInfos observer ${e.message}",

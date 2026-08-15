@@ -27,6 +27,7 @@ import com.bernaferrari.bravedns.util.IPUtil
 import com.bernaferrari.bravedns.util.InternetProtocol
 import com.bernaferrari.bravedns.util.KnownPorts
 import com.bernaferrari.bravedns.util.Utilities.isNetworkSame
+import inet.ipaddr.AddressStringException
 import inet.ipaddr.HostName
 import inet.ipaddr.IPAddressString
 import java.net.InetAddress
@@ -79,7 +80,7 @@ class VpnTunRoutes(
             // Hostname() accepts IPAddress, port(Int) as parameters
             return try {
                 HostName(IPAddressString(format).address, port).toString()
-            } catch (e: Exception) {
+            } catch (e: AddressStringException) {
                 Logger.e(LOG_TAG_VPN, "err make lan ip: ${e.message}", e)
                 ""
             }
@@ -435,7 +436,7 @@ class VpnTunRoutes(
                     include?.forEach {
                         try {
                             it.address?.let { it1 -> b.addRoute(it1, it.prefix) }
-                        } catch (ex: Exception) {
+                        } catch (ex: IllegalArgumentException) {
                             Logger.e(LOG_TAG_VPN, "exception while adding route: ${ex.message}", ex)
                         }
                     }

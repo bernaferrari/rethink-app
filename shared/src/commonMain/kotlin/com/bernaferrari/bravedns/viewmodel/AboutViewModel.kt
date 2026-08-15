@@ -79,14 +79,6 @@ class AboutViewModel(
         }
     }
 
-    fun generateNewToken() {
-        if (metadataProvider.metadata().isFdroid) return
-
-        val token = tokenGenerator.generate()
-        preferences.updateFirebaseUserToken(token, currentTimeMillis())
-        uiStateMutable.update { it.copy(firebaseToken = token) }
-    }
-
     fun triggerBugReport() {
         if (bugReportController.trigger()) {
             uiStateMutable.update { it.copy(isBugReportRunning = true) }

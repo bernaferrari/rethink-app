@@ -33,6 +33,7 @@ import com.bernaferrari.bravedns.util.Constants.Companion.RETHINK_PACKAGE
 import com.bernaferrari.bravedns.util.OrbotHelper
 import com.bernaferrari.bravedns.util.ExpiringCache
 import com.bernaferrari.bravedns.util.UidMultimap
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -364,7 +365,12 @@ object FirewallManager : KoinComponent {
         val now = System.currentTimeMillis()
         val apps = try {
             db.getTempAllowedApps()
-        } catch (e: Exception) {
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: android.database.SQLException) {
+            Logger.e(LOG_TAG_FIREWALL, "err hydrate temp allows: ${e.message}", e)
+            emptyList()
+        } catch (e: IllegalStateException) {
             Logger.e(LOG_TAG_FIREWALL, "err hydrate temp allows: ${e.message}", e)
             emptyList()
         }
@@ -376,7 +382,11 @@ object FirewallManager : KoinComponent {
             if (expiry <= now) {
                 try {
                     db.clearTempAllowByUidIfExpiry(ai.uid, expiry)
-                } catch (e: Exception) {
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: android.database.SQLException) {
+                    Logger.e(LOG_TAG_FIREWALL, "err clearing stale temp allow: ${e.message}", e)
+                } catch (e: IllegalStateException) {
                     Logger.e(LOG_TAG_FIREWALL, "err clearing stale temp allow: ${e.message}", e)
                 }
                 return@forEach
@@ -550,7 +560,7 @@ object FirewallManager : KoinComponent {
                 val packageInfo =
                     packageManager.getPackageInfo(appInfo.packageName, PackageManager.GET_SERVICES)
                 packageInfo.isVpnRelatedApp(packageManager)
-            } catch (_: Exception) {
+            } catch (_: PackageManager.NameNotFoundException) {
                 false
             }
 
@@ -807,7 +817,13 @@ object FirewallManager : KoinComponent {
         // Cache miss: consult DB (source of truth) and warm cache if still valid.
         val ai = try {
             db.getAppInfoByUid(uid)
-        } catch (_: Exception) {
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: android.database.SQLException) {
+            Logger.e(LOG_TAG_FIREWALL, "err getAppInfoByUid: ${e.message}", e)
+            null
+        } catch (e: IllegalStateException) {
+            Logger.e(LOG_TAG_FIREWALL, "err getAppInfoByUid: ${e.message}", e)
             null
         }
 

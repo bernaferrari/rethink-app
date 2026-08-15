@@ -92,7 +92,7 @@ class DiagnosticsManager(
 
             logd("$TAG; ---end additional info---")
 
-        } catch (e: Exception) {
+        } catch (e: IllegalArgumentException) {
             Logger.w(LOG_TAG_CONNECTION, "$TAG; err logging additional info", e)
         }
     }
@@ -139,7 +139,13 @@ class DiagnosticsManager(
             val executor = Daemons.make("conndiag").executor
             cdm?.registerConnectivityDiagnosticsCallback(diagRequest, executor, this)
             logd("$TAG; nw diags mgr registered")
-        } catch (e: Exception) {
+        } catch (e: ClassCastException) {
+            Logger.w(LOG_TAG_CONNECTION, "$TAG; err reg diagnostics mgr", e)
+        } catch (e: SecurityException) {
+            Logger.w(LOG_TAG_CONNECTION, "$TAG; err reg diagnostics mgr", e)
+        } catch (e: IllegalArgumentException) {
+            Logger.w(LOG_TAG_CONNECTION, "$TAG; err reg diagnostics mgr", e)
+        } catch (e: IllegalStateException) {
             Logger.w(LOG_TAG_CONNECTION, "$TAG; err reg diagnostics mgr", e)
         }
     }
@@ -150,7 +156,9 @@ class DiagnosticsManager(
         try {
             cdm?.unregisterConnectivityDiagnosticsCallback(this)
             logd("$TAG; nw diags mgr unregistered")
-        } catch (e: Exception) {
+        } catch (e: IllegalArgumentException) {
+            Logger.w(LOG_TAG_CONNECTION, "$TAG; err unreg diagnostics mgr", e)
+        } catch (e: IllegalStateException) {
             Logger.w(LOG_TAG_CONNECTION, "$TAG; err unreg diagnostics mgr", e)
         }
     }

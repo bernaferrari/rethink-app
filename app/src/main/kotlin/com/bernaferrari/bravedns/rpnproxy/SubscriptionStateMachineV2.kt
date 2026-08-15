@@ -151,8 +151,6 @@ class SubscriptionStateMachineV2(
      *
      * Leaf names ([Active], [Cancelled], [Expired], …) stay so
      * [com.bernaferrari.bravedns.iab.InAppBillingHandler] `is` checks compile.
-     * Play Grace/OnHold/Paused are never emitted — they are fields on
-     * [SubscriptionData], not states.
      */
     sealed class SubscriptionState : State {
         abstract val isActive: Boolean
@@ -162,7 +160,7 @@ class SubscriptionStateMachineV2(
         sealed class Entitled : SubscriptionState() {
             override val hasValidSubscription get() = true
             override val canMakePurchase get() = false
-            override val isActive get() = this is Active || this is Grace
+            override val isActive get() = this is Active
         }
 
         sealed class NotEntitled : SubscriptionState() {
@@ -185,10 +183,6 @@ class SubscriptionStateMachineV2(
 
         object Active : Entitled()
         object Cancelled : Entitled()
-        /** Compile-compat only; Play reconcile maps these to [Active]. Never emitted. */
-        object Grace : Entitled()
-        object OnHold : Entitled()
-        object Paused : Entitled()
 
         object Initial : NotEntitled()
         object Expired : NotEntitled()
@@ -567,9 +561,6 @@ class SubscriptionStateMachineV2(
                             SubscriptionEvent.PurchaseCompleted(reconciledDetail)
 
                         SubscriptionState.Active,
-                        SubscriptionState.Grace,
-                        SubscriptionState.OnHold,
-                        SubscriptionState.Paused,
                         SubscriptionState.Cancelled ->
                             SubscriptionEvent.PaymentSuccessful(reconciledDetail)
 
@@ -702,7 +693,7 @@ class SubscriptionStateMachineV2(
     private suspend fun expireStaleSubsFromDb() {
         try {
             // Active and Cancelled states are "still alive" from the local perspective.
-            // Grace / OnHold / Paused are also Play-managed states that should be expired
+            // Legacy Play-managed DB statuses (grace / on-hold / paused) are also expired
             // when Play returns nothing.
             val activeStatuses = listOf(
                 SubscriptionStatus.SubscriptionState.STATE_ACTIVE.id,
@@ -1903,15 +1894,14 @@ class SubscriptionStateMachineV2(
 
             // Restore in-memory state using light-weight events that do NOT trigger
             // handlePaymentSuccessful / DB writes / history inserts.
-            // SubscriptionRestored is used for Active/Canceled/Grace so it calls
+            // SubscriptionRestored is used for Active/Cancelled so it calls
             // handleSubscriptionRestored (which only writes if status actually changed).
             // For Expired/Revoked/Pending we set the machine state directly without
             // firing events that have DB-write side effects; Play reconcile will
             // authoritatively correct any discrepancy within seconds of app start.
             val pd = createPurchaseDetailFromSubscription(sub)
             when (effectiveState) {
-                SubscriptionState.Active,
-                SubscriptionState.Grace -> {
+                SubscriptionState.Active -> {
                     // Restore in memory; fire SubscriptionRestored which is idempotent
                     // (skips DB write if prevStatus already ACTIVE).
                     applyEvent(SubscriptionEvent.SubscriptionRestored(pd))

@@ -430,8 +430,14 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
                     return
                 }
             }
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_VPN, "err bind: who: $who, addr: $addrPort, fd: $fid, ${e.message}, $e")
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: IOException) {
+            Logger.e(LOG_TAG_VPN, "err bind: who: $who, addr: $addrPort, fd: $fid, ${e.message}", e)
+        } catch (e: IllegalArgumentException) {
+            Logger.e(LOG_TAG_VPN, "err bind: who: $who, addr: $addrPort, fd: $fid, ${e.message}", e)
+        } catch (e: inet.ipaddr.AddressStringException) {
+            Logger.e(LOG_TAG_VPN, "err bind: who: $who, addr: $addrPort, fd: $fid, ${e.message}", e)
         } finally {
             pfd?.detachFd()
         }
@@ -448,8 +454,10 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
         try {
             pfd = ParcelFileDescriptor.adoptFd(fid.toInt())
             return bindToNw(nw, pfd, fid)
-        } catch (e: Exception) {
-            Logger.i(LOG_TAG_VPN, "err bindToNwForConnectivityChecks, ${e.message}")
+        } catch (e: IOException) {
+            Logger.w(LOG_TAG_VPN, "err bindToNwForConnectivityChecks, ${e.message}", e)
+        } catch (e: IllegalArgumentException) {
+            Logger.w(LOG_TAG_VPN, "err bindToNwForConnectivityChecks, ${e.message}", e)
         } finally {
             pfd?.detachFd()
         }
@@ -715,7 +723,9 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
         if (is4in6FilterRequired()) {
             val addr = try {
                 IPAddressString(destIp).address
-            } catch (_: Exception) {
+            } catch (_: inet.ipaddr.AddressStringException) {
+                return IpRulesManager.IpRuleStatus.NONE
+            } catch (_: inet.ipaddr.IncompatibleAddressException) {
                 return IpRulesManager.IpRuleStatus.NONE
             }
 
@@ -1090,9 +1100,9 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
             logd = ::logd,
         )
         vpnServiceDiagnostics = VpnServiceDiagnostics(this, persistentState, appConfig)
-        dnsConfigurationManager = DnsConfigurationManager(this, persistentState, appConfig, vpnScope)
-        underlyingNetworkManager = UnderlyingNetworkManager(this, vpnScope)
-        proxyStateManager = ProxyStateManager(appConfig, persistentState, vpnScope)
+        dnsConfigurationManager = DnsConfigurationManager(persistentState, appConfig, vpnScope)
+        underlyingNetworkManager = UnderlyingNetworkManager(this)
+        proxyStateManager = ProxyStateManager(appConfig, persistentState)
         appsStatsManager = AppsStatsManager(FirewallManager, vpnScope)
         logsCountManager = LogsCountManager(appConfig, vpnScope)
         firewallStatsManager = FirewallStatsManager(persistentState, IpRulesManager, DomainRulesManager, vpnScope)
@@ -1976,9 +1986,11 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
         try {
             // this will also cancels the restarter state flow
             vpnScope.cancel("vpnDestroy")
-        } catch (_: IllegalStateException) {
-        } catch (_: CancellationException) {
-        } catch (_: Exception) { }
+        } catch (e: CancellationException) {
+            Logger.w(LOG_TAG_VPN, "vpnScope already cancelled: ${e.message}")
+        } catch (e: IllegalStateException) {
+            Logger.w(LOG_TAG_VPN, "vpnScope cancel failed: ${e.message}")
+        }
 
         Logger.w(LOG_TAG_VPN, "Destroying VPN service")
 
@@ -2838,7 +2850,9 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
             val ip = host.asAddress()?.toString() ?: trimmed
             val port = host.port ?: 0
             ip to port
-        } catch (_: Exception) {
+        } catch (_: inet.ipaddr.HostNameException) {
+            trimmed to 0
+        } catch (_: inet.ipaddr.AddressStringException) {
             trimmed to 0
         }
     }

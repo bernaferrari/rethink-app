@@ -308,17 +308,6 @@ internal fun HomeDialogHost(
             )
         }
 
-        HomeDialog.Contributors -> {
-            Dialog(
-                onDismissRequest = onDismiss,
-                properties = DialogProperties(usePlatformDefaultWidth = false)
-            ) {
-                Surface(color = MaterialTheme.colorScheme.surface) {
-                    ContributorsDialogContent(onDismiss = onDismiss)
-                }
-            }
-        }
-
         HomeDialog.NoLog -> {
             HomeConfirmDialog(
                 onDismissRequest = onDismiss,
@@ -380,51 +369,6 @@ private fun WhatsNewDialogContent() {
         HomeHtmlText(
             text = stringResource(R.string.whats_new_version_update),
             textAlign = TextAlign.Start
-        )
-    }
-}
-
-@Composable
-private fun ContributorsDialogContent(onDismiss: () -> Unit) {
-    Column(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(Dimensions.spacingXl)
-                .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Box(modifier = Modifier.fillMaxWidth()) {
-            IconButton(onClick = onDismiss, modifier = Modifier.align(Alignment.TopEnd)) {
-                Icon(
-                    imageVector = MaterialSymbols.Filled.Close,
-                    contentDescription = stringResource(R.string.lbl_dismiss)
-                )
-            }
-            Row(
-                modifier = Modifier.align(Alignment.Center),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_authors),
-                    contentDescription = null,
-                    modifier = Modifier.size(Dimensions.iconSizeMd)
-                )
-                Spacer(modifier = Modifier.width(Dimensions.spacingSm))
-                Text(
-                    text = stringResource(R.string.contributors_dialog_title),
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(Dimensions.spacingMd))
-
-        HomeHtmlText(
-            text = stringResource(R.string.contributors_list),
-            textAlign = TextAlign.Center
         )
     }
 }

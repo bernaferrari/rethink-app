@@ -18,7 +18,8 @@ package com.bernaferrari.bravedns.util
 
 import Logger.LOG_BATCH_LOGGER
 import android.util.Log
-import com.bernaferrari.bravedns.database.StatsMaterializer
+import com.bernaferrari.bravedns.database.materializeStatsInserted
+import com.bernaferrari.bravedns.database.materializeStatsUpdated
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -106,9 +107,11 @@ class NetLogBatcher<T, V>(
             for (y in buffersCh) {
                 try {
                     processor(y)
-                    StatsMaterializer.onInserted(y)
+                    materializeStatsInserted(y)
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
                 } catch (e: Exception) {
-                    Log.e(LOG_BATCH_LOGGER, "$tag; consumeAdd error: ${e.message}")
+                    Log.e(LOG_BATCH_LOGGER, "$tag; consumeAdd error: ${e.message}", e)
                 }
             }
         }
@@ -118,9 +121,11 @@ class NetLogBatcher<T, V>(
             for (y in updatesCh) {
                 try {
                     updator(y)
-                    StatsMaterializer.onUpdated(y)
+                    materializeStatsUpdated(y)
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
                 } catch (e: Exception) {
-                    Log.e(LOG_BATCH_LOGGER, "$tag; consumeUpdate error: ${e.message}")
+                    Log.e(LOG_BATCH_LOGGER, "$tag; consumeUpdate error: ${e.message}", e)
                 }
             }
         }

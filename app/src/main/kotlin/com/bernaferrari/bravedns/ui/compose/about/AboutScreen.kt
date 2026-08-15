@@ -20,13 +20,10 @@ import com.bernaferrari.bravedns.R
 @Composable
 fun AboutScreen(
     uiState: AboutUiState,
-    onSponsorClick: () -> Unit,
     onTelegramClick: () -> Unit,
     onBugReportClick: () -> Unit,
     onWhatsNewClick: () -> Unit,
     onAppUpdateClick: () -> Unit,
-    onContributorsClick: () -> Unit,
-    onTranslateClick: () -> Unit,
     onWebsiteClick: () -> Unit,
     onGithubClick: () -> Unit,
     onFaqClick: () -> Unit,
@@ -48,7 +45,6 @@ fun AboutScreen(
     onFlightRecordClick: () -> Unit,
     onEventLogsClick: () -> Unit,
     onTokenClick: () -> Unit,
-    onTokenDoubleTap: () -> Unit,
     onFossClick: () -> Unit,
     onFlossFundsClick: () -> Unit,
     onBackClick: () -> Unit,

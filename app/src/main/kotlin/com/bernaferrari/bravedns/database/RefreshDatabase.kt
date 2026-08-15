@@ -16,6 +16,7 @@
 package com.bernaferrari.bravedns.database
 
 import Logger
+import com.bernaferrari.bravedns.database.materializeStatsPurgeBefore
 import Logger.LOG_TAG_APP_DB
 import Logger.LOG_TAG_VPN
 import android.app.NotificationChannel
@@ -1033,7 +1034,7 @@ internal constructor(
         dnsLogRepository.purgeDnsLogsByDate(date)
         connTrackerRepository.purgeLogsByDate(date)
         rethinkLogRepository.purgeLogsByDate(date)
-        StatsMaterializer.purgeBefore(date)
+        materializeStatsPurgeBefore(date)
     }
 
     private suspend fun logEvent(severity: Severity, msg: String, details: String) {

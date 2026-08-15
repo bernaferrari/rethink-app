@@ -12,6 +12,7 @@ import com.bernaferrari.bravedns.service.ConnectionMonitor.NetworkProperties
 import com.bernaferrari.bravedns.service.ConnectionMonitor.ProbeResult
 import com.bernaferrari.bravedns.service.ProbeController
 import com.bernaferrari.bravedns.service.VpnController
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -259,11 +260,14 @@ object ConnectivityCheckHelper {
             )
             return true
         } catch (e: IOException) {
-            Logger.w(LOG_TAG_CONNECTION, "$TAG err tcp$portName: ${e.message}")
+            Logger.w(LOG_TAG_CONNECTION, "$TAG err tcp$portName: ${e.message}", e)
             val cause = e.cause
             return cause is ErrnoException && cause.errno == ECONNREFUSED
-        } catch (e: Exception) {
-            Logger.w(LOG_TAG_CONNECTION, "$TAG err tcp$portName: ${e.message}")
+        } catch (e: SecurityException) {
+            Logger.w(LOG_TAG_CONNECTION, "$TAG err tcp$portName: ${e.message}", e)
+            return false
+        } catch (e: IllegalArgumentException) {
+            Logger.w(LOG_TAG_CONNECTION, "$TAG err tcp$portName: ${e.message}", e)
             return false
         } finally {
             closeQuietly(socket)
@@ -285,8 +289,10 @@ object ConnectivityCheckHelper {
                 "$TAG $host isReachable on network ${nw?.networkHandle}, netid: ${netId(nw?.networkHandle)}: $result"
             )
             result
-        } catch (e: Exception) {
-            Logger.w(LOG_TAG_CONNECTION, "$TAG err isReachableTcpUdp: ${e.message}")
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: SecurityException) {
+            Logger.w(LOG_TAG_CONNECTION, "$TAG err isReachableTcpUdp: ${e.message}", e)
             false
         }
     }
@@ -301,22 +307,19 @@ object ConnectivityCheckHelper {
             val result = InetAddress.getByName(host).isReachable(DEFAULT_TIMEOUT)
             Logger.d(LOG_TAG_CONNECTION, "$TAG $host isReachable via ICMP: $result")
             result
-        } catch (e: Exception) {
-            Logger.w(LOG_TAG_CONNECTION, "$TAG err isReachable: ${e.message}")
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: IOException) {
+            Logger.w(LOG_TAG_CONNECTION, "$TAG err isReachable: ${e.message}", e)
+            false
+        } catch (e: SecurityException) {
+            Logger.w(LOG_TAG_CONNECTION, "$TAG err isReachable: ${e.message}", e)
+            false
+        } catch (e: IllegalArgumentException) {
+            Logger.w(LOG_TAG_CONNECTION, "$TAG err isReachable: ${e.message}", e)
             false
         }
     }
-
-    /**
-     * Legacy methods for backward compatibility
-     */
-    @Deprecated("Use checkTcpConnection instead", ReplaceWith("checkTcpConnection(nw, host, 80, \"80\")"))
-    private suspend fun tcp80(nw: Network?, host: String): Boolean =
-        checkTcpConnection(nw, host, HTTP_PORT, "80")
-
-    @Deprecated("Use checkTcpConnection instead", ReplaceWith("checkTcpConnection(nw, host, 53, \"53\")"))
-    private suspend fun tcp53(nw: Network?, host: String): Boolean =
-        checkTcpConnection(nw, host, DNS_PORT, "53")
 
     /**
      * Safe socket closing utility
@@ -324,8 +327,8 @@ object ConnectivityCheckHelper {
     private fun closeQuietly(closeable: Closeable?) {
         try {
             closeable?.close()
-        } catch (e: Exception) {
-            Logger.w(LOG_TAG_CONNECTION, "$TAG Error closing resource: ${e.message}")
+        } catch (e: IOException) {
+            Logger.w(LOG_TAG_CONNECTION, "$TAG Error closing resource: ${e.message}", e)
         }
     }
 
@@ -336,7 +339,4 @@ object ConnectivityCheckHelper {
         return if (this in Int.MIN_VALUE..Int.MAX_VALUE) this.toInt() else default
     }
 
-    // Legacy alias for backward compatibility
-    @Deprecated("Use closeQuietly instead", ReplaceWith("closeQuietly(closeable)"))
-    private fun clos(closeable: Closeable?) = closeQuietly(closeable)
 }

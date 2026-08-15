@@ -19,13 +19,10 @@ import Logger
 import Logger.LOG_TAG_VPN
 import com.bernaferrari.bravedns.data.AppConfig
 import com.bernaferrari.bravedns.util.UIUtils
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
@@ -35,12 +32,9 @@ import kotlinx.coroutines.withContext
 class ProxyStateManager(
     private val appConfig: AppConfig,
     private val persistentState: PersistentState,
-    private val scope: CoroutineScope
 ) {
 
     companion object {
-        private const val TAG = "ProxyState"
-
         suspend fun calculateWireguardProxyStatus(now: Long = System.currentTimeMillis()): ProxyStatus {
             val proxies = WireguardManager.getActiveConfigs()
             if (proxies.isEmpty()) {

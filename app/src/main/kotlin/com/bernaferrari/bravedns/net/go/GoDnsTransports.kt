@@ -149,7 +149,6 @@ internal class GoDnsTransports(
         appConfig.handleRethinkChanges(rethinkDefault)
     }
 
-    // TODO: remove below method when there is new UI for blockfree transport
     private suspend fun removeBlockFreeTransportIfNeeded() {
         if (appConfig.getDnsType() != AppConfig.DnsType.RETHINK_REMOTE) {
             Logger.i(LOG_TAG_VPN, "$TAG removing block free transport as dns type is not rethink remote")

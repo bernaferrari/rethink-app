@@ -23,8 +23,8 @@ import android.os.ParcelFileDescriptor
 import com.bernaferrari.bravedns.util.InternetProtocol
 import com.bernaferrari.bravedns.util.KnownPorts
 import inet.ipaddr.IPAddressString
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.net.Socket
@@ -36,7 +36,6 @@ import java.net.Socket
 class NetworkBindingService(
     private val vpnService: VpnService,
     private val persistentState: PersistentState,
-    private val scope: CoroutineScope,
     private val ioDispatcher: CoroutineDispatcher
 ) {
     companion object {
@@ -135,8 +134,10 @@ class NetworkBindingService(
         try {
             pfd = ParcelFileDescriptor.adoptFd(fid.toInt())
             return bindToNetwork(network, pfd, fid)
-        } catch (e: Exception) {
-            Logger.i(LOG_TAG_VPN, "$TAG err bindToNetworkForConnectivityChecks, ${e.message}")
+        } catch (e: IOException) {
+            Logger.w(LOG_TAG_VPN, "$TAG err bindToNetworkForConnectivityChecks, ${e.message}", e)
+        } catch (e: IllegalArgumentException) {
+            Logger.w(LOG_TAG_VPN, "$TAG err bindToNetworkForConnectivityChecks, ${e.message}", e)
         } finally {
             pfd?.detachFd()
         }
@@ -216,7 +217,13 @@ class NetworkBindingService(
                     return true
                 }
             }
-        } catch (e: Exception) {
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: IOException) {
+            Logger.e(LOG_TAG_VPN, "$TAG err bind: who: $who, addr: $addrPort, fd: $fid, ${e.message}", e)
+        } catch (e: IllegalArgumentException) {
+            Logger.e(LOG_TAG_VPN, "$TAG err bind: who: $who, addr: $addrPort, fd: $fid, ${e.message}", e)
+        } catch (e: inet.ipaddr.AddressStringException) {
             Logger.e(LOG_TAG_VPN, "$TAG err bind: who: $who, addr: $addrPort, fd: $fid, ${e.message}", e)
         } finally {
             pfd?.detachFd()
@@ -238,9 +245,9 @@ class NetworkBindingService(
     }
 
     private fun shouldSkipForRethinkInRethink(who: String): Boolean {
-        val rethinkUid = try {
-            vpnService.packageManager.getApplicationInfo(vpnService.packageName, 0).uid
-        } catch (e: Exception) {
+        try {
+            vpnService.packageManager.getApplicationInfo(vpnService.packageName, 0)
+        } catch (_: android.content.pm.PackageManager.NameNotFoundException) {
             return false
         }
 

@@ -25,7 +25,7 @@ import com.bernaferrari.bravedns.service.AppUpdater
  * Rotation strategy:
  * - Restore: persist the incoming content URI as a string (intent-delivered; not a picker).
  * - Download / AlwaysOnStop / Stats / NewFeatures: persist enum + strings.
- * - AlwaysOnDisable / PrivateDns / Contributors / NoLog / AccessibilityCrash: marker objects.
+ * - AlwaysOnDisable / PrivateDns / NoLog / AccessibilityCrash: marker objects.
  * - FirstTimeVpn: marker only. The prepare [android.content.Intent] is not saveable;
  *   confirm re-calls [android.net.VpnService.prepare].
  */
@@ -43,7 +43,6 @@ internal sealed interface HomeDialog {
     data object PrivateDns : HomeDialog
     data object FirstTimeVpn : HomeDialog
     data class Stats(val displayText: String, val dump: String) : HomeDialog
-    data object Contributors : HomeDialog
     data object NoLog : HomeDialog
     data object AccessibilityCrash : HomeDialog
     data class NewFeatures(val title: String) : HomeDialog
@@ -57,7 +56,6 @@ internal sealed interface HomeDialog {
         private const val KIND_PRIVATE_DNS = "private_dns"
         private const val KIND_FIRST_TIME_VPN = "first_time_vpn"
         private const val KIND_STATS = "stats"
-        private const val KIND_CONTRIBUTORS = "contributors"
         private const val KIND_NO_LOG = "no_log"
         private const val KIND_ACCESSIBILITY = "accessibility"
         private const val KIND_NEW_FEATURES = "new_features"
@@ -78,7 +76,6 @@ internal sealed interface HomeDialog {
                     PrivateDns -> arrayListOf(KIND_PRIVATE_DNS)
                     FirstTimeVpn -> arrayListOf(KIND_FIRST_TIME_VPN)
                     is Stats -> arrayListOf(KIND_STATS, dialog.displayText, dialog.dump)
-                    Contributors -> arrayListOf(KIND_CONTRIBUTORS)
                     NoLog -> arrayListOf(KIND_NO_LOG)
                     AccessibilityCrash -> arrayListOf(KIND_ACCESSIBILITY)
                     is NewFeatures -> arrayListOf(KIND_NEW_FEATURES, dialog.title)
@@ -98,7 +95,6 @@ internal sealed interface HomeDialog {
                     KIND_PRIVATE_DNS -> PrivateDns
                     KIND_FIRST_TIME_VPN -> FirstTimeVpn
                     KIND_STATS -> Stats(saved[1], saved[2])
-                    KIND_CONTRIBUTORS -> Contributors
                     KIND_NO_LOG -> NoLog
                     KIND_ACCESSIBILITY -> AccessibilityCrash
                     KIND_NEW_FEATURES -> NewFeatures(saved[1])

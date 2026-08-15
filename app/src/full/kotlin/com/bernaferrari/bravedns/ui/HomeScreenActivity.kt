@@ -140,7 +140,6 @@ import com.bernaferrari.bravedns.util.workInfosByTagFlow
 import com.bernaferrari.bravedns.util.Constants
 import com.bernaferrari.bravedns.util.Constants.Companion.MAX_ENDPOINT
 import com.bernaferrari.bravedns.util.Constants.Companion.PKG_NAME_PLAY_STORE
-import com.bernaferrari.bravedns.util.Constants.Companion.RETHINKDNS_SPONSOR_LINK
 import com.bernaferrari.bravedns.util.Constants.Companion.UID_EVERYBODY
 import com.bernaferrari.bravedns.viewmodel.SummaryStatisticsViewModel
 import com.bernaferrari.bravedns.util.FirebaseErrorReporting
@@ -435,7 +434,6 @@ class HomeScreenActivity : FragmentActivity() {
                         ),
                         aboutUiState = aboutState,
                         aboutActions = HomeAboutActions(
-                            onSponsorClick = { openUrl(this, RETHINKDNS_SPONSOR_LINK) },
                             onTelegramClick = {
                                 openUrl(this, getString(R.string.about_telegram_link))
                             },
@@ -443,10 +441,6 @@ class HomeScreenActivity : FragmentActivity() {
                             onWhatsNewClick = { showNewFeaturesDialog() },
                             onAppUpdateClick = {
                                 checkForUpdate(AppUpdater.UserPresent.INTERACTIVE)
-                            },
-                            onContributorsClick = { showContributors() },
-                            onTranslateClick = {
-                                openUrl(this, getString(R.string.about_translate_link))
                             },
                             onWebsiteClick = {
                                 openUrl(this, getString(R.string.about_website_link))
@@ -489,7 +483,6 @@ class HomeScreenActivity : FragmentActivity() {
                             onFlightRecordClick = { initiateFlightRecord() },
                             onEventLogsClick = { openEventLogs() },
                             onTokenClick = { copyTokenToClipboard() },
-                            onTokenDoubleTap = { aboutViewModel.generateNewToken() },
                             onFossClick = {
                                 openUrl(this, getString(R.string.about_foss_link))
                             },
@@ -1393,10 +1386,6 @@ class HomeScreenActivity : FragmentActivity() {
         val v = getVersionName().slice(0..6)
         val title = getString(R.string.about_whats_new, v)
         showDialog(HomeDialog.NewFeatures(title))
-    }
-
-    private fun showContributors() {
-        showDialog(HomeDialog.Contributors)
     }
 
     private fun promptCrashLogAction() {

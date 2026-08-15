@@ -17,10 +17,7 @@ package com.bernaferrari.bravedns.service
 
 import Logger
 import Logger.LOG_TAG_VPN
-import android.content.Context
 import com.bernaferrari.bravedns.data.AppConfig
-import com.bernaferrari.bravedns.util.Constants
-import com.bernaferrari.bravedns.util.Utilities
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -37,7 +34,6 @@ import kotlinx.coroutines.withContext
  * Extracted from BraveVPNService for better separation of concerns.
  */
 class DnsConfigurationManager(
-    private val context: Context,
     private val persistentState: PersistentState,
     private val appConfig: AppConfig,
     private val scope: CoroutineScope,
@@ -81,11 +77,7 @@ class DnsConfigurationManager(
 
     suspend fun refreshResolvers() {
         withContext(Dispatchers.IO) {
-            try {
-                Logger.i(LOG_TAG_VPN, "$TAG Resolvers refresh requested")
-            } catch (e: Exception) {
-                Logger.e(LOG_TAG_VPN, "$TAG Failed to refresh resolvers: ${e.message}")
-            }
+            Logger.i(LOG_TAG_VPN, "$TAG Resolvers refresh requested")
         }
     }
 

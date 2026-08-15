@@ -2606,9 +2606,6 @@ class GoVpnAdapter : KoinComponent {
             Logger.e(LOG_TAG_PROXY, "$TAG no tunnel, skip register se proxy")
             return
         }
-        // no-op, can be added in future if needed
-        // TODO: now the SE is removed, instead if the user has rpn, rpn will be selected
-        // automatically
     }
 
     suspend fun setFloodWgMode() {
@@ -2634,9 +2631,6 @@ class GoVpnAdapter : KoinComponent {
             Logger.e(LOG_TAG_PROXY, "$TAG no tunnel, skip unregister se proxy")
             return
         }
-        // no-op, can be added in future if needed
-        // TODO: now the SE is removed, instead if the user has rpn, rpn will be selected
-        // automatically
     }
 
     suspend fun setExperimentalWireGuardSettings(value: Boolean = persistentState.nwEngExperimentalFeatures) {

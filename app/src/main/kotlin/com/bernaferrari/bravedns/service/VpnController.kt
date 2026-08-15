@@ -117,8 +117,11 @@ object VpnController : KoinComponent {
         try {
             // externalScope?.coroutineContext?.get(Job)?.cancel("VPNController - onVpnDestroyed")
             externalScope?.cancel("VPNController - onVpnDestroyed")
-        } catch (_: IllegalStateException) {} catch (
-            _: CancellationException) {} catch (_: Exception) {}
+        } catch (e: CancellationException) {
+            Logger.w(LOG_TAG_VPN, "VPNController; scope already cancelled: ${e.message}")
+        } catch (e: IllegalStateException) {
+            Logger.w(LOG_TAG_VPN, "VPNController; scope cancel failed: ${e.message}")
+        }
     }
 
     @Suppress("DEPRECATION")
@@ -161,7 +164,6 @@ object VpnController : KoinComponent {
         // always-on is actually enabled; this causes the VPN to start twice and fails doing so.
         // one approach is to store the always-on state in persistent state and check it here.
         // another is to check whether the vpn is already running.
-        // todo: see whether changing the persistent state is really necessary.
         if (braveVpnService != null && autoAttempt) {
             Logger.i(LOG_TAG_VPN, "vpn service already running, no need to start")
             return
@@ -178,8 +180,10 @@ object VpnController : KoinComponent {
 
             onConnectionStateChanged(connectionState)
             Logger.i(LOG_TAG_VPN, "VPNController; Start(sync) executed")
-        } catch (e: Exception) {
-            Logger.w(LOG_TAG_VPN, "VPNController; Start(sync) failed, ${e.message}")
+        } catch (e: IllegalStateException) {
+            Logger.w(LOG_TAG_VPN, "VPNController; Start(sync) failed, ${e.message}", e)
+        } catch (e: SecurityException) {
+            Logger.w(LOG_TAG_VPN, "VPNController; Start(sync) failed, ${e.message}", e)
         }
     }
 

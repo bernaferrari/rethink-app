@@ -155,11 +155,9 @@
     <ID>ForbiddenComment:FirewallRuleset.kt$FirewallRuleset$// TODO: Add label and description from strings.xml</ID>
     <ID>ForbiddenComment:FirewallRuleset.kt$FirewallRuleset.Companion$// TODO: Move ico to enum var like for label and desc</ID>
     <ID>ForbiddenComment:GoDnsTransports.kt$GoDnsTransports$// TODO: #321 As of now there is no block free transport for dns types other than Rethink.</ID>
-    <ID>ForbiddenComment:GoDnsTransports.kt$GoDnsTransports$// TODO: remove below method when there is new UI for blockfree transport</ID>
     <ID>ForbiddenComment:GoDnsTransports.kt$GoDnsTransports$// TODO: should show notification if the transport is not added?</ID>
     <ID>ForbiddenComment:GoVpnAdapter.kt$GoVpnAdapter$// TODO: ideally the values required for transport, alg and rdns should be set in the</ID>
     <ID>ForbiddenComment:GoVpnAdapter.kt$GoVpnAdapter$// TODO: notify the user that the default transport could not be set</ID>
-    <ID>ForbiddenComment:GoVpnAdapter.kt$GoVpnAdapter$// TODO: now the SE is removed, instead if the user has rpn, rpn will be selected</ID>
     <ID>ForbiddenComment:GoVpnAdapter.kt$GoVpnAdapter$// TODO: see if the hop is already added, if so no need to redo this</ID>
     <ID>ForbiddenComment:GoVpnAdapter.kt$GoVpnAdapter$// TODO: system dns may be non existent; see: AppConfig#updateSystemDnsServers</ID>
     <ID>ForbiddenComment:HomeScreenActivity.kt$HomeScreenActivity$// FIXME: remove this post v054</ID>
@@ -174,7 +172,6 @@
     <ID>ForbiddenComment:LocalBlocklistCoordinator.kt$LocalBlocklistCoordinator$// downloaded. TODO: Later add checksum matching as well</ID>
     <ID>ForbiddenComment:NetLogTracker.kt$NetLogTracker$// TODO: This method should be part of BraveVPNService</ID>
     <ID>ForbiddenComment:PersistentState.kt$PersistentState$// TODO: add routes as normal but do not send fd to netstack</ID>
-    <ID>ForbiddenComment:PersistentState.kt$PersistentState$// biometric authentication TODO: remove this</ID>
     <ID>ForbiddenComment:PipKeyManager.kt$PipKeyManager$// TODO: should we get the response from the publicKeyUsable method instead of</ID>
     <ID>ForbiddenComment:ProxyManager.kt$ProxyManager.ProxyMode$// TODO: consider adding other proxy modes (e.g, Wireguard, Rethink, etc.)</ID>
     <ID>ForbiddenComment:RefreshDatabase.kt$RefreshDatabase$// TODO: implement upsert logic handling all the edge cases</ID>
@@ -236,7 +233,7 @@
     <ID>LongMethod:VpnNotificationManager.kt$VpnNotificationManager$fun buildForegroundNotification(): Notification</ID>
     <ID>LongMethod:VpnPrefObservers.kt$VpnPrefObservers$private fun handlePreferenceKeyChanged(key: String)</ID>
     <ID>LongMethod:WgConfigDetailScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun WgConfigDetailScreen( configId: Int, wgType: WgType, persistentState: PersistentState, eventLogger: EventLogger, mappingViewModel: ProxyAppsMappingViewModel, onEditConfig: (Int, WgType) -&gt; Unit, onBackClick: () -&gt; Unit )</ID>
-    <ID>LongParameterList:AboutScreen.kt$( uiState: AboutUiState, onSponsorClick: () -&gt; Unit, onTelegramClick: () -&gt; Unit, onBugReportClick: () -&gt; Unit, onWhatsNewClick: () -&gt; Unit, onAppUpdateClick: () -&gt; Unit, onContributorsClick: () -&gt; Unit, onTranslateClick: () -&gt; Unit, onWebsiteClick: () -&gt; Unit, onGithubClick: () -&gt; Unit, onFaqClick: () -&gt; Unit, onDocsClick: () -&gt; Unit, onPrivacyPolicyClick: () -&gt; Unit, onTermsOfServiceClick: () -&gt; Unit, onLicenseClick: () -&gt; Unit, onTwitterClick: () -&gt; Unit, onEmailClick: () -&gt; Unit, onRedditClick: () -&gt; Unit, onElementClick: () -&gt; Unit, onMastodonClick: () -&gt; Unit, onGeneralSettingsClick: () -&gt; Unit, onAppInfoClick: () -&gt; Unit, onVpnProfileClick: () -&gt; Unit, onNotificationClick: () -&gt; Unit, onStatsClick: () -&gt; Unit, onDbStatsClick: () -&gt; Unit, onFlightRecordClick: () -&gt; Unit, onEventLogsClick: () -&gt; Unit, onTokenClick: () -&gt; Unit, onTokenDoubleTap: () -&gt; Unit, onFossClick: () -&gt; Unit, onFlossFundsClick: () -&gt; Unit, onBackClick: () -&gt; Unit, )</ID>
+    <ID>LongParameterList:AboutScreen.kt$( uiState: AboutUiState, onTelegramClick: () -&gt; Unit, onBugReportClick: () -&gt; Unit, onWhatsNewClick: () -&gt; Unit, onAppUpdateClick: () -&gt; Unit, onWebsiteClick: () -&gt; Unit, onGithubClick: () -&gt; Unit, onFaqClick: () -&gt; Unit, onDocsClick: () -&gt; Unit, onPrivacyPolicyClick: () -&gt; Unit, onTermsOfServiceClick: () -&gt; Unit, onLicenseClick: () -&gt; Unit, onTwitterClick: () -&gt; Unit, onEmailClick: () -&gt; Unit, onRedditClick: () -&gt; Unit, onElementClick: () -&gt; Unit, onMastodonClick: () -&gt; Unit, onGeneralSettingsClick: () -&gt; Unit, onAppInfoClick: () -&gt; Unit, onVpnProfileClick: () -&gt; Unit, onNotificationClick: () -&gt; Unit, onStatsClick: () -&gt; Unit, onDbStatsClick: () -&gt; Unit, onFlightRecordClick: () -&gt; Unit, onEventLogsClick: () -&gt; Unit, onTokenClick: () -&gt; Unit, onFossClick: () -&gt; Unit, onFlossFundsClick: () -&gt; Unit, onBackClick: () -&gt; Unit, )</ID>
     <ID>LongParameterList:ConfigureRethinkBasicScreen.kt$( modifier: Modifier = Modifier, context: Context, blocklistType: RethinkBlocklistManager.RethinkBlocklistType, filters: MutableStateFlow&lt;RethinkBlocklistState.Filters&gt;, remoteFileTagViewModel: RethinkRemoteFileTagViewModel, localFileTagViewModel: RethinkLocalFileTagViewModel, remoteBlocklistPacksMapViewModel: RemoteBlocklistPacksMapViewModel, localBlocklistPacksMapViewModel: LocalBlocklistPacksMapViewModel, showDownload: Boolean, showConfigure: Boolean, isDownloading: Boolean, showRemoteProgress: Boolean, activeView: RethinkBlocklistState.BlocklistView, filterLabelText: String, plusFilterTags: List&lt;FileTag&gt;, onActiveViewChanged: (RethinkBlocklistState.BlocklistView) -&gt; Unit, onFilterLabelTextChanged: (String) -&gt; Unit, onPlusFilterTagsChanged: (List&lt;FileTag&gt;) -&gt; Unit, onDownloadBlocklist: () -&gt; Unit, onCancelDownload: () -&gt; Unit, onApplyChanges: () -&gt; Unit, onRevertChanges: () -&gt; Unit, onRefreshBlocklistAvailability: () -&gt; Unit, onProcessSelectedFileTags: (String) -&gt; Unit, onModifiedStampChanged: (String) -&gt; Unit, getStampValue: () -&gt; String, onDownloadStart: () -&gt; Unit, onDownloadFail: () -&gt; Unit, onDownloadSuccess: () -&gt; Unit, filterDescriptionTemplate: String, filterDescriptionSubgroupsTemplate: String )</ID>
     <ID>LongParameterList:ConfigureRethinkBasicScreen.kt$( modifier: Modifier = Modifier, context: Context, persistentState: PersistentState, appConfig: AppConfig, appDownloadManager: AppDownloadManager, rethinkEndpointViewModel: RethinkEndpointViewModel, uid: Int, isMax: Boolean, updateAvailable: Boolean, checkUpdateVisible: Boolean, redownloadVisible: Boolean, checkUpdateInProgress: Boolean, updateInProgress: Boolean, onMaxChanged: (Boolean) -&gt; Unit, onUpdateMaxSwitchUi: () -&gt; Unit, onRefreshUpdateUi: () -&gt; Unit, onCheckUpdateInProgressChanged: (Boolean) -&gt; Unit, onUpdateInProgressChanged: (Boolean) -&gt; Unit, onCheckBlocklistUpdate: () -&gt; Unit, onDownload: (Long, Boolean) -&gt; Unit, localBlocklistVersionTemplate: String, downloadFailureMessage: String )</ID>
     <ID>LongParameterList:DnsDetailScreen.kt$( headingText: String, versionText: String, canConfigure: Boolean, canCopy: Boolean, canSearch: Boolean, showCheckDownload: Boolean, showDownload: Boolean, showRedownload: Boolean, isChecking: Boolean, isDownloading: Boolean, isRedownloading: Boolean, isBlocklistEnabled: Boolean, onDismiss: () -&gt; Unit, onEnableBlocklist: () -&gt; Unit, onConfigure: () -&gt; Unit, onCopy: () -&gt; Unit, onSearch: () -&gt; Unit, onCheckUpdate: () -&gt; Unit, onDownload: () -&gt; Unit, onRedownload: () -&gt; Unit, onDelete: () -&gt; Unit, )</ID>
@@ -306,16 +303,12 @@
     <ID>NewLineAtEndOfFile:SsidItem.kt$com.bernaferrari.bravedns.data.SsidItem.kt</ID>
     <ID>NewLineAtEndOfFile:VpnAppFunctions.kt$com.bernaferrari.bravedns.appfunctions.VpnAppFunctions.kt</ID>
     <ID>NewLineAtEndOfFile:WorkManagerExtensions.kt$com.bernaferrari.bravedns.util.WorkManagerExtensions.kt</ID>
-    <ID>SwallowedException:DomainRulesManager.kt$DomainRulesManager$e: Exception</ID>
     <ID>SwallowedException:HomeScreenActivity.kt$HomeScreenActivity$e: IllegalArgumentException</ID>
-    <ID>SwallowedException:IPTracker.kt$IPTracker$e: Exception</ID>
     <ID>SwallowedException:LogExportWorker.kt$LogExportWorker$e: Exception</ID>
     <ID>SwallowedException:Logger.kt$Logger$e: Exception</ID>
-    <ID>SwallowedException:NetworkBindingService.kt$NetworkBindingService$e: Exception</ID>
     <ID>SwallowedException:NonStoreAppUpdater.kt$NonStoreAppUpdater$e: Exception</ID>
     <ID>SwallowedException:RestoreAgent.kt$RestoreAgent$e: IOException</ID>
     <ID>SwallowedException:RpnProxyManager.kt$RpnProxyManager$e: Exception</ID>
-    <ID>SwallowedException:SsidPermissionManager.kt$SsidPermissionManager$e: Exception</ID>
     <ID>SwallowedException:TcpProxyHelper.kt$TcpProxyHelper$e: Exception</ID>
     <ID>SwallowedException:Utilities.kt$Utilities$e: PackageManager.NameNotFoundException</ID>
     <ID>ThrowingExceptionsWithoutMessageOrCause:DnsSettings.kt$DnsSettings$Exception()</ID>
@@ -323,26 +316,18 @@
     <ID>TooGenericExceptionCaught:BackupAgent.kt$BackupAgent$e: Exception</ID>
     <ID>TooGenericExceptionCaught:BackupHelper.kt$BackupHelper.Companion$e: Exception</ID>
     <ID>TooGenericExceptionCaught:BackupRestoreDialog.kt$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:BraveTileService.kt$BraveTileService$e: Exception</ID>
     <ID>TooGenericExceptionCaught:BraveVPNService.kt$BraveVPNService$e: Exception</ID>
     <ID>TooGenericExceptionCaught:BraveVPNService.kt$BraveVPNService$iex: Exception</ID>
     <ID>TooGenericExceptionCaught:BubbleActivity.kt$BubbleActivity$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:BubbleController.kt$BubbleController$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:BubbleHelper.kt$BubbleHelper$e: Exception</ID>
     <ID>TooGenericExceptionCaught:BugReportCollector.kt$BugReportCollector$e: Exception</ID>
     <ID>TooGenericExceptionCaught:BugReportZipper.kt$BugReportZipper$e: Exception</ID>
     <ID>TooGenericExceptionCaught:CheckoutViewModel.kt$CheckoutViewModel$e: Exception</ID>
     <ID>TooGenericExceptionCaught:ConnectionTracer.kt$ConnectionTracer$ex: Exception</ID>
-    <ID>TooGenericExceptionCaught:ConnectivityCheckHelper.kt$ConnectivityCheckHelper$e: Exception</ID>
     <ID>TooGenericExceptionCaught:CustomLanIpDialog.kt$error: Exception</ID>
     <ID>TooGenericExceptionCaught:Daemons.kt$CoFactory$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:DiagnosticsManager.kt$DiagnosticsManager$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:DnsConfigurationManager.kt$DnsConfigurationManager$e: Exception</ID>
     <ID>TooGenericExceptionCaught:DomainRulesManager.kt$DomainRulesManager$e: Exception</ID>
     <ID>TooGenericExceptionCaught:EncryptedFileManager.kt$EncryptedFileManager$e: Exception</ID>
     <ID>TooGenericExceptionCaught:EnhancedBugReport.kt$EnhancedBugReport$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:EventLogger.kt$EventLogger$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:FirewallManager.kt$FirewallManager$e: Exception</ID>
     <ID>TooGenericExceptionCaught:GlobalExceptionHandler.kt$GlobalExceptionHandler$e: Exception</ID>
     <ID>TooGenericExceptionCaught:GoDnsTransports.kt$GoDnsTransports$e: Exception</ID>
     <ID>TooGenericExceptionCaught:GoDnsTransports.kt$GoDnsTransports$ex: Exception</ID>
@@ -353,14 +338,12 @@
     <ID>TooGenericExceptionCaught:HomeBackupController.kt$HomeBackupController$e: Exception</ID>
     <ID>TooGenericExceptionCaught:HomeScreenActivity.kt$HomeScreenActivity$e: Exception</ID>
     <ID>TooGenericExceptionCaught:HomeScreenActivity.kt$HomeScreenActivity$e: NullPointerException</ID>
-    <ID>TooGenericExceptionCaught:IPTracker.kt$IPTracker$e: Exception</ID>
     <ID>TooGenericExceptionCaught:IpRulesManager.kt$IpRulesManager$e: Exception</ID>
     <ID>TooGenericExceptionCaught:IpRulesManager.kt$IpRulesManager$e: NullPointerException</ID>
     <ID>TooGenericExceptionCaught:LogExportWorker.kt$LogExportWorker$e: Exception</ID>
     <ID>TooGenericExceptionCaught:Logger.kt$Logger$e: Exception</ID>
     <ID>TooGenericExceptionCaught:ManagePurchaseViewModel.kt$ManagePurchaseViewModel$e: Exception</ID>
     <ID>TooGenericExceptionCaught:NetLogBatcher.kt$NetLogBatcher$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:NetworkBindingService.kt$NetworkBindingService$e: Exception</ID>
     <ID>TooGenericExceptionCaught:NonStoreAppUpdater.kt$NonStoreAppUpdater$e: Exception</ID>
     <ID>TooGenericExceptionCaught:PaymentWorker.kt$PaymentWorker$e: Exception</ID>
     <ID>TooGenericExceptionCaught:PingTestScreen.kt$error: Exception</ID>
@@ -377,22 +360,15 @@
     <ID>TooGenericExceptionCaught:RpnProxyManager.kt$RpnProxyManager$e: Exception</ID>
     <ID>TooGenericExceptionCaught:SecureIdentityStore.kt$SecureIdentityStore$e: Exception</ID>
     <ID>TooGenericExceptionCaught:ServerSelectionViewModel.kt$ServerSelectionViewModel$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:SsidPermissionManager.kt$SsidPermissionManager$e: Exception</ID>
     <ID>TooGenericExceptionCaught:StateMachineDatabaseSyncService.kt$StateMachineDatabaseSyncService$e: Exception</ID>
     <ID>TooGenericExceptionCaught:StateMachineFramework.kt$StateMachine$actionError: Exception</ID>
     <ID>TooGenericExceptionCaught:StateMachineFramework.kt$StateMachine$e: Exception</ID>
     <ID>TooGenericExceptionCaught:SubscriptionStateMachineV2.kt$SubscriptionStateMachineV2$e: Exception</ID>
     <ID>TooGenericExceptionCaught:TcpProxyHelper.kt$TcpProxyHelper$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:TempAllowExpiryWorker.kt$TempAllowExpiryWorker$e: Exception</ID>
     <ID>TooGenericExceptionCaught:TunnelImporter.kt$TunnelImporter$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:UIUtils.kt$UIUtils$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:UnderlyingNetworkManager.kt$UnderlyingNetworkManager$e: Exception</ID>
     <ID>TooGenericExceptionCaught:Utilities.kt$Utilities$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:VpnController.kt$VpnController$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:VpnPrefObservers.kt$VpnPrefObservers$e: Exception</ID>
     <ID>TooGenericExceptionCaught:VpnTunRoutes.kt$VpnTunRoutes$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:VpnTunRoutes.kt$VpnTunRoutes$ex: Exception</ID>
-    <ID>TooGenericExceptionCaught:VpnTunRoutes.kt$VpnTunRoutes.LanIp$e: Exception</ID>
     <ID>TooGenericExceptionCaught:WgAddPeerDialog.kt$error: Throwable</ID>
     <ID>TooGenericExceptionCaught:WgConfigEditorScreen.kt$error: Throwable</ID>
     <ID>TooGenericExceptionCaught:WgHopManager.kt$WgHopManager$e: Exception</ID>
@@ -469,10 +445,6 @@
     <ID>TooManyFunctions:WgHopManager.kt$WgHopManager : KoinComponent</ID>
     <ID>TooManyFunctions:WireguardManager.kt$WireguardManager : KoinComponent</ID>
     <ID>TopLevelPropertyNaming:EventsScreen.kt$private const val EventsSeverityFilterLabel = "Severity"</ID>
-    <ID>UnusedParameter:AboutScreen.kt$onContributorsClick: () -&gt; Unit</ID>
-    <ID>UnusedParameter:AboutScreen.kt$onSponsorClick: () -&gt; Unit</ID>
-    <ID>UnusedParameter:AboutScreen.kt$onTokenDoubleTap: () -&gt; Unit</ID>
-    <ID>UnusedParameter:AboutScreen.kt$onTranslateClick: () -&gt; Unit</ID>
     <ID>UnusedParameter:BackupRestoreDialog.kt$activity: ComponentActivity</ID>
     <ID>UnusedParameter:BraveVPNService.kt$BraveVPNService$_proxyId: String</ID>
     <ID>UnusedParameter:ConfigureOtherDnsScreen.kt$context: android.content.Context</ID>
@@ -489,9 +461,6 @@
     <ID>UnusedParameter:VpnConnectionHandler.kt$VpnConnectionHandler$rethinkUid: Int</ID>
     <ID>UnusedPrivateClass:NetworkLogsScreen.kt$LogsTabSpec</ID>
     <ID>UnusedPrivateMember:AppWiseIpsAdapter.kt$private fun calculatePercentage(c: Double, maxValue: Int): Pair&lt;Int, Int&gt;</ID>
-    <ID>UnusedPrivateMember:ConnectivityCheckHelper.kt$ConnectivityCheckHelper$@Deprecated("Use checkTcpConnection instead", ReplaceWith("checkTcpConnection(nw, host, 53, \"53\")")) private suspend fun tcp53(nw: Network?, host: String): Boolean</ID>
-    <ID>UnusedPrivateMember:ConnectivityCheckHelper.kt$ConnectivityCheckHelper$@Deprecated("Use checkTcpConnection instead", ReplaceWith("checkTcpConnection(nw, host, 80, \"80\")")) private suspend fun tcp80(nw: Network?, host: String): Boolean</ID>
-    <ID>UnusedPrivateMember:ConnectivityCheckHelper.kt$ConnectivityCheckHelper$@Deprecated("Use closeQuietly instead", ReplaceWith("closeQuietly(closeable)")) private fun clos(closeable: Closeable?)</ID>
     <ID>UnusedPrivateMember:HomeScreenActivity.kt$HomeScreenActivity$private fun handleShowAppExitInfo()</ID>
     <ID>UnusedPrivateMember:HomeScreenActivity.kt$HomeScreenActivity$private fun hasAnyLogsAvailable(): Boolean</ID>
     <ID>UnusedPrivateMember:HomeScreenActivity.kt$HomeScreenActivity$private fun openCustomIpScreen()</ID>
@@ -500,32 +469,18 @@
     <ID>UnusedPrivateMember:HomeScreenActivity.kt$HomeScreenActivity$private fun startAppsActivity()</ID>
     <ID>UnusedPrivateMember:HomeScreenActivity.kt$HomeScreenActivity$private fun startDnsActivity()</ID>
     <ID>UnusedPrivateMember:HomeScreenActivity.kt$HomeScreenActivity$private fun startFirewallActivity()</ID>
-    <ID>UnusedPrivateMember:KernelProc.kt$KernelProc$private fun readDirAsLines(dirPath: String, title: String): String</ID>
     <ID>UnusedPrivateMember:QueryUtils.kt$QueryUtils$private fun log(methodName: String, msg: String)</ID>
     <ID>UnusedPrivateMember:QueryUtils.kt$QueryUtils$private fun logv(methodName: String, msg: String)</ID>
-    <ID>UnusedPrivateMember:RethinkDesignSystemPreviews.kt$@Preview(name = "Appearance · light", showBackground = true) @Preview(name = "Appearance · dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES) @Composable private fun RethinkAppearanceCardPreview()</ID>
-    <ID>UnusedPrivateMember:RethinkDesignSystemPreviews.kt$@Preview(name = "Empty state · light", showBackground = true) @Preview(name = "Empty state · dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES) @Composable private fun RethinkEmptyStatePreview()</ID>
-    <ID>UnusedPrivateMember:RethinkDesignSystemPreviews.kt$@Preview(name = "Firewall toggles · light", showBackground = true) @Preview(name = "Firewall toggles · dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES) @Composable private fun RethinkFirewallTogglesPreview()</ID>
-    <ID>UnusedPrivateMember:RethinkDesignSystemPreviews.kt$@Preview(name = "Log row · light", showBackground = true) @Preview(name = "Log row · dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES) @Composable private fun RethinkLogRowPreview()</ID>
     <ID>UnusedPrivateMember:SubscriptionStateMachineV2.kt$SubscriptionStateMachineV2$private fun createDummyPurchaseDetail(): PurchaseDetail</ID>
     <ID>UnusedPrivateProperty:AppInfoScreen.kt$val bottomInset = with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }</ID>
     <ID>UnusedPrivateProperty:AppInfoScreen.kt$val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()</ID>
     <ID>UnusedPrivateProperty:CheckoutViewModel.kt$CheckoutViewModel$@Provided private val persistentState: PersistentState</ID>
     <ID>UnusedPrivateProperty:CheckoutViewModel.kt$CheckoutViewModel$val accountId = id.substring(0, 64)</ID>
-    <ID>UnusedPrivateProperty:DnsConfigurationManager.kt$DnsConfigurationManager$private val context: Context</ID>
-    <ID>UnusedPrivateProperty:NetworkBindingService.kt$NetworkBindingService$private val scope: CoroutineScope</ID>
-    <ID>UnusedPrivateProperty:NetworkBindingService.kt$NetworkBindingService$val rethinkUid = try { vpnService.packageManager.getApplicationInfo(vpnService.packageName, 0).uid } catch (e: Exception) { return false }</ID>
     <ID>UnusedPrivateProperty:OneTimePurchaseProcessor.kt$OneTimePurchaseProcessor$private val activateRpn: suspend (purchaseDetail: PurchaseDetail) -&gt; Unit</ID>
     <ID>UnusedPrivateProperty:PipKeyManager.kt$PipKeyManager$private const val ERR_UNSUPPORTED_DEVICE = "Rethink+ is not supported on this device"</ID>
     <ID>UnusedPrivateProperty:PipKeyManager.kt$PipKeyManager$private const val ERR_UPDATE_REQUIRED = "Rethink+ requires an update to the app"</ID>
-    <ID>UnusedPrivateProperty:ProxyStateManager.kt$ProxyStateManager$private val scope: CoroutineScope</ID>
-    <ID>UnusedPrivateProperty:ProxyStateManager.kt$ProxyStateManager.Companion$private const val TAG = "ProxyState"</ID>
     <ID>UnusedPrivateProperty:RpnAccountScreen.kt$var selectedTab by remember { mutableIntStateOf(0) }</ID>
     <ID>UnusedPrivateProperty:SubscriptionPurchaseProcessor.kt$SubscriptionPurchaseProcessor$private val activateRpn: suspend (purchaseDetail: PurchaseDetail) -&gt; Unit</ID>
-    <ID>UnusedPrivateProperty:UnderlyingNetworkManager.kt$UnderlyingNetworkManager$private val scope: CoroutineScope</ID>
-    <ID>UnusedPrivateProperty:VpnConnectionHandler.kt$VpnConnectionHandler.Companion$private const val IPV4_DNS_ADDR = 44</ID>
-    <ID>UnusedPrivateProperty:VpnConnectionHandler.kt$VpnConnectionHandler.Companion$private const val IPV6_DNS_ADDR = 44</ID>
-    <ID>UnusedPrivateProperty:WireguardManager.kt$WireguardManager$val block = Backend.Block</ID>
     <ID>UtilityClassWithPublicConstructor:BackupHelper.kt$BackupHelper</ID>
     <ID>UtilityClassWithPublicConstructor:RetrofitManager.kt$RetrofitManager</ID>
   </CurrentIssues>

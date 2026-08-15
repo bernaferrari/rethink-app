@@ -136,7 +136,6 @@ class Constants {
         const val PACKAGED_REMOTE_FILETAG_TIMESTAMP: Long = 1753394162186
 
         // rethinkdns sponsor link
-        const val RETHINKDNS_SPONSOR_LINK = "https://svc.rethinkdns.com/r/sponsor"
 
         // base-url for bravedns
         const val BRAVEDNS_DOMAIN = "bravedns.com"

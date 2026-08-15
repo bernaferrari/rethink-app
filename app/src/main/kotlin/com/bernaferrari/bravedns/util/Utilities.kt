@@ -218,7 +218,7 @@ object Utilities {
         return String(Character.toChars(firstHalf)) + String(Character.toChars(secondHalf))
     }
 
-    @Suppress("ReturnCount", "TooGenericExceptionCaught")
+    @Suppress("ReturnCount")
     fun normalizeIp(ipstr: String?): InetAddress? {
         if (ipstr.isNullOrEmpty()) return null
 
@@ -236,7 +236,11 @@ object Utilities {
             } else {
                 ip
             }
-        } catch (e: Exception) { // not expected
+        } catch (e: inet.ipaddr.AddressStringException) {
+            Logger.e(LOG_TAG_VPN, "err normalizing ip $ipstr ${e.message}", e)
+        } catch (e: inet.ipaddr.HostNameException) {
+            Logger.e(LOG_TAG_VPN, "err normalizing ip $ipstr ${e.message}", e)
+        } catch (e: inet.ipaddr.IncompatibleAddressException) {
             Logger.e(LOG_TAG_VPN, "err normalizing ip $ipstr ${e.message}", e)
         }
         return null
@@ -257,13 +261,15 @@ object Utilities {
         return SimpleDateFormat(template, Locale.ENGLISH).format(date)
     }
 
-    @Suppress("ReturnCount", "TooGenericExceptionCaught")
+    @Suppress("ReturnCount")
     fun isLanIpv4(ipAddress: String): Boolean {
         try {
             val ip = IPAddressString(ipAddress).address ?: return false
 
             return ip.isLoopback || ip.isLocal || ip.isAnyLocal || UNSPECIFIED_IP_IPV4.equals(ip)
-        } catch (e: Exception) {
+        } catch (e: inet.ipaddr.AddressStringException) {
+            Logger.e(LOG_TAG_VPN, "err in isLanIpv4 ${e.message}", e)
+        } catch (e: inet.ipaddr.IncompatibleAddressException) {
             Logger.e(LOG_TAG_VPN, "err in isLanIpv4 ${e.message}", e)
         }
         return false
@@ -412,8 +418,8 @@ object Utilities {
                 }
             }
             true
-        } catch (e: Exception) { // Catches IOException and other stream-related exceptions
-            Logger.w(LOG_TAG_DOWNLOAD, "err while copying files using streams: ${e.message}, $e")
+        } catch (e: java.io.IOException) {
+            Logger.w(LOG_TAG_DOWNLOAD, "err while copying files using streams: ${e.message}", e)
             false
         }
     }
@@ -435,19 +441,18 @@ object Utilities {
         return try {
             val alwaysOn = Settings.Secure.getString(context.contentResolver, "always_on_vpn_app")
             context.packageName == alwaysOn
-        } catch (e: Exception) { // Catches SecurityException and other Settings-related exceptions
+        } catch (e: SecurityException) {
             Logger.w(LOG_TAG_VPN, "err while retrieving Settings.Secure value ${e.message}", e)
             false
         }
     }
 
     // This function is not supported from version 12 onwards.
-    @Suppress("TooGenericExceptionCaught")
     fun isOtherVpnHasAlwaysOn(context: Context): Boolean {
         return try {
             val alwaysOn = Settings.Secure.getString(context.contentResolver, "always_on_vpn_app")
             !TextUtils.isEmpty(alwaysOn) && context.packageName != alwaysOn
-        } catch (e: Exception) { // Catches SecurityException and other Settings-related exceptions
+        } catch (e: SecurityException) {
             Logger.w(LOG_TAG_VPN, "err while retrieving Settings.Secure value ${e.message}", e)
             false
         }
@@ -726,8 +731,8 @@ object Utilities {
             // eg., /dns-query will result in dns-query
             // earlier check of : will not work as now remote stamp can contain sec/rec
             return path.trimStart { it == '/' }.trimEnd { it == '/' }
-        } catch (e: Exception) {
-            Logger.w(Logger.LOG_TAG_DNS, "failure fetching stamp from Go ${e.message}", e)
+        } catch (e: java.net.URISyntaxException) {
+            Logger.w(Logger.LOG_TAG_DNS, "failure fetching stamp from url ${e.message}", e)
             ""
         }
     }
@@ -789,7 +794,7 @@ object Utilities {
         return random.joinToString("") { HEX_FORMAT.format(it) }
     }
 
-    @Suppress("ReturnCount", "TooGenericExceptionCaught")
+    @Suppress("ReturnCount")
     fun humanReadableByteCount(bytes: Long, si: Boolean): String {
         val unit = if (si) BYTE_UNIT_THRESHOLD else BYTE_UNIT_POWER
         if (bytes < unit) return "$bytes B"
@@ -800,7 +805,7 @@ object Utilities {
             return String.format(Locale.ROOT, DECIMAL_FORMAT_PATTERN, totalBytes, pre)
         } catch (e: NumberFormatException) {
             Logger.e(LOG_TAG_DOWNLOAD, "err in humanReadableByteCount: ${e.message}", e)
-        } catch (e: Exception) {
+        } catch (e: IndexOutOfBoundsException) {
             Logger.e(LOG_TAG_DOWNLOAD, "err in humanReadableByteCount: ${e.message}", e)
         }
         return ""

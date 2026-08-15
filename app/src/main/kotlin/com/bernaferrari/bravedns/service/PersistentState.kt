@@ -252,7 +252,7 @@ class PersistentState(context: Context) : KoinComponent {
     // make notification persistent (Android 13 and above), default false
     var persistentNotification by store.boolean("persistent_notification", false)
 
-    // biometric authentication TODO: remove this
+    // biometric authentication
     var biometricAuth by store.boolean("biometric_authentication", false)
 
     // bio-metric authentication type

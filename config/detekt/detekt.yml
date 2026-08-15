@@ -30,6 +30,10 @@ style:
     active: false
   ReturnCount:
     active: false
+  UnusedPrivateMember:
+    # @Preview functions are tooling entry points; "unused" is their purpose.
+    ignoreAnnotated:
+      - 'Preview'
 
 naming:
   FunctionNaming:

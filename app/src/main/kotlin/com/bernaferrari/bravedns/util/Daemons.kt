@@ -85,8 +85,10 @@ class CoFactory<T>(
     suspend fun tryDispatch(f: suspend() -> T): T {
         return try {
             dispatch(f).await()
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
-            Logger.v(Logger.LOG_TAG_VPN, "err in tryDispatch: ${e.message}")
+            Logger.w(Logger.LOG_TAG_VPN, "err in tryDispatch: ${e.message}", e)
             default
         }
     }

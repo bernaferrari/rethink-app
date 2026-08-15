@@ -4,8 +4,7 @@
 package com.bernaferrari.bravedns.database
 
 import com.bernaferrari.bravedns.data.ConnectionSummary
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.get
+import kotlin.concurrent.Volatile
 
 /**
  * Incremental daily-stats maintenance. Groups only the flushed log batch (O(batch)),
@@ -35,16 +34,19 @@ class StatsMaterializer(
         dailyStatsDao.purgeCountriesBefore(fromDay)
         dailyStatsDao.purgeAsnsBefore(fromDay)
         dailyStatsDao.purgeDomainsBefore(fromDay)
+        dailyStatsDao.purgeIpsBefore(fromDay)
     }
 
     private suspend fun applyConnections(conns: List<ConnectionTracker>) {
         val apps = aggregateAppsFromConnections(conns)
         val countries = aggregateCountriesFromConnections(conns)
         val domains = aggregateDomainsFromConnections(conns)
+        val ips = aggregateIpsFromConnections(conns)
         val asns = aggregateAsnsFromConnections(conns, lookupAsns(conns))
         apps.forEach { dailyStatsDao.upsertApp(it.date, it.uid, it.appName, it.connectionCount, it.blockedCount, it.downloadBytes, it.uploadBytes, it.dnsQueryCount, it.blockedDnsCount) }
         countries.forEach { dailyStatsDao.upsertCountry(it.date, it.flag, it.connectionCount, it.dnsQueryCount) }
         domains.forEach { dailyStatsDao.upsertDomain(it.date, it.domain, it.flag, it.contactedCount, it.blockedCount) }
+        ips.forEach { dailyStatsDao.upsertIp(it.date, it.ipAddress, it.flag, it.contactedCount, it.blockedCount, it.downloadBytes, it.uploadBytes) }
         asns.forEach { dailyStatsDao.upsertAsn(it.date, it.asName, it.countryCode, it.connectionCount, it.blockedCount, it.downloadBytes, it.uploadBytes) }
     }
 
@@ -78,22 +80,6 @@ class StatsMaterializer(
         return ipInfoDao.getByIps(ips).associateBy { it.ip }
     }
 
-    companion object : KoinComponent {
-        @Volatile
-        private var instance: StatsMaterializer? = null
-
-        suspend fun onInserted(batch: List<*>) = impl().onInserted(batch)
-
-        suspend fun onUpdated(batch: List<*>) = impl().onUpdated(batch)
-
-        suspend fun purgeBefore(cutoffMillis: Long) = impl().purgeBefore(cutoffMillis)
-
-        private fun impl(): StatsMaterializer {
-            instance?.let { return it }
-            val db: LogDatabase = get()
-            return StatsMaterializer(db.dailyStatsDAO(), db.ipInfoDao()).also { instance = it }
-        }
-    }
 }
 
 internal const val MS_PER_DAY = 86_400_000L
@@ -136,6 +122,16 @@ internal data class AsnAgg(
     val asName: String,
     var countryCode: String,
     var connectionCount: Int = 0,
+    var blockedCount: Int = 0,
+    var downloadBytes: Long = 0,
+    var uploadBytes: Long = 0,
+)
+
+internal data class IpAgg(
+    val date: Long,
+    val ipAddress: String,
+    var flag: String,
+    var contactedCount: Int = 0,
     var blockedCount: Int = 0,
     var downloadBytes: Long = 0,
     var uploadBytes: Long = 0,
@@ -223,6 +219,24 @@ internal fun aggregateDomainsFromDns(logs: List<DnsLog>): Collection<DomainAgg> 
         val row = out.getOrPut(day to domain) { DomainAgg(day, domain, d.flag) }
         if (d.flag.isNotEmpty()) row.flag = d.flag
         if (contacted) row.contactedCount += 1 else row.blockedCount += 1
+    }
+    return out.values
+}
+
+internal fun aggregateIpsFromConnections(conns: List<ConnectionTracker>): Collection<IpAgg> {
+    val out = LinkedHashMap<Pair<Long, String>, IpAgg>()
+    for (c in conns) {
+        if (c.ipAddress.isEmpty()) continue
+        val day = epochDay(c.timeStamp)
+        val row = out.getOrPut(day to c.ipAddress) { IpAgg(day, c.ipAddress, c.flag) }
+        if (c.flag.isNotEmpty()) row.flag = c.flag
+        if (c.isBlocked) {
+            row.blockedCount += 1
+        } else {
+            row.contactedCount += 1
+            row.downloadBytes += c.downloadBytes
+            row.uploadBytes += c.uploadBytes
+        }
     }
     return out.values
 }

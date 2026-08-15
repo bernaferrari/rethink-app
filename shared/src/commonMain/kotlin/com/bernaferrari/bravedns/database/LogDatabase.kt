@@ -29,8 +29,9 @@ expect object LogDatabaseConstructor : RoomDatabaseConstructor<LogDatabase> {
         DailyCountryStats::class,
         DailyAsnStats::class,
         DailyDomainStats::class,
+        DailyIpStats::class,
     ],
-    version = 15,
+    version = 16,
     exportSchema = true
 )
 @ColumnTypeConverters(Converters::class)
@@ -40,7 +41,7 @@ abstract class LogDatabase : RoomDatabase() {
 
     companion object {
         const val LOGS_DATABASE_NAME = "rethink_logs.db"
-        const val SCHEMA_VERSION = 15
+        const val SCHEMA_VERSION = 16
         private const val PRAGMA = "pragma wal_checkpoint(full)"
         private const val TABLE_NAME_DNS_LOGS = "DnsLogs"
         // previous table name for dns logs

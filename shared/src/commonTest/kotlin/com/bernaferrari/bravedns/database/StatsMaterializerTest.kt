@@ -86,6 +86,43 @@ class StatsMaterializerTest {
         assertEquals(2, asns.size)
     }
 
+    @Test
+    fun ips_groupByDayAndAddress() {
+        val day = 20_004L
+        val ts = day * MS_PER_DAY
+        val nextDay = (day + 1L) * MS_PER_DAY
+        val batch = listOf(
+            connection(uid = 1, timeStamp = ts, ipAddress = "1.1.1.1", flag = "US", downloadBytes = 10, uploadBytes = 2),
+            connection(uid = 2, timeStamp = ts + 1, ipAddress = "1.1.1.1", flag = "US", downloadBytes = 5, uploadBytes = 1),
+            connection(uid = 1, timeStamp = ts + 2, ipAddress = "1.1.1.1", isBlocked = true, flag = "US"),
+            connection(uid = 1, timeStamp = ts, ipAddress = "8.8.8.8", flag = "US", downloadBytes = 3, uploadBytes = 1),
+            connection(uid = 1, timeStamp = ts, ipAddress = "", downloadBytes = 99, uploadBytes = 99),
+            connection(uid = 1, timeStamp = nextDay, ipAddress = "1.1.1.1", flag = "DE", downloadBytes = 7, uploadBytes = 4),
+        )
+
+        val ips = aggregateIpsFromConnections(batch)
+        val byKey = ips.associateBy { it.date to it.ipAddress }
+        assertEquals(3, ips.size)
+
+        val cloudflare = byKey[day to "1.1.1.1"]!!
+        assertEquals(2, cloudflare.contactedCount)
+        assertEquals(1, cloudflare.blockedCount)
+        assertEquals(15, cloudflare.downloadBytes)
+        assertEquals(3, cloudflare.uploadBytes)
+        assertEquals("US", cloudflare.flag)
+
+        val google = byKey[day to "8.8.8.8"]!!
+        assertEquals(1, google.contactedCount)
+        assertEquals(0, google.blockedCount)
+        assertEquals(3, google.downloadBytes)
+
+        val next = byKey[(day + 1L) to "1.1.1.1"]!!
+        assertEquals(1, next.contactedCount)
+        assertEquals(7, next.downloadBytes)
+        assertEquals("DE", next.flag)
+        assertTrue(byKey.keys.none { it.second.isEmpty() })
+    }
+
     private fun connection(
         uid: Int,
         appName: String = "App",
