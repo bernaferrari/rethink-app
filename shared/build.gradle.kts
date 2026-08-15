@@ -54,15 +54,15 @@ kotlin {
             implementation(libs.koin.core.viewmodel)
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
-            implementation("com.squareup.okio:okio:3.18.0")
+            implementation(libs.okio)
 
             // Room 3 KMP: entities/DAOs in commonMain
             implementation(libs.androidx.room.runtime)
             implementation(libs.androidx.room.paging)
-            implementation("androidx.paging:paging-common:3.5.0")
+            implementation(libs.paging.common)
             // Lifecycle ViewModel is multiplatform as well. Keeping paging query state in
             // commonMain lets every UI target use the same query and refresh semantics.
-            implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel:2.11.0")
+            implementation(libs.lifecycle.viewmodel)
 
             implementation(compose.runtime)
             implementation(compose.foundation)
@@ -71,7 +71,7 @@ kotlin {
             implementation("org.jetbrains.compose.material3:material3:1.12.0-alpha03")
             // NavigationSuiteScaffold gives the shared UI the same adaptive bottom-bar/rail
             // behavior without platform-specific navigation chrome.
-            implementation("org.jetbrains.compose.material3:material3-adaptive-navigation-suite:1.12.0-alpha03")
+            implementation(libs.jetbrains.material3.adaptive.navigation.suite)
             // Single Nav3 coordinate. On Android this aliases to androidx.navigation3-ui
             // (plus androidx.navigation3-runtime); wasm keeps the JetBrains implementation.
             // api() so :app can use EntryProviderScope.entry without a second Nav3 dep.
@@ -81,7 +81,7 @@ kotlin {
             implementation(compose.ui)
             // Generate seed-based Material 3 color schemes so the
             // shared web demo can apply every appearance swatch immediately.
-            implementation("com.materialkolor:material-kolor:5.0.0")
+            implementation(libs.materialkolor.kmp)
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
@@ -90,7 +90,6 @@ kotlin {
         androidMain.dependencies {
             implementation(firestackDep())
             implementation(libs.ktor.client.cio)
-            api(libs.androidx.compose.material3.adaptive.navigation3)
             implementation(libs.kotlinx.coroutines.android)
             implementation(libs.androidx.datastore.preferences)
             implementation(libs.androidx.room.sqlite.wrapper)
@@ -104,8 +103,8 @@ kotlin {
         }
         wasmJsMain.dependencies {
             implementation(libs.kotlinx.coroutines.core)
-            implementation("com.squareup.okio:okio:3.18.0")
-            implementation("com.squareup.okio:okio-fakefilesystem:3.18.0")
+            implementation(libs.okio)
+            implementation(libs.okio.fakefilesystem)
             implementation(libs.ktor.client.js)
         }
     }
