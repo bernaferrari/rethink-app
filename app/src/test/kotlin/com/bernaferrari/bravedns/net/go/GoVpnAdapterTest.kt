@@ -126,22 +126,22 @@ class GoVpnAdapterTest : KoinTest {
         val adapter = ObjenesisStd().newInstance(GoVpnAdapter::class.java)
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
-        // Manually wire Koin-injected lazy delegates since constructor is bypassed.
-        GoVpnAdapter::class.java.getDeclaredField("persistentState\$delegate").apply {
+        // Manually wire constructor deps since Intra.connect is bypassed via Objenesis.
+        GoVpnAdapter::class.java.getDeclaredField("persistentState").apply {
             isAccessible = true
-            set(adapter, lazy { persistentState })
+            set(adapter, persistentState)
         }
-        GoVpnAdapter::class.java.getDeclaredField("appConfig\$delegate").apply {
+        GoVpnAdapter::class.java.getDeclaredField("appConfig").apply {
             isAccessible = true
-            set(adapter, lazy { appConfig })
+            set(adapter, appConfig)
         }
-        GoVpnAdapter::class.java.getDeclaredField("connTrackerDb\$delegate").apply {
+        GoVpnAdapter::class.java.getDeclaredField("connTrackerDb").apply {
             isAccessible = true
-            set(adapter, lazy { connTracker })
+            set(adapter, connTracker)
         }
-        GoVpnAdapter::class.java.getDeclaredField("eventLogger\$delegate").apply {
+        GoVpnAdapter::class.java.getDeclaredField("eventLogger").apply {
             isAccessible = true
-            set(adapter, lazy { eventLogger })
+            set(adapter, eventLogger)
         }
 
         GoVpnAdapter::class.java.getDeclaredField("context").apply {

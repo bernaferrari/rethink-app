@@ -39,8 +39,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 
 /**
  * Subscription State Machine V2.
@@ -51,12 +49,11 @@ import org.koin.core.component.inject
  * 2. **Expiry comes exclusively from Play** via [InAppBillingHandler.calculateExpiryTime].
  */
 class SubscriptionStateMachineV2(
+    private val subscriptionDb: SubscriptionStatusRepository,
+    private val dbSyncService: StateMachineDatabaseSyncService,
     // Test seam: an UnconfinedTestDispatcher scope makes init coroutines complete in-constructor.
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
-) : KoinComponent {
-
-    private val subscriptionDb by inject<SubscriptionStatusRepository>()
-    private val dbSyncService: StateMachineDatabaseSyncService by inject()
+) {
     // Lock ordering (must always be acquired in this order to prevent deadlocks)
     // 1. InAppBillingHandler.connectionMutex(outermost protects billing API calls)
     // 2. stateLock(protects state machine transitions)

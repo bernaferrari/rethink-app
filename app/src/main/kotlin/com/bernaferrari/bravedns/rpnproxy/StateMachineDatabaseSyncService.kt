@@ -23,16 +23,14 @@ import com.bernaferrari.bravedns.database.SubscriptionStateHistoryDao
 import com.bernaferrari.bravedns.database.SubscriptionStatus
 import com.bernaferrari.bravedns.database.SubscriptionStatusRepository
 import com.bernaferrari.bravedns.iab.PurchaseDetail
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 
 /**
  * Handles persistence of subscription state history and DB-state loading.
  */
-class StateMachineDatabaseSyncService : KoinComponent {
-
-    private val subscriptionRepository by inject<SubscriptionStatusRepository>()
-    private val historyDAO: SubscriptionStateHistoryDao by inject()
+class StateMachineDatabaseSyncService(
+    private val subscriptionRepository: SubscriptionStatusRepository,
+    private val historyDAO: SubscriptionStateHistoryDao,
+) {
 
     companion object {
         private const val TAG = "StateMachineDBSync"

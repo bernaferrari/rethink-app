@@ -76,3 +76,9 @@ play/website channels only.
   inject scopes (`UnconfinedTestDispatcher`) or use `runTest`. New extraction work lands with tests.
 - Commits: sentence-style subject, body bullets, single logical change.
 - Issue tracker: `bd` (beads) is initialized — multi-session work goes there (`bd ready`).
+- DI: Android entry points (Activity, BroadcastReceiver, Worker, TileService, VpnService)
+  use `KoinComponent` + `by inject()` at the boundary. Hot-path domain managers
+  (`FirewallManager`, `VpnController`, `RpnProxyManager`, …) stay Kotlin `object`s
+  and may resolve graph singletons via `inject()` — they are never also `@Single`.
+  Graph types (`@Single` classes) take constructor params; no unused `KoinComponent`.
+  `Logger` stays a static object (used everywhere). Never dual-register an object.

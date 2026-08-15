@@ -28,14 +28,13 @@ import com.bernaferrari.bravedns.util.Daemons
 import com.bernaferrari.bravedns.util.Utilities.isAtleastS
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import org.koin.core.component.KoinComponent
 
 @RequiresApi(Build.VERSION_CODES.R)
 class DiagnosticsManager(
     private val context: Context,
     private val scope: CoroutineScope,
     private val listener: DiagnosticsListener
-) : ConnectivityDiagnosticsManager.ConnectivityDiagnosticsCallback(), KoinComponent {
+) : ConnectivityDiagnosticsManager.ConnectivityDiagnosticsCallback() {
 
     interface DiagnosticsListener {
         suspend fun maybeNetworkStall()

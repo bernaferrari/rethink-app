@@ -96,8 +96,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 import java.io.File
 import java.net.URI
 import java.net.URLEncoder
@@ -106,16 +104,21 @@ import java.net.URLEncoder
  * This is a VpnAdapter that captures all traffic and routes it through a go-tun2socks instance with
  * custom logic for Intra.
  */
-class GoVpnAdapter : KoinComponent {
-    private val persistentState by inject<PersistentState>()
-    private val appConfig by inject<AppConfig>()
-    private val connTrackerDb by inject<ConnectionTrackerRepository>()
-    private val eventLogger by inject<EventLogger>()
-
+class GoVpnAdapter(
+    private var context: Context,
+    private var externalScope: CoroutineScope,
+    tunFd: Long,
+    ifaceAddresses: String,
+    mtu: Int,
+    nwMtu: Int,
+    opts: TunnelOptions,
+    private val persistentState: PersistentState,
+    private val appConfig: AppConfig,
+    private val connTrackerDb: ConnectionTrackerRepository,
+    private val eventLogger: EventLogger,
+) {
     // The Intra session object from go-tun2socks.  Initially null.
     private var tunnel: Tunnel
-    private var context: Context
-    private var externalScope: CoroutineScope
 
     private var dnsTransportsOrNull: GoDnsTransports? = null
 
@@ -163,16 +166,7 @@ class GoVpnAdapter : KoinComponent {
         return created
     }
 
-    constructor(
-        context: Context,
-        externalScope: CoroutineScope,
-        tunFd: Long,
-        ifaceAddresses: String,
-        mtu: Int,
-        nwMtu: Int,
-        opts: TunnelOptions) {
-        this.context = context
-        this.externalScope = externalScope
+    init {
         val defaultDns = newDefaultTransport(appConfig.getDefaultDns())
         Logger.i(LOG_TAG_VPN, "$TAG connect tunnel with new params")
         tunnel =

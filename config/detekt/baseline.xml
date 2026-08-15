@@ -158,12 +158,12 @@
     <ID>FunctionParameterNaming:BraveVPNService.kt$BraveVPNService$_proxyId: String</ID>
     <ID>ImplicitDefaultLocale:Utilities.kt$Utilities$String.format("%s (%s)", countryCode, ipAddress)</ID>
     <ID>LargeClass:BraveVPNService.kt$BraveVPNService : VpnServiceNetworkListenerBridge</ID>
-    <ID>LargeClass:GoVpnAdapter.kt$GoVpnAdapter : KoinComponent</ID>
+    <ID>LargeClass:GoVpnAdapter.kt$GoVpnAdapter</ID>
     <ID>LargeClass:HomeScreenActivity.kt$HomeScreenActivity : FragmentActivity</ID>
     <ID>LargeClass:RefreshDatabase.kt$RefreshDatabase</ID>
     <ID>LargeClass:RpnProxyManager.kt$RpnProxyManager : KoinComponent</ID>
     <ID>LargeClass:RpnWinServerController.kt$RpnWinServerController</ID>
-    <ID>LargeClass:SubscriptionStateMachineV2.kt$SubscriptionStateMachineV2 : KoinComponent</ID>
+    <ID>LargeClass:SubscriptionStateMachineV2.kt$SubscriptionStateMachineV2</ID>
     <ID>LongMethod:AppInfoScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun AppInfoScreen( uid: Int, eventLogger: EventLogger, ipRulesViewModel: CustomIpViewModel, domainRulesViewModel: CustomDomainViewModel, networkLogsViewModel: AppConnectionsViewModel, onBackClick: () -&gt; Unit, onAppWiseIpLogsClick: (Int, Boolean) -&gt; Unit, onAppWiseDomainLogsClick: (Int) -&gt; Unit, onCustomIpRulesClick: (Int) -&gt; Unit, onCustomDomainRulesClick: (Int) -&gt; Unit )</ID>
     <ID>LongMethod:AppIpRulesDialog.kt$@Composable fun AppIpRulesSheet( uid: Int, ipAddress: String, domains: String, eventLogger: EventLogger, onDismiss: () -&gt; Unit, onUpdated: () -&gt; Unit )</ID>
     <ID>LongMethod:BackupRestoreDialog.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun BackupRestoreSheet( onDismiss: () -&gt; Unit )</ID>
@@ -331,9 +331,10 @@
     <ID>TooManyFunctions:AppDownloadManager.kt$AppDownloadManager</ID>
     <ID>TooManyFunctions:BackupAgent.kt$BackupAgent : WorkerKoinComponent</ID>
     <ID>TooManyFunctions:BackupRestoreDialog.kt$com.bernaferrari.bravedns.ui.bottomsheet.BackupRestoreDialog.kt</ID>
-    <ID>TooManyFunctions:BillingBackendClient.kt$BillingBackendClient : KoinComponent</ID>
+    <ID>TooManyFunctions:BillingBackendClient.kt$BillingBackendClient</ID>
     <ID>TooManyFunctions:BillingConnectionController.kt$BillingConnectionController</ID>
     <ID>TooManyFunctions:BillingEntitlementApi.kt$BillingEntitlementApi</ID>
+    <ID>TooManyFunctions:BillingRequestCodec.kt$BillingRequestCodec</ID>
     <ID>TooManyFunctions:BlocklistDownloadHelper.kt$BlocklistDownloadHelper$Companion</ID>
     <ID>TooManyFunctions:BraveVPNService.kt$BraveVPNService : VpnServiceNetworkListenerBridge</ID>
     <ID>TooManyFunctions:BubbleHelper.kt$BubbleHelper</ID>
@@ -358,7 +359,7 @@
     <ID>TooManyFunctions:EventsScreen.kt$com.bernaferrari.bravedns.ui.compose.events.EventsScreen.kt</ID>
     <ID>TooManyFunctions:FirewallManager.kt$FirewallManager : KoinComponent</ID>
     <ID>TooManyFunctions:GoDnsTransports.kt$GoDnsTransports</ID>
-    <ID>TooManyFunctions:GoVpnAdapter.kt$GoVpnAdapter : KoinComponent</ID>
+    <ID>TooManyFunctions:GoVpnAdapter.kt$GoVpnAdapter</ID>
     <ID>TooManyFunctions:HomeScreenActivity.kt$HomeScreenActivity : FragmentActivity</ID>
     <ID>TooManyFunctions:IPUtil.kt$IPUtil$Companion</ID>
     <ID>TooManyFunctions:InAppBillingHandler.kt$InAppBillingHandler : KoinComponent</ID>
@@ -372,7 +373,7 @@
     <ID>TooManyFunctions:OneTimePurchaseProcessor.kt$OneTimePurchaseProcessor</ID>
     <ID>TooManyFunctions:OneWgConfigAdapter.kt$com.bernaferrari.bravedns.ui.components.OneWgConfigAdapter.kt</ID>
     <ID>TooManyFunctions:OrbotHelper.kt$OrbotHelper</ID>
-    <ID>TooManyFunctions:PersistentState.kt$PersistentState : KoinComponent</ID>
+    <ID>TooManyFunctions:PersistentState.kt$PersistentState</ID>
     <ID>TooManyFunctions:PipKeyManager.kt$PipKeyManager : KoinComponent</ID>
     <ID>TooManyFunctions:ProxyManager.kt$ProxyManager : KoinComponent</ID>
     <ID>TooManyFunctions:ProxySettings.kt$ProxySettings : ProxySettingsApi</ID>
@@ -386,16 +387,16 @@
     <ID>TooManyFunctions:RethinkBlocklistManager.kt$RethinkBlocklistManager : KoinComponent</ID>
     <ID>TooManyFunctions:RethinkDesignSystemPreviews.kt$com.bernaferrari.bravedns.ui.compose.theme.RethinkDesignSystemPreviews.kt</ID>
     <ID>TooManyFunctions:RethinkFullModule.kt$RethinkFullModule</ID>
-    <ID>TooManyFunctions:RethinkPlusViewModel.kt$RethinkPlusViewModel : AndroidViewModelKoinComponent</ID>
+    <ID>TooManyFunctions:RethinkPlusViewModel.kt$RethinkPlusViewModel : AndroidViewModel</ID>
     <ID>TooManyFunctions:RpnHopManager.kt$RpnHopManager : KoinComponent</ID>
     <ID>TooManyFunctions:RpnProxyManager.kt$RpnProxyManager : KoinComponent</ID>
     <ID>TooManyFunctions:RpnWinServerController.kt$RpnWinServerController</ID>
     <ID>TooManyFunctions:SsidPermissionManager.kt$SsidPermissionManager</ID>
-    <ID>TooManyFunctions:StateMachineDatabaseSyncService.kt$StateMachineDatabaseSyncService : KoinComponent</ID>
+    <ID>TooManyFunctions:StateMachineDatabaseSyncService.kt$StateMachineDatabaseSyncService</ID>
     <ID>TooManyFunctions:StateMachineFramework.kt$StateMachine&lt;S : State, E : Event, D : Any&gt;</ID>
     <ID>TooManyFunctions:SubscriptionCheckWorker.kt$SubscriptionCheckWorker : CoroutineWorkerKoinComponent</ID>
     <ID>TooManyFunctions:SubscriptionPurchaseProcessor.kt$SubscriptionPurchaseProcessor</ID>
-    <ID>TooManyFunctions:SubscriptionStateMachineV2.kt$SubscriptionStateMachineV2 : KoinComponent</ID>
+    <ID>TooManyFunctions:SubscriptionStateMachineV2.kt$SubscriptionStateMachineV2</ID>
     <ID>TooManyFunctions:TcpProxyHelper.kt$TcpProxyHelper : KoinComponent</ID>
     <ID>TooManyFunctions:UIUtils.kt$UIUtils</ID>
     <ID>TooManyFunctions:UnderlyingNetworkTracker.kt$UnderlyingNetworkTracker</ID>

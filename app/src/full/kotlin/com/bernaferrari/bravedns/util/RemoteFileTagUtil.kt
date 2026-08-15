@@ -20,12 +20,11 @@ import Logger.LOG_TAG_DOWNLOAD
 import android.content.Context
 import com.bernaferrari.bravedns.service.PersistentState
 import com.bernaferrari.bravedns.service.RethinkBlocklistManager
-import org.koin.core.component.KoinComponent
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
 
-class RemoteFileTagUtil : KoinComponent {
+class RemoteFileTagUtil private constructor() {
     companion object {
 
         // find a cleaner way to implement this

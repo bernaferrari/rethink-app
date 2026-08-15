@@ -10,6 +10,8 @@ import android.content.Context
 import com.bernaferrari.bravedns.di.RethinkAndroidModule
 import com.bernaferrari.bravedns.download.AppDownloadManager
 import com.bernaferrari.bravedns.iab.BillingModule
+import com.bernaferrari.bravedns.database.SubscriptionStateHistoryDao
+import com.bernaferrari.bravedns.database.SubscriptionStatusRepository
 import com.bernaferrari.bravedns.rpnproxy.StateMachineDatabaseSyncService
 import com.bernaferrari.bravedns.rpnproxy.SubscriptionStateMachineV2
 import com.bernaferrari.bravedns.scheduler.ScheduleManager
@@ -73,11 +75,24 @@ class RethinkFullModule {
     fun scheduleManager(@Provided context: Context): ScheduleManager = ScheduleManager(context)
 
     @Single
-    fun subscriptionStateMachine(): SubscriptionStateMachineV2 = SubscriptionStateMachineV2()
+    fun stateMachineDatabaseSyncService(
+        subscriptionStatusRepository: SubscriptionStatusRepository,
+        subscriptionStateHistoryDao: SubscriptionStateHistoryDao,
+    ): StateMachineDatabaseSyncService =
+        StateMachineDatabaseSyncService(
+            subscriptionStatusRepository,
+            subscriptionStateHistoryDao,
+        )
 
     @Single
-    fun stateMachineDatabaseSyncService(): StateMachineDatabaseSyncService =
-        StateMachineDatabaseSyncService()
+    fun subscriptionStateMachine(
+        subscriptionStatusRepository: SubscriptionStatusRepository,
+        stateMachineDatabaseSyncService: StateMachineDatabaseSyncService,
+    ): SubscriptionStateMachineV2 =
+        SubscriptionStateMachineV2(
+            subscriptionDb = subscriptionStatusRepository,
+            dbSyncService = stateMachineDatabaseSyncService,
+        )
 
     @Single
     fun metadataProvider(@Provided context: Context): AppMetadataProvider =

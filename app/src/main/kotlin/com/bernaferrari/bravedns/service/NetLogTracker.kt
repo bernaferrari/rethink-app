@@ -41,7 +41,6 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.koin.core.component.KoinComponent
 import java.util.Calendar
 
 class NetLogTracker
@@ -52,7 +51,7 @@ internal constructor(
     dnsLogRepository: DnsLogRepository,
     consoleLogRepository: ConsoleLogRepository,
     private val persistentState: PersistentState
-) : KoinComponent {
+) {
 
     @Volatile private var scope: CoroutineScope? = null
 

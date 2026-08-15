@@ -27,7 +27,6 @@ import com.bernaferrari.bravedns.data.AppConfig
 import com.bernaferrari.bravedns.database.RefreshDatabase
 import com.bernaferrari.bravedns.service.FirewallManager
 import com.bernaferrari.bravedns.service.FirewallManager.NOTIF_CHANNEL_ID_FIREWALL_ALERTS
-import com.bernaferrari.bravedns.service.PersistentState
 import com.bernaferrari.bravedns.service.VpnController
 import com.bernaferrari.bravedns.util.Constants
 import com.bernaferrari.bravedns.util.OrbotHelper
@@ -43,7 +42,6 @@ class NotificationActionReceiver : BroadcastReceiver(), KoinComponent {
     private val appConfig by inject<AppConfig>()
     private val orbotHelper by inject<OrbotHelper>()
     private val rdb by inject<RefreshDatabase>()
-    private val persistentState by inject<PersistentState>()
 
     override fun onReceive(context: Context, intent: Intent) {
         // TODO - Move the NOTIFICATION_ACTIONs value to enum

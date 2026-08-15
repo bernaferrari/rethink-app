@@ -37,9 +37,8 @@ import com.bernaferrari.bravedns.util.PcapMode
 import com.bernaferrari.bravedns.util.ResourceRecordTypes
 import com.bernaferrari.bravedns.util.Utilities
 import com.bernaferrari.bravedns.util.Utilities.isAtleastR
-import org.koin.core.component.KoinComponent
 
-class PersistentState(context: Context) : KoinComponent {
+class PersistentState(context: Context) {
     private val appContext = context.applicationContext
     private val store = SyncPreferencesStore(appContext)
     private val defaultDnsName = appContext.getString(R.string.default_dns_name)

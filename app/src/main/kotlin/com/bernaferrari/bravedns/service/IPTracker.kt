@@ -36,7 +36,6 @@ import com.bernaferrari.bravedns.util.Utilities.getPackageInfoForUid
 import com.bernaferrari.bravedns.util.Utilities.isUnspecifiedIp
 import inet.ipaddr.HostName
 import inet.ipaddr.IPAddressString
-import org.koin.core.component.KoinComponent
 import java.net.InetAddress
 
 class IPTracker
@@ -44,7 +43,7 @@ internal constructor(
     private val connectionTrackerRepository: ConnectionTrackerRepository,
     private val rethinkLogRepository: RethinkLogRepository,
     private val ctx: Context
-) : KoinComponent {
+) {
 
     suspend fun makeConnectionTracker(connTrackerMetaData: ConnTrackerMetaData): ConnectionTracker {
         val connTracker = ConnectionTracker()

@@ -1438,7 +1438,9 @@ class SubscriptionStateMachineV2Test : KoinTest {
      */
     private fun createMachine(): SubscriptionStateMachineV2 =
         SubscriptionStateMachineV2(
-            scope = CoroutineScope(SupervisorJob() + UnconfinedTestDispatcher())
+            subscriptionDb = mockRepository,
+            dbSyncService = mockDbSyncService,
+            scope = CoroutineScope(SupervisorJob() + UnconfinedTestDispatcher()),
         )
 
     /** Creates a [PurchaseDetail] representing a freshly-purchased active subscription. */
