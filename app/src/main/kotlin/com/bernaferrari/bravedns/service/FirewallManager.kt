@@ -45,6 +45,7 @@ import kotlinx.coroutines.sync.withLock
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.util.ConcurrentModificationException
+import java.util.concurrent.CopyOnWriteArraySet
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -296,8 +297,7 @@ object FirewallManager : KoinComponent {
 
         var appInfos: UidMultimap<AppInfo> = UidMultimap()
 
-        // TODO: protect access to the foregroundUids (read/write)
-        @Volatile var foregroundUids: HashSet<Int> = HashSet()
+        val foregroundUids: CopyOnWriteArraySet<Int> = CopyOnWriteArraySet()
 
         var appInfosFlow: MutableStateFlow<Collection<AppInfo>> = MutableStateFlow(emptyList())
 

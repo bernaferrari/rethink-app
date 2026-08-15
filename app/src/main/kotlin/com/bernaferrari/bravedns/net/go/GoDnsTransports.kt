@@ -11,26 +11,13 @@ package com.bernaferrari.bravedns.net.go
 
 import Logger
 import Logger.LOG_TAG_VPN
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.Context
-import android.content.Intent
-import android.net.VpnService.NOTIFICATION_SERVICE
 import android.widget.Toast
-import androidx.core.app.NotificationCompat
-import androidx.core.content.ContextCompat
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.data.AppConfig
 import com.bernaferrari.bravedns.database.DnsCryptRelayEndpoint
 import com.bernaferrari.bravedns.database.Severity
-import com.bernaferrari.bravedns.service.BraveVPNService.Companion.NW_ENGINE_NOTIFICATION_ID
-import com.bernaferrari.bravedns.service.PersistentState
-import com.bernaferrari.bravedns.ui.HomeScreenActivity
 import com.bernaferrari.bravedns.util.Constants.Companion.RETHINKDNS_DOMAIN
-import com.bernaferrari.bravedns.util.UIUtils.getAccentColor
-import com.bernaferrari.bravedns.util.Utilities
-import com.bernaferrari.bravedns.util.Utilities.isAtleastO
 import com.bernaferrari.bravedns.util.Utilities.showToastUiCentered
 import com.celzero.firestack.backend.Backend
 import com.celzero.firestack.backend.DNSResolver
@@ -45,7 +32,6 @@ internal class GoDnsTransports(
     private val tunnel: () -> Tunnel,
     private val context: Context,
     private val appConfig: AppConfig,
-    private val persistentState: PersistentState,
     private val callbacks: Callbacks
 ) {
     internal interface Callbacks {
@@ -55,6 +41,7 @@ internal class GoDnsTransports(
         fun logEvent(severity: Severity, msg: String, details: String)
         fun ipString(url: String): String
         suspend fun addMultipleDnsAsPlus()
+        fun onDnsFailure(dnsType: String, message: String)
     }
 
     suspend fun addTransport() {
@@ -70,7 +57,6 @@ internal class GoDnsTransports(
         // always set the block free transport before setting the transport to the resolver
         // because of the way the alg is implemented in the go code.
 
-        // TODO: should show notification if the transport is not added?
         // now it will fallback to rethink default if the transport is not available in kt to add
         when (appConfig.getDnsType()) {
             AppConfig.DnsType.DOH -> {
@@ -139,6 +125,10 @@ internal class GoDnsTransports(
         // values, but none of the transport types were selected, causing vpnAdapter to skip
         // setting any preferred transport.
         Logger.w(LOG_TAG_VPN, "$TAG fallback to rethink default")
+        callbacks.onDnsFailure(
+            preferredDnsTypeLabel(),
+            context.getString(R.string.system_dns_connection_failure)
+        )
         val rethinkDefault = appConfig.getRethinkDefaultEndpoint()
         if (rethinkDefault == null || rethinkDefault.url.isEmpty()) {
             Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: fallback; rethink default is empty, cannot add transport")
@@ -209,7 +199,7 @@ internal class GoDnsTransports(
         } catch (e: Exception) {
             Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: doh failure, url: $url", e)
             removeResolver(id)
-            showDnsFailureNotification(context.getString(R.string.other_dns_list_tab1), e.message ?: context.getString(R.string.system_dns_connection_failure))
+            callbacks.onDnsFailure(context.getString(R.string.other_dns_list_tab1), e.message ?: context.getString(R.string.system_dns_connection_failure))
             showDnsFailureToast(url.orEmpty())
             callbacks.logEvent(
                 Severity.HIGH,
@@ -249,7 +239,7 @@ internal class GoDnsTransports(
         } catch (e: Exception) {
             Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: dot failure, url: $url", e)
             removeResolver(id)
-            showDnsFailureNotification(context.getString(R.string.lbl_dot), e.message ?: context.getString(R.string.system_dns_connection_failure))
+            callbacks.onDnsFailure(context.getString(R.string.lbl_dot), e.message ?: context.getString(R.string.system_dns_connection_failure))
             showDnsFailureToast(url.orEmpty())
             callbacks.logEvent(
                 Severity.HIGH,
@@ -285,7 +275,7 @@ internal class GoDnsTransports(
         } catch (e: Exception) {
             Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: odoh failure, res: $resolver", e)
             removeResolver(id)
-            showDnsFailureNotification(context.getString(R.string.lbl_odoh), e.message ?: context.getString(R.string.system_dns_connection_failure))
+            callbacks.onDnsFailure(context.getString(R.string.lbl_odoh), e.message ?: context.getString(R.string.system_dns_connection_failure))
             showDnsFailureToast(resolver.orEmpty())
             callbacks.logEvent(
                 Severity.HIGH,
@@ -320,7 +310,7 @@ internal class GoDnsTransports(
             Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: dns crypt failure for $id", e)
             removeResolver(id)
             removeDnscryptRelaysIfAny()
-            showDnsFailureNotification(context.getString(R.string.dc_dns_crypt), e.message ?: context.getString(R.string.dns_crypt_connection_failure))
+            callbacks.onDnsFailure(context.getString(R.string.dc_dns_crypt), e.message ?: context.getString(R.string.dns_crypt_connection_failure))
             showDnscryptConnectionFailureToast()
             callbacks.logEvent(
                 Severity.HIGH,
@@ -354,7 +344,7 @@ internal class GoDnsTransports(
         } catch (e: Exception) {
             Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: dns proxy failure", e)
             removeResolver(id)
-            showDnsFailureNotification(context.getString(R.string.dc_dns_proxy), e.message ?: context.getString(R.string.dns_proxy_connection_failure))
+            callbacks.onDnsFailure(context.getString(R.string.dc_dns_proxy), e.message ?: context.getString(R.string.dns_proxy_connection_failure))
             showDnsProxyConnectionFailureToast()
             callbacks.logEvent(
                 Severity.HIGH,
@@ -365,46 +355,16 @@ internal class GoDnsTransports(
         Logger.v(LOG_TAG_VPN, "$TAG addDnsProxyTransport done")
     }
 
-    private fun showDnsFailureNotification(dnsType: String, message: String) {
-        val notifChannelId = "DNS_failure_channel"
-        callbacks.runOnUi {
-            val notificationManager =
-                context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-
-            if (isAtleastO()) {
-                val channelName = context.getString(R.string.status_dns_error)
-                val importance = NotificationManager.IMPORTANCE_DEFAULT
-                val channel = NotificationChannel(notifChannelId, channelName, importance)
-                notificationManager.createNotificationChannel(channel)
-            }
-
-            val pendingIntent =
-                Utilities.getActivityPendingIntent(
-                    context,
-                    Intent(context, HomeScreenActivity::class.java),
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-                    mutable = false
-                )
-            val dnsErrorTxt = context.getString(R.string.status_dns_error)
-            // capitalize first 3 letter of the error message (dns error => DNS Error)
-            val formattedErrTxt =
-                if (dnsErrorTxt.length >= 5) {
-                    dnsErrorTxt.replaceRange(0, 5, dnsErrorTxt.substring(0, 5).uppercase())
-                } else {
-                    dnsErrorTxt
-                }
-            val title = context.getString(R.string.two_argument_colon, formattedErrTxt, dnsType)
-            val builder =
-                NotificationCompat.Builder(context, notifChannelId)
-                    .setSmallIcon(R.drawable.ic_notification_icon)
-                    .setContentTitle(title)
-                    .setContentText(message)
-                    .setStyle(NotificationCompat.BigTextStyle().bigText(message))
-                    .setContentIntent(pendingIntent)
-                    .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                    .setAutoCancel(true)
-            builder.color = ContextCompat.getColor(context, getAccentColor(persistentState.theme))
-            notificationManager.notify(NW_ENGINE_NOTIFICATION_ID, builder.build())
+    private fun preferredDnsTypeLabel(): String {
+        return when (appConfig.getDnsType()) {
+            AppConfig.DnsType.DOH -> context.getString(R.string.other_dns_list_tab1)
+            AppConfig.DnsType.DOT -> context.getString(R.string.lbl_dot)
+            AppConfig.DnsType.ODOH -> context.getString(R.string.lbl_odoh)
+            AppConfig.DnsType.DNSCRYPT -> context.getString(R.string.dc_dns_crypt)
+            AppConfig.DnsType.DNS_PROXY -> context.getString(R.string.dc_dns_proxy)
+            AppConfig.DnsType.RETHINK_REMOTE -> context.getString(R.string.dc_rethink_dns_radio)
+            AppConfig.DnsType.SYSTEM_DNS -> context.getString(R.string.network_dns)
+            AppConfig.DnsType.SMART_DNS -> context.getString(R.string.smart_dns)
         }
     }
 
@@ -423,7 +383,7 @@ internal class GoDnsTransports(
         } catch (e: Exception) {
             Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: rdns failure, url: $url ($id)", e)
             removeResolver(id)
-            showDnsFailureNotification(context.getString(R.string.dc_rethink_dns_radio), e.message ?: context.getString(R.string.system_dns_connection_failure))
+            callbacks.onDnsFailure(context.getString(R.string.dc_rethink_dns_radio), e.message ?: context.getString(R.string.system_dns_connection_failure))
             showDnsFailureToast(url)
             callbacks.logEvent(
                 Severity.HIGH,

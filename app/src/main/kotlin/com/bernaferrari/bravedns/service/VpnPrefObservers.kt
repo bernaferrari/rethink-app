@@ -149,9 +149,6 @@ class VpnPrefObservers(
     }
 
     private fun handlePreferenceKeyChanged(key: String) {
-        /* TODO Check on the Persistent State variable
-        Check on updating the values for Package change and for mode change.
-        As of now handled manually */
         logd("on pref change, key: $key")
         when (key) {
             PersistentState.BRAVE_MODE -> {

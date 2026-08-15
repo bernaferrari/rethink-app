@@ -25,6 +25,7 @@ import com.bernaferrari.bravedns.database.SubscriptionStatusRepository
 import com.bernaferrari.bravedns.iab.InAppBillingHandler.isListenerRegistered
 import com.bernaferrari.bravedns.rpnproxy.RpnProxyManager
 import com.bernaferrari.bravedns.rpnproxy.RpnProxyManager.getExpiryFromPayload
+import com.bernaferrari.bravedns.scheduler.DeviceRegistrationHelper
 import com.bernaferrari.bravedns.service.PersistentState
 import com.bernaferrari.bravedns.service.VpnController
 import kotlinx.coroutines.Dispatchers
@@ -209,49 +210,22 @@ class SubscriptionCheckWorker(
         }
     }
 
-    /**
-     * Calls register device without a meta body (bare registration).
-     * Delegates to [BillingBackendClient.registerDeviceWithDeviceMeta].
-     *
-     * On HTTP 401 the [ServerApiError.Unauthorized401] is posted to
-     * [InAppBillingHandler.serverApiErrorLiveData] so it is surfaced the next
-     * time the user opens the Manage Subscription screen.
-     */
     private suspend fun callBareDeviceRegistration(accountId: String, deviceId: String) {
-        val name = "callBareDeviceRegistration"
-        when (val result = billingBackendClient.registerDeviceWithDeviceMeta(accountId, deviceId)) {
-            is RegisterDeviceResult.Success -> {
-                Logger.i(LOG_IAB, "$TAG; $name: bare registration succeeded")
-            }
-            is RegisterDeviceResult.Unauthorized -> {
-                Logger.e(LOG_IAB, "$TAG; $name: 401 unauthorized; posting DeviceAuthError to UI")
-                InAppBillingHandler.handleUnauthorized401(
-                    operation = ServerApiError.Operation.DEVICE,
-                    accountId = accountId,
-                    deviceId  = deviceId
-                )
-            }
-            is RegisterDeviceResult.Conflict -> {
-                Logger.w(LOG_IAB, "$TAG; $name: 409 conflict, device already registered")
-            }
-            is RegisterDeviceResult.Failure -> {
-                Logger.w(LOG_IAB, "$TAG; $name: bare registration failed: code=${result.httpCode}")
-            }
-        }
+        DeviceRegistrationHelper.registerBare(TAG, billingBackendClient, accountId, deviceId)
     }
 
-    /**
-     * Calls register device with a meta body built from [purchaseDetail].
-     */
     private suspend fun callDeviceRegistrationWithMeta(
         accountId: String,
         deviceId: String,
         purchaseDetail: PurchaseDetail
     ) {
-        val name = "callDeviceRegistrationWithMeta"
-        Logger.i(LOG_IAB, "$TAG; $name: initiate registration, productId=${purchaseDetail.productId}")
-        val meta = billingBackendClient.buildDeviceMeta(purchaseDetail.productId)
-        InAppBillingHandler.registerDevice(accountId, deviceId, meta)
+        DeviceRegistrationHelper.registerWithMeta(
+            TAG,
+            billingBackendClient,
+            accountId,
+            deviceId,
+            purchaseDetail
+        )
     }
 
     /**

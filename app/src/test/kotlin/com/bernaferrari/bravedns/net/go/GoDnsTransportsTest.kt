@@ -11,8 +11,8 @@ package com.bernaferrari.bravedns.net.go
 
 import android.content.Context
 import com.bernaferrari.bravedns.data.AppConfig
-import com.bernaferrari.bravedns.service.PersistentState
 import com.celzero.firestack.intra.Tunnel
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -36,7 +36,6 @@ class GoDnsTransportsTest {
             tunnel = { tunnel },
             context = mockk<Context>(relaxed = true),
             appConfig = appConfig,
-            persistentState = mockk<PersistentState>(relaxed = true),
             callbacks = callbacks
         )
     }
@@ -75,5 +74,19 @@ class GoDnsTransportsTest {
         newTransports(tunnel, appConfig, callbacks).addTransport()
 
         coVerify(exactly = 0) { callbacks.addMultipleDnsAsPlus() }
+    }
+
+    @Test
+    fun `addTransport notifies when preferred doh is missing and falls back`() = runTest {
+        val tunnel = mockk<Tunnel>(relaxed = true)
+        every { tunnel.isConnected } returns true
+        val appConfig = mockk<AppConfig>(relaxed = true)
+        val callbacks = mockk<GoDnsTransports.Callbacks>(relaxed = true)
+        every { appConfig.getDnsType() } returns AppConfig.DnsType.DOH
+        coEvery { appConfig.getDOHDetails() } returns null
+
+        newTransports(tunnel, appConfig, callbacks).addTransport()
+
+        io.mockk.verify { callbacks.onDnsFailure(any(), any()) }
     }
 }

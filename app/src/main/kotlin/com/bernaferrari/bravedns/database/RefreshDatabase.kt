@@ -52,7 +52,6 @@ import com.bernaferrari.bravedns.ui.HomeScreenActivity
 import com.bernaferrari.bravedns.util.AndroidUidConfig
 import com.bernaferrari.bravedns.util.Constants
 import com.bernaferrari.bravedns.util.Constants.Companion.INVALID_UID
-import com.bernaferrari.bravedns.util.PlayStoreCategory
 import com.bernaferrari.bravedns.util.UIUtils
 import com.bernaferrari.bravedns.util.Utilities
 import com.bernaferrari.bravedns.util.Utilities.getActivityPendingIntent
@@ -979,15 +978,6 @@ internal constructor(
     }
 
     private fun determineAppCategory(ai: ApplicationInfo): String {
-        // fetchCategory returns  category from an unofficial PlayStore endpoint.
-        // disabled for now until there's clarity on its legality
-        // val category = fetchCategory(appInfo.packageInfo)
-        val cat = fetchCategory()
-
-        if (!PlayStoreCategory.OTHER.name.equals(cat, ignoreCase = true)) {
-            return replaceUnderscore(cat)
-        }
-
         if (isSystemComponent(ai)) {
             return ctx.getString(FirewallManager.CategoryConstants.SYSTEM_COMPONENT.nameResId)
         }
@@ -1044,58 +1034,6 @@ internal constructor(
     private fun printAll(c: Collection<FirewallManager.AppInfoTuple>, tag: String) {
         c.forEach { Logger.i(LOG_TAG_APP_DB, "$tag: ${it.uid}, ${it.packageName}") }
     }
-
-    /** Below code to fetch the google play service-application category Not in use as of now. */
-    private fun fetchCategory(): String {
-        return PlayStoreCategory.OTHER.name
-        /*if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            return PlayStoreCategory.OTHER.name
-        }else {
-            try {
-                val url =
-                    "$APP_URL$packageName&hl=en" //https://play.google.com/store/apps/details?id=com.example.app&hl=en
-                //Log.d(LOG_TAG,"Insert Category: $packageName")
-                val categoryRaw = parseAndExtractCategory(url)
-                //Log.d(LOG_TAG,"Insert Category2: $packageName")
-                val storeCategory =
-                    PlayStoreCategory.fromCategoryName(categoryRaw ?: PlayStoreCategory.OTHER.name)
-                return storeCategory.name
-            } catch (e: Exception) {
-                Log.w(LOG_TAG, "Exception while fetching the category:" + e.message, e)
-                return PlayStoreCategory.OTHER.name
-            }
-        }*/
-
-    }
-
-    /*
-    private val CAT_SIZE = 9
-    private val CATEGORY_STRING = "category/"
-    private val CATEGORY_GAME_STRING = "GAME_" // All games start with this prefix
-
-    private fun parseAndExtractCategory(url: String): String? {
-        return try {
-            val text = Jsoup.connect(url).get()?.select("a[itemprop=genre]") ?: return null
-            val href = text.attr("abs:href")
-
-            if (href != null && href.length > 4 && href.contains(CATEGORY_STRING)) {
-                getCategoryTypeByHref(href)
-            } else {
-                PlayStoreCategory.OTHER.name
-            }
-        } catch (e: Exception) {
-            Log.w(LOG_TAG, "Parse Category" + e.message, e)
-            //TODO handle error
-            PlayStoreCategory.OTHER.name
-        }
-    }
-
-    private fun getCategoryTypeByHref(href: String): String? {
-        val appCategoryType = href.substring(href.indexOf(CATEGORY_STRING) + CAT_SIZE, href.length)
-        return if (appCategoryType.contains(CATEGORY_GAME_STRING)) {
-            PlayStoreCategory.GENERAL_GAMES_CATEGORY_NAME
-        } else appCategoryType
-    }*/
 
     private fun io(s: String, f: suspend () -> Unit) =
         CoroutineScope(CoroutineName(s) + Dispatchers.IO).launch { f() }

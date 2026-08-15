@@ -256,7 +256,6 @@ class HomeScreenActivity : FragmentActivity() {
     private lateinit var startForResult: androidx.activity.result.ActivityResultLauncher<Intent>
     private lateinit var notificationPermissionResult: androidx.activity.result.ActivityResultLauncher<String>
 
-    // TODO - #324 - Usage of isDarkTheme() in all activities.
     private fun Context.isDarkThemeOn(): Boolean {
         return resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
                 UI_MODE_NIGHT_YES
@@ -806,7 +805,6 @@ class HomeScreenActivity : FragmentActivity() {
         return latestVersionCode
     }
 
-    // FIXME - Move it to Android's built-in WorkManager
     private fun initUpdateCheck() {
         if (!isUpdateRequired()) return
 

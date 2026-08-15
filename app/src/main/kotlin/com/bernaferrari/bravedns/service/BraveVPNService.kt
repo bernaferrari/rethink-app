@@ -2719,7 +2719,6 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
             return
         }
 
-        // TODO: convert the duration obj to long, this is work around
         val durationSec = (s.duration / 1000).toInt()
         val isNotLocalProxy = isNotLocalAndRpnProxy(s.pid)
 

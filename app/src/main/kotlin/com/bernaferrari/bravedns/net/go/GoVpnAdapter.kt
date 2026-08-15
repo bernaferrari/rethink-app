@@ -126,7 +126,6 @@ class GoVpnAdapter : KoinComponent {
                 tunnel = { tunnel },
                 context = context,
                 appConfig = appConfig,
-                persistentState = persistentState,
                 callbacks =
                     object : GoDnsTransports.Callbacks {
                         override fun runOnUi(block: suspend () -> Unit) = ui(block)
@@ -153,6 +152,10 @@ class GoVpnAdapter : KoinComponent {
 
                         override suspend fun addMultipleDnsAsPlus() {
                             this@GoVpnAdapter.addMultipleDnsAsPlus()
+                        }
+
+                        override fun onDnsFailure(dnsType: String, message: String) {
+                            showDnsFailureNotification(dnsType, message)
                         }
                     }
             )
@@ -466,6 +469,10 @@ class GoVpnAdapter : KoinComponent {
                 )
             showToastUiCentered(context.applicationContext, msg, Toast.LENGTH_LONG)
         }
+    }
+
+    private fun showDnsFailureNotification(dnsType: String, message: String) {
+        DnsFailureNotifications.show(context, persistentState, ::ui, dnsType, message)
     }
 
     private fun showWireguardFailureToast(message: String) {
@@ -1267,7 +1274,10 @@ class GoVpnAdapter : KoinComponent {
         } catch (e: Exception) {
             Logger.w(LOG_TAG_VPN, "$TAG err new default dns($url): ${e.message}", e)
             // most of the android devices have google dns, so add it as default transport
-            // TODO: notify the user that the default transport could not be set
+            showDnsFailureNotification(
+                context.getString(R.string.settings_default_dns_heading),
+                e.message ?: context.getString(R.string.system_dns_connection_failure)
+            )
             try {
                 Logger.i(LOG_TAG_VPN, "$TAG; fallback; set default dns to $fallbackDns")
                 return Intra.newDefaultDNS(Backend.DNS53, fallbackDns, "")
@@ -1345,7 +1355,10 @@ class GoVpnAdapter : KoinComponent {
                 "Error: ${e.message}"
             )
             // most of the android devices have google dns, so add it as default transport
-            // TODO: notify the user that the default transport could not be set
+            showDnsFailureNotification(
+                context.getString(R.string.settings_default_dns_heading),
+                e.message ?: context.getString(R.string.system_dns_connection_failure)
+            )
             return try {
                 if (usingGoos) {
                     Logger.i(LOG_TAG_VPN, "$TAG; fallback; set empty default dns, usingGoos: $usingGoos")
@@ -1356,8 +1369,11 @@ class GoVpnAdapter : KoinComponent {
                 }
                 true
             } catch (e: Exception) {
-                // fixme: this is not expected to happen, should show a notification?
                 Logger.e(LOG_TAG_VPN, "$TAG err add $fallbackUrl transport: ${e.message}", e)
+                showDnsFailureNotification(
+                    context.getString(R.string.settings_default_dns_heading),
+                    e.message ?: context.getString(R.string.system_dns_connection_failure)
+                )
                 false
             }
         }
@@ -1418,9 +1434,17 @@ class GoVpnAdapter : KoinComponent {
         // for Rethink within rethink mode, the system dns is system dns is always set to Ipn.Base
         // in go and so dns request sent to the system dns will be looped back into the tunnel
         return try {
-            // TODO: system dns may be non existent; see: AppConfig#updateSystemDnsServers
             // convert list to comma separated string, as Intra expects as csv
             val sysDnsStr = systemDns.filter { it?.isNotEmpty() == true }.joinToString(",")
+            if (sysDnsStr.isEmpty()) {
+                Logger.w(LOG_TAG_VPN, "$TAG skip set system dns; none available")
+                logEvent(
+                    Severity.MEDIUM,
+                    "set system dns skipped",
+                    "No system DNS servers available"
+                )
+                return false
+            }
             Logger.i(LOG_TAG_VPN, "$TAG set system dns: $sysDnsStr")
             // no need to send the dnsProxy.port for the below method, as it is not expecting port
             Intra.setSystemDNS(tunnel, sysDnsStr)

@@ -32,7 +32,7 @@ import android.net.NetworkRequest
 import android.net.wifi.WifiInfo
 import android.net.wifi.WifiManager
 import android.os.Handler
-import android.os.Looper
+import android.os.HandlerThread
 import android.os.SystemClock
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
@@ -86,6 +86,8 @@ class ConnectionMonitor(private val context: Context, private val networkListene
     )
 
     private var lastConnectivityCheckState: ConnectivityCheckState? = null
+
+    private var networkCallbackThread: HandlerThread? = null
 
     // create drop oldest channel to handle the network changes from the connectivity manager
     private lateinit var channel: Channel<OpPrefs>
@@ -753,10 +755,32 @@ class ConnectionMonitor(private val context: Context, private val networkListene
         }
     }
 
+    private fun networkCallbackHandler(): Handler {
+        val existing = networkCallbackThread
+        val thread =
+            if (existing != null && existing.isAlive) {
+                existing
+            } else {
+                HandlerThread("cm-net-cb").apply {
+                    isDaemon = true
+                    start()
+                }.also { networkCallbackThread = it }
+            }
+        return Handler(thread.looper)
+    }
+
+    private fun quitNetworkCallbackThread() {
+        networkCallbackThread?.quitSafely()
+        networkCallbackThread = null
+    }
+
     private fun registerNetworkCallback(req: NetworkRequest, callback: ConnectivityManager.NetworkCallback): Boolean {
         return try {
-            // TODO: use a custom Looper(HandlerThread) to avoid blocking the main thread
-            cm.registerNetworkCallback(req, callback)
+            if (isAtleastO()) {
+                cm.registerNetworkCallback(req, callback, networkCallbackHandler())
+            } else {
+                cm.registerNetworkCallback(req, callback)
+            }
             true
         } catch (e: SecurityException) {
             Logger.w(LOG_TAG_CONNECTION, "err registering network callback", e)
@@ -823,8 +847,10 @@ class ConnectionMonitor(private val context: Context, private val networkListene
             if (::channel.isInitialized) {
                 channel.close()
             }
+            quitNetworkCallbackThread()
         } catch (e: IllegalStateException) {
             Logger.w(LOG_TAG_CONNECTION, "err while unregistering; ${e.message}", e)
+            quitNetworkCallbackThread()
         }
     }
 

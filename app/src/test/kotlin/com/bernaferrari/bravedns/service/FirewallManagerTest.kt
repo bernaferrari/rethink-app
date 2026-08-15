@@ -245,7 +245,7 @@ class FirewallManagerTest : KoinTest {
             val foregroundUidsField = globalVariableClass.getDeclaredField("foregroundUids")
             foregroundUidsField.isAccessible = true
             @Suppress("UNCHECKED_CAST")
-            val foregroundUids = foregroundUidsField.get(null) as HashSet<Int>
+            val foregroundUids = foregroundUidsField.get(null) as MutableSet<Int>
             foregroundUids.clear()
         } catch (_: Exception) {
             // If reflection fails, try direct access

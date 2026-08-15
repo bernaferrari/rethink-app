@@ -18,6 +18,8 @@ import android.net.NetworkRequest
 import android.net.TransportInfo
 import android.net.wifi.WifiInfo
 import android.net.wifi.WifiManager
+import android.os.Build
+import android.os.Handler
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.bernaferrari.bravedns.util.InternetProtocol
 import io.mockk.Runs
@@ -108,6 +110,9 @@ class ConnectionMonitorTest {
         every { cm.activeNetwork } returns null
         every { cm.isActiveNetworkMetered } returns false
         every { cm.registerNetworkCallback(any<NetworkRequest>(), any<ConnectivityManager.NetworkCallback>()) } just Runs
+        if (Build.VERSION.SDK_INT >= 26) {
+            every { cm.registerNetworkCallback(any<NetworkRequest>(), any<ConnectivityManager.NetworkCallback>(), any<Handler>()) } just Runs
+        }
         every { cm.unregisterNetworkCallback(any<ConnectivityManager.NetworkCallback>()) } just Runs
 
         startKoin {
@@ -218,7 +223,7 @@ class ConnectionMonitorTest {
         every { persistentState.vpnBuilderPolicy } returns VpnBuilderPolicy.RELAXED.ordinal
         val callbackSlot = slot<ConnectivityManager.NetworkCallback>()
         every {
-            cm.registerNetworkCallback(any<NetworkRequest>(), capture(callbackSlot))
+            cm.registerNetworkCallback(any<NetworkRequest>(), capture(callbackSlot), any<Handler>())
         } just Runs
 
         val activeNw = mockNetwork(7001L)
@@ -239,7 +244,7 @@ class ConnectionMonitorTest {
     @Test
     fun `onVpnStart reports failure when callback registration throws`() = runTest(scheduler) {
         every {
-            cm.registerNetworkCallback(any<NetworkRequest>(), any<ConnectivityManager.NetworkCallback>())
+            cm.registerNetworkCallback(any<NetworkRequest>(), any<ConnectivityManager.NetworkCallback>(), any<Handler>())
         } throws SecurityException("register failed")
 
         val monitor = newMonitor()
@@ -420,7 +425,7 @@ class ConnectionMonitorTest {
 
                                     val callbackSlot = slot<ConnectivityManager.NetworkCallback>()
                                     every {
-                                        cm.registerNetworkCallback(any<NetworkRequest>(), capture(callbackSlot))
+                                        cm.registerNetworkCallback(any<NetworkRequest>(), capture(callbackSlot), any<Handler>())
                                     } just Runs
 
                                     val testNetwork = mockNetwork(5555L + testCount)
@@ -532,7 +537,7 @@ class ConnectionMonitorTest {
 
         val callbackSlot = slot<ConnectivityManager.NetworkCallback>()
         every {
-            cm.registerNetworkCallback(any<NetworkRequest>(), capture(callbackSlot))
+            cm.registerNetworkCallback(any<NetworkRequest>(), capture(callbackSlot), any<Handler>())
         } just Runs
 
         val testNetwork = mockNetwork(6666L)
@@ -556,7 +561,7 @@ class ConnectionMonitorTest {
 
         val callbackSlot = slot<ConnectivityManager.NetworkCallback>()
         every {
-            cm.registerNetworkCallback(any<NetworkRequest>(), capture(callbackSlot))
+            cm.registerNetworkCallback(any<NetworkRequest>(), capture(callbackSlot), any<Handler>())
         } just Runs
 
         val testNetwork = mockNetwork(7777L)
@@ -580,7 +585,7 @@ class ConnectionMonitorTest {
 
         val callbackSlot = slot<ConnectivityManager.NetworkCallback>()
         every {
-            cm.registerNetworkCallback(any<NetworkRequest>(), capture(callbackSlot))
+            cm.registerNetworkCallback(any<NetworkRequest>(), capture(callbackSlot), any<Handler>())
         } just Runs
 
         val testNetwork = mockNetwork(8888L)
@@ -602,7 +607,7 @@ class ConnectionMonitorTest {
     fun `onUserPreferenceChanged triggers network change with fresh state`() = runTest(scheduler) {
         val callbackSlot = slot<ConnectivityManager.NetworkCallback>()
         every {
-            cm.registerNetworkCallback(any<NetworkRequest>(), capture(callbackSlot))
+            cm.registerNetworkCallback(any<NetworkRequest>(), capture(callbackSlot), any<Handler>())
         } just Runs
 
         val testNetwork = mockNetwork(9999L)
@@ -624,7 +629,7 @@ class ConnectionMonitorTest {
     fun `onPolicyChanged re-registers callbacks based on new policy`() = runTest(scheduler) {
         val initialCallbackSlot = slot<ConnectivityManager.NetworkCallback>()
         every {
-            cm.registerNetworkCallback(any<NetworkRequest>(), capture(initialCallbackSlot))
+            cm.registerNetworkCallback(any<NetworkRequest>(), capture(initialCallbackSlot), any<Handler>())
         } just Runs
 
         val testNetwork = mockNetwork(1000L)
@@ -648,7 +653,7 @@ class ConnectionMonitorTest {
     fun `onVpnStop unregisters all callbacks cleanly`() = runTest(scheduler) {
         val callbackSlot = slot<ConnectivityManager.NetworkCallback>()
         every {
-            cm.registerNetworkCallback(any<NetworkRequest>(), capture(callbackSlot))
+            cm.registerNetworkCallback(any<NetworkRequest>(), capture(callbackSlot), any<Handler>())
         } just Runs
 
         val testNetwork = mockNetwork(1001L)

@@ -54,7 +54,6 @@ import org.koin.android.ext.android.inject
 /**
  * BubbleActivity - Content activity for Android Bubble notifications.
  */
-// TODO-refactor: Consider migrating to navigation component
 class BubbleActivity : ComponentActivity() {
     private val connectionTrackerDAO by inject<ConnectionTrackerDAO>()
     private val appInfoRepository by inject<AppInfoRepository>()
