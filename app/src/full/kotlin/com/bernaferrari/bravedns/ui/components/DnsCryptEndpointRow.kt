@@ -24,7 +24,7 @@ import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.data.AppConfig
 import com.bernaferrari.bravedns.database.DnsCryptEndpoint
 
-private const val TAG = "DnsCryptEndpointAdapter"
+private const val TAG = "DnsCryptEndpointRow"
 
 @Composable
 fun DnsCryptRow(endpoint: DnsCryptEndpoint, appConfig: AppConfig) {

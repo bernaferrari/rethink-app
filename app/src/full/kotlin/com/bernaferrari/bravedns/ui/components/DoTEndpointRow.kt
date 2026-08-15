@@ -22,12 +22,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.data.AppConfig
-import com.bernaferrari.bravedns.database.ODoHEndpoint
+import com.bernaferrari.bravedns.database.DoTEndpoint
 
-private const val TAG = "ODoHEndpointAdapter"
+private const val TAG = "DoTEndpointRow"
 
 @Composable
-fun ODoHEndpointRow(endpoint: ODoHEndpoint, appConfig: AppConfig) {
+fun DoTEndpointRow(endpoint: DoTEndpoint, appConfig: AppConfig) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val failingToast = stringResource(R.string.status_failing)
@@ -43,35 +43,35 @@ fun ODoHEndpointRow(endpoint: ODoHEndpoint, appConfig: AppConfig) {
 
     DnsEndpointManagedRow(
         key = endpoint.id,
-        title = endpoint.name,
+        title = dnsEndpointTitle(endpoint.name, endpoint.isSecure),
         supporting = explanation.ifEmpty { null },
         selected = endpoint.isSelected,
         action = if (endpoint.isDeletable()) DnsRowAction.Delete else DnsRowAction.Info,
         onSelectionChange = {
             launchDnsEndpointSelectionUpdate(scope, context, TAG, failingToast) {
                 endpoint.isSelected = true
-                appConfig.handleODoHChanges(endpoint)
+                appConfig.handleDoTChanges(endpoint)
             }
         },
         onInfo = { show ->
             show(
                 DnsInfoDialogModel(
                     title = endpoint.name,
-                    message = endpoint.proxy + "\n\n" + endpoint.resolver + "\n\n" + resolvedExplanation,
-                    copyValue = endpoint.resolver
+                    message = dnsInfoDescription(endpoint.url, endpoint.desc, resolvedExplanation),
+                    copyValue = endpoint.url
                 )
             )
         },
         delete =
             DnsDeleteDialogModel(
                 id = endpoint.id,
-                titleRes = R.string.dot_custom_url_remove_dialog_title,
+                titleRes = R.string.doh_custom_url_remove_dialog_title,
                 messageRes = R.string.dot_custom_url_remove_dialog_message,
                 successToast = deleteSuccessToast
             ),
         onDelete = { id ->
             launchDnsEndpointDelete(scope, context, deleteSuccessToast, failingToast) {
-                appConfig.deleteODoHEndpoint(id)
+                appConfig.deleteDoTEndpoint(id)
             }
         }
     )

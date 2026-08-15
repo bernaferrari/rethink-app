@@ -30,7 +30,7 @@ import com.bernaferrari.bravedns.service.VpnController
 import com.bernaferrari.bravedns.ui.compose.dns.ConfigureRethinkScreenType
 import com.bernaferrari.bravedns.util.Utilities
 
-private const val TAG = "RethinkEndpointAdapter"
+private const val TAG = "RethinkEndpointRow"
 
 @Composable
 fun RethinkEndpointRow(

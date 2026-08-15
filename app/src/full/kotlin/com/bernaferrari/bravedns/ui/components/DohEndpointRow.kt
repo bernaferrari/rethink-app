@@ -24,7 +24,7 @@ import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.data.AppConfig
 import com.bernaferrari.bravedns.database.DoHEndpoint
 
-private const val TAG = "DohEndpointAdapter"
+private const val TAG = "DohEndpointRow"
 
 @Composable
 fun DoHEndpointRow(endpoint: DoHEndpoint, appConfig: AppConfig) {

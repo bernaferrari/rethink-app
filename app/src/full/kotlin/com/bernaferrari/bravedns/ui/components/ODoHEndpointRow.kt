@@ -1,5 +1,5 @@
 /*
-Copyright 2020 RethinkDNS and its authors
+Copyright 2023 RethinkDNS and its authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,71 +17,61 @@ limitations under the License.
 package com.bernaferrari.bravedns.ui.components
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.data.AppConfig
-import com.bernaferrari.bravedns.database.DnsCryptRelayEndpoint
+import com.bernaferrari.bravedns.database.ODoHEndpoint
 
-private const val TAG = "DnsCryptRelayEndpointAdapter"
+private const val TAG = "ODoHEndpointRow"
 
 @Composable
-fun RelayRow(endpoint: DnsCryptRelayEndpoint, appConfig: AppConfig) {
+fun ODoHEndpointRow(endpoint: ODoHEndpoint, appConfig: AppConfig) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val failingToast = stringResource(R.string.status_failing)
-    val deleteSuccessToast = stringResource(R.string.dns_crypt_relay_remove_success)
-    val resolvedExplanation = resolveDnsDescriptionText(endpoint.dnsCryptRelayExplanation)
-    var isSelected by remember(endpoint.id) { mutableStateOf(endpoint.isSelected) }
+    val deleteSuccessToast = stringResource(R.string.doh_custom_url_remove_success)
+    val resolvedExplanation = resolveDnsDescriptionText(endpoint.desc)
     val explanation =
         rememberDnsStatusExplanation(
             key = endpoint.id,
-            isSelected = isSelected,
+            isSelected = endpoint.isSelected,
             smartDnsEnabled = appConfig.isSmartDnsEnabled(),
-            tag = TAG,
-            pollIntervalMs = 1500L,
-            requireTunnel = false,
-            selectedFallbackText = null
+            tag = TAG
         )
 
     DnsEndpointManagedRow(
         key = endpoint.id,
-        title = endpoint.dnsCryptRelayName,
+        title = endpoint.name,
         supporting = explanation.ifEmpty { null },
-        selected = isSelected,
+        selected = endpoint.isSelected,
         action = if (endpoint.isDeletable()) DnsRowAction.Delete else DnsRowAction.Info,
-        selection = DnsRowSelection.Checkbox,
-        onSelectionChange = { checked ->
-            isSelected = checked
+        onSelectionChange = {
             launchDnsEndpointSelectionUpdate(scope, context, TAG, failingToast) {
-                endpoint.isSelected = checked
-                appConfig.handleDnsrelayChanges(endpoint)
+                endpoint.isSelected = true
+                appConfig.handleODoHChanges(endpoint)
             }
         },
         onInfo = { show ->
             show(
                 DnsInfoDialogModel(
-                    title = endpoint.dnsCryptRelayName,
-                    message = dnsInfoDescription(endpoint.dnsCryptRelayURL, endpoint.dnsCryptRelayExplanation, resolvedExplanation),
-                    copyValue = endpoint.dnsCryptRelayURL
+                    title = endpoint.name,
+                    message = endpoint.proxy + "\n\n" + endpoint.resolver + "\n\n" + resolvedExplanation,
+                    copyValue = endpoint.resolver
                 )
             )
         },
         delete =
             DnsDeleteDialogModel(
                 id = endpoint.id,
-                titleRes = R.string.dns_crypt_relay_remove_dialog_title,
-                messageRes = R.string.dns_crypt_relay_remove_dialog_message,
+                titleRes = R.string.dot_custom_url_remove_dialog_title,
+                messageRes = R.string.dot_custom_url_remove_dialog_message,
                 successToast = deleteSuccessToast
             ),
         onDelete = { id ->
             launchDnsEndpointDelete(scope, context, deleteSuccessToast, failingToast) {
-                appConfig.deleteDnscryptRelayEndpoint(id)
+                appConfig.deleteODoHEndpoint(id)
             }
         }
     )
