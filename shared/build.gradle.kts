@@ -63,6 +63,7 @@ kotlin {
             // Lifecycle ViewModel is multiplatform as well. Keeping paging query state in
             // commonMain lets every UI target use the same query and refresh semantics.
             implementation(libs.lifecycle.viewmodel)
+            implementation("org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.11.0")
 
             implementation(compose.runtime)
             implementation(compose.foundation)

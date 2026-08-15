@@ -18,11 +18,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.dropUnlessResumed
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
-import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberDecoratedNavEntries
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
@@ -134,7 +137,8 @@ fun RethinkAppNavigation(
 
     // Fresh closures each composition so entry bodies always see the latest stack.
     val liveOps = RethinkNavOps(
-        pop = { popBackStack() },
+        // A double back-tap during a transition would pop twice; push/open dedup naturally.
+        pop = dropUnlessResumed { popBackStack() },
         pushRoute = { push(it) },
         openRoute = { open(it) },
         selectRootTab = { selectRoot(it) },
@@ -197,17 +201,28 @@ fun RethinkAppNavigation(
         background = { background(currentKey) },
         snackbar = snackbar,
     ) {
+        // Per-stack decorated entries: decorator state (saveable, ViewModel) only
+        // survives tab switches if each stack owns its decoration list.
+        val provider = entryProvider {
+            entryBuilder(liveOps)
+        }
+        val decorated = RethinkRootDestination.entries.associateWith { root ->
+            rememberDecoratedNavEntries(
+                backStack = backStacks.getValue(root),
+                entryDecorators = listOf(
+                    rememberSaveableStateHolderNavEntryDecorator(),
+                    rememberViewModelStoreNavEntryDecorator(),
+                ),
+                entryProvider = { key ->
+                    provider(key) ?: NavEntry(key) {}
+                },
+            )
+        }
+
         NavDisplay<NavKey>(
-            backStack = backStack,
+            entries = decorated.getValue(activeRoot),
             modifier = Modifier.fillMaxSize(),
             onBack = { popBackStack() },
-            entryDecorators = listOf(
-                rememberSaveableStateHolderNavEntryDecorator(),
-                rememberViewModelStoreNavEntryDecorator(),
-            ),
-            entryProvider = entryProvider {
-                entryBuilder(liveOps)
-            },
             transitionSpec = { if (tabTransition) fadeTransition else forwardTransition },
             popTransitionSpec = { if (tabTransition) fadeTransition else popTransition },
             predictivePopTransitionSpec = { if (tabTransition) fadeTransition else popTransition },
