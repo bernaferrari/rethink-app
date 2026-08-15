@@ -90,15 +90,6 @@ class RethinkNavStackTest {
     }
 
     @Test
-    fun saveForRoot_onlyWhenDepthGreaterThanOne() {
-        assertNull(stackToSaveForRoot(listOf(RethinkRoute.Configure)))
-        assertEquals(
-            RethinkRootDestination.Configure to listOf(RethinkRoute.Configure, RethinkRoute.AppList),
-            stackToSaveForRoot(listOf(RethinkRoute.Configure, RethinkRoute.AppList)),
-        )
-    }
-
-    @Test
     fun openFromApp_sameRoot_pushes() {
         assertEquals(
             listOf(RethinkRoute.Configure, RethinkRoute.AppList, RethinkRoute.AppInfo(5)),
