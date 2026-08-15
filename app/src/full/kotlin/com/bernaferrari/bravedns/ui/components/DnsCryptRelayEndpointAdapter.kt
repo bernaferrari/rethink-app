@@ -48,67 +48,41 @@ fun RelayRow(endpoint: DnsCryptRelayEndpoint, appConfig: AppConfig) {
             requireTunnel = false,
             selectedFallbackText = null
         )
-    var infoDialog by remember(endpoint.id) { mutableStateOf<DnsInfoDialogModel?>(null) }
-    var deleteDialog by remember(endpoint.id) { mutableStateOf<DnsDeleteDialogModel?>(null) }
 
-    val updateSelection: (Boolean) -> Unit = { checked ->
-        isSelected = checked
-        launchDnsEndpointSelectionUpdate(scope, context, TAG, failingToast) {
-            endpoint.isSelected = checked
-            appConfig.handleDnsrelayChanges(endpoint)
-        }
-    }
-
-    DnsEndpointRow(
+    DnsEndpointManagedRow(
+        key = endpoint.id,
         title = endpoint.dnsCryptRelayName,
         supporting = explanation.ifEmpty { null },
         selected = isSelected,
         action = if (endpoint.isDeletable()) DnsRowAction.Delete else DnsRowAction.Info,
         selection = DnsRowSelection.Checkbox,
-        onActionClick = {
-            if (endpoint.isDeletable()) {
-                deleteDialog =
-                    DnsDeleteDialogModel(
-                        id = endpoint.id,
-                        titleRes = R.string.dns_crypt_relay_remove_dialog_title,
-                        messageRes = R.string.dns_crypt_relay_remove_dialog_message,
-                        successToast = deleteSuccessToast
-                    )
-            } else {
-                val description =
-                    if (endpoint.dnsCryptRelayExplanation.isNullOrEmpty()) {
-                        endpoint.dnsCryptRelayURL
-                    } else {
-                        endpoint.dnsCryptRelayURL + "\n\n" + resolvedExplanation
-                    }
-                infoDialog =
-                    DnsInfoDialogModel(
-                        title = endpoint.dnsCryptRelayName,
-                        message = description,
-                        copyValue = endpoint.dnsCryptRelayURL
-                    )
+        onSelectionChange = { checked ->
+            isSelected = checked
+            launchDnsEndpointSelectionUpdate(scope, context, TAG, failingToast) {
+                endpoint.isSelected = checked
+                appConfig.handleDnsrelayChanges(endpoint)
             }
         },
-        onSelectionChange = updateSelection
-    )
-
-    deleteDialog?.let { model ->
-        DnsDeleteDialog(
-            model = model,
-            onDismiss = { deleteDialog = null },
-            onConfirm = { id ->
-                launchDnsEndpointDelete(scope, context, model.successToast, failingToast) {
-                    appConfig.deleteDnscryptRelayEndpoint(id)
-                }
-                deleteDialog = null
+        onInfo = { show ->
+            show(
+                DnsInfoDialogModel(
+                    title = endpoint.dnsCryptRelayName,
+                    message = dnsInfoDescription(endpoint.dnsCryptRelayURL, endpoint.dnsCryptRelayExplanation, resolvedExplanation),
+                    copyValue = endpoint.dnsCryptRelayURL
+                )
+            )
+        },
+        delete =
+            DnsDeleteDialogModel(
+                id = endpoint.id,
+                titleRes = R.string.dns_crypt_relay_remove_dialog_title,
+                messageRes = R.string.dns_crypt_relay_remove_dialog_message,
+                successToast = deleteSuccessToast
+            ),
+        onDelete = { id ->
+            launchDnsEndpointDelete(scope, context, deleteSuccessToast, failingToast) {
+                appConfig.deleteDnscryptRelayEndpoint(id)
             }
-        )
-    }
-
-    infoDialog?.let { model ->
-        DnsInfoDialog(
-            model = model,
-            onDismiss = { infoDialog = null }
-        )
-    }
+        }
+    )
 }

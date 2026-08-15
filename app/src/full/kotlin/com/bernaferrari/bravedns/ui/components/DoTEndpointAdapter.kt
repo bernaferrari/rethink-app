@@ -17,11 +17,7 @@ limitations under the License.
 package com.bernaferrari.bravedns.ui.components
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.bernaferrari.bravedns.R
@@ -44,75 +40,39 @@ fun DoTEndpointRow(endpoint: DoTEndpoint, appConfig: AppConfig) {
             smartDnsEnabled = appConfig.isSmartDnsEnabled(),
             tag = TAG
         )
-    var infoDialog by remember(endpoint.id) { mutableStateOf<DnsInfoDialogModel?>(null) }
-    var deleteDialog by remember(endpoint.id) { mutableStateOf<DnsDeleteDialogModel?>(null) }
 
-    val name =
-        if (endpoint.isSecure) {
-            endpoint.name
-        } else {
-            stringResource(
-                R.string.ci_desc,
-                endpoint.name,
-                stringResource(R.string.lbl_insecure)
-            )
-        }
-
-    DnsEndpointRow(
-        title = name,
+    DnsEndpointManagedRow(
+        key = endpoint.id,
+        title = dnsEndpointTitle(endpoint.name, endpoint.isSecure),
         supporting = explanation.ifEmpty { null },
         selected = endpoint.isSelected,
         action = if (endpoint.isDeletable()) DnsRowAction.Delete else DnsRowAction.Info,
-        selection = DnsRowSelection.Radio,
-        onActionClick = {
-            if (endpoint.isDeletable()) {
-                deleteDialog =
-                    DnsDeleteDialogModel(
-                        id = endpoint.id,
-                        titleRes = R.string.doh_custom_url_remove_dialog_title,
-                        messageRes = R.string.dot_custom_url_remove_dialog_message,
-                        successToast = deleteSuccessToast
-                    )
-            } else {
-                val description =
-                    if (endpoint.desc.isNullOrEmpty()) {
-                        endpoint.url
-                    } else {
-                        endpoint.url + "\n\n" + resolvedExplanation
-                    }
-                infoDialog =
-                    DnsInfoDialogModel(
-                        title = endpoint.name,
-                        message = description,
-                        copyValue = endpoint.url
-                    )
-            }
-        },
         onSelectionChange = {
             launchDnsEndpointSelectionUpdate(scope, context, TAG, failingToast) {
                 endpoint.isSelected = true
                 appConfig.handleDoTChanges(endpoint)
             }
+        },
+        onInfo = { show ->
+            show(
+                DnsInfoDialogModel(
+                    title = endpoint.name,
+                    message = dnsInfoDescription(endpoint.url, endpoint.desc, resolvedExplanation),
+                    copyValue = endpoint.url
+                )
+            )
+        },
+        delete =
+            DnsDeleteDialogModel(
+                id = endpoint.id,
+                titleRes = R.string.doh_custom_url_remove_dialog_title,
+                messageRes = R.string.dot_custom_url_remove_dialog_message,
+                successToast = deleteSuccessToast
+            ),
+        onDelete = { id ->
+            launchDnsEndpointDelete(scope, context, deleteSuccessToast, failingToast) {
+                appConfig.deleteDoTEndpoint(id)
+            }
         }
     )
-
-    deleteDialog?.let { model ->
-        DnsDeleteDialog(
-            model = model,
-            onDismiss = { deleteDialog = null },
-            onConfirm = { id ->
-                launchDnsEndpointDelete(scope, context, model.successToast, failingToast) {
-                    appConfig.deleteDoTEndpoint(id)
-                }
-                deleteDialog = null
-            }
-        )
-    }
-
-    infoDialog?.let { model ->
-        DnsInfoDialog(
-            model = model,
-            onDismiss = { infoDialog = null }
-        )
-    }
 }

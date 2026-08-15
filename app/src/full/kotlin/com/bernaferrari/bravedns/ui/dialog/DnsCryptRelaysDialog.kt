@@ -15,12 +15,8 @@ limitations under the License.
 */
 package com.bernaferrari.bravedns.ui.dialog
 
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.paging.PagingData
 import kotlinx.coroutines.flow.Flow
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -30,6 +26,7 @@ import com.bernaferrari.bravedns.data.AppConfig
 import com.bernaferrari.bravedns.database.DnsCryptRelayEndpoint
 import com.bernaferrari.bravedns.ui.compose.dns.RethinkEndpointFeed
 import com.bernaferrari.bravedns.ui.compose.dns.RethinkEndpointPicker
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkFullWidthDialog
 
 @Composable
 fun DnsCryptRelaysDialog(
@@ -37,13 +34,8 @@ fun DnsCryptRelaysDialog(
     relays: Flow<PagingData<DnsCryptRelayEndpoint>>,
     onDismiss: () -> Unit
 ) {
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
-    ) {
-        Surface(color = MaterialTheme.colorScheme.surface) {
-            DnsCryptRelaysContent(appConfig = appConfig, relays = relays, onDismiss = onDismiss)
-        }
+    RethinkFullWidthDialog(onDismissRequest = onDismiss) {
+        DnsCryptRelaysContent(appConfig = appConfig, relays = relays, onDismiss = onDismiss)
     }
 }
 

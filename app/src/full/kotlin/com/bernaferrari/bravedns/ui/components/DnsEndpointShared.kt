@@ -50,7 +50,8 @@ internal data class DnsInfoDialogModel(
     val copyValue: String? = null,
     val copyToastRes: Int = R.string.info_dialog_url_copy_toast_msg,
     val confirmTextRes: Int = R.string.dns_info_positive,
-    val copyTextRes: Int = R.string.dns_info_neutral
+    val copyTextRes: Int = R.string.dns_info_neutral,
+    val onConfirm: (() -> Unit)? = null,
 )
 
 internal data class DnsDeleteDialogModel(
@@ -73,7 +74,10 @@ internal fun DnsInfoDialog(
         title = model.title,
         message = model.message,
         primaryText = stringResource(model.confirmTextRes),
-        onPrimary = onDismiss,
+        onPrimary = {
+            onDismiss()
+            model.onConfirm?.invoke()
+        },
         secondaryText =
             if (model.copyValue.isNullOrEmpty()) {
                 null
@@ -95,6 +99,66 @@ internal fun DnsInfoDialog(
             )
         }
     )
+}
+
+@Composable
+internal fun dnsEndpointTitle(name: String, isSecure: Boolean): String {
+    if (isSecure) return name
+    return stringResource(R.string.ci_desc, name, stringResource(R.string.lbl_insecure))
+}
+
+internal fun dnsInfoDescription(url: String, rawExplanation: String?, resolvedExplanation: String): String =
+    if (rawExplanation.isNullOrEmpty()) url else url + "\n\n" + resolvedExplanation
+
+@Composable
+internal fun DnsEndpointManagedRow(
+    key: Any,
+    title: String,
+    supporting: String?,
+    selected: Boolean,
+    action: DnsRowAction,
+    onSelectionChange: (Boolean) -> Unit,
+    onInfo: (show: (DnsInfoDialogModel) -> Unit) -> Unit,
+    delete: DnsDeleteDialogModel? = null,
+    onDelete: (Int) -> Unit = {},
+    selection: DnsRowSelection = DnsRowSelection.Radio,
+) {
+    var infoDialog by remember(key) { mutableStateOf<DnsInfoDialogModel?>(null) }
+    var deleteDialog by remember(key) { mutableStateOf<DnsDeleteDialogModel?>(null) }
+
+    DnsEndpointRow(
+        title = title,
+        supporting = supporting,
+        selected = selected,
+        action = action,
+        selection = selection,
+        onActionClick = {
+            if (action == DnsRowAction.Delete && delete != null) {
+                deleteDialog = delete
+            } else {
+                onInfo { infoDialog = it }
+            }
+        },
+        onSelectionChange = onSelectionChange,
+    )
+
+    deleteDialog?.let { model ->
+        DnsDeleteDialog(
+            model = model,
+            onDismiss = { deleteDialog = null },
+            onConfirm = { id ->
+                onDelete(id)
+                deleteDialog = null
+            },
+        )
+    }
+
+    infoDialog?.let { model ->
+        DnsInfoDialog(
+            model = model,
+            onDismiss = { infoDialog = null },
+        )
+    }
 }
 
 @Composable

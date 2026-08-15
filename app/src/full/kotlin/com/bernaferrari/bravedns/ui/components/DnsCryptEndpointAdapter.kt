@@ -17,11 +17,7 @@ limitations under the License.
 package com.bernaferrari.bravedns.ui.components
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.bernaferrari.bravedns.R
@@ -44,64 +40,39 @@ fun DnsCryptRow(endpoint: DnsCryptEndpoint, appConfig: AppConfig) {
             smartDnsEnabled = appConfig.isSmartDnsEnabled(),
             tag = TAG
         )
-    var infoDialog by remember(endpoint.id) { mutableStateOf<DnsInfoDialogModel?>(null) }
-    var deleteDialog by remember(endpoint.id) { mutableStateOf<DnsDeleteDialogModel?>(null) }
 
-    DnsEndpointRow(
+    DnsEndpointManagedRow(
+        key = endpoint.id,
         title = endpoint.dnsCryptName,
         supporting = explanation.ifEmpty { null },
         selected = endpoint.isSelected,
         action = if (endpoint.isDeletable()) DnsRowAction.Delete else DnsRowAction.Info,
-        selection = DnsRowSelection.Radio,
-        onActionClick = {
-            if (endpoint.isDeletable()) {
-                deleteDialog =
-                    DnsDeleteDialogModel(
-                        id = endpoint.id,
-                        titleRes = R.string.dns_crypt_custom_url_remove_dialog_title,
-                        messageRes = R.string.dns_crypt_url_remove_dialog_message,
-                        successToast = deleteSuccessToast
-                    )
-            } else {
-                val description =
-                    if (endpoint.dnsCryptExplanation.isNullOrEmpty()) {
-                        endpoint.dnsCryptURL
-                    } else {
-                        endpoint.dnsCryptURL + "\n\n" + resolvedExplanation
-                    }
-                infoDialog =
-                    DnsInfoDialogModel(
-                        title = endpoint.dnsCryptName,
-                        message = description,
-                        copyValue = endpoint.dnsCryptURL
-                    )
-            }
-        },
         onSelectionChange = {
             launchDnsEndpointSelectionUpdate(scope, context, TAG, failingToast) {
                 endpoint.isSelected = true
                 appConfig.handleDnscryptChanges(endpoint)
             }
+        },
+        onInfo = { show ->
+            show(
+                DnsInfoDialogModel(
+                    title = endpoint.dnsCryptName,
+                    message = dnsInfoDescription(endpoint.dnsCryptURL, endpoint.dnsCryptExplanation, resolvedExplanation),
+                    copyValue = endpoint.dnsCryptURL
+                )
+            )
+        },
+        delete =
+            DnsDeleteDialogModel(
+                id = endpoint.id,
+                titleRes = R.string.dns_crypt_custom_url_remove_dialog_title,
+                messageRes = R.string.dns_crypt_url_remove_dialog_message,
+                successToast = deleteSuccessToast
+            ),
+        onDelete = { id ->
+            launchDnsEndpointDelete(scope, context, deleteSuccessToast, failingToast) {
+                appConfig.deleteDnscryptEndpoint(id)
+            }
         }
     )
-
-    deleteDialog?.let { model ->
-        DnsDeleteDialog(
-            model = model,
-            onDismiss = { deleteDialog = null },
-            onConfirm = { id ->
-                launchDnsEndpointDelete(scope, context, model.successToast, failingToast) {
-                    appConfig.deleteDnscryptEndpoint(id)
-                }
-                deleteDialog = null
-            }
-        )
-    }
-
-    infoDialog?.let { model ->
-        DnsInfoDialog(
-            model = model,
-            onDismiss = { infoDialog = null }
-        )
-    }
 }

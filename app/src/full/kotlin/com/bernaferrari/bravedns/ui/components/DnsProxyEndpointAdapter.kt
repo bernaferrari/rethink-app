@@ -46,8 +46,6 @@ fun DnsProxyEndpointRow(endpoint: DnsProxyEndpoint, appConfig: AppConfig) {
     val dialogMessageTemplate = stringResource(R.string.dns_proxy_dialog_message)
     val dialogMessageNoAppTemplate = stringResource(R.string.dns_proxy_dialog_message_no_app)
     var explanation by remember(endpoint.id) { mutableStateOf("") }
-    var infoDialog by remember(endpoint.id) { mutableStateOf<DnsInfoDialogModel?>(null) }
-    var deleteDialog by remember(endpoint.id) { mutableStateOf<DnsDeleteDialogModel?>(null) }
 
     LaunchedEffect(endpoint.id, endpoint.proxyName, endpoint.proxyAppName) {
         val appName =
@@ -63,75 +61,50 @@ fun DnsProxyEndpointRow(endpoint: DnsProxyEndpoint, appConfig: AppConfig) {
         explanation = endpoint.getExplanationText(context, resolvedAppName)
     }
 
-    DnsEndpointRow(
+    DnsEndpointManagedRow(
+        key = endpoint.id,
         title = endpoint.proxyName,
         supporting = explanation.ifEmpty { null },
         selected = endpoint.isSelected,
         action = if (endpoint.isDeletable()) DnsRowAction.Delete else DnsRowAction.Info,
-        selection = DnsRowSelection.Radio,
-        onActionClick = {
-            if (endpoint.isDeletable()) {
-                deleteDialog =
-                    DnsDeleteDialogModel(
-                        id = endpoint.id,
-                        titleRes = R.string.dns_proxy_remove_dialog_title,
-                        messageRes = R.string.dns_proxy_remove_dialog_message,
-                        successToast = deleteSuccessToast
-                    )
-            } else {
-                scope.launch(Dispatchers.IO) {
-                    val app =
-                        FirewallManager.getAppInfoByPackage(endpoint.getPackageName())?.appName
-                    val message =
-                        if (!app.isNullOrEmpty()) {
-                            dialogMessageTemplate.format(
-                                app,
-                                endpoint.proxyIP,
-                                endpoint.proxyPort.toString()
-                            )
-                        } else {
-                            dialogMessageNoAppTemplate.format(
-                                endpoint.proxyIP,
-                                endpoint.proxyPort.toString()
-                            )
-                        }
-                    withContext(Dispatchers.Main) {
-                        infoDialog =
-                            DnsInfoDialogModel(
-                                title = endpoint.proxyName,
-                                message = message,
-                                copyValue = endpoint.proxyIP,
-                                copyToastRes = R.string.info_dialog_copy_toast_msg
-                            )
-                    }
-                }
-            }
-        },
         onSelectionChange = {
             launchDnsEndpointSelectionUpdate(scope, context, TAG, failingToast) {
                 endpoint.isSelected = true
                 appConfig.handleDnsProxyChanges(endpoint)
             }
+        },
+        onInfo = { show ->
+            scope.launch(Dispatchers.IO) {
+                val app = FirewallManager.getAppInfoByPackage(endpoint.getPackageName())?.appName
+                val message =
+                    if (!app.isNullOrEmpty()) {
+                        dialogMessageTemplate.format(app, endpoint.proxyIP, endpoint.proxyPort.toString())
+                    } else {
+                        dialogMessageNoAppTemplate.format(endpoint.proxyIP, endpoint.proxyPort.toString())
+                    }
+                withContext(Dispatchers.Main) {
+                    show(
+                        DnsInfoDialogModel(
+                            title = endpoint.proxyName,
+                            message = message,
+                            copyValue = endpoint.proxyIP,
+                            copyToastRes = R.string.info_dialog_copy_toast_msg
+                        )
+                    )
+                }
+            }
+        },
+        delete =
+            DnsDeleteDialogModel(
+                id = endpoint.id,
+                titleRes = R.string.dns_proxy_remove_dialog_title,
+                messageRes = R.string.dns_proxy_remove_dialog_message,
+                successToast = deleteSuccessToast
+            ),
+        onDelete = { id ->
+            launchDnsEndpointDelete(scope, context, deleteSuccessToast, failingToast) {
+                appConfig.deleteDnsProxyEndpoint(id)
+            }
         }
     )
-
-    deleteDialog?.let { model ->
-        DnsDeleteDialog(
-            model = model,
-            onDismiss = { deleteDialog = null },
-            onConfirm = { id ->
-                launchDnsEndpointDelete(scope, context, model.successToast, failingToast) {
-                    appConfig.deleteDnsProxyEndpoint(id)
-                }
-                deleteDialog = null
-            }
-        )
-    }
-
-    infoDialog?.let { model ->
-        DnsInfoDialog(
-            model = model,
-            onDismiss = { infoDialog = null }
-        )
-    }
 }

@@ -14,10 +14,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -152,23 +150,20 @@ fun RethinkMultiActionDialog(
     onTertiary: (() -> Unit)? = null,
     isPrimaryDestructive: Boolean = false,
     text: (@Composable (() -> Unit))? = null,
+    icon: (@Composable (() -> Unit))? = null,
 ) {
-    val primaryColors =
-        if (isPrimaryDestructive) {
-            ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.error,
-                contentColor = MaterialTheme.colorScheme.onError,
-            )
-        } else {
-            ButtonDefaults.buttonColors()
-        }
-    AlertDialog(
-        modifier = modifier,
+    RethinkDialogScaffold(
         onDismissRequest = onDismissRequest,
-        shape = RoundedCornerShape(SharedDimensions.cardCornerRadiusLarge),
-        title = { Text(title, style = MaterialTheme.typography.headlineSmall) },
-        text = text ?: message?.let { { Text(it) } },
-        confirmButton = { Button(onClick = onPrimary, colors = primaryColors) { Text(primaryText) } },
+        modifier = modifier,
+        icon = icon,
+        title = title,
+        message = message,
+        text = text,
+        confirmButton = {
+            Button(onClick = onPrimary, colors = rethinkDialogConfirmColors(isPrimaryDestructive)) {
+                Text(primaryText)
+            }
+        },
         dismissButton = {
             Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
                 if (secondaryText != null && onSecondary != null) TextButton(onClick = onSecondary) { Text(secondaryText) }

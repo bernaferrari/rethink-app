@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
@@ -41,6 +40,7 @@ fun DnsEndpointRow(
     onActionClick: () -> Unit,
     onSelectionChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
+    trailing: (@Composable () -> Unit)? = null,
 ) {
     val shape = RoundedCornerShape(SharedDimensions.cardCornerRadius)
     Surface(
@@ -58,10 +58,14 @@ fun DnsEndpointRow(
                 Text(title, style = MaterialTheme.typography.bodyLarge)
                 if (!supporting.isNullOrEmpty()) Text(supporting, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            DnsEndpointActionButton(action, onActionClick)
-            when (selection) {
-                DnsRowSelection.Radio -> RadioButton(selected, onClick = { onSelectionChange(true) })
-                DnsRowSelection.Checkbox -> Checkbox(selected, onCheckedChange = onSelectionChange)
+            if (trailing != null) {
+                trailing()
+            } else {
+                DnsEndpointActionButton(action, onActionClick)
+                when (selection) {
+                    DnsRowSelection.Radio -> RadioButton(selected, onClick = { onSelectionChange(true) })
+                    DnsRowSelection.Checkbox -> Checkbox(selected, onCheckedChange = onSelectionChange)
+                }
             }
         }
     }

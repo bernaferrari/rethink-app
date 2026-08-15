@@ -19,11 +19,7 @@ package com.bernaferrari.bravedns.ui.components
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.bernaferrari.bravedns.R
@@ -31,16 +27,10 @@ import com.bernaferrari.bravedns.data.AppConfig
 import com.bernaferrari.bravedns.database.RethinkDnsEndpoint
 import com.bernaferrari.bravedns.database.isEditable
 import com.bernaferrari.bravedns.service.VpnController
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkMultiActionDialog
-import com.bernaferrari.bravedns.util.UIUtils.clipboardCopy
-import com.bernaferrari.bravedns.util.Utilities
 import com.bernaferrari.bravedns.ui.compose.dns.ConfigureRethinkScreenType
+import com.bernaferrari.bravedns.util.Utilities
 
 private const val TAG = "RethinkEndpointAdapter"
-
-private sealed class RethinkDialogState {
-    data class Info(val endpoint: RethinkDnsEndpoint) : RethinkDialogState()
-}
 
 @Composable
 fun RethinkEndpointRow(
@@ -74,60 +64,41 @@ fun RethinkEndpointRow(
                 }
             }
         )
-    var dialogState by remember(endpoint.url) { mutableStateOf<RethinkDialogState?>(null) }
+    val editEnabled = endpoint.isEditable(context)
 
-    DnsEndpointRow(
+    DnsEndpointManagedRow(
+        key = endpoint.url,
         title = endpoint.name,
         supporting = explanation.ifEmpty { null },
         selected = endpoint.isActive,
-        action = if (endpoint.isEditable(context)) DnsRowAction.Edit else DnsRowAction.Info,
-        selection = DnsRowSelection.Radio,
-        onActionClick = { dialogState = RethinkDialogState.Info(endpoint) },
+        action = if (editEnabled) DnsRowAction.Edit else DnsRowAction.Info,
         onSelectionChange = {
             launchDnsEndpointSelectionUpdate(scope, context, TAG, failingToast) {
                 endpoint.isActive = true
                 appConfig.handleRethinkChanges(endpoint)
             }
+        },
+        onInfo = { show ->
+            show(
+                DnsInfoDialogModel(
+                    title = endpoint.name,
+                    message = endpoint.url + "\n\n" + endpoint.desc,
+                    copyValue = endpoint.url,
+                    confirmTextRes =
+                        if (editEnabled) {
+                            R.string.rt_edit_dialog_positive
+                        } else {
+                            R.string.dns_info_positive
+                        },
+                    onConfirm = {
+                        if (editEnabled) {
+                            openEditConfiguration(context, startRethinkToast, endpoint, onEditConfiguration)
+                        }
+                    }
+                )
+            )
         }
     )
-
-    dialogState?.let { state ->
-        val info = state as RethinkDialogState.Info
-        val editEnabled = info.endpoint.isEditable(context)
-        val positiveText =
-            if (editEnabled) {
-                stringResource(R.string.rt_edit_dialog_positive)
-            } else {
-                stringResource(R.string.dns_info_positive)
-            }
-        val copyClipboardLabel = stringResource(R.string.copy_clipboard_label)
-        val copyToast = stringResource(R.string.info_dialog_url_copy_toast_msg)
-        RethinkMultiActionDialog(
-            onDismissRequest = { dialogState = null },
-            title = info.endpoint.name,
-            message = info.endpoint.url + "\n\n" + info.endpoint.desc,
-            primaryText = positiveText,
-            onPrimary = {
-                dialogState = null
-                if (editEnabled) {
-                    openEditConfiguration(context, startRethinkToast, endpoint, onEditConfiguration)
-                }
-            },
-            secondaryText = stringResource(R.string.dns_info_neutral),
-            onSecondary = {
-                clipboardCopy(
-                    context,
-                    info.endpoint.url,
-                    copyClipboardLabel
-                )
-                Utilities.showToastUiCentered(
-                    context,
-                    copyToast,
-                    Toast.LENGTH_SHORT
-                )
-            }
-        )
-    }
 }
 
 private fun openEditConfiguration(
