@@ -38,14 +38,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.koin.core.component.KoinComponent
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * ViewModel for Rethink Plus subscription management
  * Handles all business logic and state management for the subscription UI
  */
-class RethinkPlusViewModel(application: Application) : AndroidViewModel(application), KoinComponent {
+class RethinkPlusViewModel(application: Application) : AndroidViewModel(application) {
 
     // UI State
     private val _uiState = MutableStateFlow<SubscriptionUiState>(SubscriptionUiState.Loading)

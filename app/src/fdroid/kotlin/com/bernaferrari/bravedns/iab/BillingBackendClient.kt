@@ -15,6 +15,7 @@
  */
 package com.bernaferrari.bravedns.iab
 
+import com.bernaferrari.bravedns.service.PersistentState
 import kotlinx.serialization.json.JsonObject
 
 
@@ -26,7 +27,8 @@ import kotlinx.serialization.json.JsonObject
  * (`RpnProxyUpdateWorker`, `RpnProxyManager`) resolve without errors at runtime.
  */
 class BillingBackendClient(
-    @Suppress("UNUSED_PARAMETER", "UNUSED_PRIVATE_PROPERTY") private val identityStore: SecureIdentityStore
+    @Suppress("UNUSED_PARAMETER", "UNUSED_PRIVATE_PROPERTY") private val identityStore: SecureIdentityStore,
+    @Suppress("UNUSED_PARAMETER", "UNUSED_PRIVATE_PROPERTY") private val persistentState: PersistentState? = null,
 ) {
     companion object {
         @Suppress("UNUSED_PRIVATE_PROPERTY")

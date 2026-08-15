@@ -24,8 +24,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 import java.io.IOException
 
 /**
@@ -36,10 +34,10 @@ import java.io.IOException
  * against [SecureIdentityStore] and forwards the public API unchanged.
  */
 class BillingBackendClient(
-    private val identityStore: SecureIdentityStore
-) : KoinComponent {
+    private val identityStore: SecureIdentityStore,
+    private val persistentState: PersistentState,
+) {
 
-    private val persistentState by inject<PersistentState>()
     private val apiFactory by lazy { BillingApiFactory(persistentState) }
     private val entitlementApi by lazy { BillingEntitlementApi(persistentState, apiFactory) }
 

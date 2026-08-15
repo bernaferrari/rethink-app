@@ -8,6 +8,7 @@ import android.content.Context
 import com.bernaferrari.bravedns.StoreAppUpdater
 import com.bernaferrari.bravedns.service.AppUpdater
 import com.bernaferrari.bravedns.service.InAppMessageProvider
+import com.bernaferrari.bravedns.service.PersistentState
 import com.bernaferrari.bravedns.service.PlayInAppMessageProvider
 import org.koin.core.annotation.Module
 import org.koin.core.annotation.Provided
@@ -17,8 +18,11 @@ import org.koin.core.annotation.Single
 @Module
 class BillingModule {
     @Single
-    fun billingBackendClient(identityStore: SecureIdentityStore): BillingBackendClient =
-        BillingBackendClient(identityStore)
+    fun billingBackendClient(
+        identityStore: SecureIdentityStore,
+        persistentState: PersistentState,
+    ): BillingBackendClient =
+        BillingBackendClient(identityStore, persistentState)
 
     @Single
     fun serverOrderHistoryRepository(client: BillingBackendClient): ServerOrderHistoryRepository =
