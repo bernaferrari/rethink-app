@@ -26,8 +26,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
 import retrofit2.Response
 import java.io.IOException
 import java.net.ConnectException
@@ -67,7 +65,7 @@ internal class BillingEntitlementApi(
             } else {
                 apiFactory.buildProductionApi().registerCustomer(cidHeader, "", vcode, meta)
             }
-            ServerApiErrorMapper.mapCidResponse(response, env.label, mname)
+            ServerApiErrorMapper.mapCidResponse(response.toBillingHttpOrNull(), env.label, mname)
         } catch (e: UnknownHostException) {
             Logger.w(LOG_IAB, "$TAG $mname [${env.label}]: no internet; ${e.message}")
             CidResult.EMPTY
@@ -103,7 +101,7 @@ internal class BillingEntitlementApi(
             } else {
                 apiFactory.buildProductionApi().registerDevice(accountId, didHeader, vcode, meta = meta)
             }
-            ServerApiErrorMapper.mapDidResponse(response, env.label, mname)
+            ServerApiErrorMapper.mapDidResponse(response.toBillingHttpOrNull(), env.label, mname)
         } catch (e: UnknownHostException) {
             Logger.w(LOG_IAB, "$TAG $mname [${env.label}]: no internet; ${e.message}")
             DidResult.EMPTY
@@ -137,7 +135,7 @@ internal class BillingEntitlementApi(
                 is ApiHandle.Test -> handle.api.registerDevice(accountId, deviceId, vcode = persistentState.appVersion.toString(), test = "", meta = meta)
             }
             ServerApiErrorMapper.mapRegisterDeviceResponse(
-                response, handle.envLabel, mname, accountId, deviceId
+                response.toBillingHttpOrNull(), handle.envLabel, mname, accountId, deviceId
             ) {
                 persistentState.deviceRegistrationTimestamp = System.currentTimeMillis()
             }
@@ -341,7 +339,7 @@ internal class BillingEntitlementApi(
                 is ApiHandle.Production -> handle.api.cancelPurchase(accountId, deviceId, sku, purchaseToken, vcode)
                 is ApiHandle.Test -> handle.api.cancelSubscription(accountId, deviceId, sku, purchaseToken, vcode, test = "")
             } ?: return@withContext Pair(false, "No response")
-            ServerApiErrorMapper.mapCancelResponse(response, handle.envLabel, mname, accountId, sku)
+            ServerApiErrorMapper.mapCancelResponse(response.toBillingHttp(), handle.envLabel, mname, accountId, sku)
         } catch (e: IOException) {
             Logger.e(LOG_IAB, "$TAG $mname: err ${e.message}", e)
             Pair(false, "Exception: ${e.message}")
@@ -362,7 +360,7 @@ internal class BillingEntitlementApi(
                 is ApiHandle.Production -> handle.api.revokeSubscription(accountId, deviceId, sku, purchaseToken, vcode)
                 is ApiHandle.Test -> handle.api.revokeSubscription(accountId, deviceId, sku, purchaseToken, vcode, test = "")
             } ?: return@withContext Pair(false, "No response")
-            ServerApiErrorMapper.mapRevokeResponse(response, handle.envLabel, mname, accountId, sku)
+            ServerApiErrorMapper.mapRevokeResponse(response.toBillingHttp(), handle.envLabel, mname, accountId, sku)
         } catch (e: IOException) {
             Logger.e(LOG_IAB, "$TAG $mname: err ${e.message}", e)
             Pair(false, "err: ${e.message}")
@@ -400,7 +398,7 @@ internal class BillingEntitlementApi(
                     test = "",
                 )
             }
-            PurchaseHistoryParser.mapHttpResponse(response, handle.envLabel, mname)
+            PurchaseHistoryParser.mapHttpResponse(response.toBillingHttpOrNull(), handle.envLabel, mname)
         } catch (e: IOException) {
             Logger.e(LOG_IAB, "$TAG $mname: exception: ${e.message}", e)
             FetchOrdersRawResult.Error(e.localizedMessage ?: "Unknown error")
@@ -460,16 +458,18 @@ internal class BillingEntitlementApi(
         }
     }
 
-    fun buildDeviceMeta(prodId: String = ""): JsonObject = buildJsonObject {
-        put("deviceName", "${Build.MANUFACTURER} ${Build.MODEL}")
-        put("appVersion", persistentState.appVersion)
-        put("purchasedProdId", prodId)
-    }
+    fun buildDeviceMeta(prodId: String = ""): JsonObject =
+        BillingApiJson.deviceMeta(
+            deviceName = "${Build.MANUFACTURER} ${Build.MODEL}",
+            appVersion = persistentState.appVersion,
+            purchasedProdId = prodId,
+        )
 
-    fun buildCustomerMeta(): JsonObject = buildJsonObject {
-        put("model", Build.MANUFACTURER + " " + Build.MODEL)
-        put("appVersion", persistentState.appVersion)
-    }
+    fun buildCustomerMeta(): JsonObject =
+        BillingApiJson.customerMeta(
+            model = Build.MANUFACTURER + " " + Build.MODEL,
+            appVersion = persistentState.appVersion,
+        )
 
     private fun skuForType(productType: String): String =
         if (productType == ProductType.SUBS) InAppBillingHandler.STD_PRODUCT_ID

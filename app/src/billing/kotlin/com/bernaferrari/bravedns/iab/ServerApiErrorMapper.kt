@@ -19,7 +19,6 @@ import Logger
 import Logger.LOG_IAB
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import retrofit2.Response
 
 /**
  * Maps Retrofit billing responses onto the typed results the facade already returns.
@@ -30,7 +29,7 @@ internal object ServerApiErrorMapper {
     private const val TAG = "BillingBackendClient"
 
     fun mapCidResponse(
-        response: Response<JsonObject?>?,
+        response: BillingHttpResponse?,
         envLabel: String,
         mname: String,
     ): CidResult = when {
@@ -39,31 +38,31 @@ internal object ServerApiErrorMapper {
             CidResult.EMPTY
         }
         response.isSuccessful -> {
-            val cid = response.body().primitiveString("cid")
+            val cid = response.body.primitiveString("cid")
             if (cid.isBlank()) {
-                Logger.w(LOG_IAB, "$TAG $mname [$envLabel]: server returned blank cid, body=${response.body()}, msg=${response.message()}")
+                Logger.w(LOG_IAB, "$TAG $mname [$envLabel]: server returned blank cid, body=${response.body}, msg=${response.message}")
                 CidResult.EMPTY
             } else {
                 Logger.i(LOG_IAB, "$TAG $mname [$envLabel]: received cid (len=${cid.length})")
                 CidResult(cid)
             }
         }
-        response.code() == 401 -> {
-            Logger.e(LOG_IAB, "$TAG $mname [$envLabel]: 401 unauthorized, err=${response.errorBody()?.string()}")
+        response.code == 401 -> {
+            Logger.e(LOG_IAB, "$TAG $mname [$envLabel]: 401 unauthorized, err=${response.errorBody}")
             CidResult.error(401)
         }
-        response.code() == 409 -> {
-            Logger.w(LOG_IAB, "$TAG $mname [$envLabel]: 409 conflict, err=${response.errorBody()?.string()}")
+        response.code == 409 -> {
+            Logger.w(LOG_IAB, "$TAG $mname [$envLabel]: 409 conflict, err=${response.errorBody}")
             CidResult.error(409)
         }
         else -> {
-            Logger.e(LOG_IAB, "$TAG $mname [$envLabel]: failed code=${response.code()}, err=${response.errorBody()?.string()}")
-            CidResult.error(response.code())
+            Logger.e(LOG_IAB, "$TAG $mname [$envLabel]: failed code=${response.code}, err=${response.errorBody}")
+            CidResult.error(response.code)
         }
     }
 
     fun mapDidResponse(
-        response: Response<JsonObject?>?,
+        response: BillingHttpResponse?,
         envLabel: String,
         mname: String,
     ): DidResult = when {
@@ -72,31 +71,31 @@ internal object ServerApiErrorMapper {
             DidResult.EMPTY
         }
         response.isSuccessful -> {
-            val did = response.body().primitiveString("did")
+            val did = response.body.primitiveString("did")
             if (did.isBlank()) {
-                Logger.w(LOG_IAB, "$TAG $mname [$envLabel]: server returned blank did, body=${response.body()}, msg=${response.message()}")
+                Logger.w(LOG_IAB, "$TAG $mname [$envLabel]: server returned blank did, body=${response.body}, msg=${response.message}")
                 DidResult.EMPTY
             } else {
                 Logger.i(LOG_IAB, "$TAG $mname [$envLabel]: received did (len=${did.length})")
                 DidResult(did)
             }
         }
-        response.code() == 401 -> {
-            Logger.e(LOG_IAB, "$TAG $mname [$envLabel]: 401 unauthorized, err=${response.errorBody()?.string()}")
+        response.code == 401 -> {
+            Logger.e(LOG_IAB, "$TAG $mname [$envLabel]: 401 unauthorized, err=${response.errorBody}")
             DidResult.error(401)
         }
-        response.code() == 409 -> {
-            Logger.w(LOG_IAB, "$TAG $mname [$envLabel]: 409 conflict, err=${response.errorBody()?.string()}")
+        response.code == 409 -> {
+            Logger.w(LOG_IAB, "$TAG $mname [$envLabel]: 409 conflict, err=${response.errorBody}")
             DidResult.error(409)
         }
         else -> {
-            Logger.e(LOG_IAB, "$TAG $mname [$envLabel]: failed code=${response.code()}, err=${response.errorBody()?.string()}")
-            DidResult.error(response.code())
+            Logger.e(LOG_IAB, "$TAG $mname [$envLabel]: failed code=${response.code}, err=${response.errorBody}")
+            DidResult.error(response.code)
         }
     }
 
     fun mapRegisterDeviceResponse(
-        response: Response<JsonObject?>?,
+        response: BillingHttpResponse?,
         envLabel: String,
         mname: String,
         accountId: String,
@@ -109,66 +108,66 @@ internal object ServerApiErrorMapper {
         }
         response.isSuccessful -> {
             Logger.i(LOG_IAB, "$TAG $mname [$envLabel]: success " +
-                "(accLen=${accountId.length}, devLen=${deviceId.length}, res=${response.message()}, body=${response.body()})")
+                "(accLen=${accountId.length}, devLen=${deviceId.length}, res=${response.message}, body=${response.body})")
             onSuccess()
             RegisterDeviceResult.Success
         }
-        response.code() == 401 -> {
-            Logger.e(LOG_IAB, "$TAG $mname [$envLabel]: 401 unauthorized; accLen=${accountId.length}, devLen=${deviceId.length}, err=${response.errorBody()?.string()}")
+        response.code == 401 -> {
+            Logger.e(LOG_IAB, "$TAG $mname [$envLabel]: 401 unauthorized; accLen=${accountId.length}, devLen=${deviceId.length}, err=${response.errorBody}")
             RegisterDeviceResult.Unauthorized(accountId, deviceId)
         }
-        response.code() == 409 -> {
-            Logger.w(LOG_IAB, "$TAG $mname [$envLabel]: 409 (device already registered), err=${response.errorBody()?.string()}")
+        response.code == 409 -> {
+            Logger.w(LOG_IAB, "$TAG $mname [$envLabel]: 409 (device already registered), err=${response.errorBody}")
             RegisterDeviceResult.Conflict
         }
         else -> {
-            Logger.e(LOG_IAB, "$TAG $mname [$envLabel]: failed code=${response.code()}, err=${response.errorBody()?.string()}")
-            RegisterDeviceResult.Failure(response.code(), response.message())
+            Logger.e(LOG_IAB, "$TAG $mname [$envLabel]: failed code=${response.code}, err=${response.errorBody}")
+            RegisterDeviceResult.Failure(response.code, response.message)
         }
     }
 
     fun mapCancelResponse(
-        response: Response<JsonObject?>,
+        response: BillingHttpResponse,
         envLabel: String,
         mname: String,
         accountId: String,
         sku: String,
     ): Pair<Boolean, String> = when {
-        response.code() == 401 -> {
-            Logger.e(LOG_IAB, "$TAG $mname [$envLabel]: 401 unauthorized; accLen=${accountId.length}, err=${response.errorBody()?.string()}")
+        response.code == 401 -> {
+            Logger.e(LOG_IAB, "$TAG $mname [$envLabel]: 401 unauthorized; accLen=${accountId.length}, err=${response.errorBody}")
             Pair(false, "Unauthorized: 401")
         }
-        response.code() == 409 -> Pair(false, "Conflict: 409")
+        response.code == 409 -> Pair(false, "Conflict: 409")
         response.isSuccessful -> {
             Logger.i(LOG_IAB, "$TAG $mname [$envLabel]: cancelled sku=$sku")
             Pair(true, "Cancelled")
         }
         else -> {
-            Logger.e(LOG_IAB, "$TAG $mname [$envLabel]: error code=${response.code()}, msg=${response.message()}, err=${response.errorBody()?.string()}")
-            Pair(false, "Server error: ${response.code()}")
+            Logger.e(LOG_IAB, "$TAG $mname [$envLabel]: error code=${response.code}, msg=${response.message}, err=${response.errorBody}")
+            Pair(false, "Server error: ${response.code}")
         }
     }
 
     fun mapRevokeResponse(
-        response: Response<JsonObject?>,
+        response: BillingHttpResponse,
         envLabel: String,
         mname: String,
         accountId: String,
         sku: String,
     ): Pair<Boolean, String> = when {
-        response.code() == 401 -> {
-            Logger.e(LOG_IAB, "$TAG $mname [$envLabel]: 401 unauthorized; accLen=${accountId.length}, err=${response.errorBody()?.string()}")
+        response.code == 401 -> {
+            Logger.e(LOG_IAB, "$TAG $mname [$envLabel]: 401 unauthorized; accLen=${accountId.length}, err=${response.errorBody}")
             Pair(false, "Unauthorized: 401")
         }
-        response.code() == 409 -> Pair(false, "Conflict: 409")
+        response.code == 409 -> Pair(false, "Conflict: 409")
         response.isSuccessful -> {
-            Logger.i(LOG_IAB, "$TAG $mname [$envLabel]: revoked sku=$sku, raw: ${response.raw().body}")
+            Logger.i(LOG_IAB, "$TAG $mname [$envLabel]: revoked sku=$sku, raw: ${response.body}")
             Pair(true, "Revoked")
         }
         else -> {
-            Logger.e(LOG_IAB, "$TAG $mname [$envLabel]: err code=${response.code()}, " +
-                "url=${response.raw().request.url}")
-            Pair(false, "server err: ${response.code()}, ${response.errorBody()?.string()}")
+            Logger.e(LOG_IAB, "$TAG $mname [$envLabel]: err code=${response.code}, " +
+                "url=${response.requestUrl}")
+            Pair(false, "server err: ${response.code}, ${response.errorBody}")
         }
     }
 

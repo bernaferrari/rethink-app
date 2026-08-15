@@ -17,7 +17,13 @@ package com.bernaferrari.bravedns.iab
 
 import Logger
 import Logger.LOG_IAB
-import org.json.JSONObject
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.intOrNull
 
 // ref: github.com/celzero/redir: PlayErr / PlayOk classes in src/d.js
 
@@ -42,16 +48,16 @@ sealed class RpnPurchaseAckServerResponse {
         fun from(body: String?, httpCode: Int): RpnPurchaseAckServerResponse {
             // Non-2xx → always an error, even if the body looks OK-ish
             if (httpCode !in 200..<300) {
-                val json = body?.trimmedJson() ?: JSONObject()
+                val json = parseOrNull(body)
                 val payload = ResponseErr.fromJson(json, httpCode)
                 Logger.d(LOG_IAB, "PlayErr: $payload")
                 return Err(payload)
             }
 
-            val json = body?.trimmedJson() ?: JSONObject()
+            val json = parseOrNull(body)
 
             // If "error" key is present, or "success" is explicitly false → error
-            return if (json.has("error") || !json.optBoolean("success", true)) {
+            return if (json.containsKey("error") || json.booleanFieldOrNull("success") == false) {
                 val payload = ResponseErr.fromJson(json, httpCode)
                 Logger.d(LOG_IAB, "PlayErr: $payload")
                 Err(payload)
@@ -63,12 +69,10 @@ sealed class RpnPurchaseAckServerResponse {
             }
         }
 
-        private fun String.trimmedJson(): JSONObject = try {
-            JSONObject(this.trim())
-        } catch (e: org.json.JSONException) {
-            Logger.w(LOG_IAB, "trimmedJson: invalid json, using empty object: ${e.message}", e)
-            JSONObject()
-        }
+        // Invalid / empty bodies parse to an empty object, mirroring the former
+        // org.json behavior where JSONObject() was used as the fallback.
+        private fun parseOrNull(body: String?): JsonObject =
+            BillingApiJson.parseObjectOrNull(body) ?: JsonObject(emptyMap())
     }
 }
 
@@ -124,27 +128,27 @@ data class ResponseOk(
     val ray: String? = null,
 ) {
     companion object {
-        fun fromJson(json: JSONObject): ResponseOk = ResponseOk(
-            success = json.optBoolean("success", true),
-            message = json.optStringOrNull("message"),
-            cid = json.optStringOrNull("cid"),
-            sku = json.optStringOrNull("sku"),
-            purchaseId = json.optStringOrNull("purchaseId"),
-            orderId = json.optStringOrNull("orderId"),
-            state = json.optStringOrNull("state"),
-            status = json.optStringOrNull("status"),
-            test = json.optBooleanOrNull("test"),
-            expiry = json.optStringOrNull("expiry"),
-            start = json.optStringOrNull("start"),
-            windowDays = json.optIntOrNull("windowDays"),
-            cancelCtx = json.optStringOrNull("cancelCtx"),
-            allProducts = json.optStringListOrNull("allProducts"),
-            unconsumedProducts = json.optStringListOrNull("unconsumedProducts"),
-            developerPayload = json.optStringOrNull("developerPayload"),
-            hadEntitlement = json.optBooleanOrNull("hadEntitlement"),
-            deletedEntitlement = json.optBooleanOrNull("deletedEntitlement"),
-            wasAlreadyFullyRefunded = json.optBooleanOrNull("wasAlreadyFullyRefunded"),
-            ray = json.optStringOrNull("ray"),
+        fun fromJson(json: JsonObject): ResponseOk = ResponseOk(
+            success = json.booleanFieldOrNull("success") ?: true,
+            message = json.stringFieldOrNull("message"),
+            cid = json.stringFieldOrNull("cid"),
+            sku = json.stringFieldOrNull("sku"),
+            purchaseId = json.stringFieldOrNull("purchaseId"),
+            orderId = json.stringFieldOrNull("orderId"),
+            state = json.stringFieldOrNull("state"),
+            status = json.stringFieldOrNull("status"),
+            test = json.booleanFieldOrNull("test"),
+            expiry = json.stringFieldOrNull("expiry"),
+            start = json.stringFieldOrNull("start"),
+            windowDays = json.intFieldOrNull("windowDays"),
+            cancelCtx = json.stringFieldOrNull("cancelCtx"),
+            allProducts = json.stringListOrNull("allProducts"),
+            unconsumedProducts = json.stringListOrNull("unconsumedProducts"),
+            developerPayload = json.stringFieldOrNull("developerPayload"),
+            hadEntitlement = json.booleanFieldOrNull("hadEntitlement"),
+            deletedEntitlement = json.booleanFieldOrNull("deletedEntitlement"),
+            wasAlreadyFullyRefunded = json.booleanFieldOrNull("wasAlreadyFullyRefunded"),
+            ray = json.stringFieldOrNull("ray"),
         )
     }
 
@@ -209,29 +213,27 @@ data class ResponseErr(
     val httpCode: Int = 0,
 ) {
     companion object {
-        fun fromJson(json: JSONObject, httpCode: Int = 0): ResponseErr = ResponseErr(
+        fun fromJson(json: JsonObject, httpCode: Int = 0): ResponseErr = ResponseErr(
             // "error" takes precedence; fall back to "message" (mirrors the JS constructor)
-            error = json.optString("error").ifEmpty { json.optString("message", "") },
-            details = json.optStringOrNull("details"),
-            cid = json.optStringOrNull("cid"),
-            sku = json.optStringOrNull("sku"),
-            purchaseId = json.optStringOrNull("purchaseId"),
-            orderId = json.optStringOrNull("orderId"),
-            state = json.optStringOrNull("state"),
-            status = json.optStringOrNull("status"),
-            test = json.optBooleanOrNull("test"),
-            expiry = json.optStringOrNull("expiry"),
-            start = json.optStringOrNull("start"),
-            windowDays = json.optIntOrNull("windowDays"),
-            allProducts = json.optStringListOrNull("allProducts"),
-            unconsumedProducts = json.optStringListOrNull("unconsumedProducts"),
-            linkedPurchaseId = json.optStringOrNull("linkedPurchaseId"),
-            ray = json.optStringOrNull("ray"),
+            error = json.stringFieldOrNull("error") ?: json.stringFieldOrNull("message") ?: "",
+            details = json.stringFieldOrNull("details"),
+            cid = json.stringFieldOrNull("cid"),
+            sku = json.stringFieldOrNull("sku"),
+            purchaseId = json.stringFieldOrNull("purchaseId"),
+            orderId = json.stringFieldOrNull("orderId"),
+            state = json.stringFieldOrNull("state"),
+            status = json.stringFieldOrNull("status"),
+            test = json.booleanFieldOrNull("test"),
+            expiry = json.stringFieldOrNull("expiry"),
+            start = json.stringFieldOrNull("start"),
+            windowDays = json.intFieldOrNull("windowDays"),
+            allProducts = json.stringListOrNull("allProducts"),
+            unconsumedProducts = json.stringListOrNull("unconsumedProducts"),
+            linkedPurchaseId = json.stringFieldOrNull("linkedPurchaseId"),
+            ray = json.stringFieldOrNull("ray"),
             httpCode = httpCode,
         )
     }
-
-
 
     /**
      * True when the server has authoritatively confirmed the subscription is expired.
@@ -247,21 +249,33 @@ data class ResponseErr(
         "PlayErr(http=$httpCode, error='$error', state=$state, status=$status, sku=$sku, ray=$ray)"
 }
 
-/** Returns the string value for [key], or null if missing or empty. */
-private fun JSONObject.optStringOrNull(key: String): String? =
-    if (has(key)) optString(key).takeUnless { it.isEmpty() } else null
+/** Returns the boolean value for [key], or null if absent or not a boolean(-like primitive). */
+private fun JsonObject.booleanFieldOrNull(key: String): Boolean? =
+    this[key].primitiveOrNull()?.booleanOrNull
 
-/** Returns the boolean value for [key], or null if the key is absent. */
-private fun JSONObject.optBooleanOrNull(key: String): Boolean? =
-    if (has(key)) optBoolean(key) else null
+/**
+ * Returns the string value for [key], or null if missing or empty.
+ *
+ * Mirrors org.json `optString`: non-string primitives (numbers, booleans) are
+ * coerced to their string form; JSON null and missing keys yield null.
+ */
+private fun JsonObject.stringFieldOrNull(key: String): String? {
+    val primitive = this[key].primitiveOrNull() ?: return null
+    if (primitive is JsonNull) return null
+    return primitive.content.takeUnless { it.isEmpty() || it == "null" }
+}
 
-/** Returns the int value for [key], or null if the key is absent. */
-private fun JSONObject.optIntOrNull(key: String): Int? =
-    if (has(key)) optInt(key) else null
+/** Returns the int value for [key], or null if the key is absent or not a number. */
+private fun JsonObject.intFieldOrNull(key: String): Int? =
+    this[key].primitiveOrNull()?.intOrNull
 
 /** Returns the list of strings for a JSON array at [key], or null if absent. */
-private fun JSONObject.optStringListOrNull(key: String): List<String>? {
-    val arr = optJSONArray(key) ?: return null
-    return (0 until arr.length()).mapNotNull { arr.optString(it).takeUnless { s -> s.isEmpty() } }
-        .takeIf { it.isNotEmpty() }
+private fun JsonObject.stringListOrNull(key: String): List<String>? {
+    val arr = this[key] as? JsonArray ?: return null
+    return arr.mapNotNull { item ->
+        (item as? JsonPrimitive)?.content?.takeUnless { s -> s.isEmpty() }
+    }.takeIf { it.isNotEmpty() }
 }
+
+/** Narrows a [JsonElement] to a primitive without throwing on objects/arrays. */
+private fun JsonElement?.primitiveOrNull(): JsonPrimitive? = this as? JsonPrimitive

@@ -25,7 +25,6 @@ import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
-import retrofit2.Response
 import java.time.Instant
 
 /**
@@ -42,10 +41,10 @@ internal object PurchaseHistoryParser {
     private const val TAG_TX = "ServerOrderRepo"
 
     /**
-     * Maps a Retrofit `/g/tx` response onto [FetchOrdersRawResult].
+     * Maps a `/g/tx` HTTP envelope onto [FetchOrdersRawResult].
      */
     fun mapHttpResponse(
-        response: Response<JsonObject?>?,
+        response: BillingHttpResponse?,
         envLabel: String,
         mname: String = "fetchPurchaseHistory",
     ): FetchOrdersRawResult = when {
@@ -54,12 +53,12 @@ internal object PurchaseHistoryParser {
             FetchOrdersRawResult.Error("Empty response from server")
         }
         !response.isSuccessful -> {
-            val code = response.code()
-            Logger.w(LOG_IAB, "$TAG_HTTP $mname [$envLabel]: HTTP $code, ${response.errorBody()?.string()}")
+            val code = response.code
+            Logger.w(LOG_IAB, "$TAG_HTTP $mname [$envLabel]: HTTP $code, ${response.errorBody}")
             FetchOrdersRawResult.Error("Server returned HTTP $code")
         }
         else -> {
-            val body = response.body()
+            val body = response.body
             if (body == null) {
                 Logger.w(LOG_IAB, "$TAG_HTTP $mname [$envLabel]: null body")
                 FetchOrdersRawResult.Error("No data returned from server")

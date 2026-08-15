@@ -215,6 +215,44 @@ class PurchaseHistoryParserTest {
         assertTrue(none is ServerOrderHistoryRepository.Result.NoCredentials)
     }
 
+    @Test
+    fun `mapHttpResponse 200 with body is Success`() {
+        val body = envelope(txRow("tok", "cid", "2026-01-01T00:00:00Z", subscriptionMeta()))
+        val mapped = PurchaseHistoryParser.mapHttpResponse(
+            BillingHttpResponse(code = 200, body = body, errorBody = null),
+            envLabel = "prod",
+        )
+        assertTrue(mapped is FetchOrdersRawResult.Success)
+        assertEquals(body, (mapped as FetchOrdersRawResult.Success).body)
+    }
+
+    @Test
+    fun `mapHttpResponse null response is Error`() {
+        val mapped = PurchaseHistoryParser.mapHttpResponse(null, envLabel = "prod")
+        assertTrue(mapped is FetchOrdersRawResult.Error)
+        assertEquals("Empty response from server", (mapped as FetchOrdersRawResult.Error).message)
+    }
+
+    @Test
+    fun `mapHttpResponse non-2xx is Error with status`() {
+        val mapped = PurchaseHistoryParser.mapHttpResponse(
+            BillingHttpResponse(code = 503, body = null, errorBody = "unavailable"),
+            envLabel = "prod",
+        )
+        assertTrue(mapped is FetchOrdersRawResult.Error)
+        assertEquals("Server returned HTTP 503", (mapped as FetchOrdersRawResult.Error).message)
+    }
+
+    @Test
+    fun `mapHttpResponse 200 with null body is Error`() {
+        val mapped = PurchaseHistoryParser.mapHttpResponse(
+            BillingHttpResponse(code = 200, body = null, errorBody = null),
+            envLabel = "test",
+        )
+        assertTrue(mapped is FetchOrdersRawResult.Error)
+        assertEquals("No data returned from server", (mapped as FetchOrdersRawResult.Error).message)
+    }
+
     private fun envelope(vararg rows: kotlinx.serialization.json.JsonElement) = buildJsonObject {
         put("success", true)
         put("tx", buildJsonArray { rows.forEach { add(it) } })
