@@ -72,6 +72,7 @@ import com.bernaferrari.bravedns.ui.compose.firewall.RulesMode
 import com.bernaferrari.bravedns.ui.compose.firewall.RulesTab
 import com.bernaferrari.bravedns.ui.compose.wireguard.WgConfigDetailScreen
 import com.bernaferrari.bravedns.ui.compose.wireguard.WgConfigEditorScreen
+import kotlinx.serialization.Serializable
 import com.bernaferrari.bravedns.ui.compose.wireguard.WgType
 import com.bernaferrari.bravedns.ui.compose.rpn.RpnAvailabilityScreen
 import com.bernaferrari.bravedns.ui.compose.rpn.RpnCountriesScreen
@@ -171,67 +172,74 @@ enum class HomeDestination(
     val route: RethinkRoute get() = root.route
 }
 
-sealed interface HomeNavRequest {
-    data class DetailedStats(
-        val type: SummaryStatisticsType,
-        val timeCategory: SummaryStatisticsViewModel.TimeCategory
-    ) : HomeNavRequest
 
-    data object Alerts : HomeNavRequest
-    data object RpnCountries : HomeNavRequest
-    data object RpnAvailability : HomeNavRequest
-    data object Events : HomeNavRequest
-    data object FirewallSettings : HomeNavRequest
-    data object AdvancedSettings : HomeNavRequest
-    data object AntiCensorship : HomeNavRequest
-    data object TunnelSettings : HomeNavRequest
-    data object MiscSettings : HomeNavRequest
-    data object ConsoleLogs : HomeNavRequest
-    data class NetworkLogs(val query: String = "") : HomeNavRequest
-    data object AppList : HomeNavRequest
-    data class CustomRules(
-        val uid: Int = UID_EVERYBODY,
-        val tab: CustomRulesTab = CustomRulesTab.IP,
-        val mode: CustomRulesMode = CustomRulesMode.APP_SPECIFIC
-    ) : HomeNavRequest
-    data object ProxySettings : HomeNavRequest
-    data object TcpProxyMain : HomeNavRequest
-    data object Welcome : HomeNavRequest
-    data object AppLock : HomeNavRequest
-    data object PingTest : HomeNavRequest
-    data object DnsDetail : HomeNavRequest
-    data class WgConfigDetail(val configId: Int, val wgType: WgType) : HomeNavRequest
-    data class WgConfigEditor(val configId: Int, val wgType: WgType) : HomeNavRequest
-    data class RpnWinProxyDetails(val countryCode: String) : HomeNavRequest
-    data class AppInfo(val uid: Int) : HomeNavRequest
-    data class DomainConnections(
-        val type: DomainConnectionsInputType,
-        val flag: String,
-        val domain: String,
-        val asn: String,
-        val ip: String,
-        val isBlocked: Boolean,
-        val timeCategory: DomainConnectionsViewModel.TimeCategory
-    ) : HomeNavRequest
+@Serializable
+enum class CustomRulesTab(val value: Int) {
+    IP(0),
+    DOMAIN(1);
 
-    data object DnsList : HomeNavRequest
-    data class AppWiseIpLogs(val uid: Int, val isAsn: Boolean) : HomeNavRequest
-    data class ConfigureRethinkBasic(
-        val screenType: ConfigureRethinkScreenType,
-        val remoteName: String = "",
-        val remoteUrl: String = "",
-        val uid: Int = -1
-    ) : HomeNavRequest
-
-    data class ConfigureOtherDns(val dnsType: Int) : HomeNavRequest
-    data object UniversalFirewallSettings : HomeNavRequest
-    data class AppWiseDomainLogs(val uid: Int) : HomeNavRequest
-    data object Checkout : HomeNavRequest
-    data object RpnAccount : HomeNavRequest
-    data object WgMain : HomeNavRequest
-    data object Database : HomeNavRequest
+    companion object {
+        fun fromValue(value: Int): CustomRulesTab = entries.firstOrNull { it.value == value } ?: IP
+    }
 }
 
+@Serializable
+enum class CustomRulesMode(val value: Int) {
+    ALL_RULES(0),
+    APP_SPECIFIC(1);
+
+    companion object {
+        fun fromValue(value: Int): CustomRulesMode = entries.firstOrNull { it.value == value } ?: APP_SPECIFIC
+    }
+}
+
+/** App-side enum payloads -> the typed [RethinkRoute] graph (which stores primitives). */
+fun detailedStatsRoute(
+    type: SummaryStatisticsType,
+    timeCategory: SummaryStatisticsViewModel.TimeCategory,
+): RethinkRoute = RethinkRoute.DetailedStatistics(type.tid, timeCategory.value)
+
+fun customRulesRoute(
+    uid: Int = UID_EVERYBODY,
+    tab: CustomRulesTab = CustomRulesTab.IP,
+    mode: CustomRulesMode = CustomRulesMode.APP_SPECIFIC,
+): RethinkRoute = RethinkRoute.CustomRules(uid, tab.value, mode.value)
+
+fun wireGuardDetailRoute(configId: Int, wgType: WgType): RethinkRoute =
+    RethinkRoute.WireGuardDetail(configId, wgType.value)
+
+fun wireGuardEditorRoute(configId: Int, wgType: WgType): RethinkRoute =
+    RethinkRoute.WireGuardEditor(configId, wgType.value)
+
+fun domainConnectionsRoute(
+    type: DomainConnectionsInputType,
+    flag: String,
+    domain: String,
+    asn: String,
+    ip: String,
+    isBlocked: Boolean,
+    timeCategory: DomainConnectionsViewModel.TimeCategory,
+): RethinkRoute = RethinkRoute.DomainConnections(
+    typeId = type.type,
+    flag = flag,
+    domain = domain,
+    asn = asn,
+    ip = ip,
+    isBlocked = isBlocked,
+    timeCategory = timeCategory.value,
+)
+
+fun configureRethinkBasicRoute(
+    screenType: ConfigureRethinkScreenType,
+    remoteName: String = "",
+    remoteUrl: String = "",
+    uid: Int = -1,
+): RethinkRoute = RethinkRoute.ConfigureRethinkBasic(
+    screenTypeOrdinal = screenType.ordinal,
+    remoteName = remoteName,
+    remoteUrl = remoteUrl,
+    uid = uid,
+)
 
 private fun RethinkRoute.forAndroid(): RethinkRoute = when (this) {
     RethinkRoute.DnsSettings -> RethinkRoute.DnsDetail()
@@ -241,63 +249,6 @@ private fun RethinkRoute.forAndroid(): RethinkRoute = when (this) {
     is RethinkRoute.RpnServerDetails -> RethinkRoute.CountryProxy(key)
     else -> this
 }
-
-private fun HomeNavRequest.toRethinkRoute(): RethinkRoute = when (this) {
-    is HomeNavRequest.DetailedStats ->
-        RethinkRoute.DetailedStatistics(type.tid, timeCategory.value)
-    HomeNavRequest.Alerts -> RethinkRoute.Alerts
-    HomeNavRequest.RpnCountries -> RethinkRoute.RpnCountries
-    HomeNavRequest.RpnAvailability -> RethinkRoute.RpnAvailability
-    HomeNavRequest.Events -> RethinkRoute.Events
-    HomeNavRequest.FirewallSettings -> RethinkRoute.FirewallSettings()
-    HomeNavRequest.AdvancedSettings -> RethinkRoute.AdvancedSettings
-    HomeNavRequest.AntiCensorship -> RethinkRoute.AntiCensorship
-    HomeNavRequest.TunnelSettings -> RethinkRoute.TunnelSettings()
-    HomeNavRequest.MiscSettings -> RethinkRoute.MiscSettings()
-    HomeNavRequest.ConsoleLogs -> RethinkRoute.ConsoleLogs
-    is HomeNavRequest.NetworkLogs -> RethinkRoute.NetworkLogs(query)
-    HomeNavRequest.AppList -> RethinkRoute.AppList
-    is HomeNavRequest.CustomRules ->
-        RethinkRoute.CustomRules(uid = uid, tab = tab.value, mode = mode.value)
-    HomeNavRequest.ProxySettings -> RethinkRoute.ProxySettings()
-    HomeNavRequest.TcpProxyMain -> RethinkRoute.TcpProxy
-    HomeNavRequest.Welcome -> RethinkRoute.Welcome
-    HomeNavRequest.PingTest -> RethinkRoute.PingTest
-    HomeNavRequest.AppLock -> RethinkRoute.AppLock
-    HomeNavRequest.DnsDetail -> RethinkRoute.DnsDetail()
-    is HomeNavRequest.RpnWinProxyDetails -> RethinkRoute.CountryProxy(countryCode)
-    is HomeNavRequest.DomainConnections ->
-        RethinkRoute.DomainConnections(
-            typeId = type.type,
-            flag = flag,
-            domain = domain,
-            asn = asn,
-            ip = ip,
-            isBlocked = isBlocked,
-            timeCategory = timeCategory.value,
-        )
-    is HomeNavRequest.AppInfo -> RethinkRoute.AppInfo(uid)
-    is HomeNavRequest.WgConfigDetail ->
-        RethinkRoute.WireGuardDetail(configId, wgType.value)
-    is HomeNavRequest.WgConfigEditor ->
-        RethinkRoute.WireGuardEditor(configId, wgType.value)
-    is HomeNavRequest.ConfigureRethinkBasic ->
-        RethinkRoute.ConfigureRethinkBasic(
-            screenTypeOrdinal = screenType.ordinal,
-            remoteName = remoteName,
-            remoteUrl = remoteUrl,
-            uid = uid,
-        )
-    HomeNavRequest.DnsList -> RethinkRoute.DnsList
-    is HomeNavRequest.AppWiseIpLogs -> RethinkRoute.AppWiseIpLogs(uid, isAsn)
-    is HomeNavRequest.ConfigureOtherDns -> RethinkRoute.ConfigureOtherDns(dnsType)
-    HomeNavRequest.UniversalFirewallSettings -> RethinkRoute.UniversalFirewall
-    is HomeNavRequest.AppWiseDomainLogs -> RethinkRoute.AppWiseDomainLogs(uid)
-    HomeNavRequest.Checkout -> RethinkRoute.Checkout
-    HomeNavRequest.RpnAccount -> RethinkRoute.RpnAccount
-    HomeNavRequest.WgMain -> RethinkRoute.WireGuard
-    HomeNavRequest.Database -> RethinkRoute.Database
-}.forAndroid()
 
 data class HomeConfigureActions(
     val onConfigureAppsClick: () -> Unit,
@@ -394,7 +345,7 @@ fun HomeScreenRoot(
     dnsSettingsViewModel: DnsSettingsViewModel,
     appDownloadManager: AppDownloadManager,
     dnsActions: HomeDnsActions,
-    homeNavRequest: HomeNavRequest?,
+    homeNavRequest: RethinkRoute?,
     onHomeNavConsumed: () -> Unit,
     onAppLockResult: (AppLockResult) -> Unit = {},
     rethinkEndpointViewModel: RethinkEndpointViewModel,
@@ -440,8 +391,7 @@ fun HomeScreenRoot(
     // the stack on a different-root / cold-start open().
     var pendingRoute by remember { mutableStateOf<RethinkRoute?>(null) }
     LaunchedEffect(homeNavRequest) {
-        val request = homeNavRequest ?: return@LaunchedEffect
-        pendingRoute = request.toRethinkRoute()
+        pendingRoute = homeNavRequest?.forAndroid()
     }
 
     RethinkAppNavigation(

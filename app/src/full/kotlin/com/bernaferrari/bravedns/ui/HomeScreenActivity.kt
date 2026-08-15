@@ -112,11 +112,16 @@ import com.bernaferrari.bravedns.ui.compose.dns.ConfigureRethinkScreenType
 import com.bernaferrari.bravedns.ui.compose.navigation.HomeAboutActions
 import com.bernaferrari.bravedns.ui.compose.navigation.HomeConfigureActions
 import com.bernaferrari.bravedns.ui.compose.navigation.HomeDnsActions
-import com.bernaferrari.bravedns.ui.compose.navigation.HomeNavRequest
 import com.bernaferrari.bravedns.ui.compose.navigation.CustomRulesMode
 import com.bernaferrari.bravedns.ui.compose.navigation.CustomRulesTab
 import com.bernaferrari.bravedns.ui.compose.navigation.HomeWgActions
 import com.bernaferrari.bravedns.ui.compose.navigation.RethinkRoute
+import com.bernaferrari.bravedns.ui.compose.navigation.configureRethinkBasicRoute
+import com.bernaferrari.bravedns.ui.compose.navigation.customRulesRoute
+import com.bernaferrari.bravedns.ui.compose.navigation.detailedStatsRoute
+import com.bernaferrari.bravedns.ui.compose.navigation.domainConnectionsRoute
+import com.bernaferrari.bravedns.ui.compose.navigation.wireGuardDetailRoute
+import com.bernaferrari.bravedns.ui.compose.navigation.wireGuardEditorRoute
 import com.bernaferrari.bravedns.ui.compose.wireguard.WgType
 import com.bernaferrari.bravedns.ui.compose.navigation.HomeScreenRoot
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
@@ -242,7 +247,7 @@ class HomeScreenActivity : FragmentActivity() {
     private val pendingDialog = MutableStateFlow<HomeDialog?>(null)
     private val pendingBugReportSheet = MutableStateFlow(false)
     private var snackbarHostState: SnackbarHostState? = null
-    private var homeNavRequest by mutableStateOf<HomeNavRequest?>(null)
+    private var homeNavRequest by mutableStateOf<RethinkRoute?>(null)
 
     private val intentRouter = HomeIntentRouter()
     private val billingController = HomeBillingController()
@@ -378,17 +383,17 @@ class HomeScreenActivity : FragmentActivity() {
                         startDestination = homeStartDestination,
                         isDebug = DEBUG,
                         configureActions = HomeConfigureActions(
-                            onConfigureAppsClick = { homeNavRequest = HomeNavRequest.AppList },
+                            onConfigureAppsClick = { homeNavRequest = RethinkRoute.AppList },
                             onConfigureDnsClick = { navigateToDnsDetailIfAllowed() },
                             onConfigureFirewallClick = {
-                                homeNavRequest = HomeNavRequest.FirewallSettings
+                                homeNavRequest = RethinkRoute.FirewallSettings()
                             },
                             onFirewallUniversalClick = {
-                                homeNavRequest = HomeNavRequest.UniversalFirewallSettings
+                                homeNavRequest = RethinkRoute.UniversalFirewall
                             },
                             onFirewallCustomIpClick = {
                                 homeNavRequest =
-                                    HomeNavRequest.CustomRules(
+                                    customRulesRoute(
                                         uid = UID_EVERYBODY,
                                         tab = CustomRulesTab.IP,
                                         mode = CustomRulesMode.APP_SPECIFIC
@@ -396,31 +401,31 @@ class HomeScreenActivity : FragmentActivity() {
                             },
                             onFirewallAppWiseIpClick = { openAppWiseIpScreen() },
                             onConfigureProxyClick = {
-                                homeNavRequest = HomeNavRequest.ProxySettings
+                                homeNavRequest = RethinkRoute.ProxySettings()
                             },
                             onConfigureNetworkClick = {
-                                homeNavRequest = HomeNavRequest.TunnelSettings
+                                homeNavRequest = RethinkRoute.TunnelSettings()
                             },
                             onConfigureOthersClick = {
-                                homeNavRequest = HomeNavRequest.MiscSettings
+                                homeNavRequest = RethinkRoute.MiscSettings()
                             },
                             onConfigureLogsClick = {
-                                homeNavRequest = HomeNavRequest.NetworkLogs()
+                                homeNavRequest = RethinkRoute.NetworkLogs()
                             },
                             onConfigureAntiCensorshipClick = {
-                                homeNavRequest = HomeNavRequest.AntiCensorship
+                                homeNavRequest = RethinkRoute.AntiCensorship
                             },
                             onConfigureAdvancedClick = {
-                                homeNavRequest = HomeNavRequest.AdvancedSettings
+                                homeNavRequest = RethinkRoute.AdvancedSettings
                             },
                             onNavigateToLogs = { searchQuery ->
-                                homeNavRequest = HomeNavRequest.NetworkLogs(searchQuery)
+                                homeNavRequest = RethinkRoute.NetworkLogs(searchQuery)
                             },
                             onOpenAccessibilitySettings = {
                                 startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
                             },
                             onNavigateToProxy = {
-                                homeNavRequest = HomeNavRequest.ProxySettings
+                                homeNavRequest = RethinkRoute.ProxySettings()
                             },
                         ),
                         aboutUiState = aboutState,
@@ -464,7 +469,7 @@ class HomeScreenActivity : FragmentActivity() {
                                 openUrl(this, getString(R.string.about_mastodom_handle))
                             },
                             onGeneralSettingsClick = {
-                                homeNavRequest = HomeNavRequest.MiscSettings
+                                homeNavRequest = RethinkRoute.MiscSettings()
                             },
                             onAppInfoClick = { UIUtils.openAndroidAppInfo(this, packageName) },
                             onVpnProfileClick = { openVpnProfile(this) },
@@ -516,7 +521,7 @@ class HomeScreenActivity : FragmentActivity() {
                                 startLocalBlocklistConfigureActivity()
                             },
                             onConfigureOtherDns = { index ->
-                                homeNavRequest = HomeNavRequest.ConfigureOtherDns(index)
+                                homeNavRequest = RethinkRoute.ConfigureOtherDns(index)
                             },
                         ),
                         homeNavRequest = homeNavRequest,
@@ -548,7 +553,7 @@ class HomeScreenActivity : FragmentActivity() {
                         blockFreeDnsViewModel = blockFreeDnsViewModel,
                         wgActions = HomeWgActions(
                             onWgCreateClick = {
-                                homeNavRequest = HomeNavRequest.WgConfigEditor(
+                                homeNavRequest = wireGuardEditorRoute(
                                     WireguardManager.INVALID_CONF_ID,
                                     WgType.DEFAULT
                                 )
@@ -654,13 +659,13 @@ class HomeScreenActivity : FragmentActivity() {
 
     private fun applyIntentResult(result: HomeIntentResult?, intent: Intent?) {
         when (result) {
-            is HomeIntentResult.Navigate -> homeNavRequest = result.request
+            is HomeIntentResult.Navigate -> homeNavRequest = result.route
             HomeIntentResult.AccessibilityCrash -> showDialog(HomeDialog.AccessibilityCrash)
             HomeIntentResult.RpnAccountAlert -> {
                 if (intent != null) {
                     billingController.applyNotification(intent)
                 }
-                homeNavRequest = HomeNavRequest.RpnAccount
+                homeNavRequest = RethinkRoute.RpnAccount
             }
             HomeIntentResult.Ignored, null -> Unit
         }
@@ -895,7 +900,7 @@ class HomeScreenActivity : FragmentActivity() {
         val category =
             SummaryStatisticsViewModel.TimeCategory.fromValue(timeCategory)
                 ?: SummaryStatisticsViewModel.TimeCategory.ONE_HOUR
-        homeNavRequest = HomeNavRequest.DetailedStats(type, category)
+        homeNavRequest = detailedStatsRoute(type, category)
     }
 
     private fun handleMainScreenBtnClickEvent() {
@@ -947,19 +952,19 @@ class HomeScreenActivity : FragmentActivity() {
             showPrivateDnsDialog()
             return
         }
-        homeNavRequest = HomeNavRequest.DnsDetail
+        homeNavRequest = RethinkRoute.DnsDetail()
     }
 
     private fun startCustomDnsActivity() {
-        homeNavRequest = HomeNavRequest.DnsList
+        homeNavRequest = RethinkRoute.DnsList
     }
 
     private fun startRethinkPlusDnsActivity() {
-        homeNavRequest = HomeNavRequest.ConfigureRethinkBasic(ConfigureRethinkScreenType.DB_LIST)
+        homeNavRequest = configureRethinkBasicRoute(ConfigureRethinkScreenType.DB_LIST)
     }
 
     private fun startLocalBlocklistConfigureActivity() {
-        homeNavRequest = HomeNavRequest.ConfigureRethinkBasic(ConfigureRethinkScreenType.LOCAL)
+        homeNavRequest = configureRethinkBasicRoute(ConfigureRethinkScreenType.LOCAL)
     }
 
     private fun showPrivateDnsDialog() {
@@ -1002,7 +1007,7 @@ class HomeScreenActivity : FragmentActivity() {
 
     private fun openAppWiseIpScreen() {
         homeNavRequest =
-            HomeNavRequest.CustomRules(
+            customRulesRoute(
                 uid = UID_EVERYBODY,
                 tab = CustomRulesTab.IP,
                 mode = CustomRulesMode.ALL_RULES
@@ -1142,7 +1147,7 @@ class HomeScreenActivity : FragmentActivity() {
     }
 
     private fun openEventLogs() {
-        homeNavRequest = HomeNavRequest.Events
+        homeNavRequest = RethinkRoute.Events
     }
 
     private fun getVersionName(): String {
@@ -1169,7 +1174,7 @@ class HomeScreenActivity : FragmentActivity() {
     }
 
     private fun openDatabaseDumpDialog() {
-        homeNavRequest = HomeNavRequest.Database
+        homeNavRequest = RethinkRoute.Database
     }
 
     private fun openNotificationSettings() {

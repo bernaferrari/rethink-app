@@ -149,26 +149,6 @@ fun stackAfterOpenFromApp(
     return canonicalStackFor(destination)
 }
 
-/** Deep stack to persist when leaving a root, or null when already at that root. */
-fun stackToSaveForRoot(current: List<RethinkRoute>): Pair<RethinkRootDestination, List<RethinkRoute>>? {
-    val root = current.lastOrNull()?.rootDestination() ?: return null
-    return if (current.size > 1) root to current else null
-}
-
-/**
- * Next stack after a tab select, or null for a no-op (already on [destination], including
- * when sitting on a nested screen of that tab).
- */
-fun stackAfterSelectRoot(
-    current: List<RethinkRoute>,
-    destination: RethinkRootDestination,
-    savedForDestination: List<RethinkRoute>?,
-): List<RethinkRoute>? {
-    val last = current.lastOrNull() ?: return savedForDestination ?: listOf(destination.route)
-    if (last == destination.route || last.rootDestination() == destination) return null
-    return savedForDestination ?: listOf(destination.route)
-}
-
 /**
  * Stack after a back press, or null to leave the stack so the host can finish
  * (Home as the only entry). Configure/Statistics roots go to Home instead of no-op.

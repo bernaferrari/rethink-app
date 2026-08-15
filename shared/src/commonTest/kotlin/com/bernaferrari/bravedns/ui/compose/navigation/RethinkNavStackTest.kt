@@ -90,28 +90,6 @@ class RethinkNavStackTest {
     }
 
     @Test
-    fun selectRoot_sameRoot_isNoOp() {
-        val deep = listOf(RethinkRoute.Configure, RethinkRoute.AppList, RethinkRoute.AppInfo(1))
-        assertNull(stackAfterSelectRoot(deep, RethinkRootDestination.Configure, null))
-        assertNull(
-            stackAfterSelectRoot(listOf(RethinkRoute.Home), RethinkRootDestination.Home, null),
-        )
-    }
-
-    @Test
-    fun selectRoot_restoresSavedStackOrRoot() {
-        val saved = listOf(RethinkRoute.Configure, RethinkRoute.AppList)
-        assertEquals(
-            saved,
-            stackAfterSelectRoot(listOf(RethinkRoute.Home), RethinkRootDestination.Configure, saved),
-        )
-        assertEquals(
-            listOf(RethinkRoute.Configure),
-            stackAfterSelectRoot(listOf(RethinkRoute.Home), RethinkRootDestination.Configure, null),
-        )
-    }
-
-    @Test
     fun saveForRoot_onlyWhenDepthGreaterThanOne() {
         assertNull(stackToSaveForRoot(listOf(RethinkRoute.Configure)))
         assertEquals(

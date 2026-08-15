@@ -17,7 +17,8 @@ package com.bernaferrari.bravedns.ui
 
 import android.content.Intent
 import com.bernaferrari.bravedns.ui.compose.logs.DomainConnectionsInputType
-import com.bernaferrari.bravedns.ui.compose.navigation.HomeNavRequest
+import com.bernaferrari.bravedns.ui.compose.navigation.RethinkRoute
+import com.bernaferrari.bravedns.ui.compose.navigation.domainConnectionsRoute
 import com.bernaferrari.bravedns.util.Constants
 import com.bernaferrari.bravedns.viewmodel.DomainConnectionsViewModel
 
@@ -48,7 +49,7 @@ internal class HomeIntentRouter {
             val uid =
                 intent.getIntExtra(Constants.NOTIF_INTENT_EXTRA_APP_UID, Constants.INVALID_UID)
             return if (uid > 0) {
-                HomeIntentResult.Navigate(HomeNavRequest.AppInfo(uid = uid))
+                HomeIntentResult.Navigate(RethinkRoute.AppInfo(uid = uid))
             } else {
                 HomeIntentResult.Ignored
             }
@@ -56,7 +57,7 @@ internal class HomeIntentRouter {
 
         val wg = intent.getStringExtra(Constants.NOTIF_WG_PERMISSION_NAME)
         if (Constants.NOTIF_WG_PERMISSION_VALUE == wg) {
-            return HomeIntentResult.Navigate(HomeNavRequest.WgMain)
+            return HomeIntentResult.Navigate(RethinkRoute.WireGuard)
         }
 
         val hasRpnAccountAlert =
@@ -90,7 +91,7 @@ internal class HomeIntentRouter {
                     DomainConnectionsViewModel.TimeCategory.fromValue(timeCategoryValue)
                         ?: DomainConnectionsViewModel.TimeCategory.ONE_HOUR
                 HomeIntentResult.Navigate(
-                    HomeNavRequest.DomainConnections(
+                    domainConnectionsRoute(
                         type = type,
                         flag = flag,
                         domain = domain,
@@ -110,15 +111,15 @@ internal class HomeIntentRouter {
                 if (uid == Constants.INVALID_UID) {
                     HomeIntentResult.Ignored
                 } else {
-                    HomeIntentResult.Navigate(HomeNavRequest.AppInfo(uid = uid))
+                    HomeIntentResult.Navigate(RethinkRoute.AppInfo(uid = uid))
                 }
             }
 
             HomeScreenActivity.NAV_TARGET_NETWORK_LOGS ->
-                HomeIntentResult.Navigate(HomeNavRequest.NetworkLogs())
+                HomeIntentResult.Navigate(RethinkRoute.NetworkLogs())
 
             HomeScreenActivity.NAV_TARGET_WG_MAIN ->
-                HomeIntentResult.Navigate(HomeNavRequest.WgMain)
+                HomeIntentResult.Navigate(RethinkRoute.WireGuard)
 
             else -> null
         }
@@ -126,7 +127,7 @@ internal class HomeIntentRouter {
 }
 
 internal sealed interface HomeIntentResult {
-    data class Navigate(val request: HomeNavRequest) : HomeIntentResult
+    data class Navigate(val route: RethinkRoute) : HomeIntentResult
     data object AccessibilityCrash : HomeIntentResult
     data object RpnAccountAlert : HomeIntentResult
     data object Ignored : HomeIntentResult

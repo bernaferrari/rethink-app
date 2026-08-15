@@ -15,12 +15,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
@@ -29,11 +31,12 @@ import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
 /**
  * Shared navigation host for Android and wasm.
  *
+ * One saveable [rememberNavBackStack] per root tab (the official Nav3 multiple-backstacks
+ * recipe): every tab keeps its own depth and entry state across process death, and switching
+ * tabs swaps the decorated entry list instead of mutating a single stack.
+ *
  * Hosts differ only in [entryBuilder] (real screens vs preview fixtures) and optional chrome
  * labels — not in stack policy, suite layout, or route types.
- *
- * Forward/back animations are set globally on [NavDisplay] (Nav3 defaults)
- * without per-entry metadata.
  */
 @Composable
 fun RethinkAppNavigation(
@@ -46,41 +49,52 @@ fun RethinkAppNavigation(
     snackbar: @Composable () -> Unit = {},
     entryBuilder: EntryProviderScope<NavKey>.(RethinkNavOps) -> Unit,
 ) {
-    val startStack = remember(startRoute) { canonicalStackFor(startRoute).toTypedArray() }
-    val backStack = rememberNavBackStack(rethinkNavSavedStateConfiguration, *startStack)
-    val savedStacks = remember { mutableMapOf<RethinkRootDestination, List<RethinkRoute>>() }
+    val backStacks = RethinkRootDestination.entries.associateWith { root ->
+        rememberNavBackStack(rethinkNavSavedStateConfiguration, root.route)
+    }
+    var activeRootName by rememberSaveable(startRoute) {
+        mutableStateOf((startRoute.rootDestination() ?: RethinkRootDestination.Home).name)
+    }
+    val activeRoot = RethinkRootDestination.entries.first { it.name == activeRootName }
+    val backStack = backStacks.getValue(activeRoot)
     val motion = LocalRethinkMotion.current
-    // Tab bar switches replace the stack; they must not inherit the detail slide.
+    // Tab bar switches replace the entry list; they must not inherit the detail slide.
     var tabTransition by remember { mutableStateOf(false) }
 
-    fun currentRoute(): RethinkRoute? = backStack.lastOrNull() as? RethinkRoute
+    fun stackOf(stack: NavBackStack<NavKey>): List<RethinkRoute> =
+        stack.mapNotNull { it as? RethinkRoute }
 
-    fun currentStack(): List<RethinkRoute> = backStack.mapNotNull { it as? RethinkRoute }
+    fun currentStack(): List<RethinkRoute> = stackOf(backStack)
 
-    fun setStack(vararg keys: RethinkRoute) {
-        backStack.clear()
-        backStack.addAll(keys.toList())
-    }
-
-    /** Apply [next] with a pop/push mutation when possible so Nav3 can animate. */
-    fun applyStack(current: List<RethinkRoute>, next: List<RethinkRoute>) {
+    fun applyStackOn(
+        stack: NavBackStack<NavKey>,
+        current: List<RethinkRoute>,
+        next: List<RethinkRoute>,
+    ) {
         if (next == current) return
         if (next.size < current.size && current.take(next.size) == next) {
-            repeat(current.size - next.size) { backStack.removeAt(backStack.lastIndex) }
+            repeat(current.size - next.size) { stack.removeAt(stack.lastIndex) }
             return
         }
         if (next.size == current.size + 1 && next.dropLast(1) == current) {
-            backStack.add(next.last())
+            stack.add(next.last())
             return
         }
-        setStack(*next.toTypedArray())
+        stack.clear()
+        stack.addAll(next)
     }
 
     fun popBackStack() {
         val current = currentStack()
         val next = stackAfterPop(current) ?: return
-        tabTransition = current.size == 1 && next.singleOrNull() == RethinkRoute.Home
-        applyStack(current, next)
+        // Configure/Statistics roots exit through Home instead of finishing.
+        if (activeRoot != RethinkRootDestination.Home && next == listOf(RethinkRoute.Home)) {
+            tabTransition = true
+            activeRootName = RethinkRootDestination.Home.name
+            return
+        }
+        tabTransition = false
+        applyStackOn(backStack, current, next)
     }
 
     fun push(destination: RethinkRoute) {
@@ -90,45 +104,32 @@ fun RethinkAppNavigation(
         }
     }
 
-    fun rememberLeavingRoot(current: List<RethinkRoute>) {
-        val root = current.lastOrNull()?.rootDestination() ?: return
-        val saved = stackToSaveForRoot(current)
-        if (saved != null) {
-            savedStacks[saved.first] = saved.second
-        } else {
-            savedStacks.remove(root)
-        }
-    }
-
     fun open(destination: RethinkRoute) {
-        val current = currentStack()
-        val next = stackAfterOpen(current, destination)
-        tabTransition = next.size == 1 &&
-            current.lastOrNull()?.rootDestination() != destination.rootDestination()
-        applyStack(current, next)
+        val targetRoot = destination.rootDestination() ?: RethinkRootDestination.Home
+        val target = backStacks.getValue(targetRoot)
+        val current = stackOf(target)
+        tabTransition = targetRoot != activeRoot
+        activeRootName = targetRoot.name
+        applyStackOn(target, current, stackAfterOpen(current, destination))
     }
 
     fun openFromApp(destination: RethinkRoute) {
-        val current = currentStack()
-        val currentRoot = current.lastOrNull()?.rootDestination()
-        val destRoot = destination.rootDestination()
-        tabTransition = currentRoot != destRoot
-        if (currentRoot != null && currentRoot != destRoot) {
-            rememberLeavingRoot(current)
-        }
-        applyStack(current, stackAfterOpenFromApp(current, destination))
+        val targetRoot = destination.rootDestination() ?: RethinkRootDestination.Home
+        val target = backStacks.getValue(targetRoot)
+        val current = stackOf(target)
+        tabTransition = targetRoot != activeRoot
+        activeRootName = targetRoot.name
+        applyStackOn(target, current, stackAfterOpenFromApp(current, destination))
     }
 
     fun selectRoot(destination: RethinkRootDestination) {
-        val current = currentStack()
-        val next = stackAfterSelectRoot(current, destination, savedStacks[destination]) ?: return
-        tabTransition = current.lastOrNull()?.rootDestination() != destination
-        rememberLeavingRoot(current)
-        applyStack(current, next)
+        if (destination == activeRoot) return
+        tabTransition = true
+        activeRootName = destination.name
     }
 
     val currentKey = backStack.lastOrNull() as? RethinkRoute
-    val selectedRoot = currentKey?.rootDestination()
+    val selectedRoot = currentKey?.rootDestination() ?: activeRoot
     val showNavigation = currentKey?.showsNavigationChrome() != false
 
     // Fresh closures each composition so entry bodies always see the latest stack.
@@ -187,7 +188,7 @@ fun RethinkAppNavigation(
 
     RethinkNavShell(
         destinations = destinations,
-        selectedId = selectedRoot?.name,
+        selectedId = selectedRoot.name,
         onDestinationSelected = { id ->
             RethinkRootDestination.entries.firstOrNull { it.name == id }?.let(::selectRoot)
         },
@@ -196,7 +197,7 @@ fun RethinkAppNavigation(
         background = { background(currentKey) },
         snackbar = snackbar,
     ) {
-        NavDisplay(
+        NavDisplay<NavKey>(
             backStack = backStack,
             modifier = Modifier.fillMaxSize(),
             onBack = { popBackStack() },
@@ -204,12 +205,12 @@ fun RethinkAppNavigation(
                 rememberSaveableStateHolderNavEntryDecorator(),
                 rememberViewModelStoreNavEntryDecorator(),
             ),
-            transitionSpec = { if (tabTransition) fadeTransition else forwardTransition },
-            popTransitionSpec = { if (tabTransition) fadeTransition else popTransition },
-            predictivePopTransitionSpec = { if (tabTransition) fadeTransition else popTransition },
             entryProvider = entryProvider {
                 entryBuilder(liveOps)
             },
+            transitionSpec = { if (tabTransition) fadeTransition else forwardTransition },
+            popTransitionSpec = { if (tabTransition) fadeTransition else popTransition },
+            predictivePopTransitionSpec = { if (tabTransition) fadeTransition else popTransition },
         )
     }
 }
