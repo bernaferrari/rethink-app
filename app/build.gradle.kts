@@ -13,6 +13,11 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.koin.compiler)
+    alias(libs.plugins.roborazzi)
+}
+
+roborazzi {
+    outputDir.set(layout.projectDirectory.dir("src/test/screenshots"))
 }
 
 room3 {
@@ -240,6 +245,13 @@ android {
         htmlReport = true
         sarifReport = true
     }
+
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
+
 }
 
 configure<DetektExtension> {
@@ -305,9 +317,6 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
-    implementation(libs.androidx.navigation3.runtime)
-    implementation(libs.androidx.navigation3.ui)
-    implementation(libs.compose.lifecycle.viewmodel.navigation3)
     implementation(libs.materialkolor)
     debugImplementation(libs.androidx.ui.tooling)
 
@@ -370,6 +379,11 @@ dependencies {
 
     androidTestImplementation(libs.androidx.test.rules)
     testImplementation(libs.robolectric)
+    testImplementation(composeBom)
+    testImplementation(libs.androidx.ui.test.junit4)
+    testImplementation(libs.androidx.ui.test.manifest)
+    testImplementation(libs.roborazzi)
+    testImplementation(libs.roborazzi.compose)
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.androidx.test.ext.junit)
     testImplementation("androidx.arch.core:core-testing:2.2.0")

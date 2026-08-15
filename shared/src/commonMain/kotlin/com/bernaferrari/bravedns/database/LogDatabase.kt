@@ -136,7 +136,15 @@ abstract class LogDatabase : RoomDatabase() {
 
     abstract fun logsDao(): LogDatabaseRawQueryDao
 
-    abstract fun statsSummaryDAO(): StatsSummaryDao
+    abstract fun appStatsDAO(): AppStatsDao
+
+    abstract fun asnStatsDAO(): AsnStatsDao
+
+    abstract fun domainStatsDAO(): DomainStatsDao
+
+    abstract fun countryStatsDAO(): CountryStatsDao
+
+    abstract fun ipStatsDAO(): IpStatsDao
 
     abstract fun dailyStatsDAO(): DailyStatsDao
 

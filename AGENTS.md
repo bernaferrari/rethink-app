@@ -46,6 +46,12 @@ play/website channels only.
 
 1. **Go bridge protocol**: `flow`/`onQuery`/`bind4`/`bind6`/`protect`/`preflow`/`inflow` call order and
    signatures are load-bearing against the Go library. Never `runBlocking`/`Thread.sleep` on this path.
+   The `go2kt` runBlocking itself is **verified-required** (2026-08 analysis): Go consumes each
+   callback's return value as the routing verdict (`Mark`/`PreMark`/`DNSOpts`) or requires the
+   protect/bind side effect before using the fd — launching async fail-opens (`Empty Mark → Exit`)
+   or hairpins. Only a firestack protocol change (`FlowAsync` + `Complete(cid, mark)`) can free the
+   Go thread. Safe latency work: UID caching, verdict caching, skip the CoFactory hop on
+   bind/protect only.
 2. **Billing wire format**: kotlinx.serialization with `encodeDefaults`/`ignoreUnknownKeys`/`isLenient`
    (gson-compat). Field names are the API.
 3. **Lock ordering** (billing): connectionMutex → stateLock → repository mutex.

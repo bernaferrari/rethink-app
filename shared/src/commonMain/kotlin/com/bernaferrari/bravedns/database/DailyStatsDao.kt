@@ -179,4 +179,159 @@ interface DailyStatsDao {
         """
     )
     fun getMostBlockedIpsDaily(to: Long): Flow<List<AppConnection>>
+
+    // Daily materialized reads. [to] is the same window-start millis the live queries take;
+    // rows with date >= epoch-day(to) are included. Swap these in from SummaryStatisticsViewModel.
+
+    @Query(
+        """
+            SELECT uid AS uid,
+              '' AS ipAddress,
+              0 AS port,
+              SUM(connectionCount + dnsQueryCount) AS count,
+              '' AS flag,
+              0 AS blocked,
+              MAX(appName) AS appOrDnsName,
+              SUM(downloadBytes) AS downloadBytes,
+              SUM(uploadBytes) AS uploadBytes,
+              SUM(downloadBytes + uploadBytes) AS totalBytes
+            FROM daily_app_stats
+            WHERE date >= (:to / 86400000)
+            GROUP BY uid
+            ORDER BY totalBytes DESC
+            LIMIT 7
+        """
+    )
+    fun getMostAllowedAppsDaily(to: Long): Flow<List<AppConnection>>
+
+    @Query(
+        """
+            SELECT uid AS uid,
+              '' AS ipAddress,
+              0 AS port,
+              SUM(blockedCount + blockedDnsCount) AS count,
+              '' AS flag,
+              1 AS blocked,
+              MAX(appName) AS appOrDnsName,
+              0 AS downloadBytes,
+              0 AS uploadBytes,
+              0 AS totalBytes
+            FROM daily_app_stats
+            WHERE date >= (:to / 86400000)
+            GROUP BY uid
+            HAVING SUM(blockedCount + blockedDnsCount) > 0
+            ORDER BY count DESC
+            LIMIT 7
+        """
+    )
+    fun getMostBlockedAppsDaily(to: Long): Flow<List<AppConnection>>
+
+    @Query(
+        """
+            SELECT -1 AS uid,
+              '' AS ipAddress,
+              0 AS port,
+              SUM(connectionCount) AS count,
+              0 AS blocked,
+              MAX(countryCode) AS flag,
+              asName AS appOrDnsName,
+              SUM(downloadBytes) AS downloadBytes,
+              SUM(uploadBytes) AS uploadBytes,
+              SUM(downloadBytes + uploadBytes) AS totalBytes
+            FROM daily_asn_stats
+            WHERE date >= (:to / 86400000)
+            GROUP BY asName
+            HAVING SUM(connectionCount) > 0
+            ORDER BY count DESC
+            LIMIT 7
+        """
+    )
+    fun getMostConnectedASNDaily(to: Long): Flow<List<AppConnection>>
+
+    @Query(
+        """
+            SELECT -1 AS uid,
+              '' AS ipAddress,
+              0 AS port,
+              SUM(blockedCount) AS count,
+              1 AS blocked,
+              MAX(countryCode) AS flag,
+              asName AS appOrDnsName,
+              0 AS downloadBytes,
+              0 AS uploadBytes,
+              0 AS totalBytes
+            FROM daily_asn_stats
+            WHERE date >= (:to / 86400000)
+            GROUP BY asName
+            HAVING SUM(blockedCount) > 0
+            ORDER BY count DESC
+            LIMIT 7
+        """
+    )
+    fun getMostBlockedASNDaily(to: Long): Flow<List<AppConnection>>
+
+    @Query(
+        """
+            SELECT 0 AS uid,
+              '' AS ipAddress,
+              0 AS port,
+              SUM(blockedCount) AS count,
+              MAX(flag) AS flag,
+              1 AS blocked,
+              domain AS appOrDnsName,
+              0 AS downloadBytes,
+              0 AS uploadBytes,
+              0 AS totalBytes
+            FROM daily_domain_stats
+            WHERE date >= (:to / 86400000)
+            GROUP BY domain
+            HAVING SUM(blockedCount) > 0
+            ORDER BY count DESC
+            LIMIT 7
+        """
+    )
+    fun getMostBlockedDomainsDaily(to: Long): Flow<List<AppConnection>>
+
+    @Query(
+        """
+            SELECT 0 AS uid,
+              '' AS ipAddress,
+              0 AS port,
+              SUM(contactedCount) AS count,
+              MAX(flag) AS flag,
+              0 AS blocked,
+              domain AS appOrDnsName,
+              0 AS downloadBytes,
+              0 AS uploadBytes,
+              0 AS totalBytes
+            FROM daily_domain_stats
+            WHERE date >= (:to / 86400000)
+            GROUP BY domain
+            HAVING SUM(contactedCount) > 0
+            ORDER BY count DESC
+            LIMIT 7
+        """
+    )
+    fun getMostContactedDomainsDaily(to: Long): Flow<List<AppConnection>>
+
+    @Query(
+        """
+            SELECT 0 AS uid,
+              '' AS ipAddress,
+              0 AS port,
+              SUM(connectionCount + dnsQueryCount) AS count,
+              flag,
+              0 AS blocked,
+              '' AS appOrDnsName,
+              0 AS downloadBytes,
+              0 AS uploadBytes,
+              0 AS totalBytes
+            FROM daily_country_stats
+            WHERE date >= (:to / 86400000)
+            GROUP BY flag
+            ORDER BY count DESC
+            LIMIT 7
+        """
+    )
+    fun getMostContactedCountriesDaily(to: Long): Flow<List<AppConnection>>
 }

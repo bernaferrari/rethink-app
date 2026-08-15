@@ -32,9 +32,7 @@
     <ID>CyclomaticComplexMethod:BraveVPNService.kt$BraveVPNService$override fun flow( protocol: Int, _uid: Int, src: String?, dst: String?, realIps: String?, d: String?, possibleDomains: String?, blocklists: String? ): Mark</ID>
     <ID>CyclomaticComplexMethod:BraveVPNService.kt$BraveVPNService$private fun isVpnDns(ip: String): Boolean</ID>
     <ID>CyclomaticComplexMethod:BraveVPNService.kt$BraveVPNService$private suspend fun bindAny( who: String, addrPort: String, fid: Long, nws: List&lt;ConnectionMonitor.NetworkProperties&gt; )</ID>
-    <ID>CyclomaticComplexMethod:BraveVPNService.kt$BraveVPNService$private suspend fun determineDnsTransportIdForDFMode(uid: Int, domain: String, splitDns: Boolean, rinr: Boolean): Pair&lt;String, String&gt;</ID>
     <ID>CyclomaticComplexMethod:BraveVPNService.kt$BraveVPNService$private suspend fun determineProxyDetails( connTracker: ConnTrackerMetaData, doubleLoopback: Boolean, rinr: Boolean, proxySnapshot: ProxyRoutingSnapshot ): Mark</ID>
-    <ID>CyclomaticComplexMethod:BraveVPNService.kt$BraveVPNService$private suspend fun getTransportIdForDnsFirewallMode(uid: Int, fqdn: String, rinr: Boolean): DNSOpts</ID>
     <ID>CyclomaticComplexMethod:BraveVPNService.kt$BraveVPNService$suspend fun onNetworkConnected(networks: ConnectionMonitor.UnderlyingNetworks, forceRestart: Boolean = false)</ID>
     <ID>CyclomaticComplexMethod:BugReportZipper.kt$BugReportZipper$@RequiresApi(Build.VERSION_CODES.O) fun rezipAll(dir: File, file: File)</ID>
     <ID>CyclomaticComplexMethod:ConfigureRethinkBasicScreen.kt$@Composable private fun RethinkBlocklistContent( modifier: Modifier = Modifier, context: Context, blocklistType: RethinkBlocklistManager.RethinkBlocklistType, filters: MutableStateFlow&lt;RethinkBlocklistState.Filters&gt;, remoteFileTagViewModel: RethinkRemoteFileTagViewModel, localFileTagViewModel: RethinkLocalFileTagViewModel, remoteBlocklistPacksMapViewModel: RemoteBlocklistPacksMapViewModel, localBlocklistPacksMapViewModel: LocalBlocklistPacksMapViewModel, showDownload: Boolean, showConfigure: Boolean, isDownloading: Boolean, showRemoteProgress: Boolean, activeView: RethinkBlocklistState.BlocklistView, filterLabelText: String, plusFilterTags: List&lt;FileTag&gt;, onActiveViewChanged: (RethinkBlocklistState.BlocklistView) -&gt; Unit, onFilterLabelTextChanged: (String) -&gt; Unit, onPlusFilterTagsChanged: (List&lt;FileTag&gt;) -&gt; Unit, onDownloadBlocklist: () -&gt; Unit, onCancelDownload: () -&gt; Unit, onApplyChanges: () -&gt; Unit, onRevertChanges: () -&gt; Unit, onRefreshBlocklistAvailability: () -&gt; Unit, onProcessSelectedFileTags: (String) -&gt; Unit, onModifiedStampChanged: (String) -&gt; Unit, getStampValue: () -&gt; String, onDownloadStart: () -&gt; Unit, onDownloadFail: () -&gt; Unit, onDownloadSuccess: () -&gt; Unit, filterDescriptionTemplate: String, filterDescriptionSubgroupsTemplate: String )</ID>
@@ -42,7 +40,6 @@
     <ID>CyclomaticComplexMethod:ConfigureRethinkBasicScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun ConfigureRethinkBasicScreen( screenType: ConfigureRethinkScreenType, remoteName: String = "", remoteUrl: String = "", uid: Int = Constants.MISSING_UID, persistentState: PersistentState, appConfig: AppConfig, appDownloadManager: AppDownloadManager, rethinkEndpointViewModel: RethinkEndpointViewModel, remoteFileTagViewModel: RethinkRemoteFileTagViewModel, localFileTagViewModel: RethinkLocalFileTagViewModel, remoteBlocklistPacksMapViewModel: RemoteBlocklistPacksMapViewModel, localBlocklistPacksMapViewModel: LocalBlocklistPacksMapViewModel, onBackClick: (() -&gt; Unit)? = null )</ID>
     <ID>CyclomaticComplexMethod:ConfigureScreen.kt$@Composable fun ConfigureScreen( isDebug: Boolean, onAppsClick: () -&gt; Unit, onDnsClick: () -&gt; Unit, onFirewallClick: () -&gt; Unit, onProxyClick: () -&gt; Unit, onNetworkClick: () -&gt; Unit, onOthersClick: () -&gt; Unit, onLogsClick: () -&gt; Unit, onAntiCensorshipClick: () -&gt; Unit, onAdvancedClick: () -&gt; Unit, persistentState: PersistentState, eventLogger: EventLogger, onThemeModeChanged: ((Int) -&gt; Unit)? = null, onThemeColorChanged: ((Int) -&gt; Unit)? = null, onSearchDestinationClick: ((SettingsSearchDestination) -&gt; Unit)? = null, )</ID>
     <ID>CyclomaticComplexMethod:ConnectionFirewall.kt$ConnectionFirewall$suspend fun evaluate(request: ConnectionRequest): FirewallVerdict</ID>
-    <ID>CyclomaticComplexMethod:ConnectionMonitor.kt$ConnectionMonitor.NetworkRequestHandler$private suspend fun repopulateTrackedNetworks( opPrefs: OpPrefs, nwProps: LinkedHashSet&lt;NetworkProperties&gt; )</ID>
     <ID>CyclomaticComplexMethod:ConnectionTracer.kt$ConnectionTracer$@RequiresApi(Build.VERSION_CODES.Q) suspend fun getUidQ( protocol: Int, srcIp: String, srcPort: Int, dstIp: String, dstPort: Int, retryCount: Int = 0 ): Int</ID>
     <ID>CyclomaticComplexMethod:ConnectionTrackerAdapter.kt$@Composable fun ConnectionRow( ct: ConnectionTracker, index: Int = 0, itemCount: Int = 1, )</ID>
     <ID>CyclomaticComplexMethod:ConnectionTrackerAdapter.kt$@Composable private fun summaryInfo(context: Context, ct: ConnectionTracker): Summary</ID>
@@ -67,6 +64,7 @@
     <ID>CyclomaticComplexMethod:Logger.kt$Logger$fun log(tag: String, msg: String, type: LoggerLevel, e: Exception? = null)</ID>
     <ID>CyclomaticComplexMethod:NetworkBindingService.kt$NetworkBindingService$private suspend fun bindAny( who: String, addrPort: String, fid: Long, networks: List&lt;NetworkProperties&gt; ): Boolean</ID>
     <ID>CyclomaticComplexMethod:NetworkLogsScreen.kt$@OptIn(FlowPreview::class) @Composable private fun ConnectionLogsContent( viewModel: ConnectionTrackerViewModel, repository: ConnectionTrackerRepository, persistentState: PersistentState, onTopBarActionsChange: (refreshAction: (() -&gt; Unit)?, clearAction: (() -&gt; Unit)?) -&gt; Unit )</ID>
+    <ID>CyclomaticComplexMethod:NetworkProbeController.kt$NetworkProbeController$private suspend fun probeAndTrack( opPrefs: OpPrefs, prop: NetworkProperties, network: Network, trackedIpv4Networks: LinkedHashSet&lt;NetworkProperties&gt;, trackedIpv6Networks: LinkedHashSet&lt;NetworkProperties&gt;, ): Boolean</ID>
     <ID>CyclomaticComplexMethod:NotificationActionReceiver.kt$NotificationActionReceiver$override fun onReceive(context: Context, intent: Intent)</ID>
     <ID>CyclomaticComplexMethod:PipKeyManager.kt$PipKeyManager$private suspend fun publicKeyUsable(context: Context, retryCount: Int = 0, shouldPersistResult: Boolean): Pair&lt;Boolean, String&gt;</ID>
     <ID>CyclomaticComplexMethod:ProxyRoutingEngine.kt$ProxyRoutingEngine$fun determineRoute(request: RoutingRequest): RoutingDecision</ID>
@@ -103,6 +101,7 @@
     <ID>CyclomaticComplexMethod:TunnelSettingsScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun TunnelSettingsScreen( persistentState: PersistentState, appConfig: AppConfig, eventLogger: EventLogger, onOpenVpnProfile: () -&gt; Unit, initialFocusKey: String? = null, onBackClick: (() -&gt; Unit)? = null )</ID>
     <ID>CyclomaticComplexMethod:TunnelSettingsScreen.kt$private fun tunnelFocusTarget( focusKey: String, isLockdown: Boolean, showConnectivityChecksOption: Boolean, showPingIps: Boolean, showAllowIncoming: Boolean, showVpnMetered: Boolean ): Pair&lt;Int, Int&gt;?</ID>
     <ID>CyclomaticComplexMethod:UniversalFirewallSettingsScreen.kt$@Composable fun UniversalFirewallSettingsScreen( persistentState: PersistentState, eventLogger: EventLogger, connTrackerRepository: ConnectionTrackerRepository, onNavigateToLogs: (String) -&gt; Unit, onOpenAccessibilitySettings: () -&gt; Unit, onBackClick: (() -&gt; Unit)? = null, )</ID>
+    <ID>CyclomaticComplexMethod:VpnDnsQueryRouter.kt$VpnDnsQueryRouter$private suspend fun determineDnsTransportIdForDFMode(uid: Int, domain: String, splitDns: Boolean, rinr: Boolean): Pair&lt;String, String&gt;</ID>
     <ID>CyclomaticComplexMethod:VpnPrefObservers.kt$VpnPrefObservers$private fun handlePreferenceKeyChanged(key: String)</ID>
     <ID>CyclomaticComplexMethod:VpnServiceDiagnostics.kt$VpnServiceDiagnostics$fun builderStats( n: BraveVPNService.Networks, builderRoutes: Pair&lt;Boolean, Boolean&gt;, builderStatsText: String, fd: Int, systemDns: String, tunUnderlyingNetworks: String?, lockdown: Boolean, vpnLockdown: Boolean?, ssid: String, route4: Boolean, route6: Boolean, netid: (Long) -&gt; Long, isLockdownEnabled: Boolean, ): String</ID>
     <ID>CyclomaticComplexMethod:VpnTunAppPolicy.kt$VpnTunAppPolicy$suspend fun newBuilder( underlays: Array&lt;Network&gt;?, vpnLockdown: Boolean, isPaused: Boolean, excludedApps: Set&lt;String&gt;, ): VpnService.Builder</ID>
@@ -126,9 +125,7 @@
     <ID>ForbiddenComment:BraveVPNService.kt$BraveVPNService$// TODO: apply firewall rules on all real ips</ID>
     <ID>ForbiddenComment:BraveVPNService.kt$BraveVPNService$// TODO: call go to clear the cache</ID>
     <ID>ForbiddenComment:BraveVPNService.kt$BraveVPNService$// TODO: check for all networks instead of just the first one</ID>
-    <ID>ForbiddenComment:BraveVPNService.kt$BraveVPNService$// TODO: check if the transport id is set to default/Auto, then return empty string/base</ID>
     <ID>ForbiddenComment:BraveVPNService.kt$BraveVPNService$// TODO: handle multiple domains, for now, use the first domain</ID>
-    <ID>ForbiddenComment:BraveVPNService.kt$BraveVPNService$// TODO: if uid is received, then make sure Rethink uid always returns Default as transport</ID>
     <ID>ForbiddenComment:BraveVPNService.kt$BraveVPNService$// TODO: like Intra, call VpnController#stop instead? see</ID>
     <ID>ForbiddenComment:BraveVPNService.kt$BraveVPNService$// TODO: remove volatile</ID>
     <ID>ForbiddenComment:BraveVPNService.kt$BraveVPNService$// TODO: should handle the LanIp.GATEWAY, LanIp.ROUTER addresses as well</ID>
@@ -136,15 +133,6 @@
     <ID>ForbiddenComment:BraveVPNService.kt$BraveVPNService$// TODO: should we check for last unlock time here?</ID>
     <ID>ForbiddenComment:BraveVPNService.kt$BraveVPNService$// TODO: show alerts to user on such exceptions, in a separate ui?</ID>
     <ID>ForbiddenComment:BraveVPNService.kt$BraveVPNService.Companion$// TODO: should be different for IPv4 and IPv6, but for now it is same</ID>
-    <ID>ForbiddenComment:ConnectionMonitor.kt$ConnectionMonitor$// TODO: process after a delay to avoid processing multiple network changes in short bursts</ID>
-    <ID>ForbiddenComment:ConnectionMonitor.kt$ConnectionMonitor.Companion$// TODO: set it to true when the reachability checks are required to be done from</ID>
-    <ID>ForbiddenComment:ConnectionMonitor.kt$ConnectionMonitor.NetworkRequestHandler$// TODO: add http url probes for ipv4 and ipv6</ID>
-    <ID>ForbiddenComment:ConnectionMonitor.kt$ConnectionMonitor.NetworkRequestHandler$// TODO: case: CAPTIVE_PORTAL, should we not test reachability?</ID>
-    <ID>ForbiddenComment:ConnectionMonitor.kt$ConnectionMonitor.NetworkRequestHandler$// TODO: consider checking for NET_CAPABILITY_NOT_SUSPENDED, NET_CAPABILITY_VALIDATED?</ID>
-    <ID>ForbiddenComment:ConnectionMonitor.kt$ConnectionMonitor.NetworkRequestHandler$// TODO: handle transport types like bluetooth, ethernet which may not have</ID>
-    <ID>ForbiddenComment:ConnectionMonitor.kt$ConnectionMonitor.NetworkRequestHandler$// TODO: revisit this logic, see if this also needs similar treatment as</ID>
-    <ID>ForbiddenComment:ConnectionMonitor.kt$ConnectionMonitor.NetworkRequestHandler$// TODO: use currentNetworks instead of trackedIpv4Networks and trackedIpv6Networks</ID>
-    <ID>ForbiddenComment:ConnectionMonitor.kt$ConnectionMonitor.ProbeResult$// TODO: send only the required capabilities to the handler instead of the whole</ID>
     <ID>ForbiddenComment:DnsLogTracker.kt$DnsLogTracker$// TODO: rdata should be either empty / 0.0.0.0 / ::0 / -- for block all</ID>
     <ID>ForbiddenComment:FirewallManager.kt$FirewallManager$// TODO: Use the package-manager API instead</ID>
     <ID>ForbiddenComment:FirewallRuleset.kt$FirewallRuleset.Companion$// TODO: Move ico to enum var like for label and desc</ID>
@@ -195,7 +183,6 @@
     <ID>LongMethod:ConfigureRethinkBasicScreen.kt$@Composable private fun RethinkListContent( modifier: Modifier = Modifier, context: Context, persistentState: PersistentState, appConfig: AppConfig, appDownloadManager: AppDownloadManager, rethinkEndpointViewModel: RethinkEndpointViewModel, uid: Int, isMax: Boolean, updateAvailable: Boolean, checkUpdateVisible: Boolean, redownloadVisible: Boolean, checkUpdateInProgress: Boolean, updateInProgress: Boolean, onMaxChanged: (Boolean) -&gt; Unit, onUpdateMaxSwitchUi: () -&gt; Unit, onRefreshUpdateUi: () -&gt; Unit, onCheckUpdateInProgressChanged: (Boolean) -&gt; Unit, onUpdateInProgressChanged: (Boolean) -&gt; Unit, onCheckBlocklistUpdate: () -&gt; Unit, onDownload: (Long, Boolean) -&gt; Unit, localBlocklistVersionTemplate: String, downloadFailureMessage: String )</ID>
     <ID>LongMethod:ConfigureRethinkBasicScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun ConfigureRethinkBasicScreen( screenType: ConfigureRethinkScreenType, remoteName: String = "", remoteUrl: String = "", uid: Int = Constants.MISSING_UID, persistentState: PersistentState, appConfig: AppConfig, appDownloadManager: AppDownloadManager, rethinkEndpointViewModel: RethinkEndpointViewModel, remoteFileTagViewModel: RethinkRemoteFileTagViewModel, localFileTagViewModel: RethinkLocalFileTagViewModel, remoteBlocklistPacksMapViewModel: RemoteBlocklistPacksMapViewModel, localBlocklistPacksMapViewModel: LocalBlocklistPacksMapViewModel, onBackClick: (() -&gt; Unit)? = null )</ID>
     <ID>LongMethod:ConnectionFirewall.kt$ConnectionFirewall$suspend fun evaluate(request: ConnectionRequest): FirewallVerdict</ID>
-    <ID>LongMethod:ConnectionMonitor.kt$ConnectionMonitor.NetworkRequestHandler$private suspend fun repopulateTrackedNetworks( opPrefs: OpPrefs, nwProps: LinkedHashSet&lt;NetworkProperties&gt; )</ID>
     <ID>LongMethod:CustomDomainRulesDialog.kt$@Composable fun CustomDomainRulesSheet( customDomain: CustomDomain, eventLogger: EventLogger, onDismiss: () -&gt; Unit, onDeleted: () -&gt; Unit )</ID>
     <ID>LongMethod:CustomIpRulesDialog.kt$@Composable fun CustomIpRulesSheet( customIp: CustomIp, eventLogger: EventLogger, onDismiss: () -&gt; Unit, onDeleted: () -&gt; Unit )</ID>
     <ID>LongMethod:DnsDetailScreen.kt$@Composable fun DnsDetailScreen( viewModel: DnsSettingsViewModel, persistentState: PersistentState, appDownloadManager: AppDownloadManager, initialFocusKey: String? = null, onCustomDnsClick: () -&gt; Unit, onRethinkPlusDnsClick: () -&gt; Unit, onLocalBlocklistConfigureClick: () -&gt; Unit, onBlockFreeDnsClick: () -&gt; Unit, onBackClick: (() -&gt; Unit)? = null )</ID>
@@ -247,8 +234,6 @@
     <ID>NestedBlockDepth:BubbleHelper.kt$BubbleHelper$@RequiresApi(Build.VERSION_CODES.Q) fun updateBubble( context: Context, blockedCount: Int, persistentState: PersistentState? = null )</ID>
     <ID>NestedBlockDepth:BugReportZipper.kt$BugReportZipper$@RequiresApi(Build.VERSION_CODES.O) fun rezipAll(dir: File, file: File)</ID>
     <ID>NestedBlockDepth:BugReportZipper.kt$BugReportZipper$@RequiresApi(Build.VERSION_CODES.R) fun dumpAppExit(aei: ApplicationExitInfo, file: File)</ID>
-    <ID>NestedBlockDepth:ConnectionMonitor.kt$ConnectionMonitor$fun getNetworkSSID(network: Network?, cap: NetworkCapabilities?): String?</ID>
-    <ID>NestedBlockDepth:ConnectionMonitor.kt$ConnectionMonitor.NetworkRequestHandler$private suspend fun repopulateTrackedNetworks( opPrefs: OpPrefs, nwProps: LinkedHashSet&lt;NetworkProperties&gt; )</ID>
     <ID>NestedBlockDepth:DnsLogTracker.kt$DnsLogTracker$suspend fun makeDnsLogObj(transaction: Transaction): DnsLog</ID>
     <ID>NestedBlockDepth:DownloadWatcher.kt$DownloadWatcher$private fun checkForDownload(context: Context, downloadIds: MutableList&lt;Long&gt;?): Int</ID>
     <ID>NestedBlockDepth:EnhancedBugReport.kt$EnhancedBugReport$@RequiresApi(Build.VERSION_CODES.O) fun addLogsToZipFile(context: Context)</ID>
@@ -259,6 +244,7 @@
     <ID>NestedBlockDepth:IpInfoDownloader.kt$IpInfoDownloader$private suspend fun performIpInfoDownload(ipToLookup: String): Boolean</ID>
     <ID>NestedBlockDepth:IpRulesManager.kt$IpRulesManager$suspend fun load(): Long</ID>
     <ID>NestedBlockDepth:NetworkBindingService.kt$NetworkBindingService$private suspend fun bindAny( who: String, addrPort: String, fid: Long, networks: List&lt;NetworkProperties&gt; ): Boolean</ID>
+    <ID>NestedBlockDepth:NetworkSsidLookup.kt$NetworkSsidLookup$fun getNetworkSSID(network: Network?, cap: NetworkCapabilities?): String?</ID>
     <ID>NestedBlockDepth:PurchaseResultProcessor.kt$PurchaseResultProcessor$suspend fun handlePurchase( purchasesList: List&lt;Purchase&gt;?, queriedProductType: String? = null )</ID>
     <ID>NestedBlockDepth:RestoreAgent.kt$RestoreAgent$private fun isMetadataCompatible(tempDirectory: String?): Boolean</ID>
     <ID>NestedBlockDepth:RpnHopSelector.kt$RpnHopSelector$suspend fun collectProxyIds( uid: Int, ip: String, port: Int, domain: String, usesMobileNw: Boolean, ssid: String, allProxyIdsForApp: List&lt;String&gt;, rpnProxyIdsForApp: List&lt;String&gt;, servers: List&lt;CountryConfig&gt;, resolveAutoId: suspend () -&gt; String, ): List&lt;String&gt;</ID>
@@ -373,7 +359,6 @@
     <ID>TooManyFunctions:ConfigureRethinkBasicScreen.kt$com.bernaferrari.bravedns.ui.compose.dns.ConfigureRethinkBasicScreen.kt</ID>
     <ID>TooManyFunctions:ConnectionFirewall.kt$ConnectionFirewall</ID>
     <ID>TooManyFunctions:ConnectionMonitor.kt$ConnectionMonitor : KoinComponentDiagnosticsListener</ID>
-    <ID>TooManyFunctions:ConnectionMonitor.kt$ConnectionMonitor$NetworkRequestHandler</ID>
     <ID>TooManyFunctions:ConnectionTrackerAdapter.kt$com.bernaferrari.bravedns.ui.components.ConnectionTrackerAdapter.kt</ID>
     <ID>TooManyFunctions:ConnectivityCheckHelper.kt$ConnectivityCheckHelper</ID>
     <ID>TooManyFunctions:CustomLanIpDialog.kt$com.bernaferrari.bravedns.ui.dialog.CustomLanIpDialog.kt</ID>
@@ -400,6 +385,7 @@
     <ID>TooManyFunctions:Logger.kt$Logger : KoinComponent</ID>
     <ID>TooManyFunctions:NetworkBindingService.kt$NetworkBindingService</ID>
     <ID>TooManyFunctions:NetworkLogsScreen.kt$com.bernaferrari.bravedns.ui.compose.logs.NetworkLogsScreen.kt</ID>
+    <ID>TooManyFunctions:NetworkProbeController.kt$NetworkProbeController</ID>
     <ID>TooManyFunctions:NetworkReachabilityDialog.kt$com.bernaferrari.bravedns.ui.dialog.NetworkReachabilityDialog.kt</ID>
     <ID>TooManyFunctions:OneTimePurchaseProcessor.kt$OneTimePurchaseProcessor</ID>
     <ID>TooManyFunctions:OneWgConfigAdapter.kt$com.bernaferrari.bravedns.ui.components.OneWgConfigAdapter.kt</ID>
@@ -416,6 +402,7 @@
     <ID>TooManyFunctions:RefreshDatabase.kt$RefreshDatabase</ID>
     <ID>TooManyFunctions:RestoreAgent.kt$RestoreAgent : CoroutineWorkerKoinComponent</ID>
     <ID>TooManyFunctions:RethinkBlocklistManager.kt$RethinkBlocklistManager : KoinComponent</ID>
+    <ID>TooManyFunctions:RethinkDesignSystemPreviews.kt$com.bernaferrari.bravedns.ui.compose.theme.RethinkDesignSystemPreviews.kt</ID>
     <ID>TooManyFunctions:RethinkFullModule.kt$RethinkFullModule</ID>
     <ID>TooManyFunctions:RethinkPlusViewModel.kt$RethinkPlusViewModel : AndroidViewModelKoinComponent</ID>
     <ID>TooManyFunctions:RpnHopManager.kt$RpnHopManager : KoinComponent</ID>
@@ -429,7 +416,10 @@
     <ID>TooManyFunctions:SubscriptionStateMachineV2.kt$SubscriptionStateMachineV2 : KoinComponent</ID>
     <ID>TooManyFunctions:TcpProxyHelper.kt$TcpProxyHelper : KoinComponent</ID>
     <ID>TooManyFunctions:UIUtils.kt$UIUtils</ID>
+    <ID>TooManyFunctions:UnderlyingNetworkTracker.kt$UnderlyingNetworkTracker</ID>
+    <ID>TooManyFunctions:UnderlyingNetworkTracker.kt$UnderlyingNetworkTracker$NetworkRequestHandler</ID>
     <ID>TooManyFunctions:VpnController.kt$VpnController : KoinComponent</ID>
+    <ID>TooManyFunctions:VpnDnsQueryRouter.kt$VpnDnsQueryRouter</ID>
     <ID>TooManyFunctions:VpnPrefObservers.kt$VpnPrefObservers</ID>
     <ID>TooManyFunctions:VpnTunRoutes.kt$VpnTunRoutes</ID>
     <ID>TooManyFunctions:WgConfigAdapter.kt$com.bernaferrari.bravedns.ui.components.WgConfigAdapter.kt</ID>

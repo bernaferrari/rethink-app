@@ -43,8 +43,9 @@ materialkolor = "5.0.0"
 mockk = "1.14.11"
 # Navigation
 navigation = "2.9.8"
-navigation3Core = "1.2.0-alpha03"
-navigation3Ui = "1.2.0-alpha01"
+# CMP Nav3 UI. Android variant depends on androidx.navigation3:navigation3-{runtime,ui}:1.2.0-alpha04
+# (thin alias AAR — do not also declare the androidx coordinates or they duplicate on the APK).
+navigation3Ui = "1.2.0-alpha02"
 material3AdaptiveNav3 = "1.3.0-rc01"
 composeAdaptiveNavigation3 = "1.3.0-beta02"
 okhttp = "5.4.0"
@@ -55,6 +56,7 @@ playAppUpdate = "2.1.0"
 playBilling = "9.1.0"
 retrofit = "3.0.0"
 robolectric = "4.16.1"
+roborazzi = "1.72.0"
 # Database & Paging
 room = "3.0.0"
 securityCrypto = "1.1.0"
@@ -85,8 +87,6 @@ androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-ru
 androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycle" }
 androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
 androidx-material3 = { module = "androidx.compose.material3:material3", version.ref = "m3" }
-androidx-navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "navigation3Core" }
-androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "navigation3Core" }
 jetbrains-navigation3-ui = { module = "org.jetbrains.androidx.navigation3:navigation3-ui", version.ref = "navigation3Ui" }
 compose-lifecycle-viewmodel-navigation3 = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "lifecycle" }
 compose-adaptive-navigation3 = { module = "org.jetbrains.compose.material3.adaptive:adaptive-navigation3", version.ref = "composeAdaptiveNavigation3" }
@@ -158,6 +158,8 @@ play-billing = { module = "com.android.billingclient:billing", version.ref = "pl
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 retrofit-converter-kotlinx-serialization = { module = "com.squareup.retrofit2:converter-kotlinx-serialization", version.ref = "retrofit" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+roborazzi = { module = "io.github.takahirom.roborazzi:roborazzi", version.ref = "roborazzi" }
+roborazzi-compose = { module = "io.github.takahirom.roborazzi:roborazzi-compose", version.ref = "roborazzi" }
 zxing-embedded = { module = "com.journeyapps:zxing-android-embedded", version.ref = "zxing" }
 
 [plugins]
@@ -174,6 +176,7 @@ kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref 
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 room3 = { id = "androidx.room3", version.ref = "room" }
+roborazzi = { id = "io.github.takahirom.roborazzi", version.ref = "roborazzi" }
 version-catalog-update = { id = "nl.littlerobots.version-catalog-update", version.ref = "versionCatalogUpdate" }
 
 [bundles]

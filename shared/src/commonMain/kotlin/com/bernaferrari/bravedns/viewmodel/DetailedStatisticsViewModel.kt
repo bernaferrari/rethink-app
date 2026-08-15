@@ -9,8 +9,11 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.bernaferrari.bravedns.data.AppConnection
 import com.bernaferrari.bravedns.data.SummaryStatisticsType
+import com.bernaferrari.bravedns.database.AppStatsDao
+import com.bernaferrari.bravedns.database.AsnStatsDao
 import com.bernaferrari.bravedns.database.ConnectionTrackerDAO
-import com.bernaferrari.bravedns.database.StatsSummaryDao
+import com.bernaferrari.bravedns.database.CountryStatsDao
+import com.bernaferrari.bravedns.database.DomainStatsDao
 import com.bernaferrari.bravedns.util.Constants
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -24,7 +27,10 @@ import org.koin.core.annotation.Provided
 @KoinViewModel
 class DetailedStatisticsViewModel(
     @Provided private val connectionTrackerDAO: ConnectionTrackerDAO,
-    @Provided private val statsDao: StatsSummaryDao,
+    @Provided private val appStatsDao: AppStatsDao,
+    @Provided private val asnStatsDao: AsnStatsDao,
+    @Provided private val domainStatsDao: DomainStatsDao,
+    @Provided private val countryStatsDao: CountryStatsDao,
     @Provided private val uptimeProvider: NetworkUptimeProvider,
     private val nowMillis: () -> Long = { Clock.System.now().toEpochMilliseconds() }
 ) : ViewModel() {
@@ -61,27 +67,27 @@ class DetailedStatisticsViewModel(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val getAllActiveConns = activeConnections.flatMapLatest { uptime ->
-        Pager(PagingConfig(Constants.PAGING_PAGE_SIZE)) { statsDao.getAllActiveConns(nowMillis() - uptime) }
+        Pager(PagingConfig(Constants.PAGING_PAGE_SIZE)) { appStatsDao.getAllActiveConns(nowMillis() - uptime) }
             .flow.cachedIn(viewModelScope)
     }
     @OptIn(ExperimentalCoroutinesApi::class)
-    val getAllAllowedAppNetworkActivity = detailsPaging(allowedNetworkActivity) { start -> statsDao.getAllAllowedApps(start) }
+    val getAllAllowedAppNetworkActivity = detailsPaging(allowedNetworkActivity) { start -> appStatsDao.getAllAllowedApps(start) }
     @OptIn(ExperimentalCoroutinesApi::class)
-    val getAllAllowedAsn = detailsPaging(allowedAsn) { start -> statsDao.getAllConnectedASN(start) }
+    val getAllAllowedAsn = detailsPaging(allowedAsn) { start -> asnStatsDao.getAllConnectedASN(start) }
     @OptIn(ExperimentalCoroutinesApi::class)
-    val getAllBlockedAsn = detailsPaging(blockedAsn) { start -> statsDao.getAllBlockedASN(start) }
+    val getAllBlockedAsn = detailsPaging(blockedAsn) { start -> asnStatsDao.getAllBlockedASN(start) }
     @OptIn(ExperimentalCoroutinesApi::class)
-    val getAllBlockedAppNetworkActivity = detailsPaging(blockedNetworkActivity) { start -> statsDao.getAllBlockedApps(start) }
+    val getAllBlockedAppNetworkActivity = detailsPaging(blockedNetworkActivity) { start -> appStatsDao.getAllBlockedApps(start) }
     @OptIn(ExperimentalCoroutinesApi::class)
-    val getAllBlockedDomains = detailsPaging(blockedDomains) { start -> statsDao.getAllBlockedDomains(start) }
+    val getAllBlockedDomains = detailsPaging(blockedDomains) { start -> domainStatsDao.getAllBlockedDomains(start) }
     @OptIn(ExperimentalCoroutinesApi::class)
-    val getAllContactedDomains = detailsPaging(allowedDomains) { start -> statsDao.getAllContactedDomains(start) }
+    val getAllContactedDomains = detailsPaging(allowedDomains) { start -> domainStatsDao.getAllContactedDomains(start) }
     @OptIn(ExperimentalCoroutinesApi::class)
     val getAllContactedIps = detailsPaging(allowedIps) { start -> connectionTrackerDAO.getAllContactedIps(start) }
     @OptIn(ExperimentalCoroutinesApi::class)
     val getAllBlockedIps = detailsPaging(blockedIps) { start -> connectionTrackerDAO.getAllBlockedIps(start) }
     @OptIn(ExperimentalCoroutinesApi::class)
-    val getAllContactedCountries = detailsPaging(allowedCountries) { start -> statsDao.getAllContactedCountries(start) }
+    val getAllContactedCountries = detailsPaging(allowedCountries) { start -> countryStatsDao.getAllContactedCountries(start) }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun detailsPaging(

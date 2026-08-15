@@ -22,9 +22,11 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.bernaferrari.bravedns.data.AppConnection
+import com.bernaferrari.bravedns.database.AppStatsDao
+import com.bernaferrari.bravedns.database.AsnStatsDao
 import com.bernaferrari.bravedns.database.ConnectionTrackerDAO
+import com.bernaferrari.bravedns.database.DomainStatsDao
 import com.bernaferrari.bravedns.database.RethinkLogDao
-import com.bernaferrari.bravedns.database.StatsSummaryDao
 import com.bernaferrari.bravedns.util.Constants
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -40,7 +42,9 @@ import org.koin.core.annotation.Provided
 class AppConnectionsViewModel(
     @Provided private val nwlogDao: ConnectionTrackerDAO,
     @Provided private val rinrDao: RethinkLogDao,
-    @Provided private val statsDao: StatsSummaryDao,
+    @Provided private val appStatsDao: AppStatsDao,
+    @Provided private val asnStatsDao: AsnStatsDao,
+    @Provided private val domainStatsDao: DomainStatsDao,
     @Provided private val uptimeProvider: NetworkUptimeProvider,
     private val nowMillis: () -> Long = { Clock.System.now().toEpochMilliseconds() }
 ) : ViewModel() {
@@ -106,7 +110,7 @@ class AppConnectionsViewModel(
         domainFilter.flatMapLatest { input -> fetchRinrDomainLogs(input) }
 
     fun fetchTopActiveConnections(uid: Int, uptime: Long): Flow<PagingData<AppConnection>> =
-        statsDao.getTopActiveConns(uid, nowMillis() - uptime).toPagingData()
+        appStatsDao.getTopActiveConns(uid, nowMillis() - uptime).toPagingData()
 
     fun deleteLogs(uid: Int) {
         viewModelScope.launch {
@@ -120,13 +124,13 @@ class AppConnectionsViewModel(
     }
 
     fun getDomainLogsLimited(uid: Int): Flow<PagingData<AppConnection>> =
-        statsDao.getMostDomainsByUid(uid, nowMillis() - ONE_WEEK_MILLIS).toPagingData()
+        domainStatsDao.getMostDomainsByUid(uid, nowMillis() - ONE_WEEK_MILLIS).toPagingData()
 
     fun getRethinkActiveConnsLimited(uptime: Long): Flow<PagingData<AppConnection>> =
-        statsDao.getRethinkTopActiveConns(nowMillis() - uptime).toPagingData()
+        appStatsDao.getRethinkTopActiveConns(nowMillis() - uptime).toPagingData()
 
     fun getRethinkAllActiveConns(uptime: Long): Flow<PagingData<AppConnection>> =
-        Pager(pagingConfig) { statsDao.getRethinkAllActiveConns(nowMillis() - uptime) }
+        Pager(pagingConfig) { appStatsDao.getRethinkAllActiveConns(nowMillis() - uptime) }
             .flow
             .cachedIn(viewModelScope)
 
@@ -137,7 +141,7 @@ class AppConnectionsViewModel(
         rinrDao.getIpLogsLimited(nowMillis() - ONE_WEEK_MILLIS).toPagingData()
 
     fun getAsnLogsLimited(uid: Int): Flow<PagingData<AppConnection>> =
-        statsDao.getAsnLogsLimited(uid, nowMillis() - ONE_WEEK_MILLIS).toPagingData()
+        asnStatsDao.getAsnLogsLimited(uid, nowMillis() - ONE_WEEK_MILLIS).toPagingData()
 
     fun getIpLogsLimited(uid: Int): Flow<PagingData<AppConnection>> =
         nwlogDao.getAppIpLogsLimited(uid, nowMillis() - ONE_WEEK_MILLIS).toPagingData()
@@ -182,21 +186,21 @@ class AppConnectionsViewModel(
 
     private fun fetchAppDomainLogs(uid: Int, input: String): Flow<PagingData<AppConnection>> =
         Pager(pagingConfig) {
-                if (input.isEmpty()) statsDao.getAllDomainsByUid(uid, startTimestamp())
-                else statsDao.getAllDomainsByUid(uid, startTimestamp(), "%$input%")
+                if (input.isEmpty()) domainStatsDao.getAllDomainsByUid(uid, startTimestamp())
+                else domainStatsDao.getAllDomainsByUid(uid, startTimestamp(), "%$input%")
             }
             .flow
             .cachedIn(viewModelScope)
 
     private fun fetchAllActiveConnections(uid: Int, input: String): Flow<PagingData<AppConnection>> =
         Pager(pagingConfig) {
-                statsDao.getAllActiveConns(uid, nowMillis() - uptimeProvider.uptimeMs(), "%$input%")
+                appStatsDao.getAllActiveConns(uid, nowMillis() - uptimeProvider.uptimeMs(), "%$input%")
             }
             .flow
             .cachedIn(viewModelScope)
 
     private fun fetchAllAsnLogs(uid: Int, input: String): Flow<PagingData<AppConnection>> =
-        Pager(pagingConfig) { statsDao.getAllAsnLogs(uid, startTimestamp(), "%$input%") }
+        Pager(pagingConfig) { asnStatsDao.getAllAsnLogs(uid, startTimestamp(), "%$input%") }
             .flow
             .cachedIn(viewModelScope)
 

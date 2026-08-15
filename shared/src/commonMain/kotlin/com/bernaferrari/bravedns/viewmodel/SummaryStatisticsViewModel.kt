@@ -9,8 +9,11 @@ import com.bernaferrari.bravedns.data.AppConnection
 import com.bernaferrari.bravedns.data.DataUsageSummary
 import com.bernaferrari.bravedns.database.ConnectionTracker
 import com.bernaferrari.bravedns.database.ConnectionTrackerDAO
+import com.bernaferrari.bravedns.database.AppStatsDao
+import com.bernaferrari.bravedns.database.AsnStatsDao
+import com.bernaferrari.bravedns.database.CountryStatsDao
 import com.bernaferrari.bravedns.database.DailyStatsDao
-import com.bernaferrari.bravedns.database.StatsSummaryDao
+import com.bernaferrari.bravedns.database.DomainStatsDao
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,7 +33,10 @@ import org.koin.core.annotation.Provided
 @KoinViewModel
 class SummaryStatisticsViewModel(
     @Provided private val connectionTrackerDAO: ConnectionTrackerDAO,
-    @Provided private val statsDao: StatsSummaryDao,
+    @Provided private val appStatsDao: AppStatsDao,
+    @Provided private val asnStatsDao: AsnStatsDao,
+    @Provided private val domainStatsDao: DomainStatsDao,
+    @Provided private val countryStatsDao: CountryStatsDao,
     @Provided private val dailyStatsDao: DailyStatsDao,
     @Provided private val uptimeProvider: NetworkUptimeProvider,
     private val nowMillis: () -> Long = { Clock.System.now().toEpochMilliseconds() }
@@ -78,14 +84,14 @@ class SummaryStatisticsViewModel(
             val useDaily = start <= nowMillis() - ONE_DAY_MILLIS
             combine(
                 listOf(
-                    statsDao.getTopActiveConns(activeFrom),
-                    if (useDaily) statsDao.getMostAllowedAppsDaily(start) else statsDao.getMostAllowedApps(start),
-                    if (useDaily) statsDao.getMostBlockedAppsDaily(start) else statsDao.getMostBlockedApps(start),
-                    if (useDaily) statsDao.getMostConnectedASNDaily(start) else statsDao.getMostConnectedASN(start),
-                    if (useDaily) statsDao.getMostBlockedASNDaily(start) else statsDao.getMostBlockedASN(start),
-                    if (useDaily) statsDao.getMostBlockedDomainsDaily(start) else statsDao.getMostBlockedDomains(start),
-                    if (useDaily) statsDao.getMostContactedDomainsDaily(start) else statsDao.getMostContactedDomains(start),
-                    if (useDaily) statsDao.getMostContactedCountriesDaily(start) else statsDao.getMostContactedCountries(start),
+                    appStatsDao.getTopActiveConns(activeFrom),
+                    if (useDaily) dailyStatsDao.getMostAllowedAppsDaily(start) else appStatsDao.getMostAllowedApps(start),
+                    if (useDaily) dailyStatsDao.getMostBlockedAppsDaily(start) else appStatsDao.getMostBlockedApps(start),
+                    if (useDaily) dailyStatsDao.getMostConnectedASNDaily(start) else asnStatsDao.getMostConnectedASN(start),
+                    if (useDaily) dailyStatsDao.getMostBlockedASNDaily(start) else asnStatsDao.getMostBlockedASN(start),
+                    if (useDaily) dailyStatsDao.getMostBlockedDomainsDaily(start) else domainStatsDao.getMostBlockedDomains(start),
+                    if (useDaily) dailyStatsDao.getMostContactedDomainsDaily(start) else domainStatsDao.getMostContactedDomains(start),
+                    if (useDaily) dailyStatsDao.getMostContactedCountriesDaily(start) else countryStatsDao.getMostContactedCountries(start),
                     if (useDaily) dailyStatsDao.getMostContactedIpsDaily(start) else connectionTrackerDAO.getMostContactedIps(start),
                     if (useDaily) dailyStatsDao.getMostBlockedIpsDaily(start) else connectionTrackerDAO.getMostBlockedIps(start),
                 )
@@ -128,7 +134,7 @@ class SummaryStatisticsViewModel(
 
     suspend fun getTopAppsForCountry(flag: String, limit: Int = 5): List<AppConnection> =
         if (flag.isBlank()) emptyList()
-        else statsDao.getFlagDetailsLimited(flag = flag, to = startTime.value, limit = limit)
+        else countryStatsDao.getFlagDetailsLimited(flag = flag, to = startTime.value, limit = limit)
 
     private fun updateDataUsage() {
         viewModelScope.launch {

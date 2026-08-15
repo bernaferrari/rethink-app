@@ -27,7 +27,10 @@ import com.bernaferrari.bravedns.data.AppConnection
 import com.bernaferrari.bravedns.data.DataUsageSummary
 import com.bernaferrari.bravedns.database.ConnectionTracker
 import com.bernaferrari.bravedns.database.ConnectionTrackerDAO
-import com.bernaferrari.bravedns.database.StatsSummaryDao
+import com.bernaferrari.bravedns.database.AsnStatsDao
+import com.bernaferrari.bravedns.database.CountryStatsDao
+import com.bernaferrari.bravedns.database.DomainStatsDao
+import com.bernaferrari.bravedns.database.IpStatsDao
 import com.bernaferrari.bravedns.util.Constants
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -102,7 +105,10 @@ class WgNwActivityViewModel(
 
 @KoinViewModel
 class DomainConnectionsViewModel(
-    @Provided private val statsDao: StatsSummaryDao,
+    @Provided private val domainStatsDao: DomainStatsDao,
+    @Provided private val countryStatsDao: CountryStatsDao,
+    @Provided private val asnStatsDao: AsnStatsDao,
+    @Provided private val ipStatsDao: IpStatsDao,
     private val nowMillis: () -> Long = { Clock.System.now().toEpochMilliseconds() }
 ) : ViewModel() {
     private val startTime = MutableStateFlow(nowMillis() - ONE_HOUR_MILLIS)
@@ -150,7 +156,7 @@ class DomainConnectionsViewModel(
         combine(domainQuery, startTime) { detail, start -> detail to start }
             .flatMapLatest { (detail, start) ->
                 Pager(PagingConfig(Constants.PAGING_PAGE_SIZE)) {
-                        statsDao.getDomainDetails(detail.value, start, detail.isBlocked)
+                        domainStatsDao.getDomainDetails(detail.value, start, detail.isBlocked)
                     }
                     .flow
                     .cachedIn(viewModelScope)
@@ -160,7 +166,7 @@ class DomainConnectionsViewModel(
     val flagConnectionList: Flow<PagingData<AppConnection>> =
         combine(flagQuery, startTime) { flag, start -> flag to start }
             .flatMapLatest { (flag, start) ->
-                Pager(PagingConfig(Constants.PAGING_PAGE_SIZE)) { statsDao.getFlagDetails(flag, start) }
+                Pager(PagingConfig(Constants.PAGING_PAGE_SIZE)) { countryStatsDao.getFlagDetails(flag, start) }
                     .flow
                     .cachedIn(viewModelScope)
             }
@@ -170,8 +176,8 @@ class DomainConnectionsViewModel(
         combine(asnQuery, startTime) { detail, start -> detail to start }
             .flatMapLatest { (detail, start) ->
                 Pager(PagingConfig(Constants.PAGING_PAGE_SIZE)) {
-                        if (detail.isBlocked) statsDao.getAsnBlockedDetails(detail.value, start)
-                        else statsDao.getAsnDetails(detail.value, start)
+                        if (detail.isBlocked) asnStatsDao.getAsnBlockedDetails(detail.value, start)
+                        else asnStatsDao.getAsnDetails(detail.value, start)
                     }
                     .flow
                     .cachedIn(viewModelScope)
@@ -182,7 +188,7 @@ class DomainConnectionsViewModel(
         combine(ipQuery, startTime) { detail, start -> detail to start }
             .flatMapLatest { (detail, start) ->
                 Pager(PagingConfig(Constants.PAGING_PAGE_SIZE)) {
-                        statsDao.getIpDetails(detail.value, start, detail.isBlocked)
+                        ipStatsDao.getIpDetails(detail.value, start, detail.isBlocked)
                     }
                     .flow
                     .cachedIn(viewModelScope)
