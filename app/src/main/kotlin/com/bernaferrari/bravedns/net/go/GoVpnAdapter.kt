@@ -58,12 +58,8 @@ import com.bernaferrari.bravedns.ui.HomeScreenActivity
 import com.bernaferrari.bravedns.ui.compose.settings.DialStrategies
 import com.bernaferrari.bravedns.ui.compose.settings.RetryStrategies
 import com.bernaferrari.bravedns.util.Constants
-import com.bernaferrari.bravedns.util.Constants.Companion.MAX_ENDPOINT
 import com.bernaferrari.bravedns.util.Constants.Companion.ONDEVICE_BLOCKLIST_FILE_TAG
 import com.bernaferrari.bravedns.util.Constants.Companion.REMOTE_BLOCKLIST_DOWNLOAD_FOLDER_NAME
-import com.bernaferrari.bravedns.util.Constants.Companion.RETHINKDNS_DOMAIN
-import com.bernaferrari.bravedns.util.Constants.Companion.RETHINK_BASE_URL_MAX
-import com.bernaferrari.bravedns.util.Constants.Companion.RETHINK_BASE_URL_SKY
 import com.bernaferrari.bravedns.util.Constants.Companion.UNSPECIFIED_IP_IPV4
 import com.bernaferrari.bravedns.util.Constants.Companion.UNSPECIFIED_IP_IPV6
 import com.bernaferrari.bravedns.util.UIUtils.getAccentColor
@@ -120,6 +116,49 @@ class GoVpnAdapter : KoinComponent {
     private var tunnel: Tunnel
     private var context: Context
     private var externalScope: CoroutineScope
+
+    private var dnsTransportsOrNull: GoDnsTransports? = null
+
+    private fun dnsTransports(): GoDnsTransports {
+        dnsTransportsOrNull?.let { return it }
+        val created =
+            GoDnsTransports(
+                tunnel = { tunnel },
+                context = context,
+                appConfig = appConfig,
+                persistentState = persistentState,
+                callbacks =
+                    object : GoDnsTransports.Callbacks {
+                        override fun runOnUi(block: suspend () -> Unit) = ui(block)
+
+                        override suspend fun resolver() = getResolver()
+
+                        override suspend fun convertRdnsStamp(stamp: String): String {
+                            var b32Stamp: String? = null
+                            try {
+                                val r = getRDNS(RethinkBlocklistManager.RethinkBlocklistType.REMOTE)
+                                val flags = r?.stampToFlags(stamp)
+                                b32Stamp = r?.flagsToStamp(flags, Backend.EB32)
+                            } catch (e: Exception) {
+                                Logger.e(LOG_TAG_VPN, "$TAG err get base32 stamp: ${e.message}")
+                            }
+                            return b32Stamp ?: stamp
+                        }
+
+                        override fun logEvent(severity: Severity, msg: String, details: String) {
+                            this@GoVpnAdapter.logEvent(severity, msg, details)
+                        }
+
+                        override fun ipString(url: String): String = getIpString(context, url)
+
+                        override suspend fun addMultipleDnsAsPlus() {
+                            this@GoVpnAdapter.addMultipleDnsAsPlus()
+                        }
+                    }
+            )
+        dnsTransportsOrNull = created
+        return created
+    }
 
     constructor(
         context: Context,
@@ -224,401 +263,10 @@ class GoVpnAdapter : KoinComponent {
     }
 
     suspend fun addTransport() {
-        Logger.v(LOG_TAG_VPN, "$TAG addTransport")
-        if (!tunnel.isConnected) {
-            Logger.e(LOG_TAG_VPN, "$TAG no tunnel, skip add transport")
-            return
-        }
-
-        // TODO: #321 As of now there is no block free transport for dns types other than Rethink.
-        // introduce block free transport for other dns types when there is a UI to configure the
-        // block free transport
-        // always set the block free transport before setting the transport to the resolver
-        // because of the way the alg is implemented in the go code.
-
-        // TODO: should show notification if the transport is not added?
-        // now it will fallback to rethink default if the transport is not available in kt to add
-        when (appConfig.getDnsType()) {
-            AppConfig.DnsType.DOH -> {
-                addDohTransport(Backend.Preferred)
-            }
-
-            AppConfig.DnsType.DOT -> {
-                addDotTransport(Backend.Preferred)
-            }
-
-            AppConfig.DnsType.ODOH -> {
-                addOdohTransport(Backend.Preferred)
-            }
-
-            AppConfig.DnsType.DNSCRYPT -> {
-                addDnscryptTransport(Backend.Preferred)
-            }
-
-            AppConfig.DnsType.DNS_PROXY -> {
-                addDnsProxyTransport(Backend.Preferred)
-            }
-
-            AppConfig.DnsType.SYSTEM_DNS -> {
-                // no-op; system dns propagated by ConnectionMonitor
-            }
-
-            AppConfig.DnsType.SMART_DNS -> {
-                addMultipleDnsAsPlus()
-            }
-
-            AppConfig.DnsType.RETHINK_REMOTE -> {
-                // only rethink has different stamp for block free transport
-                // create new transport for block free
-                val rdnsRemoteUrl = appConfig.getRemoteRethinkEndpoint()?.url
-                val blockfreeUrl = appConfig.getBlockFreeRethinkEndpoint()
-
-                if (blockfreeUrl.isNotEmpty()) {
-                    Logger.i(LOG_TAG_VPN, "$TAG adding blockfree url: $blockfreeUrl")
-                    addRdnsTransport(Backend.BlockFree, blockfreeUrl)
-                } else {
-                    Logger.i(LOG_TAG_VPN, "$TAG no blockfree url found")
-                    // if blockfree url is not available, do not proceed further
-                    return
-                }
-                if (!rdnsRemoteUrl.isNullOrEmpty()) {
-                    Logger.i(LOG_TAG_VPN, "$TAG adding rdns remote url: $rdnsRemoteUrl")
-                    addRdnsTransport(Backend.Preferred, rdnsRemoteUrl)
-                } else {
-                    Logger.e(LOG_TAG_VPN, "$TAG no rdns remote url found")
-                    fallbackToRethinkDefault()
-                }
-            }
-        }
-
-        // only in rethink's remote dns, we have block free transport, so need to remove the
-        // block free transport if the selected dns type is not rethink remote, to avoid having
-        // stale block free transport when user switches from rethink remote to other dns type.
-        // for other dns types, the block free transport is not added at all, so no need to remove.
-        removeBlockFreeTransportIfNeeded()
-        Logger.v(LOG_TAG_VPN, "$TAG addTransport done")
+        dnsTransports().addTransport()
     }
 
-    private suspend fun fallbackToRethinkDefault() {
-        // this should never happen, but as a safeguard, fall back to rethink default
-        // to prevent silent failures. case: on a OnePlus device where the database contained
-        // values, but none of the transport types were selected, causing vpnAdapter to skip
-        // setting any preferred transport.
-        Logger.w(LOG_TAG_VPN, "$TAG fallback to rethink default")
-        val rethinkDefault = appConfig.getRethinkDefaultEndpoint()
-        if (rethinkDefault == null || rethinkDefault.url.isEmpty()) {
-            Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: fallback; rethink default is empty, cannot add transport")
-            showDnsFailureToast("")
-            return
-        }
-        // this will in-turn updates the ui and calls the adapter to update the transport
-        appConfig.handleRethinkChanges(rethinkDefault)
-    }
-
-    // TODO: remove below method when there is new UI for blockfree transport
-    private suspend fun removeBlockFreeTransportIfNeeded() {
-        if (appConfig.getDnsType() != AppConfig.DnsType.RETHINK_REMOTE) {
-            Logger.i(LOG_TAG_VPN, "$TAG removing block free transport as dns type is not rethink remote")
-            removeResolver(Backend.BlockFree)
-        }
-    }
-
-    private suspend fun removeResolver(id: String): Boolean {
-        if (!tunnel.isConnected) {
-            Logger.e(LOG_TAG_VPN, "$TAG no tunnel, skip remove resolver $id")
-            return false
-        }
-        return try {
-            val res = getResolver()?.remove(id) ?: false
-            logEvent(
-                Severity.LOW,
-                "resolver removed? $res",
-                "removed $id from tun? $res"
-            )
-            res
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_VPN, "$TAG err remove resolver $id: ${e.message}", e)
-            logEvent(
-                Severity.HIGH,
-                "error removing resolver",
-                "Error removing resolver $id: ${e.message}"
-            )
-            false
-        }
-    }
-
-    private suspend fun addDohTransport(id: String) {
-        Logger.v(LOG_TAG_VPN, "$TAG addDohTransport")
-        var url: String? = null
-        try {
-            val doh = appConfig.getDOHDetails()
-            if (doh == null || doh.dohURL.isEmpty()) {
-                Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: doh url is empty, cannot add transport")
-                fallbackToRethinkDefault()
-                return
-            }
-            url = doh.dohURL
-            val ips: String = getIpString(context, url)
-            // change the url from https to http if the isSecure is false
-            if (!doh.isSecure) {
-                Logger.d(LOG_TAG_VPN, "$TAG changing url from https to http for $url")
-                url = url.replace("https", "http")
-            }
-            // add replaces the existing transport with the same id if successful
-            // so no need to remove the transport before adding
-            Intra.addDoHTransport(tunnel, id, url, ips)
-            Logger.i(LOG_TAG_VPN, "$TAG new doh: $id (${doh.dohName}), url: $url, ips: $ips")
-            logEvent(
-                Severity.LOW,
-                "doh transport added",
-                "id: $id, url: $url, ips: $ips"
-            )
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: doh failure, url: $url", e)
-            removeResolver(id)
-            showDnsFailureNotification(context.getString(R.string.other_dns_list_tab1), e.message ?: context.getString(R.string.system_dns_connection_failure))
-            showDnsFailureToast(url.orEmpty())
-            logEvent(
-                Severity.HIGH,
-                "doh transport error",
-                "error adding doh transport for url: $url, reason: ${e.message}"
-            )
-        }
-        Logger.v(LOG_TAG_VPN, "$TAG addDohTransport done")
-    }
-
-    private suspend fun addDotTransport(id: String) {
-        Logger.v(LOG_TAG_VPN, "$TAG addDotTransport, id: $id")
-        var url: String? = null
-        try {
-            val dot = appConfig.getDOTDetails()
-            if (dot == null || dot.url.isEmpty()) {
-                Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: dot url is empty, cannot add transport")
-                fallbackToRethinkDefault()
-                return
-            }
-            url = dot.url
-            // if tls is present, remove it and pass it to getIpString
-            val ips: String = getIpString(context, url.replace("tls://", ""))
-            if (dot.isSecure && !url.startsWith("tls")) {
-                Logger.d(LOG_TAG_VPN, "$TAG adding tls to url for $url")
-                // add tls to the url if isSecure is true and the url does not start with tls
-                url = "tls://$url"
-            }
-            // add replaces the existing transport with the same id if successful
-            // so no need to remove the transport before adding
-            Intra.addDoTTransport(tunnel, id, url, ips)
-            Logger.i(LOG_TAG_VPN, "$TAG new dot: $id (${dot.name}), url: $url, ips: $ips")
-            logEvent(
-                Severity.LOW,
-                "dot transport added",
-                "id: $id, url: $url, ips: $ips"
-            )
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: dot failure, url: $url", e)
-            removeResolver(id)
-            showDnsFailureNotification(context.getString(R.string.lbl_dot), e.message ?: context.getString(R.string.system_dns_connection_failure))
-            showDnsFailureToast(url.orEmpty())
-            logEvent(
-                Severity.HIGH,
-                "dot transport error",
-                "error adding dot transport for url: $url, reason: ${e.message}"
-            )
-        }
-        Logger.v(LOG_TAG_VPN, "$TAG addDotTransport done")
-    }
-
-    private suspend fun addOdohTransport(id: String) {
-        Logger.v(LOG_TAG_VPN, "$TAG addOdohTransport, id: $id")
-        var resolver: String? = null
-        try {
-            val odoh = appConfig.getODoHDetails()
-            if (odoh == null || odoh.resolver.isEmpty()) {
-                Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: odoh resolver is empty, cannot add transport")
-                fallbackToRethinkDefault()
-                return
-            }
-            val proxy = odoh.proxy
-            resolver = odoh.resolver
-            val proxyIps = ""
-            // add replaces the existing transport with the same id if successful
-            // so no need to remove the transport before adding
-            Intra.addODoHTransport(tunnel, id, proxy, resolver, proxyIps)
-            Logger.i(LOG_TAG_VPN, "$TAG new odoh: $id (${odoh.name}), p: $proxy, r: $resolver")
-            logEvent(
-                Severity.LOW,
-                "odoh transport added",
-                "id: $id, proxy: $proxy, resolver: $resolver"
-            )
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: odoh failure, res: $resolver", e)
-            removeResolver(id)
-            showDnsFailureNotification(context.getString(R.string.lbl_odoh), e.message ?: context.getString(R.string.system_dns_connection_failure))
-            showDnsFailureToast(resolver.orEmpty())
-            logEvent(
-                Severity.HIGH,
-                "odoh transport error",
-                "error adding odoh transport for resolver: $resolver, reason: ${e.message}"
-            )
-        }
-        Logger.v(LOG_TAG_VPN, "$TAG addOdohTransport done")
-    }
-
-    private suspend fun addDnscryptTransport(id: String) {
-        Logger.v(LOG_TAG_VPN, "$TAG addDnscryptTransport, id: $id")
-        try {
-            val dc = appConfig.getConnectedDnscryptServer()
-            if (dc == null || dc.dnsCryptURL.isEmpty()) {
-                Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: dns-crypt is empty, cannot add transport")
-                fallbackToRethinkDefault()
-                return
-            }
-            val url = dc.dnsCryptURL
-            // add replaces the existing transport with the same id if successful
-            // so no need to remove the transport before adding
-            Intra.addDNSCryptTransport(tunnel, id, url)
-            Logger.i(LOG_TAG_VPN, "$TAG new dnscrypt: $id (${dc.dnsCryptName}), url: $url")
-            setDnscryptRelaysIfAny() // is expected to catch exceptions
-            logEvent(
-                Severity.LOW,
-                "dnscrypt transport added",
-                "id: $id, url: $url"
-            )
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: dns crypt failure for $id", e)
-            removeResolver(id)
-            removeDnscryptRelaysIfAny()
-            showDnsFailureNotification(context.getString(R.string.dc_dns_crypt), e.message ?: context.getString(R.string.dns_crypt_connection_failure))
-            showDnscryptConnectionFailureToast()
-            logEvent(
-                Severity.HIGH,
-                "dns crypt transport error",
-                "error adding dns crypt transport, reason: ${e.message}"
-            )
-        }
-        Logger.v(LOG_TAG_VPN, "$TAG addDnscryptTransport done")
-    }
-
-    private suspend fun addDnsProxyTransport(id: String) {
-        Logger.v(LOG_TAG_VPN, "$TAG addDnsProxyTransport, id: $id")
-        try {
-            val dnsProxy = appConfig.getSelectedDnsProxyDetails()
-            if (dnsProxy == null || dnsProxy.proxyIP.isNullOrEmpty()) {
-                Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: dns-proxy is empty, cannot add transport")
-                fallbackToRethinkDefault()
-                return
-            }
-            // append port number to each ip if multiple ips are present else add the single ip:port
-            val port = dnsProxy.proxyPort
-            val ipPortCsv = dnsProxy.proxyIP?.split(",")?.joinToString(",") {
-                "${it.trim()}:$port"
-            }
-            // add replaces the existing transport with the same id if successful
-            // so no need to remove the transport before adding
-            Intra.addDNSProxy(tunnel, id, ipPortCsv)
-            Logger.i(LOG_TAG_VPN, "$TAG new dns proxy: $id(${dnsProxy.proxyName}), ip: $ipPortCsv")
-            logEvent(
-                Severity.LOW,
-                "dns proxy transport added",
-                "id: $id, ip: $ipPortCsv"
-            )
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: dns proxy failure", e)
-            removeResolver(id)
-            showDnsFailureNotification(context.getString(R.string.dc_dns_proxy), e.message ?: context.getString(R.string.dns_proxy_connection_failure))
-            showDnsProxyConnectionFailureToast()
-            logEvent(
-                Severity.HIGH,
-                "dns proxy transport error",
-                "error adding dns proxy transport, reason: ${e.message}"
-            )
-        }
-        Logger.v(LOG_TAG_VPN, "$TAG addDnsProxyTransport done")
-    }
-
-    private fun showDnsFailureNotification(dnsType: String, message: String) {
-        val notifChannelId = "DNS_failure_channel"
-        ui {
-            val notificationManager =
-                context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-
-            if (isAtleastO()) {
-                val channelName = context.getString(R.string.status_dns_error)
-                val importance = NotificationManager.IMPORTANCE_DEFAULT
-                val channel = NotificationChannel(notifChannelId, channelName, importance)
-                notificationManager.createNotificationChannel(channel)
-            }
-
-            val pendingIntent =
-                Utilities.getActivityPendingIntent(
-                    context,
-                    Intent(context, HomeScreenActivity::class.java),
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-                    mutable = false
-                )
-            val dnsErrorTxt = context.getString(R.string.status_dns_error)
-            // capitalize first 3 letter of the error message (dns error => DNS Error)
-            val formattedErrTxt =
-                if (dnsErrorTxt.length >= 5) {
-                    dnsErrorTxt.replaceRange(0, 5, dnsErrorTxt.substring(0, 5).uppercase())
-                } else {
-                    dnsErrorTxt
-                }
-            val title = context.getString(R.string.two_argument_colon, formattedErrTxt, dnsType)
-            val builder =
-                NotificationCompat.Builder(context, notifChannelId)
-                    .setSmallIcon(R.drawable.ic_notification_icon)
-                    .setContentTitle(title)
-                    .setContentText(message)
-                    .setStyle(NotificationCompat.BigTextStyle().bigText(message))
-                    .setContentIntent(pendingIntent)
-                    .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                    .setAutoCancel(true)
-            builder.color = ContextCompat.getColor(context, getAccentColor(persistentState.theme))
-            notificationManager.notify(NW_ENGINE_NOTIFICATION_ID, builder.build())
-        }
-    }
-
-    private suspend fun addRdnsTransport(id: String, url: String) {
-        Logger.v(LOG_TAG_VPN, "$TAG addRdnsTransport, id: $id, url: $url")
-        try {
-            val ips: String = getIpString(context, url)
-            val convertedUrl = getRdnsUrl(url) ?: return
-            Intra.addDoHTransport(tunnel, id, convertedUrl, ips)
-            Logger.i(LOG_TAG_VPN, "$TAG new doh (rdns): $id, url: $convertedUrl, ips: $ips")
-            logEvent(
-                Severity.LOW,
-                "rdns transport added",
-                "id: $id, url: $convertedUrl, ips: $ips"
-            )
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: rdns failure, url: $url ($id)", e)
-            removeResolver(id)
-            showDnsFailureNotification(context.getString(R.string.dc_rethink_dns_radio), e.message ?: context.getString(R.string.system_dns_connection_failure))
-            showDnsFailureToast(url)
-            logEvent(
-                Severity.HIGH,
-                "rdns transport error ($id)",
-                "error adding rdns transport for url: $url ($id), reason: ${e.message}"
-            )
-        }
-        Logger.v(LOG_TAG_VPN, "$TAG addRdnsTransport done")
-    }
-
-    private suspend fun getRdnsUrl(url: String): String? {
-        // do not proceed if rethinkdns.com is not available
-        if (!url.contains(RETHINKDNS_DOMAIN)) return null
-
-        if (url == Constants.BLOCK_FREE_DNS_SKY || url == Constants.BLOCK_FREE_DNS_MAX || url == Constants.BLOCK_FREE_DNS_ZERO) {
-            return url
-        }
-        val stamp = getRdnsStamp(url)
-        return if (url.contains(MAX_ENDPOINT)) {
-            "$RETHINK_BASE_URL_MAX$stamp"
-        } else {
-            "$RETHINK_BASE_URL_SKY$stamp"
-        }
-    }
+    private suspend fun removeResolver(id: String): Boolean = dnsTransports().removeResolver(id)
 
     suspend fun unlink() {
         if (!tunnel.isConnected) {
@@ -641,36 +289,6 @@ class GoVpnAdapter : KoinComponent {
                 "error unlinking tunnel, reason: ${e.message}"
             )
         }
-    }
-
-    private suspend fun getRdnsStamp(url: String): String {
-        val s = url.split(RETHINKDNS_DOMAIN)[1]
-        val stamp =
-            if (s.startsWith("/")) {
-                s.substring(1)
-            } else {
-                s
-            }
-        return getBase32Stamp(stamp)
-    }
-
-    private suspend fun getBase32Stamp(stamp: String): String {
-        // in v055a, the stamps are generated either by base32 or base64
-        // if the stamp is base64, then convert it to base32
-        // if the stamp is base32, then return the stamp
-        // as of now, only way to find the base 32 stamp is to get the flags and convert it to stamp
-        // with eb32 encoding
-        // sample stamp https://max.rethinkdns.com/1:-AcHAL6d_5-Yxf7zMQAKAAAI which is base64
-        // output stamp 1-7adqoaf6tx7z7ggf73ztcaakaaaaq which is base32
-        var b32Stamp: String? = null
-        try {
-            val r = getRDNS(RethinkBlocklistManager.RethinkBlocklistType.REMOTE)
-            val flags = r?.stampToFlags(stamp)
-            b32Stamp = r?.flagsToStamp(flags, Backend.EB32)
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_VPN, "$TAG err get base32 stamp: ${e.message}")
-        }
-        return b32Stamp ?: stamp
     }
 
     fun setTunMode(tunnelOptionsWithoutMtu: TunnelOptions) {
@@ -755,98 +373,12 @@ class GoVpnAdapter : KoinComponent {
         }
     }
 
-    private suspend fun setDnscryptRelaysIfAny() {
-        val routes: String = appConfig.getDnscryptRelayServers()
-        routes.split(",").forEach {
-            if (it.isBlank()) return@forEach
-
-            Logger.i(LOG_TAG_VPN, "$TAG new dnscrypt relay: $it")
-            try {
-                Intra.addDNSCryptRelay(tunnel, it) // entire url is the id
-                logEvent(
-                    Severity.LOW,
-                    "add dnscrypt relay",
-                    "added dnscrypt relay $it"
-                )
-            } catch (ex: Exception) {
-                Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: dnscrypt failure", ex)
-                appConfig.removeDnscryptRelay(it)
-                removeResolver(it)
-                logEvent(
-                    Severity.HIGH,
-                    "add dnscrypt relay error",
-                    "error adding dnscrypt relay $it, reason: ${ex.message}"
-                )
-            }
-        }
-    }
-
-    private suspend fun removeDnscryptRelaysIfAny() {
-        val routes: String = appConfig.getDnscryptRelayServers()
-        routes.split(",").forEach {
-            if (it.isBlank()) return@forEach
-
-            Logger.i(LOG_TAG_VPN, "$TAG remove dnscrypt relay: $it")
-            // remove from appConfig, as this is not from ui, but from the tunnel start up
-            appConfig.removeDnscryptRelay(it)
-            removeResolver(it)
-        }
-    }
-
     suspend fun addDnscryptRelay(relay: DnsCryptRelayEndpoint) {
-        if (!tunnel.isConnected) {
-            Logger.e(LOG_TAG_VPN, "$TAG no tunnel, skip add dnscrypt relay")
-            return
-        }
-        try {
-            Intra.addDNSCryptRelay(tunnel, relay.dnsCryptRelayURL)
-            Logger.i(LOG_TAG_VPN, "$TAG new dnscrypt relay: ${relay.dnsCryptRelayURL}")
-            logEvent(
-                Severity.LOW,
-                "add dnscrypt relay",
-                "added dnscrypt relay ${relay.dnsCryptRelayURL}"
-            )
-        } catch (e: Exception) {
-            Logger.e(
-                LOG_TAG_VPN,
-                "$TAG connect-tunnel: dnscrypt relay failure: ${relay.dnsCryptRelayURL}",
-                e
-            )
-            appConfig.removeDnscryptRelay(relay.dnsCryptRelayURL)
-            removeResolver(relay.dnsCryptRelayURL)
-            logEvent(
-                Severity.HIGH,
-                "add dnscrypt relay error",
-                "error adding dnscrypt relay ${relay.dnsCryptRelayURL}, reason: ${e.message}"
-            )
-        }
+        dnsTransports().addDnscryptRelay(relay)
     }
 
     suspend fun removeDnscryptRelay(relay: DnsCryptRelayEndpoint) {
-        if (!tunnel.isConnected) {
-            Logger.e(LOG_TAG_VPN, "$TAG no tunnel, skip remove dnscrypt relay")
-            return
-        }
-        try {
-            // no need to remove from appConfig, as it is already removed
-            val rmv = getResolver()?.remove(relay.dnsCryptRelayURL)
-            Logger.i(
-                LOG_TAG_VPN,
-                "$TAG rmv dnscrypt relay: ${relay.dnsCryptRelayURL}, success? $rmv"
-            )
-            logEvent(
-                Severity.LOW,
-                "remove dns crypt relay",
-                "remove dns crypt relay for id: ${relay.id}, url: ${relay.dnsCryptRelayURL}"
-            )
-        } catch (e: Exception) {
-            Logger.w(LOG_TAG_VPN, "$TAG connect-tunnel: dnscrypt rmv failure")
-            logEvent(
-                Severity.HIGH,
-                "error; dnscrypt relay removal",
-                "Error on dnscrypt relay removal for ${relay.dnsCryptRelayURL}, ${e.message}"
-            )
-        }
+        dnsTransports().removeDnscryptRelay(relay)
     }
 
     /**
@@ -924,16 +456,6 @@ class GoVpnAdapter : KoinComponent {
         return ""
     }
 
-    private fun showDnscryptConnectionFailureToast() {
-        ui {
-            showToastUiCentered(
-                context.applicationContext,
-                context.getString(R.string.dns_crypt_connection_failure),
-                Toast.LENGTH_LONG
-            )
-        }
-    }
-
     private fun showDnsFailureToast(url: String) {
         ui {
             val msg =
@@ -948,16 +470,6 @@ class GoVpnAdapter : KoinComponent {
 
     private fun showWireguardFailureToast(message: String) {
         ui { showToastUiCentered(context.applicationContext, message, Toast.LENGTH_LONG) }
-    }
-
-    private fun showDnsProxyConnectionFailureToast() {
-        ui {
-            showToastUiCentered(
-                context.applicationContext,
-                context.getString(R.string.dns_proxy_connection_failure),
-                Toast.LENGTH_SHORT
-            )
-        }
     }
 
     private suspend fun setWireguardTunnelModeIfNeeded(tunProxyMode: AppConfig.TunProxyMode) {
@@ -1921,7 +1433,7 @@ class GoVpnAdapter : KoinComponent {
         } catch (e: Exception) { // this is not expected to happen
             Logger.e(LOG_TAG_VPN, "$TAG set system dns: could not parse: $systemDns", e)
             // remove the system dns, if it could not be set
-            removeResolver(Backend.System)
+            dnsTransports().removeResolver(Backend.System)
             logEvent(
                 Severity.HIGH,
                 "set system dns failed",
@@ -3298,8 +2810,8 @@ class GoVpnAdapter : KoinComponent {
                 // change the url from https to http if the isSecure is false
                 if (!doh.isSecure) {
                     Logger.d(LOG_TAG_VPN, "$TAG smart-dns; changing url from https to http for $url")
-                    url = url.replace("https", "http")
                 }
+                url = dohTransportUrl(url, doh.isSecure)
                 // add replaces the existing transport with the same id if successful
                 // so no need to remove the transport before adding
                 Intra.addDoHTransport(tunnel, id, url, ips)
@@ -3325,16 +2837,15 @@ class GoVpnAdapter : KoinComponent {
                     return@forEach
                 }
                 // if tls is present, remove it and pass it to getIpString
-                val ips: String = getIpString(context, url.replace("tls://", ""))
+                val ips: String = getIpString(context, dotLookupHost(url))
                 if (ips.isEmpty()) {
                     Logger.i(LOG_TAG_VPN, "$TAG smart-dns; ips empty for $url, skip adding")
                     return@forEach
                 }
                 if (dot.isSecure && !url.startsWith("tls")) {
                     Logger.d(LOG_TAG_VPN, "$TAG smart-dns; adding tls to url for $url")
-                    // add tls to the url if isSecure is true and the url does not start with tls
-                    url = "tls://$url"
                 }
+                url = dotTransportUrl(url, dot.isSecure)
                 // add replaces the existing transport with the same id if successful
                 // so no need to remove the transport before adding
                 Intra.addDoTTransport(tunnel, id, url, ips)

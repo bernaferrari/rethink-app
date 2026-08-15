@@ -19,8 +19,18 @@ expect object LogDatabaseConstructor : RoomDatabaseConstructor<LogDatabase> {
 }
 
 @Database(
-    entities = [ConnectionTracker::class, DnsLog::class, RethinkLog::class, IpInfo::class, Event::class],
-    version = 14,
+    entities = [
+        ConnectionTracker::class,
+        DnsLog::class,
+        RethinkLog::class,
+        IpInfo::class,
+        Event::class,
+        DailyAppStats::class,
+        DailyCountryStats::class,
+        DailyAsnStats::class,
+        DailyDomainStats::class,
+    ],
+    version = 15,
     exportSchema = true
 )
 @ColumnTypeConverters(Converters::class)
@@ -30,7 +40,7 @@ abstract class LogDatabase : RoomDatabase() {
 
     companion object {
         const val LOGS_DATABASE_NAME = "rethink_logs.db"
-        const val SCHEMA_VERSION = 14
+        const val SCHEMA_VERSION = 15
         private const val PRAGMA = "pragma wal_checkpoint(full)"
         private const val TABLE_NAME_DNS_LOGS = "DnsLogs"
         // previous table name for dns logs
@@ -126,6 +136,8 @@ abstract class LogDatabase : RoomDatabase() {
     abstract fun logsDao(): LogDatabaseRawQueryDao
 
     abstract fun statsSummaryDAO(): StatsSummaryDao
+
+    abstract fun dailyStatsDAO(): DailyStatsDao
 
     abstract fun ipInfoDao(): IpInfoDAO
 

@@ -71,16 +71,19 @@ class SummaryStatisticsViewModel(
         combine(startTime, topActiveConnsTick, refreshTick) { start, uptime, _ ->
             start to (nowMillis() - uptime)
         }.flatMapLatest { (start, activeFrom) ->
+            // Sub-day windows stay on the live tables (daily rollups are calendar-day
+            // coarse); day+ windows read the materialized daily_* tables.
+            val useDaily = start <= nowMillis() - ONE_DAY_MILLIS
             combine(
                 listOf(
                     statsDao.getTopActiveConns(activeFrom),
-                    statsDao.getMostAllowedApps(start),
-                    statsDao.getMostBlockedApps(start),
-                    statsDao.getMostConnectedASN(start),
-                    statsDao.getMostBlockedASN(start),
-                    statsDao.getMostBlockedDomains(start),
-                    statsDao.getMostContactedDomains(start),
-                    statsDao.getMostContactedCountries(start),
+                    if (useDaily) statsDao.getMostAllowedAppsDaily(start) else statsDao.getMostAllowedApps(start),
+                    if (useDaily) statsDao.getMostBlockedAppsDaily(start) else statsDao.getMostBlockedApps(start),
+                    if (useDaily) statsDao.getMostConnectedASNDaily(start) else statsDao.getMostConnectedASN(start),
+                    if (useDaily) statsDao.getMostBlockedASNDaily(start) else statsDao.getMostBlockedASN(start),
+                    if (useDaily) statsDao.getMostBlockedDomainsDaily(start) else statsDao.getMostBlockedDomains(start),
+                    if (useDaily) statsDao.getMostContactedDomainsDaily(start) else statsDao.getMostContactedDomains(start),
+                    if (useDaily) statsDao.getMostContactedCountriesDaily(start) else statsDao.getMostContactedCountries(start),
                     connectionTrackerDAO.getMostContactedIps(start),
                     connectionTrackerDAO.getMostBlockedIps(start),
                 )

@@ -36,4 +36,6 @@ interface IpInfoDAO {
     @Query("SELECT * FROM IpInfo WHERE ip = :ipStr")
     suspend fun getIpInfo(ipStr: String): IpInfo?
 
+    @Query("SELECT * FROM IpInfo WHERE ip IN (:ips)")
+    suspend fun getByIps(ips: List<String>): List<IpInfo>
 }

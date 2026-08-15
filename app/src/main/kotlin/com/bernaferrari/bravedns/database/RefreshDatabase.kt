@@ -1033,6 +1033,7 @@ internal constructor(
         dnsLogRepository.purgeDnsLogsByDate(date)
         connTrackerRepository.purgeLogsByDate(date)
         rethinkLogRepository.purgeLogsByDate(date)
+        StatsMaterializer.purgeBefore(date)
     }
 
     private suspend fun logEvent(severity: Severity, msg: String, details: String) {

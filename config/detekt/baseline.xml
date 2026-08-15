@@ -154,13 +154,13 @@
     <ID>ForbiddenComment:FirewallManager.kt$FirewallManager.GlobalVariable$// TODO: protect access to the foregroundUids (read/write)</ID>
     <ID>ForbiddenComment:FirewallRuleset.kt$FirewallRuleset$// TODO: Add label and description from strings.xml</ID>
     <ID>ForbiddenComment:FirewallRuleset.kt$FirewallRuleset.Companion$// TODO: Move ico to enum var like for label and desc</ID>
-    <ID>ForbiddenComment:GoVpnAdapter.kt$GoVpnAdapter$// TODO: #321 As of now there is no block free transport for dns types other than Rethink.</ID>
+    <ID>ForbiddenComment:GoDnsTransports.kt$GoDnsTransports$// TODO: #321 As of now there is no block free transport for dns types other than Rethink.</ID>
+    <ID>ForbiddenComment:GoDnsTransports.kt$GoDnsTransports$// TODO: remove below method when there is new UI for blockfree transport</ID>
+    <ID>ForbiddenComment:GoDnsTransports.kt$GoDnsTransports$// TODO: should show notification if the transport is not added?</ID>
     <ID>ForbiddenComment:GoVpnAdapter.kt$GoVpnAdapter$// TODO: ideally the values required for transport, alg and rdns should be set in the</ID>
     <ID>ForbiddenComment:GoVpnAdapter.kt$GoVpnAdapter$// TODO: notify the user that the default transport could not be set</ID>
     <ID>ForbiddenComment:GoVpnAdapter.kt$GoVpnAdapter$// TODO: now the SE is removed, instead if the user has rpn, rpn will be selected</ID>
-    <ID>ForbiddenComment:GoVpnAdapter.kt$GoVpnAdapter$// TODO: remove below method when there is new UI for blockfree transport</ID>
     <ID>ForbiddenComment:GoVpnAdapter.kt$GoVpnAdapter$// TODO: see if the hop is already added, if so no need to redo this</ID>
-    <ID>ForbiddenComment:GoVpnAdapter.kt$GoVpnAdapter$// TODO: should show notification if the transport is not added?</ID>
     <ID>ForbiddenComment:GoVpnAdapter.kt$GoVpnAdapter$// TODO: system dns may be non existent; see: AppConfig#updateSystemDnsServers</ID>
     <ID>ForbiddenComment:HomeScreenActivity.kt$HomeScreenActivity$// FIXME: remove this post v054</ID>
     <ID>ForbiddenComment:HomeScreenActivity.kt$HomeScreenActivity$// TODO: modify this to use the latest version code api</ID>
@@ -344,8 +344,11 @@
     <ID>TooGenericExceptionCaught:EventLogger.kt$EventLogger$e: Exception</ID>
     <ID>TooGenericExceptionCaught:FirewallManager.kt$FirewallManager$e: Exception</ID>
     <ID>TooGenericExceptionCaught:GlobalExceptionHandler.kt$GlobalExceptionHandler$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:GoDnsTransports.kt$GoDnsTransports$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:GoDnsTransports.kt$GoDnsTransports$ex: Exception</ID>
     <ID>TooGenericExceptionCaught:GoVpnAdapter.kt$GoVpnAdapter$e: Exception</ID>
     <ID>TooGenericExceptionCaught:GoVpnAdapter.kt$GoVpnAdapter$ex: Exception</ID>
+    <ID>TooGenericExceptionCaught:GoVpnAdapter.kt$GoVpnAdapter.&lt;no name provided&gt;$e: Exception</ID>
     <ID>TooGenericExceptionCaught:GoVpnAdapter.kt$GoVpnAdapter.Companion$e: Exception</ID>
     <ID>TooGenericExceptionCaught:HomeBackupController.kt$HomeBackupController$e: Exception</ID>
     <ID>TooGenericExceptionCaught:HomeScreenActivity.kt$HomeScreenActivity$e: Exception</ID>
@@ -423,6 +426,7 @@
     <ID>TooManyFunctions:EventLogger.kt$EventLogger</ID>
     <ID>TooManyFunctions:EventsScreen.kt$com.bernaferrari.bravedns.ui.compose.events.EventsScreen.kt</ID>
     <ID>TooManyFunctions:FirewallManager.kt$FirewallManager : KoinComponent</ID>
+    <ID>TooManyFunctions:GoDnsTransports.kt$GoDnsTransports</ID>
     <ID>TooManyFunctions:GoVpnAdapter.kt$GoVpnAdapter : KoinComponent</ID>
     <ID>TooManyFunctions:HomeScreenActivity.kt$HomeScreenActivity : FragmentActivity</ID>
     <ID>TooManyFunctions:IPUtil.kt$IPUtil$Companion</ID>
