@@ -192,7 +192,6 @@ class PersistentState(context: Context) : KoinComponent {
 
     // whether to show "what's new" chip on the homescreen, usually
     // shown after a update and until the user dismisses it
-    var showWhatsNewChip by store.boolean("show_whats_new_chip", true)
 
     // block dns which are not resolved by app
     private var _disallowDnsBypass by store.boolean("disallow_dns_bypass", false)
@@ -424,7 +423,6 @@ class PersistentState(context: Context) : KoinComponent {
 
     // Last successful RPN device registration and notification state.
     var deviceRegistrationTimestamp by store.long("device_registration_timestamp", 0L)
-    var showRethinkBlockNotification by store.boolean("show_rethink_block_notification", true)
 
     val orbotConnectionStatus = MutableStateFlow(false)
 

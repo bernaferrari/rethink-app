@@ -104,7 +104,6 @@ class NotificationActionReceiver : BroadcastReceiver(), KoinComponent {
             }
             Constants.NOTIF_ACTION_RETHINK_BLOCK_DISMISS -> {
                 manager.cancel(NOTIF_CHANNEL_ID_FIREWALL_ALERTS, Constants.NOTIF_ID_RETHINK_BLOCK)
-                persistentState.showRethinkBlockNotification = false
             }
         }
     }

@@ -60,6 +60,17 @@ jobs:
       - name: Compile variant + unit tests + detekt
         run: ./gradlew :app:compile${{ matrix.variant }}Kotlin :app:test${{ matrix.variant }}UnitTest :app:detekt --console=plain
 
+      - name: Verify design-system screenshot goldens
+        if: matrix.variant == 'PlayFullDebug'
+        run: ./gradlew :app:verifyRoborazziPlayFullDebug --tests "*Screenshot*" --console=plain
+
+      - name: Upload screenshot diffs
+        if: failure() && matrix.variant == 'PlayFullDebug'
+        uses: actions/upload-artifact@v4
+        with:
+          name: roborazzi-diffs
+          path: app/build/outputs/roborazzi/
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
