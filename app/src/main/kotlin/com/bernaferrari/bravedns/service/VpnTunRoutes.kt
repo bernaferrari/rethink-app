@@ -18,6 +18,7 @@ package com.bernaferrari.bravedns.service
 import Logger
 import Logger.LOG_TAG_VPN
 import android.net.ConnectivityManager
+import android.net.Network
 import android.net.VpnService
 import android.os.ParcelFileDescriptor
 import com.bernaferrari.bravedns.data.AppConfig
@@ -32,6 +33,7 @@ import java.net.InetAddress
 import java.net.SocketException
 import java.net.UnknownHostException
 import java.util.Locale
+import kotlin.math.min
 
 data class TunEstablishResult(
     val fd: ParcelFileDescriptor?,
@@ -562,5 +564,159 @@ class VpnTunRoutes(
             b.addRoute(LanIp.DNS.make(IPV6_TEMPLATE), 128)
         }
         return b
+    }
+
+    fun getUnderlays(
+        networks: ConnectionMonitor.UnderlyingNetworks?,
+        isLockdown: Boolean,
+        netid: (Long) -> Long,
+    ): Array<Network>? {
+        val failOpen = !persistentState.stallOnNoNetwork
+        val setNullOnVpnLockdown = false
+        // always check lockdown from isLockdown() as it is the original source of truth
+        val currentlyLockdown = isLockdown
+        val mustSetNullOnVpnLockdown = currentlyLockdown && setNullOnVpnLockdown
+        if (networks == null) {
+            Logger.w(LOG_TAG_VPN, "getUnderlays: null nws; fail-open? $failOpen, must-set-null? $mustSetNullOnVpnLockdown, lockdown? $currentlyLockdown")
+            return if (failOpen || mustSetNullOnVpnLockdown) { // failing open on no nw / lockdown
+                null // use whichever network is active, whenever it becomes active
+            } else {
+                emptyArray() // deny all traffic; fail closed
+            }
+        }
+
+        // underlying networks is set to null, which prompts Android to set it to whatever is
+        // the current active network. Later, ConnectionMonitor#onVpnStarted, depending on user
+        // chosen preferences, sets appropriate underlying network/s.
+
+        // add ipv4/ipv6 networks to the tunnel
+        val allNetworks = networks.ipv4Net.map { it.network } + networks.ipv6Net.map { it.network }
+        // remove duplicates, as the same network can be both ipv4 and ipv6
+        val distinctNetworks = allNetworks.distinctBy { it.networkHandle }
+        val hasUnderlyingNetwork = distinctNetworks.isNotEmpty()
+        val underlays = if (hasUnderlyingNetwork) {
+            if (networks.useActive) {
+                null // null denotes active network
+            } else {
+                distinctNetworks.toTypedArray() // use all networks
+            }
+        } else {
+            // failing open on no nw / lockdown
+            if (failOpen || mustSetNullOnVpnLockdown) {
+                null // use whichever network is active, whenever it becomes active
+            } else {
+                emptyArray() // deny all traffic; fail closed
+            }
+        }
+
+        Logger.i(
+            LOG_TAG_VPN,
+            "getUnderlays: use active? ${networks.useActive}; fail-open? $failOpen; lockdown? $mustSetNullOnVpnLockdown; networks: ${underlays?.size}; null-underlay? ${underlays == null}"
+        )
+        if (!hasUnderlyingNetwork) {
+            Logger.w(LOG_TAG_VPN, "getUnderlays: no underlying networks found")
+        } else {
+            underlays?.forEach {
+                Logger.i(
+                    LOG_TAG_VPN,
+                    "getUnderlays: network: ${it.networkHandle}, netId: ${netid(it.networkHandle)}"
+                )
+            }
+        }
+        return underlays
+    }
+
+    fun interestingNetworkChanges(
+        old: ConnectionMonitor.UnderlyingNetworks?,
+        incoming: ConnectionMonitor.UnderlyingNetworks?,
+        aux: BraveVPNService.OverlayNetworks,
+        overlayMtu: Int,
+        tunMtu: Int,
+        builderRoutes: Pair<Boolean, Boolean>,
+        reconcileWithVpnRoutes: Boolean,
+        logd: (String) -> Unit,
+    ): BraveVPNService.NetworkChanges {
+        var new = incoming
+        // when old and new are null, no changes
+        if (old == null && new == null) {
+            logd("tun: old and new nws are null")
+            return BraveVPNService.NetworkChanges(routesChanged = false, netChanged = false, mtuChanged = false)
+        }
+        // no old routes to compare with, return true
+        if (old == null) {
+            logd("tun: old nw is null, new nw: $new")
+            return BraveVPNService.NetworkChanges()
+        }
+        if (new == null) {
+            // new is null, but old is not, then check for changes in aux networks
+            logd("tun: new nw is null, using old nw: $old")
+            new = old
+        }
+
+        val useMaxMtu = persistentState.useMaxMtu && !persistentState.routeRethinkInRethink
+        logd(
+            "tun: useMaxMtu? $useMaxMtu tunMtu:$tunMtu; old: ${old.minMtu}, new: ${new.minMtu}; oldaux: $overlayMtu, newaux: ${aux.mtu}"
+        )
+
+        // mark mtu changed if any tunMtu differs from min mtu of new underlying & overlay network
+        val mtuChanged = !useMaxMtu && tunMtu != min(new.minMtu, aux.mtu)
+
+        val (builderHas4, builderHas6) = builderRoutes // current tunnel routes v4/v6?
+
+        // when the nws are null from the connection monitor, then consider the builder routes
+        // as the new routes
+
+        var vpnHas4 = builderHas4
+        var vpnHas6 = builderHas6
+        if (reconcileWithVpnRoutes) {
+            vpnHas4 = new.vpnRoutes?.first ?: builderHas4
+            vpnHas6 = new.vpnRoutes?.second ?: builderHas6
+        }
+
+        val n = BraveVPNService.Networks(new, aux)
+        val (tunWants4, tunWants6) = determineRoutes(n)
+
+        // old & new agree on activ capable of routing ipv4 or not
+        val ok4 = builderHas4 == tunWants4 && builderHas4 == vpnHas4
+        // old & new agree on activ capable of routing ipv6 or not
+        val ok6 = builderHas6 == tunWants6 && builderHas6 == vpnHas6
+
+        val routesChanged = !ok4 || !ok6
+
+        logd("tun: has4: $builderHas4, wants4: $tunWants4, vpnHas4: $vpnHas4, has6: $builderHas6, wants6: $tunWants6, vpnHas6: $vpnHas6, routesChanged? $routesChanged, ")
+
+        if (new.useActive) {
+            connectivityManager.activeNetwork?.let { activ ->
+                val activHas4 = isNetworkSame(new.ipv4Net.firstOrNull()?.network, activ)
+                val activHas6 = isNetworkSame(new.ipv6Net.firstOrNull()?.network, activ)
+                val oldActivHas4 = isNetworkSame(old.ipv4Net.firstOrNull()?.network, activ)
+                val oldActivHas6 = isNetworkSame(old.ipv6Net.firstOrNull()?.network, activ)
+                val okActiv4 = oldActivHas4 == activHas4 // routing for ipv4 is same in old and new FIRST network
+                val okActiv6 = oldActivHas6 == activHas6 // routing for ipv6 is same in old and new FIRST network
+                val netChanged = !okActiv4 || !okActiv6
+
+                val ssidChanged = old.activeSsid != new.activeSsid
+                logd("tun: oldActiv4: $oldActivHas4, newActiv4: $activHas4, oldActiv6: $oldActivHas6, newActiv6: $activHas6, netChanged? $netChanged")
+                logd("tun: oldActiveSsid: ${old.activeSsid}, newActiveSsid: ${new.activeSsid}, ssidChanged? $ssidChanged")
+                // for active networks, changes in routes includes all possible network changes;
+                return BraveVPNService.NetworkChanges(routesChanged, netChanged, mtuChanged, ssidChanged)
+            } // active network null, fallthrough to check for netChanged
+        }
+        // check if the first networks are different to urge rebinds where necessary (ex: WireGuard)
+        val oldFirst6 = old.ipv6Net.firstOrNull()?.network
+        val newFirst6 = new.ipv6Net.firstOrNull()?.network
+        val oldFirst4 = old.ipv4Net.firstOrNull()?.network
+        val newFirst4 = new.ipv4Net.firstOrNull()?.network
+        val netChanged = !isNetworkSame(oldFirst6, newFirst6) || !isNetworkSame(oldFirst4, newFirst4)
+
+        val oldSsidFirst4 = old.ipv4Net.firstOrNull()?.ssid
+        val newSsidFirst4 = new.ipv4Net.firstOrNull()?.ssid
+        val oldSsidFirst6 = old.ipv6Net.firstOrNull()?.ssid
+        val newSsidFirst6 = new.ipv6Net.firstOrNull()?.ssid
+        val ssidChanged = oldSsidFirst4 != newSsidFirst4 || oldSsidFirst6 != newSsidFirst6
+
+        logd("tun: oldFirst4: $oldFirst4, newFirst4: $newFirst4, oldFirst6: $oldFirst6, newFirst6: $newFirst6, netChanged? $netChanged")
+        logd("tun: oldSsidFirst4: $oldSsidFirst4, newSsidFirst4: $newSsidFirst4, oldSsidFirst6: $oldSsidFirst6, newSsidFirst6: $newSsidFirst6, ssidChanged? $ssidChanged")
+        return BraveVPNService.NetworkChanges(routesChanged, netChanged, mtuChanged, ssidChanged)
     }
 }

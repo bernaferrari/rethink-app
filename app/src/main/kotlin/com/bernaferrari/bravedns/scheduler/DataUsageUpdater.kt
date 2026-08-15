@@ -18,6 +18,7 @@ package com.bernaferrari.bravedns.scheduler
 import Logger
 import Logger.LOG_TAG_SCHEDULER
 import android.content.Context
+import android.database.SQLException
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.bernaferrari.bravedns.database.AppInfoRepository
@@ -69,8 +70,10 @@ class DataUsageUpdater(context: Context, workerParams: WorkerParameters) :
                 val download = currentDataUsage.downloadBytes + it.downloadBytes
                 Logger.d(LOG_TAG_SCHEDULER, "Data usage for ${it.uid}, $upload, $download")
                 appInfoRepository.updateDataUsageByUid(it.uid, upload, download)
-            } catch (e: Exception) {
-                Logger.e(LOG_TAG_SCHEDULER, "err in data usage updater: ${e.message}")
+            } catch (e: SQLException) {
+                Logger.e(LOG_TAG_SCHEDULER, "err in data usage updater: ${e.message}", e)
+            } catch (e: IllegalStateException) {
+                Logger.e(LOG_TAG_SCHEDULER, "err in data usage updater: ${e.message}", e)
             }
         }
 
@@ -98,7 +101,9 @@ class DataUsageUpdater(context: Context, workerParams: WorkerParameters) :
 
             Logger.d(LOG_TAG_SCHEDULER, "rinr, data usage:($uid), $upload, $download")
             appInfoRepository.updateDataUsageByUid(uid, upload, download)
-        } catch (e: Exception) {
+        } catch (e: SQLException) {
+            Logger.e(LOG_TAG_SCHEDULER, "err in rinr data usage updater: ${e.message}", e)
+        } catch (e: IllegalStateException) {
             Logger.e(LOG_TAG_SCHEDULER, "err in rinr data usage updater: ${e.message}", e)
         }
     }

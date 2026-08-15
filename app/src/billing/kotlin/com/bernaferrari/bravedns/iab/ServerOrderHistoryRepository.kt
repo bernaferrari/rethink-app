@@ -100,7 +100,10 @@ class ServerOrderHistoryRepository(private val billingBackendClient: BillingBack
                 }
                 is FetchOrdersRawResult.NoCredentials -> Result.NoCredentials
             }
-        } catch (e: Exception) {
+        } catch (e: java.io.IOException) {
+            Logger.e(LOG_TAG_UI, "$TAG $mname: exception: ${e.message}", e)
+            Result.Error(e.localizedMessage ?: "Unknown error")
+        } catch (e: IllegalStateException) {
             Logger.e(LOG_TAG_UI, "$TAG $mname: exception: ${e.message}", e)
             Result.Error(e.localizedMessage ?: "Unknown error")
         }
@@ -175,8 +178,10 @@ class ServerOrderHistoryRepository(private val billingBackendClient: BillingBack
                 if (results.none { it.purchaseToken == entry.purchaseToken }) {
                     results.add(entry)
                 }
-            } catch (e: Exception) {
+            } catch (e: IllegalArgumentException) {
                 // Log full stacktrace so the root cause is visible in the log.
+                Logger.e(LOG_TAG_UI, "$TAG mapRow error: ${e.message}", e)
+            } catch (e: ClassCastException) {
                 Logger.e(LOG_TAG_UI, "$TAG mapRow error: ${e.message}", e)
             }
         }
@@ -327,7 +332,8 @@ class ServerOrderHistoryRepository(private val billingBackendClient: BillingBack
         if (iso.isNullOrBlank()) return 0L
         return try {
             Instant.parse(iso).toEpochMilli()
-        } catch (_: Exception) {
+        } catch (e: java.time.format.DateTimeParseException) {
+            Logger.w(LOG_TAG_UI, "$TAG isoToMillis: unparseable '$iso': ${e.message}", e)
             0L
         }
     }

@@ -138,8 +138,10 @@ class WgProxyPingController(private val scope: CoroutineScope) {
             scope.launch(Dispatchers.IO + CoroutineName("ping-$proxyId")) {
                 try {
                     pingProxy(proxyId)
-                } catch (e: Exception) {
-                    Logger.w(LOG_TAG_PROXY, "$TAG ping failed: $proxyId err=${e.message}")
+                } catch (e: IllegalStateException) {
+                    Logger.w(LOG_TAG_PROXY, "$TAG ping failed: $proxyId err=${e.message}", e)
+                } catch (e: IllegalArgumentException) {
+                    Logger.w(LOG_TAG_PROXY, "$TAG ping failed: $proxyId err=${e.message}", e)
                 } finally {
                     activeProxies[proxyId]?.running = false
                 }

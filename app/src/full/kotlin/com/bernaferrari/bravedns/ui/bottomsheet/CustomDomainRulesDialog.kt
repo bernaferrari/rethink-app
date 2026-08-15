@@ -1,32 +1,26 @@
 package com.bernaferrari.bravedns.ui.bottomsheet
 
-
 import android.graphics.drawable.Drawable
 import android.text.format.DateUtils
 import android.widget.Toast
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Text
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.database.CustomDomain
 import com.bernaferrari.bravedns.service.DomainRulesManager
 import com.bernaferrari.bravedns.service.EventLogger
-import com.bernaferrari.bravedns.util.Constants.Companion.UID_EVERYBODY
-import com.bernaferrari.bravedns.util.Utilities
-import com.bernaferrari.bravedns.ui.compose.rememberDrawablePainter
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleAction
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleActionOption
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleActionSelector
@@ -38,14 +32,16 @@ import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleSheetLayout
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleSheetModal
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleSupportingText
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleValue
-import Logger
+import com.bernaferrari.bravedns.ui.compose.rememberDrawablePainter
+import com.bernaferrari.bravedns.ui.compose.theme.Dimensions
+import com.bernaferrari.bravedns.util.Constants.Companion.UID_EVERYBODY
+import com.bernaferrari.bravedns.util.Utilities
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 private const val TAG = "CDRDialog"
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomDomainRulesSheet(
     customDomain: CustomDomain,
@@ -55,10 +51,16 @@ fun CustomDomainRulesSheet(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val editedMessage = stringResource(R.string.cd_toast_edit)
+    val undoLabel = stringResource(R.string.brbs_restore_dialog_positive)
     var appNames by remember { mutableStateOf<List<String>>(emptyList()) }
     var appIcon by remember { mutableStateOf<Drawable?>(null) }
-    var status by remember { mutableStateOf(DomainRulesManager.Status.NONE) }
+    var persistedStatus by remember { mutableStateOf(DomainRulesManager.Status.NONE) }
+    var selectedStatus by remember { mutableStateOf(DomainRulesManager.Status.NONE) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var applying by remember { mutableStateOf(false) }
+    var undoEpoch by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(customDomain.uid, customDomain.domain) {
         val uid = customDomain.uid
@@ -72,8 +74,11 @@ fun CustomDomainRulesSheet(
         }
 
         val rules = DomainRulesManager.getDomainRule(customDomain.domain, uid)
-        status = rules
+        persistedStatus = rules
+        selectedStatus = rules
     }
+
+    val hasPendingChange = selectedStatus != persistedStatus
 
     RethinkRuleSheetModal(onDismissRequest = onDismiss) {
         val appName = formatCustomRuleSheetAppName(context, customDomain.uid, appNames)
@@ -87,7 +92,7 @@ fun CustomDomainRulesSheet(
                 DateUtils.FORMAT_ABBREV_RELATIVE
             )
         val statusLabel =
-            when (status) {
+            when (persistedStatus) {
                 DomainRulesManager.Status.TRUST -> stringResource(R.string.ci_trust_txt)
                 DomainRulesManager.Status.BLOCK -> stringResource(R.string.lbl_blocked)
                 DomainRulesManager.Status.NONE -> stringResource(R.string.cd_no_rule_txt)
@@ -106,7 +111,7 @@ fun CustomDomainRulesSheet(
                 appIcon = {
                     appIcon?.let { icon ->
                         rememberDrawablePainter(icon)?.let { painter ->
-                            Image(painter = painter, contentDescription = null, modifier = Modifier.size(20.dp))
+                            Image(painter = painter, contentDescription = null, modifier = Modifier.size(Dimensions.iconSizeSm))
                         }
                     }
                 },
@@ -134,12 +139,42 @@ fun CustomDomainRulesSheet(
                             label = stringResource(R.string.ci_trust_rule),
                         )
                     ),
-                selectedAction = status.toRethinkRuleAction(),
-                onActionChange = { action ->
-                    updateRule(customDomain, action.toDomainRuleStatus(), scope, eventLogger) { newStatus -> status = newStatus }
+                selectedAction = selectedStatus.toRethinkRuleAction(),
+                onActionChange = { selectedStatus = it.toDomainRuleStatus() },
+            )
+
+            RuleSheetApplyBar(
+                enabled = hasPendingChange && !applying,
+                onApply = {
+                    val previous = persistedStatus
+                    val next = selectedStatus
+                    val epoch = undoEpoch + 1
+                    undoEpoch = epoch
+                    scope.launchReversibleRuleMutation(
+                        snackbarHostState = snackbarHostState,
+                        editedMessage = editedMessage,
+                        undoLabel = undoLabel,
+                        epoch = epoch,
+                        currentEpoch = { undoEpoch },
+                        setApplying = { applying = it },
+                        apply = {
+                            persistCustomDomainRule(customDomain, next, eventLogger)
+                            persistedStatus = next
+                            selectedStatus = next
+                            true
+                        },
+                        undo = {
+                            persistCustomDomainRule(customDomain, previous, eventLogger)
+                            persistedStatus = previous
+                            selectedStatus = previous
+                        },
+                    )
                 },
+                onDismiss = onDismiss,
             )
         }
+
+        RuleSheetSnackbarHost(snackbarHostState)
 
         if (showDeleteDialog) {
             RethinkRuleSheetDeleteDialog(
@@ -184,14 +219,12 @@ private fun RethinkRuleAction.toDomainRuleStatus() = when (this) {
     RethinkRuleAction.Trust -> DomainRulesManager.Status.TRUST
 }
 
-private fun updateRule(
+private suspend fun persistCustomDomainRule(
     customDomain: CustomDomain,
     rule: DomainRulesManager.Status,
-    scope: kotlinx.coroutines.CoroutineScope,
     eventLogger: EventLogger,
-    onUpdated: (DomainRulesManager.Status) -> Unit
 ) {
-    launchRuleMutation(scope, mutation = {
+    withContext(Dispatchers.IO) {
         when (rule) {
             DomainRulesManager.Status.NONE -> DomainRulesManager.noRule(customDomain)
             DomainRulesManager.Status.BLOCK -> DomainRulesManager.block(customDomain)
@@ -199,8 +232,7 @@ private fun updateRule(
         }
         val status = DomainRulesManager.Status.getStatus(customDomain.status)
         logEvent(eventLogger, "Domain rule for ${customDomain.domain} set to ${status.name}")
-        status
-    }, onUpdated = onUpdated)
+    }
 }
 
 private fun logEvent(eventLogger: EventLogger, details: String) {

@@ -68,7 +68,10 @@ class SubscriptionCheckWorker(
                 reconcilePurchase()
 
                 Result.success()
-            } catch (e: Exception) {
+            } catch (e: java.io.IOException) {
+                Logger.e(LOG_IAB, "$TAG; doWork failed: ${e.message}", e)
+                Result.retry()
+            } catch (e: IllegalStateException) {
                 Logger.e(LOG_IAB, "$TAG; doWork failed: ${e.message}", e)
                 Result.retry()
             }
@@ -153,8 +156,10 @@ class SubscriptionCheckWorker(
             Logger.i(LOG_IAB, "$TAG; $name: register device with cid: ${storedAccountId.take(8)}, did: ${storedDeviceId.take(4)}")
             dispatchDeviceRegistration(storedAccountId, storedDeviceId, purchase)
 
-        } catch (e: Exception) {
-            Logger.w(LOG_IAB, "$TAG; $name: error reg dev: ${e.message}")
+        } catch (e: java.io.IOException) {
+            Logger.w(LOG_IAB, "$TAG; $name: error reg dev: ${e.message}", e)
+        } catch (e: IllegalStateException) {
+            Logger.w(LOG_IAB, "$TAG; $name: error reg dev: ${e.message}", e)
         }
     }
 
@@ -195,8 +200,11 @@ class SubscriptionCheckWorker(
                 Logger.d(LOG_IAB, "$TAG; $mname: entitlement cid unavailable (null or blank)")
                 null
             }
-        } catch (e: Exception) {
-            Logger.w(LOG_IAB, "$TAG; $mname: could not resolve entitlement cid: ${e.message}")
+        } catch (e: java.io.IOException) {
+            Logger.w(LOG_IAB, "$TAG; $mname: could not resolve entitlement cid: ${e.message}", e)
+            null
+        } catch (e: IllegalStateException) {
+            Logger.w(LOG_IAB, "$TAG; $mname: could not resolve entitlement cid: ${e.message}", e)
             null
         }
     }
@@ -274,12 +282,17 @@ class SubscriptionCheckWorker(
             inAppPurchases.forEach { purchase ->
                 try {
                     processSingleInAppPurchaseForConsume(purchase)
-                } catch (e: Exception) {
+                } catch (e: java.io.IOException) {
+                    Logger.e(LOG_IAB, "$TAG; $mname: error processing purchase " +
+                        "token=${purchase.purchaseToken.take(8)}: ${e.message}", e)
+                } catch (e: IllegalStateException) {
                     Logger.e(LOG_IAB, "$TAG; $mname: error processing purchase " +
                         "token=${purchase.purchaseToken.take(8)}: ${e.message}", e)
                 }
             }
-        } catch (e: Exception) {
+        } catch (e: java.io.IOException) {
+            Logger.e(LOG_IAB, "$TAG; $mname: ${e.message}", e)
+        } catch (e: IllegalStateException) {
             Logger.e(LOG_IAB, "$TAG; $mname: ${e.message}", e)
         }
     }
@@ -365,8 +378,10 @@ class SubscriptionCheckWorker(
             } else {
                 Logger.d(LOG_IAB, "$TAG; $mname: tunnel entitlement expiry unavailable from payload")
             }
-        } catch (e: Exception) {
-            Logger.w(LOG_IAB, "$TAG; $mname: tunnel entitlement unavailable: ${e.message}")
+        } catch (e: IllegalArgumentException) {
+            Logger.w(LOG_IAB, "$TAG; $mname: tunnel entitlement unavailable: ${e.message}", e)
+        } catch (e: java.time.format.DateTimeParseException) {
+            Logger.w(LOG_IAB, "$TAG; $mname: tunnel entitlement unavailable: ${e.message}", e)
         }
 
         // BillingBackendClient.queryEntitlement (server fallback)
@@ -436,7 +451,10 @@ class SubscriptionCheckWorker(
                                 "linkedToken=${linked.take(8)}")
                             try {
                                 RpnProxyManager.tryReactivateLinkedPurchase(accountId, deviceId, linked)
-                            } catch (e: Exception) {
+                            } catch (e: java.io.IOException) {
+                                Logger.e(LOG_IAB, "$TAG; $mname: tryReactivateLinkedPurchase threw for " +
+                                    "linkedToken=${linked.take(8)}: ${e.message}", e)
+                            } catch (e: IllegalStateException) {
                                 Logger.e(LOG_IAB, "$TAG; $mname: tryReactivateLinkedPurchase threw for " +
                                     "linkedToken=${linked.take(8)}: ${e.message}", e)
                             }
@@ -460,8 +478,10 @@ class SubscriptionCheckWorker(
             } else {
                 Logger.w(LOG_IAB, "$TAG; $mname: accountId or purchaseToken empty, skipping server query")
             }
-        } catch (e: Exception) {
-            Logger.w(LOG_IAB, "$TAG; $mname: server entitlement query failed: ${e.message}")
+        } catch (e: java.io.IOException) {
+            Logger.w(LOG_IAB, "$TAG; $mname: server entitlement query failed: ${e.message}", e)
+        } catch (e: IllegalStateException) {
+            Logger.w(LOG_IAB, "$TAG; $mname: server entitlement query failed: ${e.message}", e)
         }
 
         Logger.w(LOG_IAB, "$TAG; $mname: no expiry source available for token=${purchase.purchaseToken.take(8)}")

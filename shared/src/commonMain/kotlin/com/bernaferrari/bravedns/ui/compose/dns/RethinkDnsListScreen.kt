@@ -26,6 +26,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import com.bernaferrari.bravedns.ui.compose.common.RethinkAdaptiveWidth
+import com.bernaferrari.bravedns.ui.compose.common.WindowWidthClass
+import com.bernaferrari.bravedns.ui.compose.common.isExpanded
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormSection
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLazyColumnScreenScaffold
@@ -88,14 +91,17 @@ fun RethinkDnsListScreen(
         verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
     ) {
         item {
-            RethinkFormSection(strings.configure) {
-                DnsProtocolGrid(
-                    protocols = protocols,
-                    selectedProtocolId = selectedProtocolId,
-                    selectedProtocolWorking = selectedProtocolWorking,
-                    strings = strings,
-                    onProtocolClick = onProtocolClick,
-                )
+            RethinkAdaptiveWidth { widthClass ->
+                RethinkFormSection(strings.configure) {
+                    DnsProtocolGrid(
+                        protocols = protocols,
+                        selectedProtocolId = selectedProtocolId,
+                        selectedProtocolWorking = selectedProtocolWorking,
+                        strings = strings,
+                        onProtocolClick = onProtocolClick,
+                        widthClass = widthClass,
+                    )
+                }
             }
         }
     }
@@ -108,9 +114,11 @@ private fun DnsProtocolGrid(
     selectedProtocolWorking: Boolean,
     strings: RethinkDnsListStrings,
     onProtocolClick: (RethinkDnsProtocol) -> Unit,
+    widthClass: WindowWidthClass,
 ) {
+    val columns = if (widthClass.isExpanded) 3 else 2
     Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
-        protocols.chunked(2).forEach { row ->
+        protocols.chunked(columns).forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
                 row.forEach { protocol ->
                     DnsProtocolCard(
@@ -122,7 +130,7 @@ private fun DnsProtocolGrid(
                         onClick = { onProtocolClick(protocol) },
                     )
                 }
-                if (row.size == 1) Box(Modifier.weight(1f))
+                repeat(columns - row.size) { Box(Modifier.weight(1f)) }
             }
         }
     }

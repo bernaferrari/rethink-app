@@ -60,6 +60,7 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ClosedSendChannelException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
@@ -415,7 +416,7 @@ class ConnectionMonitor(private val context: Context, private val networkListene
         } catch (e: SecurityException) {
             Logger.w(LOG_TAG_CONNECTION, "getNetworkSSID: SecurityException accessing WiFi info", e)
             return null
-        } catch (e: Exception) {
+        } catch (e: IllegalStateException) {
             Logger.w(
                 LOG_TAG_CONNECTION,
                 "getNetworkSSID: Exception getting SSID for network ${network.networkHandle}",
@@ -649,13 +650,13 @@ class ConnectionMonitor(private val context: Context, private val networkListene
                 // register the network callbacks, can throw exception
                 try {
                     cm.unregisterNetworkCallback(internetValidatedCallback())
-                } catch (e: Exception) {
-                    Logger.w(LOG_TAG_CONNECTION, "err unregistering internetValidatedCallBack, ${e.message}")
+                } catch (e: IllegalArgumentException) {
+                    Logger.w(LOG_TAG_CONNECTION, "err unregistering internetValidatedCallBack, ${e.message}", e)
                 }
                 try {
                     cm.unregisterNetworkCallback(transportCallback())
-                } catch (e: Exception) {
-                    Logger.w(LOG_TAG_CONNECTION, "err unregistering transportCallback, ${e.message}")
+                } catch (e: IllegalArgumentException) {
+                    Logger.w(LOG_TAG_CONNECTION, "err unregistering transportCallback, ${e.message}", e)
                 }
             }
             val success = registerCallbackBasedOnPolicy()
@@ -757,7 +758,10 @@ class ConnectionMonitor(private val context: Context, private val networkListene
             // TODO: use a custom Looper(HandlerThread) to avoid blocking the main thread
             cm.registerNetworkCallback(req, callback)
             true
-        } catch (e: Exception) {
+        } catch (e: SecurityException) {
+            Logger.w(LOG_TAG_CONNECTION, "err registering network callback", e)
+            false
+        } catch (e: IllegalArgumentException) {
             Logger.w(LOG_TAG_CONNECTION, "err registering network callback", e)
             false
         }
@@ -769,8 +773,12 @@ class ConnectionMonitor(private val context: Context, private val networkListene
             try {
                 val diagnosticMgr = DiagnosticsManager(context, scope, this)
                 diagnosticMgr.register()
-            } catch (e: Exception) {
-                Logger.w(LOG_TAG_CONNECTION, "DiagnosticsManager; err while getting connectivity diagnostics manager")
+            } catch (e: SecurityException) {
+                Logger.w(LOG_TAG_CONNECTION, "DiagnosticsManager; err while getting connectivity diagnostics manager", e)
+            } catch (e: IllegalStateException) {
+                Logger.w(LOG_TAG_CONNECTION, "DiagnosticsManager; err while getting connectivity diagnostics manager", e)
+            } catch (e: ClassCastException) {
+                Logger.w(LOG_TAG_CONNECTION, "DiagnosticsManager; err while getting connectivity diagnostics manager", e)
             }
         }
     }
@@ -782,8 +790,10 @@ class ConnectionMonitor(private val context: Context, private val networkListene
             try {
                 diagsMgr?.unregister()
                 diagsMgr = null
-            } catch (e: Exception) {
-                Logger.w(LOG_TAG_CONNECTION, "DiagnosticsManager; err while unregistering diag network callback")
+            } catch (e: IllegalArgumentException) {
+                Logger.w(LOG_TAG_CONNECTION, "DiagnosticsManager; err while unregistering diag network callback", e)
+            } catch (e: IllegalStateException) {
+                Logger.w(LOG_TAG_CONNECTION, "DiagnosticsManager; err while unregistering diag network callback", e)
             }
         }
     }
@@ -797,13 +807,13 @@ class ConnectionMonitor(private val context: Context, private val networkListene
             if (::cm.isInitialized) {
                 try {
                     cm.unregisterNetworkCallback(internetValidatedCallback())
-                } catch (e: Exception) {
-                    Logger.w(LOG_TAG_CONNECTION, "err unregistering internetValidatedCallBack, ${e.message}")
+                } catch (e: IllegalArgumentException) {
+                    Logger.w(LOG_TAG_CONNECTION, "err unregistering internetValidatedCallBack, ${e.message}", e)
                 }
                 try {
                     cm.unregisterNetworkCallback(transportCallback())
-                } catch (e: Exception) {
-                    Logger.w(LOG_TAG_CONNECTION, "err unregistering transportCallback, ${e.message}")
+                } catch (e: IllegalArgumentException) {
+                    Logger.w(LOG_TAG_CONNECTION, "err unregistering transportCallback, ${e.message}", e)
                 }
             }
             if (isAtleastR()) {
@@ -813,8 +823,8 @@ class ConnectionMonitor(private val context: Context, private val networkListene
             if (::channel.isInitialized) {
                 channel.close()
             }
-        } catch (e: Exception) {
-            Logger.w(LOG_TAG_CONNECTION, "err while unregistering; ${e.message}")
+        } catch (e: IllegalStateException) {
+            Logger.w(LOG_TAG_CONNECTION, "err while unregistering; ${e.message}", e)
         }
     }
 
@@ -845,7 +855,7 @@ class ConnectionMonitor(private val context: Context, private val networkListene
         if (DEBUG) Logger.v(LOG_TAG_CONNECTION, "sendNetworkChanges, channel closed? ${channel.isClosedForSend} msg: ${msg.msgType}, test: ${msg.testReachability}, stall: ${msg.stallOnNoNetwork}, useAutoChecks: ${msg.useAutoConnectivityChecks}, networks: ${msg.networkSet.size}")
         try {
             channel.send(msg)
-        } catch (e: Exception) {
+        } catch (e: ClosedSendChannelException) {
             Logger.e(LOG_TAG_CONNECTION, "sendNetworkChanges, err while sending message to channel", e)
         }
     }

@@ -31,8 +31,8 @@ class SubscriptionCheckWorker(
                 initiate()
                 // by default, return success
                 Result.success()
-            } catch (e: Exception) {
-                Logger.e(LOG_IAB, "$WORK_NAME; failed: ${e.message}")
+            } catch (e: IllegalStateException) {
+                Logger.e(LOG_IAB, "$WORK_NAME; failed: ${e.message}", e)
                 Result.retry()
             }
         }

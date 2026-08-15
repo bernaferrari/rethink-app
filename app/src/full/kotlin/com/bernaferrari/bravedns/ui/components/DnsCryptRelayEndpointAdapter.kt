@@ -23,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.data.AppConfig
 import com.bernaferrari.bravedns.database.DnsCryptRelayEndpoint
@@ -33,6 +34,9 @@ private const val TAG = "DnsCryptRelayEndpointAdapter"
 fun RelayRow(endpoint: DnsCryptRelayEndpoint, appConfig: AppConfig) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val failingToast = stringResource(R.string.status_failing)
+    val deleteSuccessToast = stringResource(R.string.dns_crypt_relay_remove_success)
+    val resolvedExplanation = resolveDnsDescriptionText(endpoint.dnsCryptRelayExplanation)
     var isSelected by remember(endpoint.id) { mutableStateOf(endpoint.isSelected) }
     val explanation =
         rememberDnsStatusExplanation(
@@ -49,7 +53,7 @@ fun RelayRow(endpoint: DnsCryptRelayEndpoint, appConfig: AppConfig) {
 
     val updateSelection: (Boolean) -> Unit = { checked ->
         isSelected = checked
-        launchDnsEndpointSelectionUpdate(scope, context, TAG) {
+        launchDnsEndpointSelectionUpdate(scope, context, TAG, failingToast) {
             endpoint.isSelected = checked
             appConfig.handleDnsrelayChanges(endpoint)
         }
@@ -68,15 +72,14 @@ fun RelayRow(endpoint: DnsCryptRelayEndpoint, appConfig: AppConfig) {
                         id = endpoint.id,
                         titleRes = R.string.dns_crypt_relay_remove_dialog_title,
                         messageRes = R.string.dns_crypt_relay_remove_dialog_message,
-                        successRes = R.string.dns_crypt_relay_remove_success
+                        successToast = deleteSuccessToast
                     )
             } else {
                 val description =
                     if (endpoint.dnsCryptRelayExplanation.isNullOrEmpty()) {
                         endpoint.dnsCryptRelayURL
                     } else {
-                        endpoint.dnsCryptRelayURL + "\n\n" +
-                            resolveDnsDescriptionText(context, endpoint.dnsCryptRelayExplanation)
+                        endpoint.dnsCryptRelayURL + "\n\n" + resolvedExplanation
                     }
                 infoDialog =
                     DnsInfoDialogModel(
@@ -94,7 +97,7 @@ fun RelayRow(endpoint: DnsCryptRelayEndpoint, appConfig: AppConfig) {
             model = model,
             onDismiss = { deleteDialog = null },
             onConfirm = { id ->
-                launchDnsEndpointDelete(scope, context, model.successRes) {
+                launchDnsEndpointDelete(scope, context, model.successToast, failingToast) {
                     appConfig.deleteDnscryptRelayEndpoint(id)
                 }
                 deleteDialog = null

@@ -50,22 +50,27 @@ fun RethinkEndpointRow(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val failingToast = stringResource(R.string.status_failing)
+    val startRethinkToast = stringResource(R.string.ssv_toast_start_rethink)
+    val statusStrings = rememberDnsStatusStrings()
+    val connectedPlus =
+        stringResource(
+            R.string.dns_connected_rethink_plus,
+            endpoint.blocklistCount.toString()
+        )
     val explanation =
         rememberDnsStatusExplanation(
             key = "${endpoint.url}:${endpoint.blocklistCount}",
             isSelected = endpoint.isActive,
             smartDnsEnabled = appConfig.isSmartDnsEnabled(),
             tag = TAG,
-            statusTextMapper = { ctx, status ->
+            statusTextMapper = { status ->
                 if (status != R.string.dns_connected) {
-                    ctx.getString(status).replaceFirstChar(Char::titlecase)
+                    (statusStrings[status] ?: "").replaceFirstChar(Char::titlecase)
                 } else if (endpoint.blocklistCount > 0) {
-                    ctx.getString(
-                        R.string.dns_connected_rethink_plus,
-                        endpoint.blocklistCount.toString()
-                    )
+                    connectedPlus
                 } else {
-                    ctx.getString(status)
+                    statusStrings[status] ?: ""
                 }
             }
         )
@@ -79,7 +84,7 @@ fun RethinkEndpointRow(
         selection = DnsRowSelection.Radio,
         onActionClick = { dialogState = RethinkDialogState.Info(endpoint) },
         onSelectionChange = {
-            launchDnsEndpointSelectionUpdate(scope, context, TAG) {
+            launchDnsEndpointSelectionUpdate(scope, context, TAG, failingToast) {
                 endpoint.isActive = true
                 appConfig.handleRethinkChanges(endpoint)
             }
@@ -105,7 +110,7 @@ fun RethinkEndpointRow(
             onPrimary = {
                 dialogState = null
                 if (editEnabled) {
-                    openEditConfiguration(context, endpoint, onEditConfiguration)
+                    openEditConfiguration(context, startRethinkToast, endpoint, onEditConfiguration)
                 }
             },
             secondaryText = stringResource(R.string.dns_info_neutral),
@@ -127,13 +132,14 @@ fun RethinkEndpointRow(
 
 private fun openEditConfiguration(
     context: Context,
+    startRethinkToast: String,
     endpoint: RethinkDnsEndpoint,
     onEditConfiguration: (ConfigureRethinkScreenType, String, String) -> Unit
 ) {
     if (!VpnController.hasTunnel()) {
         Utilities.showToastUiCentered(
             context,
-            context.getString(R.string.ssv_toast_start_rethink),
+            startRethinkToast,
             Toast.LENGTH_SHORT
         )
         return

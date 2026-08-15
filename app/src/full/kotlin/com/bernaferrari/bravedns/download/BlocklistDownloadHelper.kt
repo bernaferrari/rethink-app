@@ -25,9 +25,10 @@ import com.bernaferrari.bravedns.util.JsonHelper
 import com.bernaferrari.bravedns.util.Constants.Companion.INIT_TIME_MS
 import com.bernaferrari.bravedns.util.Utilities.blocklistCanonicalPath
 import com.bernaferrari.bravedns.util.Utilities.deleteRecursive
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
-
 import java.io.File
+import java.io.IOException
 
 class BlocklistDownloadHelper {
 
@@ -65,7 +66,7 @@ class BlocklistDownloadHelper {
                         0
                     }
                 result = Constants.ONDEVICE_BLOCKLISTS_ADM.count() == total
-            } catch (e: Exception) {
+            } catch (e: SecurityException) {
                 logw("Local block list validation failed: ${e.message}", e)
             }
 
@@ -148,7 +149,9 @@ class BlocklistDownloadHelper {
                 if (response?.isSuccessful == true) {
                     return processCheckDownloadResponse(response.body)
                 }
-            } catch (ex: Exception) {
+            } catch (ex: IOException) {
+                logw("exception in checkBlocklistUpdate: ${ex.message}", ex)
+            } catch (ex: IllegalStateException) {
                 logw("exception in checkBlocklistUpdate: ${ex.message}", ex)
             }
             logi("downloadAvailabilityCheck: failed, returning null, $retryCount")
@@ -179,7 +182,10 @@ class BlocklistDownloadHelper {
                 logi("response for blocklist update check: version: $version, update? $hasUpdate, timestamp: $timestamp")
 
                 BlocklistUpdateServerResponse(version, hasUpdate, timestamp)
-            } catch (e: Exception) {
+            } catch (e: SerializationException) {
+                logw("err parsing the response: ${e.message}", e)
+                null
+            } catch (e: IllegalArgumentException) {
                 logw("err parsing the response: ${e.message}", e)
                 null
             }

@@ -147,26 +147,63 @@ class SubscriptionStateMachineV2Test : KoinTest {
     // 1. SubscriptionState property tests (pure unit — no Koin / machine needed)
     // =========================================================================
 
-    @Test fun `Active isActive is true`()  { assertTrue(SubscriptionStateMachineV2.SubscriptionState.Active.isActive) }
-    @Test fun `Grace isActive is true`()   { assertTrue(SubscriptionStateMachineV2.SubscriptionState.Grace.isActive) }
-    @Test fun `Expired isActive is false`(){ assertFalse(SubscriptionStateMachineV2.SubscriptionState.Expired.isActive) }
-    @Test fun `Revoked isActive is false`(){ assertFalse(SubscriptionStateMachineV2.SubscriptionState.Revoked.isActive) }
-    @Test fun `Cancelled isActive is false`(){ assertFalse(SubscriptionStateMachineV2.SubscriptionState.Cancelled.isActive) }
+    @Test fun `Active is Entitled and isActive`() {
+        val s = SubscriptionStateMachineV2.SubscriptionState.Active
+        assertTrue(s is SubscriptionStateMachineV2.SubscriptionState.Entitled)
+        assertTrue(s.isActive)
+        assertTrue(s.hasValidSubscription)
+        assertFalse(s.canMakePurchase)
+    }
 
-    @Test fun `Active hasValidSubscription is true`()    { assertTrue(SubscriptionStateMachineV2.SubscriptionState.Active.hasValidSubscription) }
-    @Test fun `Grace hasValidSubscription is true`()     { assertTrue(SubscriptionStateMachineV2.SubscriptionState.Grace.hasValidSubscription) }
-    @Test fun `Cancelled hasValidSubscription is true`() { assertTrue(SubscriptionStateMachineV2.SubscriptionState.Cancelled.hasValidSubscription) }
-    @Test fun `OnHold hasValidSubscription is true`()    { assertTrue(SubscriptionStateMachineV2.SubscriptionState.OnHold.hasValidSubscription) }
-    @Test fun `Paused hasValidSubscription is true`()    { assertTrue(SubscriptionStateMachineV2.SubscriptionState.Paused.hasValidSubscription) }
-    @Test fun `Expired hasValidSubscription is false`()  { assertFalse(SubscriptionStateMachineV2.SubscriptionState.Expired.hasValidSubscription) }
-    @Test fun `Revoked hasValidSubscription is false`()  { assertFalse(SubscriptionStateMachineV2.SubscriptionState.Revoked.hasValidSubscription) }
-    @Test fun `Initial hasValidSubscription is false`()  { assertFalse(SubscriptionStateMachineV2.SubscriptionState.Initial.hasValidSubscription) }
+    @Test fun `Cancelled is Entitled with access but cannot repurchase`() {
+        val s = SubscriptionStateMachineV2.SubscriptionState.Cancelled
+        assertTrue(s is SubscriptionStateMachineV2.SubscriptionState.Entitled)
+        assertFalse(s.isActive)
+        assertTrue(s.hasValidSubscription)
+        assertFalse(s.canMakePurchase)
+    }
 
-    @Test fun `Initial canMakePurchase is true`()  { assertTrue(SubscriptionStateMachineV2.SubscriptionState.Initial.canMakePurchase) }
-    @Test fun `Expired canMakePurchase is true`()  { assertTrue(SubscriptionStateMachineV2.SubscriptionState.Expired.canMakePurchase) }
-    @Test fun `Revoked canMakePurchase is true`()  { assertTrue(SubscriptionStateMachineV2.SubscriptionState.Revoked.canMakePurchase) }
-    @Test fun `Active canMakePurchase is false`()  { assertFalse(SubscriptionStateMachineV2.SubscriptionState.Active.canMakePurchase) }
-    @Test fun `Grace canMakePurchase is false`()   { assertFalse(SubscriptionStateMachineV2.SubscriptionState.Grace.canMakePurchase) }
+    @Test fun `Expired is NotEntitled and can repurchase`() {
+        val s = SubscriptionStateMachineV2.SubscriptionState.Expired
+        assertTrue(s is SubscriptionStateMachineV2.SubscriptionState.NotEntitled)
+        assertFalse(s.isActive)
+        assertFalse(s.hasValidSubscription)
+        assertTrue(s.canMakePurchase)
+    }
+
+    @Test fun `Revoked is NotEntitled and can repurchase`() {
+        val s = SubscriptionStateMachineV2.SubscriptionState.Revoked
+        assertTrue(s is SubscriptionStateMachineV2.SubscriptionState.NotEntitled)
+        assertFalse(s.hasValidSubscription)
+        assertTrue(s.canMakePurchase)
+    }
+
+    @Test fun `Initial is NotEntitled`() {
+        val s = SubscriptionStateMachineV2.SubscriptionState.Initial
+        assertTrue(s is SubscriptionStateMachineV2.SubscriptionState.NotEntitled)
+        assertFalse(s.hasValidSubscription)
+        assertTrue(s.canMakePurchase)
+    }
+
+    @Test fun `PurchasePending is Pending`() {
+        val s = SubscriptionStateMachineV2.SubscriptionState.PurchasePending
+        assertTrue(s is SubscriptionStateMachineV2.SubscriptionState.Pending)
+        assertFalse(s.hasValidSubscription)
+        assertTrue(s.canMakePurchase)
+    }
+
+    @Test fun `decorative Play leaves inherit Entitled flags and are never required`() {
+        listOf(
+            SubscriptionStateMachineV2.SubscriptionState.Grace,
+            SubscriptionStateMachineV2.SubscriptionState.OnHold,
+            SubscriptionStateMachineV2.SubscriptionState.Paused
+        ).forEach { s ->
+            assertTrue(s is SubscriptionStateMachineV2.SubscriptionState.Entitled)
+            assertTrue(s.hasValidSubscription)
+            assertFalse(s.canMakePurchase)
+        }
+        assertTrue(SubscriptionStateMachineV2.SubscriptionState.Grace.isActive)
+    }
 
     @Test fun `Cancelled isCancelled is true`()    { assertTrue(SubscriptionStateMachineV2.SubscriptionState.Cancelled.isCancelled) }
     @Test fun `Active isCancelled is false`()      { assertFalse(SubscriptionStateMachineV2.SubscriptionState.Active.isCancelled) }
@@ -297,7 +334,10 @@ class SubscriptionStateMachineV2Test : KoinTest {
         machine.paymentSuccessful(pd)
         delay(100)
 
+        assertTrue(machine.getCurrentState() is SubscriptionStateMachineV2.SubscriptionState.Entitled)
         assertEquals(SubscriptionStateMachineV2.SubscriptionState.Active, machine.getCurrentState())
+        assertTrue(machine.hasValidSubscription())
+        assertFalse(machine.canMakePurchase())
         coVerify(atLeast = 1) { mockRepository.upsert(any()) }
     }
 
@@ -468,38 +508,62 @@ class SubscriptionStateMachineV2Test : KoinTest {
     // =========================================================================
 
     @Test
-    fun `reconcile empty SUBS snapshot expires stale SUBS rows`() = runBlocking {
+    fun `reconcile empty SUBS snapshot is ignored until threshold`() = runBlocking {
         val machine  = createMachine()
         val staleSub = makeActiveSub(purchaseToken = "tok-stale", productId = STD_PRODUCT).also {
             it.lastUpdatedTs = System.currentTimeMillis() - 2 * 24 * 60 * 60 * 1000L
         }
         coEvery { mockRepository.getSubscriptionsByStates(any()) } returns listOf(staleSub)
 
-        machine.reconcileWithPlayBilling(
-            purchases = emptyList(),
-            queriedProductType = BillingClient.ProductType.SUBS
-        )
+        repeat(2) {
+            machine.reconcileWithPlayBilling(
+                purchases = emptyList(),
+                queriedProductType = BillingClient.ProductType.SUBS
+            )
+        }
+
+        coVerify(exactly = 0) { mockRepository.upsert(any()) }
+        assertTrue(machine.getCurrentState() is SubscriptionStateMachineV2.SubscriptionState.NotEntitled)
+        assertEquals(SubscriptionStateMachineV2.SubscriptionState.Initial, machine.getCurrentState())
+    }
+
+    @Test
+    fun `reconcile empty SUBS snapshot expires stale SUBS rows after threshold`() = runBlocking {
+        val machine  = createMachine()
+        val staleSub = makeActiveSub(purchaseToken = "tok-stale", productId = STD_PRODUCT).also {
+            it.lastUpdatedTs = System.currentTimeMillis() - 2 * 24 * 60 * 60 * 1000L
+        }
+        coEvery { mockRepository.getSubscriptionsByStates(any()) } returns listOf(staleSub)
+
+        repeat(3) {
+            machine.reconcileWithPlayBilling(
+                purchases = emptyList(),
+                queriedProductType = BillingClient.ProductType.SUBS
+            )
+        }
 
         coVerify {
             mockRepository.upsert(match { it.status == SubscriptionStatus.SubscriptionState.STATE_EXPIRED.id })
         }
+        assertTrue(machine.getCurrentState() is SubscriptionStateMachineV2.SubscriptionState.NotEntitled)
         assertEquals(SubscriptionStateMachineV2.SubscriptionState.Expired, machine.getCurrentState())
     }
 
     @Test
-    fun `reconcile empty SUBS snapshot expires even recently-active rows`() = runBlocking {
+    fun `reconcile empty SUBS snapshot expires even recently-active rows after threshold`() = runBlocking {
         val machine    = createMachine()
         val recentSub  = makeActiveSub(purchaseToken = "tok-recent", productId = STD_PRODUCT).also {
             it.lastUpdatedTs = System.currentTimeMillis() - 10 * 60 * 1000L
         }
         coEvery { mockRepository.getSubscriptionsByStates(any()) } returns listOf(recentSub)
 
-        machine.reconcileWithPlayBilling(
-            purchases = emptyList(),
-            queriedProductType = BillingClient.ProductType.SUBS
-        )
+        repeat(3) {
+            machine.reconcileWithPlayBilling(
+                purchases = emptyList(),
+                queriedProductType = BillingClient.ProductType.SUBS
+            )
+        }
 
-        // No guard window: Play is the authority, row is expired
         coVerify {
             mockRepository.upsert(match { it.status == SubscriptionStatus.SubscriptionState.STATE_EXPIRED.id })
         }
@@ -961,7 +1025,10 @@ class SubscriptionStateMachineV2Test : KoinTest {
         machine.userCancelled()
         delay(100)
 
+        assertTrue(machine.getCurrentState() is SubscriptionStateMachineV2.SubscriptionState.Entitled)
         assertEquals(SubscriptionStateMachineV2.SubscriptionState.Cancelled, machine.getCurrentState())
+        assertTrue(machine.hasValidSubscription())
+        assertFalse(machine.canMakePurchase())
         coVerify {
             mockRepository.upsert(match { it.status == SubscriptionStatus.SubscriptionState.STATE_CANCELLED.id })
         }
@@ -1300,6 +1367,76 @@ class SubscriptionStateMachineV2Test : KoinTest {
         val pd = machine.createPurchaseDetailFromSubscription(sub)
 
         assertFalse("Cancelled SUBS should not be auto-renewing", pd.isAutoRenewing)
+    }
+
+    // =========================================================================
+    // 9. Contradiction fixes
+    // =========================================================================
+
+    @Test
+    fun `Cancelled cannot be both valid and purchasable`() {
+        val s = SubscriptionStateMachineV2.SubscriptionState.Cancelled
+        assertTrue(s.hasValidSubscription)
+        assertFalse(s.canMakePurchase)
+        assertFalse(s.hasValidSubscription && s.canMakePurchase)
+    }
+
+    @Test
+    fun `userCancelled keeps entitlement data expiry productId and cancellationPending`() = runBlocking {
+        val machine = createMachine()
+        val sub = makeActiveSub(purchaseToken = "tok-cancel-fields").also {
+            it.productId = STD_PRODUCT
+        }
+        transitionToActiveWithData(machine, sub)
+        coEvery { mockRepository.upsert(any()) }            returns 1L
+        coEvery { mockRepository.getCurrentSubscription() } returns sub
+
+        machine.userCancelled()
+        delay(100)
+
+        val data = machine.getSubscriptionData()
+        assertTrue(machine.getCurrentState() is SubscriptionStateMachineV2.SubscriptionState.Entitled)
+        assertTrue(data?.cancellationPending == true)
+        assertEquals(STD_PRODUCT, data?.productId)
+        assertTrue((data?.expiryTime ?: 0L) > System.currentTimeMillis())
+        assertFalse(data?.autoRenewing == true)
+    }
+
+    @Test
+    fun `stopProxy is a soft-stop and does not call deactivateRpn`() = runBlocking {
+        mockkObject(com.bernaferrari.bravedns.service.VpnController)
+        coEvery { com.bernaferrari.bravedns.service.VpnController.unregisterWin() } returns true
+        every { mockPersistentState.rpnState } returns RpnProxyManager.RpnState.ENABLED.id
+        every { mockPersistentState.rpnMode } returns RpnProxyManager.RpnMode.ANTI_CENSORSHIP.id
+        every { mockPersistentState.rpnState = any() } just Runs
+        every { mockPersistentState.rpnMode = any() } just Runs
+        coEvery { RpnProxyManager.stopProxy() } coAnswers { callOriginal() }
+
+        RpnProxyManager.stopProxy()
+
+        coVerify(exactly = 0) { RpnProxyManager.deactivateRpn(any()) }
+        coVerify { com.bernaferrari.bravedns.service.VpnController.unregisterWin() }
+    }
+
+    @Test
+    fun `activateRpn calls handleRpnProxies after enabling`() = runBlocking {
+        val machine = createMachine()
+        val pd = makePurchaseDetail(STD_PRODUCT)
+        machine.paymentSuccessful(pd)
+        delay(100)
+        org.koin.core.context.loadKoinModules(module { single { machine } })
+
+        mockkObject(com.bernaferrari.bravedns.service.VpnController)
+        coEvery { com.bernaferrari.bravedns.service.VpnController.handleRpnProxies() } just Runs
+        every { mockPersistentState.rpnState } returns RpnProxyManager.RpnState.DISABLED.id
+        every { mockPersistentState.rpnState = any() } just Runs
+        every { mockPersistentState.rpnMode } returns RpnProxyManager.RpnMode.NONE.id
+        coEvery { RpnProxyManager.storeWinEntitlement(any()) } just Runs
+        coEvery { RpnProxyManager.activateRpn(any(), any()) } coAnswers { callOriginal() }
+
+        RpnProxyManager.activateRpn(pd)
+
+        coVerify { com.bernaferrari.bravedns.service.VpnController.handleRpnProxies() }
     }
 
     // =========================================================================

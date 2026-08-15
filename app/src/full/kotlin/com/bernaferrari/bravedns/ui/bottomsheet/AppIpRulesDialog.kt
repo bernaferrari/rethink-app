@@ -15,67 +15,50 @@
  */
 package com.bernaferrari.bravedns.ui.bottomsheet
 
-
 import android.graphics.drawable.Drawable
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import Logger
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.service.DomainRulesManager
 import com.bernaferrari.bravedns.service.EventLogger
-import com.bernaferrari.bravedns.service.FirewallManager
 import com.bernaferrari.bravedns.service.IpRulesManager
-import com.bernaferrari.bravedns.ui.compose.rememberDrawablePainter
-import com.bernaferrari.bravedns.ui.compose.theme.Dimensions
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkDomainRuleRow
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleAction
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleEditorHeader
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleEditorStrings
-import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleSheetBottomPaddingWithActions
+import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleSheetBottomPaddingCompact
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleSheetLayout
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleSheetModal
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleSectionTitle
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleSupportingText
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleTrustBlockRow
-import Logger
-import kotlinx.coroutines.CoroutineScope
+import com.bernaferrari.bravedns.ui.compose.rememberDrawablePainter
+import com.bernaferrari.bravedns.ui.compose.theme.Dimensions
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 private const val TAG = "AppIpBtmSht"
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppIpRulesSheet(
     uid: Int,
@@ -87,27 +70,44 @@ fun AppIpRulesSheet(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val editedMessage = stringResource(R.string.cd_toast_edit)
+    val undoLabel = stringResource(R.string.brbs_restore_dialog_positive)
+    val invalidIpMessage = stringResource(R.string.ci_dialog_error_invalid_ip)
 
-    var ipRule by remember { mutableStateOf(IpRulesManager.IpRuleStatus.NONE) }
+    var persistedIpRule by remember { mutableStateOf(IpRulesManager.IpRuleStatus.NONE) }
+    var selectedIpRule by remember { mutableStateOf(IpRulesManager.IpRuleStatus.NONE) }
     var appNames by remember { mutableStateOf<List<String>>(emptyList()) }
     var appIcon by remember { mutableStateOf<Drawable?>(null) }
+    var applying by remember { mutableStateOf(false) }
+    var undoEpoch by remember { mutableIntStateOf(0) }
+    var ipError by remember { mutableStateOf<String?>(null) }
     val domainList = remember(domains) { domains.split(",").map { it.trim() }.filter { it.isNotEmpty() } }
-    val domainRules = remember { mutableStateMapOf<String, DomainRulesManager.Status>() }
+    val persistedDomainRules = remember { mutableStateMapOf<String, DomainRulesManager.Status>() }
+    val selectedDomainRules = remember { mutableStateMapOf<String, DomainRulesManager.Status>() }
 
     LaunchedEffect(uid, ipAddress, domains) {
         val (names, icon) = withContext(Dispatchers.IO) { fetchRuleSheetAppIdentity(context, uid) }
         appNames = names
         appIcon = icon
-        ipRule = withContext(Dispatchers.IO) {
+        val status = withContext(Dispatchers.IO) {
             IpRulesManager.getMostSpecificRuleMatch(uid, ipAddress)
         }
+        persistedIpRule = status
+        selectedIpRule = status
         val statuses =
             withContext(Dispatchers.IO) {
                 domainList.associateWith { DomainRulesManager.getDomainRule(it, uid) }
             }
-        domainRules.clear()
-        domainRules.putAll(statuses)
+        persistedDomainRules.clear()
+        persistedDomainRules.putAll(statuses)
+        selectedDomainRules.clear()
+        selectedDomainRules.putAll(statuses)
+        ipError = null
     }
+
+    val domainsDirty = domainList.any { selectedDomainRules[it] != persistedDomainRules[it] }
+    val hasPendingChange = selectedIpRule != persistedIpRule || domainsDirty
 
     RethinkRuleSheetModal(onDismissRequest = onDismiss) {
         val appName = formatRuleSheetAppName(context, appNames)
@@ -115,7 +115,7 @@ fun AppIpRulesSheet(
             trust = stringResource(R.string.ci_trust_rule),
             block = stringResource(R.string.ci_block),
         )
-        RethinkRuleSheetLayout(bottomPadding = RethinkRuleSheetBottomPaddingWithActions) {
+        RethinkRuleSheetLayout(bottomPadding = RethinkRuleSheetBottomPaddingCompact) {
             RethinkRuleEditorHeader(
                 appName = appName,
                 appIcon = {
@@ -133,20 +133,24 @@ fun AppIpRulesSheet(
 
             RethinkRuleTrustBlockRow(
                 value = ipAddress,
-                action = ipRule.toRethinkRuleAction(),
+                action = selectedIpRule.toRethinkRuleAction(),
                 strings = ruleStrings,
-                onActionChange = { action ->
-                    val target = action.toIpRuleStatus()
-                    applyIpRule(
-                        uid,
-                        ipAddress,
-                        target,
-                        scope,
-                        eventLogger,
-                        onUpdated
-                    ) { ipRule = it }
+                onActionChange = {
+                    selectedIpRule = it.toIpRuleStatus()
+                    ipError = null
                 },
             )
+
+            if (ipError != null) {
+                Text(
+                    text = ipError.orEmpty(),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = Dimensions.screenPaddingHorizontal),
+                )
+            }
 
             if (domainList.isNotEmpty()) {
                 RethinkRuleSectionTitle(
@@ -156,15 +160,13 @@ fun AppIpRulesSheet(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.screenPaddingHorizontal)
                 ) {
                     items(domainList, key = { it }) { domain ->
-                        val status = domainRules[domain] ?: DomainRulesManager.Status.NONE
+                        val status = selectedDomainRules[domain] ?: DomainRulesManager.Status.NONE
                         RethinkDomainRuleRow(
                             domain = domain,
                             action = status.toRethinkRuleAction(),
                             strings = ruleStrings,
                             onActionChange = { action ->
-                                val newStatus = action.toDomainRuleStatus()
-                                domainRules[domain] = newStatus
-                                applyDomainRule(domain, uid, newStatus, scope)
+                                selectedDomainRules[domain] = action.toDomainRuleStatus()
                             }
                         )
                     }
@@ -174,23 +176,54 @@ fun AppIpRulesSheet(
             RethinkRuleSupportingText(
                 text = stringResource(R.string.bsac_title_desc),
             )
-        }
-    }
-}
 
-private fun applyDomainRule(
-    domain: String,
-    uid: Int,
-    status: DomainRulesManager.Status,
-    scope: CoroutineScope
-) {
-    scope.launch(Dispatchers.IO) {
-        DomainRulesManager.addDomainRule(
-            domain.trim(),
-            status,
-            DomainRulesManager.DomainType.DOMAIN,
-            uid
-        )
+            RuleSheetApplyBar(
+                enabled = hasPendingChange && !applying,
+                onApply = {
+                    val previousIp = persistedIpRule
+                    val nextIp = selectedIpRule
+                    val previousDomains = persistedDomainRules.toMap()
+                    val nextDomains = selectedDomainRules.toMap()
+                    val epoch = undoEpoch + 1
+                    undoEpoch = epoch
+                    scope.launchReversibleRuleMutation(
+                        snackbarHostState = snackbarHostState,
+                        editedMessage = editedMessage,
+                        undoLabel = undoLabel,
+                        epoch = epoch,
+                        currentEpoch = { undoEpoch },
+                        setApplying = { applying = it },
+                        apply = apply@{
+                            val ipOk = persistIpRule(uid, ipAddress, nextIp, previousIp, eventLogger)
+                            if (!ipOk) {
+                                ipError = invalidIpMessage
+                                return@apply false
+                            }
+                            persistDomainRules(uid, previousDomains, nextDomains)
+                            persistedIpRule = nextIp
+                            selectedIpRule = nextIp
+                            persistedDomainRules.clear()
+                            persistedDomainRules.putAll(nextDomains)
+                            onUpdated()
+                            true
+                        },
+                        undo = {
+                            persistIpRule(uid, ipAddress, previousIp, nextIp, eventLogger)
+                            persistDomainRules(uid, nextDomains, previousDomains)
+                            persistedIpRule = previousIp
+                            selectedIpRule = previousIp
+                            persistedDomainRules.clear()
+                            persistedDomainRules.putAll(previousDomains)
+                            selectedDomainRules.clear()
+                            selectedDomainRules.putAll(previousDomains)
+                            onUpdated()
+                        },
+                    )
+                },
+                onDismiss = onDismiss,
+            )
+        }
+        RuleSheetSnackbarHost(snackbarHostState)
     }
 }
 
@@ -218,25 +251,41 @@ private fun RethinkRuleAction.toIpRuleStatus() = when (this) {
     RethinkRuleAction.None, RethinkRuleAction.Bypass -> IpRulesManager.IpRuleStatus.NONE
 }
 
-private fun applyIpRule(
+private suspend fun persistIpRule(
     uid: Int,
     ipAddress: String,
     status: IpRulesManager.IpRuleStatus,
-    scope: CoroutineScope,
+    previous: IpRulesManager.IpRuleStatus,
     eventLogger: EventLogger,
-    onUpdated: () -> Unit,
-    onSetStatus: (IpRulesManager.IpRuleStatus) -> Unit
-) {
-    onSetStatus(status)
-    val details = "IP Rule set to ${status.name} for IP: $ipAddress, UID: $uid"
-    logFirewallRuleChange(eventLogger, "Custom IP", details)
-    scope.launch(Dispatchers.IO) {
-        val ipPair = IpRulesManager.getIpNetPort(ipAddress)
-        val ip = ipPair.first ?: run {
-            Logger.w(TAG, "$TAG invalid ip for $ipAddress")
-            return@launch
-        }
+): Boolean {
+    if (status == previous) return true
+    val ipPair = IpRulesManager.getIpNetPort(ipAddress)
+    val ip = ipPair.first ?: run {
+        Logger.w(TAG, "$TAG invalid ip for $ipAddress")
+        return false
+    }
+    logFirewallRuleChange(eventLogger, "Custom IP", "IP Rule set to ${status.name} for IP: $ipAddress, UID: $uid")
+    withContext(Dispatchers.IO) {
         IpRulesManager.addIpRule(uid, ip, null, status, proxyId = "", proxyCC = "")
-        withContext(Dispatchers.Main) { onUpdated() }
+    }
+    return true
+}
+
+private suspend fun persistDomainRules(
+    uid: Int,
+    previous: Map<String, DomainRulesManager.Status>,
+    next: Map<String, DomainRulesManager.Status>,
+) {
+    val changed = next.filter { previous[it.key] != it.value }
+    if (changed.isEmpty()) return
+    withContext(Dispatchers.IO) {
+        changed.forEach { (domain, status) ->
+            DomainRulesManager.addDomainRule(
+                domain.trim(),
+                status,
+                DomainRulesManager.DomainType.DOMAIN,
+                uid
+            )
+        }
     }
 }

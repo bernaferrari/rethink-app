@@ -23,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.data.AppConfig
 import com.bernaferrari.bravedns.database.ODoHEndpoint
@@ -33,6 +34,9 @@ private const val TAG = "ODoHEndpointAdapter"
 fun ODoHEndpointRow(endpoint: ODoHEndpoint, appConfig: AppConfig) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val failingToast = stringResource(R.string.status_failing)
+    val deleteSuccessToast = stringResource(R.string.doh_custom_url_remove_success)
+    val resolvedExplanation = resolveDnsDescriptionText(endpoint.desc)
     val explanation =
         rememberDnsStatusExplanation(
             key = endpoint.id,
@@ -56,7 +60,7 @@ fun ODoHEndpointRow(endpoint: ODoHEndpoint, appConfig: AppConfig) {
                         id = endpoint.id,
                         titleRes = R.string.dot_custom_url_remove_dialog_title,
                         messageRes = R.string.dot_custom_url_remove_dialog_message,
-                        successRes = R.string.doh_custom_url_remove_success
+                        successToast = deleteSuccessToast
                     )
             } else {
                 infoDialog =
@@ -64,13 +68,13 @@ fun ODoHEndpointRow(endpoint: ODoHEndpoint, appConfig: AppConfig) {
                         title = endpoint.name,
                         message =
                             endpoint.proxy + "\n\n" + endpoint.resolver + "\n\n" +
-                                resolveDnsDescriptionText(context, endpoint.desc),
+                                resolvedExplanation,
                         copyValue = endpoint.resolver
                     )
             }
         },
         onSelectionChange = {
-            launchDnsEndpointSelectionUpdate(scope, context, TAG) {
+            launchDnsEndpointSelectionUpdate(scope, context, TAG, failingToast) {
                 endpoint.isSelected = true
                 appConfig.handleODoHChanges(endpoint)
             }
@@ -82,7 +86,7 @@ fun ODoHEndpointRow(endpoint: ODoHEndpoint, appConfig: AppConfig) {
             model = model,
             onDismiss = { deleteDialog = null },
             onConfirm = { id ->
-                launchDnsEndpointDelete(scope, context, model.successRes) {
+                launchDnsEndpointDelete(scope, context, model.successToast, failingToast) {
                     appConfig.deleteODoHEndpoint(id)
                 }
                 deleteDialog = null

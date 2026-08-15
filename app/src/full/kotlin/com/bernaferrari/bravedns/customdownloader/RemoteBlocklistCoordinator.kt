@@ -111,7 +111,9 @@ class RemoteBlocklistCoordinator(val context: Context, workerParams: WorkerParam
             if (response?.isSuccessful == true) {
                 return saveRemoteFile(response.body, timestamp)
             }
-        } catch (ex: Exception) {
+        } catch (ex: IOException) {
+            Logger.e(LOG_TAG_DOWNLOAD, "err in downloadRemoteBlocklist: ${ex.message}", ex)
+        } catch (ex: IllegalStateException) {
             Logger.e(LOG_TAG_DOWNLOAD, "err in downloadRemoteBlocklist: ${ex.message}", ex)
         }
         return if (isRetryRequired(retryCount)) {

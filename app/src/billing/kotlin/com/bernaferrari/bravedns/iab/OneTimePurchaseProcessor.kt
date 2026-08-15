@@ -287,7 +287,7 @@ internal class OneTimePurchaseProcessor(
                     } else {
                         logd(mname, "INAPP pending purchase already past expiry; ignoring")
                     }
-                } catch (e: Exception) {
+                } catch (e: IllegalStateException) {
                     loge(mname, "error handling INAPP pending: ${e.message}", e)
                 }
             }
@@ -319,7 +319,7 @@ internal class OneTimePurchaseProcessor(
                 // paymentSuccessful -> handlePaymentSuccessful handles DB upsert
                 // and RPN activation (including its dedup guard).
                 subscriptionStateMachine.paymentSuccessful(pd)
-            } catch (e: Exception) {
+            } catch (e: IllegalStateException) {
                 loge(mname, "error processing acknowledged INAPP: ${e.message}", e)
                 safeNotifyFailed("Error processing acknowledged INAPP: ${e.message}", null)
             }
@@ -340,7 +340,7 @@ internal class OneTimePurchaseProcessor(
                     logd(mname, "INAPP purchase access window expired before ack; firing subscriptionExpired")
                     subscriptionStateMachine.subscriptionExpired()
                 }
-            } catch (e: Exception) {
+            } catch (e: IllegalStateException) {
                 loge(mname, "error recording pending INAPP state: ${e.message}", e)
             }
             return
@@ -378,7 +378,7 @@ internal class OneTimePurchaseProcessor(
                 // Skip completePurchase to prevent a redundant DB write + the
                 // transient PurchasePending state between the two calls.
                 subscriptionStateMachine.paymentSuccessful(pdWithPayload)
-                try { onAckSuccess?.invoke(purchase) } catch (e: Exception) {
+                try { onAckSuccess?.invoke(purchase) } catch (e: IllegalStateException) {
                     loge(mname, "onAckSuccess callback failed (non-fatal): ${e.message}", e)
                 }
             }
@@ -431,7 +431,7 @@ internal class OneTimePurchaseProcessor(
 
             val (ackOk, payload) = try {
                 acknowledgePurchase(accountId, deviceId, purchase.purchaseToken, ProductType.INAPP)
-            } catch (e: Exception) {
+            } catch (e: java.io.IOException) {
                 loge(mname, "exception during ack attempt $attempt: ${e.message}", e)
                 // Network exception
                 lastTransientError = e.message ?: "network exception"
@@ -485,7 +485,7 @@ internal class OneTimePurchaseProcessor(
 
     private suspend fun safeNotifyFailed(reason: String, billingResult: com.android.billingclient.api.BillingResult?) {
         try { subscriptionStateMachine.purchaseFailed(reason, billingResult?.responseCode) }
-        catch (e: Exception) { loge("safeNotifyFailed", "state machine error: ${e.message}", e) }
+        catch (e: IllegalStateException) { loge("safeNotifyFailed", "state machine error: ${e.message}", e) }
     }
 
     /**

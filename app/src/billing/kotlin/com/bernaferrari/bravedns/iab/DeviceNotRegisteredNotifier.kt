@@ -121,7 +121,9 @@ object DeviceNotRegisteredNotifier {
 
             Logger.i(LOG_IAB, "$TAG: device-not-registered notification posted " +
                 "(entitlementCid=${error.entitlementCid.take(8)})")
-        } catch (e: Exception) {
+        } catch (e: SecurityException) {
+            Logger.e(LOG_IAB, "$TAG: failed to post notification: ${e.message}", e)
+        } catch (e: IllegalArgumentException) {
             Logger.e(LOG_IAB, "$TAG: failed to post notification: ${e.message}", e)
         }
     }
@@ -135,8 +137,10 @@ object DeviceNotRegisteredNotifier {
             val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
             nm?.cancel(NOTIF_CHANNEL_ID_RPN_ALERTS, NOTIF_ID_IAB_DEVICE_NOT_REGISTERED)
             Logger.d(LOG_IAB, "$TAG: notification cancelled")
-        } catch (e: Exception) {
-            Logger.w(LOG_IAB, "$TAG: failed to cancel notification: ${e.message}")
+        } catch (e: SecurityException) {
+            Logger.w(LOG_IAB, "$TAG: failed to cancel notification: ${e.message}", e)
+        } catch (e: IllegalArgumentException) {
+            Logger.w(LOG_IAB, "$TAG: failed to cancel notification: ${e.message}", e)
         }
     }
 }

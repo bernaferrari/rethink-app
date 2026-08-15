@@ -39,6 +39,7 @@ import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.io.File
+import java.io.IOException
 
 /**
  * Class responsible for copying the files from External path to canonical path. The worker will be
@@ -72,7 +73,19 @@ class FileHandleWorker(val context: Context, workerParameters: WorkerParameters)
             val outputData = workDataOf(DownloadConstants.OUTPUT_FILES to response)
 
             return if (response) Result.success(outputData) else Result.failure()
-        } catch (e: Exception) {
+        } catch (e: IOException) {
+            Logger.e(
+                LOG_TAG_DOWNLOAD,
+                "FileHandleWorker Error while moving files to canonical path ${e.message}",
+                e
+            )
+        } catch (e: SecurityException) {
+            Logger.e(
+                LOG_TAG_DOWNLOAD,
+                "FileHandleWorker Error while moving files to canonical path ${e.message}",
+                e
+            )
+        } catch (e: IllegalStateException) {
             Logger.e(
                 LOG_TAG_DOWNLOAD,
                 "FileHandleWorker Error while moving files to canonical path ${e.message}",
@@ -149,7 +162,9 @@ class FileHandleWorker(val context: Context, workerParameters: WorkerParameters)
             )
             Logger.i(LOG_TAG_DOWNLOAD, "FileHandleWorker, copyFiles success? $result")
             return true
-        } catch (e: Exception) {
+        } catch (e: IOException) {
+            Logger.e(LOG_TAG_DOWNLOAD, "FileHandleWorker Copy exception: ${e.message}", e)
+        } catch (e: SecurityException) {
             Logger.e(LOG_TAG_DOWNLOAD, "FileHandleWorker Copy exception: ${e.message}", e)
         }
         return false
@@ -198,7 +213,9 @@ class FileHandleWorker(val context: Context, workerParameters: WorkerParameters)
             val isDownloadValid = tdmd5 == remoteTdmd5 && rdmd5 == remoteRdmd5
             Logger.i(LOG_TAG_DOWNLOAD, "FileHandleWorker, isDownloadValid? $isDownloadValid")
             return isDownloadValid
-        } catch (e: Exception) {
+        } catch (e: IOException) {
+            Logger.e(LOG_TAG_DOWNLOAD, "FileHandleWorker, isDownloadValid err: ${e.message}", e)
+        } catch (e: org.json.JSONException) {
             Logger.e(LOG_TAG_DOWNLOAD, "FileHandleWorker, isDownloadValid err: ${e.message}", e)
         }
         return false

@@ -23,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.data.AppConfig
 import com.bernaferrari.bravedns.database.DnsCryptEndpoint
@@ -33,6 +34,9 @@ private const val TAG = "DnsCryptEndpointAdapter"
 fun DnsCryptRow(endpoint: DnsCryptEndpoint, appConfig: AppConfig) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val failingToast = stringResource(R.string.status_failing)
+    val deleteSuccessToast = stringResource(R.string.dns_crypt_url_remove_success)
+    val resolvedExplanation = resolveDnsDescriptionText(endpoint.dnsCryptExplanation)
     val explanation =
         rememberDnsStatusExplanation(
             key = endpoint.id,
@@ -56,15 +60,14 @@ fun DnsCryptRow(endpoint: DnsCryptEndpoint, appConfig: AppConfig) {
                         id = endpoint.id,
                         titleRes = R.string.dns_crypt_custom_url_remove_dialog_title,
                         messageRes = R.string.dns_crypt_url_remove_dialog_message,
-                        successRes = R.string.dns_crypt_url_remove_success
+                        successToast = deleteSuccessToast
                     )
             } else {
                 val description =
                     if (endpoint.dnsCryptExplanation.isNullOrEmpty()) {
                         endpoint.dnsCryptURL
                     } else {
-                        endpoint.dnsCryptURL + "\n\n" +
-                            resolveDnsDescriptionText(context, endpoint.dnsCryptExplanation)
+                        endpoint.dnsCryptURL + "\n\n" + resolvedExplanation
                     }
                 infoDialog =
                     DnsInfoDialogModel(
@@ -75,7 +78,7 @@ fun DnsCryptRow(endpoint: DnsCryptEndpoint, appConfig: AppConfig) {
             }
         },
         onSelectionChange = {
-            launchDnsEndpointSelectionUpdate(scope, context, TAG) {
+            launchDnsEndpointSelectionUpdate(scope, context, TAG, failingToast) {
                 endpoint.isSelected = true
                 appConfig.handleDnscryptChanges(endpoint)
             }
@@ -87,7 +90,7 @@ fun DnsCryptRow(endpoint: DnsCryptEndpoint, appConfig: AppConfig) {
             model = model,
             onDismiss = { deleteDialog = null },
             onConfirm = { id ->
-                launchDnsEndpointDelete(scope, context, model.successRes) {
+                launchDnsEndpointDelete(scope, context, model.successToast, failingToast) {
                     appConfig.deleteDnscryptEndpoint(id)
                 }
                 deleteDialog = null

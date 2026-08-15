@@ -1,7 +1,10 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.configure
 
+import com.bernaferrari.bravedns.ui.compose.common.RethinkAdaptiveWidth
 import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
+import com.bernaferrari.bravedns.ui.compose.common.WindowWidthClass
+import com.bernaferrari.bravedns.ui.compose.common.isExpanded
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.BorderStroke
@@ -180,29 +183,31 @@ fun RethinkConfigureScreen(
             }
         },
     ) { padding ->
-        LazyColumn(
-            state = rememberLazyListState(),
-            modifier = Modifier.fillMaxSize().padding(padding),
-            // The root navigation owns the system/navigation-bar inset. Keep a deliberate tail here
-            // as well: the final expressive tile is taller than a list row and needs room to scroll
-            // fully above the persistent navigation bar.
-            contentPadding = PaddingValues(
-                start = SharedDimensions.screenPaddingHorizontal,
-                top = SharedDimensions.spacingMd,
-                end = SharedDimensions.screenPaddingHorizontal,
-                bottom = SharedDimensions.spacing3xl + SharedDimensions.spacingSm,
-            ),
-            verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
-        ) {
-            if (showBrowse) {
-                appearanceContent?.let { content ->
-                    item { content() }
-                }
-                sections.forEach { section -> item { ConfigureSection(section) } }
-                item { Spacer(Modifier.height(SharedDimensions.spacingSm)) }
-            } else {
-                item {
-                    if (results.isEmpty()) NoResults(strings) else SearchResults(results, query)
+        RethinkAdaptiveWidth(Modifier.fillMaxSize().padding(padding)) { widthClass ->
+            LazyColumn(
+                state = rememberLazyListState(),
+                modifier = Modifier.fillMaxSize(),
+                // The root navigation owns the system/navigation-bar inset. Keep a deliberate tail here
+                // as well: the final expressive tile is taller than a list row and needs room to scroll
+                // fully above the persistent navigation bar.
+                contentPadding = PaddingValues(
+                    start = SharedDimensions.screenPaddingHorizontal,
+                    top = SharedDimensions.spacingMd,
+                    end = SharedDimensions.screenPaddingHorizontal,
+                    bottom = SharedDimensions.spacing3xl + SharedDimensions.spacingSm,
+                ),
+                verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
+            ) {
+                if (showBrowse) {
+                    appearanceContent?.let { content ->
+                        item { content() }
+                    }
+                    sections.forEach { section -> item { ConfigureSection(section, widthClass) } }
+                    item { Spacer(Modifier.height(SharedDimensions.spacingSm)) }
+                } else {
+                    item {
+                        if (results.isEmpty()) NoResults(strings) else SearchResults(results, query)
+                    }
                 }
             }
         }
@@ -210,7 +215,7 @@ fun RethinkConfigureScreen(
 }
 
 @Composable
-private fun ConfigureSection(section: RethinkConfigureSection) {
+private fun ConfigureSection(section: RethinkConfigureSection, widthClass: WindowWidthClass) {
     Column {
         SectionHeader(section.title, color = MaterialTheme.colorScheme.onSurfaceVariant)
         section.subtitle?.let {
@@ -222,22 +227,30 @@ private fun ConfigureSection(section: RethinkConfigureSection) {
             )
         }
         when (section.layout) {
-            RethinkConfigureLayout.GridFour -> FourGrid(section.entries)
-            RethinkConfigureLayout.GridTriad -> TriadGrid(section.entries)
+            RethinkConfigureLayout.GridFour -> FourGrid(section.entries, widthClass)
+            RethinkConfigureLayout.GridTriad -> TriadGrid(section.entries, widthClass)
             RethinkConfigureLayout.List -> EntryList(section.entries)
         }
     }
 }
 
-@Composable private fun FourGrid(entries: List<RethinkConfigureEntry>) {
+@Composable private fun FourGrid(entries: List<RethinkConfigureEntry>, widthClass: WindowWidthClass) {
     if (entries.size != 4) return
+    if (widthClass.isExpanded) {
+        AdaptiveTileGrid(entries, columns = 3)
+        return
+    }
     Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile)) {
         GridRow(entries[0], entries[1], rethinkGroupedListPairShape(true, CardPosition.First), rethinkGroupedListPairShape(false, CardPosition.First), 0)
         GridRow(entries[2], entries[3], rethinkGroupedListPairShape(true, CardPosition.Last), rethinkGroupedListPairShape(false, CardPosition.Last), 2)
     }
 }
-@Composable private fun TriadGrid(entries: List<RethinkConfigureEntry>) {
+@Composable private fun TriadGrid(entries: List<RethinkConfigureEntry>, widthClass: WindowWidthClass) {
     if (entries.size < 2) return
+    if (widthClass.isExpanded) {
+        AdaptiveTileGrid(entries, columns = 3)
+        return
+    }
     Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile)) {
         GridRow(entries[0], entries[1], rethinkGroupedListPairShape(true, CardPosition.First), rethinkGroupedListPairShape(false, CardPosition.First), 0)
         entries.drop(2).forEachIndexed { index, entry ->
@@ -250,6 +263,47 @@ private fun ConfigureSection(section: RethinkConfigureSection) {
             )
         }
     }
+}
+
+@Composable
+private fun AdaptiveTileGrid(entries: List<RethinkConfigureEntry>, columns: Int) {
+    val rows = entries.chunked(columns)
+    Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile)) {
+        rows.forEachIndexed { rowIndex, row ->
+            val isFirstRow = rowIndex == 0
+            val isLastRow = rowIndex == rows.lastIndex
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile),
+            ) {
+                row.forEachIndexed { column, entry ->
+                    GridTile(
+                        entry,
+                        configureGridCellShape(column, columns, isFirstRow, isLastRow),
+                        Modifier.weight(1f),
+                        rowIndex * columns + column,
+                    )
+                }
+                repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
+            }
+        }
+    }
+}
+
+private fun configureGridCellShape(
+    column: Int,
+    columns: Int,
+    isFirstRow: Boolean,
+    isLastRow: Boolean,
+): Shape {
+    val outer = SharedDimensions.cornerRadius4xl
+    val inner = SharedDimensions.cornerRadiusSm
+    return RoundedCornerShape(
+        topStart = if (column == 0 && isFirstRow) outer else inner,
+        topEnd = if (column == columns - 1 && isFirstRow) outer else inner,
+        bottomStart = if (column == 0 && isLastRow) outer else inner,
+        bottomEnd = if (column == columns - 1 && isLastRow) outer else inner,
+    )
 }
 @Composable private fun GridRow(
     first: RethinkConfigureEntry,

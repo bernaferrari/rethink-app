@@ -8,7 +8,7 @@
         errorLine2="              ~~~~~~~~~">
         <location
             file="src/billing/kotlin/com/bernaferrari/bravedns/viewmodel/RethinkPlusViewModel.kt"
-            line="652"
+            line="661"
             column="15"/>
     </issue>
 
@@ -32,6 +32,17 @@
             file="src/full/kotlin/com/bernaferrari/bravedns/customdownloader/OkHttpDebugLogging.kt"
             line="44"
             column="25"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 29 (current min is 23): `handleIfNeeded`"
+        errorLine1="            handleBubbleIfNeeded = { bubbleController.handleIfNeeded() },"
+        errorLine2="                                                      ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/bernaferrari/bravedns/service/BraveVPNService.kt"
+            line="1081"
+            column="55"/>
     </issue>
 
     <issue
@@ -277,6 +288,17 @@
     </issue>
 
     <issue
+        id="LocalContextResourcesRead"
+        message="Reading Resources using LocalContext.current.resources is not configuration-aware and may return stale values if the Configuration changes"
+        errorLine1="                context.resources.getIdentifier(key, &quot;string&quot;, context.packageName)"
+        errorLine2="                ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/full/kotlin/com/bernaferrari/bravedns/ui/components/DnsEndpointShared.kt"
+            line="211"
+            column="17"/>
+    </issue>
+
+    <issue
         id="StateFlowValueCalledInComposition"
         message="StateFlow.value should not be called within composition"
         errorLine1="        .collectAsState(initial = RethinkBlocklistState.selectedFileTags.value)"
@@ -301,12 +323,12 @@
     <issue
         id="DiscouragedApi"
         message="Use of this function is discouraged because resource reflection makes it harder to perform build optimizations and compile-time verification of code. It is much more efficient to retrieve resources by identifier (e.g. `R.foo.bar`) than by name (e.g. `getIdentifier(&quot;bar&quot;, &quot;foo&quot;, null)`)."
-        errorLine1="            val resId = context.resources.getIdentifier(key, &quot;string&quot;, context.packageName)"
-        errorLine2="                                          ~~~~~~~~~~~~~">
+        errorLine1="                context.resources.getIdentifier(key, &quot;string&quot;, context.packageName)"
+        errorLine2="                                  ~~~~~~~~~~~~~">
         <location
             file="src/full/kotlin/com/bernaferrari/bravedns/ui/components/DnsEndpointShared.kt"
-            line="168"
-            column="43"/>
+            line="211"
+            column="35"/>
     </issue>
 
     <issue
@@ -4452,7 +4474,7 @@
         errorLine2="                              ~~~~~~~~~~~~~~">
         <location
             file="src/full/kotlin/com/bernaferrari/bravedns/download/AppDownloadManager.kt"
-            line="406"
+            line="408"
             column="31"/>
     </issue>
 

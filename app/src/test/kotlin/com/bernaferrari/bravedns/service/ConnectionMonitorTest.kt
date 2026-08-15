@@ -240,7 +240,7 @@ class ConnectionMonitorTest {
     fun `onVpnStart reports failure when callback registration throws`() = runTest(scheduler) {
         every {
             cm.registerNetworkCallback(any<NetworkRequest>(), any<ConnectivityManager.NetworkCallback>())
-        } throws RuntimeException("register failed")
+        } throws SecurityException("register failed")
 
         val monitor = newMonitor()
         val started = monitor.onVpnStart(context)

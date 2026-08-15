@@ -162,14 +162,16 @@ class AppDownloadManager(
                         cancelledCount++
                         Logger.i(LOG_TAG_DOWNLOAD, "cancelled download with id: $downloadId")
                     }
-                } catch (e: Exception) {
+                } catch (e: IllegalArgumentException) {
                     Logger.w(LOG_TAG_DOWNLOAD, "failed to cancel download id: $downloadId", e)
                 }
             }
 
             persistentState.androidDownloadManagerIds = ""
             Logger.i(LOG_TAG_DOWNLOAD, "cancelled $cancelledCount andr-down-mgr downloads")
-        } catch (e: Exception) {
+        } catch (e: IllegalStateException) {
+            Logger.e(LOG_TAG_DOWNLOAD, "err cancelling andr-down-mgr downloads", e)
+        } catch (e: ClassCastException) {
             Logger.e(LOG_TAG_DOWNLOAD, "err cancelling andr-down-mgr downloads", e)
         }
     }
@@ -420,7 +422,11 @@ class AppDownloadManager(
                 Logger.d(LOG_TAG_DOWNLOAD, "filename: $fileName, downloadID: $downloadId")
                 return downloadId
             }
-        } catch (e: Exception) {
+        } catch (e: IllegalArgumentException) {
+            Logger.w(LOG_TAG_DOWNLOAD, "Exception while downloading the file: $fileName", e)
+        } catch (e: SecurityException) {
+            Logger.w(LOG_TAG_DOWNLOAD, "Exception while downloading the file: $fileName", e)
+        } catch (e: IllegalStateException) {
             Logger.w(LOG_TAG_DOWNLOAD, "Exception while downloading the file: $fileName", e)
         }
         return INVALID_DOWNLOAD_ID

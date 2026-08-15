@@ -18,7 +18,6 @@ package com.bernaferrari.bravedns.service
 
 import Logger
 import Logger.LOG_BATCH_LOGGER
-import Logger.LOG_GO_LOGGER
 import Logger.LOG_TAG_CONNECTION
 import Logger.LOG_TAG_VPN
 import android.annotation.SuppressLint
@@ -33,8 +32,6 @@ import android.app.UiModeManager
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.SharedPreferences
-
 import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE
 import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED
 import android.content.res.Configuration
@@ -51,16 +48,13 @@ import android.system.OsConstants.AF_INET
 import android.system.OsConstants.AF_INET6
 import android.util.Log
 import android.view.accessibility.AccessibilityManager
-import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.ServiceCompat
-import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.RethinkDnsApplication.Companion.DEBUG
 import com.bernaferrari.bravedns.customdownloader.IpInfoDownloader
 import com.bernaferrari.bravedns.data.AppConfig
 import com.bernaferrari.bravedns.data.ConnTrackerMetaData
 import com.bernaferrari.bravedns.data.ConnectionSummary
-import com.bernaferrari.bravedns.database.AppInfo
 import com.bernaferrari.bravedns.database.ConnectionTracker
 import com.bernaferrari.bravedns.database.ConnectionTrackerRepository
 import com.bernaferrari.bravedns.database.ConsoleLog
@@ -72,7 +66,6 @@ import com.bernaferrari.bravedns.net.manager.ConnectionTracer
 import com.bernaferrari.bravedns.receiver.UserPresentReceiver
 import com.bernaferrari.bravedns.rpnproxy.RpnProxyManager
 import com.bernaferrari.bravedns.rpnproxy.RpnProxyManager.RpnType
-import com.bernaferrari.bravedns.scheduler.EnhancedBugReport
 import com.bernaferrari.bravedns.scheduler.RpnProxyUpdateWorker
 import com.bernaferrari.bravedns.service.ProxyManager.ID_WG_BASE
 import com.bernaferrari.bravedns.service.ProxyManager.isNotLocalAndRpnProxy
@@ -87,12 +80,10 @@ import com.bernaferrari.bravedns.util.Constants.Companion.INIT_TIME_MS
 import com.bernaferrari.bravedns.util.Constants.Companion.INVALID_UID
 import com.bernaferrari.bravedns.util.Constants.Companion.PRIMARY_USER
 import com.bernaferrari.bravedns.util.Constants.Companion.UID_EVERYBODY
-import com.bernaferrari.bravedns.util.CrashReporter
 import com.bernaferrari.bravedns.util.Daemons
 import com.bernaferrari.bravedns.util.IPUtil
 import com.bernaferrari.bravedns.util.InternetProtocol
 import com.bernaferrari.bravedns.util.KnownPorts
-import com.bernaferrari.bravedns.util.MemoryUtils
 import com.bernaferrari.bravedns.util.OrbotHelper
 import com.bernaferrari.bravedns.util.Protocol
 import com.bernaferrari.bravedns.util.ResourceRecordTypes
@@ -101,13 +92,8 @@ import com.bernaferrari.bravedns.util.Utilities.isAtleastQ
 import com.bernaferrari.bravedns.util.Utilities.isAtleastR
 import com.bernaferrari.bravedns.util.Utilities.isAtleastS
 import com.bernaferrari.bravedns.util.Utilities.isAtleastU
-import com.bernaferrari.bravedns.util.Utilities.isFdroidFlavour
 import com.bernaferrari.bravedns.util.Utilities.isMissingOrInvalidUid
-import com.bernaferrari.bravedns.util.Utilities.isNetworkSame
-import com.bernaferrari.bravedns.util.Utilities.isPlayStoreFlavour
 import com.bernaferrari.bravedns.util.Utilities.isUnspecifiedIp
-import com.bernaferrari.bravedns.util.Utilities.showToastUiCentered
-import com.bernaferrari.bravedns.util.Utilities.tos
 import com.bernaferrari.bravedns.wireguard.WgHopManager
 import com.celzero.firestack.backend.Backend
 import com.celzero.firestack.backend.Client
@@ -139,18 +125,14 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 import java.io.IOException
-import java.net.InetAddress
 import java.net.Socket
 import java.net.SocketException
 import java.net.UnknownHostException
@@ -197,8 +179,6 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
     private var builderStats: String = ""
     @Volatile
     private var tunUnderlyingNetworks: String? = null
-    @Volatile
-    private var prevDns: MutableSet<InetAddress> = mutableSetOf()
     @Volatile
     private var lastRxTrafficTime: Long = elapsedRealtime() // tracks rx from onSocketClosed()
     private var testFd: AtomicInteger = AtomicInteger(-1)
@@ -251,17 +231,14 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
     private lateinit var cm: ConnectivityManager
     private var keyguardManager: KeyguardManager? = null
 
-    private var appInfoCollectorJob: Job? = null
-    private var orbotStartStatusCollectorJob: Job? = null
-    private var dnscryptRelayCollectorJob: Job? = null
-    private var preferenceKeyCollectorJob: Job? = null
-    private var coreObserversRegistered = false
-
     // Modular service managers
     private lateinit var vpnNotificationManager: VpnNotificationManager
     private lateinit var bubbleController: BubbleController
     private lateinit var vpnTunRoutes: VpnTunRoutes
     private lateinit var vpnTunAppPolicy: VpnTunAppPolicy
+    private lateinit var vpnDnsTransportController: VpnDnsTransportController
+    private lateinit var vpnPrefObservers: VpnPrefObservers
+    private lateinit var vpnServiceDiagnostics: VpnServiceDiagnostics
     private lateinit var dnsConfigurationManager: DnsConfigurationManager
     private lateinit var underlyingNetworkManager: UnderlyingNetworkManager
     private lateinit var proxyStateManager: ProxyStateManager
@@ -1073,6 +1050,46 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
         bubbleController = BubbleController(this, persistentState, connTrackRepository, vpnScope)
         vpnTunRoutes = VpnTunRoutes(persistentState, appConfig, cm)
         vpnTunAppPolicy = VpnTunAppPolicy(this, persistentState, appConfig)
+        vpnDnsTransportController = VpnDnsTransportController(
+            this,
+            persistentState,
+            appConfig,
+            cm,
+            serializer,
+            vpnScope,
+            adapter = { vpnAdapter },
+            underlyingNetworks = { underlyingNetworks },
+            requestRestart = { vpnRestartTrigger.value = it },
+            getDnsStatus = { getDnsStatus(it) },
+            logd = ::logd,
+        )
+        vpnPrefObservers = VpnPrefObservers(
+            this,
+            persistentState,
+            appConfig,
+            vpnScope,
+            adapter = { vpnAdapter },
+            excludedApps = { excludedApps },
+            requestRestart = { vpnRestartTrigger.value = it },
+            dnsTransport = vpnDnsTransportController,
+            notifyForeground = { vpnNotificationManager.notifyForeground() },
+            registerAccessibility = ::registerAccessibilityServiceState,
+            unregisterAccessibility = ::unregisterAccessibilityServiceState,
+            notifyConnectionMonitor = { notifyConnectionMonitor() },
+            onTunPolicyChanged = { connectionMonitor.onPolicyChanged() },
+            currentMtu = ::mtu,
+            handleBubbleIfNeeded = { bubbleController.handleIfNeeded() },
+            newTunnelOptions = {
+                appConfig.newTunnelOptions(
+                    this,
+                    getFakeDns(),
+                    appConfig.getProtocolTranslationMode()
+                )
+            },
+            onOrbotStatus = { settingUpOrbot.set(it) },
+            logd = ::logd,
+        )
+        vpnServiceDiagnostics = VpnServiceDiagnostics(this, persistentState, appConfig)
         dnsConfigurationManager = DnsConfigurationManager(this, persistentState, appConfig, vpnScope)
         underlyingNetworkManager = UnderlyingNetworkManager(this, vpnScope)
         proxyStateManager = ProxyStateManager(appConfig, persistentState, vpnScope)
@@ -1116,67 +1133,6 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
             Logger.i(LOG_TAG_VPN, "user present receiver unregistered")
         } catch (_: IllegalArgumentException) {
             Logger.w(LOG_TAG_VPN, "user present receiver not registered")
-        }
-    }
-
-    private suspend fun observeChanges() {
-        if (coreObserversRegistered) return
-        appInfoCollectorJob = FirewallManager.appListFlow()
-            .onEach { handleAppInfoChanges(it) }
-            .launchIn(vpnScope)
-        preferenceKeyCollectorJob = persistentState.preferenceKeyChanges()
-            .onEach { handlePreferenceKeyChanged(it) }
-            .launchIn(vpnScope)
-        orbotStartStatusCollectorJob = persistentState.orbotConnectionStatus
-            .onEach { settingUpOrbot.set(it) }
-            .launchIn(vpnScope)
-        dnscryptRelayCollectorJob = persistentState.dnsCryptRelays
-            .onEach { handleDnsCryptRelayChange(it) }
-            .launchIn(vpnScope)
-        coreObserversRegistered = true
-        Logger.i(LOG_TAG_VPN, "observe pref, dnscrypt relay, app list changes")
-    }
-
-    private fun handleDnsCryptRelayChange(t: PersistentState.DnsCryptRelayDetails?) {
-        if (t == null) return
-        io("dnscryptRelay") {
-            if (t.added) {
-                vpnAdapter?.addDnscryptRelay(t.relay)
-            } else {
-                vpnAdapter?.removeDnscryptRelay(t.relay)
-            }
-        }
-    }
-
-    private fun handleAppInfoChanges(t: Collection<AppInfo>) {
-        try {
-            var latestExcludedApps: Set<String>
-            // adding synchronized block, found a case of concurrent modification
-            // exception that happened once when trying to filter the received object (t).
-            // creating a copy of the received value in a synchronized block.
-            synchronized(t) {
-                val copy: List<AppInfo> = mutableListOf<AppInfo>().apply { addAll(t) }
-                latestExcludedApps =
-                    copy
-                        .filter {
-                            it.firewallStatus == FirewallManager.FirewallStatus.EXCLUDE.id
-                        }
-                        .map(AppInfo::packageName)
-                        .toSet()
-            }
-
-            if (excludedApps == latestExcludedApps) return
-
-            Logger.i(LOG_TAG_VPN, "excluded-apps list changed, restart vpn")
-
-            val reason = "excludeApps: ${latestExcludedApps.size} apps, at: ${elapsedRealtime()}"
-            vpnRestartTrigger.value = reason
-        } catch (e: Exception) { // NoSuchElementException, ConcurrentModification
-            Logger.e(
-                LOG_TAG_VPN,
-                "error retrieving value from appInfos observer ${e.message}",
-                e
-            )
         }
     }
 
@@ -1321,7 +1277,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
                         // call restart-vpn and there is a check for vpn enabled state
                         observeVpnRestartRequests()
                         // call this *after* a new vpn is created #512
-                        uiCtx("observers") { observeChanges() }
+                        uiCtx("observers") { vpnPrefObservers.register() }
                         eventLogger.logLow(EventType.VPN_START, "start new vpn from onStartCommand",
                             EventSource.VPN, userAction = false, details = "opts: $opts")
                     }
@@ -1426,24 +1382,6 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
         io("startOrbot") { orbotHelper.startOrbot(appConfig.getProxyType()) }
     }
 
-    private fun unobserveAppInfos() {
-        appInfoCollectorJob?.cancel()
-        appInfoCollectorJob = null
-        coreObserversRegistered = false
-    }
-
-    private fun unobserveOrbotStartStatus() {
-        orbotStartStatusCollectorJob?.cancel()
-        orbotStartStatusCollectorJob = null
-        coreObserversRegistered = false
-    }
-
-    private fun unobserveDnsRelay() {
-        dnscryptRelayCollectorJob?.cancel()
-        dnscryptRelayCollectorJob = null
-        coreObserversRegistered = false
-    }
-
     private fun registerAccessibilityServiceState() {
         val listener =
             AccessibilityManager.AccessibilityStateChangeListener { b ->
@@ -1491,366 +1429,6 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
         notifyConnectionStateChangeIfNeeded()
     }
 
-    private fun handlePreferenceKeyChanged(key: String) {
-        /* TODO Check on the Persistent State variable
-        Check on updating the values for Package change and for mode change.
-        As of now handled manually */
-        logd("on pref change, key: $key")
-        when (key) {
-            PersistentState.BRAVE_MODE -> {
-                io("braveModeChange") {
-                    // change in brave mode, requires restart of the vpn (to set routes in vpn),
-                    // tunMode (to set the tun mode), and dnsAlg (to update the dns alg) in go
-                    val reason = "braveMode: ${appConfig.getBraveMode()}}"
-                    vpnRestartTrigger.value = reason
-                    setTunMode()
-                    updateDnsAlg()
-                }
-                vpnNotificationManager.notifyForeground()
-            }
-
-            PersistentState.LOCAL_BLOCK_LIST -> {
-                io("localBlocklistEnable") { setRDNS() }
-            }
-
-            PersistentState.LOCAL_BLOCK_LIST_UPDATE -> {
-                io("localBlocklistDownload") { setRDNS() }
-            }
-
-            PersistentState.BACKGROUND_MODE -> {
-                if (persistentState.getBlockAppWhenBackground()) {
-                    registerAccessibilityServiceState()
-                } else {
-                    unregisterAccessibilityServiceState()
-                }
-            }
-
-            PersistentState.LOCAL_BLOCK_LIST_STAMP -> { // update on local blocklist stamp change
-                spawnLocalBlocklistStampUpdate()
-            }
-
-            PersistentState.REMOTE_BLOCKLIST_UPDATE -> {
-                io("remoteBlocklistUpdate") {
-                    addTransport()
-                    setRDNS()
-                }
-            }
-
-            PersistentState.DNS_CHANGE -> {
-                /*
-                 * Handles the DNS type changes.
-                 * DNS Proxy - Requires restart of the VPN.
-                 * DNSCrypt - Set the tunnel with DNSCrypt mode once the live servers size is not 0.
-                 * DOH - Overwrites the tunnel values with new values.
-                 */
-                // FIXME: update just that dns proxy, not the entire tunnel
-                io("dnsChange") {
-                    when (appConfig.getDnsType()) {
-                        AppConfig.DnsType.DOH -> {
-                            addTransport()
-                        }
-
-                        AppConfig.DnsType.DNSCRYPT -> {
-                            addTransport()
-                        }
-
-                        AppConfig.DnsType.DNS_PROXY -> {
-                            val reason = "dnsProxy: ${appConfig.getSelectedDnsProxyDetails()?.id}"
-                            vpnRestartTrigger.value = reason
-                            addTransport()
-                        }
-
-                        AppConfig.DnsType.RETHINK_REMOTE -> {
-                            addTransport()
-                        }
-
-                        AppConfig.DnsType.SYSTEM_DNS -> {
-                            setNetworkAndDefaultDnsIfNeeded(forceUpdate = true)
-                        }
-
-                        AppConfig.DnsType.SMART_DNS -> {
-                            // no need to add multiple DoH as smart dns as it is expected to be
-                            // added by the vpn adapter while starting, but add it if it is missing
-                            if(getDnsStatus(Backend.Plus) == null) addTransport()
-                        }
-
-                        AppConfig.DnsType.DOT -> {
-                            addTransport()
-                        }
-
-                        AppConfig.DnsType.ODOH -> {
-                            addTransport()
-                        }
-                    }
-                }
-            }
-
-            PersistentState.PREVENT_DNS_LEAKS -> {
-                io("preventDnsLeaks") { setTunMode() }
-            }
-
-            PersistentState.ALLOW_BYPASS -> {
-                val reason = "allowBypass: ${persistentState.allowBypass}"
-                vpnRestartTrigger.value = reason
-            }
-
-            PersistentState.PROXY_TYPE -> {
-                io("proxy") {
-                    handleProxyChange()
-                    // if any proxy is set, then disable builder.allowByPass as false
-                    disableAllowBypassIfNeeded()
-                }
-                vpnNotificationManager.notifyForeground()
-            }
-
-            PersistentState.NETWORK -> {
-                Logger.i(LOG_TAG_VPN, "network change, ${persistentState.useMultipleNetworks}")
-                io("useAllNetworks") { notifyConnectionMonitor() }
-            }
-
-            PersistentState.NOTIFICATION_ACTION -> {
-                vpnNotificationManager.notifyForeground()
-            }
-
-            PersistentState.BIOMETRIC_AUTH -> {
-                // update the notification builder to show the action buttons based on the biometric
-                vpnNotificationManager.notifyForeground()
-            }
-
-            PersistentState.INTERNET_PROTOCOL -> {
-                io("chooseIpVersion") { handleIPProtoChanges() }
-            }
-
-            PersistentState.PROTOCOL_TRANSLATION -> {
-                io("forceV4Egress") { setTunMode() }
-            }
-
-            PersistentState.DEFAULT_DNS_SERVER -> {
-                io("defaultDnsServer") {
-                    logd(
-                        "default transport server changed, change: ${persistentState.defaultDnsUrl}"
-                    )
-                    if (!isDefaultDnsNone()) {
-                        vpnAdapter?.addDefaultTransport(persistentState.defaultDnsUrl)
-                    } else {
-                        setNetworkAndDefaultDnsIfNeeded(forceUpdate = true)
-                    }
-                }
-            }
-
-            PersistentState.PCAP_MODE -> {
-                io("pcap") { setPcapMode() }
-            }
-
-            PersistentState.DNS_ALG -> {
-                io("dnsAlg") { updateDnsAlg() }
-            }
-
-            PersistentState.PRIVATE_IPS -> {
-                // restart vpn to enable/disable route lan traffic
-                val reason = "routeLanTraffic: ${persistentState.privateIps}"
-                vpnRestartTrigger.value = reason
-            }
-
-            PersistentState.RETHINK_IN_RETHINK -> {
-                // restart vpn to allow/disallow rethink traffic in rethink
-                io("routeRethinkInRethink") {
-                    val reason = "routeRethinkInRethink: ${persistentState.routeRethinkInRethink}"
-                    vpnRestartTrigger.value = reason
-                    vpnAdapter?.notifyLoopback()
-                    setNetworkAndDefaultDnsIfNeeded(forceUpdate = true)
-                }
-            }
-
-            PersistentState.CONNECTIVITY_CHECKS -> {
-                Logger.i(
-                    LOG_TAG_VPN,
-                    "connectivity checks changed, ${persistentState.connectivityChecks}"
-                )
-                io("connectivityChecks") { notifyConnectionMonitor() }
-            }
-
-            PersistentState.NOTIFICATION_PERMISSION -> {
-                if (persistentState.shouldRequestNotificationPermission) {
-                    Logger.i(LOG_TAG_VPN, "notification permission allowed, show notification")
-                    vpnNotificationManager.notifyForeground()
-                } else {
-                    // no-op
-                }
-            }
-
-            PersistentState.EXCLUDE_APPS_IN_PROXY -> {
-                // restart vpn to exclude apps if either proxy or dns proxy is enabled
-                if (appConfig.isProxyEnabled() || appConfig.isDnsProxyActive()) {
-                    val reason = "excludeAppsInProxy: ${persistentState.excludeAppsInProxy}"
-                    vpnRestartTrigger.value = reason
-                } else {
-                    // no-op, no need to restart vpn as no proxy/dns proxy is enabled
-                }
-            }
-
-            PersistentState.ANTI_CENSORSHIP_TYPE -> {
-                io("antiCensorship") {
-                    setDialStrategy()
-                }
-            }
-
-            PersistentState.RETRY_STRATEGY -> {
-                io("retryStrategy") {
-                    setDialStrategy()
-                }
-            }
-            PersistentState.ENDPOINT_INDEPENDENCE -> {
-                io("endpointIndependence") {
-                    setTransparency()
-                }
-            }
-            PersistentState.TCP_KEEP_ALIVE -> {
-                io("tcpKeepAlive") {
-                    setDialStrategy()
-                }
-            }
-            PersistentState.USE_SYSTEM_DNS_FOR_UNDELEGATED_DOMAINS -> {
-                io("useSystemDnsForUndelegatedDomains") {
-                    undelegatedDomains()
-                }
-            }
-            PersistentState.NETWORK_ENGINE_EXPERIMENTAL -> {
-                io("networkEngineExperimental") {
-                    setExperimentalSettings(persistentState.nwEngExperimentalFeatures)
-                }
-            }
-            PersistentState.USE_RPN -> {
-                io("rpnUpdated") { }
-            }
-            PersistentState.RPN_MODE -> {
-                io("rpnMode") { }
-            }
-            PersistentState.DIAL_TIMEOUT_SEC -> {
-                io("tunTimeout") {
-                    setDialStrategy()
-                }
-            }
-            PersistentState.AUTO_DIALS_PARALLEL -> {
-                io("autoDialsParallel") {
-                    setAutoDialsParallel()
-                }
-            }
-            PersistentState.STALL_ON_NO_NETWORK -> {
-                io("stallOnNoNetwork") {
-                    notifyConnectionMonitor()
-                }
-                val reason = "stallOnNoNetwork: ${persistentState.stallOnNoNetwork}"
-                vpnRestartTrigger.value = reason
-            }
-            PersistentState.TUN_NETWORK_POLICY -> {
-                io("tunNetworkPolicy") {
-                    // notify connection monitor to update the network policy
-                    Logger.i(LOG_TAG_VPN, "tun network policy changed, notify connection monitor")
-                    connectionMonitor.onPolicyChanged()
-                }
-            }
-            PersistentState.USE_MAX_MTU -> {
-                io("useMaxMtu") {
-                    val newMtu = if (persistentState.useMaxMtu && !persistentState.routeRethinkInRethink) {
-                        MAX_MTU
-                    } else {
-                        mtu()
-                    }
-                    Logger.i(LOG_TAG_VPN, "use max mtu changed, new mtu: $newMtu")
-                    val reason = "useMaxMtu: ${persistentState.useMaxMtu}"
-                    vpnRestartTrigger.value = reason
-                }
-            }
-            PersistentState.SET_VPN_BUILDER_TO_METERED -> {
-                io("setVpnBuilderToMetered") {
-                    Logger.i(LOG_TAG_VPN, "set vpn builder to metered: ${persistentState.setVpnBuilderToMetered}")
-                    val reason = "setVpnBuilderToMetered: ${persistentState.setVpnBuilderToMetered}"
-                    vpnRestartTrigger.value = reason
-                }
-            }
-            PersistentState.PANIC_RANDOM -> {
-                io("panicRandom") {
-                    Logger.i(LOG_TAG_VPN, "panic random is unavailable in this Firestack build")
-                }
-            }
-            PersistentState.AUTO_PROXY_ENABLED -> {
-                io("seProxyEnabled") {
-                    if (persistentState.autoProxyEnabled) {
-                        vpnAdapter?.registerSeProxyIfNeeded()
-                    } else {
-                        vpnAdapter?.unregisterSeProxyIfNeeded()
-                    }
-                }
-            }
-            PersistentState.CUSTOM_LAN_MODE_IPS_CHANGED -> {
-                if (persistentState.customModeOrIpChanged) {
-                    io("customIpsChanged") {
-                        val reason = "customIpsChanged: ${System.currentTimeMillis()}"
-                        vpnRestartTrigger.value = reason
-                    }
-                } else {
-                    // no-op
-                }
-            }
-
-            PersistentState.FIREWALL_BUBBLE -> {
-                if (isAtleastQ()) {
-                    bubbleController.handleIfNeeded()
-                }
-            }
-        }
-    }
-
-    private suspend fun setExperimentalSettings(experimental: Boolean) {
-        Logger.i(LOG_TAG_VPN, "set experimental settings: $experimental")
-    }
-
-    private suspend fun undelegatedDomains() {
-        Logger.i(LOG_TAG_VPN, "use system dns for undelegated domains: ${persistentState.useSystemDnsForUndelegatedDomains}")
-        vpnAdapter?.undelegatedDomains(persistentState.useSystemDnsForUndelegatedDomains)
-    }
-
-    private suspend fun setDialStrategy() {
-        Logger.d(
-            LOG_TAG_VPN,
-            "set dial strategy: ${persistentState.dialStrategy}, retry: ${persistentState.retryStrategy}, tcpKeepAlive: ${persistentState.tcpKeepAlive}, timeout: ${persistentState.dialTimeoutSec}"
-        )
-        vpnAdapter?.setDialStrategy()
-        vpnAdapter?.setAutoMode()
-    }
-
-    private suspend fun setAutoDialsParallel() {
-        Logger.d(LOG_TAG_VPN, "set auto dials parallel: ${persistentState.autoDialsParallel}")
-        vpnAdapter?.setAutoDialsParallel()
-    }
-
-    private suspend fun setTransparency() {
-        Logger.d(LOG_TAG_VPN, "set endpoint independence: ${persistentState.endpointIndependence}")
-        vpnAdapter?.setTransparency(persistentState.endpointIndependence)
-    }
-
-    private fun disableAllowBypassIfNeeded() {
-        if (appConfig.isProxyEnabled() && persistentState.allowBypass) {
-            Logger.i(LOG_TAG_VPN, "disabling allowBypass, as proxy is set.")
-            // inform user about the change in allow bypass setting by showing a toast
-            ui {
-                val message =
-                    getString(
-                        R.string.toast_allow_bypass_disabled,
-                        getString(R.string.settings_allow_bypass_heading)
-                    )
-                showToastUiCentered(this, message, Toast.LENGTH_LONG)
-            }
-            persistentState.allowBypass = false
-        }
-    }
-
-    private suspend fun setRDNS() {
-        logd("set brave dns mode, local/remote")
-        vpnAdapter?.setRDNS()
-    }
-
     fun closeConnectionsIfNeeded(uid: Int, reason: String) { // can be invalid uid, in which case, no-op
         if (uid == INVALID_UID) return
 
@@ -1883,68 +1461,6 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
         }
     }
 
-    private suspend fun addTransport() {
-        // TODO: no need to call addTransport in case of relay changes, which we are doing now
-        logd("handle transport change")
-        vpnAdapter?.addTransport()
-    }
-
-    private fun handleIPProtoChanges() {
-        Logger.i(LOG_TAG_VPN, "handle ip proto changes")
-        if (InternetProtocol.isAuto(persistentState.internetProtocolType)) {
-            // initiates connectivity checks if Auto mode and calls onNetworkConnected
-            // or onNetworkDisconnected. onNetworkConnected may call restartVpn
-            notifyConnectionMonitor()
-        }
-        val reason = "ipProto: ${persistentState.internetProtocolType}"
-        vpnRestartTrigger.value = reason
-    }
-
-    private suspend fun handleProxyChange() {
-        val tunProxyMode = appConfig.getTunProxyMode()
-        val proxy = AppConfig.ProxyProvider.getProxyProvider(appConfig.getProxyProvider())
-        Logger.i(LOG_TAG_VPN, "handle proxy change, proxy: $proxy, mode: $tunProxyMode")
-        when (proxy) {
-            AppConfig.ProxyProvider.NONE -> {
-                // no-op
-            }
-
-            AppConfig.ProxyProvider.TCP -> {
-            }
-
-            AppConfig.ProxyProvider.WIREGUARD -> {
-                // no need to set proxy for wireguard, as WireguardManager handles it
-            }
-
-            AppConfig.ProxyProvider.ORBOT -> {
-                // update orbot config, its treated as SOCKS5 or HTTP proxy internally
-                // orbot proxy requires app to be excluded from vpn, so restart vpn
-                val reason = "orbotProxy: ${appConfig.isOrbotProxyEnabled()}"
-                vpnRestartTrigger.value = reason
-                vpnAdapter?.setCustomProxy(tunProxyMode)
-            }
-
-            AppConfig.ProxyProvider.CUSTOM -> {
-                // custom either means socks5 or http proxy
-                // socks5 proxy requires app to be excluded from vpn, so restart vpn
-                val isSocks5 = tunProxyMode == AppConfig.TunProxyMode.SOCKS5
-                val reason = if (isSocks5) {
-                    "customProxy: ${appConfig.getSocks5ProxyDetails()}"
-                } else {
-                    "customProxy: ${appConfig.getHttpProxyDetails()}"
-                }
-                vpnRestartTrigger.value = reason
-                vpnAdapter?.setCustomProxy(tunProxyMode)
-            }
-        }
-    }
-
-    private fun spawnLocalBlocklistStampUpdate() {
-        if (isPlayStoreFlavour()) return
-
-        io("dnsStampUpdate") { vpnAdapter?.setRDNSStamp() }
-    }
-
     // invoked on pref / probe-ip changes, so that the connection monitor can
     // re-initiate the connectivity checks
     fun notifyConnectionMonitor(enforcePolicyChange: Boolean = false) {
@@ -1953,10 +1469,6 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
         } else {
             connectionMonitor.onUserPreferenceChanged()
         }
-    }
-
-    private suspend fun updateDnsAlg() {
-        vpnAdapter?.setDnsAlg()
     }
 
     fun signalStopService(reason: String, userInitiated: Boolean = true) {
@@ -1995,26 +1507,6 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
                 reason
             )
         }
-    }
-
-    private suspend fun setPcapMode() {
-        val pcapPath = appConfig.getPcapFilePath()
-        Logger.i(LOG_TAG_VPN, "pcap mode enabled, path: $pcapPath")
-        vpnAdapter?.setPcapMode(pcapPath)
-    }
-
-    private fun setTunMode() {
-        val opts =
-            appConfig.newTunnelOptions(
-                this,
-                getFakeDns(),
-                appConfig.getProtocolTranslationMode()
-            )
-        Logger.i(
-            LOG_TAG_VPN,
-            "set tun mode with dns: ${opts.tunDnsMode}, firewall: ${opts.tunFirewallMode}, proxy: ${opts.tunProxyMode}, pt: ${opts.ptMode}"
-        )
-        vpnAdapter?.setTunMode(opts)
     }
 
 
@@ -2123,8 +1615,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
     }
 
     suspend fun refreshResolvers() {
-        Logger.i(LOG_TAG_VPN, "refresh resolvers")
-        vpnAdapter?.refreshResolvers()
+        vpnDnsTransportController.refreshResolvers()
     }
 
     private suspend fun makeOrUpdateVpnAdapter(
@@ -2236,7 +1727,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
         // pause mobile-only wgs on no network
         pauseMobileOnlyWireGuardOnNoNw()
         pauseSsidEnabledWireGuardOnNoNw()
-        setNetworkAndDefaultDnsIfNeeded(true)
+        vpnDnsTransportController.setNetworkAndDefaultDnsIfNeeded(true)
         VpnController.onConnectionStateChanged(null)
     }
 
@@ -2280,60 +1771,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
     }
 
     private fun getUnderlays(): Array<Network>? {
-        val networks = underlyingNetworks
-        val failOpen = !persistentState.stallOnNoNetwork
-        val setNullOnVpnLockdown = false
-        // always check lockdown from isLockdown() as it is the original source of truth
-        val currentlyLockdown = isLockdown()
-        val mustSetNullOnVpnLockdown = currentlyLockdown && setNullOnVpnLockdown
-        if (networks == null) {
-            Logger.w(LOG_TAG_VPN, "getUnderlays: null nws; fail-open? $failOpen, must-set-null? $mustSetNullOnVpnLockdown, lockdown? $currentlyLockdown")
-            return if (failOpen || mustSetNullOnVpnLockdown) { // failing open on no nw / lockdown
-                null // use whichever network is active, whenever it becomes active
-            } else {
-                emptyArray() // deny all traffic; fail closed
-            }
-        }
-
-        // underlying networks is set to null, which prompts Android to set it to whatever is
-        // the current active network. Later, ConnectionMonitor#onVpnStarted, depending on user
-        // chosen preferences, sets appropriate underlying network/s.
-
-        // add ipv4/ipv6 networks to the tunnel
-        val allNetworks = networks.ipv4Net.map { it.network } + networks.ipv6Net.map { it.network }
-        // remove duplicates, as the same network can be both ipv4 and ipv6
-        val distinctNetworks = allNetworks.distinctBy { it.networkHandle }
-        val hasUnderlyingNetwork = distinctNetworks.isNotEmpty()
-        val underlays = if (hasUnderlyingNetwork) {
-            if (networks.useActive) {
-                null // null denotes active network
-            } else {
-                distinctNetworks.toTypedArray() // use all networks
-            }
-        } else {
-            // failing open on no nw / lockdown
-            if (failOpen || mustSetNullOnVpnLockdown) {
-                null // use whichever network is active, whenever it becomes active
-            } else {
-                emptyArray() // deny all traffic; fail closed
-            }
-        }
-
-        Logger.i(
-            LOG_TAG_VPN,
-            "getUnderlays: use active? ${networks.useActive}; fail-open? $failOpen; lockdown? $mustSetNullOnVpnLockdown; networks: ${underlays?.size}; null-underlay? ${underlays == null}"
-        )
-        if (!hasUnderlyingNetwork) {
-            Logger.w(LOG_TAG_VPN, "getUnderlays: no underlying networks found")
-        } else {
-            underlays?.forEach {
-                Logger.i(
-                    LOG_TAG_VPN,
-                    "getUnderlays: network: ${it.networkHandle}, netId: ${netid(it.networkHandle)}"
-                )
-            }
-        }
-        return underlays
+        return vpnTunRoutes.getUnderlays(underlyingNetworks, isLockdown(), ::netid)
     }
 
     suspend fun onNetworkConnected(networks: ConnectionMonitor.UnderlyingNetworks, forceRestart: Boolean = false) {
@@ -2347,7 +1785,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
         underlyingNetworks?.vpnLockdown = isLockdown()
 
         // always reset the system dns server ip of the active network with the tunnel
-        setNetworkAndDefaultDnsIfNeeded(isRoutesChanged || isBoundNetworksChanged)
+        vpnDnsTransportController.setNetworkAndDefaultDnsIfNeeded(isRoutesChanged || isBoundNetworksChanged)
 
         val underlyingNws = getUnderlays()
         setUnderlyingNetworks(underlyingNws)
@@ -2376,12 +1814,6 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
                 reason += "force: $forceRestart, lock: ${curnet?.vpnLockdown}/${networks.vpnLockdown}, "
                 reason += "nwConnect, $reason"
                 vpnRestartTrigger.value = reason
-                // not needed as the refresh is done in go, TODO: remove below code later
-                // only after set links and routes, wg can be refreshed
-                // if (isRoutesChanged) {
-                // Logger.v(LOG_TAG_VPN, "refresh wg after network change")
-                // refreshProxies()
-                // }
             }
         } else {
             // update the network mtu even though no restart is needed
@@ -2469,193 +1901,16 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
         _new: ConnectionMonitor.UnderlyingNetworks? = null,
         aux: OverlayNetworks = overlayNetworks
     ): NetworkChanges {
-        var new = _new
-        // when old and new are null, no changes
-        if (old == null && new == null) {
-            logd("tun: old and new nws are null")
-            return NetworkChanges(routesChanged = false, netChanged = false, mtuChanged = false)
-        }
-        // no old routes to compare with, return true
-        if (old == null) {
-            logd("tun: old nw is null, new nw: $new")
-            return NetworkChanges()
-        }
-        if (new == null) {
-            // new is null, but old is not, then check for changes in aux networks
-            logd("tun: new nw is null, using old nw: $old")
-            new = old
-        }
-
-        val useMaxMtu = persistentState.useMaxMtu && !persistentState.routeRethinkInRethink
-        val tunMtu = tunMtu()
-        logd(
-            "tun: useMaxMtu? $useMaxMtu tunMtu:$tunMtu; old: ${old.minMtu}, new: ${new.minMtu}; oldaux: ${overlayNetworks.mtu}, newaux: ${aux.mtu}"
+        return vpnTunRoutes.interestingNetworkChanges(
+            old,
+            _new,
+            aux,
+            overlayNetworks.mtu,
+            tunMtu(),
+            builderRoutes,
+            RECONCILE_WITH_VPN_ROUTES,
+            ::logd,
         )
-
-        // mark mtu changed if any tunMtu differs from min mtu of new underlying & overlay network
-        val mtuChanged = !useMaxMtu && tunMtu != min(new.minMtu, aux.mtu)
-
-        // val auxHas4 = aux.has4 || aux.failOpen
-        // val auxHas6 = aux.has6 || aux.failOpen
-
-        val (builderHas4, builderHas6) = builderRoutes // current tunnel routes v4/v6?
-
-        // when the nws are null from the connection monitor, then consider the builder routes
-        // as the new routes
-
-        var vpnHas4 = builderHas4
-        var vpnHas6 = builderHas6
-        if (RECONCILE_WITH_VPN_ROUTES) {
-            vpnHas4 = new.vpnRoutes?.first ?: builderHas4
-            vpnHas6 = new.vpnRoutes?.second ?: builderHas6
-        }
-
-        val n = Networks(new, aux)
-        val (tunWants4, tunWants6) = determineRoutes(n)
-
-        // old & new agree on activ capable of routing ipv4 or not
-        val ok4 = builderHas4 == tunWants4 && builderHas4 == vpnHas4
-        // old & new agree on activ capable of routing ipv6 or not
-        val ok6 = builderHas6 == tunWants6 && builderHas6 == vpnHas6
-
-        val routesChanged = !ok4 || !ok6
-
-        logd("tun: has4: $builderHas4, wants4: $tunWants4, vpnHas4: $vpnHas4, has6: $builderHas6, wants6: $tunWants6, vpnHas6: $vpnHas6, routesChanged? $routesChanged, ")
-
-        if (new.useActive) {
-            cm.activeNetwork?.let { activ ->
-                // val tunWants4 = activHas4 && auxHas4
-                // val tunWants6 = activHas6 && auxHas6
-                val activHas4 = isNetworkSame(new.ipv4Net.firstOrNull()?.network, activ)
-                val activHas6 = isNetworkSame(new.ipv6Net.firstOrNull()?.network, activ)
-                val oldActivHas4 = isNetworkSame(old.ipv4Net.firstOrNull()?.network, activ)
-                val oldActivHas6 = isNetworkSame(old.ipv6Net.firstOrNull()?.network, activ)
-                val okActiv4 = oldActivHas4 == activHas4 // routing for ipv4 is same in old and new FIRST network
-                val okActiv6 = oldActivHas6 == activHas6 // routing for ipv6 is same in old and new FIRST network
-                val netChanged = !okActiv4 || !okActiv6
-
-                val ssidChanged = old.activeSsid != new.activeSsid
-                logd("tun: oldActiv4: $oldActivHas4, newActiv4: $activHas4, oldActiv6: $oldActivHas6, newActiv6: $activHas6, netChanged? $netChanged")
-                logd("tun: oldActiveSsid: ${old.activeSsid}, newActiveSsid: ${new.activeSsid}, ssidChanged? $ssidChanged")
-                // for active networks, changes in routes includes all possible network changes;
-                return NetworkChanges(routesChanged, netChanged, mtuChanged, ssidChanged)
-            } // active network null, fallthrough to check for netChanged
-        }
-        // check if ipv6 or ipv4 routes are different in old and new networks
-        // val oldHas6 = old.ipv6Net.isNotEmpty() || tunHas6
-        // val oldHas4 = old.ipv4Net.isNotEmpty() || tunHas4
-        // val newHas6 = new.ipv6Net.isNotEmpty()
-        // val newHas4 = new.ipv4Net.isNotEmpty()
-        // val tunWants4 = newHas4 && auxHas4
-        // val tunWants6 = newHas6 && auxHas6
-        // check if the first networks are different to urge rebinds where necessary (ex: WireGuard)
-        val oldFirst6 = old.ipv6Net.firstOrNull()?.network
-        val newFirst6 = new.ipv6Net.firstOrNull()?.network
-        val oldFirst4 = old.ipv4Net.firstOrNull()?.network
-        val newFirst4 = new.ipv4Net.firstOrNull()?.network
-        val netChanged = !isNetworkSame(oldFirst6, newFirst6) || !isNetworkSame(oldFirst4, newFirst4)
-
-        val oldSsidFirst4 = old.ipv4Net.firstOrNull()?.ssid
-        val newSsidFirst4 = new.ipv4Net.firstOrNull()?.ssid
-        val oldSsidFirst6 = old.ipv6Net.firstOrNull()?.ssid
-        val newSsidFirst6 = new.ipv6Net.firstOrNull()?.ssid
-        val ssidChanged = oldSsidFirst4 != newSsidFirst4 || oldSsidFirst6 != newSsidFirst6
-
-        logd("tun: oldFirst4: $oldFirst4, newFirst4: $newFirst4, oldFirst6: $oldFirst6, newFirst6: $newFirst6, netChanged? $netChanged")
-        logd("tun: oldSsidFirst4: $oldSsidFirst4, newSsidFirst4: $newSsidFirst4, oldSsidFirst6: $oldSsidFirst6, newSsidFirst6: $newSsidFirst6, ssidChanged? $ssidChanged")
-        return NetworkChanges(routesChanged, netChanged, mtuChanged, ssidChanged)
-    }
-
-    private suspend fun setNetworkAndDefaultDnsIfNeeded(forceUpdate: Boolean = false) {
-        val ctx = this
-        withContext(serializer) {
-            val currNet = underlyingNetworks
-            // get dns servers from the first network or active network
-            val active = cm.activeNetwork
-            val dnsServers: MutableSet<InetAddress> =
-            if (cm.getNetworkCapabilities(active)?.hasTransport(NetworkCapabilities.TRANSPORT_VPN) == true) {
-                Logger.i(LOG_TAG_VPN, "active network is vpn, so no need get dns servers")
-                mutableSetOf()
-            } else {
-                val lp = cm.getLinkProperties(active)
-                // here dnsServers are validated with underlyingNetworks, so there may be a case
-                // where v6 address is added when v6 network is not available
-                // so, dnsServers will have both v4 and v6 addresses
-                lp?.dnsServers?.toMutableSet() ?: mutableSetOf()
-            }
-
-            if (dnsServers.isEmpty()) {
-                // first network is considered to be active network
-                val ipv4 = currNet?.ipv4Net?.firstOrNull()
-                val ipv6 = currNet?.ipv6Net?.firstOrNull()
-                val dns4 = ipv4?.linkProperties?.dnsServers
-                val dns6 = ipv6?.linkProperties?.dnsServers
-                // if active network is not found in the list of networks, then use dns from
-                // first network
-                val dl = mutableSetOf<InetAddress>()
-                // add all the dns servers from the first network, depending on the current
-                // route, netstack will make use of the dns servers
-                dns4?.let { dl.addAll(it) }
-                dns6?.let { dl.addAll(it) }
-                Logger.i(LOG_TAG_VPN, "dns servers for network: $dl")
-                dnsServers.addAll(dl)
-            } else {
-                Logger.i(LOG_TAG_VPN, "dns servers for network: $dnsServers")
-            }
-
-            if (dnsServers.isEmpty()) {
-                // TODO: send an alert/notification instead?
-                Logger.w(LOG_TAG_VPN, "No system dns servers found")
-                if (appConfig.isSystemDns()) {
-                    // on null dns servers, show toast
-                    ui {
-                        showToastUiCentered(
-                            ctx,
-                            getString(R.string.system_dns_connection_failure),
-                            Toast.LENGTH_LONG
-                        )
-                    }
-                } else {
-                    // no-op
-                }
-            }
-            io("setSystemAndDefaultDns") {
-                // ref: kotlinlang.org/docs/equality.html#structural-equality
-                val same = dnsServers == prevDns
-
-                Logger.i(
-                    LOG_TAG_VPN,
-                    "dns: $dnsServers, existing: $prevDns, force: $forceUpdate, same? $same"
-                )
-                if (same && !forceUpdate) {
-                    return@io
-                }
-                // set system dns whenever there is a change in network
-                prevDns.clear()
-                prevDns.addAll(dnsServers)
-                val dns = dnsServers.map { it.hostAddress }
-                vpnAdapter?.setSystemDns(dns)
-                // set default dns server for the tunnel if none is set
-                if (isDefaultDnsNone()) {
-                    val dnsCsv = dns.joinToString(",")
-                    vpnAdapter?.addDefaultTransport(dnsCsv)
-                }
-
-                val id = if (appConfig.isSmartDnsEnabled()) Backend.Plus else Backend.Preferred
-                val mainDnsOK = vpnAdapter?.getDnsStatus(id) != null
-                Logger.i(LOG_TAG_VPN, "preferred/plus set? ${mainDnsOK}, if not set it again")
-
-                if (!mainDnsOK) {
-                    vpnAdapter?.addTransport()
-                }
-            }
-        }
-    }
-
-    private fun isDefaultDnsNone(): Boolean {
-        // if none is set then the url will either be empty or will not be one of the default dns
-        return persistentState.defaultDnsUrl.isEmpty() ||
-                !Constants.DEFAULT_DNS_LIST.any { it.url == persistentState.defaultDnsUrl }
     }
 
     private fun handleVpnLockdownStateAsync() {
@@ -2712,11 +1967,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
         // Cleanup modular managers
         cleanupModularManagers()
 
-        unobserveOrbotStartStatus()
-        unobserveAppInfos()
-        unobserveDnsRelay()
-        preferenceKeyCollectorJob?.cancel()
-        preferenceKeyCollectorJob = null
+        vpnPrefObservers.unregister()
 
         // onVpnStart is also called from the main thread (ui).
         // Must unregister callbacks before vpnScope.cancel — ConnectionMonitor shares vpnScope.
@@ -4479,19 +3730,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
         return (vpnAdapter?.createHop(origin, hop)) ?: Pair(false, "adapter is null")
     }
     suspend fun vpnStats(): String {
-        // create a string with the stats, add stats of firewall, dns, proxy, builder
-        // other key stats
-        val stats = StringBuilder()
-        stats.append("VPN Stats:\n")
-        stats.append("Builder:\n${builderStats()}\n")
-        stats.append("General:\n${generalStats()}\n")
-        stats.append("Firewall:\n${firewallStats()}\n")
-        stats.append("IpRules:\n${ipRulesStats()}\n")
-        stats.append("DomainRules:\n${domainRulesStats()}\n")
-        stats.append("Proxy:\n${proxyStats()}\n")
-        stats.append("WireGuard:\n${wireguardStats()}\n")
-        stats.append("Memory: \n${MemoryUtils.getMemoryStats(this)}\n")
-        return stats.toString()
+        return vpnServiceDiagnostics.vpnStats(builderStats())
     }
 
     fun performConnectivityCheck(controller: Controller, id: String, addrPort: String): Boolean {
@@ -4504,30 +3743,6 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
 
     private fun firewallStats(): String {
         return FirewallManager.stats()
-    }
-
-    private fun dnsStats(): String {
-        return prevDns.joinToString()
-    }
-
-    private fun generalStats(): String {
-        return appConfig.stats()
-    }
-
-    private fun proxyStats(): String {
-        return ProxyManager.stats()
-    }
-
-    private suspend fun ipRulesStats(): String {
-        return IpRulesManager.stats()
-    }
-
-    private suspend fun domainRulesStats(): String {
-        return DomainRulesManager.stats()
-    }
-
-    private suspend fun wireguardStats(): String {
-        return WireguardManager.stats()
     }
 
     fun screenUnlock() {
@@ -4550,63 +3765,21 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
     private fun builderStats(): String {
         val n = Networks(underlyingNetworks, overlayNetworks)
         val (route4, route6) = determineRoutes(n)
-
-        val ipv4NwHandles = n.underlyingNws?.ipv4Net?.map { netid(it.network.networkHandle) } ?: emptyList()
-        val ipv6NwHandles = n.underlyingNws?.ipv6Net?.map { netid(it.network.networkHandle) } ?: emptyList()
-        val linkAddresses4 = n.underlyingNws?.ipv4Net?.map { it.linkProperties?.linkAddresses?.filter { i -> IPAddressString(i.address.hostAddress).isIPv4 } } ?: emptyList()
-        val linkAddresses6 = n.underlyingNws?.ipv6Net?.map { it.linkProperties?.linkAddresses?.filter { i -> IPAddressString(i.address.hostAddress).isIPv6 } } ?: emptyList()
-        val link4Mtu = if (isAtleastQ()) n.underlyingNws?.ipv4Net?.map { it.linkProperties?.mtu ?: 0 } ?: listOf(-1) else listOf(-1)
-        val link6Mtu = if (isAtleastQ()) n.underlyingNws?.ipv6Net?.map { it.linkProperties?.mtu ?: 0 } ?: listOf(-1) else listOf(-1)
-        val ssid = getUnderlyingSsid() ?: "N/A"
-
-        val linkAddr4String = if (linkAddresses4.isEmpty()) {
-            "N/A"
-        } else {
-            linkAddresses4.joinToString(", ") { it?.joinToString(", ") { addr -> addr.address.hostAddress.orEmpty() }.orEmpty() }.ifEmpty { "N/A" }
-        }
-        val linkAddr6String = if (linkAddresses6.isEmpty()) {
-            "N/A"
-        } else {
-            linkAddresses6.joinToString(", ") { it?.joinToString(", ") { addr -> addr.address.hostAddress.orEmpty() }.orEmpty() }.ifEmpty { "N/A" }
-        }
-        val vpnServiceLockdown = if (isAtleastQ()) {
-            isLockdownEnabled
-        } else {
-            ">Q"
-        }
-        val sb = StringBuilder()
-        sb.append("  $builderStats\n")
-        sb.append("   builderRoutes: ${builderRoutes}\n")
-        sb.append("   fd: ${testFd.get()}\n")
-        sb.append("   dns: ${dnsStats()}\n")
-        sb.append("   stall: ${persistentState.stallOnNoNetwork}\n")
-        sb.append("   setUnderlyingNws: $tunUnderlyingNetworks\n")
-        sb.append("   loopback: ${persistentState.routeRethinkInRethink}\n")
-        sb.append("   lockdown: ${isLockdown()}/${underlyingNetworks?.vpnLockdown ?: "null"}/$vpnServiceLockdown\n")
-        sb.append("   Restart mechanism: ${persistentState.vpnBuilderPolicy}\n")
-        sb.append("   Underlay\n")
-        sb.append("      4: ${n.underlyingNws?.ipv4Net?.size}\n")
-        sb.append("      6: ${n.underlyingNws?.ipv6Net?.size}\n")
-        sb.append("      vpnRoutes: ${n.underlyingNws?.vpnRoutes}\n")
-        sb.append("      useActive: ${n.underlyingNws?.useActive}\n")
-        sb.append("      mtu: ${n.underlyingNws?.minMtu}\n")
-        sb.append("   Overlay\n")
-        sb.append("      4: ${n.overlayNws.has4}\n")
-        sb.append("      6: ${n.overlayNws.has6}\n")
-        sb.append("      mtu:${n.overlayNws.mtu}\n")
-        sb.append("      determine4: $route4\n")
-        sb.append("      determine6: $route6\n")
-        sb.append("   Net ID\n")
-        sb.append("      4: $ipv4NwHandles\n")
-        sb.append("      6: $ipv6NwHandles\n")
-        sb.append("   Link Addresses\n")
-        sb.append("      4: $linkAddr4String\n")
-        sb.append("      6: $linkAddr6String\n")
-        sb.append("   Link MTU\n")
-        sb.append("      4: $link4Mtu\n")
-        sb.append("      6: $link6Mtu\n")
-        sb.append("   SSID: $ssid\n")
-        return sb.toString()
+        return vpnServiceDiagnostics.builderStats(
+            n = n,
+            builderRoutes = builderRoutes,
+            builderStatsText = builderStats,
+            fd = testFd.get(),
+            systemDns = vpnDnsTransportController.systemDnsSnapshot(),
+            tunUnderlyingNetworks = tunUnderlyingNetworks,
+            lockdown = isLockdown(),
+            vpnLockdown = underlyingNetworks?.vpnLockdown,
+            ssid = getUnderlyingSsid() ?: "N/A",
+            route4 = route4,
+            route6 = route6,
+            netid = ::netid,
+            isLockdownEnabled = if (isAtleastQ()) isLockdownEnabled else false,
+        )
     }
 
     fun isUnderlyingVpnNetworkEmpty(): Boolean {

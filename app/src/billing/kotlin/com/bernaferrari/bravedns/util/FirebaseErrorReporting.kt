@@ -56,8 +56,8 @@ object FirebaseErrorReporting : KoinComponent {
             }
             setEnabled(persistentState.firebaseErrorReportingEnabled)
             Logger.i(LOG_FIREBASE, "crashlytics initialized, enabled? ${crashlytics.isCrashlyticsCollectionEnabled}")
-        } catch (e: Exception) {
-            Logger.w(LOG_FIREBASE, "crashlytics not available: ${e.message}")
+        } catch (e: IllegalStateException) {
+            Logger.w(LOG_FIREBASE, "crashlytics not available: ${e.message}", e)
         }
     }
 
@@ -74,8 +74,8 @@ object FirebaseErrorReporting : KoinComponent {
                 crashlytics.deleteUnsentReports()
             }
             Logger.i(LOG_FIREBASE, "crashlytics enabled state set to: $enabled")
-        } catch (e: Exception) {
-            Logger.w(LOG_FIREBASE, "err setting crashlytics state: ${e.message}")
+        } catch (e: IllegalStateException) {
+            Logger.w(LOG_FIREBASE, "err setting crashlytics state: ${e.message}", e)
         }
     }
 
@@ -88,8 +88,8 @@ object FirebaseErrorReporting : KoinComponent {
         try {
             val crashlytics = FirebaseCrashlytics.getInstance()
             crashlytics.log(message)
-        } catch (e: Exception) {
-            Logger.w(LOG_FIREBASE, "err; log message to crashlytics: ${e.message}")
+        } catch (e: IllegalStateException) {
+            Logger.w(LOG_FIREBASE, "err; log message to crashlytics: ${e.message}", e)
         }
     }
 
@@ -102,8 +102,8 @@ object FirebaseErrorReporting : KoinComponent {
         try {
             val crashlytics = FirebaseCrashlytics.getInstance()
             crashlytics.recordException(throwable)
-        } catch (e: Exception) {
-            Logger.w(LOG_FIREBASE, "err; rec-ex to crashlytics: ${e.message}")
+        } catch (e: IllegalStateException) {
+            Logger.w(LOG_FIREBASE, "err; rec-ex to crashlytics: ${e.message}", e)
         }
     }
 
@@ -116,8 +116,8 @@ object FirebaseErrorReporting : KoinComponent {
         try {
             val crashlytics = FirebaseCrashlytics.getInstance()
             crashlytics.setUserId(userId)
-        } catch (e: Exception) {
-            Logger.w(LOG_FIREBASE, "err; set user-id crashlytics: ${e.message}")
+        } catch (e: IllegalStateException) {
+            Logger.w(LOG_FIREBASE, "err; set user-id crashlytics: ${e.message}", e)
         }
     }
 
@@ -130,8 +130,8 @@ object FirebaseErrorReporting : KoinComponent {
         try {
             val crashlytics = FirebaseCrashlytics.getInstance()
             crashlytics.setCustomKey(key, value)
-        } catch (e: Exception) {
-            Logger.w(LOG_FIREBASE, "err; set custom key: ${e.message}")
+        } catch (e: IllegalStateException) {
+            Logger.w(LOG_FIREBASE, "err; set custom key: ${e.message}", e)
         }
     }
 }

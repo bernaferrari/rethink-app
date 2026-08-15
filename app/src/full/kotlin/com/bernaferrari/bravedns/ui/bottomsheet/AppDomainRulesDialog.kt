@@ -15,70 +15,39 @@
  */
 package com.bernaferrari.bravedns.ui.bottomsheet
 
-
 import android.graphics.drawable.Drawable
-import android.widget.Toast
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Text
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.bernaferrari.bravedns.R
-import com.bernaferrari.bravedns.database.CustomDomain
-import com.bernaferrari.bravedns.database.WgConfigFilesImmutable
 import com.bernaferrari.bravedns.service.DomainRulesManager
 import com.bernaferrari.bravedns.service.EventLogger
-import com.bernaferrari.bravedns.service.FirewallManager
-import com.bernaferrari.bravedns.service.ProxyManager.ID_WG_BASE
-import com.bernaferrari.bravedns.util.Constants.Companion.INVALID_UID
-import com.bernaferrari.bravedns.util.UIUtils
-import com.bernaferrari.bravedns.util.Utilities
-import com.bernaferrari.bravedns.ui.compose.rememberDrawablePainter
-import com.bernaferrari.bravedns.ui.compose.theme.Dimensions
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleAction
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleEditorHeader
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleEditorStrings
-import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleSheetBottomPaddingWithActions
+import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleSheetBottomPaddingCompact
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleSheetLayout
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleSheetModal
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleSectionTitle
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleSupportingText
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleTrustBlockRow
-import Logger
-import kotlinx.coroutines.CoroutineScope
+import com.bernaferrari.bravedns.ui.compose.rememberDrawablePainter
+import com.bernaferrari.bravedns.ui.compose.theme.Dimensions
+import com.bernaferrari.bravedns.util.Constants.Companion.INVALID_UID
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 
-private const val TAG = "AppDomainBtmSht"
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppDomainRulesSheet(
     uid: Int,
@@ -88,15 +57,17 @@ fun AppDomainRulesSheet(
     onUpdated: () -> Unit
 ) {
     val context = LocalContext.current
-    val configAddSuccessToast = stringResource(R.string.config_add_success_toast)
     val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val editedMessage = stringResource(R.string.cd_toast_edit)
+    val undoLabel = stringResource(R.string.brbs_restore_dialog_positive)
 
-    var domainRule by remember { mutableStateOf(DomainRulesManager.Status.NONE) }
-    var customDomain by remember { mutableStateOf<CustomDomain?>(null) }
+    var persistedRule by remember { mutableStateOf(DomainRulesManager.Status.NONE) }
+    var selectedRule by remember { mutableStateOf(DomainRulesManager.Status.NONE) }
     var appNames by remember { mutableStateOf<List<String>>(emptyList()) }
     var appIcon by remember { mutableStateOf<Drawable?>(null) }
-    var showWgSheet by remember { mutableStateOf(false) }
-    var wgConfigs by remember { mutableStateOf<List<WgConfigFilesImmutable?>>(emptyList()) }
+    var applying by remember { mutableStateOf(false) }
+    var undoEpoch by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(uid, domain) {
         if (uid == INVALID_UID) {
@@ -106,12 +77,12 @@ fun AppDomainRulesSheet(
         val (names, icon) = withContext(Dispatchers.IO) { fetchRuleSheetAppIdentity(context, uid) }
         appNames = names
         appIcon = icon
-        domainRule = withContext(Dispatchers.IO) { DomainRulesManager.status(domain, uid) }
-        customDomain =
-            withContext(Dispatchers.IO) {
-                DomainRulesManager.getObj(uid, domain) ?: DomainRulesManager.makeCustomDomain(uid, domain)
-            }
+        val status = withContext(Dispatchers.IO) { DomainRulesManager.status(domain, uid) }
+        persistedRule = status
+        selectedRule = status
     }
+
+    val hasPendingChange = selectedRule != persistedRule
 
     RethinkRuleSheetModal(onDismissRequest = onDismiss) {
         val appName = formatRuleSheetAppName(context, appNames)
@@ -119,7 +90,7 @@ fun AppDomainRulesSheet(
             trust = stringResource(R.string.ci_trust_rule),
             block = stringResource(R.string.ci_block),
         )
-        RethinkRuleSheetLayout(bottomPadding = RethinkRuleSheetBottomPaddingWithActions) {
+        RethinkRuleSheetLayout(bottomPadding = RethinkRuleSheetBottomPaddingCompact) {
             RethinkRuleEditorHeader(
                 appName = appName,
                 appIcon = {
@@ -137,58 +108,48 @@ fun AppDomainRulesSheet(
 
             RethinkRuleTrustBlockRow(
                 value = domain,
-                action = domainRule.toRethinkRuleAction(),
+                action = selectedRule.toRethinkRuleAction(),
                 strings = ruleStrings,
-                onActionChange = { action ->
-                    val target = action.toDomainRuleStatus()
-                    applyDomainRule(
-                        domain,
-                        uid,
-                        target,
-                        scope,
-                        eventLogger,
-                        onUpdated
-                    ) { domainRule = it }
-                },
+                onActionChange = { selectedRule = it.toDomainRuleStatus() },
             )
 
             RethinkRuleSupportingText(
                 text = stringResource(R.string.bsac_title_desc),
             )
-        }
 
-        if (showWgSheet) {
-            WireguardListSheet(
-                inputLabel = customDomain?.domain,
-                selectedProxyId = customDomain?.proxyId.orEmpty(),
-                wgConfigs = wgConfigs,
-                onDismiss = { showWgSheet = false },
-                onSelected = { conf ->
-                    scope.launch(Dispatchers.IO) {
-                        val current = customDomain
-                        if (current == null) {
-                            Logger.w(TAG, "$TAG: Custom domain is null")
-                            return@launch
-                        }
-                        val id =
-                            if (conf == null) {
-                                ""
-                            } else {
-                                ID_WG_BASE + conf.id
-                            }
-                        DomainRulesManager.setProxyId(current, id)
-                        current.proxyId = id
-                        withContext(Dispatchers.Main) {
-                            Utilities.showToastUiCentered(
-                                context,
-                                configAddSuccessToast,
-                                Toast.LENGTH_SHORT
-                            )
-                        }
-                    }
-                }
+            RuleSheetApplyBar(
+                enabled = hasPendingChange && !applying,
+                onApply = {
+                    val previous = persistedRule
+                    val next = selectedRule
+                    val epoch = undoEpoch + 1
+                    undoEpoch = epoch
+                    scope.launchReversibleRuleMutation(
+                        snackbarHostState = snackbarHostState,
+                        editedMessage = editedMessage,
+                        undoLabel = undoLabel,
+                        epoch = epoch,
+                        currentEpoch = { undoEpoch },
+                        setApplying = { applying = it },
+                        apply = {
+                            persistDomainRule(domain, uid, next, eventLogger)
+                            persistedRule = next
+                            selectedRule = next
+                            onUpdated()
+                            true
+                        },
+                        undo = {
+                            persistDomainRule(domain, uid, previous, eventLogger)
+                            persistedRule = previous
+                            selectedRule = previous
+                            onUpdated()
+                        },
+                    )
+                },
+                onDismiss = onDismiss,
             )
         }
+        RuleSheetSnackbarHost(snackbarHostState)
     }
 }
 
@@ -204,19 +165,14 @@ private fun RethinkRuleAction.toDomainRuleStatus() = when (this) {
     RethinkRuleAction.None, RethinkRuleAction.Bypass -> DomainRulesManager.Status.NONE
 }
 
-private fun applyDomainRule(
+private suspend fun persistDomainRule(
     domain: String,
     uid: Int,
     status: DomainRulesManager.Status,
-    scope: CoroutineScope,
     eventLogger: EventLogger,
-    onUpdated: () -> Unit,
-    onSetStatus: (DomainRulesManager.Status) -> Unit
 ) {
-    onSetStatus(status)
-    val details = "Domain rule applied: $domain, $uid, ${status.name}"
-    logFirewallRuleChange(eventLogger, "App domain rule", details)
-    scope.launch(Dispatchers.IO) {
+    logFirewallRuleChange(eventLogger, "App domain rule", "Domain rule applied: $domain, $uid, ${status.name}")
+    withContext(Dispatchers.IO) {
         DomainRulesManager.changeStatus(
             domain,
             uid,
@@ -224,77 +180,5 @@ private fun applyDomainRule(
             DomainRulesManager.DomainType.DOMAIN,
             status
         )
-        withContext(Dispatchers.Main) { onUpdated() }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun WireguardListSheet(
-    inputLabel: String?,
-    selectedProxyId: String,
-    wgConfigs: List<WgConfigFilesImmutable?>,
-    onDismiss: () -> Unit,
-    onSelected: (WgConfigFilesImmutable?) -> Unit
-) {
-    val context = LocalContext.current
-    var currentProxyId by remember(inputLabel, selectedProxyId) { mutableStateOf(selectedProxyId) }
-    RethinkRuleSheetModal(onDismissRequest = onDismiss) {
-        Column(
-            modifier =
-                Modifier.fillMaxWidth()
-                    .padding(horizontal = Dimensions.screenPaddingHorizontal, vertical = Dimensions.spacingLg),
-            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
-        ) {
-            inputLabel?.let {
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-
-            LazyColumn {
-                items(wgConfigs, key = { it?.id ?: -1 }) { conf ->
-                    val proxyId = conf?.let { ID_WG_BASE + it.id } ?: ""
-                    val isSelected = currentProxyId == proxyId
-                    val name =
-                        conf?.name ?: stringResource(R.string.settings_app_list_default_app)
-                    val idSuffix = conf?.id?.toString()?.padStart(3, '0')
-                    val desc =
-                        if (conf == null) {
-                            stringResource(R.string.settings_app_list_default_app)
-                        } else {
-                            stringResource(R.string.settings_app_list_default_app) + " $idSuffix"
-                        }
-
-                    Row(
-                        modifier =
-                            Modifier.fillMaxWidth()
-                                .clickable {
-                                    currentProxyId = proxyId
-                                    onSelected(conf)
-                                    onDismiss()
-                                }
-                                .padding(vertical = Dimensions.spacingSm, horizontal = Dimensions.spacingXs),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(text = name, style = MaterialTheme.typography.bodyLarge)
-                            Text(
-                                text = desc,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        RadioButton(selected = isSelected, onClick = null)
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.size(Dimensions.spacingSm))
-        }
     }
 }

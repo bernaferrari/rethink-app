@@ -27,10 +27,12 @@ import com.bernaferrari.bravedns.util.Constants.Companion.UNSPECIFIED_IP_IPV6
 import com.bernaferrari.bravedns.util.JsonHelper
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
+import inet.ipaddr.AddressStringException
 import inet.ipaddr.IPAddressString
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import com.bernaferrari.bravedns.network.IpInfoApi
+import java.io.IOException
 import kotlin.math.pow
 
 object IpInfoDownloader: KoinComponent {
@@ -73,7 +75,9 @@ object IpInfoDownloader: KoinComponent {
             val ip = IPAddressString(ipAddress).address ?: return null
 
             return ip.isLoopback || ip.isLocal || ip.isAnyLocal || UNSPECIFIED_IP_IPV4.equals(ip) || UNSPECIFIED_IP_IPV6.equals(ip)
-        } catch (e: Exception) {
+        } catch (e: AddressStringException) {
+            Logger.e(LOG_TAG_VPN, "err in isLanIp ${e.message}", e)
+        } catch (e: IllegalArgumentException) {
             Logger.e(LOG_TAG_VPN, "err in isLanIp ${e.message}", e)
         }
         return null
@@ -127,7 +131,10 @@ object IpInfoDownloader: KoinComponent {
                 Logger.i(LOG_TAG_DOWNLOAD, "$TAG; download failed: ${downloadResponse.code} ${downloadResponse.message}")
                 false
             }
-        } catch (e: Exception) {
+        } catch (e: IOException) {
+            Logger.i(LOG_TAG_DOWNLOAD, "$TAG; err while download: ${e.localizedMessage}")
+            false
+        } catch (e: IllegalStateException) {
             Logger.i(LOG_TAG_DOWNLOAD, "$TAG; err while download: ${e.localizedMessage}")
             false
         }
@@ -139,9 +146,9 @@ object IpInfoDownloader: KoinComponent {
             ipInfo.createdTs = System.currentTimeMillis()
             return ipInfo
         } catch (e: SerializationException) {
-            Logger.w(LOG_TAG_DOWNLOAD, "$TAG; err parsing ip info: ${e.message}")
-        } catch (e: Exception) {
-            Logger.w(LOG_TAG_DOWNLOAD, "$TAG; err parsing ip info: ${e.message}")
+            Logger.w(LOG_TAG_DOWNLOAD, "$TAG; err parsing ip info: ${e.message}", e)
+        } catch (e: IllegalArgumentException) {
+            Logger.w(LOG_TAG_DOWNLOAD, "$TAG; err parsing ip info: ${e.message}", e)
         }
         return null
     }

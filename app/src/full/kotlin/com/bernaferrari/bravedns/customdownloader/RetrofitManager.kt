@@ -85,7 +85,7 @@ class RetrofitManager {
                     Logger.d(LOG_OKHTTP, msg)
                     Logger.wireLog(msg)
                 }
-            } catch (e: Exception) {
+            } catch (e: IllegalStateException) {
                 Logger.e(LOG_OKHTTP, "err extracting ray-id from response: ${e.message}", e)
             }
             response
@@ -171,7 +171,9 @@ class RetrofitManager {
                         OkHttpDnsType.FALLBACK_DNS -> null
                     }
                     dns?.let { providers.add(it) }
-                } catch (e: Exception) {
+                } catch (e: IllegalArgumentException) {
+                    Logger.crash(Logger.LOG_TAG_DOWNLOAD, "err; custom dns: ${e.message}", e)
+                } catch (e: UnknownHostException) {
                     Logger.crash(Logger.LOG_TAG_DOWNLOAD, "err; custom dns: ${e.message}", e)
                 }
             }
@@ -181,7 +183,7 @@ class RetrofitManager {
         private fun getByIp(ip: String): InetAddress {
             return try {
                 InetAddress.getByName(ip)
-            } catch (e: Exception) {
+            } catch (e: UnknownHostException) {
                 Logger.e(Logger.LOG_TAG_DOWNLOAD, "err while getting ip address: ${e.message}", e)
                 throw e
             }
@@ -195,7 +197,8 @@ class RetrofitManager {
                         if (result.isNotEmpty()) {
                             return result
                         }
-                    } catch (_: Exception) {
+                    } catch (e: UnknownHostException) {
+                        Logger.w(Logger.LOG_TAG_DOWNLOAD, "dns provider failed for $hostname: ${e.message}", e)
                     }
                 }
                 throw UnknownHostException(

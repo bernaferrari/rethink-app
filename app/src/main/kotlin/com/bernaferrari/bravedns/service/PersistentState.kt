@@ -32,7 +32,6 @@ import com.bernaferrari.bravedns.ui.compose.settings.DialStrategies
 import com.bernaferrari.bravedns.ui.compose.settings.RetryStrategies
 import com.bernaferrari.bravedns.util.Constants
 import com.bernaferrari.bravedns.util.Constants.Companion.INIT_TIME_MS
-import com.bernaferrari.bravedns.util.Constants.Companion.INVALID_PORT
 import com.bernaferrari.bravedns.util.InternetProtocol
 import com.bernaferrari.bravedns.util.PcapMode
 import com.bernaferrari.bravedns.util.ResourceRecordTypes
@@ -144,12 +143,6 @@ class PersistentState(context: Context) : KoinComponent {
     // the version (which is a unix timestamp) of the current on-device blocklist files
     var localBlocklistTimestamp by store.long("local_block_list_downloaded_time", 0)
 
-    // user set http proxy port
-    var httpProxyPort by store.int("http_proxy_port", INVALID_PORT)
-
-    // user set http proxy ip / hostname
-    var httpProxyHostAddress by store.string("http_proxy_ipaddress", "http://127.0.0.1:8118")
-
     // whether apps subject to the RethinkDNS VPN tunnel can bypass the tunnel on-demand
     // default: false
     var allowBypass by store.boolean("allow_bypass", false)
@@ -214,7 +207,7 @@ class PersistentState(context: Context) : KoinComponent {
     // user setting to use custom download manager or android's default download manager
     // default: true, i.e., use in-build download manager, as we see lot of failures with
     // android's download manager because of the blocking nature of the app
-    var useCustomDownloadManager by store.boolean("use_custom_download_managet", true)
+    var useCustomDownloadManager by store.boolean("use_custom_download_manager", true)
 
     // custom download manager's last generated id
     var customDownloaderLastGeneratedId by store.long("custom_downloader_last_generated_id", 0)
@@ -359,8 +352,6 @@ class PersistentState(context: Context) : KoinComponent {
     // current rpn state, see enum RpnState
     //var rpnState by store.int("rpn_state", RpnProxyManager.RpnState.DISABLED.id)
 
-    // subscribe product id for the current user, empty string if not subscribed
-    var rpnProductId by store.string("rpn_product_id", "")
     var rpnDnsTunTypes by store.string(
         "rpn_dns_tun_types",
         RpnProxyManager.DnsMode.PRIVACY.tunType
@@ -376,12 +367,6 @@ class PersistentState(context: Context) : KoinComponent {
 
     // treat only mobile data as metered
     var treatOnlyMobileNetworkAsMetered by store.boolean("treat_only_mobile_nw_as_metered", false)
-
-    var showConfettiOnRPlus by store.boolean("show_confetti_on_rplus", true)
-
-    // Compose home onboarding; increment the version when the tour content changes.
-    var guidedTourCompleted by store.boolean("guided_tour_completed", false)
-    var guidedTourVersion by store.int("guided_tour_version", 0)
 
     var autoDialsParallel by store.boolean("auto_dials_parallel", false)
 
@@ -401,10 +386,6 @@ class PersistentState(context: Context) : KoinComponent {
     // TODO: add routes as normal but do not send fd to netstack
     // repopulateTrackedNetworks also fails open see isAnyNwValidated
     var stallOnNoNetwork by store.boolean("fail_open_on_no_network", false)
-
-    // last grace period reminder time, when rethinkdns+ is enabled and user is cancelled/expired
-    // this is used to show a reminder to the user to renew the subscription with grace period
-    var lastGracePeriodReminderTime by store.long("last_grace_period_reminder_time", INIT_TIME_MS)
 
     var newSettings by store.string("new_settings", "")
     var newSettingsSeen by store.string("new_settings_seen", "")
@@ -438,9 +419,6 @@ class PersistentState(context: Context) : KoinComponent {
     // debug settings, panic random
     var panicRandom by store.boolean("panic_random", false)
 
-    // universal rule, block all non A & AAAA dns responses
-    private var _blockOtherDnsRecordTypes by store.boolean("block_non_ip_dns_responses", false)
-
     // global lockdown for wireguard proxy
     var wgGlobalLockdown by store.boolean("wg_global_lockdown", false)
 
@@ -455,7 +433,7 @@ class PersistentState(context: Context) : KoinComponent {
 
     // Seed from disk: the UI collects this before any setVpnEnabled() call.
     val vpnEnabled = MutableStateFlow(_vpnEnabled)
-    val universalRulesCount = MutableStateFlow(0)
+    val universalRulesCount = MutableStateFlow(countUniversalRules())
     private val proxyStatus = MutableStateFlow(-1)
 
     // data class to store dnscrypt relay details
@@ -483,20 +461,22 @@ class PersistentState(context: Context) : KoinComponent {
         return numberOfRemoteBlocklists
     }
 
+    private fun countUniversalRules(): Int {
+        return listOf(
+            _blockHttpConnections,
+            _blockMeteredConnections,
+            _universalLockdown,
+            _blockNewlyInstalledApp,
+            _disallowDnsBypass,
+            _udpBlocked,
+            _blockUnknownConnections,
+            _blockAppWhenBackground,
+            _blockWhenDeviceLocked
+        ).count { it }
+    }
+
     private fun setUniversalRulesCount() {
-        val list =
-            listOf(
-                _blockHttpConnections,
-                _blockMeteredConnections,
-                _universalLockdown,
-                _blockNewlyInstalledApp,
-                _disallowDnsBypass,
-                _udpBlocked,
-                _blockUnknownConnections,
-                _blockAppWhenBackground,
-                _blockWhenDeviceLocked
-            )
-        universalRulesCount.value = list.count { it }
+        universalRulesCount.value = countUniversalRules()
     }
 
     private var universalRulesCountSynced = false
@@ -717,4 +697,17 @@ class PersistentState(context: Context) : KoinComponent {
     fun snapshotPreferences(): Map<String, Any?> = store.snapshot()
 
     fun restorePreferences(snapshot: Map<String, Any?>) = store.restore(snapshot)
+
+    init {
+        migrateUseCustomDownloadManagerKey()
+    }
+
+    private fun migrateUseCustomDownloadManagerKey() {
+        val snap = store.snapshot()
+        if (!snap.containsKey("use_custom_download_manager") &&
+            snap.containsKey("use_custom_download_managet")
+        ) {
+            useCustomDownloadManager = snap["use_custom_download_managet"] as? Boolean ?: true
+        }
+    }
 }

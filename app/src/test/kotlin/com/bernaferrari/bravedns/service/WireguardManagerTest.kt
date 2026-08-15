@@ -118,6 +118,7 @@ class WireguardManagerTest : KoinTest {
 
     @After
     fun tearDown() {
+        clearWireguardManagerState()
         Dispatchers.resetMain()
         stopKoin()
         unmockkAll()
@@ -126,23 +127,19 @@ class WireguardManagerTest : KoinTest {
 
     @Suppress("UNCHECKED_CAST")
     private fun clearWireguardManagerState() {
-        try {
-            val mappingsField = WireguardManager::class.java.getDeclaredField("mappings")
-            mappingsField.isAccessible = true
-            val mappings = mappingsField.get(WireguardManager) as java.util.concurrent.CopyOnWriteArraySet<WgConfigFilesImmutable>
-            mappings.clear()
+        val mappingsField = WireguardManager::class.java.getDeclaredField("mappings")
+        mappingsField.isAccessible = true
+        val mappings = mappingsField.get(WireguardManager) as java.util.concurrent.CopyOnWriteArraySet<WgConfigFilesImmutable>
+        mappings.clear()
 
-            val configsField = WireguardManager::class.java.getDeclaredField("configs")
-            configsField.isAccessible = true
-            val configs = configsField.get(WireguardManager) as java.util.concurrent.CopyOnWriteArraySet<WgConfig>
-            configs.clear()
+        val configsField = WireguardManager::class.java.getDeclaredField("configs")
+        configsField.isAccessible = true
+        val configs = configsField.get(WireguardManager) as java.util.concurrent.CopyOnWriteArraySet<WgConfig>
+        configs.clear()
 
-            val lastAddedConfigIdField = WireguardManager::class.java.getDeclaredField("lastAddedConfigId")
-            lastAddedConfigIdField.isAccessible = true
-            lastAddedConfigIdField.set(WireguardManager, 0)
-        } catch (e: Exception) {
-            println("⚠️ Warning: Could not clear WireguardManager state: ${e.message}")
-        }
+        val lastAddedConfigIdField = WireguardManager::class.java.getDeclaredField("lastAddedConfigId")
+        lastAddedConfigIdField.isAccessible = true
+        lastAddedConfigIdField.set(WireguardManager, 0)
     }
 
     private fun createMockWgConfigFilesImmutable(
@@ -184,19 +181,17 @@ class WireguardManagerTest : KoinTest {
 
     @Suppress("UNCHECKED_CAST")
     private fun addConfigToManager(configFiles: WgConfigFilesImmutable, config: WgConfig) {
-        try {
-            val mappingsField = WireguardManager::class.java.getDeclaredField("mappings")
-            mappingsField.isAccessible = true
-            val mappings = mappingsField.get(WireguardManager) as java.util.concurrent.CopyOnWriteArraySet<WgConfigFilesImmutable>
-            mappings.add(configFiles)
+        val mappingsField = WireguardManager::class.java.getDeclaredField("mappings")
+        mappingsField.isAccessible = true
+        val mappings = mappingsField.get(WireguardManager) as java.util.concurrent.CopyOnWriteArraySet<WgConfigFilesImmutable>
+        mappings.removeAll { it.id == configFiles.id }
+        mappings.add(configFiles)
 
-            val configsField = WireguardManager::class.java.getDeclaredField("configs")
-            configsField.isAccessible = true
-            val configs = configsField.get(WireguardManager) as java.util.concurrent.CopyOnWriteArraySet<WgConfig>
-            configs.add(config)
-        } catch (e: Exception) {
-            println("⚠️ Warning: Could not add config to manager: ${e.message}")
-        }
+        val configsField = WireguardManager::class.java.getDeclaredField("configs")
+        configsField.isAccessible = true
+        val configs = configsField.get(WireguardManager) as java.util.concurrent.CopyOnWriteArraySet<WgConfig>
+        configs.removeAll { it.getId() == config.getId() }
+        configs.add(config)
     }
 
     // BASIC FUNCTIONALITY TESTS - FOCUSING ON CORE LOGIC WITHOUT COMPLEX DEPENDENCIES

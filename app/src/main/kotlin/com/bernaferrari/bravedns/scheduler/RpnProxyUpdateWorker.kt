@@ -39,6 +39,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 /**
@@ -181,7 +182,16 @@ class RpnProxyUpdateWorker(
                         Result.success()
                     }
                 }
-            } catch (e: Exception) {
+            } catch (e: IOException) {
+                Logger.e(LOG_TAG_PROXY, "$TAG; doWork: exception on attempt $attempt/$MAX_RETRIES: ${e.message}", e)
+                if (runAttemptCount + 1 >= MAX_RETRIES) {
+                    Logger.e(LOG_TAG_PROXY, "$TAG; doWork: max retries reached after exception; marking FAILED")
+                    Result.failure()
+                } else {
+                    Logger.w(LOG_TAG_PROXY, "$TAG; doWork: scheduling retry after exception (attempt $attempt/$MAX_RETRIES)")
+                    Result.retry()
+                }
+            } catch (e: IllegalStateException) {
                 Logger.e(LOG_TAG_PROXY, "$TAG; doWork: exception on attempt $attempt/$MAX_RETRIES: ${e.message}", e)
                 if (runAttemptCount + 1 >= MAX_RETRIES) {
                     Logger.e(LOG_TAG_PROXY, "$TAG; doWork: max retries reached after exception; marking FAILED")
@@ -244,7 +254,10 @@ class RpnProxyUpdateWorker(
                 callDeviceRegistrationWithMeta(storedAccountId, storedDeviceId, firstPurchase)
             }
 
-        } catch (e: Exception) {
+        } catch (e: IOException) {
+            // failure here must not block purchase validation
+            Logger.e(LOG_IAB, "$TAG; $mname: error (non-fatal): ${e.message}", e)
+        } catch (e: IllegalStateException) {
             // failure here must not block purchase validation
             Logger.e(LOG_IAB, "$TAG; $mname: error (non-fatal): ${e.message}", e)
         }

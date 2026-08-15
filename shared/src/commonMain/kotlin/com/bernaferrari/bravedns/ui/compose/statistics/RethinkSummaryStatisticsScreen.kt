@@ -3,7 +3,9 @@
 
 package com.bernaferrari.bravedns.ui.compose.statistics
 
+import com.bernaferrari.bravedns.ui.compose.common.RethinkAdaptiveWidth
 import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
+import com.bernaferrari.bravedns.ui.compose.common.isExpanded
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
@@ -11,6 +13,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -102,32 +105,53 @@ fun RethinkSummaryStatisticsScreen(
     onWindowSelected: (RethinkStatisticsWindow) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    RethinkTopBarLazyColumnScreen(
-        title = strings.title,
-        modifier = modifier,
-        containerColor = MaterialTheme.colorScheme.surface,
-        topBarTitleTextStyle = MaterialTheme.typography.headlineMedium,
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(
-            start = SharedDimensions.screenPaddingHorizontal,
-            end = SharedDimensions.screenPaddingHorizontal,
-            top = SharedDimensions.spacingMd,
-            bottom = SharedDimensions.spacing3xl,
-        ),
-    ) {
-        item {
-            RethinkUsageOverviewCard(
-                overview = overview,
-                overallLabel = strings.overall,
-                downloadLabel = strings.download,
-                uploadLabel = strings.upload,
-                connectionsLabel = strings.connections,
-            )
-        }
-        item {
-            RethinkStatisticsWindowSelector(selectedWindow, strings, onWindowSelected)
-        }
-        sections.forEach { section ->
-            item(key = section.id) { RethinkSummaryStatisticsSectionCard(section, strings) }
+    RethinkAdaptiveWidth(modifier) { widthClass ->
+        RethinkTopBarLazyColumnScreen(
+            title = strings.title,
+            modifier = Modifier.fillMaxWidth(),
+            containerColor = MaterialTheme.colorScheme.surface,
+            topBarTitleTextStyle = MaterialTheme.typography.headlineMedium,
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                start = SharedDimensions.screenPaddingHorizontal,
+                end = SharedDimensions.screenPaddingHorizontal,
+                top = SharedDimensions.spacingMd,
+                bottom = SharedDimensions.spacing3xl,
+            ),
+        ) {
+            item {
+                RethinkUsageOverviewCard(
+                    overview = overview,
+                    overallLabel = strings.overall,
+                    downloadLabel = strings.download,
+                    uploadLabel = strings.upload,
+                    connectionsLabel = strings.connections,
+                )
+            }
+            item {
+                RethinkStatisticsWindowSelector(selectedWindow, strings, onWindowSelected)
+            }
+            if (widthClass.isExpanded) {
+                sections.chunked(2).forEach { pair ->
+                    item(key = pair.joinToString(separator = "|") { it.id }) {
+                        Row(
+            modifier = Modifier.fillMaxSize(),
+                            horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
+                            verticalAlignment = Alignment.Top,
+                        ) {
+                            pair.forEach { section ->
+                                Box(Modifier.weight(1f)) {
+                                    RethinkSummaryStatisticsSectionCard(section, strings)
+                                }
+                            }
+                            if (pair.size == 1) Spacer(Modifier.weight(1f))
+                        }
+                    }
+                }
+            } else {
+                sections.forEach { section ->
+                    item(key = section.id) { RethinkSummaryStatisticsSectionCard(section, strings) }
+                }
+            }
         }
     }
 }

@@ -234,7 +234,7 @@ internal class SubscriptionPurchaseProcessor(
                 try {
                     val pd = buildPurchaseDetail(purchase) ?: return
                     subscriptionStateMachine.completePurchase(pd)
-                } catch (e: Exception) {
+                } catch (e: IllegalStateException) {
                     loge(mname, "error handling SUBS pending: ${e.message}", e)
                 }
             }
@@ -262,7 +262,7 @@ internal class SubscriptionPurchaseProcessor(
             try {
                 val pd = buildPurchaseDetail(purchase) ?: return
                 subscriptionStateMachine.paymentSuccessful(pd)
-            } catch (e: Exception) {
+            } catch (e: IllegalStateException) {
                 loge(mname, "error processing acknowledged SUBS: ${e.message}", e)
                 safeNotifyFailed("Error processing acknowledged SUBS: ${e.message}", null)
             }
@@ -281,7 +281,7 @@ internal class SubscriptionPurchaseProcessor(
             try {
                 val pd = buildPurchaseDetail(purchase) ?: return
                 subscriptionStateMachine.completePurchase(pd) // PurchasePending
-            } catch (e: Exception) {
+            } catch (e: IllegalStateException) {
                 loge(mname, "error recording pending SUBS state: ${e.message}", e)
             }
             return
@@ -320,7 +320,10 @@ internal class SubscriptionPurchaseProcessor(
                     "Server acknowledgement failed: $developerPayload", null
                 )
             }
-        } catch (e: Exception) {
+        } catch (e: java.io.IOException) {
+            loge(mname, "error acknowledging SUBS: ${e.message}", e)
+            safeNotifyFailed("SUBS acknowledgement error: ${e.message}", null)
+        } catch (e: IllegalStateException) {
             loge(mname, "error acknowledging SUBS: ${e.message}", e)
             safeNotifyFailed("SUBS acknowledgement error: ${e.message}", null)
         }
@@ -328,7 +331,7 @@ internal class SubscriptionPurchaseProcessor(
 
     private suspend fun safeNotifyFailed(reason: String, billingResult: com.android.billingclient.api.BillingResult?) {
         try { subscriptionStateMachine.purchaseFailed(reason, billingResult?.responseCode) }
-        catch (e: Exception) { loge("safeNotifyFailed", "state machine error: ${e.message}", e) }
+        catch (e: IllegalStateException) { loge("safeNotifyFailed", "state machine error: ${e.message}", e) }
     }
 
     /**

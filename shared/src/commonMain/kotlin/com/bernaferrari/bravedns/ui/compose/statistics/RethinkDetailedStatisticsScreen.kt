@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -31,7 +32,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.bernaferrari.bravedns.ui.compose.common.RethinkAdaptiveWidth
 import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
+import com.bernaferrari.bravedns.ui.compose.common.rethinkContentWidth
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
@@ -68,51 +71,58 @@ fun RethinkDetailedStatisticsScreen(
     itemAt: @Composable (Int) -> RethinkDetailedStatistic?,
     modifier: Modifier = Modifier,
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    Scaffold(
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            RethinkLargeTopBar(
-                title = title,
-                subtitle = subtitle,
-                onBackClick = onBackClick,
-                scrollBehavior = scrollBehavior,
-                titleTextStyle = MaterialTheme.typography.headlineMedium,
-                actions = {
-                    if (itemCount > 0) StatisticsCountPill(itemCount)
-                },
-            )
-        },
-    ) { padding ->
-        Box(Modifier.fillMaxSize().padding(padding)) {
-            when {
-                isRefreshing -> StatisticsLoading(strings.loading, Modifier.align(Alignment.Center))
-                itemCount == 0 -> StatisticsEmpty(strings.empty, Modifier.align(Alignment.Center))
-                else -> LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(
-                        start = SharedDimensions.screenPaddingHorizontal,
-                        end = SharedDimensions.screenPaddingHorizontal,
-                        top = SharedDimensions.spacingSm,
-                        bottom = SharedDimensions.spacing3xl,
-                    ),
-                    verticalArrangement = Arrangement.spacedBy(0.dp),
-                ) {
-                    items(itemCount, key = { index -> index }) { index ->
-                        itemAt(index)?.let { item ->
-                            RethinkDetailedStatisticRow(
-                                item = item,
-                                position = cardPositionFor(index, itemCount - 1),
-                            )
+    RethinkAdaptiveWidth(modifier) { widthClass ->
+        val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+        Scaffold(
+            modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
+            topBar = {
+                RethinkLargeTopBar(
+                    title = title,
+                    subtitle = subtitle,
+                    onBackClick = onBackClick,
+                    scrollBehavior = scrollBehavior,
+                    titleTextStyle = MaterialTheme.typography.headlineMedium,
+                    actions = {
+                        if (itemCount > 0) StatisticsCountPill(itemCount)
+                    },
+                )
+            },
+        ) { padding ->
+            Box(
+                Modifier.fillMaxSize().padding(padding),
+                contentAlignment = Alignment.TopCenter,
+            ) {
+                when {
+                    isRefreshing -> StatisticsLoading(strings.loading, Modifier.align(Alignment.Center))
+                    itemCount == 0 -> StatisticsEmpty(strings.empty, Modifier.align(Alignment.Center))
+                    else -> LazyColumn(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .rethinkContentWidth(widthClass),
+                        contentPadding = PaddingValues(
+                            start = SharedDimensions.screenPaddingHorizontal,
+                            end = SharedDimensions.screenPaddingHorizontal,
+                            top = SharedDimensions.spacingSm,
+                            bottom = SharedDimensions.spacing3xl,
+                        ),
+                        verticalArrangement = Arrangement.spacedBy(0.dp),
+                    ) {
+                        items(itemCount, key = { index -> index }) { index ->
+                            itemAt(index)?.let { item ->
+                                RethinkDetailedStatisticRow(
+                                    item = item,
+                                    position = cardPositionFor(index, itemCount - 1),
+                                )
+                            }
                         }
-                    }
-                    if (isAppending) {
-                        item {
-                            Box(
-                                Modifier.fillMaxWidth().padding(SharedDimensions.spacingLg),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                CircularProgressIndicator(Modifier.size(SharedDimensions.iconSizeMd))
+                        if (isAppending) {
+                            item {
+                                Box(
+                                    Modifier.fillMaxWidth().padding(SharedDimensions.spacingLg),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    CircularProgressIndicator(Modifier.size(SharedDimensions.iconSizeMd))
+                                }
                             }
                         }
                     }

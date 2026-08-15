@@ -84,7 +84,7 @@ class DownloadWatcher(val context: Context, workerParameters: WorkerParameters) 
         try {
             persistentState.androidDownloadManagerIds = ""
             Logger.i(LOG_TAG_DOWNLOAD, "cleared stored andr-down-mgr ids")
-        } catch (e: Exception) {
+        } catch (e: IllegalStateException) {
             Logger.e(LOG_TAG_DOWNLOAD, "err clearing stored download ids", e)
         }
     }
@@ -130,7 +130,9 @@ class DownloadWatcher(val context: Context, workerParameters: WorkerParameters) 
                     Logger.d(LOG_TAG_DOWNLOAD, "cursor empty")
                     return DOWNLOAD_FAILURE
                 }
-            } catch (e: Exception) {
+            } catch (e: IllegalStateException) {
+                Logger.e(LOG_TAG_DOWNLOAD, "failure download: ${e.message}", e)
+            } catch (e: android.database.CursorIndexOutOfBoundsException) {
                 Logger.e(LOG_TAG_DOWNLOAD, "failure download: ${e.message}", e)
             } finally {
                 cursor.close()

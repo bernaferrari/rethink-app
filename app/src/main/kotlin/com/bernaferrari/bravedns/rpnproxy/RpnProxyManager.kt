@@ -301,9 +301,8 @@ object RpnProxyManager : KoinComponent {
             return
         }
         setRpnMode(RpnMode.NONE)
-        deactivateRpn("user request")
         VpnController.unregisterWin()
-        Logger.i(LOG_TAG_PROXY, "$TAG; stopProxy: proxy routing stopped (mode=NONE)")
+        Logger.i(LOG_TAG_PROXY, "$TAG; stopProxy: proxy routing stopped (mode=NONE, state=${rpnState()})")
     }
 
     /**
@@ -397,13 +396,13 @@ object RpnProxyManager : KoinComponent {
 
         try {
             persistentState.rpnState = RpnState.ENABLED.id
+            VpnController.handleRpnProxies()
             Logger.i(
                 LOG_TAG_PROXY,
                 "$TAG; activateRpn: rpn activated, mode: ${rpnMode()}, product: ${purchase.productId}"
             )
         } catch (e: Exception) {
             Logger.e(LOG_TAG_PROXY, "$TAG; activateRpn: error activating RPN: ${e.message}", e)
-            // Rollback on error
             persistentState.rpnState = RpnState.DISABLED.id
             throw e
         }
@@ -1528,7 +1527,23 @@ object RpnProxyManager : KoinComponent {
 
     private suspend fun handleStateChange(state: SubscriptionStateMachineV2.SubscriptionState) {
         when (state) {
-            is SubscriptionStateMachineV2.SubscriptionState.Active -> {
+            is SubscriptionStateMachineV2.SubscriptionState.Entitled -> {
+                if (state is SubscriptionStateMachineV2.SubscriptionState.Cancelled) {
+                    Logger.i(LOG_TAG_PROXY, "$TAG; subscription cancelled, checking if should disable RPN")
+                    try {
+                        val subs = subscriptionStateMachine.getSubscriptionData()
+                        val status = subs?.subscriptionStatus
+                        val currTs = System.currentTimeMillis()
+                        if ((status != null && status.billingExpiry > currTs) || DEBUG) {
+                            Logger.i(LOG_TAG_PROXY, "$TAG; subscription cancelled but still valid until ${status?.billingExpiry}, not deactivating RPN yet")
+                        } else {
+                            deactivateRpn("Subscription cancelled and expired")
+                        }
+                    } catch (e: Exception) {
+                        Logger.e(LOG_TAG_PROXY, "$TAG; error handling cancelled state: ${e.message}", e)
+                    }
+                    return
+                }
                 Logger.i(LOG_TAG_PROXY, "$TAG; subscription activated, ensuring RPN is enabled and entitlement refreshed")
                 val subs = subscriptionStateMachine.getSubscriptionData()
                 // Use getEffectivePurchaseDetail() which tries in-memory purchaseDetail first,
@@ -1548,21 +1563,6 @@ object RpnProxyManager : KoinComponent {
                     activateRpn(purchaseDetail)
                 } catch (e: Exception) {
                     Logger.e(LOG_TAG_PROXY, "$TAG; handleStateChange.Active: error activating RPN: ${e.message}", e)
-                }
-            }
-            is SubscriptionStateMachineV2.SubscriptionState.Cancelled -> {
-                Logger.i(LOG_TAG_PROXY, "$TAG; subscription cancelled, checking if should disable RPN")
-                try {
-                    val subs = subscriptionStateMachine.getSubscriptionData()
-                    val status = subs?.subscriptionStatus
-                    val currTs = System.currentTimeMillis()
-                    if ((status != null && status.billingExpiry > currTs) || DEBUG) {
-                        Logger.i(LOG_TAG_PROXY, "$TAG; subscription cancelled but still valid until ${status?.billingExpiry}, not deactivating RPN yet")
-                    } else {
-                        deactivateRpn("Subscription cancelled and expired")
-                    }
-                } catch (e: Exception) {
-                    Logger.e(LOG_TAG_PROXY, "$TAG; error handling cancelled state: ${e.message}", e)
                 }
             }
             is SubscriptionStateMachineV2.SubscriptionState.Expired -> {

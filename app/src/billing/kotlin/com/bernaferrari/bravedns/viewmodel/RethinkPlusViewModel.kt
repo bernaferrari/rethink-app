@@ -200,7 +200,16 @@ class RethinkPlusViewModel(application: Application) : AndroidViewModel(applicat
                     // else: still not ready, onBillingConnected / watchdog will handle it
                 }
 
-            } catch (e: Exception) {
+            } catch (e: IllegalStateException) {
+                Logger.e(LOG_IAB, "$TAG: Error initializing billing: ${e.message}", e)
+                cancelLoadingWatchdog()
+                isBillingInitializing = false
+                _uiState.value = SubscriptionUiState.Error(
+                    title = "Initialization Failed",
+                    message = e.message ?: "Unknown error occurred",
+                    isRetryable = true
+                )
+            } catch (e: IllegalArgumentException) {
                 Logger.e(LOG_IAB, "$TAG: Error initializing billing: ${e.message}", e)
                 cancelLoadingWatchdog()
                 isBillingInitializing = false

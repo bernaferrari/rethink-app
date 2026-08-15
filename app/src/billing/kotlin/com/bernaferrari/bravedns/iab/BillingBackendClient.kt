@@ -360,7 +360,7 @@ class BillingBackendClient(
         } catch (e: SocketTimeoutException) {
             Logger.w(LOG_IAB, "$TAG $mname [${env.label}]: timeout; ${e.message}")
             CidResult.EMPTY
-        } catch (e: Exception) {
+        } catch (e: IOException) {
             Logger.e(LOG_IAB, "$TAG $mname [${env.label}]: unexpected error; ${e.message}", e)
             CidResult.EMPTY
         }
@@ -443,7 +443,7 @@ class BillingBackendClient(
         } catch (e: SocketTimeoutException) {
             Logger.w(LOG_IAB, "$TAG $mname [${env.label}]: timeout; ${e.message}")
             DidResult.EMPTY
-        } catch (e: Exception) {
+        } catch (e: IOException) {
             Logger.e(LOG_IAB, "$TAG $mname [${env.label}]: unexpected error; ${e.message}", e)
             DidResult.EMPTY
         }
@@ -497,9 +497,13 @@ class BillingBackendClient(
                     "(cidLen=${legacyCid.length}, didLen=${legacyDid.length})")
                 if (isTest) SecureIdentityStore.Env.TEST else SecureIdentityStore.Env.PROD
             }
-        } catch (e: Exception) {
+        } catch (e: IOException) {
             val isTest = persistentState.appTestMode
-            Logger.w(LOG_IAB, "$TAG migrateIdentityIfNeeded: entitlement lookup failed (${e.message}); falling back to appTestMode=$isTest")
+            Logger.w(LOG_IAB, "$TAG migrateIdentityIfNeeded: entitlement lookup failed (${e.message}); falling back to appTestMode=$isTest", e)
+            if (isTest) SecureIdentityStore.Env.TEST else SecureIdentityStore.Env.PROD
+        } catch (e: IllegalStateException) {
+            val isTest = persistentState.appTestMode
+            Logger.w(LOG_IAB, "$TAG migrateIdentityIfNeeded: entitlement lookup failed (${e.message}); falling back to appTestMode=$isTest", e)
             if (isTest) SecureIdentityStore.Env.TEST else SecureIdentityStore.Env.PROD
         }
 
@@ -654,7 +658,7 @@ class BillingBackendClient(
                     RegisterDeviceResult.Failure(response.code(), response.message())
                 }
             }
-        } catch (e: Exception) {
+        } catch (e: IOException) {
             Logger.e(LOG_IAB, "$TAG $mname: exception; ${e.message}", e)
             RegisterDeviceResult.Failure(-1, e.message)
         }
@@ -809,7 +813,7 @@ class BillingBackendClient(
             } catch (e: SocketTimeoutException) {
                 lastFailureMsg = "Timeout: ${e.message}"
                 Logger.w(LOG_IAB, "$TAG $caller [${handle.envLabel}]: attempt ${attemptIndex + 1}; timeout (${e.message}), will retry")
-            } catch (e: Exception) {
+            } catch (e: IOException) {
                 lastFailureMsg = "Error: ${e.message}"
                 Logger.e(LOG_IAB, "$TAG $caller [${handle.envLabel}]: attempt ${attemptIndex + 1}; unexpected (${e.message}), will retry", e)
             }
@@ -913,7 +917,7 @@ class BillingBackendClient(
         } catch (e: SocketTimeoutException) {
             Logger.w(LOG_IAB, "$TAG $mname: timeout (${e.message}); transient failure")
             QueryEntitlementResult.Transient(purchase)
-        } catch (e: Exception) {
+        } catch (e: IOException) {
             Logger.e(LOG_IAB, "$TAG $mname: unexpected error (${e.message}); transient failure", e)
             QueryEntitlementResult.Transient(purchase)
         }
@@ -954,7 +958,7 @@ class BillingBackendClient(
                     Pair(false, "Server error: ${response.code()}")
                 }
             }
-        } catch (e: Exception) {
+        } catch (e: IOException) {
             Logger.e(LOG_IAB, "$TAG $mname: err ${e.message}", e)
             Pair(false, "Exception: ${e.message}")
         }
@@ -995,7 +999,7 @@ class BillingBackendClient(
                     Pair(false, "server err: ${response.code()}, ${response.errorBody()?.string()}")
                 }
             }
-        } catch (e: Exception) {
+        } catch (e: IOException) {
             Logger.e(LOG_IAB, "$TAG $mname: err ${e.message}", e)
             Pair(false, "err: ${e.message}")
         }
@@ -1068,7 +1072,7 @@ class BillingBackendClient(
                     }
                 }
             }
-        } catch (e: Exception) {
+        } catch (e: IOException) {
             Logger.e(LOG_IAB, "$TAG $mname: exception: ${e.message}", e)
             FetchOrdersRawResult.Error(e.localizedMessage ?: "Unknown error")
         }
@@ -1128,7 +1132,7 @@ class BillingBackendClient(
                     false
                 }
             }
-        } catch (e: Exception) {
+        } catch (e: IOException) {
             Logger.e(LOG_IAB, "$TAG $mname: err ${e.message}", e)
             false
         }
@@ -1200,8 +1204,8 @@ class BillingBackendClient(
     private suspend fun resolveApi(): ApiHandle {
         val testValue = try {
             RpnProxyManager.getIsTestEntitlement()
-        } catch (e: Exception) {
-            Logger.w(LOG_IAB, "$TAG resolveApi: getIsTestEntitlement, ${e.message}")
+        } catch (e: IllegalStateException) {
+            Logger.w(LOG_IAB, "$TAG resolveApi: getIsTestEntitlement, ${e.message}", e)
             // happens when there is server calls before entitlement
             val test = persistentState.appTestMode
             Logger.w(LOG_IAB, "$TAG resolveApi: using TEST interface (testValue=$test)")
@@ -1362,8 +1366,8 @@ class BillingBackendClient(
         if (timeIso.isNullOrEmpty()) return 0L
         return try {
             Instant.parse(timeIso).toEpochMilli()
-        } catch (e: Exception) {
-            Logger.w(LOG_IAB, "$TAG parseIsoToEpochMillis: parse failed for '$timeIso': ${e.message}")
+        } catch (e: java.time.format.DateTimeParseException) {
+            Logger.w(LOG_IAB, "$TAG parseIsoToEpochMillis: parse failed for '$timeIso': ${e.message}", e)
             0L
         }
     }

@@ -40,6 +40,8 @@ private const val TAG = "DnsProxyEndpointAdapter"
 fun DnsProxyEndpointRow(endpoint: DnsProxyEndpoint, appConfig: AppConfig) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val failingToast = stringResource(R.string.status_failing)
+    val deleteSuccessToast = stringResource(R.string.dns_proxy_remove_success)
     val defaultName = stringResource(R.string.cd_custom_dns_proxy_default_app)
     val dialogMessageTemplate = stringResource(R.string.dns_proxy_dialog_message)
     val dialogMessageNoAppTemplate = stringResource(R.string.dns_proxy_dialog_message_no_app)
@@ -74,7 +76,7 @@ fun DnsProxyEndpointRow(endpoint: DnsProxyEndpoint, appConfig: AppConfig) {
                         id = endpoint.id,
                         titleRes = R.string.dns_proxy_remove_dialog_title,
                         messageRes = R.string.dns_proxy_remove_dialog_message,
-                        successRes = R.string.dns_proxy_remove_success
+                        successToast = deleteSuccessToast
                     )
             } else {
                 scope.launch(Dispatchers.IO) {
@@ -106,7 +108,7 @@ fun DnsProxyEndpointRow(endpoint: DnsProxyEndpoint, appConfig: AppConfig) {
             }
         },
         onSelectionChange = {
-            launchDnsEndpointSelectionUpdate(scope, context, TAG) {
+            launchDnsEndpointSelectionUpdate(scope, context, TAG, failingToast) {
                 endpoint.isSelected = true
                 appConfig.handleDnsProxyChanges(endpoint)
             }
@@ -118,7 +120,7 @@ fun DnsProxyEndpointRow(endpoint: DnsProxyEndpoint, appConfig: AppConfig) {
             model = model,
             onDismiss = { deleteDialog = null },
             onConfirm = { id ->
-                launchDnsEndpointDelete(scope, context, model.successRes) {
+                launchDnsEndpointDelete(scope, context, model.successToast, failingToast) {
                     appConfig.deleteDnsProxyEndpoint(id)
                 }
                 deleteDialog = null

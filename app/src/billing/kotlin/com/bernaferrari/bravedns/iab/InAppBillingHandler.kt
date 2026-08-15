@@ -248,7 +248,7 @@ object InAppBillingHandler : KoinComponent {
                     startStateObserver()
                     isInitialized = true
                     logd(mname, "state machine initialized")
-                } catch (e: Exception) {
+                } catch (e: IllegalStateException) {
                     loge(mname, "failed to initialize state machine: ${e.message}", e)
                     withContext(Dispatchers.Main) {
                         billingListener?.onConnectionResult(false, "State machine initialization failed: ${e.message}")
@@ -366,7 +366,9 @@ object InAppBillingHandler : KoinComponent {
             val safetyJob = billingScope.launch {
                 delay(60_000L.milliseconds)
                 if (!safetyCancelled.get() && connectionMutex.isLocked) {
-                    try { connectionMutex.unlock() } catch (_: Exception) { /* benign race */ }
+                    try { connectionMutex.unlock() } catch (ignored: IllegalStateException) {
+                        logd(mname, "mutex unlock race after timeout: ${ignored.message}")
+                    }
                     logd(mname, "connection mutex force-unlocked after safety timeout (60s)")
                 }
             }
@@ -375,7 +377,9 @@ object InAppBillingHandler : KoinComponent {
                     safetyJob.cancel()
                 }
                 if (connectionMutex.isLocked) {
-                    try { connectionMutex.unlock() } catch (_: Exception) { /* benign race */ }
+                    try { connectionMutex.unlock() } catch (ignored: IllegalStateException) {
+                        logd(mname, "mutex unlock race: ${ignored.message}")
+                    }
                 }
             }
 
@@ -424,7 +428,7 @@ object InAppBillingHandler : KoinComponent {
                             billingScope.launch {
                                 try {
                                     subscriptionStateMachine.systemCheck()
-                                } catch (e: Exception) {
+                                } catch (e: IllegalStateException) {
                                     loge(mname, "err during system check on disconnect: ${e.message}", e)
                                 }
                             }
@@ -434,7 +438,7 @@ object InAppBillingHandler : KoinComponent {
                         }
                     })
                 }
-            } catch (e: Exception) {
+            } catch (e: IllegalStateException) {
                 loge(mname, "err starting billing connection: ${e.message}", e)
                 withContext(Dispatchers.Main) {
                     callback.invoke(false, "Connection error: ${e.message}")
@@ -460,7 +464,10 @@ object InAppBillingHandler : KoinComponent {
                             val newTokens: Set<String> = purchasesList
                                 ?.filter { purchase ->
                                     try { subscriptionStateMachine.isNewPurchase(purchase.purchaseToken) }
-                                    catch (_: Exception) { false }
+                                    catch (ignored: IllegalStateException) {
+                                        loge(mname, "isNewPurchase check failed: ${ignored.message}", ignored)
+                                        false
+                                    }
                                 }
                                 ?.map { it.purchaseToken }
                                 ?.toSet()
@@ -504,11 +511,15 @@ object InAppBillingHandler : KoinComponent {
                                                     } else {
                                                         if (!isRegistered) registerDevice(accountId, deviceId)
                                                     }
-                                                } catch (e: Exception) {
+                                                } catch (e: java.io.IOException) {
+                                                    loge(mname, "registerDevice for failed (non-fatal): ${e.message}", e)
+                                                } catch (e: IllegalStateException) {
                                                     loge(mname, "registerDevice for failed (non-fatal): ${e.message}", e)
                                                 }
                                             }
-                                    } catch (e: Exception) {
+                                    } catch (e: java.io.IOException) {
+                                        loge(mname, "registerDevice batch for failed (non-fatal): ${e.message}", e)
+                                    } catch (e: IllegalStateException) {
                                         loge(mname, "registerDevice batch for failed (non-fatal): ${e.message}", e)
                                     }
                                 }
@@ -530,7 +541,7 @@ object InAppBillingHandler : KoinComponent {
                                 try {
                                     val purchaseDetail = createPurchaseDetailFromPurchase(purchase) ?: return@forEach
                                     subscriptionStateMachine.restoreSubscription(purchaseDetail)
-                                } catch (e: Exception) {
+                                } catch (e: IllegalStateException) {
                                     loge(mname, "err restoring purchase: ${e.message}", e)
                                 }
                             }
@@ -542,7 +553,7 @@ object InAppBillingHandler : KoinComponent {
                             transactionErrorLiveData.postValue(billingResult)
                             try {
                                 subscriptionStateMachine.userCancelled()
-                            } catch (e: Exception) {
+                            } catch (e: IllegalStateException) {
                                 loge(mname, "err notifying cancellation: ${e.message}", e)
                             }
                         }
@@ -577,11 +588,11 @@ object InAppBillingHandler : KoinComponent {
                             )
                         }
                     }
-                } catch (e: Exception) {
+                } catch (e: IllegalStateException) {
                     loge(mname, "err in purchase listener: ${e.message}", e)
                     try {
                         subscriptionStateMachine.purchaseFailed("Critical error: ${e.message}", billingResult.responseCode)
-                    } catch (smError: Exception) {
+                    } catch (smError: IllegalStateException) {
                         loge(mname, "failed to notify state machine: ${smError.message}", smError)
                     }
                 }
@@ -675,7 +686,7 @@ object InAppBillingHandler : KoinComponent {
                                 // purchase token.
                                 val updatedDetail = try {
                                     queryEntitlementFromServer(effectiveAccountId, deviceId, purchaseDetailForQuery)
-                                } catch (serverEx: Exception) {
+                                } catch (serverEx: java.io.IOException) {
                                     loge(mname, "server entitlement check failed for token=${sub.purchaseToken.take(8)}: ${serverEx.message}", serverEx)
                                     // Fail-safe: unexpected exception (queryEntitlementFromServer normally
                                     // catches all errors internally, but guard here for safety).
@@ -736,14 +747,21 @@ object InAppBillingHandler : KoinComponent {
                                             "and billing=${sub.billingExpiry} both expired; will expire")
                                     }
                                 }
-                            } catch (e: Exception) {
+                            } catch (e: java.io.IOException) {
+                                loge(mname, "unexpected error checking INAPP entitlement for id=${sub.id}: ${e.message}", e)
+                                // Fail-safe: unexpected error → preserve the token.
+                                serverConfirmedValidTokens.add(sub.purchaseToken)
+                            } catch (e: IllegalStateException) {
                                 loge(mname, "unexpected error checking INAPP entitlement for id=${sub.id}: ${e.message}", e)
                                 // Fail-safe: unexpected error → preserve the token.
                                 serverConfirmedValidTokens.add(sub.purchaseToken)
                             }
                         }
                     }
-                } catch (outerEx: Exception) {
+                } catch (outerEx: android.database.SQLException) {
+                    loge(mname, "error fetching active INAPP rows before expiry: ${outerEx.message}", outerEx)
+                    return
+                } catch (outerEx: IllegalStateException) {
                     loge(mname, "error fetching active INAPP rows before expiry: ${outerEx.message}", outerEx)
                     // Fail-safe: if we couldn't even read the DB rows, abort the expiry path
                     // entirely by treating all tokens as valid.
@@ -916,7 +934,7 @@ object InAppBillingHandler : KoinComponent {
                         purchaseExpiryMap,
                         queriedProductType ?: ProductType.SUBS
                     )
-                } catch (e: Exception) {
+                } catch (e: IllegalStateException) {
                     loge(mname, "err reconciling subscription purchases: ${e.message}", e)
                 }
             }
@@ -931,7 +949,7 @@ object InAppBillingHandler : KoinComponent {
                         logd(mname, "SUBS token=${purchase.purchaseToken.take(8)} escalating to server ack")
                         try {
                             processor.process(purchase, shouldEscalateToServer = true)
-                        } catch (e: Exception) {
+                        } catch (e: IllegalStateException) {
                             loge(mname, "err escalating SUBS token=${purchase.purchaseToken.take(8)}: ${e.message}", e)
                         }
                     }
@@ -949,7 +967,7 @@ object InAppBillingHandler : KoinComponent {
                         purchases = emptyList(),
                         queriedProductType = ProductType.SUBS
                     )
-                } catch (e: Exception) {
+                } catch (e: IllegalStateException) {
                     loge(mname, "Error expiring stale SUBS rows: ${e.message}", e)
                 }
             } else {
@@ -962,7 +980,7 @@ object InAppBillingHandler : KoinComponent {
             oneTimePurchases.forEach { purchase ->
                 try {
                     processSinglePurchase(purchase)
-                } catch (e: Exception) {
+                } catch (e: IllegalStateException) {
                     loge(mname, "err processing one-time purchase ${purchase.purchaseToken.take(8)}: ${e.message}", e)
                 }
             }
@@ -970,7 +988,7 @@ object InAppBillingHandler : KoinComponent {
             val oneTimePlayTokens = oneTimePurchases.map { it.purchaseToken }.toSet()
             try {
                 subscriptionStateMachine.expireStaleInAppFromDb(oneTimePlayTokens)
-            } catch (e: Exception) {
+            } catch (e: IllegalStateException) {
                 loge(mname, "err expiring stale one-time DB rows: ${e.message}", e)
             }
         }
@@ -1004,7 +1022,7 @@ object InAppBillingHandler : KoinComponent {
                     try {
                         logd("onInAppAckSuccess", "ack succeeded; registerDevice token=${purchase.purchaseToken.take(8)}, accountId-len=${accountId.length}, deviceId-len=${deviceId.length}")
                         registerDevice(accountId, deviceId)
-                    } catch (e: Exception) {
+                    } catch (e: IllegalStateException) {
                         loge("onInAppAckSuccess", "registerDevice failed (non-fatal): ${e.message}", e)
                     }
                 }
@@ -1139,7 +1157,7 @@ object InAppBillingHandler : KoinComponent {
         try {
             storeWinEntitlement(newPurchaseDtl.payload)
             log(mname, "new entitlement updated")
-        } catch (e: Exception) {
+        } catch (e: IllegalStateException) {
             loge(mname, "storeWinEntitlement failed: ${e.message}", e)
             return
         }
@@ -1153,7 +1171,7 @@ object InAppBillingHandler : KoinComponent {
                 subscriptionStateMachine.stateMachine.updateData(updatedSubsData)
                 log(mname, "state machine payload updated")
             }
-        } catch (e: Exception) {
+        } catch (e: IllegalStateException) {
             loge(mname, "state machine update failed (non-fatal): ${e.message}")
         }
     }
@@ -1241,7 +1259,7 @@ object InAppBillingHandler : KoinComponent {
                     null
                 }
             }
-        } catch (e: Exception) {
+        } catch (e: IllegalStateException) {
             loge("createPurchaseDetailFromPurchase", "error building PurchaseDetail: ${e.message}", e)
             buildFallbackPurchaseDetail(purchase)
         }
@@ -1629,7 +1647,7 @@ object InAppBillingHandler : KoinComponent {
                     try {
                         logv(mname, "processing($pt) ${purchases.size} purchases")
                         handlePurchase(purchases, pt)
-                    } catch (e: Exception) {
+                    } catch (e: IllegalStateException) {
                         loge(mname, "err processing($pt) purchases: ${e.message}", e)
                     }
                 }
@@ -1932,7 +1950,7 @@ object InAppBillingHandler : KoinComponent {
         if (!forceResubscribe) {
             try {
                 subscriptionStateMachine.startPurchase()
-            } catch (e: Exception) {
+            } catch (e: IllegalStateException) {
                 loge(mname, "err starting purchase in state machine: ${e.message}", e)
                 billingListener?.purchasesResult(false, emptyList())
                 return
@@ -1953,7 +1971,7 @@ object InAppBillingHandler : KoinComponent {
             log(mname, "product not found in cache (size=${storeProductDetails.size}), fetching on-demand and retrying")
             try {
                 withTimeoutOrNull(10_000.milliseconds) { queryProductDetails() }
-            } catch (e: Exception) {
+            } catch (e: IllegalStateException) {
                 loge(mname, "on-demand product details fetch failed: ${e.message}", e)
             }
             pd = storeProductDetails.find {
@@ -1969,7 +1987,7 @@ object InAppBillingHandler : KoinComponent {
 
             try {
                 subscriptionStateMachine.purchaseFailed(errorMsg, null)
-            } catch (e: Exception) {
+            } catch (e: IllegalStateException) {
                 loge(mname, "err notifying state machine: ${e.message}", e)
             }
 
@@ -1983,13 +2001,13 @@ object InAppBillingHandler : KoinComponent {
                 pd.productDetails,
                 offerToken = pd.offerDetails?.offerToken
             )
-        } catch (e: Exception) {
+        } catch (e: IllegalStateException) {
             val errorMsg = "Failed to launch purchase flow: ${e.message}"
             loge(mname, errorMsg, e)
 
             try {
                 subscriptionStateMachine.purchaseFailed(errorMsg, null)
-            } catch (stateMachineError: Exception) {
+            } catch (stateMachineError: IllegalStateException) {
                 loge(mname, "err notifying state machine: ${stateMachineError.message}", stateMachineError)
             }
 
@@ -2015,7 +2033,7 @@ object InAppBillingHandler : KoinComponent {
         if (!forceExtend) {
             try {
                 subscriptionStateMachine.startPurchase()
-            } catch (e: Exception) {
+            } catch (e: IllegalStateException) {
                 loge(mname, "err starting one-time purchase in state machine: ${e.message}", e)
                 billingListener?.purchasesResult(false, emptyList())
                 return
@@ -2032,7 +2050,7 @@ object InAppBillingHandler : KoinComponent {
             log(mname, "one-time product not found in cache (size=${storeProductDetails.size}), fetching on-demand and retrying")
             try {
                 withTimeoutOrNull(10_000.milliseconds) { queryProductDetails() }
-            } catch (e: Exception) {
+            } catch (e: IllegalStateException) {
                 loge(mname, "on-demand product details fetch failed: ${e.message}", e)
             }
             queryProductDetail = storeProductDetails.find {
@@ -2045,7 +2063,9 @@ object InAppBillingHandler : KoinComponent {
         if (queryProductDetail == null) {
             val errorMsg = "No one-time product details found for productId: $productId, planId: $planId"
             loge(mname, errorMsg)
-            try { subscriptionStateMachine.purchaseFailed(errorMsg, null) } catch (_: Exception) {}
+            try { subscriptionStateMachine.purchaseFailed(errorMsg, null) } catch (ignored: IllegalStateException) {
+                loge(mname, "purchaseFailed notify failed: ${ignored.message}", ignored)
+            }
             billingListener?.purchasesResult(false, emptyList())
             return
         }
@@ -2054,12 +2074,24 @@ object InAppBillingHandler : KoinComponent {
             val offerToken = queryProductDetail.oneTimeOfferDetails?.offerToken
             launchFlow(activity = activity, pds = queryProductDetail.productDetails, offerToken = offerToken)
             logv(mname, "one-time purchase flow launched for productId: $productId, offerToken: $offerToken")
-        } catch (e: Exception) {
+        } catch (e: IllegalStateException) {
             val errorMsg = "Failed to launch one-time purchase flow: ${e.message}"
             loge(mname, errorMsg, e)
-            try { subscriptionStateMachine.purchaseFailed(errorMsg, null) } catch (_: Exception) {}
+            try { subscriptionStateMachine.purchaseFailed(errorMsg, null) } catch (ignored: IllegalStateException) {
+                loge(mname, "purchaseFailed notify failed: ${ignored.message}", ignored)
+            }
             billingListener?.purchasesResult(false, emptyList())
         }
+    }
+
+    private suspend fun abortPurchaseLaunch(mname: String, errorMsg: String, e: Exception? = null) {
+        loge(mname, errorMsg, e)
+        try {
+            subscriptionStateMachine.purchaseFailed(errorMsg, null)
+        } catch (ignored: IllegalStateException) {
+            loge(mname, "purchaseFailed notify failed: ${ignored.message}", ignored)
+        }
+        billingListener?.purchasesResult(false, emptyList())
     }
 
     private suspend fun launchFlow(
@@ -2070,13 +2102,7 @@ object InAppBillingHandler : KoinComponent {
         val mname = this::launchFlow.name
 
         if (pds == null) {
-            loge(mname, "no product details available, cannot launch purchase flow")
-            try {
-                subscriptionStateMachine.purchaseFailed("No product details found", null)
-            } catch (e: Exception) {
-                loge(mname, "err notifying state machine: ${e.message}", e)
-            }
-            billingListener?.purchasesResult(false, emptyList())
+            abortPurchaseLaunch(mname, "No product details found")
             return
         }
 
@@ -2086,25 +2112,24 @@ object InAppBillingHandler : KoinComponent {
         // billing flow. fetchOrEnsureCustomerIds() calls /customer when IDs are absent,
         // then falls back to PipKeyManager local tokens if the server is unreachable,
         // so the purchase flow is never blocked by a server outage.
-        val (accountId, resolvedDeviceId) = try {
+        val ids = try {
             fetchOrEnsureCustomerIds()
-        } catch (e: Exception) {
-            loge(mname, "fetchOrEnsureCustomerIds threw unexpectedly; aborting: ${e.message}", e)
-            try { subscriptionStateMachine.purchaseFailed("ID resolution error: ${e.message}", null) } catch (_: Exception) {}
-            billingListener?.purchasesResult(false, emptyList())
+        } catch (e: java.io.IOException) {
+            abortPurchaseLaunch(mname, "ID resolution error: ${e.message}", e)
+            return
+        } catch (e: IllegalStateException) {
+            abortPurchaseLaunch(mname, "ID resolution error: ${e.message}", e)
             return
         }
+        val accountId = ids.first
+        val resolvedDeviceId = ids.second
 
         if (accountId.isBlank()) {
-            loge(mname, "accountId is blank after resolution; aborting purchase flow")
-            try { subscriptionStateMachine.purchaseFailed("accountId unavailable", null) } catch (_: Exception) {}
-            billingListener?.purchasesResult(false, emptyList())
+            abortPurchaseLaunch(mname, "accountId unavailable")
             return
         }
         if (resolvedDeviceId.isBlank()) {
-            loge(mname, "deviceId is blank after resolution; aborting purchase flow")
-            try { subscriptionStateMachine.purchaseFailed("deviceId unavailable", null) } catch (_: Exception) {}
-            billingListener?.purchasesResult(false, emptyList())
+            abortPurchaseLaunch(mname, "deviceId unavailable")
             return
         }
 
@@ -2127,9 +2152,7 @@ object InAppBillingHandler : KoinComponent {
             .build()
 
         if (!billingClient.isReady) {
-            loge(mname, "billing client no longer ready; aborting launchBillingFlow to avoid ProxyBillingActivity NPE")
-            try { subscriptionStateMachine.purchaseFailed("Billing client disconnected before launch", null) } catch (_: Exception) {}
-            billingListener?.purchasesResult(false, emptyList())
+            abortPurchaseLaunch(mname, "Billing client disconnected before launch")
             return
         }
 
@@ -2265,7 +2288,7 @@ object InAppBillingHandler : KoinComponent {
                 loge(caller, "resolveDeviceId: blank deviceId from all sources; skipping registerDevice")
                 null
             }
-        } catch (e: Exception) {
+        } catch (e: IllegalStateException) {
             loge(caller, "resolveDeviceId failed; skipping registerDevice: ${e.message}", e)
             null
         }
@@ -2442,11 +2465,11 @@ object InAppBillingHandler : KoinComponent {
                     handleStateChange(state)
                     updateUIForState(state)
                 }
-            } catch (e: Exception) {
+            } catch (e: IllegalStateException) {
                 loge("StateObserver", "Critical error in state observer: ${e.message}", e)
                 try {
                     subscriptionStateMachine.systemCheck()
-                } catch (recoveryError: Exception) {
+                } catch (recoveryError: IllegalStateException) {
                     loge("StateObserver", "Failed system check during recovery: ${recoveryError.message}", recoveryError)
                 }
             }
@@ -2623,7 +2646,7 @@ object InAppBillingHandler : KoinComponent {
                 subscriptionStateMachine.userCancelled()
                 logd(mname, "One-time purchase cancelled successfully")
                 Pair(true, "One-time purchase cancelled successfully")
-            } catch (e: Exception) {
+            } catch (e: IllegalStateException) {
                 loge(mname, "State machine update failed: ${e.message}", e)
                 logEvent(EventType.PROXY_ERROR, Severity.HIGH, "cancelOneTimePurchase", "State machine update failed: ${e.message}")
                 Pair(false, "Cancelled on server but state sync failed")
@@ -2674,7 +2697,7 @@ object InAppBillingHandler : KoinComponent {
                 subscriptionStateMachine.subscriptionRevoked()
                 logd(mname, "One-time purchase revoked successfully")
                 Pair(true, "One-time purchase revoked successfully")
-            } catch (e: Exception) {
+            } catch (e: IllegalStateException) {
                 loge(mname, "State machine update failed: ${e.message}", e)
                 logEvent(EventType.PROXY_ERROR, Severity.HIGH, "revokeOneTimePurchase", "State machine update failed: ${e.message}")
                 Pair(false, "Revoked on server but state sync failed")
@@ -2770,7 +2793,7 @@ object InAppBillingHandler : KoinComponent {
                     subscriptionStateMachine.userCancelled()
                     logd(mname, "subscription cancelled successfully")
                     Pair(true, "Subscription cancelled successfully")
-                } catch (e: Exception) {
+                } catch (e: IllegalStateException) {
                     loge(mname, "state machine update failed: ${e.message}", e)
                     logEvent(EventType.PROXY_ERROR, Severity.HIGH, "cancelPlaySubscription", "State machine update failed: ${e.message}")
                     Pair(false, "Cancelled on server but state sync failed")
@@ -2810,7 +2833,7 @@ object InAppBillingHandler : KoinComponent {
                     subscriptionStateMachine.subscriptionRevoked()
                     logd(mname, "Subscription revoked successfully")
                     Pair(true, "Subscription revoked successfully")
-                } catch (e: Exception) {
+                } catch (e: IllegalStateException) {
                     loge(mname, "State machine update failed: ${e.message}", e)
                     logEvent(EventType.PROXY_ERROR, Severity.HIGH, "revokeSubscription", "State machine update failed: ${e.message}")
                     Pair(false, "Revoked on server but state sync failed")
@@ -2854,7 +2877,7 @@ object InAppBillingHandler : KoinComponent {
                     loge(mname, "queryEntitlement server business error for token=${pt.take(8)}; linkedPurchaseId present, attempting reactivation of linkedToken=${linked.take(8)}")
                     try {
                         RpnProxyManager.tryReactivateLinkedPurchase(accountId, deviceId, linked)
-                    } catch (e: Exception) {
+                    } catch (e: IllegalStateException) {
                         loge(mname, "tryReactivateLinkedPurchase threw for linkedToken=${linked.take(8)}: ${e.message}", e)
                     }
                     result.purchase

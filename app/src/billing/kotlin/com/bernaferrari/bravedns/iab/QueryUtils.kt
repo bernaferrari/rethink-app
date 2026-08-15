@@ -67,13 +67,12 @@ internal class QueryUtils(private val billingClient: BillingClient) {
 
     fun getPlanId(subscriptionOfferDetailList: MutableList<ProductDetails.SubscriptionOfferDetails>?): String {
         val mname = ::getPlanId.name
-        return try {
-            subscriptionOfferDetailList?.find { it.basePlanId.isNotEmpty() }?.basePlanId
-                ?: throw NullPointerException("Not a valid SubscriptionOfferDetails list")
-        } catch (ex: Exception) {
-            loge(mname, "err(planId): returning empty", ex)
-            ""
+        val planId = subscriptionOfferDetailList?.find { it.basePlanId.isNotEmpty() }?.basePlanId
+        if (planId == null) {
+            loge(mname, "err(planId): returning empty")
+            return ""
         }
+        return planId
     }
 
     fun getPlanTitle(subscriptionOfferDetail: ProductDetails.SubscriptionOfferDetails): String =

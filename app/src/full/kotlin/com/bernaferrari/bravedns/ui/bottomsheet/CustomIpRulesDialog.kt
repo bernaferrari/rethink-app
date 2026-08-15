@@ -1,32 +1,29 @@
 package com.bernaferrari.bravedns.ui.bottomsheet
 
-
 import android.graphics.drawable.Drawable
 import android.text.format.DateUtils
 import android.widget.Toast
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import Logger
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.database.CustomIp
 import com.bernaferrari.bravedns.service.EventLogger
 import com.bernaferrari.bravedns.service.IpRulesManager
 import com.bernaferrari.bravedns.service.IpRulesManager.IpRuleStatus
-import com.bernaferrari.bravedns.util.Constants.Companion.UID_EVERYBODY
-import com.bernaferrari.bravedns.util.Utilities
-import com.bernaferrari.bravedns.ui.compose.rememberDrawablePainter
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleAction
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleActionOption
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleActionSelector
@@ -38,14 +35,16 @@ import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleSheetLayout
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleSheetModal
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleSupportingText
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleValue
-import Logger
+import com.bernaferrari.bravedns.ui.compose.rememberDrawablePainter
+import com.bernaferrari.bravedns.ui.compose.theme.Dimensions
+import com.bernaferrari.bravedns.util.Constants.Companion.UID_EVERYBODY
+import com.bernaferrari.bravedns.util.Utilities
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 private const val TAG = "CIRDialog"
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomIpRulesSheet(
     customIp: CustomIp,
@@ -55,10 +54,16 @@ fun CustomIpRulesSheet(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val editedMessage = stringResource(R.string.cd_toast_edit)
+    val undoLabel = stringResource(R.string.brbs_restore_dialog_positive)
     var appNames by remember { mutableStateOf<List<String>>(emptyList()) }
     var appIcon by remember { mutableStateOf<Drawable?>(null) }
-    var status by remember { mutableStateOf(IpRuleStatus.getStatus(customIp.status)) }
+    var persistedStatus by remember { mutableStateOf(IpRuleStatus.getStatus(customIp.status)) }
+    var selectedStatus by remember { mutableStateOf(IpRuleStatus.getStatus(customIp.status)) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var applying by remember { mutableStateOf(false) }
+    var undoEpoch by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(customIp.uid, customIp.ipAddress) {
         val uid = customIp.uid
@@ -70,8 +75,12 @@ fun CustomIpRulesSheet(
             appNames = names
             appIcon = icon
         }
-        status = IpRuleStatus.getStatus(customIp.status)
+        val status = IpRuleStatus.getStatus(customIp.status)
+        persistedStatus = status
+        selectedStatus = status
     }
+
+    val hasPendingChange = selectedStatus != persistedStatus
 
     RethinkRuleSheetModal(onDismissRequest = onDismiss) {
         val appName = formatCustomRuleSheetAppName(context, customIp.uid, appNames)
@@ -85,7 +94,7 @@ fun CustomIpRulesSheet(
                 DateUtils.FORMAT_ABBREV_RELATIVE
             )
         val statusLabel =
-            when (status) {
+            when (persistedStatus) {
                 IpRuleStatus.TRUST -> stringResource(R.string.ci_trust_txt)
                 IpRuleStatus.BLOCK -> stringResource(R.string.lbl_blocked)
                 IpRuleStatus.NONE -> stringResource(R.string.cd_no_rule_txt)
@@ -105,7 +114,7 @@ fun CustomIpRulesSheet(
                 appIcon = {
                     appIcon?.let { icon ->
                         rememberDrawablePainter(icon)?.let { painter ->
-                            Image(painter = painter, contentDescription = null, modifier = Modifier.size(20.dp))
+                            Image(painter = painter, contentDescription = null, modifier = Modifier.size(Dimensions.iconSizeSm))
                         }
                     }
                 },
@@ -113,7 +122,7 @@ fun CustomIpRulesSheet(
 
             RethinkRuleValue(
                 value = customIp.ipAddress,
-                textStyle = androidx.compose.material3.MaterialTheme.typography.titleLarge
+                textStyle = MaterialTheme.typography.titleLarge
             )
 
             RethinkRuleSupportingText(
@@ -146,12 +155,42 @@ fun CustomIpRulesSheet(
                         ),
                         thirdOption
                     ),
-                selectedAction = status.toRethinkRuleAction(),
-                onActionChange = { action ->
-                    updateRule(customIp, action.toIpRuleStatus(), scope, eventLogger) { newStatus -> status = newStatus }
+                selectedAction = selectedStatus.toRethinkRuleAction(),
+                onActionChange = { selectedStatus = it.toIpRuleStatus() },
+            )
+
+            RuleSheetApplyBar(
+                enabled = hasPendingChange && !applying,
+                onApply = {
+                    val previous = persistedStatus
+                    val next = selectedStatus
+                    val epoch = undoEpoch + 1
+                    undoEpoch = epoch
+                    scope.launchReversibleRuleMutation(
+                        snackbarHostState = snackbarHostState,
+                        editedMessage = editedMessage,
+                        undoLabel = undoLabel,
+                        epoch = epoch,
+                        currentEpoch = { undoEpoch },
+                        setApplying = { applying = it },
+                        apply = {
+                            persistCustomIpRule(customIp, next, eventLogger)
+                            persistedStatus = next
+                            selectedStatus = next
+                            true
+                        },
+                        undo = {
+                            persistCustomIpRule(customIp, previous, eventLogger)
+                            persistedStatus = previous
+                            selectedStatus = previous
+                        },
+                    )
                 },
+                onDismiss = onDismiss,
             )
         }
+
+        RuleSheetSnackbarHost(snackbarHostState)
 
         if (showDeleteDialog) {
             RethinkRuleSheetDeleteDialog(
@@ -195,24 +234,20 @@ private fun RethinkRuleAction.toIpRuleStatus() = when (this) {
     RethinkRuleAction.Bypass -> IpRuleStatus.BYPASS_UNIVERSAL
 }
 
-private fun updateRule(
+private suspend fun persistCustomIpRule(
     customIp: CustomIp,
     rule: IpRuleStatus,
-    scope: kotlinx.coroutines.CoroutineScope,
     eventLogger: EventLogger,
-    onUpdated: (IpRuleStatus) -> Unit
 ) {
-    launchRuleMutation(scope, mutation = {
-        val updated =
-            when (rule) {
-                IpRuleStatus.NONE -> noRuleIp(customIp, eventLogger)
-                IpRuleStatus.BLOCK -> blockIp(customIp, eventLogger)
-                IpRuleStatus.BYPASS_UNIVERSAL -> byPassUniversal(customIp, eventLogger)
-                IpRuleStatus.TRUST -> byPassAppRule(customIp, eventLogger)
-            }
-        Logger.v(TAG, "$TAG changeIpStatus: ${updated.ipAddress}, status: ${rule.name}")
-        rule
-    }, onUpdated = onUpdated)
+    withContext(Dispatchers.IO) {
+        when (rule) {
+            IpRuleStatus.NONE -> noRuleIp(customIp, eventLogger)
+            IpRuleStatus.BLOCK -> blockIp(customIp, eventLogger)
+            IpRuleStatus.BYPASS_UNIVERSAL -> byPassUniversal(customIp, eventLogger)
+            IpRuleStatus.TRUST -> byPassAppRule(customIp, eventLogger)
+        }
+        Logger.v(TAG, "$TAG changeIpStatus: ${customIp.ipAddress}, status: ${rule.name}")
+    }
 }
 
 private suspend fun byPassUniversal(orig: CustomIp, eventLogger: EventLogger): CustomIp {

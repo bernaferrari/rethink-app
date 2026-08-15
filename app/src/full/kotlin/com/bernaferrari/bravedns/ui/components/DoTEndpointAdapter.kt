@@ -34,6 +34,9 @@ private const val TAG = "DoTEndpointAdapter"
 fun DoTEndpointRow(endpoint: DoTEndpoint, appConfig: AppConfig) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val failingToast = stringResource(R.string.status_failing)
+    val deleteSuccessToast = stringResource(R.string.doh_custom_url_remove_success)
+    val resolvedExplanation = resolveDnsDescriptionText(endpoint.desc)
     val explanation =
         rememberDnsStatusExplanation(
             key = endpoint.id,
@@ -68,14 +71,14 @@ fun DoTEndpointRow(endpoint: DoTEndpoint, appConfig: AppConfig) {
                         id = endpoint.id,
                         titleRes = R.string.doh_custom_url_remove_dialog_title,
                         messageRes = R.string.dot_custom_url_remove_dialog_message,
-                        successRes = R.string.doh_custom_url_remove_success
+                        successToast = deleteSuccessToast
                     )
             } else {
                 val description =
                     if (endpoint.desc.isNullOrEmpty()) {
                         endpoint.url
                     } else {
-                        endpoint.url + "\n\n" + resolveDnsDescriptionText(context, endpoint.desc)
+                        endpoint.url + "\n\n" + resolvedExplanation
                     }
                 infoDialog =
                     DnsInfoDialogModel(
@@ -86,7 +89,7 @@ fun DoTEndpointRow(endpoint: DoTEndpoint, appConfig: AppConfig) {
             }
         },
         onSelectionChange = {
-            launchDnsEndpointSelectionUpdate(scope, context, TAG) {
+            launchDnsEndpointSelectionUpdate(scope, context, TAG, failingToast) {
                 endpoint.isSelected = true
                 appConfig.handleDoTChanges(endpoint)
             }
@@ -98,7 +101,7 @@ fun DoTEndpointRow(endpoint: DoTEndpoint, appConfig: AppConfig) {
             model = model,
             onDismiss = { deleteDialog = null },
             onConfirm = { id ->
-                launchDnsEndpointDelete(scope, context, model.successRes) {
+                launchDnsEndpointDelete(scope, context, model.successToast, failingToast) {
                     appConfig.deleteDoTEndpoint(id)
                 }
                 deleteDialog = null

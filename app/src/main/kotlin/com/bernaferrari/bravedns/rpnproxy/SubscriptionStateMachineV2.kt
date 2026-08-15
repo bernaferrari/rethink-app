@@ -68,12 +68,7 @@ class SubscriptionStateMachineV2(
 
     companion object {
         private const val TAG = "SubscriptionStateMachineV2"
-
-        // do not expire a subscription whose lastUpdatedTs is within
-        // this window, even if Play returned an empty snapshot.
-        // REMOVED: the 3-empty-query threshold is the correct guard against
-        // transient Play misses; a time-based guard overrides Play's authority.
-        // private const val RECENTLY_ACTIVE_GUARD_MS = 2 * 60 * 60 * 1000L
+        private const val EMPTY_QUERY_THRESHOLD = 3
 
         fun isInAppProduct(productId: String): Boolean =
             productId == ONE_TIME_PRODUCT_ID ||
@@ -135,511 +130,73 @@ class SubscriptionStateMachineV2(
             createStateMachine<SubscriptionState, SubscriptionEvent, SubscriptionData>(
                 initialState = SubscriptionState.Uninitialized,
                 tag = TAG
-            ) {
-                addTransition(
-                    fromState = SubscriptionState.Uninitialized,
-                    event = SubscriptionEvent.Initialize,
-                    toState = SubscriptionState.Initial,
-                    action = { _, _ -> handleInitialize() }
-                )
-
-                addTransition(
-                    fromState = SubscriptionState.Initial,
-                    event = SubscriptionEvent.Initialize,
-                    toState = SubscriptionState.Initial,
-                    action = { _, _ -> handleInitialize() }
-                )
-                addTransition(
-                    fromState = SubscriptionState.Initial,
-                    event = SubscriptionEvent.PurchaseInitiated,
-                    toState = SubscriptionState.PurchaseInitiated
-                )
-                addTransition(
-                    fromState = SubscriptionState.Initial,
-                    event = SubscriptionEvent.PaymentSuccessful(createDummyPurchaseDetail()),
-                    toState = SubscriptionState.Active,
-                    guard = { event, _ -> event is SubscriptionEvent.PaymentSuccessful },
-                    action = { event, _ ->
-                        handlePaymentSuccessful((event as SubscriptionEvent.PaymentSuccessful).purchaseDetail)
-                    }
-                )
-                // Cold-start restore from Initial (first init after machine moved to Initial)
-                addTransition(
-                    fromState = SubscriptionState.Initial,
-                    event = SubscriptionEvent.SubscriptionRestored(createDummyPurchaseDetail()),
-                    toState = SubscriptionState.Active,
-                    guard = { event, _ -> event is SubscriptionEvent.SubscriptionRestored },
-                    action = { event, _ ->
-                        handleSubscriptionRestored((event as SubscriptionEvent.SubscriptionRestored).purchaseDetail)
-                    }
-                )
-                addTransition(
-                    fromState = SubscriptionState.Initial,
-                    event = SubscriptionEvent.PurchaseCompleted(createDummyPurchaseDetail()),
-                    toState = SubscriptionState.PurchasePending,
-                    guard = { event, _ -> event is SubscriptionEvent.PurchaseCompleted },
-                    action = { event, _ ->
-                        handlePurchaseCompleted((event as SubscriptionEvent.PurchaseCompleted).purchaseDetail)
-                    }
-                )
-                addTransition(
-                    fromState = SubscriptionState.Initial,
-                    event = SubscriptionEvent.SubscriptionExpired,
-                    toState = SubscriptionState.Expired,
-                    action = { _, data -> handleSubscriptionExpiredWithData(data as? SubscriptionData) }
-                )
-                addTransition(
-                    fromState = SubscriptionState.Initial,
-                    event = SubscriptionEvent.SubscriptionRevoked,
-                    toState = SubscriptionState.Revoked,
-                    action = { _, data -> handleSubscriptionRevoked(data as? SubscriptionData) }
-                )
-                addTransition(
-                    fromState = SubscriptionState.Initial,
-                    event = SubscriptionEvent.UserCancelled,
-                    toState = SubscriptionState.Cancelled,
-                    action = { _, data -> handleUserCancelled(data as? SubscriptionData) }
-                )
-                addTransition(
-                    fromState = SubscriptionState.Initial,
-                    event = SubscriptionEvent.BillingError("", -1),
-                    toState = SubscriptionState.Error,
-                    guard = { event, _ -> event is SubscriptionEvent.BillingError },
-                    action = { event, _ ->
-                        val e = event as SubscriptionEvent.BillingError
-                        handleBillingError(e.error, e.billingResultCode)
-                    }
-                )
-                addTransition(
-                    fromState = SubscriptionState.Initial,
-                    event = SubscriptionEvent.SystemCheck,
-                    toState = SubscriptionState.Initial,
-                    action = { _, _ -> handleSystemCheck() }
-                )
-                addTransition(
-                    fromState = SubscriptionState.PurchaseInitiated,
-                    event = SubscriptionEvent.PurchaseCompleted(createDummyPurchaseDetail()),
-                    toState = SubscriptionState.PurchasePending,
-                    guard = { event, _ -> event is SubscriptionEvent.PurchaseCompleted },
-                    action = { event, _ ->
-                        handlePurchaseCompleted((event as SubscriptionEvent.PurchaseCompleted).purchaseDetail)
-                    }
-                )
-                addTransition(
-                    fromState = SubscriptionState.PurchaseInitiated,
-                    event = SubscriptionEvent.PaymentSuccessful(createDummyPurchaseDetail()),
-                    toState = SubscriptionState.Active,
-                    guard = { event, _ -> event is SubscriptionEvent.PaymentSuccessful },
-                    action = { event, _ ->
-                        handlePaymentSuccessful((event as SubscriptionEvent.PaymentSuccessful).purchaseDetail)
-                    }
-                )
-                addTransition(
-                    fromState = SubscriptionState.PurchaseInitiated,
-                    event = SubscriptionEvent.UserCancelled,
-                    toState = SubscriptionState.Initial,
-                    action = { _, data -> handleUserCancelledFromPurchase(data as? SubscriptionData) }
-                )
-                addTransition(
-                    fromState = SubscriptionState.PurchaseInitiated,
-                    event = SubscriptionEvent.PurchaseFailed("", null),
-                    toState = SubscriptionState.Error,
-                    guard = { event, _ -> event is SubscriptionEvent.PurchaseFailed },
-                    action = { event, _ ->
-                        val e = event as SubscriptionEvent.PurchaseFailed
-                        handlePurchaseFailed(e.error, e.billingResultCode)
-                    }
-                )
-                addTransition(
-                    fromState = SubscriptionState.PurchaseInitiated,
-                    event = SubscriptionEvent.BillingError("", -1),
-                    toState = SubscriptionState.Error,
-                    guard = { event, _ -> event is SubscriptionEvent.BillingError },
-                    action = { event, _ ->
-                        val e = event as SubscriptionEvent.BillingError
-                        handleBillingError(e.error, e.billingResultCode)
-                    }
-                )
-                addTransition(
-                    fromState = SubscriptionState.PurchaseInitiated,
-                    event = SubscriptionEvent.SystemCheck,
-                    toState = SubscriptionState.Initial,
-                    action = { _, _ -> handleSystemCheck() }
-                )
-                addTransition(
-                    fromState = SubscriptionState.PurchasePending,
-                    event = SubscriptionEvent.PaymentSuccessful(createDummyPurchaseDetail()),
-                    toState = SubscriptionState.Active,
-                    guard = { event, _ -> event is SubscriptionEvent.PaymentSuccessful },
-                    action = { event, _ ->
-                        handlePaymentSuccessful((event as SubscriptionEvent.PaymentSuccessful).purchaseDetail)
-                    }
-                )
-                addTransition(
-                    fromState = SubscriptionState.PurchasePending,
-                    event = SubscriptionEvent.PurchaseCompleted(createDummyPurchaseDetail()),
-                    toState = SubscriptionState.PurchasePending,
-                    guard = { event, _ -> event is SubscriptionEvent.PurchaseCompleted },
-                    action = { event, _ ->
-                        handlePurchaseCompleted((event as SubscriptionEvent.PurchaseCompleted).purchaseDetail)
-                    }
-                )
-                addTransition(
-                    fromState = SubscriptionState.PurchasePending,
-                    event = SubscriptionEvent.UserCancelled,
-                    toState = SubscriptionState.Initial,
-                    action = { _, data -> handleUserCancelledFromPurchase(data as? SubscriptionData) }
-                )
-                addTransition(
-                    fromState = SubscriptionState.PurchasePending,
-                    event = SubscriptionEvent.BillingError("", -1),
-                    toState = SubscriptionState.Error,
-                    guard = { event, _ -> event is SubscriptionEvent.BillingError },
-                    action = { event, _ ->
-                        val e = event as SubscriptionEvent.BillingError
-                        handleBillingError(e.error, e.billingResultCode)
-                    }
-                )
-                addTransition(
-                    fromState = SubscriptionState.PurchasePending,
-                    event = SubscriptionEvent.PurchaseFailed("", null),
-                    toState = SubscriptionState.Error,
-                    guard = { event, _ -> event is SubscriptionEvent.PurchaseFailed },
-                    action = { event, _ ->
-                        val e = event as SubscriptionEvent.PurchaseFailed
-                        handlePurchaseFailed(e.error, e.billingResultCode)
-                    }
-                )
-                addTransition(
-                    fromState = SubscriptionState.PurchasePending,
-                    event = SubscriptionEvent.SystemCheck,
-                    toState = SubscriptionState.Initial,
-                    action = { _, _ -> handleSystemCheck() }
-                )
-
-                // Renewal: Active to Active (idempotent, updates expiry)
-                addTransition(
-                    fromState = SubscriptionState.Active,
-                    event = SubscriptionEvent.PaymentSuccessful(createDummyPurchaseDetail()),
-                    toState = SubscriptionState.Active,
-                    guard = { event, _ -> event is SubscriptionEvent.PaymentSuccessful },
-                    action = { event, _ ->
-                        handlePaymentSuccessful((event as SubscriptionEvent.PaymentSuccessful).purchaseDetail)
-                    }
-                )
-                // Cold-start restore: Active to Active (idempotent, memory-only via handleSubscriptionRestored dedup)
-                addTransition(
-                    fromState = SubscriptionState.Active,
-                    event = SubscriptionEvent.SubscriptionRestored(createDummyPurchaseDetail()),
-                    toState = SubscriptionState.Active,
-                    guard = { event, _ -> event is SubscriptionEvent.SubscriptionRestored },
-                    action = { event, _ ->
-                        handleSubscriptionRestored((event as SubscriptionEvent.SubscriptionRestored).purchaseDetail)
-                    }
-                )
-                addTransition(
-                    fromState = SubscriptionState.Active,
-                    event = SubscriptionEvent.UserCancelled,
-                    toState = SubscriptionState.Cancelled,
-                    action = { _, data -> handleUserCancelled(data as? SubscriptionData) }
-                )
-                addTransition(
-                    fromState = SubscriptionState.Active,
-                    event = SubscriptionEvent.SubscriptionExpired,
-                    toState = SubscriptionState.Expired,
-                    action = { _, data -> handleSubscriptionExpiredWithData(data as? SubscriptionData) }
-                )
-                addTransition(
-                    fromState = SubscriptionState.Active,
-                    event = SubscriptionEvent.SubscriptionRevoked,
-                    toState = SubscriptionState.Revoked,
-                    action = { _, data -> handleSubscriptionRevoked(data as? SubscriptionData) }
-                )
-                addTransition(
-                    fromState = SubscriptionState.Active,
-                    event = SubscriptionEvent.DatabaseError(""),
-                    toState = SubscriptionState.Error,
-                    guard = { event, _ -> event is SubscriptionEvent.DatabaseError },
-                    action = { event, _ ->
-                        handleDatabaseError((event as SubscriptionEvent.DatabaseError).error)
-                    }
-                )
-                addTransition(
-                    fromState = SubscriptionState.Active,
-                    event = SubscriptionEvent.SystemCheck,
-                    toState = SubscriptionState.Active,
-                    action = { _, _ -> handleSystemCheck() }
-                )
-
-                // These sub-states all share the same transition set.
-                listOf(
-                    SubscriptionState.Grace,
-                    SubscriptionState.OnHold,
-                    SubscriptionState.Paused
-                ).forEach { fromState ->
-                    addTransition(
-                        fromState = fromState,
-                        event = SubscriptionEvent.PaymentSuccessful(createDummyPurchaseDetail()),
-                        toState = SubscriptionState.Active,
-                        guard = { event, _ -> event is SubscriptionEvent.PaymentSuccessful },
-                        action = { event, _ ->
-                            handlePaymentSuccessful((event as SubscriptionEvent.PaymentSuccessful).purchaseDetail)
-                        }
-                    )
-                    // Cold-start restore
-                    addTransition(
-                        fromState = fromState,
-                        event = SubscriptionEvent.SubscriptionRestored(createDummyPurchaseDetail()),
-                        toState = SubscriptionState.Active,
-                        guard = { event, _ -> event is SubscriptionEvent.SubscriptionRestored },
-                        action = { event, _ ->
-                            handleSubscriptionRestored((event as SubscriptionEvent.SubscriptionRestored).purchaseDetail)
-                        }
-                    )
-                    addTransition(
-                        fromState = fromState,
-                        event = SubscriptionEvent.SubscriptionExpired,
-                        toState = SubscriptionState.Expired,
-                        action = { _, data -> handleSubscriptionExpiredWithData(data as? SubscriptionData) }
-                    )
-                    addTransition(
-                        fromState = fromState,
-                        event = SubscriptionEvent.SubscriptionRevoked,
-                        toState = SubscriptionState.Revoked,
-                        action = { _, data -> handleSubscriptionRevoked(data as? SubscriptionData) }
-                    )
-                    addTransition(
-                        fromState = fromState,
-                        event = SubscriptionEvent.UserCancelled,
-                        toState = SubscriptionState.Cancelled,
-                        action = { _, data -> handleUserCancelled(data as? SubscriptionData) }
-                    )
-                    addTransition(
-                        fromState = fromState,
-                        event = SubscriptionEvent.SystemCheck,
-                        toState = SubscriptionState.Active,
-                        action = { _, _ -> handleSystemCheck() }
-                    )
-                }
-
-                // Canceled + not yet expired - user still has access.
-                // Play fires PaymentSuccessful when user re-subscribes.
-                addTransition(
-                    fromState = SubscriptionState.Cancelled,
-                    event = SubscriptionEvent.PaymentSuccessful(createDummyPurchaseDetail()),
-                    toState = SubscriptionState.Active,
-                    guard = { event, data ->
-                        event is SubscriptionEvent.PaymentSuccessful &&
-                        !isWithinLocalCancelRevokeGuard(data as? SubscriptionData, event)
-                    },
-                    action = { event, _ ->
-                        handlePaymentSuccessful((event as SubscriptionEvent.PaymentSuccessful).purchaseDetail)
-                    }
-                )
-                // Cold-start restore: Canceled - Active in memory (billing period still valid)
-                addTransition(
-                    fromState = SubscriptionState.Cancelled,
-                    event = SubscriptionEvent.SubscriptionRestored(createDummyPurchaseDetail()),
-                    toState = SubscriptionState.Active,
-                    guard = { event, _ -> event is SubscriptionEvent.SubscriptionRestored },
-                    action = { event, _ ->
-                        handleSubscriptionRestored((event as SubscriptionEvent.SubscriptionRestored).purchaseDetail)
-                    }
-                )
-                addTransition(
-                    fromState = SubscriptionState.Cancelled,
-                    event = SubscriptionEvent.SubscriptionExpired,
-                    toState = SubscriptionState.Expired,
-                    action = { _, data -> handleSubscriptionExpiredWithData(data as? SubscriptionData) }
-                )
-                addTransition(
-                    fromState = SubscriptionState.Cancelled,
-                    event = SubscriptionEvent.SubscriptionRevoked,
-                    toState = SubscriptionState.Revoked,
-                    action = { _, data -> handleSubscriptionRevoked(data as? SubscriptionData) }
-                )
-                addTransition(
-                    fromState = SubscriptionState.Cancelled,
-                    event = SubscriptionEvent.PurchaseInitiated,
-                    toState = SubscriptionState.PurchaseInitiated
-                )
-                // Idempotent: already canceled - Play confirms it again (e.g. reconcile on reconnect).
-                addTransition(
-                    fromState = SubscriptionState.Cancelled,
-                    event = SubscriptionEvent.UserCancelled,
-                    toState = SubscriptionState.Cancelled,
-                    action = { _, _ ->
-                        Logger.d(LOG_IAB, "$TAG: already Cancelled, re-fire ignored")
-                    }
-                )
-                addTransition(
-                    fromState = SubscriptionState.Cancelled,
-                    event = SubscriptionEvent.SystemCheck,
-                    toState = SubscriptionState.Initial,
-                    action = { _, _ -> handleSystemCheck() }
-                )
-
-                // Expired
-                addTransition(
-                    fromState = SubscriptionState.Expired,
-                    event = SubscriptionEvent.PaymentSuccessful(createDummyPurchaseDetail()),
-                    toState = SubscriptionState.Active,
-                    guard = { event, _ -> event is SubscriptionEvent.PaymentSuccessful },
-                    action = { event, _ ->
-                        handlePaymentSuccessful((event as SubscriptionEvent.PaymentSuccessful).purchaseDetail)
-                    }
-                )
-                addTransition(
-                    fromState = SubscriptionState.Expired,
-                    event = SubscriptionEvent.SubscriptionRestored(createDummyPurchaseDetail()),
-                    toState = SubscriptionState.Active,
-                    guard = { event, _ -> event is SubscriptionEvent.SubscriptionRestored },
-                    action = { event, _ ->
-                        handleSubscriptionRestored((event as SubscriptionEvent.SubscriptionRestored).purchaseDetail)
-                    }
-                )
-                // Idempotent: already expired - Play confirms it again.
-                addTransition(
-                    fromState = SubscriptionState.Expired,
-                    event = SubscriptionEvent.SubscriptionExpired,
-                    toState = SubscriptionState.Expired,
-                    action = { _, _ ->
-                        Logger.d(LOG_IAB, "$TAG: already Expired, re-fire ignored")
-                    }
-                )
-                addTransition(
-                    fromState = SubscriptionState.Expired,
-                    event = SubscriptionEvent.PurchaseInitiated,
-                    toState = SubscriptionState.PurchaseInitiated
-                )
-                addTransition(
-                    fromState = SubscriptionState.Expired,
-                    event = SubscriptionEvent.SystemCheck,
-                    toState = SubscriptionState.Initial,
-                    action = { _, _ -> handleSystemCheck() }
-                )
-
-                // Revoked
-                addTransition(
-                    fromState = SubscriptionState.Revoked,
-                    event = SubscriptionEvent.PaymentSuccessful(createDummyPurchaseDetail()),
-                    toState = SubscriptionState.Active,
-                    guard = { event, data ->
-                        event is SubscriptionEvent.PaymentSuccessful &&
-                        !isWithinLocalCancelRevokeGuard(data as? SubscriptionData, event)
-                    },
-                    action = { event, _ ->
-                        handlePaymentSuccessful((event as SubscriptionEvent.PaymentSuccessful).purchaseDetail)
-                    }
-                )
-                addTransition(
-                    fromState = SubscriptionState.Revoked,
-                    event = SubscriptionEvent.SubscriptionRestored(createDummyPurchaseDetail()),
-                    toState = SubscriptionState.Active,
-                    guard = { event, _ -> event is SubscriptionEvent.SubscriptionRestored },
-                    action = { event, _ ->
-                        handleSubscriptionRestored((event as SubscriptionEvent.SubscriptionRestored).purchaseDetail)
-                    }
-                )
-                // Idempotent: already revoked - Play confirms it again.
-                addTransition(
-                    fromState = SubscriptionState.Revoked,
-                    event = SubscriptionEvent.SubscriptionRevoked,
-                    toState = SubscriptionState.Revoked,
-                    action = { _, _ ->
-                        Logger.d(LOG_IAB, "$TAG: already Revoked, re-fire ignored")
-                    }
-                )
-                addTransition(
-                    fromState = SubscriptionState.Revoked,
-                    event = SubscriptionEvent.PurchaseInitiated,
-                    toState = SubscriptionState.PurchaseInitiated
-                )
-                addTransition(
-                    fromState = SubscriptionState.Revoked,
-                    event = SubscriptionEvent.SystemCheck,
-                    toState = SubscriptionState.Initial,
-                    action = { _, _ -> handleSystemCheck() }
-                )
-
-                // Error
-                addTransition(
-                    fromState = SubscriptionState.Error,
-                    event = SubscriptionEvent.ErrorRecovered,
-                    toState = SubscriptionState.Initial,
-                    action = { _, _ -> handleErrorRecovery() }
-                )
-                addTransition(
-                    fromState = SubscriptionState.Error,
-                    event = SubscriptionEvent.PaymentSuccessful(createDummyPurchaseDetail()),
-                    toState = SubscriptionState.Active,
-                    guard = { event, _ -> event is SubscriptionEvent.PaymentSuccessful },
-                    action = { event, _ ->
-                        handlePaymentSuccessful((event as SubscriptionEvent.PaymentSuccessful).purchaseDetail)
-                    }
-                )
-                addTransition(
-                    fromState = SubscriptionState.Error,
-                    event = SubscriptionEvent.PurchaseCompleted(createDummyPurchaseDetail()),
-                    toState = SubscriptionState.PurchasePending,
-                    guard = { event, _ -> event is SubscriptionEvent.PurchaseCompleted },
-                    action = { event, _ ->
-                        Logger.i(LOG_IAB, "$TAG: recovering from Error → PurchasePending on PurchaseCompleted")
-                        handlePurchaseCompleted((event as SubscriptionEvent.PurchaseCompleted).purchaseDetail)
-                    }
-                )
-                addTransition(
-                    fromState = SubscriptionState.Error,
-                    event = SubscriptionEvent.PurchaseInitiated,
-                    toState = SubscriptionState.PurchaseInitiated
-                )
-                addTransition(
-                    fromState = SubscriptionState.Error,
-                    event = SubscriptionEvent.SystemCheck,
-                    toState = SubscriptionState.Initial,
-                    action = { _, _ -> handleSystemCheck() }
-                )
-                onStateChanged { fromState, toState, event ->
-                    Logger.i(LOG_IAB, "$TAG: ${fromState.name} → ${toState.name} on ${event.name}")
-                }
-                onTransitionFailed { fromState, event, error ->
-                    Logger.e(LOG_IAB, "$TAG: Transition failed from ${fromState.name} on ${event.name}: $error")
-                }
-                onInvalidTransition { fromState, event ->
-                    Logger.w(LOG_IAB, "$TAG: Invalid transition from ${fromState.name} on ${event.name}")
-                }
-            }
+            ) { }
 
         Logger.i(LOG_IAB, "$TAG: Initializing SubscriptionStateMachineV2")
         initializeStateMachine()
         Logger.i(LOG_IAB, "$TAG: SubscriptionStateMachineV2 initialized")
     }
 
+    /**
+     * Entitlement model.
+     *
+     * ```
+     * Uninitialized
+     *      │ initialize
+     *      ▼
+     * NotEntitled ──purchase──► Pending ──payment──► Entitled
+     *      ▲                       │                    │
+     *      └──── expire/revoke ────┴────────────────────┘
+     * ```
+     *
+     * Leaf names ([Active], [Cancelled], [Expired], …) stay so
+     * [com.bernaferrari.bravedns.iab.InAppBillingHandler] `is` checks compile.
+     * Play Grace/OnHold/Paused are never emitted — they are fields on
+     * [SubscriptionData], not states.
+     */
     sealed class SubscriptionState : State {
-        object Uninitialized: SubscriptionState()
-        object Initial: SubscriptionState()
-        object PurchaseInitiated: SubscriptionState()
-        object PurchasePending: SubscriptionState()
-        object Active: SubscriptionState()
-        object Cancelled: SubscriptionState()
-        object Expired: SubscriptionState()
-        object Revoked: SubscriptionState()
-        object Error: SubscriptionState()
-        object Grace: SubscriptionState()
-        object OnHold: SubscriptionState()
-        object Paused: SubscriptionState()
+        abstract val isActive: Boolean
+        abstract val canMakePurchase: Boolean
+        abstract val hasValidSubscription: Boolean
 
-        val isActive: Boolean
-            get() = this is Active || this is Grace
+        sealed class Entitled : SubscriptionState() {
+            override val hasValidSubscription get() = true
+            override val canMakePurchase get() = false
+            override val isActive get() = this is Active || this is Grace
+        }
 
-        val canMakePurchase: Boolean
-            get() = this is Initial || this is Expired || this is Revoked ||
-                    this is Cancelled || this is Error || this is PurchaseInitiated ||
-                    this is PurchasePending || this is OnHold || this is Paused
+        sealed class NotEntitled : SubscriptionState() {
+            override val hasValidSubscription get() = false
+            override val canMakePurchase get() = true
+            override val isActive get() = false
+        }
 
-        val hasValidSubscription: Boolean
-            get() = this is Active || this is Grace || this is OnHold || this is Paused ||
-                    this is Cancelled   // Cancelled: still valid until billingExpiry
+        sealed class Pending : SubscriptionState() {
+            override val hasValidSubscription get() = false
+            override val canMakePurchase get() = true
+            override val isActive get() = false
+        }
+
+        object Uninitialized : SubscriptionState() {
+            override val hasValidSubscription get() = false
+            override val canMakePurchase get() = false
+            override val isActive get() = false
+        }
+
+        object Active : Entitled()
+        object Cancelled : Entitled()
+        /** Compile-compat only; Play reconcile maps these to [Active]. Never emitted. */
+        object Grace : Entitled()
+        object OnHold : Entitled()
+        object Paused : Entitled()
+
+        object Initial : NotEntitled()
+        object Expired : NotEntitled()
+        object Revoked : NotEntitled()
+        object Error : NotEntitled()
+
+        object PurchaseInitiated : Pending()
+        object PurchasePending : Pending()
 
         val isCancelled: Boolean get() = this is Cancelled
         val isExpired: Boolean   get() = this is Expired
@@ -671,12 +228,145 @@ class SubscriptionStateMachineV2(
         val subscriptionStatus: SubscriptionStatus,
         val purchaseDetail: PurchaseDetail? = null,
         val lastUpdated: Long = System.currentTimeMillis()
-    )
+    ) {
+        val expiryTime: Long get() = subscriptionStatus.billingExpiry
+        val productId: String get() = subscriptionStatus.productId
+        val purchaseToken: String get() = subscriptionStatus.purchaseToken
+        val cancellationPending: Boolean
+            get() = subscriptionStatus.status == SubscriptionStatus.SubscriptionState.STATE_CANCELLED.id
+        val autoRenewing: Boolean
+            get() = if (cancellationPending) false
+                else purchaseDetail?.isAutoRenewing
+                    ?: !isInAppProduct(subscriptionStatus.productId)
+    }
 
     val currentState: StateFlow<SubscriptionState> = stateMachine.currentState
 
+    private var consecutiveEmptySubsQueries = 0
+
     private suspend fun processEventSafely(event: SubscriptionEvent) {
-        stateLock.withLock { stateMachine.processEvent(event) }
+        stateLock.withLock { applyEvent(event) }
+    }
+
+    private fun reduce(
+        state: SubscriptionState,
+        event: SubscriptionEvent,
+        data: SubscriptionData?
+    ): SubscriptionState? {
+        return when (event) {
+            SubscriptionEvent.Initialize -> when (state) {
+                SubscriptionState.Uninitialized, SubscriptionState.Initial -> SubscriptionState.Initial
+                else -> state
+            }
+            SubscriptionEvent.PurchaseInitiated -> when (state) {
+                is SubscriptionState.NotEntitled -> SubscriptionState.PurchaseInitiated
+                is SubscriptionState.Cancelled -> SubscriptionState.PurchaseInitiated
+                else -> null
+            }
+            is SubscriptionEvent.PurchaseCompleted -> when (state) {
+                SubscriptionState.Initial,
+                is SubscriptionState.Pending,
+                SubscriptionState.Error -> SubscriptionState.PurchasePending
+                else -> null
+            }
+            is SubscriptionEvent.PurchaseFailed -> when (state) {
+                is SubscriptionState.Pending -> SubscriptionState.Error
+                else -> null
+            }
+            is SubscriptionEvent.PaymentSuccessful -> {
+                val blocked = isWithinLocalCancelRevokeGuard(data, event) &&
+                    (state is SubscriptionState.Cancelled || state is SubscriptionState.Revoked)
+                when {
+                    blocked -> null
+                    state is SubscriptionState.Uninitialized -> null
+                    else -> SubscriptionState.Active
+                }
+            }
+            SubscriptionEvent.UserCancelled -> when (state) {
+                is SubscriptionState.Pending -> SubscriptionState.Initial
+                SubscriptionState.Initial,
+                is SubscriptionState.Entitled -> SubscriptionState.Cancelled
+                else -> null
+            }
+            SubscriptionEvent.SubscriptionExpired -> when (state) {
+                SubscriptionState.Uninitialized,
+                is SubscriptionState.Pending,
+                SubscriptionState.Error,
+                SubscriptionState.Revoked -> null
+                else -> SubscriptionState.Expired
+            }
+            SubscriptionEvent.SubscriptionRevoked -> when (state) {
+                SubscriptionState.Uninitialized,
+                is SubscriptionState.Pending,
+                SubscriptionState.Error,
+                SubscriptionState.Expired -> null
+                else -> SubscriptionState.Revoked
+            }
+            is SubscriptionEvent.SubscriptionRestored -> when (state) {
+                SubscriptionState.Uninitialized,
+                is SubscriptionState.Pending,
+                SubscriptionState.Error -> null
+                else -> SubscriptionState.Active
+            }
+            SubscriptionEvent.SystemCheck -> when (state) {
+                SubscriptionState.Uninitialized -> SubscriptionState.Initial
+                is SubscriptionState.Entitled -> state
+                else -> state
+            }
+            is SubscriptionEvent.BillingError -> when (state) {
+                SubscriptionState.Initial, is SubscriptionState.Pending -> SubscriptionState.Error
+                else -> null
+            }
+            is SubscriptionEvent.DatabaseError ->
+                if (state is SubscriptionState.Entitled) SubscriptionState.Error else null
+            SubscriptionEvent.ErrorRecovered ->
+                if (state is SubscriptionState.Error) SubscriptionState.Initial else null
+        }
+    }
+
+    private suspend fun applyEvent(event: SubscriptionEvent) {
+        val from = stateMachine.getCurrentState()
+        val data = stateMachine.getCurrentData()
+        val to = reduce(from, event, data)
+        if (to == null) {
+            Logger.w(LOG_IAB, "$TAG: Invalid transition from ${from.name} on ${event.name}")
+            return
+        }
+        try {
+            runAction(from, event, data)
+        } catch (e: Exception) {
+            Logger.e(LOG_IAB, "$TAG: Transition failed from ${from.name} on ${event.name}: ${e.message}", e)
+            return
+        }
+        if (from != to) {
+            stateMachine.directTransitionTo(to)
+        }
+        Logger.i(LOG_IAB, "$TAG: ${from.name} → ${to.name} on ${event.name}")
+    }
+
+    private suspend fun runAction(
+        from: SubscriptionState,
+        event: SubscriptionEvent,
+        data: SubscriptionData?
+    ) {
+        when (event) {
+            SubscriptionEvent.Initialize -> handleInitialize()
+            is SubscriptionEvent.PurchaseCompleted -> handlePurchaseCompleted(event.purchaseDetail)
+            is SubscriptionEvent.PurchaseFailed -> handlePurchaseFailed(event.error, event.billingResultCode)
+            is SubscriptionEvent.PaymentSuccessful -> handlePaymentSuccessful(event.purchaseDetail)
+            SubscriptionEvent.UserCancelled -> when (from) {
+                is SubscriptionState.Pending -> handleUserCancelledFromPurchase(data)
+                else -> handleUserCancelled(data)
+            }
+            SubscriptionEvent.SubscriptionExpired -> handleSubscriptionExpiredWithData(data)
+            SubscriptionEvent.SubscriptionRevoked -> handleSubscriptionRevoked(data)
+            is SubscriptionEvent.SubscriptionRestored -> handleSubscriptionRestored(event.purchaseDetail)
+            SubscriptionEvent.SystemCheck -> handleSystemCheck()
+            is SubscriptionEvent.BillingError -> handleBillingError(event.error, event.billingResultCode)
+            is SubscriptionEvent.DatabaseError -> handleDatabaseError(event.error)
+            SubscriptionEvent.ErrorRecovered -> handleErrorRecovery()
+            SubscriptionEvent.PurchaseInitiated -> Unit
+        }
     }
 
     private fun initializeStateMachine() {
@@ -754,15 +444,29 @@ class SubscriptionStateMachineV2(
     ) {
         if (purchases.isEmpty()) {
             if (queriedProductType == BillingClient.ProductType.SUBS) {
-                // Play has no subscription for this account. Any active/cancelled SUBS row
-                // in the local DB is stale the subscription has been revoked, refunded, or
-                // fully lapsed without the app receiving a renewal callback.
-                Logger.i(LOG_IAB, "$TAG: reconcile: Play returned empty SUBS snapshot, expiring active SUBS in DB")
+                consecutiveEmptySubsQueries++
+                if (consecutiveEmptySubsQueries < EMPTY_QUERY_THRESHOLD) {
+                    Logger.i(
+                        LOG_IAB,
+                        "$TAG: reconcile: empty SUBS snapshot ignored " +
+                            "($consecutiveEmptySubsQueries/$EMPTY_QUERY_THRESHOLD)"
+                    )
+                    return
+                }
+                Logger.w(
+                    LOG_IAB,
+                    "$TAG: reconcile: empty SUBS threshold reached " +
+                        "($consecutiveEmptySubsQueries/$EMPTY_QUERY_THRESHOLD), expiring local SUBS rows"
+                )
                 expireStaleSubsFromDb()
             } else {
                 Logger.i(LOG_IAB, "$TAG: reconcile: Play returned empty INAPP snapshot, no action (INAPP expiry is clock-based)")
             }
             return
+        }
+
+        if (queriedProductType == BillingClient.ProductType.SUBS) {
+            consecutiveEmptySubsQueries = 0
         }
 
         data class ReconcileAction(
@@ -2210,38 +1914,29 @@ class SubscriptionStateMachineV2(
                 SubscriptionState.Grace -> {
                     // Restore in memory; fire SubscriptionRestored which is idempotent
                     // (skips DB write if prevStatus already ACTIVE).
-                    stateMachine.processEvent(SubscriptionEvent.SubscriptionRestored(pd))
-                    // Preserve the purchaseDetail so callers (e.g. cancelPurchase /
-                    // revokeSubscription) can read it without hitting the DB again.
+                    applyEvent(SubscriptionEvent.SubscriptionRestored(pd))
                     stateMachine.updateData(SubscriptionData(sub, pd))
                 }
                 SubscriptionState.Cancelled -> {
-                    // Still within billing period (or expiry unknown) → Active in memory.
-                    // DB status stays CANCELLED - do NOT write.
                     val billingExpiryKnown = sub.billingExpiry > 0L && sub.billingExpiry != Long.MAX_VALUE
                     if (sub.billingExpiry > now || !billingExpiryKnown) {
-                        stateMachine.processEvent(SubscriptionEvent.SubscriptionRestored(pd))
+                        applyEvent(SubscriptionEvent.SubscriptionRestored(pd))
                         Logger.i(LOG_IAB, "$TAG: restore Cancelled → Active in memory (still valid)")
-                        // Preserve the purchaseDetail alongside the subscription status.
                         stateMachine.updateData(SubscriptionData(sub, pd))
                     } else {
-                        // Billing period has definitively ended. Transition to Expired,
-                        // not UserCancelled — Cancelled. hasValidSubscription is true,
-                        // which keeps the UI in the wrong state. handleSubscriptionExpiredWithData
-                        // will write EXPIRED to the DB and update the machine data.
-                        stateMachine.processEvent(SubscriptionEvent.SubscriptionExpired)
+                        applyEvent(SubscriptionEvent.SubscriptionExpired)
                         Logger.i(LOG_IAB, "$TAG: restore Cancelled → Expired (billing period ended: billingExpiry=${sub.billingExpiry} < now=$now)")
                     }
                 }
                 SubscriptionState.Expired ->
-                    stateMachine.processEvent(SubscriptionEvent.SubscriptionExpired)
+                    applyEvent(SubscriptionEvent.SubscriptionExpired)
                 SubscriptionState.Revoked ->
-                    stateMachine.processEvent(SubscriptionEvent.SubscriptionRevoked)
+                    applyEvent(SubscriptionEvent.SubscriptionRevoked)
                 SubscriptionState.PurchasePending -> {
-                    stateMachine.processEvent(SubscriptionEvent.PurchaseCompleted(pd))
+                    applyEvent(SubscriptionEvent.PurchaseCompleted(pd))
                 }
                 SubscriptionState.PurchaseInitiated ->
-                    stateMachine.processEvent(SubscriptionEvent.Initialize)
+                    applyEvent(SubscriptionEvent.Initialize)
                 SubscriptionState.Initial ->
                     Logger.i(LOG_IAB, "$TAG: DB state Initial, no transition needed")
                 else ->
@@ -2274,12 +1969,7 @@ class SubscriptionStateMachineV2(
             }
             Logger.i(LOG_IAB, "$TAG: handleSystemCheck, expiredCount=${result.expiredSubscriptionsUpdated}, currentValid=${result.currentSubscriptionValid}")
             if (result.expiredSubscriptionsUpdated > 0 && !result.currentSubscriptionValid) {
-                // At least one INAPP row was expired AND the current subscription is
-                // no longer valid → transition the in-memory state to Expired.
-                // We call processEventSafely here because handleSystemCheck is always
-                // invoked from within a state-machine action, not under stateLock directly,
-                // so re-entrance is safe.
-                processEventSafely(SubscriptionEvent.SubscriptionExpired)
+                applyEvent(SubscriptionEvent.SubscriptionExpired)
                 Logger.i(LOG_IAB, "$TAG: handleSystemCheck, state machine transitioned to Expired (INAPP local expiry)")
             }
         } catch (e: Exception) {

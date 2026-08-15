@@ -119,6 +119,29 @@ data class WgUiState(
     val strokeWidth: Dp
 )
 
+private data class WgStrings(
+    val disabled: String,
+    val failing: String,
+    val waiting: String,
+    val active: String,
+    val routingRemainingApps: String,
+    val addRemoveApps: String,
+    val logsCardDuration: String,
+    val twoArgumentSpace: String,
+    val versionInstallSource: String,
+    val symbolDownload: String,
+    val symbolUpload: String,
+    val symbolLightening: String,
+    val symbolMobile: String,
+    val symbolId: String,
+    val proxyStatusByRes: Map<Int, String>,
+    val vpnDisabledError: String,
+    val wgEnabledFailure: String,
+    val disableFailureRelay: String,
+    val disableFailure: String,
+    val startRethinkToast: String
+)
+
 @Composable
 fun WgConfigRow(
     config: WgConfigFiles,
@@ -129,7 +152,8 @@ fun WgConfigRow(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
-    val disabledStatus = stringResource(R.string.lbl_disabled).replaceFirstChar(Char::titlecase)
+    val strings = rememberWgStrings()
+    val disabledStatus = strings.disabled.replaceFirstChar(Char::titlecase)
     val identifierText = stringResource(R.string.single_argument_parenthesis, config.id.toString())
     val ipv4Label = stringResource(R.string.settings_ip_text_ipv4)
     val ipv6Label = stringResource(R.string.settings_ip_text_ipv6)
@@ -160,9 +184,10 @@ fun WgConfigRow(
         config.isActive,
         config.isCatchAll,
         config.useOnlyOnMetered,
-        config.ssidEnabled
+        config.ssidEnabled,
+        strings
     ) {
-        chips = withContext(Dispatchers.IO) { computeChips(context, config) }
+        chips = withContext(Dispatchers.IO) { computeChips(strings, config) }
         while (isActive) {
             if (!lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
                 delay(DELAY_MS)
@@ -171,7 +196,7 @@ fun WgConfigRow(
             val uiState =
                 withContext(Dispatchers.IO) {
                     computeStatusUi(
-                        context = context,
+                        strings = strings,
                         config = config,
                         errorColor = errorColor,
                         onSurfaceVariantColor = onSurfaceVariantColor,
@@ -212,14 +237,14 @@ fun WgConfigRow(
             accentBorderWidth = strokeWidth,
         ),
         control = RethinkWireguardConfigControl.Switch,
-        onOpen = { launchConfigDetail(context, config.id, onConfigDetailClick) },
+        onOpen = { launchConfigDetail(context, strings.startRethinkToast, config.id, onConfigDetailClick) },
         onCheckedChange = { checked ->
             if (inProgress) return@RethinkWireguardConfigCard
             inProgress = true
             scope.launch(Dispatchers.IO) {
                 val success =
-                    if (checked) enableWgIfPossible(context, config, onDnsStatusChanged, eventLogger)
-                    else disableWgIfPossible(context, config, onDnsStatusChanged, eventLogger)
+                    if (checked) enableWgIfPossible(context, strings, config, onDnsStatusChanged, eventLogger)
+                    else disableWgIfPossible(context, strings, config, onDnsStatusChanged, eventLogger)
                 withContext(Dispatchers.Main) {
                     isChecked = if (checked) success else !success
                     inProgress = false
@@ -229,7 +254,7 @@ fun WgConfigRow(
     )
 }
 
-suspend fun computeChips(context: Context, config: WgConfigFiles): WgChips {
+private suspend fun computeChips(strings: WgStrings, config: WgConfigFiles): WgChips {
     val id = ProxyManager.ID_WG_BASE + config.id
     val pair = VpnController.getSupportedIpVersion(id)
     val cfg = WireguardManager.getConfigById(config.id)
@@ -242,9 +267,9 @@ suspend fun computeChips(context: Context, config: WgConfigFiles): WgChips {
     val hopSrc = WgHopManager.getMapBySrc(id).isNotEmpty()
     val hopping = WgHopManager.isAlreadyHop(id)
     val properties = buildString {
-        if (config.isCatchAll) append(context.getString(R.string.symbol_lightening))
-        if (config.useOnlyOnMetered) append(context.getString(R.string.symbol_mobile))
-        if (config.ssidEnabled) append(context.getString(R.string.symbol_id))
+        if (config.isCatchAll) append(strings.symbolLightening)
+        if (config.useOnlyOnMetered) append(strings.symbolMobile)
+        if (config.ssidEnabled) append(strings.symbolId)
     }
     val amnezia = cfg?.getInterface()?.isAmnezia() == true
     return WgChips(
@@ -258,8 +283,8 @@ suspend fun computeChips(context: Context, config: WgConfigFiles): WgChips {
     )
 }
 
-suspend fun computeStatusUi(
-    context: Context,
+private suspend fun computeStatusUi(
+    strings: WgStrings,
     config: WgConfigFiles,
     errorColor: Color,
     onSurfaceVariantColor: Color,
@@ -269,15 +294,15 @@ suspend fun computeStatusUi(
     val appCount = ProxyManager.getAppsCountForProxy(proxyId)
     val appsText =
         if (config.isCatchAll) {
-            context.getString(R.string.routing_remaining_apps)
+            strings.routingRemainingApps
         } else {
-            context.getString(R.string.add_remove_apps, appCount.toString())
+            formatTemplate(strings.addRemoveApps, appCount.toString())
         }
 
     if (config.isActive && !VpnController.hasTunnel()) {
         return WgUiState(
             isActive = false,
-            statusText = context.getString(R.string.lbl_disabled).replaceFirstChar(Char::titlecase),
+            statusText = strings.disabled.replaceFirstChar(Char::titlecase),
             appsText = appsText,
             showActiveLayout = false,
             uptimeText = "",
@@ -290,7 +315,7 @@ suspend fun computeStatusUi(
     if (!config.isActive || !VpnController.hasTunnel()) {
         return WgUiState(
             isActive = false,
-            statusText = context.getString(R.string.lbl_disabled).replaceFirstChar(Char::titlecase),
+            statusText = strings.disabled.replaceFirstChar(Char::titlecase),
             appsText = appsText,
             showActiveLayout = false,
             uptimeText = "",
@@ -305,10 +330,10 @@ suspend fun computeStatusUi(
     val dnsStatusId = VpnController.getDnsStatus(proxyId)
     val statusText =
         if (dnsStatusId != null && isDnsError(dnsStatusId)) {
-            context.getString(R.string.status_failing).replaceFirstChar(Char::titlecase)
+            strings.failing.replaceFirstChar(Char::titlecase)
         } else {
             getStatusText(
-                context,
+                strings,
                 UIUtils.ProxyStatus.entries.find { it.id == statusPair.first },
                 getHandshakeTime(stats).toString(),
                 stats,
@@ -331,18 +356,14 @@ suspend fun computeStatusUi(
             )
         }
 
-    val rxtx = getRxTx(context, stats)
+    val rxtx = getRxTx(strings, stats)
     val time = getUpTime(stats)
     val uptimeText =
         if (time.isNotEmpty()) {
-            val t = context.getString(R.string.logs_card_duration, time)
-            context.getString(
-                R.string.two_argument_space,
-                context.getString(R.string.lbl_active),
-                t
-            )
+            val t = formatTemplate(strings.logsCardDuration, time)
+            formatTemplate(strings.twoArgumentSpace, strings.active, t)
         } else {
-            context.getString(R.string.lbl_active)
+            strings.active
         }
 
     return WgUiState(
@@ -394,8 +415,8 @@ private fun getStrokeColorForStatus(
     }
 }
 
-fun getStatusText(
-    context: Context,
+private fun getStatusText(
+    strings: WgStrings,
     status: UIUtils.ProxyStatus?,
     handshakeTime: String? = null,
     stats: RouterStats?,
@@ -404,9 +425,9 @@ fun getStatusText(
     if (status == null) {
         val txt =
             if (errMsg != null) {
-                context.getString(R.string.status_waiting) + " ($errMsg)"
+                strings.waiting + " ($errMsg)"
             } else {
-                context.getString(R.string.status_waiting)
+                strings.waiting
             }
         return txt.replaceFirstChar(Char::titlecase)
     }
@@ -415,14 +436,15 @@ fun getStatusText(
     val lastOk = stats?.lastOK ?: 0L
     val since = stats?.since ?: 0L
     if (now - since > WG_UPTIME_THRESHOLD && lastOk == 0L) {
-        return context.getString(R.string.status_failing).replaceFirstChar(Char::titlecase)
+        return strings.failing.replaceFirstChar(Char::titlecase)
     }
 
+    val statusRes = UIUtils.getProxyStatusStringRes(status.id)
     val baseText =
-        context.getString(UIUtils.getProxyStatusStringRes(status.id))
+        (strings.proxyStatusByRes[statusRes] ?: strings.proxyStatusByRes.getValue(R.string.rt_filter_parent_selected))
             .replaceFirstChar(Char::titlecase)
     return if (stats?.lastOK != 0L && handshakeTime != null) {
-        context.getString(R.string.about_version_install_source, baseText, handshakeTime)
+        formatTemplate(strings.versionInstallSource, baseText, handshakeTime)
     } else {
         baseText
     }
@@ -440,19 +462,19 @@ fun getUpTime(stats: RouterStats?): CharSequence {
     )
 }
 
-fun getRxTx(context: Context, stats: RouterStats?): String {
+private fun getRxTx(strings: WgStrings, stats: RouterStats?): String {
     if (stats == null) return ""
     val rx =
-        context.getString(
-            R.string.symbol_download,
+        formatTemplate(
+            strings.symbolDownload,
             Utilities.humanReadableByteCount(stats.rx, true)
         )
     val tx =
-        context.getString(
-            R.string.symbol_upload,
+        formatTemplate(
+            strings.symbolUpload,
             Utilities.humanReadableByteCount(stats.tx, true)
         )
-    return context.getString(R.string.two_argument_space, tx, rx)
+    return formatTemplate(strings.twoArgumentSpace, tx, rx)
 }
 
 fun getHandshakeTime(stats: RouterStats?): CharSequence {
@@ -467,13 +489,18 @@ fun getHandshakeTime(stats: RouterStats?): CharSequence {
     )
 }
 
-suspend fun enableWgIfPossible(context: Context, config: WgConfigFiles, onDnsStatusChanged: () -> Unit, eventLogger: EventLogger): Boolean {
+private suspend fun enableWgIfPossible(
+    context: Context,
+    strings: WgStrings,
+    config: WgConfigFiles,
+    onDnsStatusChanged: () -> Unit,
+    eventLogger: EventLogger
+): Boolean {
     if (!VpnController.hasTunnel()) {
         withContext(Dispatchers.Main) {
             Utilities.showToastUiCentered(
                 context,
-                ERR_CODE_VPN_NOT_ACTIVE +
-                    context.getString(R.string.settings_socks5_vpn_disabled_error),
+                ERR_CODE_VPN_NOT_ACTIVE + strings.vpnDisabledError,
                 Toast.LENGTH_LONG
             )
         }
@@ -484,7 +511,7 @@ suspend fun enableWgIfPossible(context: Context, config: WgConfigFiles, onDnsSta
         withContext(Dispatchers.Main) {
             Utilities.showToastUiCentered(
                 context,
-                ERR_CODE_VPN_NOT_FULL + context.getString(R.string.wireguard_enabled_failure),
+                ERR_CODE_VPN_NOT_FULL + strings.wgEnabledFailure,
                 Toast.LENGTH_LONG
             )
         }
@@ -495,7 +522,7 @@ suspend fun enableWgIfPossible(context: Context, config: WgConfigFiles, onDnsSta
         withContext(Dispatchers.Main) {
             Utilities.showToastUiCentered(
                 context,
-                ERR_CODE_OTHER_WG_ACTIVE + context.getString(R.string.wireguard_enabled_failure),
+                ERR_CODE_OTHER_WG_ACTIVE + strings.wgEnabledFailure,
                 Toast.LENGTH_LONG
             )
         }
@@ -506,7 +533,7 @@ suspend fun enableWgIfPossible(context: Context, config: WgConfigFiles, onDnsSta
         withContext(Dispatchers.Main) {
             Utilities.showToastUiCentered(
                 context,
-                ERR_CODE_WG_INVALID + context.getString(R.string.wireguard_enabled_failure),
+                ERR_CODE_WG_INVALID + strings.wgEnabledFailure,
                 Toast.LENGTH_LONG
             )
         }
@@ -519,17 +546,23 @@ suspend fun enableWgIfPossible(context: Context, config: WgConfigFiles, onDnsSta
     return true
 }
 
-suspend fun disableWgIfPossible(context: Context, config: WgConfigFiles, onDnsStatusChanged: () -> Unit, eventLogger: EventLogger): Boolean {
+private suspend fun disableWgIfPossible(
+    context: Context,
+    strings: WgStrings,
+    config: WgConfigFiles,
+    onDnsStatusChanged: () -> Unit,
+    eventLogger: EventLogger
+): Boolean {
     val canDisable = WireguardManager.canDisableConfig(config.toImmutable())
     if (!canDisable) {
-        val msgRes =
+        val msg =
             if (WgHopManager.isWgEitherHopOrSrc(config.id)) {
-                R.string.wireguard_disable_failure_relay
+                strings.disableFailureRelay
             } else {
-                R.string.wireguard_disable_failure
+                strings.disableFailure
             }
         withContext(Dispatchers.Main) {
-            Utilities.showToastUiCentered(context, context.getString(msgRes), Toast.LENGTH_LONG)
+            Utilities.showToastUiCentered(context, msg, Toast.LENGTH_LONG)
         }
         return false
     }
@@ -540,11 +573,16 @@ suspend fun disableWgIfPossible(context: Context, config: WgConfigFiles, onDnsSt
     return true
 }
 
-private fun launchConfigDetail(context: Context, id: Int, onConfigDetailClick: (Int, WgType) -> Unit) {
+private fun launchConfigDetail(
+    context: Context,
+    startRethinkToast: String,
+    id: Int,
+    onConfigDetailClick: (Int, WgType) -> Unit
+) {
     if (!VpnController.hasTunnel()) {
         Utilities.showToastUiCentered(
             context,
-            context.getString(R.string.ssv_toast_start_rethink),
+            startRethinkToast,
             Toast.LENGTH_SHORT
         )
         return
@@ -555,4 +593,96 @@ private fun launchConfigDetail(context: Context, id: Int, onConfigDetailClick: (
 
 private fun logEvent(eventLogger: EventLogger, msg: String, details: String) {
     eventLogger.log(EventType.PROXY_SWITCH, Severity.LOW, msg, EventSource.UI, false, details)
+}
+
+private fun formatTemplate(template: String, vararg args: Any): String =
+    String.format(java.util.Locale.getDefault(), template, *args)
+
+@Composable
+private fun rememberWgStrings(): WgStrings {
+    val disabled = stringResource(R.string.lbl_disabled)
+    val failing = stringResource(R.string.status_failing)
+    val waiting = stringResource(R.string.status_waiting)
+    val active = stringResource(R.string.lbl_active)
+    val routingRemainingApps = stringResource(R.string.routing_remaining_apps)
+    val addRemoveApps = stringResource(R.string.add_remove_apps)
+    val logsCardDuration = stringResource(R.string.logs_card_duration)
+    val twoArgumentSpace = stringResource(R.string.two_argument_space)
+    val versionInstallSource = stringResource(R.string.about_version_install_source)
+    val symbolDownload = stringResource(R.string.symbol_download)
+    val symbolUpload = stringResource(R.string.symbol_upload)
+    val symbolLightening = stringResource(R.string.symbol_lightening)
+    val symbolMobile = stringResource(R.string.symbol_mobile)
+    val symbolId = stringResource(R.string.symbol_id)
+    val starting = stringResource(R.string.lbl_starting)
+    val connected = stringResource(R.string.dns_connected)
+    val idle = stringResource(R.string.lbl_idle)
+    val stopped = stringResource(R.string.lbl_stopped)
+    val paused = stringResource(R.string.pause_text)
+    val selected = stringResource(R.string.rt_filter_parent_selected)
+    val vpnDisabledError = stringResource(R.string.settings_socks5_vpn_disabled_error)
+    val wgEnabledFailure = stringResource(R.string.wireguard_enabled_failure)
+    val disableFailureRelay = stringResource(R.string.wireguard_disable_failure_relay)
+    val disableFailure = stringResource(R.string.wireguard_disable_failure)
+    val startRethinkToast = stringResource(R.string.ssv_toast_start_rethink)
+    return remember(
+        disabled,
+        failing,
+        waiting,
+        active,
+        routingRemainingApps,
+        addRemoveApps,
+        logsCardDuration,
+        twoArgumentSpace,
+        versionInstallSource,
+        symbolDownload,
+        symbolUpload,
+        symbolLightening,
+        symbolMobile,
+        symbolId,
+        starting,
+        connected,
+        idle,
+        stopped,
+        paused,
+        selected,
+        vpnDisabledError,
+        wgEnabledFailure,
+        disableFailureRelay,
+        disableFailure,
+        startRethinkToast
+    ) {
+        WgStrings(
+            disabled = disabled,
+            failing = failing,
+            waiting = waiting,
+            active = active,
+            routingRemainingApps = routingRemainingApps,
+            addRemoveApps = addRemoveApps,
+            logsCardDuration = logsCardDuration,
+            twoArgumentSpace = twoArgumentSpace,
+            versionInstallSource = versionInstallSource,
+            symbolDownload = symbolDownload,
+            symbolUpload = symbolUpload,
+            symbolLightening = symbolLightening,
+            symbolMobile = symbolMobile,
+            symbolId = symbolId,
+            proxyStatusByRes =
+                mapOf(
+                    R.string.lbl_starting to starting,
+                    R.string.dns_connected to connected,
+                    R.string.lbl_idle to idle,
+                    R.string.status_failing to failing,
+                    R.string.lbl_stopped to stopped,
+                    R.string.status_waiting to waiting,
+                    R.string.pause_text to paused,
+                    R.string.rt_filter_parent_selected to selected
+                ),
+            vpnDisabledError = vpnDisabledError,
+            wgEnabledFailure = wgEnabledFailure,
+            disableFailureRelay = disableFailureRelay,
+            disableFailure = disableFailure,
+            startRethinkToast = startRethinkToast
+        )
+    }
 }

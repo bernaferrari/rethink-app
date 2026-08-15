@@ -65,7 +65,8 @@ sealed class RpnPurchaseAckServerResponse {
 
         private fun String.trimmedJson(): JSONObject = try {
             JSONObject(this.trim())
-        } catch (_: Exception) {
+        } catch (e: org.json.JSONException) {
+            Logger.w(LOG_IAB, "trimmedJson: invalid json, using empty object: ${e.message}", e)
             JSONObject()
         }
     }

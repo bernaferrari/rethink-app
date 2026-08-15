@@ -57,7 +57,7 @@ internal data class DnsDeleteDialogModel(
     val id: Int,
     val titleRes: Int,
     val messageRes: Int,
-    val successRes: Int
+    val successToast: String
 )
 
 @Composable
@@ -116,6 +116,39 @@ internal fun DnsDeleteDialog(
 }
 
 @Composable
+internal fun rememberDnsStatusStrings(): Map<Int, String> {
+    val failedUsingDefault = stringResource(R.string.failed_using_default)
+    val starting = stringResource(R.string.lbl_starting)
+    val connected = stringResource(R.string.dns_connected)
+    val noInternet = stringResource(R.string.status_no_internet)
+    val serverDown = stringResource(R.string.status_dns_server_down)
+    val dnsError = stringResource(R.string.status_dns_error)
+    val failing = stringResource(R.string.status_failing)
+    val selected = stringResource(R.string.rt_filter_parent_selected)
+    return remember(
+        failedUsingDefault,
+        starting,
+        connected,
+        noInternet,
+        serverDown,
+        dnsError,
+        failing,
+        selected
+    ) {
+        mapOf(
+            R.string.failed_using_default to failedUsingDefault,
+            R.string.lbl_starting to starting,
+            R.string.dns_connected to connected,
+            R.string.status_no_internet to noInternet,
+            R.string.status_dns_server_down to serverDown,
+            R.string.status_dns_error to dnsError,
+            R.string.status_failing to failing,
+            R.string.rt_filter_parent_selected to selected
+        )
+    }
+}
+
+@Composable
 internal fun rememberDnsStatusExplanation(
     key: Any,
     isSelected: Boolean,
@@ -123,17 +156,22 @@ internal fun rememberDnsStatusExplanation(
     tag: String,
     pollIntervalMs: Long = 1000L,
     requireTunnel: Boolean = true,
-    selectedFallbackText: ((Context) -> String)? = {
-        it.getString(R.string.rt_filter_parent_selected)
-    },
-    statusTextMapper: (Context, Int) -> String = { context, statusRes ->
-        context.getString(statusRes).replaceFirstChar(Char::titlecase)
-    }
+    selectedFallbackText: String? = stringResource(R.string.rt_filter_parent_selected),
+    statusTextMapper: ((Int) -> String)? = null
 ): String {
-    val context = LocalContext.current
+    val statusStrings = rememberDnsStatusStrings()
+    val mapper =
+        statusTextMapper
+            ?: remember(statusStrings) {
+                { statusRes: Int ->
+                    (statusStrings[statusRes]
+                            ?: statusStrings.getValue(R.string.rt_filter_parent_selected))
+                        .replaceFirstChar(Char::titlecase)
+                }
+            }
     var explanation by remember(key) { mutableStateOf("") }
 
-    LaunchedEffect(key, isSelected, smartDnsEnabled) {
+    LaunchedEffect(key, isSelected, smartDnsEnabled, selectedFallbackText, mapper) {
         if (isSelected && !smartDnsEnabled && (!requireTunnel || VpnController.hasTunnel())) {
             while (isActive) {
                 val status =
@@ -146,11 +184,11 @@ internal fun rememberDnsStatusExplanation(
                         Logger.e(LOG_TAG_UI, "$tag failed to read dns status", Logger.throwableToException(it))
                         R.string.rt_filter_parent_selected
                     }
-                explanation = statusTextMapper(context, status)
+                explanation = mapper(status)
                 delay(pollIntervalMs)
             }
         } else if (isSelected && selectedFallbackText != null) {
-            explanation = selectedFallbackText(context)
+            explanation = selectedFallbackText
         } else {
             explanation = ""
         }
@@ -159,19 +197,24 @@ internal fun rememberDnsStatusExplanation(
     return explanation
 }
 
-internal fun resolveDnsDescriptionText(context: Context, message: String?): String {
+@Composable
+internal fun resolveDnsDescriptionText(message: String?): String {
     if (message.isNullOrEmpty()) return ""
-
-    return try {
-        if (message.contains("R.string.")) {
-            val key = message.substringAfter("R.string.")
-            val resId = context.resources.getIdentifier(key, "string", context.packageName)
-            if (resId == 0) message else context.getString(resId)
-        } else {
-            message
+    if (!message.contains("R.string.")) return message
+    val context = LocalContext.current
+    // Stored endpoint text may embed "R.string.<name>"; look up the id dynamically,
+    // then resolve via stringResource so this stays out of LocalContextGetResourceValueCall.
+    val resId =
+        remember(message, context.packageName) {
+            runCatching {
+                val key = message.substringAfter("R.string.")
+                context.resources.getIdentifier(key, "string", context.packageName)
+            }.getOrNull()
         }
-    } catch (_: Exception) {
-        ""
+    return when {
+        resId == null -> ""
+        resId == 0 -> message
+        else -> stringResource(resId)
     }
 }
 
@@ -179,6 +222,7 @@ internal fun launchDnsEndpointSelectionUpdate(
     scope: CoroutineScope,
     context: Context,
     tag: String,
+    failingToast: String,
     apply: suspend () -> Unit
 ) {
     scope.launch(Dispatchers.IO) {
@@ -187,7 +231,7 @@ internal fun launchDnsEndpointSelectionUpdate(
             withContext(Dispatchers.Main) {
                 Utilities.showToastUiCentered(
                     context,
-                    context.getString(R.string.status_failing),
+                    failingToast,
                     Toast.LENGTH_SHORT
                 )
             }
@@ -198,7 +242,8 @@ internal fun launchDnsEndpointSelectionUpdate(
 internal fun launchDnsEndpointDelete(
     scope: CoroutineScope,
     context: Context,
-    successRes: Int,
+    successToast: String,
+    failingToast: String,
     apply: suspend () -> Unit
 ) {
     scope.launch(Dispatchers.IO) {
@@ -206,7 +251,7 @@ internal fun launchDnsEndpointDelete(
             withContext(Dispatchers.Main) {
                 Utilities.showToastUiCentered(
                     context,
-                    context.getString(successRes),
+                    successToast,
                     Toast.LENGTH_SHORT
                 )
             }
@@ -215,7 +260,7 @@ internal fun launchDnsEndpointDelete(
             withContext(Dispatchers.Main) {
                 Utilities.showToastUiCentered(
                     context,
-                    context.getString(R.string.status_failing),
+                    failingToast,
                     Toast.LENGTH_SHORT
                 )
             }

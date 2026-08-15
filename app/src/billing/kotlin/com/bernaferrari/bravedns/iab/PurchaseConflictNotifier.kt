@@ -129,7 +129,9 @@ object PurchaseConflictNotifier {
             notificationManager.notify(NOTIF_CHANNEL_ID_RPN_ALERTS, NOTIF_ID_IAB_CONFLICT, builder.build())
 
             Logger.i(LOG_IAB, "$TAG: conflict notification posted for op=${error.operation}, endpoint=${error.endpoint}")
-        } catch (e: Exception) {
+        } catch (e: SecurityException) {
+            Logger.e(LOG_IAB, "$TAG: failed to post conflict notification: ${e.message}", e)
+        } catch (e: IllegalArgumentException) {
             Logger.e(LOG_IAB, "$TAG: failed to post conflict notification: ${e.message}", e)
         }
     }
@@ -144,8 +146,10 @@ object PurchaseConflictNotifier {
             val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
             nm?.cancel(NOTIF_CHANNEL_ID_RPN_ALERTS, NOTIF_ID_IAB_CONFLICT)
             Logger.d(LOG_IAB, "$TAG: conflict notification cancelled")
-        } catch (e: Exception) {
-            Logger.w(LOG_IAB, "$TAG: failed to cancel conflict notification: ${e.message}")
+        } catch (e: SecurityException) {
+            Logger.w(LOG_IAB, "$TAG: failed to cancel conflict notification: ${e.message}", e)
+        } catch (e: IllegalArgumentException) {
+            Logger.w(LOG_IAB, "$TAG: failed to cancel conflict notification: ${e.message}", e)
         }
     }
 

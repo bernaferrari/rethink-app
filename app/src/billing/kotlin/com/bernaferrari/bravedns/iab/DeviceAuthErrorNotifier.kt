@@ -119,7 +119,9 @@ object DeviceAuthErrorNotifier {
             )
 
             Logger.i(LOG_IAB, "$TAG: auth-error notification posted for op=${error.operation}")
-        } catch (e: Exception) {
+        } catch (e: SecurityException) {
+            Logger.e(LOG_IAB, "$TAG: failed to post notification: ${e.message}", e)
+        } catch (e: IllegalArgumentException) {
             Logger.e(LOG_IAB, "$TAG: failed to post notification: ${e.message}", e)
         }
     }
@@ -134,8 +136,10 @@ object DeviceAuthErrorNotifier {
             val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
             nm?.cancel(NOTIF_CHANNEL_ID_RPN_ALERTS, NOTIF_ID_IAB_DEVICE_AUTH_ERROR)
             Logger.d(LOG_IAB, "$TAG: notification cancelled")
-        } catch (e: Exception) {
-            Logger.w(LOG_IAB, "$TAG: failed to cancel notification: ${e.message}")
+        } catch (e: SecurityException) {
+            Logger.w(LOG_IAB, "$TAG: failed to cancel notification: ${e.message}", e)
+        } catch (e: IllegalArgumentException) {
+            Logger.w(LOG_IAB, "$TAG: failed to cancel notification: ${e.message}", e)
         }
     }
 }

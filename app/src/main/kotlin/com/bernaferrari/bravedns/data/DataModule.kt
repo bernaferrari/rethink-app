@@ -35,8 +35,21 @@ import org.koin.core.annotation.Single
 @Module
 class DataModule {
     @Single
-    fun appConfig(
-        @Provided context: Context,
+    fun dnsSettings(persistentState: PersistentState) = DnsSettings(persistentState)
+
+    @Single
+    fun firewallSettings(persistentState: PersistentState) = FirewallSettings(persistentState)
+
+    @Single
+    fun logSettings(
+        networkLogs: ConnectionTrackerRepository,
+        dnsLogs: DnsLogRepository,
+        eventLogger: EventLogger,
+        firewallSettings: FirewallSettings,
+    ) = LogSettings(networkLogs, dnsLogs, eventLogger, firewallSettings)
+
+    @Single
+    fun dnsEndpointSettings(
         rethinkDnsEndpointRepository: RethinkDnsEndpointRepository,
         dnsProxyEndpointRepository: DnsProxyEndpointRepository,
         doHEndpointRepository: DoHEndpointRepository,
@@ -44,13 +57,8 @@ class DataModule {
         dnsCryptRelayEndpointRepository: DnsCryptRelayEndpointRepository,
         doTEndpointRepository: DoTEndpointRepository,
         oDoHEndpointRepository: ODoHEndpointRepository,
-        proxyEndpointRepository: ProxyEndpointRepository,
-        persistentState: PersistentState,
-        networkLogs: ConnectionTrackerRepository,
-        dnsLogs: DnsLogRepository,
-        eventLogger: EventLogger,
-    ) = AppConfig(
-        context,
+        dnsSettings: DnsSettings,
+    ) = DnsEndpointSettings(
         rethinkDnsEndpointRepository,
         dnsProxyEndpointRepository,
         doHEndpointRepository,
@@ -58,10 +66,55 @@ class DataModule {
         dnsCryptRelayEndpointRepository,
         doTEndpointRepository,
         oDoHEndpointRepository,
-        proxyEndpointRepository,
+        dnsSettings,
+    )
+
+    @Single
+    fun dnsConnectionSettings(
+        @Provided context: Context,
+        persistentState: PersistentState,
+        dnsSettings: DnsSettings,
+        dnsEndpointSettings: DnsEndpointSettings,
+        logSettings: LogSettings,
+    ) = DnsConnectionSettings(
+        context,
         persistentState,
-        networkLogs,
-        dnsLogs,
-        eventLogger,
+        dnsSettings,
+        dnsEndpointSettings,
+        logSettings,
+    )
+
+    @Single
+    fun proxySettings(
+        persistentState: PersistentState,
+        proxyEndpointRepository: ProxyEndpointRepository,
+        firewallSettings: FirewallSettings,
+    ) = ProxySettings(persistentState, proxyEndpointRepository, firewallSettings)
+
+    @Single
+    fun tunnelSettings(
+        persistentState: PersistentState,
+        dnsSettings: DnsSettings,
+        firewallSettings: FirewallSettings,
+        proxySettings: ProxySettings,
+    ) = TunnelSettings(persistentState, dnsSettings, firewallSettings, proxySettings)
+
+    @Single
+    fun appConfig(
+        dnsSettings: DnsSettings,
+        dnsEndpointSettings: DnsEndpointSettings,
+        dnsConnectionSettings: DnsConnectionSettings,
+        firewallSettings: FirewallSettings,
+        proxySettings: ProxySettings,
+        tunnelSettings: TunnelSettings,
+        logSettings: LogSettings,
+    ) = AppConfig(
+        dnsSettings,
+        dnsEndpointSettings,
+        dnsConnectionSettings,
+        firewallSettings,
+        proxySettings,
+        tunnelSettings,
+        logSettings,
     )
 }

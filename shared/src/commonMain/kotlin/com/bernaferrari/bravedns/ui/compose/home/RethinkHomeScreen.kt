@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -59,6 +60,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.bernaferrari.bravedns.ui.compose.common.RethinkAdaptiveWidth
+import com.bernaferrari.bravedns.ui.compose.common.WindowWidthClass
+import com.bernaferrari.bravedns.ui.compose.common.isExpanded
+import com.bernaferrari.bravedns.ui.compose.common.rethinkContentWidth
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
@@ -97,6 +102,9 @@ private enum class ProtectionVisualState { Protected, Recovering, Off }
 
 private const val STATE_CHANGE_MILLIS = 280
 private const val BEACON_TURN_MILLIS = 22_000
+private val BeaconCompactWidth = 184.dp
+private val BeaconCompactHeight = 220.dp
+private val BeaconAspect = BeaconCompactWidth / BeaconCompactHeight
 
 @Composable
 fun RethinkHomeScreen(
@@ -170,44 +178,52 @@ fun RethinkHomeScreen(
                     modifier = Modifier.fillMaxSize(),
                 )
             }
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = SharedDimensions.spacingXl),
-            ) {
-                HomeMasthead(
-                    name = strings.productName,
-                    networkProtection = strings.networkProtection,
-                    live = strings.live,
-                    offline = strings.offline,
-                    isProtected = visualState == ProtectionVisualState.Protected,
-                    accent = palette.accent,
-                    modifier = Modifier.padding(top = SharedDimensions.spacingLg),
-                )
-                Box(
+            RethinkAdaptiveWidth(Modifier.fillMaxSize()) { widthClass ->
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    contentAlignment = Alignment.Center,
+                        .fillMaxSize()
+                        .padding(horizontal = SharedDimensions.spacingXl),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    ProtectionBeacon(
-                        visualState = visualState,
-                        activeProgress = activeProgress,
-                        phase = phase,
-                        palette = palette,
-                        status = status,
-                        subtitle = subtitle,
-                        action = if (uiState.isVpnActive) strings.stop else strings.start,
-                        onToggle = onStartStopClick,
+                    HomeMasthead(
+                        name = strings.productName,
+                        networkProtection = strings.networkProtection,
+                        live = strings.live,
+                        offline = strings.offline,
+                        isProtected = visualState == ProtectionVisualState.Protected,
+                        accent = palette.accent,
+                        modifier = Modifier
+                            .rethinkContentWidth(widthClass)
+                            .padding(top = SharedDimensions.spacingLg),
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        ProtectionBeacon(
+                            visualState = visualState,
+                            activeProgress = activeProgress,
+                            phase = phase,
+                            palette = palette,
+                            status = status,
+                            subtitle = subtitle,
+                            action = if (uiState.isVpnActive) strings.stop else strings.start,
+                            onToggle = onStartStopClick,
+                            widthClass = widthClass,
+                        )
+                    }
+                    HomeActivityFooter(
+                        connectionsLabel = strings.connections,
+                        dnsQueriesLabel = strings.dnsQueries,
+                        connections = uiState.networkLogsCount,
+                        dnsQueries = uiState.dnsLogsCount,
+                        modifier = Modifier
+                            .rethinkContentWidth(widthClass)
+                            .padding(bottom = SharedDimensions.spacingLg),
                     )
                 }
-                HomeActivityFooter(
-                    connectionsLabel = strings.connections,
-                    dnsQueriesLabel = strings.dnsQueries,
-                    connections = uiState.networkLogsCount,
-                    dnsQueries = uiState.dnsLogsCount,
-                    modifier = Modifier.padding(bottom = SharedDimensions.spacingLg),
-                )
             }
         }
     }
@@ -362,22 +378,35 @@ private fun ProtectionBeacon(
     subtitle: String,
     action: String,
     onToggle: () -> Unit,
+    widthClass: WindowWidthClass,
 ) {
+    val expanded = widthClass.isExpanded
     Column(
+        modifier = if (expanded) Modifier.rethinkContentWidth(widthClass) else Modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
+        verticalArrangement = Arrangement.spacedBy(
+            if (expanded) SharedDimensions.spacingLg else SharedDimensions.spacingMd,
+        ),
     ) {
         ProtectionTunnel(
             visualState = visualState,
             activeProgress = activeProgress,
             phase = phase,
             palette = palette,
+            expanded = expanded,
         )
         Spacer(Modifier.height(SharedDimensions.spacingXs))
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            modifier = if (expanded) Modifier.fillMaxWidth() else Modifier,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
             Text(
                 text = status,
-                style = MaterialTheme.typography.headlineLarge,
+                style = if (expanded) {
+                    MaterialTheme.typography.displaySmall
+                } else {
+                    MaterialTheme.typography.headlineLarge
+                },
                 fontWeight = FontWeight.Bold,
                 letterSpacing = (-0.6f).sp,
                 color = if (visualState == ProtectionVisualState.Recovering) {
@@ -389,10 +418,18 @@ private fun ProtectionBeacon(
             Spacer(Modifier.height(SharedDimensions.spacingXs))
             Text(
                 text = subtitle,
-                style = MaterialTheme.typography.bodyMedium,
+                style = if (expanded) {
+                    MaterialTheme.typography.bodyLarge
+                } else {
+                    MaterialTheme.typography.bodyMedium
+                },
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = SharedDimensions.spacingSm),
+                modifier = if (expanded) {
+                    Modifier.fillMaxWidth()
+                } else {
+                    Modifier.padding(horizontal = SharedDimensions.spacingSm)
+                },
             )
         }
         Spacer(Modifier.height(SharedDimensions.spacingXs))
@@ -410,6 +447,7 @@ private fun ProtectionTunnel(
     phase: Float,
     activeProgress: Float,
     palette: BeaconPalette,
+    expanded: Boolean,
 ) {
     val initialRoutes = remember { randomTunnelRoutes() }
     var incomingLanes by remember { mutableStateOf(initialRoutes.first) }
@@ -432,8 +470,13 @@ private fun ProtectionTunnel(
     }
 
     Surface(
-        modifier = Modifier
-            .size(width = 184.dp, height = 220.dp),
+        modifier = if (expanded) {
+            Modifier
+                .fillMaxWidth(1f / 3f)
+                .aspectRatio(BeaconAspect)
+        } else {
+            Modifier.size(width = BeaconCompactWidth, height = BeaconCompactHeight)
+        },
         shape = RoundedCornerShape(SharedDimensions.beaconCornerRadius),
         color = palette.field.copy(alpha = 0.96f - activeProgress * 0.06f),
         border = BorderStroke(
