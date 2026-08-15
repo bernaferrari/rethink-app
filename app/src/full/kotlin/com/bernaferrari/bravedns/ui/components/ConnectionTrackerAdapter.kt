@@ -118,11 +118,13 @@ fun ConnectionRow(
     itemCount: Int = 1,
 ) {
     val context = LocalContext.current
+    val unknownApp = stringResource(R.string.network_log_app_name_unknown)
+    val http3 = stringResource(R.string.connection_http3)
     val summary = summaryInfo(context, ct)
-    val protocol = protocolLabel(context, ct.port, ct.protocol)
+    val protocol = protocolLabel(http3, ct.port, ct.protocol)
     val time = Utilities.convertLongToTime(ct.timeStamp, TIME_FORMAT_1)
     val destination = ct.dnsQuery?.takeIf { it.isNotBlank() } ?: ct.ipAddress
-    val appDisplay = if (ct.appName.isBlank()) stringResource(R.string.network_log_app_name_unknown) else ct.appName
+    val appDisplay = if (ct.appName.isBlank()) unknownApp else ct.appName
 
     var appIcon by remember(ct.uid) { mutableStateOf<Drawable?>(null) }
     var appCount by remember(ct.uid) { mutableIntStateOf(1) }
@@ -148,7 +150,7 @@ fun ConnectionRow(
     }
     val details = buildList {
         add(RethinkLogDetail("Transport", protocol))
-        add(RethinkLogDetail("Country", countryDisplay(context, ct.flag)))
+        add(RethinkLogDetail("Country", countryDisplay(unknownApp, ct.flag)))
         if (endpoint.isNotBlank()) add(RethinkLogDetail("Endpoint", endpoint, monospace = true))
         if (!ct.dnsQuery.isNullOrBlank()) add(RethinkLogDetail("DNS", ct.dnsQuery.orEmpty(), monospace = true))
         if (ct.blockedByRule.isNotBlank()) add(RethinkLogDetail("Rule", ct.blockedByRule, isError = ct.isBlocked))
@@ -211,8 +213,7 @@ private fun AppIconSlot(
     }
 }
 
-private fun countryDisplay(context: Context, flag: String): String {
-    val unknown = context.getString(R.string.network_log_app_name_unknown)
+private fun countryDisplay(unknown: String, flag: String): String {
     val countryName = UIUtils.getCountryNameFromFlag(flag).trim()
     val normalizedName = countryName.takeUnless { it.isBlank() || it == "--" }
     val normalizedFlag = flag.trim().takeUnless { it.isBlank() || it == "--" }
@@ -225,14 +226,14 @@ private fun countryDisplay(context: Context, flag: String): String {
     }
 }
 
-private fun protocolLabel(context: Context, port: Int, proto: Int): String {
+private fun protocolLabel(http3: String, port: Int, proto: Int): String {
     if (Protocol.UDP.protocolType != proto && Protocol.TCP.protocolType != proto) {
         return Protocol.getProtocolName(proto).name
     }
 
     val resolvedPort = KnownPorts.resolvePort(port)
     return if (port == KnownPorts.HTTPS_PORT && proto == Protocol.UDP.protocolType) {
-        context.getString(R.string.connection_http3)
+        http3
     } else if (resolvedPort != KnownPorts.PORT_VAL_UNKNOWN) {
         resolvedPort.uppercase(Locale.ROOT)
     } else {
@@ -254,6 +255,29 @@ private fun summaryInfo(context: Context, ct: ConnectionTracker): Summary {
     LaunchedEffect(ct.connId, ct.uid) {
         hasCid = VpnController.hasCid(ct.connId, ct.uid)
     }
+    val activeLabel = stringResource(R.string.lbl_active)
+    val greenCircle = stringResource(R.string.symbol_green_circle)
+    val currency = stringResource(R.string.symbol_currency)
+    val sparkle = stringResource(R.string.symbol_sparkle)
+    val key = stringResource(R.string.symbol_key)
+    val heavy = stringResource(R.string.symbol_heavy)
+    val turtle = stringResource(R.string.symbol_turtle)
+    val bunny = stringResource(R.string.symbol_bunny)
+    val rocket = stringResource(R.string.symbol_rocket)
+    val ciDesc = stringResource(R.string.ci_desc)
+    val durationText = stringResource(
+        R.string.single_argument,
+        getDurationInHumanReadableFormat(context, ct.duration)
+    )
+    val download = stringResource(
+        R.string.symbol_download,
+        Utilities.humanReadableByteCount(ct.downloadBytes, true)
+    )
+    val upload = stringResource(
+        R.string.symbol_upload,
+        Utilities.humanReadableByteCount(ct.uploadBytes, true)
+    )
+    val usageText = stringResource(R.string.two_argument, upload, download)
     var dataUsage = ""
     var delay = ""
     var duration = ""
@@ -261,64 +285,55 @@ private fun summaryInfo(context: Context, ct: ConnectionTracker): Summary {
     if (ct.duration == 0 && ct.downloadBytes == 0L && ct.uploadBytes == 0L && ct.message.isEmpty()) {
         var hasMinSummary = false
         if (hasCid) {
-            dataUsage = context.getString(R.string.lbl_active)
-            duration = context.getString(R.string.symbol_green_circle)
+            dataUsage = activeLabel
+            duration = greenCircle
             hasMinSummary = true
         }
 
         if (connType.isMetered()) {
-            delay = context.getString(R.string.symbol_currency)
+            delay = currency
             hasMinSummary = true
         }
 
         if (isRpnProxy(ct.rpid)) {
-            delay = context.getString(R.string.ci_desc, delay, context.getString(R.string.symbol_sparkle))
+            delay = formatTemplate(ciDesc, delay, sparkle)
         } else if (isConnectionProxied(ct.blockedByRule, ct.proxyDetails)) {
-            delay = context.getString(R.string.ci_desc, delay, context.getString(R.string.symbol_key))
+            delay = formatTemplate(ciDesc, delay, key)
             hasMinSummary = true
         }
 
         return Summary(dataUsage, duration, delay, hasMinSummary)
     }
 
-    duration = context.getString(
-        R.string.single_argument,
-        getDurationInHumanReadableFormat(context, ct.duration)
-    )
-
-    val download = context.getString(
-        R.string.symbol_download,
-        Utilities.humanReadableByteCount(ct.downloadBytes, true)
-    )
-    val upload = context.getString(
-        R.string.symbol_upload,
-        Utilities.humanReadableByteCount(ct.uploadBytes, true)
-    )
-    dataUsage = context.getString(R.string.two_argument, upload, download)
+    duration = durationText
+    dataUsage = usageText
 
     if (connType.isMetered()) {
-        delay = context.getString(R.string.ci_desc, delay, context.getString(R.string.symbol_currency))
+        delay = formatTemplate(ciDesc, delay, currency)
     }
     if (isConnectionHeavier(ct)) {
-        delay = context.getString(R.string.ci_desc, delay, context.getString(R.string.symbol_heavy))
+        delay = formatTemplate(ciDesc, delay, heavy)
     }
     if (isConnectionSlower(ct)) {
-        delay = context.getString(R.string.ci_desc, delay, context.getString(R.string.symbol_turtle))
+        delay = formatTemplate(ciDesc, delay, turtle)
     }
     if (isRpnProxy(ct.rpid)) {
-        delay = context.getString(R.string.ci_desc, delay, context.getString(R.string.symbol_sparkle))
+        delay = formatTemplate(ciDesc, delay, sparkle)
     } else if (containsRelayProxy(ct.rpid)) {
-        delay = context.getString(R.string.ci_desc, delay, context.getString(R.string.symbol_bunny))
+        delay = formatTemplate(ciDesc, delay, bunny)
     } else if (isConnectionProxied(ct.blockedByRule, ct.proxyDetails)) {
-        delay = context.getString(R.string.ci_desc, delay, context.getString(R.string.symbol_key))
+        delay = formatTemplate(ciDesc, delay, key)
     }
     if (isRoundTripShorter(ct.synack, ct.isBlocked)) {
-        delay = context.getString(R.string.ci_desc, delay, context.getString(R.string.symbol_rocket))
+        delay = formatTemplate(ciDesc, delay, rocket)
     }
 
     val showSummary = delay.isNotEmpty() || dataUsage.isNotEmpty()
     return Summary(dataUsage, duration, delay, showSummary)
 }
+
+private fun formatTemplate(template: String, vararg args: Any): String =
+    String.format(Locale.getDefault(), template, *args)
 
 private fun isRoundTripShorter(rtt: Long, blocked: Boolean): Boolean {
     return rtt in 1..20 && !blocked

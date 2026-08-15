@@ -67,10 +67,10 @@ fun WgPeerRow(
         }
 
     val deleteTitle =
-        context.getString(
+        stringResource(
             R.string.two_argument_space,
-            context.getString(R.string.config_delete_dialog_title),
-            context.getString(R.string.lbl_peer),
+            stringResource(R.string.config_delete_dialog_title),
+            stringResource(R.string.lbl_peer),
         )
     RethinkWireguardPeerRow(
         item = RethinkWireguardPeerItem(

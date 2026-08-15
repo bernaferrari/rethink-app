@@ -119,8 +119,8 @@ fun DnsLogRow(
     itemCount: Int = 1,
 ) {
     val context = LocalContext.current
-    val dnsType = dnsTypeName(context, log, isRethinkDns)
-    val hint = unicodeHint(context, log, isRethinkDns)
+    val dnsType = dnsTypeName(log, isRethinkDns)
+    val hint = unicodeHint(log, isRethinkDns)
     val appLabel = log.appName.ifEmpty {
         stringResource(R.string.network_log_app_name_unknown)
     }
@@ -228,48 +228,66 @@ private fun AppIconSlot(
     }
 }
 
-private fun unicodeHint(context: Context, log: DnsLog, isRethinkDns: Boolean): String {
+@Composable
+private fun unicodeHint(log: DnsLog, isRethinkDns: Boolean): String {
+    val rocket = stringResource(R.string.symbol_rocket)
+    val bunny = stringResource(R.string.symbol_bunny)
+    val key = stringResource(R.string.symbol_key)
+    val duck = stringResource(R.string.symbol_duck)
+    val diamond = stringResource(R.string.symbol_diamond)
+    val heavy = stringResource(R.string.symbol_heavy)
+    val lock = stringResource(R.string.symbol_lock)
+    val unlock = stringResource(R.string.symbol_unlock)
+    val rethink = getRethinkUnicode(log)
+    val ciDesc = stringResource(R.string.ci_desc)
     var hint = ""
     if (isRoundTripShorter(log.latency, log.isBlocked)) {
-        hint = context.getString(R.string.ci_desc, hint, context.getString(R.string.symbol_rocket))
+        hint = formatTemplate(ciDesc, hint, rocket)
     }
     if (containsRelayProxy(log.relayIP)) {
-        hint = context.getString(R.string.ci_desc, hint, context.getString(R.string.symbol_bunny))
+        hint = formatTemplate(ciDesc, hint, bunny)
     } else if (isConnectionProxied(log.proxyId)) {
-        hint = context.getString(R.string.ci_desc, hint, context.getString(R.string.symbol_key))
+        hint = formatTemplate(ciDesc, hint, key)
     }
     if (isRethinkUsed(log, isRethinkDns)) {
-        hint = context.getString(R.string.ci_desc, hint, getRethinkUnicode(context, log))
+        hint = formatTemplate(ciDesc, hint, rethink)
     } else if (isGoosOrSystemUsed(log)) {
-        hint = context.getString(R.string.ci_desc, hint, context.getString(R.string.symbol_duck))
+        hint = formatTemplate(ciDesc, hint, duck)
     } else if (isDefaultResolverUsed(log)) {
-        hint = context.getString(R.string.ci_desc, hint, context.getString(R.string.symbol_diamond))
+        hint = formatTemplate(ciDesc, hint, diamond)
     } else if (containsMultipleIPs(log)) {
-        hint = context.getString(R.string.ci_desc, hint, context.getString(R.string.symbol_heavy))
+        hint = formatTemplate(ciDesc, hint, heavy)
     }
     if (dnssecIndicatorRequired(log)) {
         hint = if (dnssecOk(log)) {
-            context.getString(R.string.ci_desc, hint, context.getString(R.string.symbol_lock))
+            formatTemplate(ciDesc, hint, lock)
         } else {
-            context.getString(R.string.ci_desc, hint, context.getString(R.string.symbol_unlock))
+            formatTemplate(ciDesc, hint, unlock)
         }
     }
     return hint
 }
 
-private fun dnsTypeName(context: Context, log: DnsLog, isRethinkDns: Boolean): String =
-    when (Transaction.TransportType.fromOrdinal(log.dnsType)) {
+@Composable
+private fun dnsTypeName(log: DnsLog, isRethinkDns: Boolean): String {
+    val rdns = stringResource(R.string.lbl_rdns)
+    val doh = stringResource(R.string.other_dns_list_tab1)
+    val dcAbbr = stringResource(R.string.lbl_dc_abbr)
+    val dp = stringResource(R.string.lbl_dp)
+    val dot = stringResource(R.string.lbl_dot)
+    val odoh = stringResource(R.string.lbl_odoh)
+    return when (Transaction.TransportType.fromOrdinal(log.dnsType)) {
         Transaction.TransportType.DOH ->
-            if (isRethinkDns && isRethinkUsed(log, isRethinkDns)) {
-                context.getString(R.string.lbl_rdns)
-            } else {
-                context.getString(R.string.other_dns_list_tab1)
-            }
-        Transaction.TransportType.DNS_CRYPT -> context.getString(R.string.lbl_dc_abbr)
-        Transaction.TransportType.DNS_PROXY -> context.getString(R.string.lbl_dp)
-        Transaction.TransportType.DOT -> context.getString(R.string.lbl_dot)
-        Transaction.TransportType.ODOH -> context.getString(R.string.lbl_odoh)
+            if (isRethinkDns && isRethinkUsed(log, isRethinkDns)) rdns else doh
+        Transaction.TransportType.DNS_CRYPT -> dcAbbr
+        Transaction.TransportType.DNS_PROXY -> dp
+        Transaction.TransportType.DOT -> dot
+        Transaction.TransportType.ODOH -> odoh
     }
+}
+
+private fun formatTemplate(template: String, vararg args: Any): String =
+    String.format(java.util.Locale.getDefault(), template, *args)
 
 private fun dnssecIndicatorRequired(log: DnsLog) =
     log.status == Transaction.Status.COMPLETE.name && (log.dnssecOk || log.dnssecValid)
@@ -303,15 +321,15 @@ private fun isDefaultResolverUsed(log: DnsLog): Boolean {
     return log.resolverId.contains(Backend.Default) || log.resolverId.contains(Backend.Bootstrap)
 }
 
-private fun getRethinkUnicode(context: Context, log: DnsLog): String {
+@Composable
+private fun getRethinkUnicode(log: DnsLog): String {
+    val sparkle = stringResource(R.string.symbol_sparkle)
+    val max = stringResource(R.string.symbol_max)
+    val sky = stringResource(R.string.symbol_sky)
     if (log.relayIP.endsWith(Backend.RPN) || log.relayIP == Backend.Auto) {
-        return context.getString(R.string.symbol_sparkle)
+        return sparkle
     }
-    return if (log.serverIP.contains(MAX_ENDPOINT)) {
-        context.getString(R.string.symbol_max)
-    } else {
-        context.getString(R.string.symbol_sky)
-    }
+    return if (log.serverIP.contains(MAX_ENDPOINT)) max else sky
 }
 
 private suspend fun displayFavIcon(

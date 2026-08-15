@@ -8,7 +8,7 @@
     <ID>ComplexCondition:ConnectionTrackerAdapter.kt$ct.duration == 0 &amp;&amp; ct.downloadBytes == 0L &amp;&amp; ct.uploadBytes == 0L &amp;&amp; ct.message.isEmpty()</ID>
     <ID>ComplexCondition:DnsEndpointShared.kt$isSelected &amp;&amp; !smartDnsEnabled &amp;&amp; (!requireTunnel || VpnController.hasTunnel())</ID>
     <ID>ComplexCondition:DnsLogTracker.kt$DnsLogTracker$transaction.response.isNotEmpty() &amp;&amp; transaction.response != UNSPECIFIED_IP_IPV4 &amp;&amp; transaction.response != UNSPECIFIED_IP_IPV6 &amp;&amp; transaction.response != EMPTY_RESPONSE</ID>
-    <ID>ComplexCondition:InAppBillingHandler.kt$InAppBillingHandler$years == 0 &amp;&amp; months == 0 &amp;&amp; weeks == 0 &amp;&amp; days == 0</ID>
+    <ID>ComplexCondition:PurchaseDetailFactory.kt$PurchaseDetailFactory$years == 0 &amp;&amp; months == 0 &amp;&amp; weeks == 0 &amp;&amp; days == 0</ID>
     <ID>ComplexCondition:RefreshDatabase.kt$RefreshDatabase$latestRefreshTime &gt; 0 &amp;&amp; current - latestRefreshTime &lt; FULL_REFRESH_INTERVAL &amp;&amp; (action == ACTION_REFRESH_AUTO || action == ACTION_REFRESH_INTERACTIVE)</ID>
     <ID>ComplexCondition:SubscriptionPurchaseProcessor.kt$SubscriptionPurchaseProcessor$years == 0 &amp;&amp; months == 0 &amp;&amp; weeks == 0 &amp;&amp; days == 0</ID>
     <ID>ComplexCondition:SubscriptionStateMachineV2.kt$SubscriptionStateMachineV2$!isReconcileOfExistingCancelled &amp;&amp; (prevStatusId != newStatusId || (shouldExpirePrev) || expiryChanged)</ID>
@@ -27,6 +27,7 @@
     <ID>CyclomaticComplexMethod:BillingBackendClient.kt$BillingBackendClient$private suspend fun executeAckWithRetry( caller: String, attempt: suspend (ApiHandle) -&gt; Response&lt;JsonObject?&gt;? ): Pair&lt;Boolean, String&gt;</ID>
     <ID>CyclomaticComplexMethod:BillingBackendClient.kt$BillingBackendClient$suspend fun queryEntitlement( accountId: String, deviceId: String, purchase: PurchaseDetail, purchaseToken: String ): QueryEntitlementResult</ID>
     <ID>CyclomaticComplexMethod:BillingBackendClient.kt$BillingBackendClient$suspend fun refreshIdentity(): RefreshIdentityResult</ID>
+    <ID>CyclomaticComplexMethod:BillingProductCatalog.kt$BillingProductCatalog$fun processProductList(pds: List&lt;ProductDetails&gt;)</ID>
     <ID>CyclomaticComplexMethod:BraveVPNService.kt$BraveVPNService$fun parseIpAndPort(endpoint: String?): Pair&lt;String, Int&gt;</ID>
     <ID>CyclomaticComplexMethod:BraveVPNService.kt$BraveVPNService$override fun flow( protocol: Int, _uid: Int, src: String?, dst: String?, realIps: String?, d: String?, possibleDomains: String?, blocklists: String? ): Mark</ID>
     <ID>CyclomaticComplexMethod:BraveVPNService.kt$BraveVPNService$private fun isVpnDns(ip: String): Boolean</ID>
@@ -62,10 +63,6 @@
     <ID>CyclomaticComplexMethod:HomeNavigation.kt$private fun HomeNavRequest.toRethinkRoute(): RethinkRoute</ID>
     <ID>CyclomaticComplexMethod:HomeScreenActivity.kt$HomeScreenActivity$override fun onCreate(savedInstanceState: Bundle?)</ID>
     <ID>CyclomaticComplexMethod:HomeScreenActivity.kt$HomeScreenActivity$private fun collectAllBugReportFiles(): List&lt;BugReportFile&gt;</ID>
-    <ID>CyclomaticComplexMethod:InAppBillingHandler.kt$InAppBillingHandler$private fun processProductList(pds: List&lt;ProductDetails&gt;)</ID>
-    <ID>CyclomaticComplexMethod:InAppBillingHandler.kt$InAppBillingHandler$private suspend fun handlePurchase( purchasesList: List&lt;Purchase&gt;?, queriedProductType: String? = null )</ID>
-    <ID>CyclomaticComplexMethod:InAppBillingHandler.kt$InAppBillingHandler$suspend fun purchaseOneTime(activity: Activity, productId: String, planId: String, forceExtend: Boolean = false)</ID>
-    <ID>CyclomaticComplexMethod:InAppBillingHandler.kt$InAppBillingHandler$suspend fun purchaseSubs( activity: Activity, productId: String, planId: String, forceResubscribe: Boolean = false )</ID>
     <ID>CyclomaticComplexMethod:KernelProc.kt$KernelProc$fun parseSchedAllThreads(): List&lt;ThreadSchedInfo&gt;</ID>
     <ID>CyclomaticComplexMethod:Logger.kt$Logger$fun log(tag: String, msg: String, type: LoggerLevel, e: Exception? = null)</ID>
     <ID>CyclomaticComplexMethod:NetworkBindingService.kt$NetworkBindingService$private suspend fun bindAny( who: String, addrPort: String, fid: Long, networks: List&lt;NetworkProperties&gt; ): Boolean</ID>
@@ -75,6 +72,9 @@
     <ID>CyclomaticComplexMethod:ProxyRoutingEngine.kt$ProxyRoutingEngine$fun determineRoute(request: RoutingRequest): RoutingDecision</ID>
     <ID>CyclomaticComplexMethod:ProxySettingsScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun ProxySettingsScreen( appConfig: AppConfig, persistentState: PersistentState, eventLogger: EventLogger, mappingViewModel: ProxyAppsMappingViewModel? = null, initialFocusKey: String? = null, onWireguardClick: (() -&gt; Unit)? = null, onOpenOrbotApps: (() -&gt; Unit)? = null, onNavigateToDns: (() -&gt; Unit)? = null, onBackClick: (() -&gt; Unit)? = null )</ID>
     <ID>CyclomaticComplexMethod:ProxyStateManager.kt$ProxyStateManager.Companion$suspend fun calculateWireguardProxyStatus(now: Long = System.currentTimeMillis()): ProxyStatus</ID>
+    <ID>CyclomaticComplexMethod:PurchaseFlowController.kt$PurchaseFlowController$suspend fun purchaseOneTime(activity: Activity, productId: String, planId: String, forceExtend: Boolean = false)</ID>
+    <ID>CyclomaticComplexMethod:PurchaseFlowController.kt$PurchaseFlowController$suspend fun purchaseSubs( activity: Activity, productId: String, planId: String, forceResubscribe: Boolean = false )</ID>
+    <ID>CyclomaticComplexMethod:PurchaseResultProcessor.kt$PurchaseResultProcessor$suspend fun handlePurchase( purchasesList: List&lt;Purchase&gt;?, queriedProductType: String? = null )</ID>
     <ID>CyclomaticComplexMethod:RefreshDatabase.kt$RefreshDatabase$suspend fun process(a: Action)</ID>
     <ID>CyclomaticComplexMethod:RethinkPlusViewModel.kt$RethinkPlusViewModel$private fun handleSubscriptionStateChange(state: SubscriptionStateMachineV2.SubscriptionState)</ID>
     <ID>CyclomaticComplexMethod:RpnProxyManager.kt$RpnProxyManager$private suspend fun handleStateChange(state: SubscriptionStateMachineV2.SubscriptionState)</ID>
@@ -127,7 +127,6 @@
     <ID>ForbiddenComment:BraveVPNService.kt$BraveVPNService$// TODO: call go to clear the cache</ID>
     <ID>ForbiddenComment:BraveVPNService.kt$BraveVPNService$// TODO: check for all networks instead of just the first one</ID>
     <ID>ForbiddenComment:BraveVPNService.kt$BraveVPNService$// TODO: check if the transport id is set to default/Auto, then return empty string/base</ID>
-    <ID>ForbiddenComment:BraveVPNService.kt$BraveVPNService$// TODO: convert the duration obj to long, this is work around</ID>
     <ID>ForbiddenComment:BraveVPNService.kt$BraveVPNService$// TODO: handle multiple domains, for now, use the first domain</ID>
     <ID>ForbiddenComment:BraveVPNService.kt$BraveVPNService$// TODO: if uid is received, then make sure Rethink uid always returns Default as transport</ID>
     <ID>ForbiddenComment:BraveVPNService.kt$BraveVPNService$// TODO: like Intra, call VpnController#stop instead? see</ID>
@@ -138,7 +137,6 @@
     <ID>ForbiddenComment:BraveVPNService.kt$BraveVPNService$// TODO: show alerts to user on such exceptions, in a separate ui?</ID>
     <ID>ForbiddenComment:BraveVPNService.kt$BraveVPNService.Companion$// TODO: should be different for IPv4 and IPv6, but for now it is same</ID>
     <ID>ForbiddenComment:ConnectionMonitor.kt$ConnectionMonitor$// TODO: process after a delay to avoid processing multiple network changes in short bursts</ID>
-    <ID>ForbiddenComment:ConnectionMonitor.kt$ConnectionMonitor$// TODO: use a custom Looper(HandlerThread) to avoid blocking the main thread</ID>
     <ID>ForbiddenComment:ConnectionMonitor.kt$ConnectionMonitor.Companion$// TODO: set it to true when the reachability checks are required to be done from</ID>
     <ID>ForbiddenComment:ConnectionMonitor.kt$ConnectionMonitor.NetworkRequestHandler$// TODO: add http url probes for ipv4 and ipv6</ID>
     <ID>ForbiddenComment:ConnectionMonitor.kt$ConnectionMonitor.NetworkRequestHandler$// TODO: case: CAPTIVE_PORTAL, should we not test reachability?</ID>
@@ -149,24 +147,16 @@
     <ID>ForbiddenComment:ConnectionMonitor.kt$ConnectionMonitor.ProbeResult$// TODO: send only the required capabilities to the handler instead of the whole</ID>
     <ID>ForbiddenComment:DnsLogTracker.kt$DnsLogTracker$// TODO: rdata should be either empty / 0.0.0.0 / ::0 / -- for block all</ID>
     <ID>ForbiddenComment:FirewallManager.kt$FirewallManager$// TODO: Use the package-manager API instead</ID>
-    <ID>ForbiddenComment:FirewallManager.kt$FirewallManager.GlobalVariable$// TODO: protect access to the foregroundUids (read/write)</ID>
     <ID>ForbiddenComment:FirewallRuleset.kt$FirewallRuleset.Companion$// TODO: Move ico to enum var like for label and desc</ID>
     <ID>ForbiddenComment:GoDnsTransports.kt$GoDnsTransports$// TODO: #321 As of now there is no block free transport for dns types other than Rethink.</ID>
-    <ID>ForbiddenComment:GoDnsTransports.kt$GoDnsTransports$// TODO: should show notification if the transport is not added?</ID>
     <ID>ForbiddenComment:GoVpnAdapter.kt$GoVpnAdapter$// TODO: ideally the values required for transport, alg and rdns should be set in the</ID>
-    <ID>ForbiddenComment:GoVpnAdapter.kt$GoVpnAdapter$// TODO: notify the user that the default transport could not be set</ID>
     <ID>ForbiddenComment:GoVpnAdapter.kt$GoVpnAdapter$// TODO: see if the hop is already added, if so no need to redo this</ID>
-    <ID>ForbiddenComment:GoVpnAdapter.kt$GoVpnAdapter$// TODO: system dns may be non existent; see: AppConfig#updateSystemDnsServers</ID>
     <ID>ForbiddenComment:HomeScreenActivity.kt$HomeScreenActivity$// FIXME: remove this post v054</ID>
     <ID>ForbiddenComment:HomeScreenActivity.kt$HomeScreenActivity$// TODO: prompt dialog to user that Playservice is disabled, so switch to update</ID>
     <ID>ForbiddenComment:HomeScreenActivity.kt$HomeScreenActivity$// TODO: remove this post v054.</ID>
-    <ID>ForbiddenComment:InAppBillingHandler.kt$InAppBillingHandler$// TODO: Handle country code, see if we need to use it</ID>
-    <ID>ForbiddenComment:InAppBillingHandler.kt$InAppBillingHandler$// TODO: Handle errors</ID>
-    <ID>ForbiddenComment:InAppBillingHandler.kt$InAppBillingHandler$// TODO: should we check with the vpnAdapter?.winExpiry here?</ID>
     <ID>ForbiddenComment:IpRulesManager.kt$IpRulesManager$// TODO: is this needed in database?</ID>
     <ID>ForbiddenComment:KernelProc.kt$KernelProc$// TODO: for known pointer types (e.g. AT_PLATFORM, AT_RANDOM) we could</ID>
     <ID>ForbiddenComment:LocalBlocklistCoordinator.kt$LocalBlocklistCoordinator$// downloaded. TODO: Later add checksum matching as well</ID>
-    <ID>ForbiddenComment:NetLogTracker.kt$NetLogTracker$// TODO: This method should be part of BraveVPNService</ID>
     <ID>ForbiddenComment:PersistentState.kt$PersistentState$// TODO: add routes as normal but do not send fd to netstack</ID>
     <ID>ForbiddenComment:PipKeyManager.kt$PipKeyManager$// TODO: should we get the response from the publicKeyUsable method instead of</ID>
     <ID>ForbiddenComment:ProxyManager.kt$ProxyManager.ProxyMode$// TODO: consider adding other proxy modes (e.g, Wireguard, Rethink, etc.)</ID>
@@ -174,7 +164,6 @@
     <ID>ForbiddenComment:RestoreAgent.kt$RestoreAgent$// TODO: revisit this after v055 release</ID>
     <ID>ForbiddenComment:RethinkBlocklistManager.kt$RethinkBlocklistManager$// TODO: merge both the remote and local json parsing into one</ID>
     <ID>ForbiddenComment:RpnProxyManager.kt$RpnProxyManager$// TODO: perform the validation of purchaseToken and accountId with the subscription data</ID>
-    <ID>ForbiddenComment:RpnProxyUpdateWorker.kt$RpnProxyUpdateWorker$// TODO: Duplicate implementation exists in RpnProxyUpdateWorker and</ID>
     <ID>ForbiddenComment:VpnController.kt$VpnController$// FIXME: Publish VpnState through this state-flow to relieve direct access</ID>
     <ID>ForbiddenComment:VpnController.kt$VpnController$// TODO: make clients listen on create, start, stop, destroy from vpn-service</ID>
     <ID>ForbiddenComment:VpnDnsTransportController.kt$VpnDnsTransportController$// FIXME: update just that dns proxy, not the entire tunnel</ID>
@@ -193,7 +182,6 @@
     <ID>LargeClass:BraveVPNService.kt$BraveVPNService : VpnServiceNetworkListenerBridge</ID>
     <ID>LargeClass:GoVpnAdapter.kt$GoVpnAdapter : KoinComponent</ID>
     <ID>LargeClass:HomeScreenActivity.kt$HomeScreenActivity : FragmentActivity</ID>
-    <ID>LargeClass:InAppBillingHandler.kt$InAppBillingHandler : KoinComponent</ID>
     <ID>LargeClass:RefreshDatabase.kt$RefreshDatabase</ID>
     <ID>LargeClass:RpnProxyManager.kt$RpnProxyManager : KoinComponent</ID>
     <ID>LargeClass:RpnWinServerController.kt$RpnWinServerController</ID>
@@ -202,6 +190,7 @@
     <ID>LongMethod:AppInfoScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun AppInfoScreen( uid: Int, eventLogger: EventLogger, ipRulesViewModel: CustomIpViewModel, domainRulesViewModel: CustomDomainViewModel, networkLogsViewModel: AppConnectionsViewModel, onBackClick: () -&gt; Unit, onAppWiseIpLogsClick: (Int, Boolean) -&gt; Unit, onAppWiseDomainLogsClick: (Int) -&gt; Unit, onCustomIpRulesClick: (Int) -&gt; Unit, onCustomDomainRulesClick: (Int) -&gt; Unit )</ID>
     <ID>LongMethod:AppIpRulesDialog.kt$@Composable fun AppIpRulesSheet( uid: Int, ipAddress: String, domains: String, eventLogger: EventLogger, onDismiss: () -&gt; Unit, onUpdated: () -&gt; Unit )</ID>
     <ID>LongMethod:BackupRestoreDialog.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun BackupRestoreSheet( onDismiss: () -&gt; Unit )</ID>
+    <ID>LongMethod:BillingProductCatalog.kt$BillingProductCatalog$fun processProductList(pds: List&lt;ProductDetails&gt;)</ID>
     <ID>LongMethod:ConfigureRethinkBasicScreen.kt$@Composable private fun RethinkBlocklistContent( modifier: Modifier = Modifier, context: Context, blocklistType: RethinkBlocklistManager.RethinkBlocklistType, filters: MutableStateFlow&lt;RethinkBlocklistState.Filters&gt;, remoteFileTagViewModel: RethinkRemoteFileTagViewModel, localFileTagViewModel: RethinkLocalFileTagViewModel, remoteBlocklistPacksMapViewModel: RemoteBlocklistPacksMapViewModel, localBlocklistPacksMapViewModel: LocalBlocklistPacksMapViewModel, showDownload: Boolean, showConfigure: Boolean, isDownloading: Boolean, showRemoteProgress: Boolean, activeView: RethinkBlocklistState.BlocklistView, filterLabelText: String, plusFilterTags: List&lt;FileTag&gt;, onActiveViewChanged: (RethinkBlocklistState.BlocklistView) -&gt; Unit, onFilterLabelTextChanged: (String) -&gt; Unit, onPlusFilterTagsChanged: (List&lt;FileTag&gt;) -&gt; Unit, onDownloadBlocklist: () -&gt; Unit, onCancelDownload: () -&gt; Unit, onApplyChanges: () -&gt; Unit, onRevertChanges: () -&gt; Unit, onRefreshBlocklistAvailability: () -&gt; Unit, onProcessSelectedFileTags: (String) -&gt; Unit, onModifiedStampChanged: (String) -&gt; Unit, getStampValue: () -&gt; String, onDownloadStart: () -&gt; Unit, onDownloadFail: () -&gt; Unit, onDownloadSuccess: () -&gt; Unit, filterDescriptionTemplate: String, filterDescriptionSubgroupsTemplate: String )</ID>
     <ID>LongMethod:ConfigureRethinkBasicScreen.kt$@Composable private fun RethinkListContent( modifier: Modifier = Modifier, context: Context, persistentState: PersistentState, appConfig: AppConfig, appDownloadManager: AppDownloadManager, rethinkEndpointViewModel: RethinkEndpointViewModel, uid: Int, isMax: Boolean, updateAvailable: Boolean, checkUpdateVisible: Boolean, redownloadVisible: Boolean, checkUpdateInProgress: Boolean, updateInProgress: Boolean, onMaxChanged: (Boolean) -&gt; Unit, onUpdateMaxSwitchUi: () -&gt; Unit, onRefreshUpdateUi: () -&gt; Unit, onCheckUpdateInProgressChanged: (Boolean) -&gt; Unit, onUpdateInProgressChanged: (Boolean) -&gt; Unit, onCheckBlocklistUpdate: () -&gt; Unit, onDownload: (Long, Boolean) -&gt; Unit, localBlocklistVersionTemplate: String, downloadFailureMessage: String )</ID>
     <ID>LongMethod:ConfigureRethinkBasicScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun ConfigureRethinkBasicScreen( screenType: ConfigureRethinkScreenType, remoteName: String = "", remoteUrl: String = "", uid: Int = Constants.MISSING_UID, persistentState: PersistentState, appConfig: AppConfig, appDownloadManager: AppDownloadManager, rethinkEndpointViewModel: RethinkEndpointViewModel, remoteFileTagViewModel: RethinkRemoteFileTagViewModel, localFileTagViewModel: RethinkLocalFileTagViewModel, remoteBlocklistPacksMapViewModel: RemoteBlocklistPacksMapViewModel, localBlocklistPacksMapViewModel: LocalBlocklistPacksMapViewModel, onBackClick: (() -&gt; Unit)? = null )</ID>
@@ -215,10 +204,9 @@
     <ID>LongMethod:HomeNavigation.kt$@Composable fun HomeScreenRoot( homeUiState: HomeScreenUiState, onHomeStartStopClick: () -&gt; Unit, summaryViewModel: SummaryStatisticsViewModel, onOpenDetailedStats: (SummaryStatisticsType) -&gt; Unit, startDestination: RethinkRoute, isDebug: Boolean, configureActions: HomeConfigureActions, aboutUiState: AboutUiState, aboutActions: HomeAboutActions, snackbarHostState: SnackbarHostState, detailedStatsViewModel: DetailedStatisticsViewModel, domainConnectionsViewModel: DomainConnectionsViewModel, eventsViewModel: EventsViewModel, eventDao: EventDao, appInfoEventLogger: EventLogger, appInfoIpRulesViewModel: CustomIpViewModel, appInfoDomainRulesViewModel: CustomDomainViewModel, appInfoNetworkLogsViewModel: AppConnectionsViewModel, persistentState: PersistentState, appConfig: AppConfig, onOpenVpnProfile: () -&gt; Unit, onRefreshDatabase: (() -&gt; Unit)? = null, onThemeModeChanged: ((Int) -&gt; Unit)? = null, onThemeColorChanged: ((Int) -&gt; Unit)? = null, consoleLogViewModel: ConsoleLogViewModel, consoleLogRepository: ConsoleLogRepository, onShareConsoleLogs: () -&gt; Unit, onConsoleLogsDeleteComplete: () -&gt; Unit, proxyAppsMappingViewModel: ProxyAppsMappingViewModel, dnsSettingsViewModel: DnsSettingsViewModel, appDownloadManager: AppDownloadManager, dnsActions: HomeDnsActions, homeNavRequest: HomeNavRequest?, onHomeNavConsumed: () -&gt; Unit, onAppLockResult: (AppLockResult) -&gt; Unit = {}, rethinkEndpointViewModel: RethinkEndpointViewModel, remoteFileTagViewModel: RethinkRemoteFileTagViewModel, localFileTagViewModel: RethinkLocalFileTagViewModel, remoteBlocklistPacksMapViewModel: RemoteBlocklistPacksMapViewModel, localBlocklistPacksMapViewModel: LocalBlocklistPacksMapViewModel, appInfoViewModel: AppInfoViewModel, refreshDatabase: RefreshDatabase, connectionTrackerViewModel: ConnectionTrackerViewModel, dnsLogViewModel: DnsLogViewModel, rethinkLogViewModel: RethinkLogViewModel, connectionTrackerRepository: ConnectionTrackerRepository, dnsLogRepository: DnsLogRepository, rethinkLogRepository: RethinkLogRepository, dohViewModel: DoHEndpointViewModel, dotViewModel: DoTEndpointViewModel, dnsProxyViewModel: DnsProxyEndpointViewModel, dnsCryptViewModel: DnsCryptEndpointViewModel, dnsCryptRelayViewModel: DnsCryptRelayEndpointViewModel, oDohViewModel: ODoHEndpointViewModel, wgConfigViewModel: WgConfigViewModel, checkoutViewModel: CheckoutViewModel?, managePurchaseViewModel: ManagePurchaseViewModel, purchaseHistoryViewModel: PurchaseHistoryViewModel, serverOrderHistoryViewModel: ServerOrderHistoryViewModel, blockFreeDnsViewModel: BlockFreeDnsViewModel, wgActions: HomeWgActions, appDatabase: AppDatabase )</ID>
     <ID>LongMethod:HomeScreenActivity.kt$HomeScreenActivity$@OptIn(ExperimentalMaterial3Api::class) @Composable private fun BugReportFilesSheet(onDismiss: () -&gt; Unit)</ID>
     <ID>LongMethod:HomeScreenActivity.kt$HomeScreenActivity$override fun onCreate(savedInstanceState: Bundle?)</ID>
-    <ID>LongMethod:InAppBillingHandler.kt$InAppBillingHandler$private fun processProductList(pds: List&lt;ProductDetails&gt;)</ID>
-    <ID>LongMethod:InAppBillingHandler.kt$InAppBillingHandler$private suspend fun handlePurchase( purchasesList: List&lt;Purchase&gt;?, queriedProductType: String? = null )</ID>
     <ID>LongMethod:NetworkLogsScreen.kt$@OptIn(FlowPreview::class) @Composable private fun ConnectionLogsContent( viewModel: ConnectionTrackerViewModel, repository: ConnectionTrackerRepository, persistentState: PersistentState, onTopBarActionsChange: (refreshAction: (() -&gt; Unit)?, clearAction: (() -&gt; Unit)?) -&gt; Unit )</ID>
     <ID>LongMethod:ProxySettingsScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun ProxySettingsScreen( appConfig: AppConfig, persistentState: PersistentState, eventLogger: EventLogger, mappingViewModel: ProxyAppsMappingViewModel? = null, initialFocusKey: String? = null, onWireguardClick: (() -&gt; Unit)? = null, onOpenOrbotApps: (() -&gt; Unit)? = null, onNavigateToDns: (() -&gt; Unit)? = null, onBackClick: (() -&gt; Unit)? = null )</ID>
+    <ID>LongMethod:PurchaseResultProcessor.kt$PurchaseResultProcessor$suspend fun handlePurchase( purchasesList: List&lt;Purchase&gt;?, queriedProductType: String? = null )</ID>
     <ID>LongMethod:RpnWinProxyDetailsScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun RpnWinProxyDetailsScreen( countryCode: String, onBackClick: () -&gt; Unit )</ID>
     <ID>LongMethod:SettingsSearchIndex.kt$@Composable fun buildSettingsSearchIndex(isDebug: Boolean): List&lt;SettingsSearchIndexEntry&gt;</ID>
     <ID>LongMethod:SubscriptionStateMachineV2.kt$SubscriptionStateMachineV2$private suspend fun handlePaymentSuccessful( purchaseDetail: PurchaseDetail, updateMachineData: Boolean = true )</ID>
@@ -236,9 +224,9 @@
     <ID>LongParameterList:HomeNavigation.kt$( homeUiState: HomeScreenUiState, onHomeStartStopClick: () -&gt; Unit, summaryViewModel: SummaryStatisticsViewModel, onOpenDetailedStats: (SummaryStatisticsType) -&gt; Unit, startDestination: RethinkRoute, isDebug: Boolean, configureActions: HomeConfigureActions, aboutUiState: AboutUiState, aboutActions: HomeAboutActions, snackbarHostState: SnackbarHostState, detailedStatsViewModel: DetailedStatisticsViewModel, domainConnectionsViewModel: DomainConnectionsViewModel, eventsViewModel: EventsViewModel, eventDao: EventDao, appInfoEventLogger: EventLogger, appInfoIpRulesViewModel: CustomIpViewModel, appInfoDomainRulesViewModel: CustomDomainViewModel, appInfoNetworkLogsViewModel: AppConnectionsViewModel, persistentState: PersistentState, appConfig: AppConfig, onOpenVpnProfile: () -&gt; Unit, onRefreshDatabase: (() -&gt; Unit)? = null, onThemeModeChanged: ((Int) -&gt; Unit)? = null, onThemeColorChanged: ((Int) -&gt; Unit)? = null, consoleLogViewModel: ConsoleLogViewModel, consoleLogRepository: ConsoleLogRepository, onShareConsoleLogs: () -&gt; Unit, onConsoleLogsDeleteComplete: () -&gt; Unit, proxyAppsMappingViewModel: ProxyAppsMappingViewModel, dnsSettingsViewModel: DnsSettingsViewModel, appDownloadManager: AppDownloadManager, dnsActions: HomeDnsActions, homeNavRequest: HomeNavRequest?, onHomeNavConsumed: () -&gt; Unit, onAppLockResult: (AppLockResult) -&gt; Unit = {}, rethinkEndpointViewModel: RethinkEndpointViewModel, remoteFileTagViewModel: RethinkRemoteFileTagViewModel, localFileTagViewModel: RethinkLocalFileTagViewModel, remoteBlocklistPacksMapViewModel: RemoteBlocklistPacksMapViewModel, localBlocklistPacksMapViewModel: LocalBlocklistPacksMapViewModel, appInfoViewModel: AppInfoViewModel, refreshDatabase: RefreshDatabase, connectionTrackerViewModel: ConnectionTrackerViewModel, dnsLogViewModel: DnsLogViewModel, rethinkLogViewModel: RethinkLogViewModel, connectionTrackerRepository: ConnectionTrackerRepository, dnsLogRepository: DnsLogRepository, rethinkLogRepository: RethinkLogRepository, dohViewModel: DoHEndpointViewModel, dotViewModel: DoTEndpointViewModel, dnsProxyViewModel: DnsProxyEndpointViewModel, dnsCryptViewModel: DnsCryptEndpointViewModel, dnsCryptRelayViewModel: DnsCryptRelayEndpointViewModel, oDohViewModel: ODoHEndpointViewModel, wgConfigViewModel: WgConfigViewModel, checkoutViewModel: CheckoutViewModel?, managePurchaseViewModel: ManagePurchaseViewModel, purchaseHistoryViewModel: PurchaseHistoryViewModel, serverOrderHistoryViewModel: ServerOrderHistoryViewModel, blockFreeDnsViewModel: BlockFreeDnsViewModel, wgActions: HomeWgActions, appDatabase: AppDatabase )</ID>
     <ID>LoopWithTooManyJumpStatements:BillingBackendClient.kt$BillingBackendClient$for</ID>
     <ID>LoopWithTooManyJumpStatements:ErrorMessages.kt$ErrorMessages$while</ID>
-    <ID>LoopWithTooManyJumpStatements:InAppBillingHandler.kt$InAppBillingHandler$for</ID>
     <ID>LoopWithTooManyJumpStatements:IpRulesManager.kt$IpRulesManager$for</ID>
     <ID>LoopWithTooManyJumpStatements:NetLogBatcher.kt$NetLogBatcher$for</ID>
+    <ID>LoopWithTooManyJumpStatements:PurchaseResultProcessor.kt$PurchaseResultProcessor$for</ID>
     <ID>LoopWithTooManyJumpStatements:RestoreAgent.kt$RestoreAgent$for</ID>
     <ID>LoopWithTooManyJumpStatements:RpnProxyManager.kt$RpnProxyManager$for</ID>
     <ID>LoopWithTooManyJumpStatements:TunnelImporter.kt$TunnelImporter$while</ID>
@@ -255,6 +243,7 @@
     <ID>NestedBlockDepth:AppDownloadManager.kt$AppDownloadManager$private fun cancelAndroidDownloadManagerDownloads()</ID>
     <ID>NestedBlockDepth:BackupAgent.kt$BackupAgent$private fun backupWireGuardConfig(tempDir: File): Boolean</ID>
     <ID>NestedBlockDepth:BackupHelper.kt$BackupHelper.Companion$fun unzip(inputStream: InputStream?, path: String): Boolean</ID>
+    <ID>NestedBlockDepth:BillingProductCatalog.kt$BillingProductCatalog$fun processProductList(pds: List&lt;ProductDetails&gt;)</ID>
     <ID>NestedBlockDepth:BubbleHelper.kt$BubbleHelper$@RequiresApi(Build.VERSION_CODES.Q) fun updateBubble( context: Context, blockedCount: Int, persistentState: PersistentState? = null )</ID>
     <ID>NestedBlockDepth:BugReportZipper.kt$BugReportZipper$@RequiresApi(Build.VERSION_CODES.O) fun rezipAll(dir: File, file: File)</ID>
     <ID>NestedBlockDepth:BugReportZipper.kt$BugReportZipper$@RequiresApi(Build.VERSION_CODES.R) fun dumpAppExit(aei: ApplicationExitInfo, file: File)</ID>
@@ -267,11 +256,10 @@
     <ID>NestedBlockDepth:GoVpnAdapter.kt$GoVpnAdapter$suspend fun unregisterWin(): Boolean</ID>
     <ID>NestedBlockDepth:HomeScreenActivity.kt$HomeScreenActivity$private fun collectAllBugReportFiles(): List&lt;BugReportFile&gt;</ID>
     <ID>NestedBlockDepth:HomeScreenActivity.kt$HomeScreenActivity$private fun createCombinedZip(files: List&lt;File&gt;): Uri?</ID>
-    <ID>NestedBlockDepth:InAppBillingHandler.kt$InAppBillingHandler$private fun processProductList(pds: List&lt;ProductDetails&gt;)</ID>
-    <ID>NestedBlockDepth:InAppBillingHandler.kt$InAppBillingHandler$private suspend fun handlePurchase( purchasesList: List&lt;Purchase&gt;?, queriedProductType: String? = null )</ID>
     <ID>NestedBlockDepth:IpInfoDownloader.kt$IpInfoDownloader$private suspend fun performIpInfoDownload(ipToLookup: String): Boolean</ID>
     <ID>NestedBlockDepth:IpRulesManager.kt$IpRulesManager$suspend fun load(): Long</ID>
     <ID>NestedBlockDepth:NetworkBindingService.kt$NetworkBindingService$private suspend fun bindAny( who: String, addrPort: String, fid: Long, networks: List&lt;NetworkProperties&gt; ): Boolean</ID>
+    <ID>NestedBlockDepth:PurchaseResultProcessor.kt$PurchaseResultProcessor$suspend fun handlePurchase( purchasesList: List&lt;Purchase&gt;?, queriedProductType: String? = null )</ID>
     <ID>NestedBlockDepth:RestoreAgent.kt$RestoreAgent$private fun isMetadataCompatible(tempDirectory: String?): Boolean</ID>
     <ID>NestedBlockDepth:RpnHopSelector.kt$RpnHopSelector$suspend fun collectProxyIds( uid: Int, ip: String, port: Int, domain: String, usesMobileNw: Boolean, ssid: String, allProxyIdsForApp: List&lt;String&gt;, rpnProxyIdsForApp: List&lt;String&gt;, servers: List&lt;CountryConfig&gt;, resolveAutoId: suspend () -&gt; String, ): List&lt;String&gt;</ID>
     <ID>NestedBlockDepth:RpnProxyManager.kt$RpnProxyManager$private suspend fun handleStateChange(state: SubscriptionStateMachineV2.SubscriptionState)</ID>
@@ -376,6 +364,7 @@
     <ID>TooManyFunctions:BackupAgent.kt$BackupAgent : WorkerKoinComponent</ID>
     <ID>TooManyFunctions:BackupRestoreDialog.kt$com.bernaferrari.bravedns.ui.bottomsheet.BackupRestoreDialog.kt</ID>
     <ID>TooManyFunctions:BillingBackendClient.kt$BillingBackendClient : KoinComponent</ID>
+    <ID>TooManyFunctions:BillingConnectionController.kt$BillingConnectionController</ID>
     <ID>TooManyFunctions:BlocklistDownloadHelper.kt$BlocklistDownloadHelper$Companion</ID>
     <ID>TooManyFunctions:BraveVPNService.kt$BraveVPNService : VpnServiceNetworkListenerBridge</ID>
     <ID>TooManyFunctions:BubbleHelper.kt$BubbleHelper</ID>
@@ -421,6 +410,8 @@
     <ID>TooManyFunctions:ProxySettings.kt$ProxySettings : ProxySettingsApi</ID>
     <ID>TooManyFunctions:ProxySettings.kt$ProxySettingsApi</ID>
     <ID>TooManyFunctions:ProxySettingsScreen.kt$com.bernaferrari.bravedns.ui.compose.settings.ProxySettingsScreen.kt</ID>
+    <ID>TooManyFunctions:PurchaseAckController.kt$PurchaseAckController</ID>
+    <ID>TooManyFunctions:PurchaseDetailFactory.kt$PurchaseDetailFactory</ID>
     <ID>TooManyFunctions:QueryUtils.kt$QueryUtils</ID>
     <ID>TooManyFunctions:RefreshDatabase.kt$RefreshDatabase</ID>
     <ID>TooManyFunctions:RestoreAgent.kt$RestoreAgent : CoroutineWorkerKoinComponent</ID>
@@ -450,12 +441,12 @@
     <ID>UnusedParameter:ConfigureOtherDnsScreen.kt$context: android.content.Context</ID>
     <ID>UnusedParameter:ConfigureRethinkBasicScreen.kt$appDownloadManager: AppDownloadManager</ID>
     <ID>UnusedParameter:GoVpnAdapter.kt$GoVpnAdapter$option: Long</ID>
-    <ID>UnusedParameter:InAppBillingHandler.kt$InAppBillingHandler$deviceId: String</ID>
     <ID>UnusedParameter:MiscSettingsScreen.kt$onRefreshDatabase: (() -&gt; Unit)? = null</ID>
     <ID>UnusedParameter:NetworkLogsScreen.kt$eventLogger: EventLogger</ID>
     <ID>UnusedParameter:NetworkLogsScreen.kt$rethinkLogRepository: RethinkLogRepository</ID>
     <ID>UnusedParameter:NetworkLogsScreen.kt$rethinkLogViewModel: RethinkLogViewModel</ID>
     <ID>UnusedParameter:ProxySettingsScreen.kt$context: android.content.Context</ID>
+    <ID>UnusedParameter:PurchaseAckController.kt$PurchaseAckController$deviceId: String</ID>
     <ID>UnusedParameter:SsidPermissionManager.kt$SsidPermissionManager$permissions: Array&lt;out String&gt;</ID>
     <ID>UnusedParameter:VpnAppFunctions.kt$VpnAppFunctions$appFunctionContext: AppFunctionContext</ID>
     <ID>UnusedParameter:VpnConnectionHandler.kt$VpnConnectionHandler$rethinkUid: Int</ID>

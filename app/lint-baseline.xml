@@ -8,7 +8,7 @@
         errorLine2="               ~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/full/kotlin/com/bernaferrari/bravedns/ui/HomeScreenActivity.kt"
-            line="285"
+            line="284"
             column="16"/>
     </issue>
 
@@ -19,7 +19,7 @@
         errorLine2="                                         ~">
         <location
             file="src/full/kotlin/com/bernaferrari/bravedns/ui/HomeScreenActivity.kt"
-            line="285"
+            line="284"
             column="42"/>
     </issue>
 
@@ -30,7 +30,7 @@
         errorLine2="               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/full/kotlin/com/bernaferrari/bravedns/ui/HomeScreenActivity.kt"
-            line="286"
+            line="285"
             column="16"/>
     </issue>
 
@@ -41,7 +41,7 @@
         errorLine2="                                               ~">
         <location
             file="src/full/kotlin/com/bernaferrari/bravedns/ui/HomeScreenActivity.kt"
-            line="286"
+            line="285"
             column="48"/>
     </issue>
 
@@ -52,7 +52,7 @@
         errorLine2="               ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/full/kotlin/com/bernaferrari/bravedns/ui/HomeScreenActivity.kt"
-            line="287"
+            line="286"
             column="16"/>
     </issue>
 
@@ -63,7 +63,7 @@
         errorLine2="                                           ~">
         <location
             file="src/full/kotlin/com/bernaferrari/bravedns/ui/HomeScreenActivity.kt"
-            line="287"
+            line="286"
             column="44"/>
     </issue>
 
@@ -217,7 +217,7 @@
         errorLine2="                                                     ~~~~~~~~~~~~~~">
         <location
             file="src/full/kotlin/com/bernaferrari/bravedns/ui/HomeScreenActivity.kt"
-            line="317"
+            line="316"
             column="54"/>
     </issue>
 
@@ -228,7 +228,7 @@
         errorLine2="                                                      ~~~~~~~~~~~~~~">
         <location
             file="src/full/kotlin/com/bernaferrari/bravedns/ui/HomeScreenActivity.kt"
-            line="318"
+            line="317"
             column="55"/>
     </issue>
 
