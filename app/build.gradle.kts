@@ -340,10 +340,6 @@ dependencies {
     implementation(libs.androidx.paging.compose)
     "fullImplementation"(libs.ktor.client.core)
     "fullImplementation"(libs.ktor.client.cio)
-    "fullImplementation"(libs.retrofit)
-    "fullImplementation"(libs.retrofit.converter.kotlinx.serialization)
-    "fullImplementation"(libs.okhttp)
-    "fullImplementation"(libs.okhttp.dnsoverhttps)
 
     implementation(libs.okio.jvm)
 

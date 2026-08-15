@@ -25,8 +25,7 @@
     <ID>CyclomaticComplexMethod:AppListScreen.kt$AndroidBulkDialogCopy$fun copyFor(action: RethinkFirewallBulkAction, active: Boolean): RethinkFirewallBulkDialogCopy</ID>
     <ID>CyclomaticComplexMethod:BackupRestoreDialog.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun BackupRestoreSheet( onDismiss: () -&gt; Unit )</ID>
     <ID>CyclomaticComplexMethod:BillingBackendClient.kt$BillingBackendClient$suspend fun refreshIdentity(): RefreshIdentityResult</ID>
-    <ID>CyclomaticComplexMethod:BillingEntitlementApi.kt$BillingEntitlementApi$private suspend fun executeAckWithRetry( caller: String, attempt: suspend (ApiHandle) -&gt; Response&lt;JsonObject?&gt;? ): Pair&lt;Boolean, String&gt;</ID>
-    <ID>CyclomaticComplexMethod:BillingEntitlementApi.kt$BillingEntitlementApi$suspend fun queryEntitlement( accountId: String, deviceId: String, purchase: PurchaseDetail, purchaseToken: String ): QueryEntitlementResult</ID>
+    <ID>CyclomaticComplexMethod:BillingEntitlementApi.kt$BillingEntitlementApi$private suspend fun executeAckWithRetry( caller: String, attempt: suspend (BillingApiFactory.BillingEnv) -&gt; BillingHttpResponse, ): Pair&lt;Boolean, String&gt;</ID>
     <ID>CyclomaticComplexMethod:BillingProductCatalog.kt$BillingProductCatalog$fun processProductList(pds: List&lt;ProductDetails&gt;)</ID>
     <ID>CyclomaticComplexMethod:BraveVPNService.kt$BraveVPNService$fun parseIpAndPort(endpoint: String?): Pair&lt;String, Int&gt;</ID>
     <ID>CyclomaticComplexMethod:BraveVPNService.kt$BraveVPNService$override fun flow( protocol: Int, _uid: Int, src: String?, dst: String?, realIps: String?, d: String?, possibleDomains: String?, blocklists: String? ): Mark</ID>
@@ -210,7 +209,6 @@
     <ID>MatchingDeclarationName:ConfigureOtherDnsScreen.kt$DnsScreenType</ID>
     <ID>MatchingDeclarationName:ConfigureRethinkBasicScreen.kt$ConfigureRethinkScreenType</ID>
     <ID>MatchingDeclarationName:NetworkLogsScreen.kt$LogTab</ID>
-    <ID>MatchingDeclarationName:NullOnEmptyConverterFactory.kt$SafeResponseConverterFactory : Factory</ID>
     <ID>MatchingDeclarationName:VPNControlReceiver.kt$VpnControlReceiver : BroadcastReceiverKoinComponent</ID>
     <ID>NestedBlockDepth:AppDownloadManager.kt$AppDownloadManager$private fun cancelAndroidDownloadManagerDownloads()</ID>
     <ID>NestedBlockDepth:BackupAgent.kt$BackupAgent$private fun backupWireGuardConfig(tempDir: File): Boolean</ID>
@@ -438,6 +436,5 @@
     <ID>UnusedPrivateProperty:RpnAccountScreen.kt$var selectedTab by remember { mutableIntStateOf(0) }</ID>
     <ID>UnusedPrivateProperty:SubscriptionPurchaseProcessor.kt$SubscriptionPurchaseProcessor$private val activateRpn: suspend (purchaseDetail: PurchaseDetail) -&gt; Unit</ID>
     <ID>UtilityClassWithPublicConstructor:BackupHelper.kt$BackupHelper</ID>
-    <ID>UtilityClassWithPublicConstructor:RetrofitManager.kt$RetrofitManager</ID>
   </CurrentIssues>
 </SmellBaseline>

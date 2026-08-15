@@ -18,21 +18,9 @@ package com.bernaferrari.bravedns.iab
 import kotlinx.serialization.json.JsonObject
 
 /**
- * Client-agnostic billing HTTP envelope. Replaces `retrofit2.Response<JsonObject?>`
- * so mappers stay stable across the Ktor migration.
+ * Client-agnostic billing HTTP envelope, populated by the Ktor transport
+ * ([BillingApiFactory]) so mappers stay stable across HTTP engines.
  */
-import retrofit2.Response
-
-internal fun Response<JsonObject?>.toBillingHttp(): BillingHttpResponse = BillingHttpResponse(
-    code = code(),
-    body = body(),
-    errorBody = errorBody()?.string(),
-    message = message(),
-    requestUrl = raw().request.url.toString(),
-)
-
-internal fun Response<JsonObject?>?.toBillingHttpOrNull(): BillingHttpResponse? = this?.toBillingHttp()
-
 internal data class BillingHttpResponse(
     val code: Int,
     val body: JsonObject?,
