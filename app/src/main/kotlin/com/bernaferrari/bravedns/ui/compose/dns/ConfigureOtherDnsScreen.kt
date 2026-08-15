@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -378,7 +379,7 @@ private fun DnsProxyListContent(
     val items = dnsProxyViewModel.dnsProxyEndpointList.collectAsLazyPagingItems()
     var showDialog by remember { mutableStateOf(false) }
     var appNames by remember { mutableStateOf<List<String>>(emptyList()) }
-    var nextIndex by remember { mutableStateOf(0) }
+    var nextIndex by remember { mutableIntStateOf(0) }
     val defaultAppName = stringResource(R.string.settings_app_list_default_app)
 
     DnsEndpointListWithFab(

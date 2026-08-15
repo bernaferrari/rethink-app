@@ -24,6 +24,7 @@ import android.content.ContentResolver
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import androidx.core.graphics.scale
 import com.google.zxing.BinaryBitmap
 import com.google.zxing.DecodeHintType
 import com.google.zxing.NotFoundException
@@ -80,7 +81,7 @@ class QrCodeFromFileScanner(
                 newWidth = scaledSize
             }
         }
-        return Bitmap.createScaledBitmap(source, newWidth, newHeight, false)
+        return source.scale(newWidth, newHeight, false)
     }
 
     private fun doScan(data: Uri): Result? {

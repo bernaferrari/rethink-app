@@ -1,0 +1,5 @@
+<resources>
+    <style name="AppThemeInitial" parent="AppThemeInitialBase">
+        <item name="android:navigationBarDividerColor">@android:color/transparent</item>
+    </style>
+</resources>

@@ -801,8 +801,7 @@ private fun RethinkBlocklistContent(
 ) {
     val scope = rememberCoroutineScope()
     val filterState by filters.collectAsState()
-    val selectedTags by RethinkBlocklistState.selectedFileTags
-        .collectAsState(initial = RethinkBlocklistState.selectedFileTags.value)
+    val selectedTags by RethinkBlocklistState.selectedFileTags.collectAsState()
 
     // Observe blocklist download state
     val workManager = WorkManager.getInstance(context)

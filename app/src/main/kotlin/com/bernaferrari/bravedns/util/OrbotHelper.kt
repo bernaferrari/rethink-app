@@ -146,7 +146,7 @@ class OrbotHelper(
     fun getIntentForDownload(): Intent? {
         if (isPlayStoreFlavour()) { // For play store
             val intent = Intent(Intent.ACTION_VIEW)
-            intent.data = Uri.parse(ORBOT_MARKET_URI)
+            intent.data = ORBOT_MARKET_URI.toUri()
 
             val pm = context.packageManager
             val resInfos =

@@ -18,6 +18,7 @@ package com.bernaferrari.bravedns.customdownloader
 import okhttp3.internal.concurrent.TaskRunner
 import okhttp3.internal.http2.Http2
 import java.io.Closeable
+import java.util.Locale
 import java.util.concurrent.CopyOnWriteArraySet
 import java.util.logging.ConsoleHandler
 import java.util.logging.Handler
@@ -41,7 +42,7 @@ object OkHttpDebugLogging {
             formatter =
                 object : SimpleFormatter() {
                     override fun format(record: LogRecord) =
-                        String.format("[%1\$tF %1\$tT] %2\$s %n", record.millis, record.message)
+                        String.format(Locale.US, "[%1\$tF %1\$tT] %2\$s %n", record.millis, record.message)
                 }
         }
 

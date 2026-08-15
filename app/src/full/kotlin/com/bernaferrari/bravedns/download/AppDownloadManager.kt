@@ -21,8 +21,8 @@ import Logger.LOG_TAG_DNS
 import Logger.LOG_TAG_DOWNLOAD
 import android.app.DownloadManager
 import android.content.Context
-import android.net.Uri
 import android.os.SystemClock
+import androidx.core.net.toUri
 import androidx.work.BackoffPolicy
 import kotlinx.coroutines.flow.MutableStateFlow
 import androidx.work.Data
@@ -405,7 +405,7 @@ class AppDownloadManager(
     private fun enqueueDownload(url: String, fileName: String, timestamp: String): Long {
         try {
             downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-            val downloadUri = Uri.parse(url)
+            val downloadUri = url.toUri()
             val request = DownloadManager.Request(downloadUri)
             request.apply {
                 setTitle(fileName)

@@ -163,7 +163,7 @@ object TunnelImporter : KoinComponent {
         // trim the message and take string after ":"
         val idx = message.indexOf(':')
         if (idx >= 0) {
-            message = message.substring(idx + 1).trim { it <= ' ' }
+            message = message.substring(idx + 1).trim()
         }
         message =
             if (throwables.isEmpty()) context.getString(R.string.config_add_success_toast)

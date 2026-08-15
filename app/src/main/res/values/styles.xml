@@ -1,7 +1,7 @@
 <resources>
 
-    <!-- Base application theme. -->
-    <style name="AppThemeInitial" parent="@android:style/Theme.Material.NoActionBar">
+    <!-- Base application theme. API-specific system-bar items live in values-v27 / values-v29. -->
+    <style name="AppThemeInitialBase" parent="@android:style/Theme.Material.NoActionBar">
         <item name="android:windowDisablePreview">true</item>
         <item name="android:windowBackground">@color/rethinkLaunchSurface</item>
         <item name="android:colorPrimary">@color/rethinkLaunchSurface</item>
@@ -11,9 +11,6 @@
         <item name="android:statusBarColor">@color/rethinkLaunchSurface</item>
         <item name="android:navigationBarColor">@color/rethinkLaunchSurface</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-        <item name="android:enforceStatusBarContrast">false</item>
-        <item name="android:enforceNavigationBarContrast">false</item>
-        <item name="android:navigationBarDividerColor">@android:color/transparent</item>
 
         <!-- Legacy attr bridge for XML drawables still using ?attr/... -->
         <item name="accentGood">@color/accentGood</item>
@@ -62,4 +59,6 @@
         <item name="primaryDarkColor">@color/colorPrimaryDark</item>
         <item name="primaryColorAccent">@color/rethinkLaunchAccent</item>
     </style>
+
+    <style name="AppThemeInitial" parent="AppThemeInitialBase" />
 </resources>

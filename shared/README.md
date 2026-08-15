@@ -20,10 +20,10 @@ the historical duplicate-task conflict and lets Android and the browser compile 
 sets provide only host integration such as the Android VPN, package discovery, and filesystem
 backends.
 
-## Room (simple KMP rule)
+## Room (KMP rule)
 
 - Portable entities/DAOs/repos → `:shared` `commonMain`.
-- `@Database` / migrations / android-coupled entities → `:app`.
+- `@Database` declarations and verified `Migration`s also live here (`AppDatabase`, `LogDatabase`, `ConsoleLogDatabase` + `*Migrations.kt`); schemas export to `shared/schemas/`. Android builders wire drivers in `androidMain`.
 
 ## WireGuard
 
@@ -62,8 +62,8 @@ Wasm ComposeViewport┘         │
 | **Android** | `HomeScreenRoot` → `RethinkAppNavigation` | product screens + ViewModels |
 | **wasm** | `RethinkAppContent` → `RethinkAppNavigation` | `rethinkPreviewEntries` fixtures |
 
-Same stack policy (tab rebuilds root; details push), same chrome, same `RethinkRoute`. Preview data lives under `ui/compose/demo/` — not a second app.
+Same `RethinkRoute` graph and chrome on both hosts; root tabs preserve their back stacks, details push. Preview data lives under `ui/compose/demo/` — not a second app.
 
 ## Still only in `:app` (expected)
 
-`AppDatabase` / migrations / `DatabaseModule` / `RefreshDatabase`, android-coupled entities (`AppInfo`, `CustomIp`, `DnsLog`, …), VPN/Go/Firestack, rich Compose screens.
+VPN/Go/Firestack service layer, billing (`src/billing` shared by play/website channels), backup/restore agents, android-coupled Compose screens and dialogs.

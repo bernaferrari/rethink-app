@@ -52,6 +52,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -134,7 +135,7 @@ fun AppInfoScreen(
     var connStatus by remember(uid) { mutableStateOf(FirewallManager.ConnectionStatus.ALLOW) }
     var baselineConnStatus by remember(uid) { mutableStateOf(FirewallManager.ConnectionStatus.ALLOW) }
     var firewallStatusText by remember(uid) { mutableStateOf("") }
-    var firewallUpdateVersion by remember(uid) { mutableStateOf(0) }
+    var firewallUpdateVersion by remember(uid) { mutableIntStateOf(0) }
     var isProxyExcluded by remember(uid) { mutableStateOf(false) }
     var isTempAllowed by remember(uid) { mutableStateOf(false) }
     var proxyDetails by remember(uid) { mutableStateOf("") }
@@ -146,7 +147,7 @@ fun AppInfoScreen(
     var selectedIp by remember { mutableStateOf("") }
     var selectedDomains by remember { mutableStateOf("") }
 
-    var refreshToken by remember(uid) { mutableStateOf(0) }
+    var refreshToken by remember(uid) { mutableIntStateOf(0) }
     var closeDialogConn by remember(uid) { mutableStateOf<com.bernaferrari.bravedns.data.AppConnection?>(null) }
 
     val wireguardAppsProxyMapDesc = stringResource(R.string.wireguard_apps_proxy_map_desc)

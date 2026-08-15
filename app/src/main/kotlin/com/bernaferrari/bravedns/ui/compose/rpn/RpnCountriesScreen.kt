@@ -3,6 +3,7 @@ package com.bernaferrari.bravedns.ui.compose.rpn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -29,7 +30,7 @@ fun RpnCountriesScreen(
     var frequent by remember { mutableStateOf<Set<String>>(emptySet()) }
     var busyKey by remember { mutableStateOf<String?>(null) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    var reloadToken by remember { mutableStateOf(0) }
+    var reloadToken by remember { mutableIntStateOf(0) }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(reloadToken) {

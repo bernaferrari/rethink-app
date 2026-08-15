@@ -84,8 +84,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.core.os.ConfigurationCompat
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -200,9 +202,10 @@ fun ProxySettingsScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val providerLocale = ConfigurationCompat.getLocales(LocalConfiguration.current)[0] ?: Locale.US
     val providerName =
         persistentState.proxyProvider.lowercase().replaceFirstChar {
-            if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
+            if (it.isLowerCase()) it.titlecase(providerLocale) else it.toString()
         }
     val lockDownProxyDesc = stringResource(R.string.settings_lock_down_proxy_desc)
     val refreshToast = stringResource(R.string.dc_refresh_toast)

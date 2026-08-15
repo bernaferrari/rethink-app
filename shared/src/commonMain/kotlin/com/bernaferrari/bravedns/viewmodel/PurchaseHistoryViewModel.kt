@@ -18,12 +18,11 @@ import org.koin.core.annotation.Provided
 @KoinViewModel
 class PurchaseHistoryViewModel(@Provided private val historyDao: SubscriptionStateHistoryDao) : ViewModel() {
     private val pagingConfig = PagingConfig(
-        enablePlaceholders = true,
+        enablePlaceholders = false,
         prefetchDistance = 3,
         initialLoadSize = LIVEDATA_PAGE_SIZE * 2,
         maxSize = LIVEDATA_PAGE_SIZE * 3,
         pageSize = LIVEDATA_PAGE_SIZE * 2,
-        jumpThreshold = 5
     )
 
     val historyFlow: Flow<PagingData<SubscriptionStateHistory>> =

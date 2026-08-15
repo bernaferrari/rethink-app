@@ -658,7 +658,6 @@ class RethinkPlusViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     override fun onCleared() {
-        super.onCleared()
         stopPendingPurchasePolling()
         cancelLoadingWatchdog()
         extendObserverJob?.cancel()

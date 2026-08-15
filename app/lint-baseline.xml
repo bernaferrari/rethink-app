@@ -2,57 +2,13 @@
 <issues format="6" by="lint 9.3.1" type="baseline" client="gradle" dependencies="true" name="AGP (9.3.1)" variant="all" version="9.3.1">
 
     <issue
-        id="EmptySuperCall"
-        message="No need to call `super.onCleared`; the super method is defined to be empty"
-        errorLine1="        super.onCleared()"
-        errorLine2="              ~~~~~~~~~">
-        <location
-            file="src/billing/kotlin/com/bernaferrari/bravedns/viewmodel/RethinkPlusViewModel.kt"
-            line="661"
-            column="15"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
-        errorLine1="                        String.format(&quot;[%1\$tF %1\$tT] %2\$s %n&quot;, record.millis, record.message)"
-        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/full/kotlin/com/bernaferrari/bravedns/customdownloader/OkHttpDebugLogging.kt"
-            line="44"
-            column="25"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
-        errorLine1="                        String.format(&quot;[%1\$tF %1\$tT] %2\$s %n&quot;, record.millis, record.message)"
-        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/full/kotlin/com/bernaferrari/bravedns/customdownloader/OkHttpDebugLogging.kt"
-            line="44"
-            column="25"/>
-    </issue>
-
-    <issue
-        id="NewApi"
-        message="Call requires API level 29 (current min is 23): `handleIfNeeded`"
-        errorLine1="            handleBubbleIfNeeded = { bubbleController.handleIfNeeded() },"
-        errorLine2="                                                      ~~~~~~~~~~~~~~">
-        <location
-            file="src/main/kotlin/com/bernaferrari/bravedns/service/BraveVPNService.kt"
-            line="1091"
-            column="55"/>
-    </issue>
-
-    <issue
         id="NewApi"
         message="Call requires API level 28 (current min is 23): `android.view.Window#setNavigationBarDividerColor`"
         errorLine1="        window.navigationBarDividerColor = AndroidColor.TRANSPARENT"
         errorLine2="               ~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/full/kotlin/com/bernaferrari/bravedns/ui/HomeScreenActivity.kt"
-            line="289"
+            line="285"
             column="16"/>
     </issue>
 
@@ -63,7 +19,7 @@
         errorLine2="                                         ~">
         <location
             file="src/full/kotlin/com/bernaferrari/bravedns/ui/HomeScreenActivity.kt"
-            line="289"
+            line="285"
             column="42"/>
     </issue>
 
@@ -74,7 +30,7 @@
         errorLine2="               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/full/kotlin/com/bernaferrari/bravedns/ui/HomeScreenActivity.kt"
-            line="290"
+            line="286"
             column="16"/>
     </issue>
 
@@ -85,7 +41,7 @@
         errorLine2="                                               ~">
         <location
             file="src/full/kotlin/com/bernaferrari/bravedns/ui/HomeScreenActivity.kt"
-            line="290"
+            line="286"
             column="48"/>
     </issue>
 
@@ -96,7 +52,7 @@
         errorLine2="               ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/full/kotlin/com/bernaferrari/bravedns/ui/HomeScreenActivity.kt"
-            line="291"
+            line="287"
             column="16"/>
     </issue>
 
@@ -107,74 +63,8 @@
         errorLine2="                                           ~">
         <location
             file="src/full/kotlin/com/bernaferrari/bravedns/ui/HomeScreenActivity.kt"
-            line="291"
+            line="287"
             column="44"/>
-    </issue>
-
-    <issue
-        id="NewApi"
-        message="Call requires API level 26 (current min is 23): `android.animation.ValueAnimator#areAnimatorsEnabled`"
-        errorLine1="        runCatching { !ValueAnimator.areAnimatorsEnabled() }.getOrDefault(false)"
-        errorLine2="                                     ~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/kotlin/com/bernaferrari/bravedns/ui/compose/theme/Motion.kt"
-            line="39"
-            column="38"/>
-    </issue>
-
-    <issue
-        id="NewApi"
-        message="Call requires API level 24 (current min is 23): `java.lang.String#codePoints`"
-        errorLine1="    val codepoints = flag.codePoints().toArray()"
-        errorLine2="                          ~~~~~~~~~~">
-        <location
-            file="src/main/kotlin/com/bernaferrari/bravedns/ui/compose/statistics/StatisticsCountryUtils.kt"
-            line="27"
-            column="27"/>
-    </issue>
-
-    <issue
-        id="NewApi"
-        message="`android:enforceStatusBarContrast` requires API level 29 (current min is 23)"
-        errorLine1="        &lt;item name=&quot;android:enforceStatusBarContrast&quot;>false&lt;/item>"
-        errorLine2="              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values/styles.xml"
-            line="14"
-            column="15"/>
-    </issue>
-
-    <issue
-        id="NewApi"
-        message="`android:enforceNavigationBarContrast` requires API level 29 (current min is 23)"
-        errorLine1="        &lt;item name=&quot;android:enforceNavigationBarContrast&quot;>false&lt;/item>"
-        errorLine2="              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values/styles.xml"
-            line="15"
-            column="15"/>
-    </issue>
-
-    <issue
-        id="NewApi"
-        message="`android:navigationBarDividerColor` requires API level 27 (current min is 23)"
-        errorLine1="        &lt;item name=&quot;android:navigationBarDividerColor&quot;>@android:color/transparent&lt;/item>"
-        errorLine2="              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values/styles.xml"
-            line="16"
-            column="15"/>
-    </issue>
-
-    <issue
-        id="TrimLambda"
-        message="The lambda argument (`{ it &lt;= &apos; &apos; }`) is unnecessary"
-        errorLine1="            message = message.substring(idx + 1).trim { it &lt;= &apos; &apos; }"
-        errorLine2="                                                      ~~~~~~~~~~~~~">
-        <location
-            file="src/full/kotlin/com/bernaferrari/bravedns/util/TunnelImporter.kt"
-            line="166"
-            column="55"/>
     </issue>
 
     <issue
@@ -244,50 +134,6 @@
     </issue>
 
     <issue
-        id="NonObservableLocale"
-        message="Reading locale in a non-observable way in a composable function"
-        errorLine1="        diff &lt; TimeUnit.HOURS.toMillis(1) -> String.format(Locale.getDefault(), minutesTemplate, TimeUnit.MILLISECONDS.toMinutes(diff))"
-        errorLine2="                                                           ~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/kotlin/com/bernaferrari/bravedns/ui/compose/bubble/BubbleScreen.kt"
-            line="99"
-            column="60"/>
-    </issue>
-
-    <issue
-        id="NonObservableLocale"
-        message="Reading locale in a non-observable way in a composable function"
-        errorLine1="        diff &lt; TimeUnit.DAYS.toMillis(1) -> String.format(Locale.getDefault(), hoursTemplate, TimeUnit.MILLISECONDS.toHours(diff))"
-        errorLine2="                                                          ~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/kotlin/com/bernaferrari/bravedns/ui/compose/bubble/BubbleScreen.kt"
-            line="100"
-            column="59"/>
-    </issue>
-
-    <issue
-        id="NonObservableLocale"
-        message="Reading locale in a non-observable way in a composable function"
-        errorLine1="        else -> SimpleDateFormat(&quot;MMM dd, HH:mm&quot;, Locale.getDefault()).format(Date(timestamp))"
-        errorLine2="                                                  ~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/kotlin/com/bernaferrari/bravedns/ui/compose/bubble/BubbleScreen.kt"
-            line="101"
-            column="51"/>
-    </issue>
-
-    <issue
-        id="NonObservableLocale"
-        message="Reading locale in a non-observable way in a composable function"
-        errorLine1="            if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()"
-        errorLine2="                                               ~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/kotlin/com/bernaferrari/bravedns/ui/compose/settings/ProxySettingsScreen.kt"
-            line="205"
-            column="48"/>
-    </issue>
-
-    <issue
         id="LocalContextResourcesRead"
         message="Reading Resources using LocalContext.current.resources is not configuration-aware and may return stale values if the Configuration changes"
         errorLine1="                context.resources.getIdentifier(key, &quot;string&quot;, context.packageName)"
@@ -296,17 +142,6 @@
             file="src/full/kotlin/com/bernaferrari/bravedns/ui/components/DnsEndpointShared.kt"
             line="211"
             column="17"/>
-    </issue>
-
-    <issue
-        id="StateFlowValueCalledInComposition"
-        message="StateFlow.value should not be called within composition"
-        errorLine1="        .collectAsState(initial = RethinkBlocklistState.selectedFileTags.value)"
-        errorLine2="                                                                         ~~~~~">
-        <location
-            file="src/main/kotlin/com/bernaferrari/bravedns/ui/compose/dns/ConfigureRethinkBasicScreen.kt"
-            line="805"
-            column="74"/>
     </issue>
 
     <issue
@@ -378,77 +213,11 @@
     <issue
         id="AutoboxingStateCreation"
         message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
-        errorLine1="    var firewallUpdateVersion by remember(uid) { mutableStateOf(0) }"
-        errorLine2="                                                 ~~~~~~~~~~~~~~">
-        <location
-            file="src/full/kotlin/com/bernaferrari/bravedns/ui/compose/app/AppInfoScreen.kt"
-            line="137"
-            column="50"/>
-    </issue>
-
-    <issue
-        id="AutoboxingStateCreation"
-        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
-        errorLine1="    var refreshToken by remember(uid) { mutableStateOf(0) }"
-        errorLine2="                                        ~~~~~~~~~~~~~~">
-        <location
-            file="src/full/kotlin/com/bernaferrari/bravedns/ui/compose/app/AppInfoScreen.kt"
-            line="149"
-            column="41"/>
-    </issue>
-
-    <issue
-        id="AutoboxingStateCreation"
-        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
-        errorLine1="    var refreshToken by remember { mutableStateOf(0) }"
-        errorLine2="                                   ~~~~~~~~~~~~~~">
-        <location
-            file="src/main/kotlin/com/bernaferrari/bravedns/ui/compose/logs/AppWiseDomainLogsScreen.kt"
-            line="145"
-            column="36"/>
-    </issue>
-
-    <issue
-        id="AutoboxingStateCreation"
-        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
-        errorLine1="    var refreshToken by remember { mutableStateOf(0) }"
-        errorLine2="                                   ~~~~~~~~~~~~~~">
-        <location
-            file="src/main/kotlin/com/bernaferrari/bravedns/ui/compose/logs/AppWiseIpLogsScreen.kt"
-            line="154"
-            column="36"/>
-    </issue>
-
-    <issue
-        id="AutoboxingStateCreation"
-        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
-        errorLine1="    var nextIndex by remember { mutableStateOf(0) }"
-        errorLine2="                                ~~~~~~~~~~~~~~">
-        <location
-            file="src/main/kotlin/com/bernaferrari/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
-            line="381"
-            column="33"/>
-    </issue>
-
-    <issue
-        id="AutoboxingStateCreation"
-        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
-        errorLine1="    var appCount by remember(ct.uid) { mutableStateOf(1) }"
-        errorLine2="                                       ~~~~~~~~~~~~~~">
-        <location
-            file="src/full/kotlin/com/bernaferrari/bravedns/ui/components/ConnectionTrackerAdapter.kt"
-            line="127"
-            column="40"/>
-    </issue>
-
-    <issue
-        id="AutoboxingStateCreation"
-        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
         errorLine1="            var composeThemePreference by remember { mutableStateOf(persistentState.theme) }"
         errorLine2="                                                     ~~~~~~~~~~~~~~">
         <location
             file="src/full/kotlin/com/bernaferrari/bravedns/ui/HomeScreenActivity.kt"
-            line="321"
+            line="317"
             column="54"/>
     </issue>
 
@@ -459,239 +228,8 @@
         errorLine2="                                                      ~~~~~~~~~~~~~~">
         <location
             file="src/full/kotlin/com/bernaferrari/bravedns/ui/HomeScreenActivity.kt"
-            line="322"
+            line="318"
             column="55"/>
-    </issue>
-
-    <issue
-        id="AutoboxingStateCreation"
-        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
-        errorLine1="    var reloadToken by remember { mutableStateOf(0) }"
-        errorLine2="                                  ~~~~~~~~~~~~~~">
-        <location
-            file="src/main/kotlin/com/bernaferrari/bravedns/ui/compose/rpn/RpnCountriesScreen.kt"
-            line="32"
-            column="35"/>
-    </issue>
-
-    <issue
-        id="AutoboxingStateCreation"
-        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
-        errorLine1="    var hopDialogSelectedId by remember { mutableStateOf(INVALID_CONF_ID) }"
-        errorLine2="                                          ~~~~~~~~~~~~~~">
-        <location
-            file="src/main/kotlin/com/bernaferrari/bravedns/ui/compose/wireguard/WgConfigDetailScreen.kt"
-            line="137"
-            column="43"/>
-    </issue>
-
-    <issue
-        id="AutoboxingStateCreation"
-        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
-        errorLine1="    var dnsRefreshTrigger by remember { mutableStateOf(0) }"
-        errorLine2="                                        ~~~~~~~~~~~~~~">
-        <location
-            file="src/main/kotlin/com/bernaferrari/bravedns/ui/compose/wireguard/WgMainScreen.kt"
-            line="119"
-            column="41"/>
-    </issue>
-
-    <issue
-        id="UnusedResources"
-        message="The resource `R.drawable.ic_authors` appears to be unused"
-        errorLine1="&lt;vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
-        errorLine2="^">
-        <location
-            file="src/main/res/drawable/ic_authors.xml"
-            line="1"
-            column="1"/>
-    </issue>
-
-    <issue
-        id="UnusedResources"
-        message="The resource `R.mipmap.ic_launcher_foreground` appears to be unused">
-        <location
-            file="src/main/res/mipmap-hdpi/ic_launcher_foreground.png"/>
-    </issue>
-
-    <issue
-        id="UnusedResources"
-        message="The resource `R.mipmap.ic_notification_icon` appears to be unused">
-        <location
-            file="src/main/res/mipmap-hdpi/ic_notification_icon.png"/>
-    </issue>
-
-    <issue
-        id="UnusedResources"
-        message="The resource `R.style.OptOutEdgeToEdgeEnforcement` appears to be unused"
-        errorLine1="    &lt;style name=&quot;OptOutEdgeToEdgeEnforcement&quot;>"
-        errorLine2="           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values/values.xml"
-            line="4"
-            column="12"/>
-    </issue>
-
-    <issue
-        id="IconXmlAndPng"
-        message="The following images appear both as density independent `.xml` files and as bitmap files: src/main/res/drawable/ic_launcher_foreground.xml, src/main/res/mipmap-hdpi/ic_launcher_foreground.png">
-        <location
-            file="src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png"/>
-        <location
-            file="src/main/res/mipmap-xxhdpi/ic_launcher_foreground.png"/>
-        <location
-            file="src/main/res/mipmap-xhdpi/ic_launcher_foreground.png"/>
-        <location
-            file="src/main/res/mipmap-mdpi/ic_launcher_foreground.png"/>
-        <location
-            file="src/main/res/mipmap-hdpi/ic_launcher_foreground.png"/>
-        <location
-            file="src/main/res/drawable/ic_launcher_foreground.xml"/>
-    </issue>
-
-    <issue
-        id="IconDuplicatesConfig"
-        message="The `ic_launcher.png` icon has identical contents in the following configuration folders: drawable-v24, drawable-xxhdpi, drawable">
-        <location
-            file="src/main/res/drawable/ic_launcher.png"/>
-        <location
-            file="src/main/res/drawable-xxhdpi/ic_launcher.png"/>
-        <location
-            file="src/main/res/drawable-v24/ic_launcher.png"/>
-    </issue>
-
-    <issue
-        id="IconDuplicatesConfig"
-        message="The `ic_notification_icon.png` icon has identical contents in the following configuration folders: drawable-hdpi, mipmap-hdpi">
-        <location
-            file="src/main/res/mipmap-hdpi/ic_notification_icon.png"/>
-        <location
-            file="src/main/res/drawable-hdpi/ic_notification_icon.png"/>
-    </issue>
-
-    <issue
-        id="IconDuplicatesConfig"
-        message="The `ic_notification_icon.png` icon has identical contents in the following configuration folders: drawable-mdpi, mipmap-mdpi">
-        <location
-            file="src/main/res/mipmap-mdpi/ic_notification_icon.png"/>
-        <location
-            file="src/main/res/drawable-mdpi/ic_notification_icon.png"/>
-    </issue>
-
-    <issue
-        id="IconDuplicatesConfig"
-        message="The `ic_notification_icon.png` icon has identical contents in the following configuration folders: drawable-v24, drawable-xxxhdpi, drawable, mipmap-anydpi-v26, mipmap-xxxhdpi">
-        <location
-            file="src/main/res/mipmap-xxxhdpi/ic_notification_icon.png"/>
-        <location
-            file="src/main/res/mipmap-anydpi-v26/ic_notification_icon.png"/>
-        <location
-            file="src/main/res/drawable/ic_notification_icon.png"/>
-        <location
-            file="src/main/res/drawable-xxxhdpi/ic_notification_icon.png"/>
-        <location
-            file="src/main/res/drawable-v24/ic_notification_icon.png"/>
-    </issue>
-
-    <issue
-        id="IconDuplicatesConfig"
-        message="The `ic_notification_icon.png` icon has identical contents in the following configuration folders: drawable-xhdpi, mipmap-xhdpi">
-        <location
-            file="src/main/res/mipmap-xhdpi/ic_notification_icon.png"/>
-        <location
-            file="src/main/res/drawable-xhdpi/ic_notification_icon.png"/>
-    </issue>
-
-    <issue
-        id="IconDuplicatesConfig"
-        message="The `ic_notification_icon.png` icon has identical contents in the following configuration folders: drawable-xxhdpi, mipmap-xxhdpi">
-        <location
-            file="src/main/res/mipmap-xxhdpi/ic_notification_icon.png"/>
-        <location
-            file="src/main/res/drawable-xxhdpi/ic_notification_icon.png"/>
-    </issue>
-
-    <issue
-        id="IconLocation"
-        message="Found bitmap drawable `res/drawable/ic_launcher.png` in densityless folder">
-        <location
-            file="src/main/res/drawable/ic_launcher.png"/>
-    </issue>
-
-    <issue
-        id="IconLocation"
-        message="Found bitmap drawable `res/drawable/ic_notification_icon.png` in densityless folder">
-        <location
-            file="src/main/res/drawable/ic_notification_icon.png"/>
-    </issue>
-
-    <issue
-        id="IconLocation"
-        message="Found bitmap drawable `res/drawable/mozilla.png` in densityless folder">
-        <location
-            file="src/main/res/drawable/mozilla.png"/>
-    </issue>
-
-    <issue
-        id="IconLocation"
-        message="Found bitmap drawable `res/drawable/shield_green.png` in densityless folder">
-        <location
-            file="src/main/res/drawable/shield_green.png"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toUri` instead?"
-        errorLine1="            val downloadUri = Uri.parse(url)"
-        errorLine2="                              ~~~~~~~~~~~~~~">
-        <location
-            file="src/full/kotlin/com/bernaferrari/bravedns/download/AppDownloadManager.kt"
-            line="408"
-            column="31"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `Bitmap.toDrawable` instead?"
-        errorLine1="    return (result as? SuccessResult)?.image?.toBitmap()?.let { BitmapDrawable(context.resources, it) }"
-        errorLine2="                                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/full/kotlin/com/bernaferrari/bravedns/ui/components/DnsLogAdapter.kt"
-            line="364"
-            column="65"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toUri` instead?"
-        errorLine1="            intent.data = Uri.parse(ORBOT_MARKET_URI)"
-        errorLine2="                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/kotlin/com/bernaferrari/bravedns/util/OrbotHelper.kt"
-            line="149"
-            column="27"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `String.toUri` instead?"
-        errorLine1="            intent.data = Uri.parse(ORBOT_MARKET_URI)"
-        errorLine2="                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/kotlin/com/bernaferrari/bravedns/util/OrbotHelper.kt"
-            line="149"
-            column="27"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `Bitmap.scale` instead?"
-        errorLine1="        return Bitmap.createScaledBitmap(source, newWidth, newHeight, false)"
-        errorLine2="               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/full/kotlin/com/bernaferrari/bravedns/util/QrCodeFromFileScanner.kt"
-            line="83"
-            column="16"/>
     </issue>
 
     <issue

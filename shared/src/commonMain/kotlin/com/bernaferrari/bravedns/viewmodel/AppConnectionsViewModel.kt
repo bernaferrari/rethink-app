@@ -216,12 +216,11 @@ class AppConnectionsViewModel(
 
     private val pagingConfig =
         PagingConfig(
-            enablePlaceholders = true,
+            enablePlaceholders = false,
             prefetchDistance = 3,
             initialLoadSize = Constants.PAGING_PAGE_SIZE * 2,
             maxSize = Constants.PAGING_PAGE_SIZE * 3,
             pageSize = Constants.PAGING_PAGE_SIZE * 2,
-            jumpThreshold = 5
         )
 
     private companion object {

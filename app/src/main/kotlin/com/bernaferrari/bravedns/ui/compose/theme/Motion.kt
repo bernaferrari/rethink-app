@@ -17,6 +17,7 @@ package com.bernaferrari.bravedns.ui.compose.theme
 
 import android.animation.ValueAnimator
 import android.database.ContentObserver
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
@@ -36,7 +37,7 @@ fun rememberReducedMotion(): Boolean {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     fun readReduced(): Boolean =
-        runCatching { !ValueAnimator.areAnimatorsEnabled() }.getOrDefault(false)
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !ValueAnimator.areAnimatorsEnabled()
     var reduced by remember { mutableStateOf(readReduced()) }
 
     DisposableEffect(context, lifecycleOwner) {

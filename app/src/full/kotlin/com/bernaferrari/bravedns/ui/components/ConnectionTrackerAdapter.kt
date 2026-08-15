@@ -58,6 +58,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -124,7 +125,7 @@ fun ConnectionRow(
     val appDisplay = if (ct.appName.isBlank()) stringResource(R.string.network_log_app_name_unknown) else ct.appName
 
     var appIcon by remember(ct.uid) { mutableStateOf<Drawable?>(null) }
-    var appCount by remember(ct.uid) { mutableStateOf(1) }
+    var appCount by remember(ct.uid) { mutableIntStateOf(1) }
 
     LaunchedEffect(ct.uid, ct.appName, ct.usrId) {
         val apps = withContext(Dispatchers.IO) { FirewallManager.getPackageNamesByUid(ct.uid) }

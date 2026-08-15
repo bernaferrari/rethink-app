@@ -15,10 +15,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.core.os.ConfigurationCompat
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import com.bernaferrari.bravedns.R
@@ -91,13 +93,18 @@ private fun allowedTimeRemaining(app: AllowedAppInfo): String {
 @Composable
 private fun timeAgo(timestamp: Long): String {
     val justNow = stringResource(R.string.bubble_time_just_now)
-    val minutesTemplate = stringResource(R.string.bubble_time_minutes_ago)
-    val hoursTemplate = stringResource(R.string.bubble_time_hours_ago)
+    val locale = ConfigurationCompat.getLocales(LocalConfiguration.current)[0] ?: Locale.US
     val diff = System.currentTimeMillis() - timestamp
     return when {
         diff < TimeUnit.MINUTES.toMillis(1) -> justNow
-        diff < TimeUnit.HOURS.toMillis(1) -> String.format(Locale.getDefault(), minutesTemplate, TimeUnit.MILLISECONDS.toMinutes(diff))
-        diff < TimeUnit.DAYS.toMillis(1) -> String.format(Locale.getDefault(), hoursTemplate, TimeUnit.MILLISECONDS.toHours(diff))
-        else -> SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault()).format(Date(timestamp))
+        diff < TimeUnit.HOURS.toMillis(1) -> stringResource(
+            R.string.bubble_time_minutes_ago,
+            TimeUnit.MILLISECONDS.toMinutes(diff)
+        )
+        diff < TimeUnit.DAYS.toMillis(1) -> stringResource(
+            R.string.bubble_time_hours_ago,
+            TimeUnit.MILLISECONDS.toHours(diff)
+        )
+        else -> SimpleDateFormat("MMM dd, HH:mm", locale).format(Date(timestamp))
     }
 }

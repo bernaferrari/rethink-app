@@ -79,15 +79,14 @@
     <ID>CyclomaticComplexMethod:RethinkPlusViewModel.kt$RethinkPlusViewModel$private fun handleSubscriptionStateChange(state: SubscriptionStateMachineV2.SubscriptionState)</ID>
     <ID>CyclomaticComplexMethod:RpnProxyManager.kt$RpnProxyManager$private suspend fun handleStateChange(state: SubscriptionStateMachineV2.SubscriptionState)</ID>
     <ID>CyclomaticComplexMethod:RpnProxyManager.kt$RpnProxyManager$suspend fun fetchAndConstructWinLocations(): Pair&lt;Set&lt;CountryConfig&gt;, List&lt;String&gt;&gt;</ID>
-    <ID>CyclomaticComplexMethod:RpnProxyManager.kt$RpnProxyManager$suspend fun getAllPossibleConfigIdsForApp( uid: Int, ip: String, port: Int, domain: String, usesMobileNw: Boolean, ssid: String ): List&lt;String&gt;</ID>
     <ID>CyclomaticComplexMethod:RpnProxyManager.kt$RpnProxyManager$suspend fun load(): Int</ID>
     <ID>CyclomaticComplexMethod:RpnProxyManager.kt$RpnProxyManager$suspend fun processRpnPurchase(purchase: PurchaseDetail?, existingSubs: SubscriptionStatus): Boolean</ID>
     <ID>CyclomaticComplexMethod:RpnProxyManager.kt$RpnProxyManager$suspend fun registerProxy(type: RpnType): Boolean</ID>
     <ID>CyclomaticComplexMethod:RpnProxyManager.kt$RpnProxyManager$suspend fun resetAndRefetchRpn(): ResetResult</ID>
-    <ID>CyclomaticComplexMethod:RpnProxyManager.kt$RpnProxyManager$suspend fun storeWinEntitlement(payload: String)</ID>
-    <ID>CyclomaticComplexMethod:RpnProxyManager.kt$RpnProxyManager$suspend fun updateWinConfigState(byteArray: ByteArray?): Boolean</ID>
     <ID>CyclomaticComplexMethod:RpnProxyManager.kt$RpnProxyManager$suspend fun updateWinProxy(): List&lt;CountryConfig&gt;?</ID>
     <ID>CyclomaticComplexMethod:RpnSupportDialog.kt$RpnSupportDiagnostics$suspend fun create( context: Context, description: String, category: String?, includeStatus: Boolean, includeHistory: Boolean, includeStats: Boolean, ): File?</ID>
+    <ID>CyclomaticComplexMethod:RpnWinEntitlementStore.kt$RpnWinEntitlementStore$suspend fun storeWinEntitlement(payload: String)</ID>
+    <ID>CyclomaticComplexMethod:RpnWinEntitlementStore.kt$RpnWinEntitlementStore$suspend fun updateWinConfigState(byteArray: ByteArray?): Boolean</ID>
     <ID>CyclomaticComplexMethod:RpnWinProxyDetailsScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun RpnWinProxyDetailsScreen( countryCode: String, onBackClick: () -&gt; Unit )</ID>
     <ID>CyclomaticComplexMethod:StateMachineDatabaseSyncService.kt$StateMachineDatabaseSyncService$private fun determineStateFromSubscription( sub: SubscriptionStatus ): SubscriptionStateMachineV2.SubscriptionState</ID>
     <ID>CyclomaticComplexMethod:SubscriptionCheckWorker.kt$SubscriptionCheckWorker$private suspend fun resolveEntitlementExpiry(purchase: PurchaseDetail): Long?</ID>
@@ -136,7 +135,6 @@
     <ID>ForbiddenComment:BraveVPNService.kt$BraveVPNService$// TODO: should handle the LanIp.GATEWAY, LanIp.ROUTER addresses as well</ID>
     <ID>ForbiddenComment:BraveVPNService.kt$BraveVPNService$// TODO: should this check be a combination of cellular &amp; metered?</ID>
     <ID>ForbiddenComment:BraveVPNService.kt$BraveVPNService$// TODO: should we check for last unlock time here?</ID>
-    <ID>ForbiddenComment:BraveVPNService.kt$BraveVPNService$// TODO: should we check for lockdown mode and decide to restart? or just restart always?</ID>
     <ID>ForbiddenComment:BraveVPNService.kt$BraveVPNService$// TODO: show alerts to user on such exceptions, in a separate ui?</ID>
     <ID>ForbiddenComment:BraveVPNService.kt$BraveVPNService.Companion$// TODO: should be different for IPv4 and IPv6, but for now it is same</ID>
     <ID>ForbiddenComment:ConnectionMonitor.kt$ConnectionMonitor$// TODO: process after a delay to avoid processing multiple network changes in short bursts</ID>
@@ -152,7 +150,6 @@
     <ID>ForbiddenComment:DnsLogTracker.kt$DnsLogTracker$// TODO: rdata should be either empty / 0.0.0.0 / ::0 / -- for block all</ID>
     <ID>ForbiddenComment:FirewallManager.kt$FirewallManager$// TODO: Use the package-manager API instead</ID>
     <ID>ForbiddenComment:FirewallManager.kt$FirewallManager.GlobalVariable$// TODO: protect access to the foregroundUids (read/write)</ID>
-    <ID>ForbiddenComment:FirewallRuleset.kt$FirewallRuleset$// TODO: Add label and description from strings.xml</ID>
     <ID>ForbiddenComment:FirewallRuleset.kt$FirewallRuleset.Companion$// TODO: Move ico to enum var like for label and desc</ID>
     <ID>ForbiddenComment:GoDnsTransports.kt$GoDnsTransports$// TODO: #321 As of now there is no block free transport for dns types other than Rethink.</ID>
     <ID>ForbiddenComment:GoDnsTransports.kt$GoDnsTransports$// TODO: should show notification if the transport is not added?</ID>
@@ -161,7 +158,6 @@
     <ID>ForbiddenComment:GoVpnAdapter.kt$GoVpnAdapter$// TODO: see if the hop is already added, if so no need to redo this</ID>
     <ID>ForbiddenComment:GoVpnAdapter.kt$GoVpnAdapter$// TODO: system dns may be non existent; see: AppConfig#updateSystemDnsServers</ID>
     <ID>ForbiddenComment:HomeScreenActivity.kt$HomeScreenActivity$// FIXME: remove this post v054</ID>
-    <ID>ForbiddenComment:HomeScreenActivity.kt$HomeScreenActivity$// TODO: modify this to use the latest version code api</ID>
     <ID>ForbiddenComment:HomeScreenActivity.kt$HomeScreenActivity$// TODO: prompt dialog to user that Playservice is disabled, so switch to update</ID>
     <ID>ForbiddenComment:HomeScreenActivity.kt$HomeScreenActivity$// TODO: remove this post v054.</ID>
     <ID>ForbiddenComment:InAppBillingHandler.kt$InAppBillingHandler$// TODO: Handle country code, see if we need to use it</ID>
@@ -177,7 +173,6 @@
     <ID>ForbiddenComment:RefreshDatabase.kt$RefreshDatabase$// TODO: implement upsert logic handling all the edge cases</ID>
     <ID>ForbiddenComment:RestoreAgent.kt$RestoreAgent$// TODO: revisit this after v055 release</ID>
     <ID>ForbiddenComment:RethinkBlocklistManager.kt$RethinkBlocklistManager$// TODO: merge both the remote and local json parsing into one</ID>
-    <ID>ForbiddenComment:RethinkBlocklistManager.kt$RethinkBlocklistManager$// TODO: move this strings to strings.xml</ID>
     <ID>ForbiddenComment:RpnProxyManager.kt$RpnProxyManager$// TODO: perform the validation of purchaseToken and accountId with the subscription data</ID>
     <ID>ForbiddenComment:RpnProxyUpdateWorker.kt$RpnProxyUpdateWorker$// TODO: Duplicate implementation exists in RpnProxyUpdateWorker and</ID>
     <ID>ForbiddenComment:VpnController.kt$VpnController$// FIXME: Publish VpnState through this state-flow to relieve direct access</ID>
@@ -193,7 +188,6 @@
     <ID>FunctionNaming:Utilities.kt$Utilities$fun isAtleastO_MR1(): Boolean</ID>
     <ID>FunctionParameterNaming:BraveVPNService.kt$BraveVPNService$_new: ConnectionMonitor.UnderlyingNetworks? = null</ID>
     <ID>FunctionParameterNaming:BraveVPNService.kt$BraveVPNService$_proxyId: String</ID>
-    <ID>ImplicitDefaultLocale:OkHttpDebugLogging.kt$OkHttpDebugLogging.&lt;no name provided&gt;$String.format("[%1\$tF %1\$tT] %2\$s %n", record.millis, record.message)</ID>
     <ID>ImplicitDefaultLocale:Utilities.kt$Utilities$String.format("%s (%s)", countryCode, ipAddress)</ID>
     <ID>LargeClass:BillingBackendClient.kt$BillingBackendClient : KoinComponent</ID>
     <ID>LargeClass:BraveVPNService.kt$BraveVPNService : VpnServiceNetworkListenerBridge</ID>
@@ -202,6 +196,7 @@
     <ID>LargeClass:InAppBillingHandler.kt$InAppBillingHandler : KoinComponent</ID>
     <ID>LargeClass:RefreshDatabase.kt$RefreshDatabase</ID>
     <ID>LargeClass:RpnProxyManager.kt$RpnProxyManager : KoinComponent</ID>
+    <ID>LargeClass:RpnWinServerController.kt$RpnWinServerController</ID>
     <ID>LargeClass:SubscriptionStateMachineV2.kt$SubscriptionStateMachineV2 : KoinComponent</ID>
     <ID>LargeClass:WireguardManager.kt$WireguardManager : KoinComponent</ID>
     <ID>LongMethod:AppInfoScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun AppInfoScreen( uid: Int, eventLogger: EventLogger, ipRulesViewModel: CustomIpViewModel, domainRulesViewModel: CustomDomainViewModel, networkLogsViewModel: AppConnectionsViewModel, onBackClick: () -&gt; Unit, onAppWiseIpLogsClick: (Int, Boolean) -&gt; Unit, onAppWiseDomainLogsClick: (Int) -&gt; Unit, onCustomIpRulesClick: (Int) -&gt; Unit, onCustomDomainRulesClick: (Int) -&gt; Unit )</ID>
@@ -278,13 +273,13 @@
     <ID>NestedBlockDepth:IpRulesManager.kt$IpRulesManager$suspend fun load(): Long</ID>
     <ID>NestedBlockDepth:NetworkBindingService.kt$NetworkBindingService$private suspend fun bindAny( who: String, addrPort: String, fid: Long, networks: List&lt;NetworkProperties&gt; ): Boolean</ID>
     <ID>NestedBlockDepth:RestoreAgent.kt$RestoreAgent$private fun isMetadataCompatible(tempDirectory: String?): Boolean</ID>
+    <ID>NestedBlockDepth:RpnHopSelector.kt$RpnHopSelector$suspend fun collectProxyIds( uid: Int, ip: String, port: Int, domain: String, usesMobileNw: Boolean, ssid: String, allProxyIdsForApp: List&lt;String&gt;, rpnProxyIdsForApp: List&lt;String&gt;, servers: List&lt;CountryConfig&gt;, resolveAutoId: suspend () -&gt; String, ): List&lt;String&gt;</ID>
     <ID>NestedBlockDepth:RpnProxyManager.kt$RpnProxyManager$private suspend fun handleStateChange(state: SubscriptionStateMachineV2.SubscriptionState)</ID>
-    <ID>NestedBlockDepth:RpnProxyManager.kt$RpnProxyManager$suspend fun getAllPossibleConfigIdsForApp( uid: Int, ip: String, port: Int, domain: String, usesMobileNw: Boolean, ssid: String ): List&lt;String&gt;</ID>
     <ID>NestedBlockDepth:RpnProxyManager.kt$RpnProxyManager$suspend fun load(): Int</ID>
     <ID>NestedBlockDepth:RpnProxyManager.kt$RpnProxyManager$suspend fun processRpnPurchase(purchase: PurchaseDetail?, existingSubs: SubscriptionStatus): Boolean</ID>
     <ID>NestedBlockDepth:RpnProxyManager.kt$RpnProxyManager$suspend fun registerProxy(type: RpnType): Boolean</ID>
-    <ID>NestedBlockDepth:RpnProxyManager.kt$RpnProxyManager$suspend fun updateSsidBased(key: String, ssidBased: Boolean)</ID>
     <ID>NestedBlockDepth:RpnProxyManager.kt$RpnProxyManager$suspend fun updateWinProxy(): List&lt;CountryConfig&gt;?</ID>
+    <ID>NestedBlockDepth:RpnWinServerController.kt$RpnWinServerController$suspend fun updateSsidBased(key: String, ssidBased: Boolean)</ID>
     <ID>NestedBlockDepth:StateMachineFramework.kt$StateMachine$suspend fun processEvent(event: E, newData: D? = null)</ID>
     <ID>NestedBlockDepth:SubscriptionCheckWorker.kt$SubscriptionCheckWorker$private suspend fun resolveEntitlementExpiry(purchase: PurchaseDetail): Long?</ID>
     <ID>NestedBlockDepth:SubscriptionStateMachineV2.kt$SubscriptionStateMachineV2$private suspend fun expireOrphanedSubsFromDb(playTokens: Set&lt;String&gt;)</ID>
@@ -355,9 +350,13 @@
     <ID>TooGenericExceptionCaught:RestoreAgent.kt$RestoreAgent$ex: Exception</ID>
     <ID>TooGenericExceptionCaught:RethinkBlocklistManager.kt$RethinkBlocklistManager$e: Exception</ID>
     <ID>TooGenericExceptionCaught:RpnHopManager.kt$RpnHopManager$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:RpnHopSelector.kt$RpnHopSelector$e: Exception</ID>
     <ID>TooGenericExceptionCaught:RpnProxyManager.kt$RpnProxyManager$dbErr: Exception</ID>
-    <ID>TooGenericExceptionCaught:RpnProxyManager.kt$RpnProxyManager$e2: Exception</ID>
     <ID>TooGenericExceptionCaught:RpnProxyManager.kt$RpnProxyManager$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:RpnSsidController.kt$RpnSsidController$e2: Exception</ID>
+    <ID>TooGenericExceptionCaught:RpnSsidController.kt$RpnSsidController$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:RpnWinEntitlementStore.kt$RpnWinEntitlementStore$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:RpnWinServerController.kt$RpnWinServerController$e: Exception</ID>
     <ID>TooGenericExceptionCaught:SecureIdentityStore.kt$SecureIdentityStore$e: Exception</ID>
     <ID>TooGenericExceptionCaught:ServerSelectionViewModel.kt$ServerSelectionViewModel$e: Exception</ID>
     <ID>TooGenericExceptionCaught:StateMachineDatabaseSyncService.kt$StateMachineDatabaseSyncService$e: Exception</ID>
@@ -430,6 +429,7 @@
     <ID>TooManyFunctions:RethinkPlusViewModel.kt$RethinkPlusViewModel : AndroidViewModelKoinComponent</ID>
     <ID>TooManyFunctions:RpnHopManager.kt$RpnHopManager : KoinComponent</ID>
     <ID>TooManyFunctions:RpnProxyManager.kt$RpnProxyManager : KoinComponent</ID>
+    <ID>TooManyFunctions:RpnWinServerController.kt$RpnWinServerController</ID>
     <ID>TooManyFunctions:SsidPermissionManager.kt$SsidPermissionManager</ID>
     <ID>TooManyFunctions:StateMachineDatabaseSyncService.kt$StateMachineDatabaseSyncService : KoinComponent</ID>
     <ID>TooManyFunctions:StateMachineFramework.kt$StateMachine&lt;S : State, E : Event, D : Any&gt;</ID>
@@ -461,14 +461,6 @@
     <ID>UnusedParameter:VpnConnectionHandler.kt$VpnConnectionHandler$rethinkUid: Int</ID>
     <ID>UnusedPrivateClass:NetworkLogsScreen.kt$LogsTabSpec</ID>
     <ID>UnusedPrivateMember:AppWiseIpsAdapter.kt$private fun calculatePercentage(c: Double, maxValue: Int): Pair&lt;Int, Int&gt;</ID>
-    <ID>UnusedPrivateMember:HomeScreenActivity.kt$HomeScreenActivity$private fun handleShowAppExitInfo()</ID>
-    <ID>UnusedPrivateMember:HomeScreenActivity.kt$HomeScreenActivity$private fun hasAnyLogsAvailable(): Boolean</ID>
-    <ID>UnusedPrivateMember:HomeScreenActivity.kt$HomeScreenActivity$private fun openCustomIpScreen()</ID>
-    <ID>UnusedPrivateMember:HomeScreenActivity.kt$HomeScreenActivity$private fun openUniversalFirewallScreen()</ID>
-    <ID>UnusedPrivateMember:HomeScreenActivity.kt$HomeScreenActivity$private fun showNoLogDialog()</ID>
-    <ID>UnusedPrivateMember:HomeScreenActivity.kt$HomeScreenActivity$private fun startAppsActivity()</ID>
-    <ID>UnusedPrivateMember:HomeScreenActivity.kt$HomeScreenActivity$private fun startDnsActivity()</ID>
-    <ID>UnusedPrivateMember:HomeScreenActivity.kt$HomeScreenActivity$private fun startFirewallActivity()</ID>
     <ID>UnusedPrivateMember:QueryUtils.kt$QueryUtils$private fun log(methodName: String, msg: String)</ID>
     <ID>UnusedPrivateMember:QueryUtils.kt$QueryUtils$private fun logv(methodName: String, msg: String)</ID>
     <ID>UnusedPrivateMember:SubscriptionStateMachineV2.kt$SubscriptionStateMachineV2$private fun createDummyPurchaseDetail(): PurchaseDetail</ID>

@@ -24,7 +24,7 @@ private const val LATIN_CAPITAL_Z = 0x5A
 internal fun countryNameFromFlag(flag: String?): String? {
     if (flag.isNullOrBlank()) return null
 
-    val codepoints = flag.codePoints().toArray()
+    val codepoints = flag.toCodePointArray()
     if (codepoints.size != 2) return null
 
     val first = codepoints[0] - REGIONAL_INDICATOR_A + LATIN_CAPITAL_A
@@ -38,4 +38,16 @@ internal fun countryNameFromFlag(flag: String?): String? {
         runCatching { Locale.Builder().setRegion(countryCode).build() }.getOrNull() ?: return null
     val displayName = countryLocale.getDisplayCountry(Locale.getDefault())
     return displayName.takeIf { it.isNotBlank() && !it.equals(countryCode, ignoreCase = true) }
+}
+
+private fun String.toCodePointArray(): IntArray {
+    val codepoints = IntArray(codePointCount(0, length))
+    var i = 0
+    var index = 0
+    while (i < length) {
+        val codepoint = codePointAt(i)
+        codepoints[index++] = codepoint
+        i += Character.charCount(codepoint)
+    }
+    return codepoints
 }

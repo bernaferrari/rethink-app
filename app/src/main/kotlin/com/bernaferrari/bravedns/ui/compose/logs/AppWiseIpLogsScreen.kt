@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -151,7 +152,7 @@ private fun AppWiseIpList(
     var showIpRulesSheet by remember { mutableStateOf(false) }
     var selectedIp by remember { mutableStateOf("") }
     var selectedDomains by remember { mutableStateOf("") }
-    var refreshToken by remember { mutableStateOf(0) }
+    var refreshToken by remember { mutableIntStateOf(0) }
 
     if (showIpRulesSheet && selectedIp.isNotEmpty()) {
         AppIpRulesSheet(

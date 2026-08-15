@@ -18,7 +18,6 @@ package com.bernaferrari.bravedns.service
 
 import com.bernaferrari.bravedns.R
 
-// TODO: Add label and description from strings.xml
 enum class FirewallRuleset(val id: String, val title: Int, val desc: Int, val act: Int) {
     RULE0(
         "No Rule",

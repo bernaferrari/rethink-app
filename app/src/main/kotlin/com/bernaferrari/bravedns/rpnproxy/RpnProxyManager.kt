@@ -22,33 +22,15 @@ import android.content.Context
 import android.text.format.DateUtils
 import com.android.billingclient.api.BillingClient
 import com.bernaferrari.bravedns.RethinkDnsApplication.Companion.DEBUG
-import com.bernaferrari.bravedns.data.SsidItem
 import com.bernaferrari.bravedns.database.CountryConfig
 import com.bernaferrari.bravedns.database.CountryConfigRepository
-import com.bernaferrari.bravedns.database.RpnProxy
 import com.bernaferrari.bravedns.database.RpnProxyRepository
 import com.bernaferrari.bravedns.database.SubscriptionStatus
 import com.bernaferrari.bravedns.database.SubscriptionStatusRepository
 import com.bernaferrari.bravedns.iab.BillingBackendClient
 import com.bernaferrari.bravedns.iab.InAppBillingHandler
 import com.bernaferrari.bravedns.iab.PurchaseDetail
-import com.bernaferrari.bravedns.rpnproxy.RpnProxyManager.DnsMode.Companion.setFromCsv
-import com.bernaferrari.bravedns.rpnproxy.RpnProxyManager.DnsMode.Companion.tunTypesFromSet
-import com.bernaferrari.bravedns.rpnproxy.RpnProxyManager.activateRpn
-import com.bernaferrari.bravedns.rpnproxy.RpnProxyManager.deactivateRpn
-import com.bernaferrari.bravedns.rpnproxy.RpnProxyManager.disableWinServer
-import com.bernaferrari.bravedns.rpnproxy.RpnProxyManager.enableWinServer
-import com.bernaferrari.bravedns.rpnproxy.RpnProxyManager.ensureAutoServerExists
-import com.bernaferrari.bravedns.rpnproxy.RpnProxyManager.fetchAndConstructWinLocations
-import com.bernaferrari.bravedns.rpnproxy.RpnProxyManager.load
-import com.bernaferrari.bravedns.rpnproxy.RpnProxyManager.registerProxy
-import com.bernaferrari.bravedns.rpnproxy.RpnProxyManager.serverRemovedEvent
-import com.bernaferrari.bravedns.rpnproxy.RpnProxyManager.stopProxy
-import com.bernaferrari.bravedns.rpnproxy.RpnProxyManager.syncWinServers
-import com.bernaferrari.bravedns.rpnproxy.RpnProxyManager.updateWinConfigState
-import com.bernaferrari.bravedns.rpnproxy.RpnProxyManager.updateWinProxy
 import com.bernaferrari.bravedns.service.EncryptedFileManager
-import com.bernaferrari.bravedns.service.EncryptionException
 import com.bernaferrari.bravedns.service.PersistentState
 import com.bernaferrari.bravedns.service.ProxyManager
 import com.bernaferrari.bravedns.service.VpnController
@@ -99,11 +81,45 @@ object RpnProxyManager : KoinComponent {
     const val AUTO_SERVER_ID   = "AUTO"
     const val AUTO_COUNTRY_CODE = "AUTO"
 
-    // In-memory cache for WIN servers (CountryConfig as unified model).
-    private val winServersCache = mutableListOf<CountryConfig>()
-    private val winCacheMutex = Mutex()
-
     private val winRegistrationMutex = Mutex()
+
+    private val ssidController by lazy { RpnSsidController() }
+    private val hopSelector by lazy {
+        RpnHopSelector(
+            rpnWinPrefix = Backend.RpnWin,
+            autoServerId = AUTO_SERVER_ID,
+            matchesSsid = ssidController::matchesSsidList,
+        )
+    }
+    private val entitlementStore by lazy {
+        RpnWinEntitlementStore(
+            context = applicationContext,
+            db = db,
+            winId = WIN_ID,
+            winName = WIN_NAME,
+            stateFileName = WIN_STATE_FILE_NAME,
+            entitlementFileName = WIN_ENTITLEMENT_FILE_NAME,
+            folderName = RPN_PROXY_FOLDER_NAME,
+            extractWs = ::extractWsObject,
+        )
+    }
+    private val winServerController by lazy {
+        RpnWinServerController(
+            countryConfigRepo = countryConfigRepo,
+            autoServerId = AUTO_SERVER_ID,
+            autoCountryCode = AUTO_COUNTRY_CODE,
+            addWinServer = { VpnController.addNewWinServer(it) },
+            removeWinServer = { VpnController.removeWinServer(it) },
+            handleRpnHop = { key, changed -> VpnController.handleRpnHop(key, changed) },
+            refreshProxies = { VpnController.refreshOrPauseOrResumeOrReAddProxies() },
+            notifyConnectionMonitor = { VpnController.notifyConnectionMonitor(enforcePolicyChange = it) },
+            notifyServerAdded = ::notifyServerAddedToTun,
+            clearServerMeta = ::clearServerMeta,
+            removeProxyMapping = { ProxyManager.removeProxyId(it) },
+            fetchLocations = { fetchAndConstructWinLocations() },
+            retryLocationFetch = { retryLocationFetch() },
+        )
+    }
 
     /**
      * Emits a list of [CountryConfig] objects that were selected by the user but are
@@ -221,13 +237,8 @@ object RpnProxyManager : KoinComponent {
              * back into a [Set] of [DnsMode] entries. Unknown tokens are silently ignored.
              * Returns a set containing [DEFAULT] if [csv] is blank or yields no valid entries.
              */
-            fun setFromCsv(csv: String): Set<DnsMode> {
-                if (csv.isBlank()) return setOf(DEFAULT)
-                val result = csv.split(',')
-                    .mapNotNull { token -> entries.firstOrNull { it.tunType == token.trim() } }
-                    .toSet()
-                return result.ifEmpty { setOf(DEFAULT) }
-            }
+            fun setFromCsv(csv: String): Set<DnsMode> =
+                RpnDnsCsv.setFromCsv(csv, entries, DnsMode::tunType, DEFAULT)
 
             /**
              * Converts a [Set] of [DnsMode] entries to a comma-separated string of their
@@ -238,10 +249,8 @@ object RpnProxyManager : KoinComponent {
              *
              * An empty [modes] set is treated as [DEFAULT].
              */
-            fun tunTypesFromSet(modes: Set<DnsMode>): String {
-                val effective = modes.ifEmpty { setOf(DEFAULT) }
-                return effective.sortedBy { it.id }.joinToString(",") { it.tunType }
-            }
+            fun tunTypesFromSet(modes: Set<DnsMode>): String =
+                RpnDnsCsv.tunTypesFromSet(modes, DnsMode::id, DnsMode::tunType, DEFAULT)
         }
     }
 
@@ -631,14 +640,7 @@ object RpnProxyManager : KoinComponent {
             countryConfigRepo.resetUserSelections()
             // Mirror the DB reset into the in-memory cache immediately so nothing races
             // between the DB write and the cache rebuild inside syncWinServers().
-            winCacheMutex.withLock {
-                winServersCache.forEach { server ->
-                    if (!server.id.equals(AUTO_SERVER_ID, true)) {
-                        server.isEnabled = false
-                        server.isFavourite = false
-                    }
-                }
-            }
+            winServerController.clearUserSelectionsInCache()
             Logger.i(LOG_TAG_PROXY, "$TAG; resetAndRefetchRpn: user selections cleared from DB and cache")
         } catch (e: Exception) {
             Logger.w(LOG_TAG_PROXY, "$TAG; resetAndRefetchRpn: resetUserSelections failed (non-fatal): ${e.message}")
@@ -752,104 +754,7 @@ object RpnProxyManager : KoinComponent {
     }
 
     suspend fun storeWinEntitlement(payload: String) {
-        // Store the win entitlement in a file and the path in serverResponsePath
-        if (payload.isEmpty()) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; storeWinEntitlement: payload is empty, skipping")
-            return
-        }
-
-        try {
-            // Use extractWsObject to handle both payload shapes:
-            // Shape 1: full purchase originalJson  → ws nested inside developerPayload
-            // Shape 2: already-extracted payload   → ws is top-level
-            val ws = extractWsObject(payload)
-            if (ws == null) {
-                Logger.e(LOG_TAG_PROXY, "$TAG; storeWinEntitlement: ws object not found in payload")
-                if (DEBUG) Logger.d(LOG_TAG_PROXY, "$TAG; storeWinEntitlement: payload content: $payload")
-                return
-            }
-
-            val fileName = getJsonResponseFileName(WIN_ID)
-            val folder = applicationContext.getExternalFilesDir(RPN_PROXY_FOLDER_NAME)
-            if (folder == null) {
-                Logger.e(LOG_TAG_PROXY, "$TAG; storeWinEntitlement: failed to get external files dir")
-                return
-            }
-
-            if (!folder.exists()) {
-                val created = try {
-                    folder.mkdirs()
-                } catch (e: Exception) {
-                    Logger.e(LOG_TAG_PROXY, "$TAG; storeWinEntitlement: exception creating folder: ${e.message}", e)
-                    false
-                }
-                if (!created) {
-                    Logger.e(LOG_TAG_PROXY, "$TAG; storeWinEntitlement: failed to create folder: ${folder.absolutePath}")
-                    return
-                }
-            }
-
-            val file = File(folder, fileName)
-            val res = try {
-                EncryptedFileManager.write(applicationContext, ws, file)
-            } catch (e: Exception) {
-                Logger.e(LOG_TAG_PROXY, "$TAG; storeWinEntitlement: exception writing file: ${e.message}", e)
-                false
-            }
-
-            if (!res) {
-                Logger.e(LOG_TAG_PROXY, "$TAG; storeWinEntitlement: failed to write file: ${file.absolutePath}")
-                return
-            }
-
-            // update the winConfig with the file path
-            val winProxy = try {
-                db.getProxyById(WIN_ID)
-            } catch (e: Exception) {
-                Logger.e(LOG_TAG_PROXY, "$TAG; storeWinEntitlement: failed to get win proxy from DB: ${e.message}", e)
-                null
-            }
-
-            val ll = if (winProxy != null) {
-                winProxy.serverResPath = file.absolutePath
-                try {
-                    db.update(winProxy)
-                } catch (e: Exception) {
-                    Logger.e(LOG_TAG_PROXY, "$TAG; storeWinEntitlement: failed to update win proxy: ${e.message}", e)
-                    -1
-                }
-            } else {
-                // insert a new proxy entry if it doesn't exist
-                val newWinProxy = RpnProxy(
-                    id = WIN_ID,
-                    name = WIN_NAME,
-                    configPath = "",
-                    serverResPath = file.absolutePath,
-                    isActive = true,
-                    isLockdown = false,
-                    createdTs = System.currentTimeMillis(),
-                    modifiedTs = System.currentTimeMillis(),
-                    misc = "",
-                    tunId = "",
-                    latency = 0,
-                    lastRefreshTime = System.currentTimeMillis()
-                )
-                try {
-                    db.insert(newWinProxy).toInt()
-                } catch (e: Exception) {
-                    Logger.e(LOG_TAG_PROXY, "$TAG; storeWinEntitlement: failed to insert win proxy: ${e.message}", e)
-                    -1
-                }
-            }
-            if (ll < 0) {
-                Logger.w(LOG_TAG_PROXY, "$TAG; error updating win proxy in db, result: $ll")
-            } else {
-                Logger.i(LOG_TAG_PROXY, "$TAG; win proxy updated in db, result: $ll")
-            }
-            Logger.i(LOG_TAG_PROXY, "$TAG; win entitlement stored in file: $fileName, result: $res")
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_PROXY, "$TAG; error storing win configs: ${e.message}", e)
-        }
+        entitlementStore.storeWinEntitlement(payload)
     }
 
     fun getRpnProductId(): String {
@@ -975,10 +880,7 @@ object RpnProxyManager : KoinComponent {
             ensureAutoServerExists()
 
             val dbServers = countryConfigRepo.getAllConfigs()
-            winCacheMutex.withLock {
-                winServersCache.clear()
-                winServersCache.addAll(dbServers)
-            }
+            winServerController.replaceCache(dbServers)
             Logger.i(LOG_TAG_PROXY, "$TAG; load: cached ${dbServers.size}, WIN servers from DB (AUTO server ensured)")
         } catch (e: Exception) {
             Logger.w(LOG_TAG_PROXY, "$TAG; load: failed to cache WIN servers: ${e.message}")
@@ -1141,77 +1043,18 @@ object RpnProxyManager : KoinComponent {
      *
      * **Important:** AUTO is a local synthetic entry created by [ensureAutoServerExists].
      */
-    suspend fun getWinServers(): List<CountryConfig> {
-        // Return cached list only if it contains real (non-AUTO) servers.
-        winCacheMutex.withLock {
-            val realCached = winServersCache.filter { !it.id.equals(AUTO_SERVER_ID, true) }
-            if (realCached.isNotEmpty()) {
-                Logger.v(LOG_TAG_PROXY, "$TAG; returning cached win servers, size: ${winServersCache.size} (real=${realCached.size})")
-                return winServersCache.toList()
-            }
-        }
-
-        // Try DB, same rule: only use it when real (non-AUTO) rows exist.
-        val dbServers = countryConfigRepo.getAllConfigs()
-        val realDbServers = dbServers.filter { !it.id.equals(AUTO_SERVER_ID, true) }
-        if (realDbServers.isNotEmpty()) {
-            winCacheMutex.withLock {
-                winServersCache.clear()
-                winServersCache.addAll(dbServers)
-            }
-            Logger.v(LOG_TAG_PROXY, "$TAG; loaded ${dbServers.size} win servers from DB into cache (real=${realDbServers.size})")
-            return dbServers
-        }
-
-        // Cache and DB contain only AUTO (or are completely empty) -  fetch real data from tunnel.
-        Logger.w(LOG_TAG_PROXY, "$TAG; no real servers in cache/DB (only AUTO or empty), fetching win servers from tun")
-        val (apiServers, removedSelectedIds) = fetchAndConstructWinLocations()
-        if (apiServers.isNotEmpty()) {
-            syncWinServers(apiServers)
-            if (removedSelectedIds.isNotEmpty()) {
-                Logger.w(LOG_TAG_PROXY, "$TAG; getWinServers: ${removedSelectedIds.size} selected servers were removed")
-            }
-        } else {
-            Logger.w(LOG_TAG_PROXY, "$TAG; getWinServers: tunnel returned no servers (win props null/empty)")
-        }
-        // Return whatever is now in the cache (may still be AUTO-only if tunnel failed).
-        // The caller (ServerSelectionFragment) will detect the absence of real servers
-        // and show an appropriate error to the user.
-        return winCacheMutex.withLock { winServersCache.toList() }
-    }
+    suspend fun getWinServers(): List<CountryConfig> = winServerController.getWinServers()
 
     /** Persist a country-level favourite and keep every server in that country in sync. */
     suspend fun setCountryFavourite(cc: String, favourite: Boolean) {
-        if (cc.isBlank()) return
-        countryConfigRepo.updateFavourite(cc, favourite)
-        winCacheMutex.withLock {
-            winServersCache.filter { it.cc.equals(cc, ignoreCase = true) }.forEach {
-                it.isFavourite = favourite
-            }
-        }
+        winServerController.setCountryFavourite(cc, favourite)
     }
 
     /** Most-used country codes, in descending user-selection order. */
     suspend fun getFrequentCountryCodes(limit: Int = 5): List<String> =
         countryConfigRepo.getTopFrequentCcs(limit)
 
-    suspend fun getWinEntitlement(): ByteArray? {
-        val proxy = db.getProxyById(WIN_ID) ?: return null
-        val file = File(proxy.serverResPath)
-        if (!file.exists()) return null
-        return try {
-            val bytes = EncryptedFileManager.readByteArray(applicationContext, file)
-            if (bytes.isNotEmpty()) {
-                if (DEBUG) Logger.d(LOG_TAG_PROXY, "$TAG; getWinEntitlement: read entitlement bytes from file, bytes: $bytes, len: ${bytes.size}")
-                bytes
-            } else null
-        } catch (e: EncryptionException) {
-            // File is corrupted, encrypted with an invalidated key, or unreadable.
-            // Return null so the caller falls back to fetching fresh entitlement from the API.
-            Logger.w(LOG_TAG_PROXY, "$TAG; getWinEntitlement: encrypted file unreadable (${e::class.simpleName}), returning null", e)
-            null
-        }
-    }
+    suspend fun getWinEntitlement(): ByteArray? = entitlementStore.getWinEntitlement()
 
     /**
      * Get current subscription data including purchase details and status.
@@ -1621,59 +1464,10 @@ object RpnProxyManager : KoinComponent {
     }
 
     suspend fun setHopForWinServer(key: String, enabled: Boolean) {
-        if (key.isEmpty()) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; setHopForWinServer: key is empty")
-            return
-        }
-
-        val config = winCacheMutex.withLock {
-            winServersCache.find { it.key == key }
-        }
-
-        if (config == null) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; setHopForWinServer: server with key $key not found")
-            return
-        }
-
-        val oldValue = config.hopEnabled
-        config.hopEnabled = enabled
-        winCacheMutex.withLock {
-            winServersCache.filter { w -> w.key == key }.forEach { w ->
-                w.hopEnabled = enabled
-            }
-        }
-
-        try {
-            countryConfigRepo.update(config)
-            Logger.i(LOG_TAG_PROXY, "$TAG; setHopForWinServer: set hopEnabled=$enabled for server: $key")
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_PROXY, "$TAG; setHopForWinServer: failed to update DB for $key: ${e.message}", e)
-            // Revert on DB failure
-            config.hopEnabled = oldValue
-            winCacheMutex.withLock {
-                winServersCache.filter { w -> w.key == key }.forEach { w ->
-                    w.hopEnabled = oldValue
-                }
-            }
-        }
-
-        try {
-            val res = VpnController.handleRpnHop(config.key, oldValue != enabled)
-            if (res.first) {
-                Logger.i(LOG_TAG_PROXY, "$TAG; setHopForWinServer: tunnel updated hop for server $key successfully")
-            } else {
-                Logger.w(LOG_TAG_PROXY, "$TAG; setHopForWinServer: tunnel failed to update hop for server $key, ${if (res.second != null) "error: ${res.second}" else "no error message"}")
-            }
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_PROXY, "$TAG; setHopForWinServer: error updating tunnel for $key: ${e.message}", e)
-        }
+        winServerController.setHopForWinServer(key, enabled)
     }
 
-    suspend fun getSelectedCCs(): Set<CountryConfig> {
-        winCacheMutex.withLock {
-            return winServersCache.filter { it.isEnabled }.toSet()
-        }
-    }
+    suspend fun getSelectedCCs(): Set<CountryConfig> = winServerController.getSelectedCCs()
 
     /**
      * Returns the epoch-millisecond timestamp at which [key] was last added to the tunnel
@@ -1706,12 +1500,7 @@ object RpnProxyManager : KoinComponent {
         serverKeyMeta.remove(key)
     }
 
-    suspend fun getEnabledConfigs(): Set<CountryConfig> {
-        return winCacheMutex.withLock {
-            val es = winServersCache.filter { it.isEnabled }.toSet()
-            es
-        }
-    }
+    suspend fun getEnabledConfigs(): Set<CountryConfig> = winServerController.getEnabledConfigs()
 
     /**
      * Full update pipeline:
@@ -1805,9 +1594,7 @@ object RpnProxyManager : KoinComponent {
         }
 
         // Read enabled configs from the freshly-synced cache so we never re-add stale keys.
-        val enabledConfigs = winCacheMutex.withLock {
-            winServersCache.filter { it.isEnabled && !it.id.equals(AUTO_SERVER_ID, true) }.toList()
-        }
+        val enabledConfigs = winServerController.enabledNonAutoConfigs()
 
         for (config in enabledConfigs) {
             try {
@@ -1820,9 +1607,7 @@ object RpnProxyManager : KoinComponent {
                 } else {
                     Logger.w(LOG_TAG_PROXY, "$TAG; updateWinProxy: failed to re-add server key=${config.key}: ${result.second}")
                     // Mark as disabled in cache + DB so the UI reflects the real state
-                    winCacheMutex.withLock {
-                        winServersCache.firstOrNull { it.key == config.key }?.isEnabled = false
-                    }
+                    winServerController.markDisabledInCache(config.key)
                     try {
                         val dbConfig = countryConfigRepo.getById(config.id)
                         if (dbConfig != null) {
@@ -1856,7 +1641,7 @@ object RpnProxyManager : KoinComponent {
             }
         }
 
-        val currentServers = winCacheMutex.withLock { winServersCache.toList() }
+        val currentServers = winServerController.snapshot()
         Logger.i(LOG_TAG_PROXY, "$TAG; updateWinProxy: complete, ${currentServers.size} servers in cache, " +
                 "${enabledConfigs.size} re-added to tunnel, ${removedSelectedIds.size} removed-selected notified")
         return currentServers
@@ -1866,128 +1651,10 @@ object RpnProxyManager : KoinComponent {
         stateObserverScope.launch { f() }
     }
 
-    private fun getConfigFileName(id: Int,): String {
-        return when (id) {
-            WIN_ID -> WIN_STATE_FILE_NAME
-            else -> ""
-        }
-    }
+    suspend fun getWinExistingData(): ByteArray? = entitlementStore.getWinExistingData()
 
-    private fun getJsonResponseFileName(id: Int): String {
-        return when (id) {
-            WIN_ID -> WIN_ENTITLEMENT_FILE_NAME
-            else -> ""
-        }
-    }
-
-    suspend fun getWinExistingData(): ByteArray? {
-        val proxy = db.getProxyById(WIN_ID) ?: return null
-        val cfg = proxy.configPath
-        if (cfg.isEmpty()) return null
-        val file = File(cfg)
-        if (!file.exists()) return null
-        return try {
-            val bytes = EncryptedFileManager.readByteArray(applicationContext, file)
-            if (bytes.isNotEmpty()) bytes else null
-        } catch (e: EncryptionException) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; getWinExistingData: encrypted file unreadable (${e::class.simpleName}), returning null", e)
-            null
-        }
-    }
-
-    suspend fun updateWinConfigState(byteArray: ByteArray?): Boolean {
-        if (byteArray == null || byteArray.isEmpty()) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; updateWinConfigState: byteArray is null or empty")
-            return false
-        }
-        return try {
-            val fileName = getConfigFileName(WIN_ID)
-            val folder = applicationContext.getExternalFilesDir(RPN_PROXY_FOLDER_NAME)
-            if (folder == null) {
-                Logger.e(LOG_TAG_PROXY, "$TAG; updateWinConfigState: failed to get external files dir")
-                return false
-            }
-
-            if (!folder.exists()) {
-                val created = try {
-                    folder.mkdirs()
-                } catch (e: Exception) {
-                    Logger.e(LOG_TAG_PROXY, "$TAG; updateWinConfigState: exception creating folder: ${e.message}", e)
-                    false
-                }
-                if (!created) {
-                    Logger.e(LOG_TAG_PROXY, "$TAG; updateWinConfigState: failed to create folder: ${folder.absolutePath}")
-                    return false
-                }
-            }
-
-            val file = File(folder, fileName)
-            if (file.exists()) file.delete()
-            val ok = try {
-                EncryptedFileManager.write(applicationContext, byteArray, file)
-            } catch (e: Exception) {
-                Logger.e(LOG_TAG_PROXY, "$TAG; updateWinConfigState: exception writing file: ${e.message}", e)
-                false
-            }
-
-            if (!ok) {
-                Logger.e(LOG_TAG_PROXY, "$TAG; updateWinConfigState: failed to write file: ${file.absolutePath}")
-                return false
-            }
-
-            val proxy = try {
-                db.getProxyById(WIN_ID)
-            } catch (e: Exception) {
-                Logger.e(LOG_TAG_PROXY, "$TAG; updateWinConfigState: failed to get proxy from DB: ${e.message}", e)
-                null
-            }
-
-            val updateResult = if (proxy != null) {
-                proxy.configPath = file.absolutePath
-                proxy.modifiedTs = System.currentTimeMillis()
-                try {
-                    db.update(proxy)
-                    true
-                } catch (e: Exception) {
-                    Logger.e(LOG_TAG_PROXY, "$TAG; updateWinConfigState: failed to update proxy: ${e.message}", e)
-                    false
-                }
-            } else {
-                val newProxy = RpnProxy(
-                    id = WIN_ID,
-                    name = WIN_NAME,
-                    configPath = file.absolutePath,
-                    serverResPath = "",
-                    isActive = true,
-                    isLockdown = false,
-                    createdTs = System.currentTimeMillis(),
-                    modifiedTs = System.currentTimeMillis(),
-                    misc = "",
-                    tunId = "",
-                    latency = 0,
-                    lastRefreshTime = System.currentTimeMillis()
-                )
-                try {
-                    db.insert(newProxy)
-                    true
-                } catch (e: Exception) {
-                    Logger.e(LOG_TAG_PROXY, "$TAG; updateWinConfigState: failed to insert proxy: ${e.message}", e)
-                    false
-                }
-            }
-
-            if (updateResult) {
-                Logger.i(LOG_TAG_PROXY, "$TAG; updateWinConfigState: successfully updated config, size: ${byteArray.size}")
-            } else {
-                Logger.w(LOG_TAG_PROXY, "$TAG; updateWinConfigState: file written, DB update failed")
-            }
-
-            updateResult
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_PROXY, "$TAG; err updating win config: ${e.message}", e)
-            false
-        }
-    }
+    suspend fun updateWinConfigState(byteArray: ByteArray?): Boolean =
+        entitlementStore.updateWinConfigState(byteArray)
 
     /**
      * Fetches WIN server locations from the API and syncs with database and cache.
@@ -2031,11 +1698,11 @@ object RpnProxyManager : KoinComponent {
                      continue
                  }
 
-                 // Validate essential fields
-                 if (loc.cc.isNullOrEmpty() || loc.name.isNullOrEmpty() || loc.key.isNullOrEmpty()) {
-                     Logger.w(LOG_TAG_PROXY, "$TAG; err; location has null or empty essential fields at index $i, cc=${loc.cc}, name=${loc.name}, key=${loc.key}")
-                     continue
-                 }
+                  // Validate essential fields
+                  if (!RpnWinLocationMapper.hasEssentialFields(loc.cc, loc.name, loc.key)) {
+                      Logger.w(LOG_TAG_PROXY, "$TAG; err; location has null or empty essential fields at index $i, cc=${loc.cc}, name=${loc.name}, key=${loc.key}")
+                      continue
+                  }
 
                  // Additional validation for address
                  val address = loc.addrs ?: ""
@@ -2043,7 +1710,7 @@ object RpnProxyManager : KoinComponent {
                      Logger.w(LOG_TAG_PROXY, "$TAG; warning; location at index $i has empty address, cc=${loc.cc}, name=${loc.name}")
                  }
 
-                 val id = "${loc.cc}-${loc.name}-${loc.key}"
+                  val id = RpnWinLocationMapper.serverId(loc.cc, loc.name, loc.key)
                  val cfg = CountryConfig(
                      id = id,
                      cc = loc.cc,
@@ -2071,29 +1738,27 @@ object RpnProxyManager : KoinComponent {
              emptyList()
          }
 
-         val existingIds = existingServers.map { it.id }.toSet()
-         val auto = existingServers.firstOrNull { it.id.contains(AUTO_SERVER_ID, ignoreCase = true) } ?: createAutoServer()
-         newServers.add(auto)
-         val newIds = newServers.map { it.id }.toSet()
-         val removedIds = existingIds - newIds
+          val existingIds = existingServers.map { it.id }.toSet()
+          val auto = existingServers.firstOrNull { it.id.contains(AUTO_SERVER_ID, ignoreCase = true) }
+              ?: RpnWinAutoServer.create(AUTO_SERVER_ID, AUTO_COUNTRY_CODE, System.currentTimeMillis())
+          newServers.add(auto)
+          val newIds = newServers.map { it.id }.toSet()
+          val removedIds = RpnWinLocationMapper.removedIds(existingIds, newIds)
 
-         // Check if any removed servers were in the selected list
-         val removedSelectedIds = mutableListOf<String>()
-         if (removedIds.isNotEmpty()) {
-             val keysToRemove = mutableSetOf<String>()
-             for (removedId in removedIds) {
-                 val removed = existingServers.firstOrNull { it.id == removedId }
-                 if (removed != null && serverKeyMeta.containsKey(removed.key)) {
-                     removedSelectedIds.add(removedId)
-                     keysToRemove.add(removed.key)
-                     Logger.w(LOG_TAG_PROXY, "$TAG; removed server $removedId (key=${removed.key}) was in tunnel")
-                 }
-             }
-             if (keysToRemove.isNotEmpty()) {
-                 keysToRemove.forEach { serverKeyMeta.remove(it) }
-                 Logger.i(LOG_TAG_PROXY, "$TAG; cleared ${keysToRemove.size} server keys from serverKeyMeta")
-             }
-         }
+          // Check if any removed servers were in the selected list
+          val removedSelected = RpnWinLocationMapper.removedSelected(
+              existing = existingServers,
+              removedIds = removedIds,
+              isInTunnel = { serverKeyMeta.containsKey(it) },
+          )
+          val removedSelectedIds = removedSelected.selectedIds
+          if (removedSelected.keysToRemove.isNotEmpty()) {
+              removedSelected.keysToRemove.forEach { key ->
+                  Logger.w(LOG_TAG_PROXY, "$TAG; removed server (key=$key) was in tunnel")
+                  serverKeyMeta.remove(key)
+              }
+              Logger.i(LOG_TAG_PROXY, "$TAG; cleared ${removedSelected.keysToRemove.size} server keys from serverKeyMeta")
+          }
 
          Logger.i(LOG_TAG_PROXY, "$TAG; fetchAndConstructWinLocations: new=${newServers.size}, existing=${existingIds.size}, removed=${removedIds.size}, removedSelected=${removedSelectedIds.size}")
 
@@ -2104,358 +1769,34 @@ object RpnProxyManager : KoinComponent {
      * Enables a WIN server by its key.
      * Updates the database and in-memory cache upon successful activation.
      */
-    suspend fun enableWinServer(key: String): Pair<Boolean, String> {
-        if (key.isEmpty()) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; enableWinServer: key is empty")
-            return Pair(false, "Server key is empty")
-        }
-
-        val config = winCacheMutex.withLock {
-            winServersCache.find { it.key == key }
-        }
-
-        if (config == null) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; enableWinServer: server with key $key not found in cache")
-            return Pair(false, "Server with key $key not found")
-        }
-
-        // Check if already enabled
-        if (config.isEnabled) {
-            Logger.i(LOG_TAG_PROXY, "$TAG; enableWinServer: server $key already enabled")
-            return Pair(true, "Server already enabled")
-        }
-
-        val res = try {
-            VpnController.addNewWinServer(config.key)
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_PROXY, "$TAG; enableWinServer: exception calling VpnController for $key: ${e.message}", e)
-            return Pair(false, "Failed to add server: ${e.message}")
-        }
-
-        if (res.first) {
-            winCacheMutex.withLock {
-                winServersCache.filter { it.key == key }.forEach { it.isEnabled = true }
-            }
-            config.isEnabled = true
-            try {
-                countryConfigRepo.update(config)
-                // Record the selection for frequent-country tracking and refresh chips.
-                countryConfigRepo.incrementSelectionCount(config.key)
-                // Mark when this server was added to the tunnel so the UI can show uptime.
-                notifyServerAddedToTun(key)
-                Logger.i(LOG_TAG_PROXY, "$TAG; enableWinServer: enabled rpn: $key")
-            } catch (e: Exception) {
-                Logger.e(LOG_TAG_PROXY, "$TAG; enableWinServer: failed to update DB for $key: ${e.message}", e)
-                // Revert cache change on DB failure
-                winCacheMutex.withLock {
-                    winServersCache.filter { it.key == key }.forEach { it.isEnabled = false }
-                }
-                config.isEnabled = false
-                return Pair(false, "Failed to update database: ${e.message}")
-            }
-        } else {
-            Logger.w(LOG_TAG_PROXY, "$TAG; enableWinServer: failed to enable server with key $key, error: ${res.second}")
-        }
-        return res
-    }
+    suspend fun enableWinServer(key: String): Pair<Boolean, String> =
+        winServerController.enableWinServer(key)
 
     suspend fun setLockdownForWinServer(key: String, lockdown: Boolean) {
-        if (key.isEmpty()) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; setLockdownForWinServer: key is empty")
-            return
-        }
-
-        val config = winCacheMutex.withLock {
-            winServersCache.find { it.key == key }
-        }
-
-        if (config == null) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; setLockdownForWinServer: server with key $key not found")
-            return
-        }
-
-        val oldValue = config.lockdown
-        config.lockdown = lockdown
-        winCacheMutex.withLock {
-            winServersCache.filter { w -> w.key == key }.forEach { w ->
-                w.lockdown = lockdown
-            }
-        }
-
-        try {
-            countryConfigRepo.update(config)
-            Logger.i(LOG_TAG_PROXY, "$TAG; setLockdownForWinServer: set lockdown=$lockdown for server: $key")
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_PROXY, "$TAG; setLockdownForWinServer: failed to update DB for $key: ${e.message}", e)
-            // Revert on DB failure
-            config.lockdown = oldValue
-            winCacheMutex.withLock {
-                winServersCache.filter { w -> w.key == key }.forEach { w ->
-                    w.lockdown = oldValue
-                }
-            }
-        }
+        winServerController.setLockdownForWinServer(key, lockdown)
     }
 
     suspend fun setCatchAllForWinServer(key: String, catchAll: Boolean) {
-        if (key.isEmpty()) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; setCatchAllForWinServer: key is empty")
-            return
-        }
-
-        val config = winCacheMutex.withLock {
-            winServersCache.find { it.key == key }
-        }
-
-        if (config == null) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; setCatchAllForWinServer: server with key $key not found")
-            return
-        }
-
-        val oldCatchAll = config.catchAll
-        val oldEnabled = config.isEnabled
-
-        if (!config.isEnabled && catchAll) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; setCatchAllForWinServer: enabling inactive server $key for catch-all")
-            val res = try {
-                VpnController.addNewWinServer(config.key)
-            } catch (e: Exception) {
-                Logger.e(LOG_TAG_PROXY, "$TAG; setCatchAllForWinServer: exception enabling server $key: ${e.message}", e)
-                return
-            }
-
-            if (res.first) {
-                config.isEnabled = true
-                config.catchAll = true
-                Logger.i(LOG_TAG_PROXY, "$TAG; setCatchAllForWinServer: enabled server $key for catch-all")
-                winCacheMutex.withLock {
-                    winServersCache.filter { w -> w.key == key }.forEach { w ->
-                        w.isEnabled = true
-                        w.catchAll = true
-                    }
-                }
-            } else {
-                Logger.w(LOG_TAG_PROXY, "$TAG; setCatchAllForWinServer: failed to enable server $key for catch-all, error: ${res.second}")
-                return
-            }
-        } else {
-            config.catchAll = catchAll
-            Logger.i(LOG_TAG_PROXY, "$TAG; setCatchAllForWinServer: set catchAll=$catchAll for server: $key")
-            winCacheMutex.withLock {
-                winServersCache.filter { w -> w.key == key }.forEach { w ->
-                    w.catchAll = catchAll
-                }
-            }
-        }
-
-        try {
-            countryConfigRepo.update(config)
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_PROXY, "$TAG; setCatchAllForWinServer: failed to update DB for $key: ${e.message}", e)
-            // Revert changes on DB failure
-            config.isEnabled = oldEnabled
-            config.catchAll = oldCatchAll
-            winCacheMutex.withLock {
-                winServersCache.filter { w -> w.key == key }.forEach { w ->
-                    w.isEnabled = oldEnabled
-                    w.catchAll = oldCatchAll
-                }
-            }
-        }
+        winServerController.setCatchAllForWinServer(key, catchAll)
     }
 
     suspend fun setMobileOnlyForWinServer(key: String, mobileOnly: Boolean) {
-        if (key.isEmpty()) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; setMobileOnlyForWinServer: key is empty")
-            return
-        }
-
-        val config = winCacheMutex.withLock {
-            winServersCache.find { it.key == key }
-        }
-
-        if (config == null) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; setMobileOnlyForWinServer: server with key $key not found")
-            return
-        }
-
-        val oldValue = config.mobileOnly
-        config.mobileOnly = mobileOnly
-        winCacheMutex.withLock {
-            winServersCache.filter { w -> w.key == key }.forEach { w ->
-                w.mobileOnly = mobileOnly
-            }
-        }
-
-        try {
-            countryConfigRepo.update(config)
-            Logger.i(LOG_TAG_PROXY, "$TAG; setMobileOnlyForWinServer: set mobileOnly=$mobileOnly for server: $key")
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_PROXY, "$TAG; setMobileOnlyForWinServer: failed to update DB for $key: ${e.message}", e)
-            // Revert on DB failure
-            config.mobileOnly = oldValue
-            winCacheMutex.withLock {
-                winServersCache.filter { w -> w.key == key }.forEach { w ->
-                    w.mobileOnly = oldValue
-                }
-            }
-        }
-
-        if (config.isEnabled) {
-            VpnController.refreshOrPauseOrResumeOrReAddProxies()
-        }
+        winServerController.setMobileOnlyForWinServer(key, mobileOnly)
     }
 
     suspend fun setSsidEnabledForWinServer(key: String, ssidEnabled: Boolean) {
-        if (key.isEmpty()) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; setSsidEnabledForWinServer: key is empty")
-            return
-        }
-
-        val config = winCacheMutex.withLock {
-            winServersCache.find { it.key == key }
-        }
-
-        if (config == null) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; setSsidEnabledForWinServer: server with key $key not found")
-            return
-        }
-
-        val oldValue = config.ssidBased
-        config.ssidBased = ssidEnabled
-        winCacheMutex.withLock {
-            winServersCache.filter { w -> w.key == key }.forEach { w ->
-                w.ssidBased = ssidEnabled
-            }
-        }
-
-        try {
-            countryConfigRepo.update(config)
-            Logger.i(LOG_TAG_PROXY, "$TAG; setSsidEnabledForWinServer: set ssidEnabled=$ssidEnabled for server: $key")
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_PROXY, "$TAG; setSsidEnabledForWinServer: failed to update DB for $key: ${e.message}", e)
-            // Revert on DB failure
-            config.ssidBased = oldValue
-            winCacheMutex.withLock {
-                winServersCache.filter { w -> w.key == key }.forEach { w ->
-                    w.ssidBased = oldValue
-                }
-            }
-        }
-
-        if (config.isEnabled) {
-            VpnController.refreshOrPauseOrResumeOrReAddProxies()
-        }
+        winServerController.setSsidEnabledForWinServer(key, ssidEnabled)
     }
 
-    suspend fun disableWinServer(key: String): Pair<Boolean, String> {
-        if (key.isEmpty()) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; disableWinServer: key is empty")
-            return Pair(false, "Server key is empty")
-        }
-
-        val config = winCacheMutex.withLock {
-            winServersCache.find { it.key == key }
-        }
-
-        if (config == null) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; disableWinServer: server with key $key not found in cache")
-            return Pair(false, "Server with key $key not found")
-        }
-
-        // Check if already disabled
-        if (!config.isEnabled) {
-            Logger.i(LOG_TAG_PROXY, "$TAG; disableWinServer: server $key already disabled")
-            return Pair(true, "Server already disabled")
-        }
-
-        val res = try {
-            VpnController.removeWinServer(config.key)
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_PROXY, "$TAG; disableWinServer: exception calling VpnController for $key: ${e.message}", e)
-            return Pair(false, "Failed to remove server: ${e.message}")
-        }
-
-        if (res.first) {
-            config.isEnabled = false
-            winCacheMutex.withLock {
-                winServersCache.filter { it.key == key }.forEach { it.isEnabled = false }
-            }
-                try {
-                    countryConfigRepo.update(config)
-                    // Clear the in-memory tunnel timestamp for this server.
-                    clearServerMeta(key)
-                    Logger.i(LOG_TAG_PROXY, "$TAG; disableWinServer: disabled rpn: $key")
-                } catch (e: Exception) {
-                    Logger.e(LOG_TAG_PROXY, "$TAG; disableWinServer: failed to update DB for $key: ${e.message}", e)
-                    // Revert cache change on DB failure
-                    winCacheMutex.withLock {
-                        winServersCache.filter { it.key == key }.forEach { it.isEnabled = true }
-                    }
-                    config.isEnabled = true
-                    return Pair(false, "Failed to update database: ${e.message}")
-                }
-        } else {
-            Logger.w(LOG_TAG_PROXY, "$TAG; disableWinServer: failed to disable server with key $key, error: ${res.second}")
-        }
-        return res
-    }
+    suspend fun disableWinServer(key: String): Pair<Boolean, String> =
+        winServerController.disableWinServer(key)
 
     /**
      * Ensures AUTO server exists in database. Creates it if it doesn't exist.
      * AUTO server is a special server that represents automatic server selection.
      */
     suspend fun ensureAutoServerExists() {
-        try {
-            val autoServer = countryConfigRepo.getById(AUTO_SERVER_ID) ?: countryConfigRepo.getById(AUTO_SERVER_ID.lowercase())
-            if (autoServer == null) {
-                Logger.i(LOG_TAG_PROXY, "$TAG; ensureAutoServerExists: AUTO server not found, creating...")
-                val newAutoServer = createAutoServer()
-                countryConfigRepo.insert(newAutoServer)
-                // Add to cache
-                winCacheMutex.withLock {
-                    winServersCache.add(newAutoServer)
-                }
-                Logger.i(LOG_TAG_PROXY, "$TAG; ensureAutoServerExists: AUTO server created successfully")
-            } else {
-                Logger.v(LOG_TAG_PROXY, "$TAG; ensureAutoServerExists: AUTO server already exists")
-                // Ensure it's in the cache
-                winCacheMutex.withLock {
-                    if (winServersCache.none { it.id.equals(AUTO_SERVER_ID, true) }) {
-                        winServersCache.add(autoServer)
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_PROXY, "$TAG; ensureAutoServerExists: error - ${e.message}", e)
-        }
-    }
-
-    /**
-     * Creates an AUTO server configuration
-     */
-    private fun createAutoServer(): CountryConfig {
-        return CountryConfig(
-            id = AUTO_SERVER_ID,
-            cc = AUTO_COUNTRY_CODE,
-            name = AUTO_SERVER_ID,
-            address = AUTO_SERVER_ID,
-            city = AUTO_SERVER_ID,
-            key = AUTO_SERVER_ID,
-            load = 0,
-            link = 0,
-            count = 1,
-            premium = true,
-            isActive = true,
-            isEnabled = false, // Not enabled by default
-            catchAll = true,
-            lockdown = false,
-            mobileOnly = false,
-            ssidBased = false,
-            priority = 999, // Highest priority so it appears first
-            ssids = "",
-            lastModified = System.currentTimeMillis()
-        )
+        winServerController.ensureAutoServerExists()
     }
 
     /**
@@ -2466,168 +1807,33 @@ object RpnProxyManager : KoinComponent {
      * and persist it, and the newly-created entry is returned.  This makes the function
      * self-healing so that callers never see a spurious null.
      */
-    suspend fun getAutoServer(): CountryConfig? {
-        return try {
-            val cached = winCacheMutex.withLock {
-                winServersCache.find { it.id.equals(AUTO_SERVER_ID, true) }
-            }
-            if (cached != null) return cached
-
-            val fromDb = countryConfigRepo.getById(AUTO_SERVER_ID) ?: countryConfigRepo.getById(AUTO_SERVER_ID.lowercase())
-            if (fromDb != null) {
-                // Opportunistically warm the cache so subsequent calls hit the fast path.
-                winCacheMutex.withLock {
-                    if (winServersCache.none { it.id.equals(AUTO_SERVER_ID, true) }) {
-                        winServersCache.add(fromDb)
-                    }
-                }
-                return fromDb
-            }
-
-            Logger.w(LOG_TAG_PROXY, "$TAG; getAutoServer: AUTO server missing from cache and DB, creating via ensureAutoServerExists")
-            ensureAutoServerExists()
-
-            winCacheMutex.withLock {
-                winServersCache.find { it.id.equals(AUTO_SERVER_ID, true) }
-            } ?: countryConfigRepo.getById(AUTO_SERVER_ID) ?: countryConfigRepo.getById(AUTO_SERVER_ID.lowercase())
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_PROXY, "$TAG; getAutoServer: err: ${e.message}", e)
-            null
-        }
-    }
+    suspend fun getAutoServer(): CountryConfig? = winServerController.getAutoServer()
 
     /**
      * Updates AUTO server state in database and cache
      */
     suspend fun updateAutoServerState(autoServer: CountryConfig) {
-        try {
-            countryConfigRepo.update(autoServer)
-            // Update cache
-            winCacheMutex.withLock {
-                val index = winServersCache.indexOfFirst { it.key == AUTO_SERVER_ID }
-                if (index >= 0) {
-                    winServersCache[index] = autoServer
-                }
-            }
-            Logger.i(LOG_TAG_PROXY, "$TAG; updateAutoServerState: AUTO server updated, isEnabled=${autoServer.isEnabled}")
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_PROXY, "$TAG; updateAutoServerState: error - ${e.message}", e)
-        }
+        winServerController.updateAutoServerState(autoServer)
     }
 
-     /**
-      * Syncs fetched servers with database and cache.
-      * This should be called after fetchAndConstructWinLocations.
-      * AUTO server is protected and never deleted.
-      */
-     suspend fun syncWinServers(servers: Set<CountryConfig>) {
-         try {
-             // Ensure AUTO server exists before syncing
-             ensureAutoServerExists()
-
-             // get the current server list before sync so we can find removed servers
-             // and clean up their ProxyApplicationMapping entries.
-             val serversBefore = try {
-                 countryConfigRepo.getAllConfigs()
-             } catch (e: Exception) {
-                 Logger.w(LOG_TAG_PROXY, "$TAG; syncWinServers: could not read pre-sync servers: ${e.message}")
-                 emptyList()
-             }
-
-             // Sync to database (this handles insertions, updates, and deletions)
-             val syncServerList = if (servers.isEmpty()) {
-                 Logger.w(LOG_TAG_PROXY, "$TAG; syncWinServers: empty server list, clearing DB except AUTO")
-                    emptyList()
-             } else {
-                 servers.toList()
-             }
-
-             // Sync to database (AUTO server is protected in the repository method)
-             countryConfigRepo.syncServers(syncServerList)
-
-             // clean up proxy-app mappings for every server that was removed from the DB.
-             val newServerKeys = servers.map { it.key }.toSet()
-             val removedServers = serversBefore.filter {
-                 it.id != AUTO_SERVER_ID && !newServerKeys.contains(it.key)
-             }
-             if (removedServers.isNotEmpty()) {
-                 removedServers.forEach { removed ->
-                     ProxyManager.removeProxyId(Backend.RpnWin + removed.key)
-                     Logger.i(LOG_TAG_PROXY, "$TAG; syncWinServers: removed proxy mapping for stale server key=${removed.key}")
-                 }
-             }
-
-             // Read back from DB to ensure consistency
-             val existingServers = try {
-                 countryConfigRepo.getAllConfigs()
-             } catch (e: Exception) {
-                 Logger.e(LOG_TAG_PROXY, "$TAG; syncWinServers: failed to read from DB after sync: ${e.message}", e)
-                 emptyList()
-             }
-
-             // Update cache - clear and refill with new data
-             winCacheMutex.withLock {
-                 winServersCache.clear()
-                 if (existingServers.isNotEmpty()) {
-                     winServersCache.addAll(existingServers)
-                 }
-             }
-
-             Logger.i(LOG_TAG_PROXY, "$TAG; syncWinServers: synced ${servers.size} servers to DB, ${existingServers.size} in cache, ${removedServers.size} proxy mappings cleaned")
-         } catch (e: Exception) {
-             Logger.e(LOG_TAG_PROXY, "$TAG; syncWinServers: error - ${e.message}", e)
-         }
-     }
-
-     /**
-      * Refreshes WIN servers from API and returns information about removed servers.
-      * This is useful for UI to detect and notify users about removed selected servers.
-      * Returns a Pair of:
-      * - First: List of all current servers after refresh
-      * - Second: List of CountryConfig objects that were removed and were in the selected list
-      */
-     suspend fun refreshWinServers(): Pair<List<CountryConfig>, List<CountryConfig>> {
-         try {
-             val existingServers = countryConfigRepo.getAllConfigs()
-             val (newServers, removedSelectedIds) = fetchAndConstructWinLocations()
-
-             if (newServers.isEmpty()) {
-                 retryLocationFetch()
-                 return Pair(emptyList(), emptyList())
-             }
-
-             // Sync to DB and cache
-             syncWinServers(newServers)
-
-             // Find the actual removed server objects for notification
-             val removedServers = existingServers.filter { removedSelectedIds.contains(it.id) && it.id.equals(AUTO_SERVER_ID, true) }
-
-             Logger.i(LOG_TAG_PROXY, "$TAG; refreshWinServers: refreshed ${newServers.size} servers, ${removedServers.size} selected servers removed")
-             // Return the cache populated by syncWinServers (read from DB) instead of the
-             // freshly-constructed API objects.  API objects are built with default field values
-             // (e.g. isFavourite = false), so returning them would silently clear every country's
-             // favourite flag in the in-memory allServers list inside ServerSelectionFragment.
-             val freshList = winCacheMutex.withLock { winServersCache.toList() }
-             return Pair(freshList, removedServers)
-         } catch (e: Exception) {
-             Logger.e(LOG_TAG_PROXY, "$TAG; refreshWinServers: error - ${e.message}", e)
-             return Pair(emptyList(), emptyList())
-         }
-     }
-
-    private suspend fun isAnyProxyLockdown(proxies: List<String>): Boolean {
-        var lockdown = false
-        proxies.forEach { pid ->
-            val config = winCacheMutex.withLock {
-                if (pid == Backend.RpnWin || pid.equals(AUTO_SERVER_ID, true)) winServersCache.find { pid.equals(AUTO_SERVER_ID, true) }
-                else winServersCache.find { it.id == pid || it.key == pid }
-            }
-            lockdown = config?.lockdown ?: false
-            if (lockdown) return true
-        }
-
-        return lockdown
+    /**
+     * Syncs fetched servers with database and cache.
+     * This should be called after fetchAndConstructWinLocations.
+     * AUTO server is protected and never deleted.
+     */
+    suspend fun syncWinServers(servers: Set<CountryConfig>) {
+        winServerController.syncWinServers(servers)
     }
+
+    /**
+     * Refreshes WIN servers from API and returns information about removed servers.
+     * This is useful for UI to detect and notify users about removed selected servers.
+     * Returns a Pair of:
+     * - First: List of all current servers after refresh
+     * - Second: List of CountryConfig objects that were removed and were in the selected list
+     */
+    suspend fun refreshWinServers(): Pair<List<CountryConfig>, List<CountryConfig>> =
+        winServerController.refreshWinServers()
 
     suspend fun getAllPossibleConfigIdsForApp(
         uid: Int,
@@ -2637,249 +1843,31 @@ object RpnProxyManager : KoinComponent {
         usesMobileNw: Boolean,
         ssid: String
     ): List<String> {
-        val block = Backend.Block
-        val proxyIds: MutableList<String> = mutableListOf()
-
-        Logger.vv(LOG_TAG_PROXY, "$TAG; getAllPossibleConfigIdsForApp: init $uid, $ip, $port, $domain, $usesMobileNw, $ssid")
-        // collect all proxy-ids for this uid
         val allProxyIdsForApp = try {
             ProxyManager.getProxyIdsForApp(uid)
         } catch (e: Exception) {
             Logger.e(LOG_TAG_PROXY, "$TAG; error getting proxy ids for app $uid: ${e.message}", e)
             emptyList()
         }
-
-        val rpnProxyIdsForApp = allProxyIdsForApp.filter { it.startsWith(Backend.RpnWin) }
-
-        Logger.v(LOG_TAG_PROXY, "$TAG; allProxyIdsForApp: $allProxyIdsForApp, rpnProxyIdsForApp: $rpnProxyIdsForApp")
-
-        // app-specific configs may be empty if the app is not configured
-        if (rpnProxyIdsForApp.isNotEmpty()) {
-            for (pid in rpnProxyIdsForApp) {
-                val canUse = canUseConfig(pid, "app($uid)", usesMobileNw, ssid)
-                if (canUse) {
-                    if (pid.contains(AUTO_SERVER_ID, true)) {
-                        val id = VpnController.getWinByKey("")?.id() ?: block
-                        proxyIds.add(id)
-                    } else {
-                        proxyIds.add(pid)
-                    }
-                }
-            }
-        }
-
-        if (isAnyProxyLockdown(proxyIds)) {
-            Logger.i(LOG_TAG_PROXY, "$TAG lockdown rpn for app($uid) => return $proxyIds")
-            return proxyIds
-        }
-
-        // once the app-specific config is added, check if any catch-all config is enabled
-        // if catch-all config is enabled, then add the config id to the list
-        val cac = winCacheMutex.withLock {
-            try {
-                winServersCache.filter { it.isEnabled && it.catchAll }.toList()
-            } catch (e: Exception) {
-                Logger.e(LOG_TAG_PROXY, "$TAG; error filtering catch-all configs: ${e.message}", e)
-                emptyList()
-            }
-        }
-
-        Logger.v(LOG_TAG_PROXY, "$TAG; cac: $cac")
-        cac.forEach {
-            try {
-                val configId = Backend.RpnWin + it.key
-                if (isEligibleForNetwork(it.id, usesMobileNw, ssid, it.mobileOnly, it.ssidBased) &&
-                    !proxyIds.contains(configId)
-                ) {
-                    val id = if (configId.contains(AUTO_SERVER_ID, true)) {
-                        VpnController.getWinByKey("")?.id() ?: block
-                    } else {
-                        configId
-                    }
-                    proxyIds.add(id)
-                    Logger.i(
-                        LOG_TAG_PROXY,
-                        "$TAG catch-all config is active: ${it.id}, ${it.name} => add $id"
-                    )
-                }
-            } catch (e: Exception) {
-                Logger.e(LOG_TAG_PROXY, "$TAG; error processing catch-all config ${it.id}: ${e.message}", e)
-            }
-        }
-
-        // the proxyIds list will contain the ip-app specific, domain-app specific, app specific,
-        // universal ip, universal domain, catch-all and default configs in the order of priority
-        // the go-tun will check the routing based on the order of the list
-        Logger.i(LOG_TAG_PROXY, "$TAG returning proxy ids for $uid, $ip, $port, $domain: $proxyIds")
-        return proxyIds
-    }
-
-    private suspend fun isEligibleForNetwork(id: String, usesMobileNw: Boolean, ssid: String, mobileOnlySetting: Boolean, ssidEnabled: Boolean): Boolean {
-        if (!mobileOnlySetting && !ssidEnabled) return true
-
-        val passMobileOnly = mobileOnlySetting && (usesMobileNw && ssid.isEmpty())
-        val passSsid = ssidEnabled && !usesMobileNw && matchesSsidListForConfig(id, ssid)
-        return passMobileOnly || passSsid
-    }
-
-    // returns true if the current ssid is allowed by the SSID list configured for the wireguard.
-    // when the config is not found, returns false (fail-closed).
-    private suspend fun matchesSsidListForConfig(id: String, ssid: String): Boolean {
-        val config = winCacheMutex.withLock {
-            if (id == Backend.RpnWin || id.equals(AUTO_SERVER_ID, true)) winServersCache.find { it.id.equals(AUTO_SERVER_ID, true) }
-            else winServersCache.find { it.id == id || it.key == id }
-        }
-        if (config == null) {
-            Logger.e(LOG_TAG_PROXY, "matchesSsidListForConfig: config is null for id: $id")
-            return false
-        }
-        return matchesSsidList(config.ssids, ssid)
-    }
-
-    private suspend fun canUseConfig(
-        id: String,
-        type: String,
-        usesMobileNw: Boolean,
-        ssid: String
-    ): Boolean {
-        if (id.isEmpty()) {
-            return false
-        }
-        val actualId = id.substringAfter(Backend.RpnWin)
-
-        val config = winCacheMutex.withLock {
-            if (actualId == Backend.RpnWin || actualId.equals(AUTO_SERVER_ID, true)) winServersCache.find { it.id.equals(AUTO_SERVER_ID, true) }
-            else winServersCache.find { it.id == id || it.id == actualId || it.key == id || it.key == actualId }
-        }
-
-        if (config == null) {
-            Logger.e(LOG_TAG_PROXY, "$TAG; config null($actualId) no need to proceed, return empty")
-            return false
-        }
-
-        Logger.vv(LOG_TAG_PROXY, "$TAG; config-details: $config")
-
-        val lockdown = config.lockdown
-
-        if (lockdown && isEligibleForNetwork(id, usesMobileNw, ssid, config.mobileOnly, config.ssidBased)) {
-            Logger.d(LOG_TAG_PROXY, "$TAG; lockdown wg for $type => return $id")
-            return true // no need to proceed further for lockdown
-        }
-
-        // check if the config is active and if it can be used on this network
-        if (config.isEnabled && isEligibleForNetwork(id, usesMobileNw, ssid, config.mobileOnly, config.ssidBased)) {
-            Logger.d(LOG_TAG_PROXY, "$TAG active wg for $type => add $id")
-            return true
-        }
-
-        Logger.v(
-            LOG_TAG_PROXY,
-            "$TAG wg for $type not active or not eligible nw, return empty, for id: $id, usesMobileNw: $usesMobileNw, ssid: $ssid"
+        val allIds = allProxyIdsForApp.toList()
+        val rpnProxyIdsForApp = allIds.filter { it.startsWith(Backend.RpnWin) }
+        val servers = winServerController.snapshot()
+        return hopSelector.collectProxyIds(
+            uid = uid,
+            ip = ip,
+            port = port,
+            domain = domain,
+            usesMobileNw = usesMobileNw,
+            ssid = ssid,
+            allProxyIdsForApp = allIds,
+            rpnProxyIdsForApp = rpnProxyIdsForApp,
+            servers = servers,
+            resolveAutoId = { VpnController.getWinByKey("")?.id() ?: Backend.Block },
         )
-        return false
     }
 
-    private fun matchesWildcard(pattern: String, text: String): Boolean {
-        if (pattern.isEmpty() || text.isEmpty()) {
-            Logger.v(LOG_TAG_PROXY, "$TAG; matchesWildcard: empty pattern or text")
-            return false
-        }
-
-        // Convert wildcard pattern to regex
-        // * matches any sequence of characters
-        // ? matches any single character
-        return try {
-            val regexPattern = pattern
-                .replace(".", "\\.")  // Escape dots
-                .replace("*", ".*")   // Convert * to .*
-                .replace("?", ".")    // Convert ? to .
-
-            val matches = text.matches(Regex(regexPattern, RegexOption.IGNORE_CASE))
-            val contains = text.contains(pattern, ignoreCase = true)
-
-            matches || contains
-        } catch (e: Exception) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; matchesWildcard: invalid wildcard pattern: $pattern, error: ${e.message}")
-            // Fallback to simple contains check
-            try {
-                text.contains(pattern, ignoreCase = true)
-            } catch (e2: Exception) {
-                Logger.e(LOG_TAG_PROXY, "$TAG; matchesWildcard: fallback also failed: ${e2.message}", e2)
-                false
-            }
-        }
-    }
-
-    fun matchesSsidList(ssidList: String, ssid: String): Boolean {
-        if (ssidList.isEmpty()) {
-            // Empty list means match all
-            Logger.v(LOG_TAG_PROXY, "$TAG; matchesSsidList: empty ssidList, match all")
-            return true
-        }
-
-        if (ssid.isEmpty()) {
-            Logger.v(LOG_TAG_PROXY, "$TAG; matchesSsidList: empty ssid, no match")
-            return false
-        }
-
-        val ssidItems = try {
-            SsidItem.parseStorageList(ssidList)
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_PROXY, "$TAG; matchesSsidList: failed to parse ssidList: ${e.message}", e)
-            return true // Fail open
-        }
-
-        if (ssidItems.isEmpty()) { // treat empty as match all
-            return true
-        }
-
-        // Separate EQUAL items from NOT_EQUAL items
-        val equalItems = ssidItems.filter { it.type.isEqual }
-        val notEqualItems = ssidItems.filter { !it.type.isEqual }
-
-        // Check NOT_EQUAL items first - if any match, return false
-        val notEqualMatch = notEqualItems.any { ssidItem ->
-            try {
-                when {
-                    ssidItem.type.isExact -> {
-                        ssidItem.name.equals(ssid, ignoreCase = true)
-                    }
-                    else -> { // wildcard
-                        matchesWildcard(ssidItem.name, ssid)
-                    }
-                }
-            } catch (e: Exception) {
-                Logger.w(LOG_TAG_PROXY, "$TAG; matchesSsidList: error matching NOT_EQUAL item: ${e.message}")
-                false
-            }
-        }
-
-        if (notEqualMatch) {
-            return false
-        }
-
-        // If there are only NOT_EQUAL items and none matched, return true
-        if (equalItems.isEmpty() && notEqualItems.isNotEmpty()) {
-            return true
-        }
-
-        // Check EQUAL items (exact or wildcard)
-        return equalItems.any { ssidItem ->
-            try {
-                when {
-                    ssidItem.type.isExact -> {
-                        ssidItem.name.equals(ssid, ignoreCase = true)
-                    }
-                    else -> { // wildcard
-                        matchesWildcard(ssidItem.name, ssid)
-                    }
-                }
-            } catch (e: Exception) {
-                Logger.w(LOG_TAG_PROXY, "$TAG; matchesSsidList: error matching EQUAL item: ${e.message}")
-                false
-            }
-        }
-    }
+    fun matchesSsidList(ssidList: String, ssid: String): Boolean =
+        ssidController.matchesSsidList(ssidList, ssid)
 
     /**
      * Update SSID based status for a country
@@ -2887,66 +1875,7 @@ object RpnProxyManager : KoinComponent {
      * @param ssidBased Whether SSID-based connection is enabled
      */
     suspend fun updateSsidBased(key: String, ssidBased: Boolean) {
-        if (key.isEmpty()) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; updateSsidBased: cc is empty")
-            return
-        }
-
-        val config = winCacheMutex.withLock {
-            winServersCache.find { it.key == key }
-        }
-
-        if (config == null) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; updateSsidBased: config not found in cache for key: $key")
-            return
-        }
-
-        val oldValue = config.ssidBased
-
-        try {
-            countryConfigRepo.updateSsidBased(key, ssidBased)
-
-            // Update cache
-            winCacheMutex.withLock {
-                val cachedConfig = winServersCache.find { it.key == key }
-                if (cachedConfig != null) {
-                    winServersCache.remove(cachedConfig)
-                    winServersCache.add(cachedConfig.copy(ssidBased = ssidBased, lastModified = System.currentTimeMillis()))
-                } else {
-                    Logger.w(LOG_TAG_PROXY, "$TAG; updateSsidBased: config disappeared from cache for key: $key")
-                }
-            }
-
-            Logger.i(LOG_TAG_PROXY, "$TAG; updateSsidBased: $key = $ssidBased")
-
-            // Trigger connection monitor to update SSID info if country is selected
-            val keyExists = winCacheMutex.withLock { winServersCache.any { it.key == key } }
-            if (keyExists) {
-                try {
-                    if (oldValue != ssidBased) {
-                        VpnController.notifyConnectionMonitor(enforcePolicyChange = true)
-                    }
-                } catch (e: Exception) {
-                    Logger.e(LOG_TAG_PROXY, "$TAG; updateSsidBased: failed to refresh proxies: ${e.message}", e)
-                    // Don't revert DB change if only the VPN controller refresh failed
-                }
-            }
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_PROXY, "$TAG; error updating SSID based for $key: ${e.message}", e)
-            // Revert cache on DB failure
-            winCacheMutex.withLock {
-                val cachedConfig = winServersCache.find { it.key == key }
-                if (cachedConfig != null) {
-                    winServersCache.remove(cachedConfig)
-                    winServersCache.add(cachedConfig.copy(ssidBased = oldValue))
-                }
-            }
-        }
-
-        if (config.isEnabled) {
-            // Refresh proxies to immediately pause/resume based on new SSID setting
-            VpnController.refreshOrPauseOrResumeOrReAddProxies()
-        }
+        winServerController.updateSsidBased(key, ssidBased)
     }
 
     /**
@@ -2955,80 +1884,11 @@ object RpnProxyManager : KoinComponent {
      * @param ssids JSON string of SSID items
      */
     suspend fun updateSsids(key: String, ssids: String) {
-        if (key.isEmpty()) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; updateSsids: cc is empty")
-            return
-        }
-
-        val config = winCacheMutex.withLock {
-            winServersCache.find { it.key == key }
-        }
-
-        if (config == null) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; updateSsids: config not found in cache for key: $key")
-            return
-        }
-
-        val oldSsids = config.ssids
-
-        try {
-            countryConfigRepo.updateSsids(key, ssids)
-
-            // Update cache
-            winCacheMutex.withLock {
-                val cachedConfig = winServersCache.find { it.key == key }
-                if (cachedConfig != null) {
-                    winServersCache.remove(cachedConfig)
-                    winServersCache.add(cachedConfig.copy(ssids = ssids, lastModified = System.currentTimeMillis()))
-                } else {
-                    Logger.w(LOG_TAG_PROXY, "$TAG; updateSsids: config disappeared from cache for key: $key")
-                }
-            }
-
-            Logger.i(LOG_TAG_PROXY, "$TAG; updateSsids: $key, ssids length=${ssids.length}")
-
-            // If country is selected and SSID based enabled, refresh proxies.
-            // Read both pieces of state in one lock to avoid a bare read.
-            val (keyExists, isSsidBased) = winCacheMutex.withLock {
-                val c = winServersCache.find { it.key == key }
-                Pair(c != null, c?.ssidBased == true)
-            }
-            if (keyExists && isSsidBased) {
-                try {
-                    VpnController.notifyConnectionMonitor(enforcePolicyChange = true)
-                } catch (e: Exception) {
-                    Logger.e(LOG_TAG_PROXY, "$TAG; updateSsids: failed to refresh proxies: ${e.message}", e)
-                    // Don't revert DB change if only the VPN controller refresh failed
-                }
-            }
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_PROXY, "$TAG; error updating SSIDs for $key: ${e.message}", e)
-            // Revert cache on DB failure
-            winCacheMutex.withLock {
-                val cachedConfig = winServersCache.find { it.key == key }
-                if (cachedConfig != null) {
-                    winServersCache.remove(cachedConfig)
-                    winServersCache.add(cachedConfig.copy(ssids = oldSsids))
-                }
-            }
-        }
-
-        if (config.isEnabled) {
-            // refresh proxies to immediately pause/resume based on new SSID setting
-            VpnController.refreshOrPauseOrResumeOrReAddProxies()
-        }
+        winServerController.updateSsids(key, ssids)
     }
 
-    suspend fun getCountryConfigByKey(key: String): CountryConfig? {
-        return try {
-            winCacheMutex.withLock {
-                winServersCache.find { it.key == key }
-            }
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_PROXY, "$TAG; error getting country config for $key: ${e.message}", e)
-            null
-        }
-    }
+    suspend fun getCountryConfigByKey(key: String): CountryConfig? =
+        winServerController.getCountryConfigByKey(key)
 
     /**
      * Cleanup method to cancel observer job and release resources.
@@ -3050,7 +1910,7 @@ object RpnProxyManager : KoinComponent {
 
         if (!isRpnActive()) return sb.toString()
 
-        val enabledServers = winCacheMutex.withLock { winServersCache.filter { it.isEnabled } }
+        val enabledServers = winServerController.snapshot().filter { it.isEnabled }
         enabledServers.forEach {
             val id = if (it.key.equals(AUTO_SERVER_ID, true)) {
                 Backend.RpnWin

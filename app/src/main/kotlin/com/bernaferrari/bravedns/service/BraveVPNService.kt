@@ -1088,7 +1088,11 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
             notifyConnectionMonitor = { notifyConnectionMonitor() },
             onTunPolicyChanged = { connectionMonitor.onPolicyChanged() },
             currentMtu = ::mtu,
-            handleBubbleIfNeeded = { bubbleController.handleIfNeeded() },
+            handleBubbleIfNeeded = {
+                if (VERSION.SDK_INT >= VERSION_CODES.Q) {
+                    bubbleController.handleIfNeeded()
+                }
+            },
             newTunnelOptions = {
                 appConfig.newTunnelOptions(
                     this,
@@ -1678,7 +1682,6 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
                             }
                         }
                         VpnBuilderPolicy.GoVpnAdapterBehaviour.PREFER_RESTART -> {
-                            // TODO: should we check for lockdown mode and decide to restart? or just restart always?
                             // if vpn-adapter exists, recreate vpn-adapter only on lockdown mode
                             if (lockdown) {
                                 if (vpnAdapter?.restartTunnel(fd, mtu, nwMtu, protos) == false) {
@@ -3753,10 +3756,6 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
 
     fun performAutoConnectivityCheck(controller: Controller, id: String, mode: String): Boolean {
         return vpnAdapter?.performAutoConnectivityCheck(controller, id, mode) ?: false
-    }
-
-    private fun firewallStats(): String {
-        return FirewallManager.stats()
     }
 
     fun screenUnlock() {

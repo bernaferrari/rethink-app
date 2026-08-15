@@ -46,6 +46,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -134,7 +135,7 @@ fun WgConfigDetailScreen(
     var showAddPeerDialog by remember { mutableStateOf(false) }
     var showHopDialog by remember { mutableStateOf(false) }
     var hopDialogConfigs by remember { mutableStateOf<List<Config>>(emptyList()) }
-    var hopDialogSelectedId by remember { mutableStateOf(INVALID_CONF_ID) }
+    var hopDialogSelectedId by remember { mutableIntStateOf(INVALID_CONF_ID) }
     var showSsidDialog by remember { mutableStateOf(false) }
     var ssidDialogCurrent by remember { mutableStateOf("") }
     var showIncludeAppsDialog by remember { mutableStateOf(false) }

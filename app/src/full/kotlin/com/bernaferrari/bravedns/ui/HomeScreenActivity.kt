@@ -82,13 +82,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.core.content.pm.PackageInfoCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.work.WorkInfo
-import androidx.work.WorkManager
 import com.bernaferrari.bravedns.BuildConfig
 import com.bernaferrari.bravedns.NonStoreAppUpdater
 import com.bernaferrari.bravedns.R
@@ -101,7 +100,6 @@ import com.bernaferrari.bravedns.database.EventDao
 import com.bernaferrari.bravedns.database.RefreshDatabase
 import com.bernaferrari.bravedns.scheduler.BugReportZipper
 import com.bernaferrari.bravedns.scheduler.EnhancedBugReport
-import com.bernaferrari.bravedns.scheduler.WorkScheduler
 import com.bernaferrari.bravedns.service.AppUpdater
 import com.bernaferrari.bravedns.service.BraveVPNService
 import com.bernaferrari.bravedns.service.EventLogger
@@ -136,7 +134,6 @@ import com.bernaferrari.bravedns.ui.compose.settings.AppLockScreen
 import com.bernaferrari.bravedns.ui.compose.settings.AppLockResult
 import com.bernaferrari.bravedns.ui.compose.home.PauseScreen
 import com.bernaferrari.bravedns.util.BioMetricType
-import com.bernaferrari.bravedns.util.workInfosByTagFlow
 import com.bernaferrari.bravedns.util.Constants
 import com.bernaferrari.bravedns.util.Constants.Companion.MAX_ENDPOINT
 import com.bernaferrari.bravedns.util.Constants.Companion.PKG_NAME_PLAY_STORE
@@ -193,7 +190,6 @@ class HomeScreenActivity : FragmentActivity() {
     private val appUpdateManager by inject<AppUpdater>()
     private val rdb by inject<RefreshDatabase>()
     private val appConfig by inject<AppConfig>()
-    private val workScheduler by inject<WorkScheduler>()
     private val appDatabase by inject<AppDatabase>()
     private val eventDao by inject<EventDao>()
     private val eventLogger by inject<EventLogger>()
@@ -800,14 +796,12 @@ class HomeScreenActivity : FragmentActivity() {
 
     private fun getLatestVersion(): Int {
         val pInfo: PackageInfo? = getPackageMetadata(this.packageManager, this.packageName)
-        // TODO: modify this to use the latest version code api
-        @Suppress("DEPRECATION")
-        val v = pInfo?.versionCode ?: 0
+        val v = pInfo?.let { PackageInfoCompat.getLongVersionCode(it) } ?: 0L
         // latest version has apk variant (baseAbiVersionCode * 10000000 + variant.versionCode)
         // so we need to mod the version code by 10000000 to get the actual version code
         // for example: 10000000 + 45 = 10000045, so the version code is 1
         // see build.gradle (:app), #project.ext.versionCodes
-        val latestVersionCode = v % 10000000 // 10000000 is the base version code
+        val latestVersionCode = (v % 10000000L).toInt()
         Logger.i(LOG_TAG_UI, "latest version code: $latestVersionCode")
         return latestVersionCode
     }
@@ -1061,31 +1055,6 @@ class HomeScreenActivity : FragmentActivity() {
         showDialog(HomeDialog.AlwaysOnDisable)
     }
 
-    private fun startDnsActivity() {
-        if (Utilities.isPrivateDnsActive(this)) {
-            showPrivateDnsDialog()
-            return
-        }
-
-        if (canStartRethinkActivity()) {
-            io {
-                val endpoint = appConfig.getRemoteRethinkEndpoint()
-                val url = endpoint?.url ?: ""
-                val name = endpoint?.name ?: ""
-                uiCtx {
-                    homeNavRequest = HomeNavRequest.ConfigureRethinkBasic(
-                        ConfigureRethinkScreenType.DB_LIST,
-                        name,
-                        url
-                    )
-                }
-            }
-            return
-        }
-
-        homeNavRequest = HomeNavRequest.DnsDetail
-    }
-
     private fun navigateToDnsDetailIfAllowed() {
         if (Utilities.isPrivateDnsActive(this)) {
             showPrivateDnsDialog()
@@ -1106,17 +1075,8 @@ class HomeScreenActivity : FragmentActivity() {
         homeNavRequest = HomeNavRequest.ConfigureRethinkBasic(ConfigureRethinkScreenType.LOCAL)
     }
 
-    private fun canStartRethinkActivity(): Boolean {
-        val dns = appConfig.getDnsType()
-        return dns.isRethinkRemote() && !WireguardManager.oneWireGuardEnabled()
-    }
-
     private fun showPrivateDnsDialog() {
         showDialog(HomeDialog.PrivateDns)
-    }
-
-    private fun startFirewallActivity() {
-        homeNavRequest = HomeNavRequest.FirewallSettings
     }
 
     private fun shareConsoleLogs() {
@@ -1153,19 +1113,6 @@ class HomeScreenActivity : FragmentActivity() {
         }
     }
 
-    private fun openUniversalFirewallScreen() {
-        homeNavRequest = HomeNavRequest.UniversalFirewallSettings
-    }
-
-    private fun openCustomIpScreen() {
-        homeNavRequest =
-            HomeNavRequest.CustomRules(
-                uid = UID_EVERYBODY,
-                tab = CustomRulesTab.IP,
-                mode = CustomRulesMode.APP_SPECIFIC
-            )
-    }
-
     private fun openAppWiseIpScreen() {
         homeNavRequest =
             HomeNavRequest.CustomRules(
@@ -1173,10 +1120,6 @@ class HomeScreenActivity : FragmentActivity() {
                 tab = CustomRulesTab.IP,
                 mode = CustomRulesMode.ALL_RULES
             )
-    }
-
-    private fun startAppsActivity() {
-        homeNavRequest = HomeNavRequest.AppList
     }
 
     private fun prepareAndStartVpn() {
@@ -1342,23 +1285,6 @@ class HomeScreenActivity : FragmentActivity() {
         homeNavRequest = HomeNavRequest.Database
     }
 
-    private fun hasAnyLogsAvailable(): Boolean {
-        val dir = filesDir
-        val bugReportDir = java.io.File(dir, BugReportZipper.BUG_REPORT_DIR_NAME)
-        if (bugReportDir.exists() && bugReportDir.isDirectory) {
-            val bugReportFiles = bugReportDir.listFiles()
-            if (bugReportFiles != null && bugReportFiles.any { it.isFile && it.length() > 0 }) {
-                return true
-            }
-        }
-
-        return false
-    }
-
-    private fun showNoLogDialog() {
-        showDialog(HomeDialog.NoLog)
-    }
-
     private fun openNotificationSettings() {
         val packageName = packageName
         try {
@@ -1386,33 +1312,6 @@ class HomeScreenActivity : FragmentActivity() {
         val v = getVersionName().slice(0..6)
         val title = getString(R.string.about_whats_new, v)
         showDialog(HomeDialog.NewFeatures(title))
-    }
-
-    private fun promptCrashLogAction() {
-        if (Utilities.isAtleastO()) {
-            io {
-                try {
-                    EnhancedBugReport.addLogsToZipFile(this@HomeScreenActivity)
-                } catch (e: Exception) {
-                    Logger.w(LOG_TAG_UI, "err adding tombstone to zip: ${e.message}", e)
-                }
-            }
-        }
-
-        val dir = filesDir
-        val zipPath = BugReportZipper.getZipFileName(dir)
-        val zipFile = java.io.File(zipPath)
-
-        if (!zipFile.exists() || zipFile.length() <= 0) {
-            showToastUiCentered(
-                this,
-                getString(R.string.log_file_not_available),
-                Toast.LENGTH_SHORT
-            )
-            return
-        }
-
-        pendingBugReportSheet.value = true
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -1908,36 +1807,6 @@ class HomeScreenActivity : FragmentActivity() {
         }
     }
 
-    private fun handleShowAppExitInfo() {
-        if (WorkScheduler.isWorkRunning(this, WorkScheduler.APP_EXIT_INFO_JOB_TAG)) return
-
-        workScheduler.scheduleOneTimeWorkForAppExitInfo()
-
-        val workManager = WorkManager.getInstance(applicationContext)
-        lifecycleScope.launch {
-            workManager
-                .workInfosByTagFlow(WorkScheduler.APP_EXIT_INFO_ONE_TIME_JOB_TAG)
-                .collect { workInfoList ->
-                    val workInfo = workInfoList.getOrNull(0) ?: return@collect
-                    Logger.i(
-                        Logger.LOG_TAG_SCHEDULER,
-                        "WorkManager state: ${workInfo.state} for ${WorkScheduler.APP_EXIT_INFO_ONE_TIME_JOB_TAG}"
-                    )
-                    if (WorkInfo.State.SUCCEEDED == workInfo.state) {
-                        onAppExitInfoSuccess()
-                        workManager.pruneWork()
-                    } else if (
-                        WorkInfo.State.CANCELLED == workInfo.state ||
-                        WorkInfo.State.FAILED == workInfo.state
-                    ) {
-                        onAppExitInfoFailure()
-                        workManager.pruneWork()
-                        workManager.cancelAllWorkByTag(WorkScheduler.APP_EXIT_INFO_ONE_TIME_JOB_TAG)
-                    }
-                }
-        }
-    }
-
     data class BugReportFile(
         val file: File,
         val name: String,
@@ -1967,23 +1836,6 @@ class HomeScreenActivity : FragmentActivity() {
         const val EXTRA_DC_IS_BLOCKED = "extra_dc_is_blocked"
         const val EXTRA_DC_TIME_CATEGORY = "extra_dc_time_category"
         const val EXTRA_APP_INFO_UID = "extra_app_info_uid"
-    }
-
-    private fun onAppExitInfoFailure() {
-        showToastUiCentered(
-            this,
-            getString(R.string.log_file_not_available),
-            Toast.LENGTH_SHORT
-        )
-        hideBugReportProgressUi()
-    }
-
-    private fun onAppExitInfoSuccess() {
-        promptCrashLogAction()
-    }
-
-    private fun hideBugReportProgressUi() {
-        aboutViewModel.setBugReportRunning(false)
     }
 
     private fun io(f: suspend () -> Unit) {

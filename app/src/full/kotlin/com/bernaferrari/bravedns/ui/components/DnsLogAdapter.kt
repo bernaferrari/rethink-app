@@ -22,8 +22,8 @@ import Logger
 import Logger.LOG_TAG_UI
 
 import android.content.Context
-import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import androidx.core.graphics.drawable.toDrawable
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -361,5 +361,5 @@ private suspend fun loadCachedFavIcon(context: Context, url: String): Drawable? 
                 .networkCachePolicy(CachePolicy.DISABLED)
                 .build(),
         )
-    return (result as? SuccessResult)?.image?.toBitmap()?.let { BitmapDrawable(context.resources, it) }
+    return (result as? SuccessResult)?.image?.toBitmap()?.let { it.toDrawable(context.resources) }
 }

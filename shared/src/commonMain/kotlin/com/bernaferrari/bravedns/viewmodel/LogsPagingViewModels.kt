@@ -41,12 +41,11 @@ import kotlinx.coroutines.launch
 
 private val logsPagingConfig =
     PagingConfig(
-        enablePlaceholders = true,
+        enablePlaceholders = false,
         prefetchDistance = 3,
         initialLoadSize = PAGING_PAGE_SIZE * 2,
         maxSize = PAGING_PAGE_SIZE * 3,
         pageSize = PAGING_PAGE_SIZE * 2,
-        jumpThreshold = 5
     )
 
 @KoinViewModel
