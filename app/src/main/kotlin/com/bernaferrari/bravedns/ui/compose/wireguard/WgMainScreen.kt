@@ -33,8 +33,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.bernaferrari.bravedns.R
-import com.bernaferrari.bravedns.ui.components.OneWgConfigRow
-import com.bernaferrari.bravedns.ui.components.WgConfigRow
+import com.bernaferrari.bravedns.ui.compose.wireguard.OneWgConfigRow
+import com.bernaferrari.bravedns.ui.compose.wireguard.WgConfigRow
 import com.bernaferrari.bravedns.data.AppConfig
 import com.bernaferrari.bravedns.database.WgConfigFiles
 import com.bernaferrari.bravedns.database.EventSource

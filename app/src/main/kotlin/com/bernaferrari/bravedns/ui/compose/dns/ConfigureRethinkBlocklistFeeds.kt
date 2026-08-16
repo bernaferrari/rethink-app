@@ -19,7 +19,7 @@ import android.content.Context
 import android.widget.Toast
 import androidx.core.text.HtmlCompat
 import androidx.paging.compose.LazyPagingItems
-import com.bernaferrari.bravedns.ui.components.toRethinkGroup
+import com.bernaferrari.bravedns.ui.compose.dns.toRethinkGroup
 import com.bernaferrari.bravedns.database.LocalBlocklistPacksMap
 import com.bernaferrari.bravedns.database.RemoteBlocklistPacksMap
 import com.bernaferrari.bravedns.database.RethinkLocalFileTag

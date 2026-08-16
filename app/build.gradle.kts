@@ -120,6 +120,9 @@ android {
         minSdk = 23
         targetSdk = 37
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        versionCode = getVersionCode(project)
+        versionName = gitVersion
+        vectorDrawables.useSupportLibrary = true
     }
 
     signingConfigs {
@@ -217,7 +220,7 @@ android {
         }
     }
 
-    flavorDimensions += listOf("releaseChannel", "releaseType")
+    flavorDimensions += listOf("releaseChannel")
     productFlavors {
         create("play") {
             dimension = "releaseChannel"
@@ -227,12 +230,6 @@ android {
         }
         create("website") {
             dimension = "releaseChannel"
-        }
-        create("full") {
-            dimension = "releaseType"
-            versionCode = getVersionCode(project)
-            versionName = gitVersion
-            vectorDrawables.useSupportLibrary = true
         }
     }
 
@@ -263,7 +260,6 @@ configure<DetektExtension> {
     source.setFrom(
         files(
             "src/main/kotlin",
-            "src/full/kotlin",
             "src/billing/kotlin",
         )
     )
@@ -303,7 +299,7 @@ dependencies {
     implementation(libs.androidx.compose.animation)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 
-    "fullImplementation"(libs.androidx.core.ktx)
+    implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.datastore.preferences)
     // Compose
     val composeBom = platform(libs.androidx.compose.bom)
@@ -320,8 +316,8 @@ dependencies {
     implementation(libs.materialkolor)
     debugImplementation(libs.androidx.ui.tooling)
 
-    "fullImplementation"(libs.kotlinx.coroutines.core)
-    "fullImplementation"(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)
 
 
@@ -332,20 +328,20 @@ dependencies {
     implementation(libs.androidx.room.sqlite.wrapper)
     implementation(libs.androidx.sqlite.bundled)
 
-    "fullImplementation"(libs.androidx.lifecycle.viewmodel.ktx)
-    "fullImplementation"(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
 
     // Paging
     implementation(libs.androidx.paging.runtime.ktx)
     implementation(libs.androidx.paging.compose)
-    "fullImplementation"(libs.ktor.client.core)
-    "fullImplementation"(libs.ktor.client.cio)
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.cio)
 
     implementation(libs.okio.jvm)
 
-    "fullImplementation"(libs.coil)
-    "fullImplementation"(libs.coil.compose)
-    "fullImplementation"(libs.coil.network.ktor3)
+    implementation(libs.coil)
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.ktor3)
 
     implementation(platform(libs.koin.bom))
     download(libs.koin.core)
@@ -393,7 +389,7 @@ dependencies {
 
     "leakCanaryImplementation"(libs.leakcanary.android)
 
-    "fullImplementation"(libs.androidx.biometric)
+    implementation(libs.androidx.biometric)
 
     "playImplementation"(libs.play.app.update)
     "playImplementation"(libs.play.app.update.ktx)
@@ -402,7 +398,7 @@ dependencies {
 
     implementation(libs.androidx.security.crypto)
 
-    "fullImplementation"(libs.zxing.embedded)
+    implementation(libs.zxing.embedded)
 
     // lint
     lintChecks(libs.android.security.lint)

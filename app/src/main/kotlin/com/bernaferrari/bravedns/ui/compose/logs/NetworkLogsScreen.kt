@@ -89,8 +89,8 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.bernaferrari.bravedns.R
-import com.bernaferrari.bravedns.ui.components.ConnectionRow
-import com.bernaferrari.bravedns.ui.components.DnsLogRow
+import com.bernaferrari.bravedns.ui.compose.logs.ConnectionRow
+import com.bernaferrari.bravedns.ui.compose.dns.DnsLogRow
 import com.bernaferrari.bravedns.database.ConnectionTracker
 import com.bernaferrari.bravedns.database.ConnectionTrackerRepository
 import com.bernaferrari.bravedns.database.DnsLog

@@ -22,7 +22,7 @@ import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.database.ConsoleLogRepository
 import com.bernaferrari.bravedns.net.go.GoVpnAdapter
 import com.bernaferrari.bravedns.service.PersistentState
-import com.bernaferrari.bravedns.ui.components.ConsoleLogRow
+import com.bernaferrari.bravedns.ui.compose.logs.ConsoleLogRow
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.viewmodel.ConsoleLogViewModel
 import kotlinx.coroutines.Dispatchers

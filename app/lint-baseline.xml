@@ -7,8 +7,8 @@
         errorLine1="        window.navigationBarDividerColor = AndroidColor.TRANSPARENT"
         errorLine2="               ~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/kotlin/com/bernaferrari/bravedns/ui/HomeScreenActivity.kt"
-            line="283"
+            file="src/main/kotlin/com/bernaferrari/bravedns/ui/HomeScreenActivity.kt"
+            line="288"
             column="16"/>
     </issue>
 
@@ -18,8 +18,8 @@
         errorLine1="        window.navigationBarDividerColor = AndroidColor.TRANSPARENT"
         errorLine2="                                         ~">
         <location
-            file="src/full/kotlin/com/bernaferrari/bravedns/ui/HomeScreenActivity.kt"
-            line="283"
+            file="src/main/kotlin/com/bernaferrari/bravedns/ui/HomeScreenActivity.kt"
+            line="288"
             column="42"/>
     </issue>
 
@@ -29,8 +29,8 @@
         errorLine1="        window.isNavigationBarContrastEnforced = false"
         errorLine2="               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/kotlin/com/bernaferrari/bravedns/ui/HomeScreenActivity.kt"
-            line="284"
+            file="src/main/kotlin/com/bernaferrari/bravedns/ui/HomeScreenActivity.kt"
+            line="289"
             column="16"/>
     </issue>
 
@@ -40,8 +40,8 @@
         errorLine1="        window.isNavigationBarContrastEnforced = false"
         errorLine2="                                               ~">
         <location
-            file="src/full/kotlin/com/bernaferrari/bravedns/ui/HomeScreenActivity.kt"
-            line="284"
+            file="src/main/kotlin/com/bernaferrari/bravedns/ui/HomeScreenActivity.kt"
+            line="289"
             column="48"/>
     </issue>
 
@@ -51,8 +51,8 @@
         errorLine1="        window.isStatusBarContrastEnforced = false"
         errorLine2="               ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/kotlin/com/bernaferrari/bravedns/ui/HomeScreenActivity.kt"
-            line="285"
+            file="src/main/kotlin/com/bernaferrari/bravedns/ui/HomeScreenActivity.kt"
+            line="290"
             column="16"/>
     </issue>
 
@@ -62,8 +62,8 @@
         errorLine1="        window.isStatusBarContrastEnforced = false"
         errorLine2="                                           ~">
         <location
-            file="src/full/kotlin/com/bernaferrari/bravedns/ui/HomeScreenActivity.kt"
-            line="285"
+            file="src/main/kotlin/com/bernaferrari/bravedns/ui/HomeScreenActivity.kt"
+            line="290"
             column="44"/>
     </issue>
 
@@ -74,7 +74,7 @@
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/AndroidManifest.xml"
-            line="45"
+            line="46"
             column="9"/>
     </issue>
 
@@ -85,7 +85,7 @@
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/AndroidManifest.xml"
-            line="46"
+            line="47"
             column="9"/>
     </issue>
 
@@ -96,7 +96,7 @@
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/AndroidManifest.xml"
-            line="47"
+            line="48"
             column="9"/>
     </issue>
 
@@ -107,7 +107,7 @@
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/AndroidManifest.xml"
-            line="50"
+            line="51"
             column="9"/>
     </issue>
 
@@ -117,8 +117,8 @@
         errorLine1="            android:resizeableActivity=&quot;true&quot;"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/AndroidManifest.xml"
-            line="50"
+            file="src/main/AndroidManifest.xml"
+            line="138"
             column="13"/>
     </issue>
 
@@ -128,8 +128,8 @@
         errorLine1="            android:directBootAware=&quot;false&quot;"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/AndroidManifest.xml"
-            line="60"
+            file="src/main/AndroidManifest.xml"
+            line="146"
             column="13"/>
     </issue>
 
@@ -139,8 +139,8 @@
         errorLine1="                context.resources.getIdentifier(key, &quot;string&quot;, context.packageName)"
         errorLine2="                ~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/kotlin/com/bernaferrari/bravedns/ui/components/DnsEndpointShared.kt"
-            line="211"
+            file="src/main/kotlin/com/bernaferrari/bravedns/ui/compose/dns/DnsEndpointShared.kt"
+            line="279"
             column="17"/>
     </issue>
 
@@ -150,8 +150,8 @@
         errorLine1="            android:screenOrientation=&quot;fullSensor&quot;"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/AndroidManifest.xml"
-            line="35"
+            file="src/main/AndroidManifest.xml"
+            line="128"
             column="13"/>
     </issue>
 
@@ -161,8 +161,8 @@
         errorLine1="                context.resources.getIdentifier(key, &quot;string&quot;, context.packageName)"
         errorLine2="                                  ~~~~~~~~~~~~~">
         <location
-            file="src/full/kotlin/com/bernaferrari/bravedns/ui/components/DnsEndpointShared.kt"
-            line="211"
+            file="src/main/kotlin/com/bernaferrari/bravedns/ui/compose/dns/DnsEndpointShared.kt"
+            line="279"
             column="35"/>
     </issue>
 
@@ -194,8 +194,8 @@
         errorLine1="        &lt;receiver"
         errorLine2="         ~~~~~~~~">
         <location
-            file="src/full/AndroidManifest.xml"
-            line="71"
+            file="src/main/AndroidManifest.xml"
+            line="157"
             column="10"/>
     </issue>
 
@@ -216,8 +216,8 @@
         errorLine1="            var composeThemePreference by remember { mutableStateOf(persistentState.theme) }"
         errorLine2="                                                     ~~~~~~~~~~~~~~">
         <location
-            file="src/full/kotlin/com/bernaferrari/bravedns/ui/HomeScreenActivity.kt"
-            line="312"
+            file="src/main/kotlin/com/bernaferrari/bravedns/ui/HomeScreenActivity.kt"
+            line="317"
             column="54"/>
     </issue>
 
@@ -227,8 +227,8 @@
         errorLine1="            var composeThemeColorPreset by remember { mutableStateOf(persistentState.themeColorPreset) }"
         errorLine2="                                                      ~~~~~~~~~~~~~~">
         <location
-            file="src/full/kotlin/com/bernaferrari/bravedns/ui/HomeScreenActivity.kt"
-            line="313"
+            file="src/main/kotlin/com/bernaferrari/bravedns/ui/HomeScreenActivity.kt"
+            line="318"
             column="55"/>
     </issue>
 
@@ -239,7 +239,7 @@
         errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="build.gradle.kts"
-            line="389"
+            line="381"
             column="24"/>
     </issue>
 

@@ -47,7 +47,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.bernaferrari.bravedns.R
-import com.bernaferrari.bravedns.ui.components.RethinkEndpointRow
+import com.bernaferrari.bravedns.ui.compose.dns.RethinkEndpointRow
 import com.bernaferrari.bravedns.customdownloader.RemoteBlocklistCoordinator
 import com.bernaferrari.bravedns.data.AppConfig
 import com.bernaferrari.bravedns.service.PersistentState

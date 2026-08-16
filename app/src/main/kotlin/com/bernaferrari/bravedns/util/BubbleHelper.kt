@@ -32,7 +32,7 @@ import androidx.core.graphics.drawable.IconCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.service.PersistentState
-import com.bernaferrari.bravedns.ui.activity.BubbleActivity
+import com.bernaferrari.bravedns.ui.bubble.BubbleActivity
 
 /**
  * BubbleHelper - Implements Android's official Bubble API

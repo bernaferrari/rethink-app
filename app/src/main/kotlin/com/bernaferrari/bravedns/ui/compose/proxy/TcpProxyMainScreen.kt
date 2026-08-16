@@ -18,7 +18,7 @@ import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.data.AppConfig
 import com.bernaferrari.bravedns.service.ProxyManager
 import com.bernaferrari.bravedns.service.TcpProxyHelper
-import com.bernaferrari.bravedns.ui.dialog.WgIncludeAppsDialog
+import com.bernaferrari.bravedns.ui.compose.wireguard.WgIncludeAppsDialog
 import com.bernaferrari.bravedns.util.Utilities
 import com.bernaferrari.bravedns.viewmodel.ProxyAppsMappingViewModel
 import kotlinx.coroutines.Dispatchers

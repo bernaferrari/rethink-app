@@ -30,11 +30,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.bernaferrari.bravedns.R
-import com.bernaferrari.bravedns.ui.components.CloseConnsDialog
-import com.bernaferrari.bravedns.ui.components.DomainRow
+import com.bernaferrari.bravedns.ui.compose.apps.CloseConnsDialog
+import com.bernaferrari.bravedns.ui.compose.apps.DomainRow
 import com.bernaferrari.bravedns.data.AppConnection
 import com.bernaferrari.bravedns.service.EventLogger
-import com.bernaferrari.bravedns.ui.bottomsheet.AppDomainRulesSheet
+import com.bernaferrari.bravedns.ui.compose.firewall.AppDomainRulesSheet
 import com.bernaferrari.bravedns.util.Constants.Companion.INVALID_UID
 import com.bernaferrari.bravedns.util.Utilities
 import com.bernaferrari.bravedns.viewmodel.AppConnectionsViewModel

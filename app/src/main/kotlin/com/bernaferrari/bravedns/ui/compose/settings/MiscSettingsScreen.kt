@@ -14,7 +14,7 @@ import com.bernaferrari.bravedns.database.EventType
 import com.bernaferrari.bravedns.database.Severity
 import com.bernaferrari.bravedns.service.EventLogger
 import com.bernaferrari.bravedns.service.PersistentState
-import com.bernaferrari.bravedns.ui.bottomsheet.BackupRestoreSheet
+import com.bernaferrari.bravedns.ui.compose.database.BackupRestoreSheet
 import com.bernaferrari.bravedns.ui.compose.settings.RethinkMiscSettingIcon.AppUpdates
 import com.bernaferrari.bravedns.ui.compose.settings.RethinkMiscSettingIcon.AutoStart
 import com.bernaferrari.bravedns.ui.compose.settings.RethinkMiscSettingIcon.CrashReports

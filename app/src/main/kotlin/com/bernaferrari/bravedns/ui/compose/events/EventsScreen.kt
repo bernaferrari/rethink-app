@@ -27,7 +27,7 @@ import com.bernaferrari.bravedns.database.Event
 import com.bernaferrari.bravedns.database.EventDao
 import com.bernaferrari.bravedns.database.EventSource
 import com.bernaferrari.bravedns.database.Severity
-import com.bernaferrari.bravedns.ui.components.copyEventToClipboard
+import com.bernaferrari.bravedns.ui.compose.events.copyEventToClipboard
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.viewmodel.EventsViewModel
 import kotlinx.coroutines.Dispatchers

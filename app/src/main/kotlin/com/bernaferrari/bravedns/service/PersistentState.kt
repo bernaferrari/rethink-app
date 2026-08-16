@@ -128,13 +128,13 @@ class PersistentState(context: Context) {
     private var _udpBlocked by store.boolean("block_udp_traffic_other_than_dns", false)
 
     // user chosen blocklists stored custom dictionary indexed in base64
-    var localBlocklistStamp by store.string("local_block_list_stamp", if (Utilities.isHeadlessFlavour()) "1:YAYBACABEDAgAA==" else "")
+    var localBlocklistStamp by store.string("local_block_list_stamp", "")
 
     // whether to drop packets when the source app originating the reqs couldn't be determined
     private var _blockUnknownConnections by store.boolean("block_unknown_connections", false)
 
     // whether user has enable on-device blocklists
-    var blocklistEnabled by store.boolean("enable_local_list", Utilities.isHeadlessFlavour())
+    var blocklistEnabled by store.boolean("enable_local_list", false)
 
     // the version (which is a unix timestamp) of the current rethinkdns+ remote blocklist files
     var remoteBlocklistTimestamp by store.long("remote_block_list_downloaded_time", INIT_TIME_MS)
@@ -147,8 +147,7 @@ class PersistentState(context: Context) {
     var allowBypass by store.boolean("allow_bypass", false)
 
     // user set among AppConfig.DnsType enum; RETHINK_REMOTE is default which is Rethink-DoH
-    var dnsType by store.int("dns_type", if (!Utilities.isHeadlessFlavour()) AppConfig.DnsType.RETHINK_REMOTE.type
-                else AppConfig.DnsType.SYSTEM_DNS.type)
+    var dnsType by store.int("dns_type", AppConfig.DnsType.RETHINK_REMOTE.type)
 
     // whether the app must attempt to startup on reboot if it was running before shutdown
     var prefAutoStartBootUp by store.boolean("auto_start_on_boot", true)
@@ -225,8 +224,7 @@ class PersistentState(context: Context) {
     // user-preferred Internet Protocol type, default IPv4
     var internetProtocolType by store.int(
         INTERNET_PROTOCOL,
-        if (!Utilities.isHeadlessFlavour()) InternetProtocol.IPv4.id
-        else InternetProtocol.IPv46.id,
+        InternetProtocol.IPv4.id,
     )
 
     // user-preferred 6to4 protocol translation, on IPv6 mode (default: PTMODEAUTO)

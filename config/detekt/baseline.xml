@@ -5,7 +5,7 @@
     <ID>ComplexCondition:BraveAutoStartReceiver.kt$BraveAutoStartReceiver$!persistentState.prefAutoStartBootUp &amp;&amp; (intent.action == Intent.ACTION_BOOT_COMPLETED || intent.action == Intent.ACTION_REBOOT || intent.action == Intent.ACTION_USER_UNLOCKED)</ID>
     <ID>ComplexCondition:BraveAutoStartReceiver.kt$BraveAutoStartReceiver$Intent.ACTION_REBOOT != intent.action &amp;&amp; Intent.ACTION_BOOT_COMPLETED != intent.action &amp;&amp; Intent.ACTION_USER_UNLOCKED != intent.action &amp;&amp; Intent.ACTION_MY_PACKAGE_REPLACED != intent.action</ID>
     <ID>ComplexCondition:BraveVPNService.kt$BraveVPNService$(destIp.isZero &amp;&amp; who.startsWith(ID_WG_BASE)) || destIp.isZero || destIp.isLoopback</ID>
-    <ID>ComplexCondition:ConnectionTrackerAdapter.kt$ct.duration == 0 &amp;&amp; ct.downloadBytes == 0L &amp;&amp; ct.uploadBytes == 0L &amp;&amp; ct.message.isEmpty()</ID>
+    <ID>ComplexCondition:ConnectionTrackerRow.kt$ct.duration == 0 &amp;&amp; ct.downloadBytes == 0L &amp;&amp; ct.uploadBytes == 0L &amp;&amp; ct.message.isEmpty()</ID>
     <ID>ComplexCondition:DnsEndpointShared.kt$isSelected &amp;&amp; !smartDnsEnabled &amp;&amp; (!requireTunnel || VpnController.hasTunnel())</ID>
     <ID>ComplexCondition:DnsLogTracker.kt$DnsLogTracker$transaction.response.isNotEmpty() &amp;&amp; transaction.response != UNSPECIFIED_IP_IPV4 &amp;&amp; transaction.response != UNSPECIFIED_IP_IPV6 &amp;&amp; transaction.response != EMPTY_RESPONSE</ID>
     <ID>ComplexCondition:PurchaseDetailFactory.kt$PurchaseDetailFactory$years == 0 &amp;&amp; months == 0 &amp;&amp; weeks == 0 &amp;&amp; days == 0</ID>
@@ -38,13 +38,13 @@
     <ID>CyclomaticComplexMethod:ConfigureScreen.kt$@Composable fun ConfigureScreen( isDebug: Boolean, onAppsClick: () -&gt; Unit, onDnsClick: () -&gt; Unit, onFirewallClick: () -&gt; Unit, onProxyClick: () -&gt; Unit, onNetworkClick: () -&gt; Unit, onOthersClick: () -&gt; Unit, onLogsClick: () -&gt; Unit, onAntiCensorshipClick: () -&gt; Unit, onAdvancedClick: () -&gt; Unit, persistentState: PersistentState, eventLogger: EventLogger, onThemeModeChanged: ((Int) -&gt; Unit)? = null, onThemeColorChanged: ((Int) -&gt; Unit)? = null, onSearchDestinationClick: ((SettingsSearchDestination) -&gt; Unit)? = null, )</ID>
     <ID>CyclomaticComplexMethod:ConnectionFirewall.kt$ConnectionFirewall$suspend fun evaluate(request: ConnectionRequest): FirewallVerdict</ID>
     <ID>CyclomaticComplexMethod:ConnectionTracer.kt$ConnectionTracer$@RequiresApi(Build.VERSION_CODES.Q) suspend fun getUidQ( protocol: Int, srcIp: String, srcPort: Int, dstIp: String, dstPort: Int, retryCount: Int = 0 ): Int</ID>
-    <ID>CyclomaticComplexMethod:ConnectionTrackerAdapter.kt$@Composable fun ConnectionRow( ct: ConnectionTracker, index: Int = 0, itemCount: Int = 1, )</ID>
-    <ID>CyclomaticComplexMethod:ConnectionTrackerAdapter.kt$@Composable private fun summaryInfo(context: Context, ct: ConnectionTracker): Summary</ID>
+    <ID>CyclomaticComplexMethod:ConnectionTrackerRow.kt$@Composable fun ConnectionRow( ct: ConnectionTracker, index: Int = 0, itemCount: Int = 1, )</ID>
+    <ID>CyclomaticComplexMethod:ConnectionTrackerRow.kt$@Composable private fun summaryInfo(context: Context, ct: ConnectionTracker): Summary</ID>
     <ID>CyclomaticComplexMethod:CustomIpAndroid.kt$fun CustomIp.applyContentValues(values: ContentValues?)</ID>
     <ID>CyclomaticComplexMethod:CustomRulesScreen.kt$@Composable fun CustomRulesScreen( uid: Int = UID_EVERYBODY, initialTab: RulesTab = RulesTab.IP, initialMode: RulesMode = RulesMode.APP_SPECIFIC, domainViewModel: CustomDomainViewModel, ipViewModel: CustomIpViewModel, eventLogger: EventLogger, onBackClick: (() -&gt; Unit)? = null, )</ID>
     <ID>CyclomaticComplexMethod:DnsConnectionSettings.kt$DnsConnectionSettings$suspend fun onDnsChange(dt: DnsType)</ID>
     <ID>CyclomaticComplexMethod:DnsDetailScreen.kt$@Composable fun DnsDetailScreen( viewModel: DnsSettingsViewModel, persistentState: PersistentState, appDownloadManager: AppDownloadManager, initialFocusKey: String? = null, onCustomDnsClick: () -&gt; Unit, onRethinkPlusDnsClick: () -&gt; Unit, onLocalBlocklistConfigureClick: () -&gt; Unit, onBlockFreeDnsClick: () -&gt; Unit, onBackClick: (() -&gt; Unit)? = null )</ID>
-    <ID>CyclomaticComplexMethod:DnsLogAdapter.kt$@Composable fun DnsLogRow( log: DnsLog, loadFavIcon: Boolean, isRethinkDns: Boolean, onShowBlocklist: (DnsLog) -&gt; Unit, index: Int = 0, itemCount: Int = 1, )</ID>
+    <ID>CyclomaticComplexMethod:DnsLogRow.kt$@Composable fun DnsLogRow( log: DnsLog, loadFavIcon: Boolean, isRethinkDns: Boolean, onShowBlocklist: (DnsLog) -&gt; Unit, index: Int = 0, itemCount: Int = 1, )</ID>
     <ID>CyclomaticComplexMethod:DnsLogTracker.kt$DnsLogTracker$suspend fun makeDnsLogObj(transaction: Transaction): DnsLog</ID>
     <ID>CyclomaticComplexMethod:DomainConnectionsScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun DomainConnectionsScreen( viewModel: DomainConnectionsViewModel, type: DomainConnectionsInputType, flag: String, domain: String, asn: String, ip: String, isBlocked: Boolean, timeCategory: DomainConnectionsViewModel.TimeCategory, onBackClick: () -&gt; Unit, )</ID>
     <ID>CyclomaticComplexMethod:FirewallManager.kt$FirewallManager$fun getLabelForStatus(firewallStatus: FirewallStatus, connectionStatus: ConnectionStatus, prevConnStatus: ConnectionStatus): Int</ID>
@@ -102,9 +102,9 @@
     <ID>CyclomaticComplexMethod:VpnTunAppPolicy.kt$VpnTunAppPolicy$suspend fun newBuilder( underlays: Array&lt;Network&gt;?, vpnLockdown: Boolean, isPaused: Boolean, excludedApps: Set&lt;String&gt;, ): VpnService.Builder</ID>
     <ID>CyclomaticComplexMethod:VpnTunRoutes.kt$VpnTunRoutes$fun establish(builder: VpnService.Builder, networks: BraveVPNService.Networks, mtu: Int): TunEstablishResult</ID>
     <ID>CyclomaticComplexMethod:VpnTunRoutes.kt$VpnTunRoutes$fun interestingNetworkChanges( old: ConnectionMonitor.UnderlyingNetworks?, incoming: ConnectionMonitor.UnderlyingNetworks?, aux: BraveVPNService.OverlayNetworks, overlayMtu: Int, tunMtu: Int, builderRoutes: Pair&lt;Boolean, Boolean&gt;, reconcileWithVpnRoutes: Boolean, logd: (String) -&gt; Unit, ): BraveVPNService.NetworkChanges</ID>
-    <ID>CyclomaticComplexMethod:WgConfigAdapter.kt$@Composable fun WgConfigRow( config: WgConfigFiles, eventLogger: EventLogger, onDnsStatusChanged: () -&gt; Unit, onConfigDetailClick: (Int, WgType) -&gt; Unit )</ID>
     <ID>CyclomaticComplexMethod:WgConfigDetailScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun WgConfigDetailScreen( configId: Int, wgType: WgType, persistentState: PersistentState, eventLogger: EventLogger, mappingViewModel: ProxyAppsMappingViewModel, onEditConfig: (Int, WgType) -&gt; Unit, onBackClick: () -&gt; Unit )</ID>
     <ID>CyclomaticComplexMethod:WgConfigEditorScreen.kt$@Composable fun WgConfigEditorScreen( configId: Int, wgType: WgType, persistentState: PersistentState, onBackClick: () -&gt; Unit, onSaveSuccess: () -&gt; Unit, )</ID>
+    <ID>CyclomaticComplexMethod:WgConfigRow.kt$@Composable fun WgConfigRow( config: WgConfigFiles, eventLogger: EventLogger, onDnsStatusChanged: () -&gt; Unit, onConfigDetailClick: (Int, WgType) -&gt; Unit )</ID>
     <ID>CyclomaticComplexMethod:WgConfigStore.kt$WgConfigStore$suspend fun performRestore()</ID>
     <ID>CyclomaticComplexMethod:WgHopPlatformAdapter.kt$suspend fun updateWireguardHop( context: Context, sourceId: Int, target: Config, shouldSelect: Boolean, ): RethinkWireguardHopToggleResult</ID>
     <ID>CyclomaticComplexMethod:WgHopSelector.kt$WgHopSelector$fun collectProxyIds( uid: Int, ip: String, port: Int, domain: String, usesMobileNw: Boolean, ssid: String, default: String, oneWireGuardId: Int?, wgProxyIdsForApp: List&lt;String&gt;, mappings: Collection&lt;WgConfigFilesImmutable&gt;, ): List&lt;String&gt;</ID>
@@ -328,7 +328,7 @@
     <ID>TooGenericExceptionCaught:WgHopManager.kt$WgHopManager$e: Exception</ID>
     <ID>TooManyFunctions:AppDownloadManager.kt$AppDownloadManager</ID>
     <ID>TooManyFunctions:BackupAgent.kt$BackupAgent : WorkerKoinComponent</ID>
-    <ID>TooManyFunctions:BackupRestoreDialog.kt$com.bernaferrari.bravedns.ui.bottomsheet.BackupRestoreDialog.kt</ID>
+    <ID>TooManyFunctions:BackupRestoreDialog.kt$com.bernaferrari.bravedns.ui.compose.database.BackupRestoreDialog.kt</ID>
     <ID>TooManyFunctions:BillingBackendClient.kt$BillingBackendClient</ID>
     <ID>TooManyFunctions:BillingConnectionController.kt$BillingConnectionController</ID>
     <ID>TooManyFunctions:BillingEntitlementApi.kt$BillingEntitlementApi</ID>
@@ -340,15 +340,15 @@
     <ID>TooManyFunctions:ConfigureOtherDnsScreen.kt$com.bernaferrari.bravedns.ui.compose.dns.ConfigureOtherDnsScreen.kt</ID>
     <ID>TooManyFunctions:ConnectionFirewall.kt$ConnectionFirewall</ID>
     <ID>TooManyFunctions:ConnectionMonitor.kt$ConnectionMonitor : KoinComponentDiagnosticsListener</ID>
-    <ID>TooManyFunctions:ConnectionTrackerAdapter.kt$com.bernaferrari.bravedns.ui.components.ConnectionTrackerAdapter.kt</ID>
+    <ID>TooManyFunctions:ConnectionTrackerRow.kt$com.bernaferrari.bravedns.ui.compose.logs.ConnectionTrackerRow.kt</ID>
     <ID>TooManyFunctions:ConnectivityCheckHelper.kt$ConnectivityCheckHelper</ID>
-    <ID>TooManyFunctions:CustomLanIpDialog.kt$com.bernaferrari.bravedns.ui.dialog.CustomLanIpDialog.kt</ID>
+    <ID>TooManyFunctions:CustomLanIpDialog.kt$com.bernaferrari.bravedns.ui.compose.settings.CustomLanIpDialog.kt</ID>
     <ID>TooManyFunctions:DatabaseModule.kt$DatabaseModule</ID>
     <ID>TooManyFunctions:DnsConnectionSettings.kt$DnsConnectionSettings : DnsConnectionSettingsApi</ID>
     <ID>TooManyFunctions:DnsConnectionSettings.kt$DnsConnectionSettingsApi</ID>
     <ID>TooManyFunctions:DnsEndpointSettings.kt$DnsEndpointSettings : DnsEndpointSettingsApi</ID>
     <ID>TooManyFunctions:DnsEndpointSettings.kt$DnsEndpointSettingsApi</ID>
-    <ID>TooManyFunctions:DnsLogAdapter.kt$com.bernaferrari.bravedns.ui.components.DnsLogAdapter.kt</ID>
+    <ID>TooManyFunctions:DnsLogRow.kt$com.bernaferrari.bravedns.ui.compose.dns.DnsLogRow.kt</ID>
     <ID>TooManyFunctions:DnsSettings.kt$DnsSettings : DnsSettingsApi</ID>
     <ID>TooManyFunctions:DnsSettingsViewModel.kt$DnsSettingsViewModel : ViewModel</ID>
     <ID>TooManyFunctions:DomainRulesManager.kt$DomainRulesManager : KoinComponent</ID>
@@ -367,9 +367,9 @@
     <ID>TooManyFunctions:NetworkBindingService.kt$NetworkBindingService</ID>
     <ID>TooManyFunctions:NetworkLogsScreen.kt$com.bernaferrari.bravedns.ui.compose.logs.NetworkLogsScreen.kt</ID>
     <ID>TooManyFunctions:NetworkProbeController.kt$NetworkProbeController</ID>
-    <ID>TooManyFunctions:NetworkReachabilityDialog.kt$com.bernaferrari.bravedns.ui.dialog.NetworkReachabilityDialog.kt</ID>
+    <ID>TooManyFunctions:NetworkReachabilityDialog.kt$com.bernaferrari.bravedns.ui.compose.settings.NetworkReachabilityDialog.kt</ID>
     <ID>TooManyFunctions:OneTimePurchaseProcessor.kt$OneTimePurchaseProcessor</ID>
-    <ID>TooManyFunctions:OneWgConfigAdapter.kt$com.bernaferrari.bravedns.ui.components.OneWgConfigAdapter.kt</ID>
+    <ID>TooManyFunctions:OneWgConfigRow.kt$com.bernaferrari.bravedns.ui.compose.wireguard.OneWgConfigRow.kt</ID>
     <ID>TooManyFunctions:OrbotHelper.kt$OrbotHelper</ID>
     <ID>TooManyFunctions:PersistentState.kt$PersistentState</ID>
     <ID>TooManyFunctions:PipKeyManager.kt$PipKeyManager : KoinComponent</ID>
@@ -403,8 +403,8 @@
     <ID>TooManyFunctions:VpnDnsQueryRouter.kt$VpnDnsQueryRouter</ID>
     <ID>TooManyFunctions:VpnPrefObservers.kt$VpnPrefObservers</ID>
     <ID>TooManyFunctions:VpnTunRoutes.kt$VpnTunRoutes</ID>
-    <ID>TooManyFunctions:WgConfigAdapter.kt$com.bernaferrari.bravedns.ui.components.WgConfigAdapter.kt</ID>
     <ID>TooManyFunctions:WgConfigRegistry.kt$WgConfigRegistry</ID>
+    <ID>TooManyFunctions:WgConfigRow.kt$com.bernaferrari.bravedns.ui.compose.wireguard.WgConfigRow.kt</ID>
     <ID>TooManyFunctions:WgHopManager.kt$WgHopManager : KoinComponent</ID>
     <ID>TooManyFunctions:WireguardManager.kt$WireguardManager : KoinComponent</ID>
     <ID>TopLevelPropertyNaming:EventsScreen.kt$private const val EventsSeverityFilterLabel = "Severity"</ID>
@@ -421,7 +421,6 @@
     <ID>UnusedParameter:VpnAppFunctions.kt$VpnAppFunctions$appFunctionContext: AppFunctionContext</ID>
     <ID>UnusedParameter:VpnConnectionHandler.kt$VpnConnectionHandler$rethinkUid: Int</ID>
     <ID>UnusedPrivateClass:NetworkLogsScreen.kt$LogsTabSpec</ID>
-    <ID>UnusedPrivateMember:AppWiseIpsAdapter.kt$private fun calculatePercentage(c: Double, maxValue: Int): Pair&lt;Int, Int&gt;</ID>
     <ID>UnusedPrivateMember:QueryUtils.kt$QueryUtils$private fun log(methodName: String, msg: String)</ID>
     <ID>UnusedPrivateMember:QueryUtils.kt$QueryUtils$private fun logv(methodName: String, msg: String)</ID>
     <ID>UnusedPrivateMember:SubscriptionStateMachineV2.kt$SubscriptionStateMachineV2$private fun createDummyPurchaseDetail(): PurchaseDetail</ID>

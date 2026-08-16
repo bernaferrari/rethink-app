@@ -30,9 +30,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.bernaferrari.bravedns.R
-import com.bernaferrari.bravedns.ui.components.IpRow
+import com.bernaferrari.bravedns.ui.compose.apps.IpRow
 import com.bernaferrari.bravedns.service.EventLogger
-import com.bernaferrari.bravedns.ui.bottomsheet.AppIpRulesSheet
+import com.bernaferrari.bravedns.ui.compose.firewall.AppIpRulesSheet
 import com.bernaferrari.bravedns.util.Constants.Companion.INVALID_UID
 import com.bernaferrari.bravedns.util.Utilities
 import com.bernaferrari.bravedns.util.Utilities.removeBeginningTrailingCommas

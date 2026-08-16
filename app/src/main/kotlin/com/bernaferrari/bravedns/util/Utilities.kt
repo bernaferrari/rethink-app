@@ -54,7 +54,6 @@ import com.bernaferrari.bravedns.service.BraveVPNService
 import com.bernaferrari.bravedns.service.DnsLogTracker
 import com.bernaferrari.bravedns.storage.appFileSystem
 import com.bernaferrari.bravedns.util.Constants.Companion.FLAVOR_FDROID
-import com.bernaferrari.bravedns.util.Constants.Companion.FLAVOR_HEADLESS
 import com.bernaferrari.bravedns.util.Constants.Companion.FLAVOR_PLAY
 import com.bernaferrari.bravedns.util.Constants.Companion.FLAVOR_WEBSITE
 import com.bernaferrari.bravedns.util.Constants.Companion.INVALID_UID
@@ -521,19 +520,15 @@ object Utilities {
     }
 
     fun isFdroidFlavour(): Boolean {
-        return BuildConfig.FLAVOR_releaseChannel == FLAVOR_FDROID
+        return BuildConfig.FLAVOR == FLAVOR_FDROID
     }
 
     fun isWebsiteFlavour(): Boolean {
-        return BuildConfig.FLAVOR_releaseChannel == FLAVOR_WEBSITE
+        return BuildConfig.FLAVOR == FLAVOR_WEBSITE
     }
 
     fun isPlayStoreFlavour(): Boolean {
-        return BuildConfig.FLAVOR_releaseChannel == FLAVOR_PLAY
-    }
-
-    fun isHeadlessFlavour(): Boolean {
-        return BuildConfig.FLAVOR_releaseType == FLAVOR_HEADLESS
+        return BuildConfig.FLAVOR == FLAVOR_PLAY
     }
 
     fun getApplicationInfo(ctx: Context, packageName: String): ApplicationInfo? {

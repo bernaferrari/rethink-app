@@ -61,7 +61,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.R
-import com.bernaferrari.bravedns.ui.components.WgPeerRow
+import com.bernaferrari.bravedns.ui.compose.wireguard.WgPeerRow
 import com.bernaferrari.bravedns.data.SsidItem
 import com.bernaferrari.bravedns.database.EventSource
 import com.bernaferrari.bravedns.database.EventType
@@ -83,10 +83,10 @@ import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.ui.compose.theme.Dimensions
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
-import com.bernaferrari.bravedns.ui.dialog.WgAddPeerDialog
-import com.bernaferrari.bravedns.ui.dialog.WgHopDialog
-import com.bernaferrari.bravedns.ui.dialog.WgIncludeAppsDialog
-import com.bernaferrari.bravedns.ui.dialog.WgSsidDialog
+import com.bernaferrari.bravedns.ui.compose.wireguard.WgAddPeerDialog
+import com.bernaferrari.bravedns.ui.compose.wireguard.WgHopDialog
+import com.bernaferrari.bravedns.ui.compose.wireguard.WgIncludeAppsDialog
+import com.bernaferrari.bravedns.ui.compose.wireguard.WgSsidDialog
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.util.SsidPermissionManager
@@ -636,22 +636,6 @@ private fun getStatusText(
     } else {
         baseText
     }
-}
-
-private fun getHandshakeTime(stats: RouterStats?): CharSequence {
-    if (stats == null) {
-        return ""
-    }
-    if (stats.lastOK == 0L) {
-        return ""
-    }
-    val now = System.currentTimeMillis()
-    return DateUtils.getRelativeTimeSpanString(
-        stats.lastOK,
-        now,
-        DateUtils.MINUTE_IN_MILLIS,
-        DateUtils.FORMAT_ABBREV_RELATIVE
-    )
 }
 
 private fun getStrokeColorForStatus(

@@ -61,7 +61,7 @@ import com.bernaferrari.bravedns.ui.compose.settings.ProxySettingsScreen
 import com.bernaferrari.bravedns.ui.compose.proxy.TcpProxyMainScreen
 import com.bernaferrari.bravedns.ui.compose.logs.NetworkLogsScreen
 import com.bernaferrari.bravedns.ui.compose.settings.PingTestScreen
-import com.bernaferrari.bravedns.ui.dialog.WgIncludeAppsScreen
+import com.bernaferrari.bravedns.ui.compose.wireguard.WgIncludeAppsScreen
 import com.bernaferrari.bravedns.ui.compose.logs.AppWiseIpLogsScreen
 import com.bernaferrari.bravedns.viewmodel.ProxyAppsMappingViewModel
 import com.bernaferrari.bravedns.ui.compose.apps.AppListScreen

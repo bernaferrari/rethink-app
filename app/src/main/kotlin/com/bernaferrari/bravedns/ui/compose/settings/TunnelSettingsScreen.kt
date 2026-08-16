@@ -81,8 +81,8 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
-import com.bernaferrari.bravedns.ui.dialog.CustomLanIpSheet
-import com.bernaferrari.bravedns.ui.dialog.NetworkReachabilitySheet
+import com.bernaferrari.bravedns.ui.compose.settings.CustomLanIpSheet
+import com.bernaferrari.bravedns.ui.compose.settings.NetworkReachabilitySheet
 import com.bernaferrari.bravedns.util.Constants
 import com.bernaferrari.bravedns.util.InternetProtocol
 import com.bernaferrari.bravedns.util.UIUtils

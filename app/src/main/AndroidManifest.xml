@@ -15,16 +15,17 @@
     <!-- Allows applications to change network connectivity state -->
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
-    
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
     <!-- WiFi and Location permissions required for SSID access -->
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" tools:targetApi="29" />
-    
+
     <!-- Android 11 introduces changes related to package visibility. These changes affect
-    apps only if they target Android 11.
-    https://developer.android.com/training/package-visibility -->
+        apps only if they target Android 11.
+        https://developer.android.com/training/package-visibility -->
     <uses-permission
         android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
@@ -48,11 +49,16 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:networkSecurityConfig="@xml/network_security_config"
+        android:theme="@style/AppThemeInitial"
         tools:ignore="ForegroundServicePermission">
 
         <property
             android:name="android.app.appfunctions.app_metadata"
             android:resource="@xml/app_metadata" />
+
+        <meta-data
+            android:name="android.webkit.WebView.MetricsOptOut"
+            android:value="true" />
 
         <service
             android:name=".service.BraveVPNService"
@@ -85,6 +91,101 @@
                 android:name="android.service.quicksettings.TOGGLEABLE_TILE"
                 android:value="true" />
         </service>
+        <service
+            android:name=".util.BackgroundAccessibilityService"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_service_config" />
+        </service>
+
+        <activity android:name=".ui.HomeScreenActivity"
+            android:launchMode="singleTask" />
+
+        <!-- Sole launcher entry, kept as an alias so existing home-screen shortcuts keep
+             resolving to the same component across upgrades. -->
+        <activity-alias
+            android:name=".ui.activity.LauncherAliasAppLock"
+            android:enabled="true"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/app_name"
+            android:targetActivity=".ui.HomeScreenActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity
+            android:name="com.journeyapps.barcodescanner.CaptureActivity"
+            android:screenOrientation="fullSensor"
+            tools:replace="screenOrientation" />
+
+        <activity
+            android:name=".ui.TestDialogActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.bubble.BubbleActivity"
+            android:allowEmbedded="true"
+            android:resizeableActivity="true"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:taskAffinity=""
+            android:launchMode="standard" />
+
+        <receiver
+            android:name=".receiver.BraveAutoStartReceiver"
+            android:directBootAware="false"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
+            <intent-filter android:priority="999">
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.REBOOT" />
+                <action android:name="android.intent.action.USER_UNLOCKED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name=".receiver.VpnControlReceiver"
+            android:exported="true"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="com.bernaferrari.bravedns.intent.action.VPN_START" />
+                <action android:name="com.bernaferrari.bravedns.intent.action.VPN_STOP" />
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name=".receiver.NotificationActionReceiver"
+            android:exported="false"
+            android:label="@string/app_name" />
+        <receiver android:name=".receiver.UserPresentReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.USER_PRESENT" />
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name=".receiver.BubbleDismissReceiver"
+            android:exported="false" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.bernaferrari.bravedns.provider;com.bernaferrari.bravedns.backup.BackupAgent"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_provider_paths" />
+        </provider>
 
     </application>
 </manifest>

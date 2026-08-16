@@ -42,7 +42,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        variant: [PlayFullDebug, FdroidFullDebug, WebsiteFullDebug]
+        variant: [PlayDebug, FdroidDebug, WebsiteDebug]
 
     steps:
       - name: Checkout
@@ -61,11 +61,11 @@ jobs:
         run: ./gradlew :app:compile${{ matrix.variant }}Kotlin :app:test${{ matrix.variant }}UnitTest :app:detekt --console=plain
 
       - name: Verify design-system screenshot goldens
-        if: matrix.variant == 'PlayFullDebug'
-        run: ./gradlew :app:verifyRoborazziPlayFullDebug --tests "*Screenshot*" --console=plain
+        if: matrix.variant == 'PlayDebug'
+        run: ./gradlew :app:verifyRoborazziPlayDebug --tests "*Screenshot*" --console=plain
 
       - name: Upload screenshot diffs
-        if: failure() && matrix.variant == 'PlayFullDebug'
+        if: failure() && matrix.variant == 'PlayDebug'
         uses: actions/upload-artifact@v4
         with:
           name: roborazzi-diffs
@@ -98,7 +98,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
 
       - name: Lint (warningsAsErrors, baseline-ratcheted)
-        run: ./gradlew :app:lintPlayFullDebug --console=plain
+        run: ./gradlew :app:lintPlayDebug --console=plain
 
       - name: Upload lint reports
         if: always()

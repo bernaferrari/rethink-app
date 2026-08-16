@@ -34,11 +34,11 @@ import androidx.compose.ui.unit.dp
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.bernaferrari.bravedns.R
-import com.bernaferrari.bravedns.ui.components.DnsCryptRow
-import com.bernaferrari.bravedns.ui.components.DnsProxyEndpointRow
-import com.bernaferrari.bravedns.ui.components.DoHEndpointRow
-import com.bernaferrari.bravedns.ui.components.DoTEndpointRow
-import com.bernaferrari.bravedns.ui.components.ODoHEndpointRow
+import com.bernaferrari.bravedns.ui.compose.dns.DnsCryptRow
+import com.bernaferrari.bravedns.ui.compose.dns.DnsProxyEndpointRow
+import com.bernaferrari.bravedns.ui.compose.dns.DoHEndpointRow
+import com.bernaferrari.bravedns.ui.compose.dns.DoTEndpointRow
+import com.bernaferrari.bravedns.ui.compose.dns.ODoHEndpointRow
 import com.bernaferrari.bravedns.data.AppConfig
 import com.bernaferrari.bravedns.database.DnsCryptEndpoint
 import com.bernaferrari.bravedns.database.DnsCryptRelayEndpoint
@@ -568,7 +568,7 @@ private fun DnsCryptListContent(
     }
 
     if (showRelaysDialog) {
-        com.bernaferrari.bravedns.ui.dialog.DnsCryptRelaysDialog(
+        DnsCryptRelaysDialog(
             appConfig = appConfig,
             relays = dnsCryptRelayViewModel.dnsCryptRelayEndpointList,
             onDismiss = { showRelaysDialog = false }
