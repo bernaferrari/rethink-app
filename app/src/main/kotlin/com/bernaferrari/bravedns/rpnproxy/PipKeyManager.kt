@@ -79,9 +79,7 @@ object PipKeyManager : KoinComponent {
     private const val PIP_TOKEN_FILE_NAME = "pip_token.token"
 
     private const val ERR_NOT_AVAILABLE = "Rethink+ is not available for your device"
-    private const val ERR_UPDATE_REQUIRED = "Rethink+ requires an update to the app"
     private const val ERR_UNSUPPORTED_VERSION = "Rethink+ is not supported on this version of the app"
-    private const val ERR_UNSUPPORTED_DEVICE = "Rethink+ is not supported on this device"
     private const val ERR_INTERNET_UNAVAILABLE = "No internet connection. Please check your network and try again."
 
     private const val MAX_RETRY_COUNT = 3

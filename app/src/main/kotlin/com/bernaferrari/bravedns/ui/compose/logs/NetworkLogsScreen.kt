@@ -134,12 +134,9 @@ private data class LogsTabSpec(
 fun NetworkLogsScreen(
     connectionTrackerViewModel: ConnectionTrackerViewModel,
     dnsLogViewModel: DnsLogViewModel,
-    rethinkLogViewModel: RethinkLogViewModel,
     connectionTrackerRepository: ConnectionTrackerRepository,
     dnsLogRepository: DnsLogRepository,
-    rethinkLogRepository: RethinkLogRepository,
     persistentState: PersistentState,
-    eventLogger: EventLogger,
     onBackClick: (() -> Unit)? = null
 ) {
     var selectedDns by remember { mutableStateOf<DnsLog?>(null) }

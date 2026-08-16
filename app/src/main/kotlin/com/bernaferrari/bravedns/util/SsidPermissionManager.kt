@@ -52,15 +52,6 @@ object SsidPermissionManager {
     }
 
     /**
-     * Interface for handling permission request results
-     */
-    interface PermissionCallback {
-        fun onPermissionsGranted()
-        fun onPermissionsDenied()
-        fun onPermissionsRationale()
-    }
-
-    /**
      * Check if all required permissions for SSID access are granted
      * @param context The context to check permissions
      * @return true if all permissions are granted, false otherwise
@@ -68,17 +59,6 @@ object SsidPermissionManager {
     fun hasRequiredPermissions(context: Context): Boolean {
         return REQUIRED_PERMISSIONS.all { permission ->
             ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
-        }
-    }
-
-    /**
-     * Check if we should show rationale for any of the required permissions
-     * @param activity The activity to check rationale
-     * @return true if rationale should be shown, false otherwise
-     */
-    fun shouldShowPermissionRationale(activity: Activity): Boolean {
-        return REQUIRED_PERMISSIONS.any { permission ->
-            ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)
         }
     }
 
@@ -92,28 +72,6 @@ object SsidPermissionManager {
             REQUIRED_PERMISSIONS,
             SSID_PERMISSION_REQUEST_CODE
         )
-    }
-
-    /**
-     * Handle the result of permission request
-     * @param requestCode The request code
-     * @param permissions The requested permissions
-     * @param grantResults The grant results
-     * @param callback The callback to handle the result
-     */
-    fun handlePermissionResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray,
-        callback: PermissionCallback
-    ) {
-        if (requestCode == SSID_PERMISSION_REQUEST_CODE) {
-            if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
-                callback.onPermissionsGranted()
-            } else {
-                callback.onPermissionsDenied()
-            }
-        }
     }
 
     /**
@@ -167,31 +125,6 @@ object SsidPermissionManager {
 
     fun getLocationEnableExplanation(context: Context): String {
         return context.getString(R.string.location_enable_explanation, context.getString(R.string.lbl_ssids))
-    }
-
-    /**
-     * Check and request permissions if needed, then execute the callback
-     * @param activity The activity to request permissions from
-     * @param callback The callback to execute after permission handling
-     */
-    fun checkAndRequestPermissions(activity: Activity, callback: PermissionCallback) {
-        when {
-            hasRequiredPermissions(activity) -> {
-                // Permissions already granted
-                callback.onPermissionsGranted()
-                Logger.d(LOG_TAG_UI, "SSID permissions already granted")
-            }
-            shouldShowPermissionRationale(activity) -> {
-                // Show rationale before requesting
-                callback.onPermissionsRationale()
-                Logger.d(LOG_TAG_UI, "Showing rationale for SSID permissions")
-            }
-            else -> {
-                // Request permissions directly
-                requestSsidPermissions(activity)
-                Logger.d(LOG_TAG_UI, "Requested SSID permissions")
-            }
-        }
     }
 
     /**

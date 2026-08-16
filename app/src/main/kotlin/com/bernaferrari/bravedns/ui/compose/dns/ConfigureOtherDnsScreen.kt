@@ -437,7 +437,6 @@ private fun DnsProxyListContent(
                     }
                     scope.launch(Dispatchers.IO) {
                         insertDNSProxyEndpointDB(
-                            context = context,
                             appConfig = appConfig,
                             mode = mode,
                             name = input.name,
@@ -459,7 +458,6 @@ private fun DnsProxyListContent(
 }
 
 private suspend fun insertDNSProxyEndpointDB(
-    context: android.content.Context,
     appConfig: AppConfig,
     mode: String,
     name: String,

@@ -221,10 +221,8 @@ class HomeScreenActivity : FragmentActivity() {
     private val appInfoViewModel by viewModel<com.bernaferrari.bravedns.viewmodel.AppInfoViewModel>()
     private val connectionTrackerViewModel by viewModel<com.bernaferrari.bravedns.viewmodel.ConnectionTrackerViewModel>()
     private val dnsLogViewModel by viewModel<com.bernaferrari.bravedns.viewmodel.DnsLogViewModel>()
-    private val rethinkLogViewModel by viewModel<com.bernaferrari.bravedns.viewmodel.RethinkLogViewModel>()
     private val connectionTrackerRepository by inject<com.bernaferrari.bravedns.database.ConnectionTrackerRepository>()
     private val dnsLogRepository by inject<com.bernaferrari.bravedns.database.DnsLogRepository>()
-    private val rethinkLogRepository by inject<com.bernaferrari.bravedns.database.RethinkLogRepository>()
 
     // ConfigureOtherDns ViewModels
     private val dohViewModel by viewModel<com.bernaferrari.bravedns.viewmodel.DoHEndpointViewModel>()
@@ -535,10 +533,8 @@ class HomeScreenActivity : FragmentActivity() {
                         refreshDatabase = rdb,
                         connectionTrackerViewModel = connectionTrackerViewModel,
                         dnsLogViewModel = dnsLogViewModel,
-                        rethinkLogViewModel = rethinkLogViewModel,
                         connectionTrackerRepository = connectionTrackerRepository,
                         dnsLogRepository = dnsLogRepository,
-                        rethinkLogRepository = rethinkLogRepository,
                         dohViewModel = dohViewModel,
                         dotViewModel = dotViewModel,
                         dnsProxyViewModel = dnsProxyViewModel,

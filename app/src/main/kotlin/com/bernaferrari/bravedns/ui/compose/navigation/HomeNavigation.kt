@@ -357,10 +357,8 @@ fun HomeScreenRoot(
     refreshDatabase: RefreshDatabase,
     connectionTrackerViewModel: ConnectionTrackerViewModel,
     dnsLogViewModel: DnsLogViewModel,
-    rethinkLogViewModel: RethinkLogViewModel,
     connectionTrackerRepository: ConnectionTrackerRepository,
     dnsLogRepository: DnsLogRepository,
-    rethinkLogRepository: RethinkLogRepository,
     dohViewModel: DoHEndpointViewModel,
     dotViewModel: DoTEndpointViewModel,
     dnsProxyViewModel: DnsProxyEndpointViewModel,
@@ -518,12 +516,9 @@ fun HomeScreenRoot(
                 NetworkLogsScreen(
                     connectionTrackerViewModel = connectionTrackerViewModel,
                     dnsLogViewModel = dnsLogViewModel,
-                    rethinkLogViewModel = rethinkLogViewModel,
                     connectionTrackerRepository = connectionTrackerRepository,
                     dnsLogRepository = dnsLogRepository,
-                    rethinkLogRepository = rethinkLogRepository,
                     persistentState = persistentState,
-                    eventLogger = appInfoEventLogger,
                     onBackClick = { nav.popBackStack() }
                 )
             }
