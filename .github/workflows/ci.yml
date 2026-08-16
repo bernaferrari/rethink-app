@@ -98,7 +98,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
 
       - name: Lint (warningsAsErrors, baseline-ratcheted)
-        run: ./gradlew :app:lintPlayDebug --console=plain
+        run: ./gradlew :app:lintPlayDebug :app:lintFdroidDebug :app:lintWebsiteDebug --console=plain
 
       - name: Upload lint reports
         if: always()
