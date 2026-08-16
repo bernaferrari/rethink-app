@@ -17,8 +17,6 @@ import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.service.ProxyManager.ID_WG_BASE
 import com.bernaferrari.bravedns.service.VpnController
 import com.bernaferrari.bravedns.service.WireguardManager
-import com.bernaferrari.bravedns.ui.compose.wireguard.RethinkWireguardHopItem
-import com.bernaferrari.bravedns.ui.compose.wireguard.RethinkWireguardHopToggleResult
 import com.bernaferrari.bravedns.util.UIUtils
 import com.bernaferrari.bravedns.util.Utilities
 import com.bernaferrari.bravedns.wireguard.Config
@@ -26,7 +24,6 @@ import com.bernaferrari.bravedns.wireguard.WgHopManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
-
 private const val TAG = "WgHopPlatform"
 
 /** Reads Android WireGuard services into the portable hop-picker model. */

@@ -17,7 +17,7 @@ package com.bernaferrari.bravedns.iab
 
 import android.text.TextUtils
 import android.util.Base64
-import android.util.Log
+import Logger
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.security.InvalidKeyException
@@ -39,13 +39,13 @@ internal object Security {
     @JvmStatic
     fun verifyPurchase(signedData: String?, signature: String?): Boolean {
         if (TextUtils.isEmpty(signedData) || TextUtils.isEmpty(BASE_64_ENCODED_PUBLIC_KEY) || TextUtils.isEmpty(signature)) {
-            Log.w(TAG, "Purchase verification failed: missing data.")
+            Logger.w(TAG, "Purchase verification failed: missing data.")
             return false
         }
         return try {
             verify(generatePublicKey(), signedData.orEmpty(), signature.orEmpty())
         } catch (error: IOException) {
-            Log.e(TAG, "Error generating PublicKey from encoded key: ${error.message}")
+            Logger.e(TAG, "Error generating PublicKey from encoded key", error)
             false
         }
     }
@@ -57,7 +57,7 @@ internal object Security {
         throw RuntimeException(error)
     } catch (error: InvalidKeySpecException) {
         val message = "Invalid key specification: $error"
-        Log.w(TAG, message)
+        Logger.w(TAG, message)
         throw IOException(message)
     }
 
@@ -65,7 +65,7 @@ internal object Security {
         val signatureBytes = try {
             Base64.decode(signature, Base64.DEFAULT)
         } catch (_: IllegalArgumentException) {
-            Log.w(TAG, "Base64 decoding failed.")
+            Logger.w(TAG, "Base64 decoding failed.")
             return false
         }
         return try {
@@ -73,16 +73,16 @@ internal object Security {
                 initVerify(publicKey)
                 update(signedData.toByteArray(StandardCharsets.UTF_8))
                 verify(signatureBytes).also { verified ->
-                    if (!verified) Log.w(TAG, "Signature verification failed...")
+                    if (!verified) Logger.w(TAG, "Signature verification failed...")
                 }
             }
         } catch (error: NoSuchAlgorithmException) {
             throw RuntimeException(error)
         } catch (_: InvalidKeyException) {
-            Log.e(TAG, "Invalid key specification.")
+            Logger.e(TAG, "Invalid key specification.")
             false
         } catch (_: SignatureException) {
-            Log.e(TAG, "Signature exception.")
+            Logger.e(TAG, "Signature exception.")
             false
         }
     }
