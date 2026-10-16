@@ -3,6 +3,7 @@
 
 package com.bernaferrari.bravedns.ui.compose.settings
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
@@ -101,7 +102,7 @@ private fun AdvancedToggleRow(
             MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
         },
         position = position,
-        onClick = { onCheckedChange(!checked) },
+        selection = RethinkListSelection(checked = checked, onCheckedChange = onCheckedChange),
         trailing = { Switch(checked = checked, onCheckedChange = null) },
     )
 }

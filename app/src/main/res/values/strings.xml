@@ -21,7 +21,8 @@
     <string name="home_not_active">Not active</string>
     <string name="home_network_protection">Network protection</string>
     <string name="home_live">Live</string>
-    <string name="home_offline">Offline</string>
+    <string name="home_offline">Off</string>
+    <string name="home_reconnecting">Reconnecting</string>
 
     <string name="accessibility_service_description" translatable="true">
         Rethink uses accessibility service to detect and firewall background applications.
@@ -2318,6 +2319,8 @@
     <string name="rpn_countries_load_failed">Unable to load RPN servers</string>
     <string name="rpn_countries_refresh_failed">Unable to refresh servers</string>
     <string name="rpn_countries_reset_failed">Unable to reset RPN</string>
+    <string name="rpn_countries_toggle_failed">Unable to update this server</string>
+    <string name="cd_about_item">About %1$s</string>
     <string name="rpn_countries_automatic_location">Automatic location</string>
     <string name="rpn_countries_frequently_used">Frequently used</string>
     <string name="rpn_countries_add_favourite">Add favourite</string>
@@ -2370,4 +2373,21 @@
     <string name="home_tour_skip">Skip</string>
     <string name="config_delete_all_dialog_desc">Are you sure you want to delete all WireGuard VPN configurations? This cannot be undone.</string>
     <string name="config_delete_all_dialog_title">Delete all</string>
+    <!-- Events, bubble, console logs, log rows and About screen polish -->
+    <string name="events_filter_severity">Severity</string>
+    <string name="events_user_action_badge">User</string>
+    <string name="events_clear_filters">Clear filters</string>
+    <string name="events_no_matches_title">No matching events</string>
+    <string name="events_no_matches_desc">Try a different search, or clear the filters to see all events.</string>
+    <string name="bubble_vpn_off_title">Protection is off</string>
+    <string name="bubble_vpn_off_desc">Start Rethink to see apps blocked by the firewall.</string>
+    <string name="bubble_load_error_title">Couldn\'t load blocked apps</string>
+    <string name="bubble_load_error_desc">Something went wrong while loading recent activity.</string>
+    <string name="lbl_retry">Retry</string>
+    <string name="console_log_delete_all_cd">Delete all console logs</string>
+    <string name="console_log_delete_dialog_title">Delete console logs?</string>
+    <string name="console_log_delete_dialog_desc">All console logs stored on this device will be permanently deleted.</string>
+    <string name="log_latency_ok">ok</string>
+    <string name="about_diagnostics">Diagnostics</string>
+    <string name="about_flight_recorder">Flight recorder</string>
 </resources>

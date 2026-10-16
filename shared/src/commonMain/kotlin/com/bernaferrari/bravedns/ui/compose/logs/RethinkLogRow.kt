@@ -1,15 +1,15 @@
 /* Copyright 2026 RethinkDNS and its authors */
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package com.bernaferrari.bravedns.ui.compose.logs
 
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.snap
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -67,6 +68,14 @@ data class RethinkLogDetail(
     val isError: Boolean = false,
 )
 
+/** Localised copy for the latency meter shown in expanded DNS log rows. */
+data class RethinkLogLatencyStrings(
+    val title: String,
+    val fast: String,
+    val ok: String,
+    val slow: String,
+)
+
 data class RethinkLogRowModel(
     val id: String,
     val destination: String,
@@ -79,6 +88,7 @@ data class RethinkLogRowModel(
     val details: List<RethinkLogDetail>,
     val icon: (@Composable (statusContainer: Color) -> Unit)? = null,
     val latencyMs: Long? = null,
+    val latencyStrings: RethinkLogLatencyStrings? = null,
     val blocklistsLabel: String? = null,
     val onBlocklistsClick: (() -> Unit)? = null,
 )
@@ -100,6 +110,7 @@ fun RethinkLogRow(
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
     val scheme = MaterialTheme.colorScheme
+    val motionScheme = MaterialTheme.motionScheme
     val allowedColor = RethinkStatusColors.allowed
     val statusColor = if (model.isBlocked) RethinkStatusColors.blocked else allowedColor
     val statusContainer = if (model.isBlocked) scheme.errorContainer.copy(alpha = 0.55f) else allowedColor.copy(alpha = 0.2f)
@@ -110,29 +121,29 @@ fun RethinkLogRow(
     )
     val chevron by animateFloatAsState(
         targetValue = if (expanded) 90f else 0f,
-        animationSpec = tween(if (motion.reducedMotion) 0 else 220, easing = FastOutSlowInEasing),
+        animationSpec = if (motion.reducedMotion) snap() else motionScheme.fastSpatialSpec(),
         label = "log_row_chevron_${model.id}",
     )
     val detailsProgress by animateFloatAsState(
         targetValue = if (expanded) 1f else 0f,
-        animationSpec = tween(if (motion.reducedMotion) 0 else 230, easing = FastOutSlowInEasing),
+        animationSpec = if (motion.reducedMotion) snap() else motionScheme.defaultEffectsSpec(),
         label = "log_row_details_${model.id}",
         finishedListener = { if (it == 0f) keepDetails = false },
     )
     val baseColor = if (expanded) scheme.surfaceContainer else scheme.surfaceContainerLow
     val cardColor by animateColorAsState(
         targetValue = if (pressed) androidx.compose.ui.graphics.lerp(baseColor, scheme.primaryContainer, 0.16f) else baseColor,
-        animationSpec = tween(if (motion.reducedMotion) 0 else 200, easing = FastOutSlowInEasing),
+        animationSpec = if (motion.reducedMotion) snap() else motionScheme.fastEffectsSpec(),
         label = "log_row_color_${model.id}",
     )
     val elevation by animateDpAsState(
         targetValue = if (pressed) 1.dp else 0.dp,
-        animationSpec = tween(if (motion.reducedMotion) 0 else 180, easing = FastOutSlowInEasing),
+        animationSpec = if (motion.reducedMotion) snap() else motionScheme.fastEffectsSpec(),
         label = "log_row_elevation_${model.id}",
     )
     val stripeAlpha by animateFloatAsState(
         targetValue = if (expanded) 1f else 0.9f,
-        animationSpec = tween(if (motion.reducedMotion) 0 else 180, easing = FastOutSlowInEasing),
+        animationSpec = if (motion.reducedMotion) snap() else motionScheme.fastEffectsSpec(),
         label = "log_row_stripe_${model.id}",
     )
     val shape = rethinkGroupedListShape(cardPositionFor(index, itemCount - 1))
@@ -227,7 +238,7 @@ private fun LogDetailsPanel(model: RethinkLogRowModel, statusColor: Color) {
     Column(Modifier.fillMaxWidth()) {
         HorizontalDivider(color = scheme.outlineVariant.copy(alpha = 0.42f), thickness = 0.5.dp)
         Column(Modifier.padding(start = SharedDimensions.spacingXl + SharedDimensions.spacingGridTile, end = SharedDimensions.spacingLg, top = SharedDimensions.spacingSmMd, bottom = SharedDimensions.spacingLg)) {
-            model.latencyMs?.let { LogLatency(it) }
+            model.latencyMs?.let { LogLatency(it, model.latencyStrings) }
             if (model.latencyMs != null && model.details.isNotEmpty()) Spacer(Modifier.height(SharedDimensions.spacingSm))
             model.details.forEach { detail -> LogDetailRow(detail) }
             model.blocklistsLabel?.takeIf { it.isNotBlank() }?.let { label ->
@@ -242,18 +253,19 @@ private fun LogDetailsPanel(model: RethinkLogRowModel, statusColor: Color) {
 }
 
 @Composable
-private fun LogLatency(latency: Long) {
+private fun LogLatency(latency: Long, strings: RethinkLogLatencyStrings?) {
     val scheme = MaterialTheme.colorScheme
-    val (color, label) = when {
-        latency in 1..10 -> scheme.tertiary to "${latency}ms · fast"
-        latency in 11..50 -> scheme.tertiary to "${latency}ms · ok"
-        latency > 50 -> scheme.error to "${latency}ms · slow"
-        else -> scheme.onSurfaceVariant to "${latency}ms"
+    val (color, quality) = when {
+        latency in 1..10 -> scheme.tertiary to strings?.fast
+        latency in 11..50 -> scheme.tertiary to strings?.ok
+        latency > 50 -> scheme.error to strings?.slow
+        else -> scheme.onSurfaceVariant to null
     }
+    val label = if (quality.isNullOrBlank()) "${latency}ms" else "${latency}ms · $quality"
     val fraction = (latency.toFloat() / 100f).coerceIn(0.04f, 1f)
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("Latency", style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
+            Text(strings?.title.orEmpty(), style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
             Text(label, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Medium, color = color)
         }
         LinearProgressIndicator(

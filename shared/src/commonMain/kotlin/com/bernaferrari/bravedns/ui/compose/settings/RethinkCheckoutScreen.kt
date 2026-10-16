@@ -1,7 +1,13 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 /* Copyright 2026 RethinkDNS and its authors */
 
 package com.bernaferrari.bravedns.ui.compose.settings
 
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.ui.semantics.Role
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,7 +22,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
@@ -131,14 +137,14 @@ private fun CheckoutPaymentContent(
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
         ) {
             SectionHeader(strings.choosePlan, modifier = Modifier.padding(horizontal = SharedDimensions.spacingXs))
-            RethinkListGroup {
+            RethinkListGroup(Modifier.selectableGroup()) {
                 plans.forEachIndexed { index, plan ->
                     val selected = selectedPlanId == plan.id
                     RethinkListItem(
                         headline = plan.title,
                         supporting = plan.subtitle,
                         position = cardPositionFor(index, plans.lastIndex),
-                        onClick = { onPlanSelected(plan.id) },
+                        selection = RethinkListSelection(checked = selected, role = Role.RadioButton) { onPlanSelected(plan.id) },
                         trailing = { RadioButton(selected = selected, onClick = null) },
                     )
                 }
@@ -168,7 +174,7 @@ private fun CheckoutPaymentContent(
 
 @Composable
 private fun CheckoutAwaiting(strings: RethinkCheckoutStrings) = CheckoutStatusCard(strings.awaitingTitle, strings.awaitingMessage) {
-    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+    LoadingIndicator()
 }
 
 @Composable

@@ -1,6 +1,13 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.settings
 
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.VerticalDivider
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
@@ -11,7 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -25,7 +32,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
@@ -98,7 +104,7 @@ fun RethinkProxySettingsScreen(
                 actions = {
                     if (state.canEnableProxy) {
                         IconButton(onClick = onRefresh, enabled = !state.isRefreshing) {
-                            if (state.isRefreshing) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                            if (state.isRefreshing) LoadingIndicator(Modifier.size(SharedDimensions.iconSizeMd))
                             else Icon(MaterialSymbols.Filled.Refresh, strings.refresh)
                         }
                     }
@@ -207,12 +213,17 @@ private fun RethinkProxyToggleRow(
         highlighted = highlighted,
         enabled = enabled,
         trailing = {
-            Switch(
-                checked = checked,
-                enabled = enabled,
-                onCheckedChange = onCheckedChange,
-                modifier = Modifier.semantics { contentDescription = title },
-            )
+            // The row opens configuration; the switch is a separate action. The divider makes the
+            // two targets visually distinct.
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd)) {
+                VerticalDivider(Modifier.height(SharedDimensions.iconSizeLg))
+                Switch(
+                    checked = checked,
+                    enabled = enabled,
+                    onCheckedChange = onCheckedChange,
+                    modifier = Modifier.semantics { contentDescription = title },
+                )
+            }
         },
         onClick = onRowClick,
     )
@@ -248,12 +259,15 @@ private fun RethinkOrbotPanel(
             highlighted = highlighted,
             enabled = enabled,
             trailing = {
-                Switch(
-                    checked = state.orbotEnabled,
-                    enabled = enabled,
-                    onCheckedChange = onCheckedChange,
-                    modifier = Modifier.semantics { contentDescription = strings.orbot },
-                )
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd)) {
+                    VerticalDivider(Modifier.height(SharedDimensions.iconSizeLg))
+                    Switch(
+                        checked = state.orbotEnabled,
+                        enabled = enabled,
+                        onCheckedChange = onCheckedChange,
+                        modifier = Modifier.semantics { contentDescription = strings.orbot },
+                    )
+                }
             },
             onClick = onMainClick,
         )

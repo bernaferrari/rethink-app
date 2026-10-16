@@ -1,7 +1,10 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 /* Copyright 2026 RethinkDNS and its authors */
 
 package com.bernaferrari.bravedns.ui.compose.settings
 
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
@@ -13,7 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -30,7 +33,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.ui.compose.theme.PrimaryButton
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormTextField
@@ -189,11 +191,11 @@ private fun PingCheckField(
         trailingIcon = {
             when (val status = check.status) {
                 RethinkPingStatus.Idle -> Unit
-                RethinkPingStatus.Loading -> CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                RethinkPingStatus.Loading -> LoadingIndicator(Modifier.size(SharedDimensions.iconSizeSm))
                 is RethinkPingStatus.Result -> Icon(
                     if (status.success) MaterialSymbols.Filled.CheckCircle else MaterialSymbols.Filled.Cancel,
                     contentDescription = null,
-                    modifier = Modifier.size(20.dp),
+                    modifier = Modifier.size(SharedDimensions.iconSizeSm),
                     tint = if (status.success) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
                 )
             }

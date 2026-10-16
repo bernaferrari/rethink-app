@@ -7,7 +7,7 @@ import androidx.compose.ui.graphics.Color
 
 @Composable
 internal actual fun ProtectionFlowBackground(
-    phase: Float,
+    phase: () -> Float,
     activeProgress: Float,
     recoveringProgress: Float,
     accent: Color,

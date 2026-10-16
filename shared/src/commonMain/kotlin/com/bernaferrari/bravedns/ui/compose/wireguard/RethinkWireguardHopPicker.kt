@@ -176,9 +176,11 @@ private fun RethinkWireguardHopRow(
                     Text("${item.name} (${item.id})", style = MaterialTheme.typography.titleMedium)
                     Text(item.status, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
+                // The whole card toggles; a passive checkbox avoids a duplicate focus target while
+                // its checked state still merges into the card's semantics.
                 Checkbox(
                     checked = checked,
-                    onCheckedChange = { if (!inProgress) onCheckedChange(it) },
+                    onCheckedChange = null,
                     enabled = !inProgress,
                 )
             }

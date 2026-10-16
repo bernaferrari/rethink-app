@@ -73,7 +73,7 @@ fun RethinkAppContent(
         if (showWelcome) {
             RethinkWelcomeScreen(
                 content = RethinkWelcomeContent(
-                    title = "Welcome to RethinkDNS",
+                    title = "Welcome to Re-Rethink",
                     description = "Open-source privacy tools, designed to keep your connection in your control.",
                     heroIcon = MaterialSymbols.Filled.Shield,
                     features = listOf(

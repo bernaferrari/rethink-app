@@ -201,8 +201,8 @@ private fun RethinkWgOverview(text: String) {
         color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
         Row(Modifier.fillMaxWidth().padding(SharedDimensions.cardPadding), horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd), verticalAlignment = Alignment.CenterVertically) {
-            Surface(shape = RoundedCornerShape(14.dp), color = MaterialTheme.colorScheme.primaryContainer) {
-                Icon(MaterialSymbols.Filled.VpnKey, null, Modifier.padding(10.dp), tint = MaterialTheme.colorScheme.onPrimaryContainer)
+            Surface(shape = RoundedCornerShape(SharedDimensions.cornerRadiusMdLg), color = MaterialTheme.colorScheme.primaryContainer) {
+                Icon(MaterialSymbols.Filled.VpnKey, null, Modifier.padding(SharedDimensions.spacingSmMd), tint = MaterialTheme.colorScheme.onPrimaryContainer)
             }
             Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
@@ -241,7 +241,7 @@ private fun RethinkWgActions(
     onQrCode: () -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
-    Row(modifier, horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+    Row(modifier, horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm), verticalAlignment = Alignment.CenterVertically) {
         ExtendedFloatingActionButton(
             onClick = onCreate,
             elevation = FloatingActionButtonDefaults.elevation(

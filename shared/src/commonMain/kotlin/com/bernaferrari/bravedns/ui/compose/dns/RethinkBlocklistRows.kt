@@ -1,6 +1,8 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.dns
 
+import androidx.compose.ui.semantics.Role
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -69,8 +71,8 @@ fun RethinkBlocklistPackRow(
             supporting = strings.blocklistCount(pack.blocklistCount),
             position = CardPosition.Single,
             highlighted = pack.selected,
-            onClick = { onToggle(!pack.selected) },
-            trailing = { Checkbox(pack.selected, onCheckedChange = onToggle) },
+            selection = RethinkListSelection(checked = pack.selected, role = Role.Checkbox, onCheckedChange = onToggle),
+            trailing = { Checkbox(pack.selected, onCheckedChange = null) },
         )
     }
 }
@@ -97,8 +99,8 @@ fun RethinkBlocklistFileTagRow(
             supporting = "$subgroup · $entries",
             position = CardPosition.Single,
             highlighted = tag.selected,
-            onClick = { onToggle(!tag.selected) },
-            trailing = { Checkbox(tag.selected, onCheckedChange = onToggle) },
+            selection = RethinkListSelection(checked = tag.selected, role = Role.Checkbox, onCheckedChange = onToggle),
+            trailing = { Checkbox(tag.selected, onCheckedChange = null) },
         )
     }
 }

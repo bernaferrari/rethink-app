@@ -3,6 +3,7 @@
 
 package com.bernaferrari.bravedns.ui.compose.settings
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -216,7 +217,7 @@ private fun RethinkProxyToggleRow(
         position = position,
         enabled = enabled,
         trailing = { Switch(checked = checked, enabled = enabled, onCheckedChange = null) },
-        onClick = { onCheckedChange(!checked) },
+        selection = RethinkListSelection(checked = checked, onCheckedChange = onCheckedChange),
     )
 }
 

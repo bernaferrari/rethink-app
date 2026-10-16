@@ -1,6 +1,7 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.apps
 
+import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -107,12 +108,12 @@ fun RethinkWebDemoAppIcon(
             contentAlignment = Alignment.Center,
         ) {
             visual.icon?.let { icon ->
-                Icon(icon, contentDescription = null, modifier = Modifier.padding(8.dp))
+                Icon(icon, contentDescription = null, modifier = Modifier.padding(SharedDimensions.spacingSm))
             } ?: Text(
                 text = visual.letter.orEmpty(),
                 fontWeight = FontWeight.Black,
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(8.dp),
+                modifier = Modifier.padding(SharedDimensions.spacingSm),
             )
         }
     }

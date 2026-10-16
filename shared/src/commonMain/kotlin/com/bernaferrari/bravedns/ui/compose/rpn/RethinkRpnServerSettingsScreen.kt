@@ -2,6 +2,8 @@
 
 package com.bernaferrari.bravedns.ui.compose.rpn
 
+import androidx.compose.ui.semantics.Role
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
@@ -191,7 +193,8 @@ private fun RpnToggleRow(
     checked: Boolean, position: CardPosition, onCheckedChange: (Boolean) -> Unit,
 ) {
     RethinkListItem(
-        headline = title, supporting = description.takeIf(String::isNotBlank), position = position, onClick = { onCheckedChange(!checked) },
+        headline = title, supporting = description.takeIf(String::isNotBlank), position = position,
+        selection = RethinkListSelection(checked = checked, onCheckedChange = onCheckedChange),
         leadingContent = { RethinkSharedIconContainer(MaterialTheme.colorScheme.primary) { Icon(icon, null, tint = MaterialTheme.colorScheme.primary) } },
         trailing = { Switch(checked = checked, onCheckedChange = null) },
     )
@@ -233,21 +236,12 @@ private fun RethinkCountryExclusionDialog(
                     headline = country.name,
                     position = CardPosition.Single,
                     highlighted = checked,
-                    onClick = {
+                    selection = RethinkListSelection(checked = checked, role = Role.Checkbox) { isChecked ->
                         selected = selected.toMutableSet().apply {
-                            if (checked) remove(country.code) else add(country.code)
+                            if (isChecked) add(country.code) else remove(country.code)
                         }
                     },
-                    trailing = {
-                        Checkbox(
-                            checked = checked,
-                            onCheckedChange = { isChecked ->
-                                selected = selected.toMutableSet().apply {
-                                    if (isChecked) add(country.code) else remove(country.code)
-                                }
-                            },
-                        )
-                    },
+                    trailing = { Checkbox(checked = checked, onCheckedChange = null) },
                 )
             }
         }

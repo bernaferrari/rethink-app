@@ -60,6 +60,8 @@ fun RethinkNavShell(
                     icon = {
                         Icon(
                             imageVector = if (selected) destination.selectedIcon else destination.unselectedIcon,
+                            // The visible label below already names the item; repeating it
+                            // here makes TalkBack read "Home, Home".
                             contentDescription = destination.contentDescription,
                         )
                     },

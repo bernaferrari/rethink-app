@@ -13,7 +13,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.snap
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.material3.ripple
 import androidx.compose.foundation.horizontalScroll
@@ -33,11 +33,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonGroupDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -64,6 +64,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFilterChip
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSearchField
@@ -94,7 +95,8 @@ data class RethinkEventRow(
     val message: String,
     val details: String? = null,
     val userAction: Boolean = false,
-    val severityLabel: String = "",
+    /** Localised severity name; drives the badge text and the severity icon's content description. */
+    val severityLabel: String,
 )
 
 /** Kept as a source-compatible name while all grouped UI uses one shared shape policy. */
@@ -119,6 +121,10 @@ data class RethinkEventsStrings(
     val noEventsTitle: String,
     val noEventsDescription: String,
     val copy: String,
+    val userAction: String,
+    val noMatchesTitle: String,
+    val noMatchesDescription: String,
+    val clearFilters: String,
 )
 
 /** Portable event-log shell. Hosts provide paging, filtering persistence and clipboard access. */
@@ -153,20 +159,34 @@ fun RethinkEventsScreen(
             )
         },
     ) { paddingValues ->
-        Box(Modifier.fillMaxSize().padding(paddingValues)) {
-            Column(Modifier.fillMaxSize()) {
-                RethinkEventControls(
-                    query = query,
-                    filters = filters,
-                    strings = strings,
-                    sourceLabel = sourceLabel,
-                    onQueryChange = onQueryChange,
-                    onFiltersChange = onFiltersChange,
+        val hasActiveFilters = query.isNotBlank() || filters != RethinkEventFilters(RethinkEventFilterMode.All)
+        Column(Modifier.fillMaxSize().padding(paddingValues)) {
+            RethinkEventControls(
+                query = query,
+                filters = filters,
+                strings = strings,
+                sourceLabel = sourceLabel,
+                onQueryChange = onQueryChange,
+                onFiltersChange = onFiltersChange,
+            )
+            // Loading/empty states live below the search + filters so the user can always edit
+            // or clear them; they never cover the controls.
+            when {
+                isLoading -> RethinkEventsLoadingState(Modifier.weight(1f))
+                isEmpty && hasActiveFilters -> RethinkEmptyState(
+                    title = strings.noMatchesTitle,
+                    message = strings.noMatchesDescription,
+                    icon = MaterialSymbols.Filled.FilterList,
+                    ctaLabel = strings.clearFilters,
+                    onCtaClick = {
+                        onQueryChange("")
+                        onFiltersChange(RethinkEventFilters(RethinkEventFilterMode.All))
+                    },
+                    modifier = Modifier.weight(1f),
                 )
-                eventsContent(Modifier.weight(1f), query)
+                isEmpty -> RethinkEventsEmptyState(strings, Modifier.weight(1f))
+                else -> eventsContent(Modifier.weight(1f), query)
             }
-            if (isLoading) RethinkEventsLoadingState()
-            if (isEmpty) RethinkEventsEmptyState(strings)
         }
     }
     if (showDeleteDialog) {
@@ -312,6 +332,7 @@ fun RethinkEventCard(
     query: String,
     position: RethinkEventCardPosition,
     copyDescription: String,
+    userActionLabel: String,
     onCopy: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -322,7 +343,7 @@ fun RethinkEventCard(
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
         targetValue = if (isPressed && !motion.reducedMotion) 0.985f else 1f,
-        animationSpec = tween(durationMillis = if (motion.reducedMotion) 0 else 120),
+        animationSpec = if (motion.reducedMotion) snap() else MaterialTheme.motionScheme.fastSpatialSpec(),
         label = "event_card_scale",
     )
     val accent = event.severity.accentColor()
@@ -345,17 +366,17 @@ fun RethinkEventCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
         ) {
-            EventSeverityIcon(event.severity, accent, Modifier.size(40.dp))
+            EventSeverityIcon(event.severity, event.severityLabel, accent, Modifier.size(40.dp))
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
                     Text(highlightedMessage, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
                     Text(event.timestampLabel, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f))
                 }
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
-                    CompactEventBadge(event.severityLabel.ifBlank { event.severity.name }, accent.copy(alpha = 0.14f), accent)
+                    CompactEventBadge(event.severityLabel, accent.copy(alpha = 0.14f), accent)
                     CompactEventBadge(event.sourceLabel, MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f), MaterialTheme.colorScheme.onSurfaceVariant)
                     CompactEventBadge(event.eventTypeLabel, MaterialTheme.colorScheme.surfaceContainerHighest, MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f))
-                    if (event.userAction) CompactEventBadge("User", MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f), MaterialTheme.colorScheme.primary)
+                    if (event.userAction) CompactEventBadge(userActionLabel, MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f), MaterialTheme.colorScheme.primary)
                 }
                 AnimatedVisibility(
                     visible = expanded && hasDetails,
@@ -379,14 +400,14 @@ fun RethinkEventCard(
 }
 
 @Composable
-private fun EventSeverityIcon(severity: RethinkEventSeverity, accent: Color, modifier: Modifier) {
+private fun EventSeverityIcon(severity: RethinkEventSeverity, severityLabel: String, accent: Color, modifier: Modifier) {
     val icon = when (severity) {
         RethinkEventSeverity.Low -> MaterialSymbols.Filled.Settings
         RethinkEventSeverity.Medium -> MaterialSymbols.Filled.Info
         RethinkEventSeverity.High, RethinkEventSeverity.Critical -> MaterialSymbols.Filled.Warning
     }
     Surface(shape = RoundedCornerShape(SharedDimensions.cornerRadiusMd), color = accent.copy(alpha = 0.12f), modifier = modifier) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Icon(icon, severity.name, tint = accent, modifier = Modifier.size(22.dp)) }
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Icon(icon, severityLabel, tint = accent, modifier = Modifier.size(22.dp)) }
     }
 }
 
@@ -398,15 +419,15 @@ private fun CompactEventBadge(text: String, containerColor: Color, contentColor:
 }
 
 @Composable
-private fun RethinkEventsLoadingState() {
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        CircularProgressIndicator(Modifier.size(36.dp), color = MaterialTheme.colorScheme.primary, strokeWidth = 3.dp)
+private fun RethinkEventsLoadingState(modifier: Modifier) {
+    Box(modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        LoadingIndicator()
     }
 }
 
 @Composable
-private fun RethinkEventsEmptyState(strings: RethinkEventsStrings) {
-    Column(Modifier.fillMaxSize().padding(horizontal = SharedDimensions.spacingXl), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+private fun RethinkEventsEmptyState(strings: RethinkEventsStrings, modifier: Modifier) {
+    Column(modifier.fillMaxWidth().padding(horizontal = SharedDimensions.spacingXl), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
         Surface(shape = RoundedCornerShape(SharedDimensions.cornerRadius4xl), color = MaterialTheme.colorScheme.surfaceContainerLow, modifier = Modifier.size(96.dp)) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Icon(MaterialSymbols.Filled.EventNote, null, modifier = Modifier.size(52.dp), tint = MaterialTheme.colorScheme.primary) }
         }

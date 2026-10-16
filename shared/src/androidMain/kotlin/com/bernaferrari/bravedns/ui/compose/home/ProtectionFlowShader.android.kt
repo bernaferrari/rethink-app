@@ -26,7 +26,7 @@ import androidx.compose.ui.graphics.nativeCanvas
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 internal fun ProtectionFlowShader(
-    phase: Float,
+    phase: () -> Float,
     activeProgress: Float,
     recoveringProgress: Float,
     accent: Color,
@@ -60,7 +60,7 @@ internal fun ProtectionFlowShader(
     val error = MaterialTheme.colorScheme.error
     Canvas(modifier = modifier) {
         shader.setFloatUniform("iResolution", size.width, size.height)
-        shader.setFloatUniform("iPhase", phase)
+        shader.setFloatUniform("iPhase", phase())
         shader.setFloatUniform("uActive", activeProgress.coerceIn(0f, 1f))
         shader.setFloatUniform("uRecovering", recoveringProgress.coerceIn(0f, 1f))
         shader.setFloatUniform("uOpacity", opacity.coerceIn(0f, 1f))

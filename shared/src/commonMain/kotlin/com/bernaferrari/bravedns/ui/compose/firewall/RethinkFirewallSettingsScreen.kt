@@ -67,6 +67,12 @@ fun RethinkFirewallSettingsScreen(
     val initialFocus = initialFocusKey?.trim().orEmpty()
     var pendingFocus by remember(initialFocus) { mutableStateOf(initialFocus) }
     var activeFocus by remember(initialFocus) { mutableStateOf(initialFocus.ifBlank { null }) }
+    // Section-level deep-link keys scroll to a section; highlight that section's primary row.
+    val highlightedRowId = when (activeFocus) {
+        "firewall_universal" -> "firewall_universal_main"
+        "firewall_apps" -> "firewall_apps_rules"
+        else -> activeFocus
+    }
 
     LaunchedEffect(pendingFocus) {
         val key = pendingFocus.trim()
@@ -123,7 +129,7 @@ fun RethinkFirewallSettingsScreen(
                             description = strings.universalDescription,
                             icon = MaterialSymbols.Filled.Public,
                             position = CardPosition.First,
-                            highlighted = activeFocus == "firewall_universal_main",
+                            highlighted = highlightedRowId == "firewall_universal_main",
                             onClick = onUniversalFirewallClick,
                         )
                         FirewallNavigationRow(
@@ -131,7 +137,7 @@ fun RethinkFirewallSettingsScreen(
                             description = strings.blockedDescription,
                             icon = MaterialSymbols.Filled.GppBad,
                             position = CardPosition.Last,
-                            highlighted = activeFocus == "firewall_universal_blocked",
+                            highlighted = highlightedRowId == "firewall_universal_blocked",
                             onClick = onCustomIpDomainClick,
                         )
                     }
@@ -145,7 +151,7 @@ fun RethinkFirewallSettingsScreen(
                             description = strings.appWiseDescription,
                             icon = MaterialSymbols.Filled.Apps,
                             position = CardPosition.Single,
-                            highlighted = activeFocus == "firewall_apps_rules",
+                            highlighted = highlightedRowId == "firewall_apps_rules",
                             onClick = onAppWiseIpDomainClick,
                         )
                     }

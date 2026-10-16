@@ -468,7 +468,7 @@ private fun RethinkFirewallRuleRow(
         leadingIconContainerColor = accent.copy(alpha = .14f),
         position = position,
         trailing = {
-            Row(horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile), verticalAlignment = Alignment.CenterVertically) {
                 Surface(
                     shape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.cornerRadiusPill),
                     color = accent.copy(alpha = .14f),

@@ -18,6 +18,8 @@
 
 package com.bernaferrari.bravedns.ui.compose.theme
 
+import androidx.compose.ui.res.stringResource
+import com.bernaferrari.bravedns.R
 import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -136,7 +138,8 @@ fun RethinkTheme(
     }
 
     CompositionLocalProvider(
-        LocalRethinkMotion provides RethinkMotion(reducedMotion = rememberReducedMotion())
+        LocalRethinkMotion provides RethinkMotion(reducedMotion = rememberReducedMotion()),
+        LocalRethinkBackDescription provides stringResource(R.string.cd_navigate_back),
     ) {
         MaterialExpressiveTheme(
             colorScheme = colorScheme,

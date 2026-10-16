@@ -57,11 +57,15 @@ fun BubbleScreen(
         strings = RethinkBubbleStrings(
             title = stringResource(R.string.firewall_bubble_title), subtitle = stringResource(R.string.firewall_bubble_subtitle),
             allowedTitle = stringResource(R.string.bubble_allowed_title), activityTitle = stringResource(R.string.bubble_activity_title), loading = stringResource(R.string.bubble_loading),
-            emptyTitle = stringResource(R.string.bubble_empty_state_title), emptyDescription = stringResource(R.string.bubble_empty_state_desc), remove = stringResource(R.string.lbl_remove), allow = stringResource(R.string.bubble_allow_btn),
+            emptyTitle = stringResource(R.string.bubble_empty_state_title), emptyDescription = stringResource(R.string.bubble_empty_state_desc),
+            vpnOffTitle = stringResource(R.string.bubble_vpn_off_title), vpnOffDescription = stringResource(R.string.bubble_vpn_off_desc),
+            errorTitle = stringResource(R.string.bubble_load_error_title), errorDescription = stringResource(R.string.bubble_load_error_desc), retry = stringResource(R.string.lbl_retry),
+            remove = stringResource(R.string.lbl_remove), allow = stringResource(R.string.bubble_allow_btn),
         ),
         appIcon = { packageName -> AndroidAppIcon(packageName) },
         onAllow = { id -> blockedById[id]?.let { app -> onAllowApp(app) { blockedItems.refresh(); allowedItems.refresh() } } },
         onRemove = { id -> allowedById[id]?.let { app -> onRemoveAllowed(app) { allowedItems.refresh(); blockedItems.refresh() } } },
+        onRetry = blockedItems::retry,
     )
 }
 

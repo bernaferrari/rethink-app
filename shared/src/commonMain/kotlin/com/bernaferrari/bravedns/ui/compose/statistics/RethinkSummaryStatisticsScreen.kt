@@ -3,6 +3,7 @@
 
 package com.bernaferrari.bravedns.ui.compose.statistics
 
+import androidx.compose.foundation.selection.selectableGroup
 import com.bernaferrari.bravedns.ui.compose.common.RethinkAdaptiveWidth
 import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
 import com.bernaferrari.bravedns.ui.compose.common.isExpanded
@@ -13,7 +14,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -118,6 +118,10 @@ fun RethinkSummaryStatisticsScreen(
                 bottom = SharedDimensions.spacing3xl,
             ),
         ) {
+            // The window scopes everything below it, including the usage totals, so it leads.
+            item {
+                RethinkStatisticsWindowSelector(selectedWindow, strings, onWindowSelected)
+            }
             item {
                 RethinkUsageOverviewCard(
                     overview = overview,
@@ -127,14 +131,11 @@ fun RethinkSummaryStatisticsScreen(
                     connectionsLabel = strings.connections,
                 )
             }
-            item {
-                RethinkStatisticsWindowSelector(selectedWindow, strings, onWindowSelected)
-            }
             if (widthClass.isExpanded) {
                 sections.chunked(2).forEach { pair ->
                     item(key = pair.joinToString(separator = "|") { it.id }) {
                         Row(
-            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
                             verticalAlignment = Alignment.Top,
                         ) {
@@ -167,7 +168,10 @@ private fun RethinkStatisticsWindowSelector(
         RethinkStatisticsWindow.TwentyFourHours to strings.twentyFourHours,
         RethinkStatisticsWindow.SevenDays to strings.sevenDays,
     )
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)) {
+    Row(
+        Modifier.fillMaxWidth().selectableGroup(),
+        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+    ) {
         options.forEachIndexed { index, (window, label) ->
             val selected = window == selectedWindow
             ToggleButton(

@@ -21,3 +21,9 @@ data class RethinkMotion(
 )
 
 val LocalRethinkMotion = staticCompositionLocalOf { RethinkMotion() }
+
+/**
+ * Localized label for every top-bar back arrow. Android provides it from resources at the theme
+ * root, so shared screens never ship the English fallback to TalkBack.
+ */
+val LocalRethinkBackDescription = staticCompositionLocalOf { "Navigate back" }

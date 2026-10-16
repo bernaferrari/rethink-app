@@ -1,6 +1,10 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.settings
 
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.foundation.layout.size
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.BorderStroke
@@ -11,7 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -26,7 +30,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormTextField
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkTwoOptionSegmentedRow
@@ -218,7 +221,7 @@ private fun RethinkReachabilityField(
         singleLine = true,
         trailingIcon = {
             when {
-                testing -> CircularProgressIndicator(Modifier.padding(10.dp))
+                testing -> LoadingIndicator(Modifier.size(SharedDimensions.iconSizeMd))
                 status != null -> Icon(reachabilityIcon(status), null, tint = reachabilityTint(status))
             }
         },

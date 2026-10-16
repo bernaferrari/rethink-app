@@ -1,13 +1,18 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.theme
 
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.material3.ripple
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.runtime.Immutable
+import androidx.compose.ui.semantics.Role
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.snap
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -39,6 +44,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+
+/** Material's disabled-content opacity (md.sys.state.disabled). */
+private const val DISABLED_CONTENT_ALPHA = 0.38f
 
 enum class CardPosition { First, Middle, Last, Single }
 
@@ -94,6 +102,18 @@ fun RethinkListGroup(
     Column(modifier = modifier.fillMaxWidth().padding(vertical = SharedDimensions.spacingGridTile), content = content)
 }
 
+/**
+ * Whole-row control semantics for [RethinkListItem]. With a trailing Switch/Checkbox/RadioButton
+ * whose own callback is null, the row is the control: TalkBack announces "Switch, on" instead of
+ * a plain button, and the entire row toggles.
+ */
+@Immutable
+data class RethinkListSelection(
+    val checked: Boolean,
+    val role: Role = Role.Switch,
+    val onCheckedChange: (Boolean) -> Unit,
+)
+
 /** Shared expressive grouped list row. Resources and side effects are injected by each host. */
 @Composable
 fun RethinkListItem(
@@ -116,27 +136,25 @@ fun RethinkListItem(
     defaultContainerColor: Color = MaterialTheme.colorScheme.surfaceContainerLow,
     highlightContainerColor: Color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.56f),
     showTrailingChevron: Boolean = false,
+    selection: RethinkListSelection? = null,
     onClick: (() -> Unit)? = null,
 ) {
     val motion = LocalRethinkMotion.current
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
+    val interactive = enabled && (onClick != null || selection != null)
     val scale by animateFloatAsState(
-        targetValue = if (!motion.reducedMotion && pressed && enabled && onClick != null) 0.985f else 1f,
-        animationSpec = if (motion.reducedMotion) {
-            snap()
-        } else {
-            spring(dampingRatio = 0.62f, stiffness = Spring.StiffnessMediumLow)
-        },
+        targetValue = if (!motion.reducedMotion && pressed && interactive) 0.985f else 1f,
+        animationSpec = if (motion.reducedMotion) snap() else MaterialTheme.motionScheme.fastSpatialSpec(),
         label = "rethink_list_item_scale",
     )
     val highlightAlpha by animateFloatAsState(
         targetValue = if (highlighted) 1f else 0f,
-        animationSpec = tween(durationMillis = motion.durationFast),
+        animationSpec = if (motion.reducedMotion) snap() else MaterialTheme.motionScheme.fastEffectsSpec(),
         label = "rethink_list_item_highlight",
     )
     val shape = rethinkGroupedListShape(position)
-    val alpha = if (enabled) 1f else 0.5f
+    val alpha = if (enabled) 1f else DISABLED_CONTENT_ALPHA
     val containerColor = lerp(defaultContainerColor, highlightContainerColor, highlightAlpha)
 
     val surfaceModifier = Modifier
@@ -169,9 +187,9 @@ fun RethinkListItem(
                         Text(
                             text = supportingAnnotated ?: AnnotatedString(supporting.orEmpty()),
                             style = MaterialTheme.typography.bodyMedium.copy(
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.82f * alpha),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = alpha),
                             ),
-                            color = if (supportingAnnotated != null) Color.Unspecified else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.82f * alpha),
+                            color = if (supportingAnnotated != null) Color.Unspecified else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = alpha),
                             modifier = contentOffset.then(Modifier.padding(top = SharedDimensions.spacingXs)),
                         )
                     }
@@ -188,8 +206,8 @@ fun RethinkListItem(
                                     Box(contentAlignment = Alignment.Center, modifier = Modifier.size(SharedDimensions.iconContainerSm)) {
                                         when {
                                             leadingIcon != null -> androidx.compose.material3.Icon(leadingIcon, null, tint = leadingIconTint.copy(alpha = alpha), modifier = Modifier.size(SharedDimensions.iconSizeSm))
-                                            leadingIconPainter != null && leadingIconTint == Color.Unspecified -> Image(leadingIconPainter, null, modifier = Modifier.size(18.dp))
-                                            leadingIconPainter != null -> androidx.compose.material3.Icon(leadingIconPainter, null, tint = leadingIconTint.copy(alpha = alpha), modifier = Modifier.size(18.dp))
+                                            leadingIconPainter != null && leadingIconTint == Color.Unspecified -> Image(leadingIconPainter, null, modifier = Modifier.size(SharedDimensions.iconSizeSm))
+                                            leadingIconPainter != null -> androidx.compose.material3.Icon(leadingIconPainter, null, tint = leadingIconTint.copy(alpha = alpha), modifier = Modifier.size(SharedDimensions.iconSizeSm))
                                         }
                                     }
                                 }
@@ -212,7 +230,34 @@ fun RethinkListItem(
     }
 
     Column(modifier = modifier.fillMaxWidth().scale(scale)) {
-        if (onClick != null) {
+        if (selection != null) {
+            val controlModifier = if (selection.role == Role.RadioButton) {
+                Modifier.selectable(
+                    selected = selection.checked,
+                    interactionSource = interactionSource,
+                    indication = ripple(),
+                    enabled = enabled,
+                    role = selection.role,
+                    onClick = { selection.onCheckedChange(true) },
+                )
+            } else {
+                Modifier.toggleable(
+                    value = selection.checked,
+                    interactionSource = interactionSource,
+                    indication = ripple(),
+                    enabled = enabled,
+                    role = selection.role,
+                    onValueChange = selection.onCheckedChange,
+                )
+            }
+            Surface(
+                shape = shape,
+                color = containerColor,
+                border = border,
+                modifier = surfaceModifier.then(controlModifier),
+                content = content,
+            )
+        } else if (onClick != null) {
             Surface(
                 onClick = onClick,
                 enabled = enabled,

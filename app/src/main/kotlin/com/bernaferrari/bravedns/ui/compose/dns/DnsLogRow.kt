@@ -94,6 +94,7 @@ import coil3.request.SuccessResult
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.ui.compose.theme.rememberReducedMotion
 import com.bernaferrari.bravedns.ui.compose.logs.RethinkLogDetail
+import com.bernaferrari.bravedns.ui.compose.logs.RethinkLogLatencyStrings
 import com.bernaferrari.bravedns.ui.compose.logs.RethinkLogRow
 import com.bernaferrari.bravedns.ui.compose.logs.RethinkLogRowModel
 import com.bernaferrari.bravedns.database.DnsLog
@@ -184,6 +185,12 @@ fun DnsLogRow(
             details = details,
             icon = { statusContainer -> AppIconSlot(showFav, favIcon, appIcon, statusContainer) },
             latencyMs = log.latency,
+            latencyStrings = RethinkLogLatencyStrings(
+                title = stringResource(R.string.dns_detail_latency),
+                fast = stringResource(R.string.lbl_fast),
+                ok = stringResource(R.string.log_latency_ok),
+                slow = stringResource(R.string.lbl_slow),
+            ),
             blocklistsLabel = if (blocklistCount > 0) "$blocklistCount blocklists matched" else null,
             onBlocklistsClick = if (blocklistCount > 0) ({ onShowBlocklist(log) }) else null,
         ),

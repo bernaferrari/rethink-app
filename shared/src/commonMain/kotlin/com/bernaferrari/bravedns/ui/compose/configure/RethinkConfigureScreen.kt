@@ -104,7 +104,7 @@ fun RethinkConfigureScreen(
     onSearchOpenChange: (Boolean) -> Unit,
     onQueryChange: (String) -> Unit,
     modifier: Modifier = Modifier,
-    /** Optional appearance block shown at the top of Settings (theme mode + color swatches). */
+    /** Optional appearance block shown after the sections (theme mode + color swatches). */
     appearanceContent: (@Composable () -> Unit)? = null,
 ) {
     val searchScroll = TopAppBarDefaults.pinnedScrollBehavior()
@@ -199,10 +199,11 @@ fun RethinkConfigureScreen(
                 verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
             ) {
                 if (showBrowse) {
+                    // Protection controls lead; theming is a one-time preference and sits last.
+                    sections.forEach { section -> item { ConfigureSection(section, widthClass) } }
                     appearanceContent?.let { content ->
                         item { content() }
                     }
-                    sections.forEach { section -> item { ConfigureSection(section, widthClass) } }
                     item { Spacer(Modifier.height(SharedDimensions.spacingSm)) }
                 } else {
                     item {

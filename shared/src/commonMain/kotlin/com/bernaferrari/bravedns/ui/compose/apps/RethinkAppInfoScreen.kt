@@ -1,6 +1,7 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.apps
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.animation.AnimatedContent
@@ -34,7 +35,6 @@ import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -45,9 +45,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -183,24 +180,12 @@ fun RethinkAppInfoScreen(
         ) {
             if (!state.appAvailable) {
                 item {
-                    Column(
-                        Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
-                    ) {
-                        RethinkEmptyState(
-                            icon = MaterialSymbols.Filled.Apps,
-                            title = strings.unavailable,
-                            message = "",
-                        )
-                        RethinkListGroup {
-                            RethinkListItem(
-                                headline = strings.back,
-                                leadingIcon = MaterialSymbols.AutoMirrored.Filled.ArrowForward,
-                                position = CardPosition.Single,
-                                onClick = onBackClick,
-                            )
-                        }
-                    }
+                    // The top bar already provides back navigation; no duplicate in-content row.
+                    RethinkEmptyState(
+                        icon = MaterialSymbols.Filled.Apps,
+                        title = strings.unavailable,
+                        message = "",
+                    )
                 }
             } else {
                 item {
@@ -449,15 +434,16 @@ private fun animateCorner(
 
 @Composable
 private fun RethinkAppExclusiveRow(title: String, description: String, enabled: Boolean, icon: androidx.compose.ui.graphics.vector.ImageVector, tint: androidx.compose.ui.graphics.Color, position: CardPosition, onClick: () -> Unit) {
+    // Mutually exclusive modes, but each can be switched back off (to "none"), so these are
+    // switches rather than radio buttons: turning one on turns the others off.
     RethinkListItem(
         headline = title,
         supporting = description,
         leadingIcon = icon,
         leadingIconTint = tint,
         position = position,
-        trailing = { RadioButton(selected = enabled, onClick = null) },
-        onClick = onClick,
-        modifier = Modifier.semantics { role = Role.RadioButton },
+        trailing = { Switch(checked = enabled, onCheckedChange = null) },
+        selection = RethinkListSelection(checked = enabled) { onClick() },
     )
 }
 
@@ -468,7 +454,7 @@ private fun RethinkAppToggleRow(title: String, description: String, checked: Boo
         supporting = description,
         leadingIcon = icon,
         position = position,
-        onClick = { onChange(!checked) },
+        selection = RethinkListSelection(checked = checked, onCheckedChange = onChange),
         trailing = { Switch(checked = checked, onCheckedChange = null) },
     )
 }

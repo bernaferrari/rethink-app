@@ -6,11 +6,12 @@ import androidx.compose.ui.graphics.Color
 
 /**
  * Platform-accelerated protection field where available. [phase] is normalized to 0..1 and all
- * motion is periodic, so the last frame joins the first without a discontinuity.
+ * motion is periodic, so the last frame joins the first without a discontinuity. It is a provider
+ * so implementations read it in the draw phase: the field animates without recomposing.
  */
 @Composable
 internal expect fun ProtectionFlowBackground(
-    phase: Float,
+    phase: () -> Float,
     activeProgress: Float,
     recoveringProgress: Float,
     accent: Color,

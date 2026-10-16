@@ -2,6 +2,7 @@
 
 package com.bernaferrari.bravedns.ui.compose.rpn
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
@@ -65,6 +66,9 @@ data class RethinkRpnCountriesStrings(
     val frequentlyUsed: String,
     val addFavourite: String,
     val removeFavourite: String,
+    val resetConfirmationTitle: String,
+    val resetConfirmationDescription: String,
+    val cancel: String,
 )
 
 /** Shared RPN country selection, search, favourite, refresh, and list rendering. */
@@ -85,6 +89,7 @@ fun RethinkRpnCountriesScreen(
 ) {
     var query by remember { mutableStateOf("") }
     var favouritesOnly by remember { mutableStateOf(false) }
+    var showResetConfirm by remember { mutableStateOf(false) }
     val visible = countries.filter { country ->
         val queryMatches = query.isBlank() || listOf(country.name, country.countryCode, country.location)
             .any { it.contains(query, ignoreCase = true) }
@@ -125,7 +130,7 @@ fun RethinkRpnCountriesScreen(
                 TextButton(enabled = actionsEnabled, onClick = onRefresh) {
                     Text(if (busyKey == "refresh") strings.refreshing else strings.refresh)
                 }
-                TextButton(enabled = actionsEnabled, onClick = onReset) {
+                TextButton(enabled = actionsEnabled, onClick = { showResetConfirm = true }) {
                     Text(if (busyKey == "reset") strings.resetting else strings.reset)
                 }
             }
@@ -149,6 +154,18 @@ fun RethinkRpnCountriesScreen(
                 }
             }
         }
+    }
+    if (showResetConfirm) {
+        RethinkConfirmDialog(
+            onDismissRequest = { showResetConfirm = false },
+            title = strings.resetConfirmationTitle,
+            message = strings.resetConfirmationDescription,
+            confirmText = strings.reset,
+            dismissText = strings.cancel,
+            isConfirmDestructive = true,
+            onConfirm = { showResetConfirm = false; onReset() },
+            onDismiss = { showResetConfirm = false },
+        )
     }
 }
 

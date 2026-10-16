@@ -1,6 +1,9 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.rpn
 
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
@@ -12,7 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
@@ -169,7 +172,7 @@ private fun RethinkRpnManageTab(state: RethinkRpnAccountOperation, strings: Reth
                 }
             }
         }
-        if (state.busy) item { Column(Modifier.fillMaxWidth().padding(SharedDimensions.spacingLg), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) { CircularProgressIndicator(Modifier.size(SharedDimensions.iconSizeLg)); Text(strings.loading) } }
+        if (state.busy) item { Column(Modifier.fillMaxWidth().padding(SharedDimensions.spacingLg), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) { LoadingIndicator(Modifier.size(SharedDimensions.iconSizeXl)); Text(strings.loading) } }
         item { SectionHeaderWithSubtitle(title = strings.actionsHeading, subtitle = strings.actionsDescription) }
         item {
             RethinkListGroup {
@@ -213,7 +216,7 @@ private fun RethinkRpnEntitlementTab(loading: Boolean, error: String?, entries: 
 @Composable
 private fun RethinkRpnAccountLoading(label: String) {
     Column(Modifier.fillMaxWidth().padding(SharedDimensions.spacingXl), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
-        CircularProgressIndicator(Modifier.size(SharedDimensions.iconSizeLg))
+        LoadingIndicator(Modifier.size(SharedDimensions.iconSizeXl))
         Text(label)
     }
 }

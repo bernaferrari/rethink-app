@@ -41,8 +41,8 @@ internal val demoNavigationItems = listOf(
     RethinkNavigationItem(
         id = RethinkRootDestination.Statistics.name,
         label = "Statistics",
-        selectedIcon = MaterialSymbols.Filled.Star,
-        unselectedIcon = MaterialSymbols.Outlined.Star,
+        selectedIcon = MaterialSymbols.Filled.BarChart,
+        unselectedIcon = MaterialSymbols.Filled.BarChart,
     ),
     RethinkNavigationItem(
         id = RethinkRootDestination.Configure.name,
@@ -53,7 +53,7 @@ internal val demoNavigationItems = listOf(
 )
 
 internal val demoHomeStrings = RethinkHomeStrings(
-    productName = "Rethink",
+    productName = "Re-Rethink",
     protected = "Protected",
     notActive = "Not active",
     start = "Start",
@@ -65,7 +65,8 @@ internal val demoHomeStrings = RethinkHomeStrings(
     dnsQueries = "DNS queries",
     networkProtection = "Network protection",
     live = "Live",
-    offline = "Offline",
+    offline = "Off",
+    reconnecting = "Reconnecting",
 )
 
 internal val demoConfigureStrings = RethinkConfigureStrings(
@@ -149,7 +150,11 @@ internal val demoConsoleLogStrings = RethinkConsoleLogStrings(
     searchHint = "Search console logs",
     filterDescription = "Filter log level",
     shareDescription = "Share logs",
-    clearDescription = "Clear console logs",
+    clearDescription = "Delete all console logs",
+    clearSearchDescription = "Clear search",
+    deleteDialogTitle = "Delete console logs?",
+    deleteDialogMessage = "All console logs stored on this device will be permanently deleted.",
+    deleteLabel = "Delete",
     reportLabel = "Report a bug",
     confirmLabel = "Done",
     cancelLabel = "Cancel",
@@ -466,6 +471,7 @@ internal val demoDnsSettingsStrings = RethinkDnsSettingsStrings(
     favicons = "Website favicons", faviconsDescription = "Fetch icons for domains in logs.", dnsCache = "DNS cache", dnsCacheDescription = "Cache recent DNS answers locally.",
     proxyDns = "Proxy DNS", proxyDnsDescription = "Resolve DNS through the configured proxy.", undelegatedDomains = "System DNS for undelegated domains", undelegatedDomainsDescription = "Ask the system resolver for local domains.",
     fallbackDns = "Fallback DNS bypass", fallbackDnsDescription = "Use fallback DNS to bypass blocked queries.", preventLeaks = "Prevent DNS leaks", preventLeaksDescription = "Keep DNS traffic inside the protected tunnel.",
+    aboutItem = { "About $it" },
 )
 
 internal val demoMiscToggles = listOf(
@@ -502,9 +508,9 @@ internal val demoDatabasePreviews = listOf(
 )
 
 internal val demoEvents = listOf(
-    RethinkEventRow("event-1", "Now", RethinkEventSeverity.Low, "VPN", "VPN start", "Protection connected", "The VPN service established its tunnel.", true),
-    RethinkEventRow("event-2", "2m", RethinkEventSeverity.Medium, "DNS", "DNS server change", "Resolver changed", "RethinkDNS selected the preferred encrypted resolver."),
-    RethinkEventRow("event-3", "8m", RethinkEventSeverity.High, "Firewall", "Firewall block", "Blocked a tracking connection", "ads.example.net matched a universal block rule."),
+    RethinkEventRow("event-1", "Now", RethinkEventSeverity.Low, "VPN", "VPN start", "Protection connected", "The VPN service established its tunnel.", true, "Low"),
+    RethinkEventRow("event-2", "2m", RethinkEventSeverity.Medium, "DNS", "DNS server change", "Resolver changed", "RethinkDNS selected the preferred encrypted resolver.", severityLabel = "Medium"),
+    RethinkEventRow("event-3", "8m", RethinkEventSeverity.High, "Firewall", "Firewall block", "Blocked a tracking connection", "ads.example.net matched a universal block rule.", severityLabel = "High"),
 )
 
 internal fun RethinkEventSource.label() = when (this) {
@@ -558,10 +564,12 @@ internal fun List<RethinkLogRowModel>.toDemoLogAppOptions() =
         .map { (label, rows) -> RethinkLogAppOption(id = label, label = label, count = rows.size) }
         .sortedBy { it.label }
 
+private val demoLatencyStrings = RethinkLogLatencyStrings(title = "Latency", fast = "fast", ok = "ok", slow = "slow")
+
 internal val demoDnsLogs = listOf(
     RethinkLogRowModel(
         id = "dns-1", destination = "api.github.com", appLabel = "GitHub", typeLabel = "DoH", timeLabel = "Now",
-        isBlocked = false, allowedLabel = "Allowed", blockedLabel = "Blocked", latencyMs = 24,
+        isBlocked = false, allowedLabel = "Allowed", blockedLabel = "Blocked", latencyMs = 24, latencyStrings = demoLatencyStrings,
         icon = { RethinkWebDemoAppIcon("com.demo.github", "GitHub", Modifier.size(34.dp)) },
         details = listOf(
             RethinkLogDetail("Transport", "DoH"),
@@ -571,7 +579,7 @@ internal val demoDnsLogs = listOf(
     ),
     RethinkLogRowModel(
         id = "dns-2", destination = "tracker.example.org", appLabel = "Browser", typeLabel = "DoH", timeLabel = "2m",
-        isBlocked = true, allowedLabel = "Allowed", blockedLabel = "Blocked", latencyMs = 6,
+        isBlocked = true, allowedLabel = "Allowed", blockedLabel = "Blocked", latencyMs = 6, latencyStrings = demoLatencyStrings,
         icon = { RethinkWebDemoAppIcon("com.demo.browser", "Browser", Modifier.size(34.dp)) },
         details = listOf(
             RethinkLogDetail("Transport", "DoH"),
@@ -610,25 +618,31 @@ internal fun demoConfigureSections(
     RethinkConfigureSection(
         "System",
         listOf(
-            demoConfigureEntry("network", "Network", MaterialSymbols.Filled.VpnKey, RethinkRoute.TunnelSettings(), onOpenDetail, accent = ConfigureAccents.network),
-            demoConfigureEntry("rpn", "Rethink Plus", MaterialSymbols.Filled.Star, RethinkRoute.RpnAccount, onOpenDetail, "Account and support", ConfigureAccents.plus),
+            demoConfigureEntry("network", "Network", MaterialSymbols.Filled.Wifi, RethinkRoute.TunnelSettings(), onOpenDetail, accent = ConfigureAccents.network),
+            demoConfigureEntry("rpn", "Rethink Plus", MaterialSymbols.Filled.Star, RethinkRoute.RpnAccount, onOpenDetail, accent = ConfigureAccents.plus),
             demoConfigureEntry("settings", "App preferences", MaterialSymbols.Filled.Settings, RethinkRoute.MiscSettings(), onOpenDetail, "Backup, device, and app behavior", ConfigureAccents.settings),
-            demoConfigureEntry("logs", "Logs", MaterialSymbols.Filled.Subject, RethinkRoute.NetworkLogs(), onOpenDetail, "Network and DNS logging", ConfigureAccents.logs),
-            demoConfigureEntry("rpn-countries", "Rethink locations", MaterialSymbols.Filled.Public, RethinkRoute.RpnCountries, onOpenDetail, "Select RPN servers", ConfigureAccents.network),
+            demoConfigureEntry("logs", "Logs", MaterialSymbols.Filled.Article, RethinkRoute.NetworkLogs(), onOpenDetail, "Network and DNS logging", ConfigureAccents.logs),
         ),
         RethinkConfigureLayout.GridTriad,
     ),
     RethinkConfigureSection(
+        "Routing and DNS",
+        listOf(
+            demoConfigureEntry("dns-settings", "DNS settings", MaterialSymbols.Filled.Tune, RethinkRoute.DnsSettings, onOpenDetail, "Resolver, filtering, and advanced options", ConfigureAccents.dns),
+            demoConfigureEntry("blocklists", "Blocklists", MaterialSymbols.Filled.Block, RethinkRoute.Blocklists, onOpenDetail, "Choose privacy and security sources", ConfigureAccents.firewall),
+            demoConfigureEntry("wireguard", "WireGuard", MaterialSymbols.Filled.VpnKey, RethinkRoute.WireGuard, onOpenDetail, "Create, import, and manage tunnels", ConfigureAccents.proxy),
+            demoConfigureEntry("rpn-countries", "Rethink locations", MaterialSymbols.Filled.Public, RethinkRoute.RpnCountries, onOpenDetail, "Select RPN servers", ConfigureAccents.network),
+            demoConfigureEntry("anti-censorship", "Anti-censorship", MaterialSymbols.Filled.Policy, RethinkRoute.AntiCensorship, onOpenDetail, "Connection splitting and retries", ConfigureAccents.antiCensorship),
+        ),
+        RethinkConfigureLayout.List,
+    ),
+    RethinkConfigureSection(
         "Diagnostics",
         listOf(
-            demoConfigureEntry("console", "Console logs", MaterialSymbols.Filled.Subject, RethinkRoute.ConsoleLogs, onOpenDetail, "Engine diagnostics", ConfigureAccents.logs),
-            demoConfigureEntry("ping", "Connectivity checks", MaterialSymbols.Filled.Dns, RethinkRoute.PingTest, onOpenDetail, "Test RPN reachability", ConfigureAccents.network),
-            demoConfigureEntry("anti-censorship", "Anti-censorship", MaterialSymbols.Filled.Security, RethinkRoute.AntiCensorship, onOpenDetail, "Connection splitting and retries", ConfigureAccents.antiCensorship),
-            demoConfigureEntry("events", "Event logs", MaterialSymbols.Filled.Subject, RethinkRoute.Events, onOpenDetail, "System and debug events", ConfigureAccents.settings),
+            demoConfigureEntry("console", "Console logs", MaterialSymbols.Filled.Code, RethinkRoute.ConsoleLogs, onOpenDetail, "Engine diagnostics", ConfigureAccents.logs),
+            demoConfigureEntry("events", "Event logs", MaterialSymbols.Filled.EventNote, RethinkRoute.Events, onOpenDetail, "System and debug events", ConfigureAccents.settings),
+            demoConfigureEntry("ping", "Connectivity checks", MaterialSymbols.Filled.NetworkPing, RethinkRoute.PingTest, onOpenDetail, "Test RPN reachability", ConfigureAccents.network),
             demoConfigureEntry("database", "Database inspector", MaterialSymbols.Filled.Storage, RethinkRoute.Database, onOpenDetail, "Browse local data", ConfigureAccents.advanced),
-            demoConfigureEntry("dns-settings", "DNS settings", MaterialSymbols.Filled.Dns, RethinkRoute.DnsSettings, onOpenDetail, "Resolver, filtering, and advanced options", ConfigureAccents.dns),
-            demoConfigureEntry("blocklists", "Blocklists", MaterialSymbols.Filled.Security, RethinkRoute.Blocklists, onOpenDetail, "Choose privacy and security sources", ConfigureAccents.firewall),
-            demoConfigureEntry("wireguard", "WireGuard", MaterialSymbols.Filled.VpnKey, RethinkRoute.WireGuard, onOpenDetail, "Create, import, and manage tunnels", ConfigureAccents.proxy),
         ),
         RethinkConfigureLayout.List,
     ),

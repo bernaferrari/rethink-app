@@ -1,8 +1,10 @@
 /* Copyright 2026 RethinkDNS and its authors */
-@file:OptIn(ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 
 package com.bernaferrari.bravedns.ui.compose.rpn
 
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -152,7 +154,7 @@ private fun AvailabilityList(items: List<RethinkRpnAvailabilityItem>, strings: R
 @Composable
 private fun AvailabilityStatus(status: RethinkRpnAvailabilityStatus, strings: RethinkRpnAvailabilityStrings) {
     when (status) {
-        RethinkRpnAvailabilityStatus.Loading -> CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp)
+        RethinkRpnAvailabilityStatus.Loading -> LoadingIndicator(Modifier.size(SharedDimensions.iconSizeMd))
         RethinkRpnAvailabilityStatus.Active -> AvailabilityStatusText(strings.active, MaterialTheme.colorScheme.primary)
         RethinkRpnAvailabilityStatus.Inactive -> AvailabilityStatusText(strings.inactive, MaterialTheme.colorScheme.error)
         RethinkRpnAvailabilityStatus.Unavailable -> AvailabilityStatusText(strings.unavailable, MaterialTheme.colorScheme.onSurfaceVariant)

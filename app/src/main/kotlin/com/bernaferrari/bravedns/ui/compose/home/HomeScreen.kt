@@ -78,4 +78,5 @@ private fun androidHomeStrings() = RethinkHomeStrings(
     networkProtection = stringResource(R.string.home_network_protection),
     live = stringResource(R.string.home_live),
     offline = stringResource(R.string.home_offline),
+    reconnecting = stringResource(R.string.home_reconnecting),
 )

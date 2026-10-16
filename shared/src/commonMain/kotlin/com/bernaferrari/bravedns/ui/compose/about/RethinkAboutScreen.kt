@@ -23,10 +23,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -36,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -182,6 +183,10 @@ fun RethinkAboutScreen(
         modifier = modifier,
     ) {
         item { AboutIdentityHero(strings.appName, version) }
+        item { AboutAppSection(uiState, strings, actions) }
+        if (uiState.isDebug) {
+            item { AboutDiagnosticsSection(strings, actions) }
+        }
         item {
             AboutSection(
                 title = strings.web,
@@ -215,7 +220,7 @@ private fun AboutIdentityHero(
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(SharedDimensions.cardPadding),
             horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -255,6 +260,40 @@ private fun AboutIdentityHero(
             }
         }
     }
+}
+
+private fun aboutIcon(icon: ImageVector): @Composable (Color) -> Unit = { tint -> Icon(icon, null, tint = tint) }
+
+@Composable
+private fun AboutAppSection(uiState: RethinkAboutUiState, strings: RethinkAboutStrings, actions: RethinkAboutActions) {
+    AboutSection(
+        title = strings.app,
+        accent = MaterialTheme.colorScheme.primary,
+        rows = buildList {
+            add(AboutRow(strings.whatsNew, aboutIcon(MaterialSymbols.Filled.NewReleases), actions.onWhatsNew))
+            // F-Droid owns updates for its builds; the in-app checker only applies to other channels.
+            if (!uiState.isFdroid) {
+                add(AboutRow(strings.checkForUpdates, aboutIcon(MaterialSymbols.Filled.SystemUpdate), actions.onAppUpdate))
+            }
+            add(AboutRow(strings.appInfo, aboutIcon(MaterialSymbols.Filled.Info), actions.onAppInfo))
+            add(AboutRow(strings.vpnProfile, aboutIcon(MaterialSymbols.Filled.VpnKey), actions.onVpnProfile))
+            add(AboutRow(strings.notifications, aboutIcon(MaterialSymbols.Filled.Notifications), actions.onNotifications))
+        },
+    )
+}
+
+@Composable
+private fun AboutDiagnosticsSection(strings: RethinkAboutStrings, actions: RethinkAboutActions) {
+    AboutSection(
+        title = strings.diagnostics,
+        accent = MaterialTheme.colorScheme.tertiary,
+        rows = listOf(
+            AboutRow(strings.statistics, aboutIcon(MaterialSymbols.Filled.BarChart), actions.onStatistics),
+            AboutRow(strings.databaseDump, aboutIcon(MaterialSymbols.Filled.Storage), actions.onDatabaseDump),
+            AboutRow(strings.flightRecorder, aboutIcon(MaterialSymbols.Filled.NetworkCheck), actions.onFlightRecorder),
+            AboutRow(strings.eventLogs, aboutIcon(MaterialSymbols.Filled.EventNote), actions.onEventLogs),
+        ),
+    )
 }
 
 @Composable
@@ -316,7 +355,7 @@ private fun AboutCommunitySection(
                     icon = assets.bugReport,
                     onClick = actions.onBugReport,
                     trailing = if (uiState.isBugReportRunning) {
-                        { CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp, color = accent) }
+                        { LoadingIndicator(Modifier.size(SharedDimensions.iconSizeLg), color = accent) }
                     } else {
                         null
                     },

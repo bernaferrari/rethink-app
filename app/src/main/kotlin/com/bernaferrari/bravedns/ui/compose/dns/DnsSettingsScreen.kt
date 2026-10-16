@@ -169,6 +169,7 @@ private fun androidDnsSettingsStrings() = RethinkDnsSettingsStrings(
     fallbackDnsDescription = stringResource(R.string.use_fallback_dns_to_bypass_desc),
     preventLeaks = stringResource(R.string.dc_dns_leaks_heading),
     preventLeaksDescription = stringResource(R.string.dc_dns_leaks_desc),
+    aboutItem = { stringResource(R.string.cd_about_item, it) },
 )
 
 private fun RethinkBlockFreeDnsMode.blockFreeLabelRes() = when (this) {

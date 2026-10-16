@@ -48,7 +48,7 @@ fun RethinkLargeTopBar(
     titleStartPadding: Dp = 0.dp,
     titleLeading: (@Composable () -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
-    backDescription: String = "Navigate back",
+    backDescription: String = LocalRethinkBackDescription.current,
 ) = LargeFlexibleTopAppBar(
     title = {
         Row(
@@ -105,7 +105,7 @@ fun RethinkTopBar(
     containerColor: Color = MaterialTheme.colorScheme.surface,
     scrolledContainerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
     actions: @Composable RowScope.() -> Unit = {},
-    backDescription: String = "Navigate back",
+    backDescription: String = LocalRethinkBackDescription.current,
 ) = TopAppBar(
     title = { Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.SemiBold) },
     navigationIcon = { if (onBackClick != null) IconButton(onBackClick) { Icon(MaterialSymbols.AutoMirrored.Filled.ArrowBack, backDescription) } },

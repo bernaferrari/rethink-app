@@ -165,11 +165,12 @@ private fun AppConnection.toRethinkSummaryRow(
     } else {
         appOrDnsName?.takeIf { it.isNotBlank() } ?: ipAddress.ifBlank { fallbackName }
     }
-    val metric = totalBytes?.takeIf { it > 0L }?.let(::formatBytes) ?: count.toString()
-    val supporting = if (isCountry) null else buildString {
-        append(stringResource(R.string.summary_connections_count, count))
-        totalBytes?.takeIf { it > 0L }?.let { append(" · ").append(formatBytes(it)) }
-    }
+    val bytes = totalBytes?.takeIf { it > 0L }
+    // The trailing metric is the headline number (bytes when known, else the count); the
+    // supporting line only adds what the metric doesn't already show.
+    val metric = bytes?.let(::formatBytes) ?: count.toString()
+    val connectionsLabel = stringResource(R.string.summary_connections_count, count)
+    val supporting = if (isCountry || bytes == null) null else connectionsLabel
     val appIconPainter = if (type.supportsAppIcon()) rememberStatisticsAppIconPainter(uid) else null
     return RethinkSummaryStatisticsRow(
         id = "$type-$uid-$ipAddress-$flag-$count",

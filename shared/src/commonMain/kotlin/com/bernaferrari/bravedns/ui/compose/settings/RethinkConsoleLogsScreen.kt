@@ -35,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkModalBottomSheet
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkRadioChoiceList
@@ -47,7 +48,13 @@ data class RethinkConsoleLogStrings(
     val searchHint: String,
     val filterDescription: String,
     val shareDescription: String,
+    /** Content description of the "delete all logs" action. */
     val clearDescription: String,
+    /** Content description of the search field's clear-query button. */
+    val clearSearchDescription: String,
+    val deleteDialogTitle: String,
+    val deleteDialogMessage: String,
+    val deleteLabel: String,
     val reportLabel: String,
     val confirmLabel: String,
     val cancelLabel: String,
@@ -72,6 +79,7 @@ fun RethinkConsoleLogsScreen(
 ) {
     var query by remember { mutableStateOf("") }
     var filterVisible by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
     var selectedLogLevel by remember(initialLogLevel) { mutableIntStateOf(initialLogLevel) }
 
     LaunchedEffect(query) {
@@ -95,6 +103,21 @@ fun RethinkConsoleLogsScreen(
                 },
             )
         }
+    }
+
+    if (showDeleteDialog) {
+        RethinkConfirmDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = strings.deleteDialogTitle,
+            message = strings.deleteDialogMessage,
+            confirmText = strings.deleteLabel,
+            dismissText = strings.cancelLabel,
+            isConfirmDestructive = true,
+            onConfirm = {
+                showDeleteDialog = false
+                onClearClick()
+            },
+        )
     }
 
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
@@ -126,7 +149,7 @@ fun RethinkConsoleLogsScreen(
                     selectedLogLevel = initialLogLevel
                     filterVisible = true
                 },
-                onClearClick = onClearClick,
+                onClearClick = { showDeleteDialog = true },
             )
             Box(Modifier.fillMaxSize()) { content() }
         }
@@ -164,7 +187,7 @@ private fun RethinkConsoleLogSearchRow(
             trailingIcon = {
                 if (query.isNotEmpty()) {
                     IconButton(onClick = { onQueryChange("") }) {
-                        Icon(MaterialSymbols.Filled.Close, strings.clearDescription, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Icon(MaterialSymbols.Filled.Close, strings.clearSearchDescription, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             },
@@ -182,7 +205,7 @@ private fun RethinkConsoleLogSearchRow(
             Icon(MaterialSymbols.Filled.FilterList, strings.filterDescription, tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         IconButton(onClick = onClearClick) {
-            Icon(MaterialSymbols.Filled.Clear, strings.clearDescription, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            Icon(MaterialSymbols.Filled.DeleteOutline, strings.clearDescription, tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

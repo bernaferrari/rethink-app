@@ -111,7 +111,7 @@ fun EntryProviderScope<NavKey>.rethinkPreviewEntries(
                         canSeeMore = true,
                         rows = listOf(
                             RethinkSummaryStatisticsRow(
-                                "browser", "Browser", "1,240 connections · 684 MB", "684 MB",
+                                "browser", "Browser", "1,240 connections", "684 MB",
                                 leadingContent = {
                                     RethinkWebDemoAppIcon(
                                         "com.demo.browser",
@@ -121,7 +121,7 @@ fun EntryProviderScope<NavKey>.rethinkPreviewEntries(
                                 },
                             ),
                             RethinkSummaryStatisticsRow(
-                                "messenger", "Messenger", "684 connections · 248 MB", "248 MB",
+                                "messenger", "Messenger", "684 connections", "248 MB",
                                 leadingContent = {
                                     RethinkWebDemoAppIcon(
                                         "com.demo.messenger",
@@ -131,7 +131,7 @@ fun EntryProviderScope<NavKey>.rethinkPreviewEntries(
                                 },
                             ),
                             RethinkSummaryStatisticsRow(
-                                "mail", "Mail", "312 connections · 96 MB", "96 MB",
+                                "mail", "Mail", "312 connections", "96 MB",
                                 leadingContent = {
                                     RethinkWebDemoAppIcon(
                                         "com.google.android.gm",
@@ -158,7 +158,7 @@ fun EntryProviderScope<NavKey>.rethinkPreviewEntries(
                         title = "Most contacted countries",
                         accentColor = MaterialTheme.colorScheme.tertiary,
                         rows = listOf(
-                            demoCountryStatistic("us", "United States", "🇺🇸", "1,240", "1,240 connections · 684 MB", listOf("Browser" to "612", "Messenger" to "384", "Mail" to "244")),
+                            demoCountryStatistic("us", "United States", "🇺🇸", "1,240", "1,240 connections", listOf("Browser" to "612", "Messenger" to "384", "Mail" to "244")),
                             demoCountryStatistic("de", "Germany", "🇩🇪", "866", "866 connections · 406 MB", listOf("Browser" to "411", "RethinkDNS" to "248", "Mail" to "207")),
                             demoCountryStatistic("nl", "Netherlands", "🇳🇱", "508", "508 connections · 198 MB", listOf("Browser" to "278", "Messenger" to "146", "Cloud sync" to "84")),
                             demoCountryStatistic("sg", "Singapore", "🇸🇬", "276", "276 connections · 124 MB", listOf("Messenger" to "158", "Browser" to "72", "Mail" to "46")),

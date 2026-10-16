@@ -24,7 +24,7 @@ import kotlin.math.sqrt
  */
 @Composable
 internal fun ProtectionFlowCanvas(
-    phase: Float,
+    phase: () -> Float,
     activeProgress: Float,
     recoveringProgress: Float,
     accent: Color,
@@ -39,7 +39,8 @@ internal fun ProtectionFlowCanvas(
         if (size.width <= 0f || size.height <= 0f) return@Canvas
 
         drawRect(surface)
-        val theta = phase * FLOW_TAU
+        val currentPhase = phase()
+        val theta = currentPhase * FLOW_TAU
         val enabled = activeProgress.coerceIn(0f, 1f)
         val recovering = recoveringProgress.coerceIn(0f, 1f)
         val strength = opacity.coerceIn(0f, 1f)
@@ -70,7 +71,7 @@ internal fun ProtectionFlowCanvas(
                 val packetPhase =
                     fract(
                         (x / max(aspect, 0.001f) + 0.5f) * 4f -
-                            phase * 4f +
+                            currentPhase * 4f +
                             laneSeed +
                             noise * 0.055f,
                     )

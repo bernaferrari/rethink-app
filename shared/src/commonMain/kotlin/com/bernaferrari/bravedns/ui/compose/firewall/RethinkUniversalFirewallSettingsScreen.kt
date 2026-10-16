@@ -1,6 +1,7 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.firewall
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
@@ -26,7 +27,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
@@ -112,7 +112,7 @@ fun RethinkUniversalFirewallSettingsScreen(
                                             onClick = { onLogsClick(setting.id) },
                                             modifier = Modifier.size(SharedDimensions.touchTargetMin),
                                         ) {
-                                            Icon(MaterialSymbols.AutoMirrored.Filled.KeyboardArrowRight, strings.logs, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                                            Icon(MaterialSymbols.AutoMirrored.Filled.KeyboardArrowRight, strings.logs, Modifier.size(SharedDimensions.iconSizeSm), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                                         }
                                     }
                                     Switch(
@@ -121,8 +121,8 @@ fun RethinkUniversalFirewallSettingsScreen(
                                     )
                                 }
                             },
-                            onClick = {
-                                if (onSettingChange(setting.id, !setting.checked) == RethinkUniversalFirewallChange.RequiresAccessibility) {
+                            selection = RethinkListSelection(checked = setting.checked) { checked ->
+                                if (onSettingChange(setting.id, checked) == RethinkUniversalFirewallChange.RequiresAccessibility) {
                                     showAccessibilityDialog = true
                                 }
                             },

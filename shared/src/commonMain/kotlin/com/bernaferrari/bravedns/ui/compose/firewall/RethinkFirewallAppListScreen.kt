@@ -1,6 +1,10 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.firewall
 
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LoadingIndicator
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.animation.AnimatedVisibility
@@ -8,14 +12,10 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.core.keyframes
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
@@ -62,7 +62,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -188,18 +187,11 @@ fun RethinkFirewallAppListScreen(
     onBackClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
-    val motion = LocalRethinkMotion.current
     var showFilters by remember { mutableStateOf(false) }
     var showRules by remember { mutableStateOf(false) }
     var pendingBulkAction by remember { mutableStateOf<RethinkFirewallBulkAction?>(null) }
     val hasAdvancedFilters = filters.topLevel != RethinkFirewallTopLevelFilter.Installed ||
         filters.categories.isNotEmpty()
-    val refreshRotation = rememberInfiniteTransition(label = "firewall_refresh").animateFloat(
-        initialValue = 0f,
-        targetValue = if (isRefreshing && !motion.reducedMotion) 360f else 0f,
-        animationSpec = infiniteRepeatable(tween(750, easing = LinearEasing), RepeatMode.Restart),
-        label = "firewall_refresh_rotation",
-    )
 
     Scaffold(
         modifier = modifier,
@@ -210,9 +202,13 @@ fun RethinkFirewallAppListScreen(
                 onBackClick = onBackClick,
                 actions = {
                     IconButton(onClick = onRefresh, enabled = !isRefreshing) {
-                        Icon(MaterialSymbols.Filled.Refresh, strings.refresh, Modifier.rotate(refreshRotation.value))
+                        if (isRefreshing) {
+                            LoadingIndicator(Modifier.size(SharedDimensions.iconSizeMd))
+                        } else {
+                            Icon(MaterialSymbols.Filled.Refresh, strings.refresh)
+                        }
                     }
-                    IconButton(onClick = { showRules = true }) { Icon(MaterialSymbols.Filled.Tune, strings.rules) }
+                    IconButton(onClick = { showRules = true }) { Icon(MaterialSymbols.Filled.Gavel, strings.rules) }
                 },
             )
         },
@@ -398,7 +394,7 @@ private fun RethinkFirewallAppControls(
                         onClick = {
                             onQuickFilterChange(if (selected == filter) RethinkFirewallFilter.All else filter)
                         },
-                        leadingIcon = { RethinkFirewallFilterIcon(filter, Modifier.size(14.dp)) },
+                        leadingIcon = filter.icon()?.let { icon -> @Composable { Icon(icon, null, Modifier.size(14.dp)) } },
                         minHeight = SharedDimensions.touchTargetMin,
                         selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
                         selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -850,7 +846,7 @@ private fun RethinkFirewallFilterDialog(
                         options = RethinkFirewallFilter.entries,
                         selected = status,
                         label = strings.filterLabel,
-                        icon = { option -> RethinkFirewallFilterIcon(option, Modifier.size(14.dp)) },
+                        icon = { option -> option.icon() },
                         onSelect = { option -> status = option; publish(selectedStatus = option) },
                     )
                 }
@@ -901,7 +897,7 @@ private fun <T> RethinkFirewallFilterOptions(
     selected: T,
     label: @Composable (T) -> String,
     onSelect: (T) -> Unit,
-    icon: (@Composable (T) -> Unit)? = null,
+    icon: ((T) -> ImageVector?)? = null,
 ) {
     FlowRow(
         modifier = Modifier.fillMaxWidth(),
@@ -913,7 +909,7 @@ private fun <T> RethinkFirewallFilterOptions(
                 label = label(option),
                 selected = option == selected,
                 onClick = { if (option != selected) onSelect(option) },
-                leadingIcon = icon?.let { { it(option) } },
+                leadingIcon = icon?.invoke(option)?.let { vector -> @Composable { Icon(vector, null, Modifier.size(14.dp)) } },
                 minHeight = SharedDimensions.touchTargetMin,
                 selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
                 selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -989,19 +985,16 @@ private fun RethinkFirewallBulkIcon(action: RethinkFirewallBulkAction) {
     }
 }
 
-@Composable
-private fun RethinkFirewallFilterIcon(filter: RethinkFirewallFilter, modifier: Modifier = Modifier) {
-    val icon = when (filter) {
-        RethinkFirewallFilter.All -> MaterialSymbols.Filled.Tune
-        RethinkFirewallFilter.Allowed -> MaterialSymbols.Filled.CheckCircle
-        RethinkFirewallFilter.Blocked -> MaterialSymbols.Filled.Block
-        RethinkFirewallFilter.Bypass -> MaterialSymbols.Filled.VpnKey
-        RethinkFirewallFilter.Excluded -> MaterialSymbols.Filled.Security
-        RethinkFirewallFilter.Lockdown -> MaterialSymbols.Filled.Security
-        RethinkFirewallFilter.BlockedWifi -> MaterialSymbols.Filled.WifiOff
-        RethinkFirewallFilter.BlockedMobile -> MaterialSymbols.Filled.MobileOff
-    }
-    Icon(icon, null, modifier = modifier)
+/** Leading chip icon per filter; "All" is the neutral reset and carries no icon. */
+private fun RethinkFirewallFilter.icon(): ImageVector? = when (this) {
+    RethinkFirewallFilter.All -> null
+    RethinkFirewallFilter.Allowed -> MaterialSymbols.Filled.CheckCircle
+    RethinkFirewallFilter.Blocked -> MaterialSymbols.Filled.Block
+    RethinkFirewallFilter.Bypass -> MaterialSymbols.Filled.VpnKey
+    RethinkFirewallFilter.Excluded -> MaterialSymbols.Filled.Security
+    RethinkFirewallFilter.Lockdown -> MaterialSymbols.Filled.Lock
+    RethinkFirewallFilter.BlockedWifi -> MaterialSymbols.Filled.WifiOff
+    RethinkFirewallFilter.BlockedMobile -> MaterialSymbols.Filled.MobileOff
 }
 
 private fun appInitial(app: RethinkFirewallApp): String {

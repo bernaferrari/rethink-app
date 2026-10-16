@@ -1,6 +1,7 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.wireguard
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
@@ -14,7 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -24,9 +24,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
@@ -124,7 +121,7 @@ fun RethinkWireguardDetail(
             item {
                 SectionHeader(strings.advanced)
                 RethinkListGroup {
-                    RethinkWireguardDetailExclusiveToggle(strings.catchAll, strings.catchAllDescription, MaterialSymbols.Filled.Security, state.catchAllEnabled, onCatchAllChange, CardPosition.First)
+                    RethinkWireguardDetailToggle(strings.catchAll, strings.catchAllDescription, MaterialSymbols.Filled.Security, state.catchAllEnabled, onCatchAllChange, CardPosition.First)
                     RethinkWireguardDetailToggle(
                         strings.useMobile,
                         strings.useMobileDescription,
@@ -201,24 +198,6 @@ private fun RethinkWireguardDetailAction(
 )
 
 @Composable
-private fun RethinkWireguardDetailExclusiveToggle(
-    title: String,
-    description: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    selected: Boolean,
-    onSelectedChange: (Boolean) -> Unit,
-    position: CardPosition,
-) = RethinkListItem(
-    headline = title,
-    supporting = description,
-    leadingIcon = icon,
-    position = position,
-    trailing = { RadioButton(selected = selected, onClick = null) },
-    onClick = { onSelectedChange(!selected) },
-    modifier = Modifier.semantics { role = Role.RadioButton },
-)
-
-@Composable
 private fun RethinkWireguardDetailToggle(
     title: String,
     description: String,
@@ -232,5 +211,5 @@ private fun RethinkWireguardDetailToggle(
     leadingIcon = icon,
     position = position,
     trailing = { Switch(checked = checked, onCheckedChange = null) },
-    onClick = { onCheckedChange(!checked) },
+    selection = RethinkListSelection(checked = checked, onCheckedChange = onCheckedChange),
 )

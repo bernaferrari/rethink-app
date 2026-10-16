@@ -1,4 +1,5 @@
 /* Copyright 2026 RethinkDNS and its authors */
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
 
 package com.bernaferrari.bravedns.ui.compose.bubble
 
@@ -22,8 +23,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -31,6 +34,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -49,6 +53,11 @@ data class RethinkBubbleStrings(
     val loading: String,
     val emptyTitle: String,
     val emptyDescription: String,
+    val vpnOffTitle: String,
+    val vpnOffDescription: String,
+    val errorTitle: String,
+    val errorDescription: String,
+    val retry: String,
     val remove: String,
     val allow: String,
 )
@@ -65,10 +74,10 @@ fun RethinkBubbleScreen(
     appIcon: @Composable (packageName: String) -> Unit,
     onAllow: (String) -> Unit,
     onRemove: (String) -> Unit,
+    onRetry: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val showAllowed = vpnOn && allowedItems.isNotEmpty()
-    val showEmpty = !vpnOn || blockedError || (!blockedLoading && blockedItems.isEmpty())
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(top = SharedDimensions.spacingMd, bottom = SharedDimensions.spacingXl),
@@ -83,8 +92,16 @@ fun RethinkBubbleScreen(
         }
         item { SectionHeader(strings.activityTitle, modifier = Modifier.padding(horizontal = SharedDimensions.screenPaddingHorizontal)) }
         when {
+            !vpnOn -> item {
+                BubbleMessage(MaterialSymbols.Filled.Shield, strings.vpnOffTitle, strings.vpnOffDescription)
+            }
             blockedLoading -> item { BubbleLoading(strings.loading) }
-            showEmpty -> item { BubbleEmpty(strings) }
+            blockedError -> item {
+                BubbleMessage(MaterialSymbols.Filled.WarningAmber, strings.errorTitle, strings.errorDescription, strings.retry, onRetry)
+            }
+            blockedItems.isEmpty() -> item {
+                BubbleMessage(MaterialSymbols.Filled.Security, strings.emptyTitle, strings.emptyDescription)
+            }
             else -> items(blockedItems, key = { it.id }) { item -> BubbleBlockedRow(item, strings.allow, appIcon, onAllow) }
         }
     }
@@ -166,18 +183,28 @@ private fun BubbleAppRow(packageName: String, appName: String, appIcon: @Composa
 @Composable
 private fun BubbleLoading(label: String) = BubbleCard {
     Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        CircularProgressIndicator(Modifier.size(36.dp)); Spacer(Modifier.height(10.dp)); Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        LoadingIndicator(); Spacer(Modifier.height(10.dp)); Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
 @Composable
-private fun BubbleEmpty(strings: RethinkBubbleStrings) = BubbleCard {
+private fun BubbleMessage(
+    icon: ImageVector,
+    title: String,
+    description: String,
+    actionLabel: String? = null,
+    onAction: (() -> Unit)? = null,
+) = BubbleCard {
     Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 22.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        Surface(shape = RoundedCornerShape(SharedDimensions.cornerRadiusLg), color = MaterialTheme.colorScheme.secondaryContainer) { Icon(MaterialSymbols.Filled.Security, null, modifier = Modifier.padding(10.dp).size(28.dp), tint = MaterialTheme.colorScheme.onSecondaryContainer) }
+        Surface(shape = RoundedCornerShape(SharedDimensions.cornerRadiusLg), color = MaterialTheme.colorScheme.secondaryContainer) { Icon(icon, null, modifier = Modifier.padding(10.dp).size(28.dp), tint = MaterialTheme.colorScheme.onSecondaryContainer) }
         Spacer(Modifier.height(SharedDimensions.spacingMd))
-        Text(strings.emptyTitle, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
+        Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
         Spacer(Modifier.height(SharedDimensions.spacingSm))
-        Text(strings.emptyDescription, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+        Text(description, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+        if (actionLabel != null && onAction != null) {
+            Spacer(Modifier.height(SharedDimensions.spacingMd))
+            FilledTonalButton(onClick = onAction) { Text(actionLabel) }
+        }
     }
 }
 

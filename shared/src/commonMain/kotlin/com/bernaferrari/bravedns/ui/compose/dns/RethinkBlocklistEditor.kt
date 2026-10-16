@@ -3,6 +3,7 @@
 
 package com.bernaferrari.bravedns.ui.compose.dns
 
+import androidx.compose.foundation.layout.size
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
@@ -16,7 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ButtonGroupDefaults
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -116,7 +117,7 @@ fun RethinkBlocklistEditor(
                         horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
                     ) {
                         Text(strings.downloadDescription, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
-                        if (isDownloading) CircularProgressIndicator(Modifier.padding(4.dp), strokeWidth = 2.dp)
+                        if (isDownloading) LoadingIndicator(Modifier.size(SharedDimensions.iconSizeMd))
                     }
                     RethinkFormActionRow(
                         confirmLabel = strings.download,

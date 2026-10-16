@@ -3,6 +3,8 @@
 
 package com.bernaferrari.bravedns.ui.compose.dns
 
+import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -140,8 +142,11 @@ fun RethinkUrlEndpointEditor(
     ) {
         RethinkFormTextField(name, onValueChange = { name = it }, label = nameLabel)
         RethinkFormTextField(endpoint, onValueChange = { endpoint = it }, label = endpointLabel, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Checkbox(insecure, onCheckedChange = { insecure = it })
+        Row(
+            Modifier.toggleable(value = insecure, role = Role.Checkbox, onValueChange = { insecure = it }),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Checkbox(insecure, onCheckedChange = null)
             Spacer(Modifier.width(6.dp))
             Text(insecureLabel)
         }
@@ -231,9 +236,13 @@ fun RethinkDnsProxyEndpointEditor(
         RethinkFormTextField(name, onValueChange = { name = it }, label = strings.name)
         RethinkFormTextField(ipAddress, onValueChange = { ipAddress = it }, label = strings.ipAddress)
         RethinkFormTextField(port, onValueChange = { port = it }, label = strings.port, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+        Row(
+            Modifier.fillMaxWidth().toggleable(value = excludeApps, enabled = !isLockdown, role = Role.Checkbox, onValueChange = { excludeApps = it }),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
             Text(strings.excludeApps)
-            Checkbox(excludeApps, onCheckedChange = { if (!isLockdown) excludeApps = it }, enabled = !isLockdown)
+            Checkbox(excludeApps, onCheckedChange = null, enabled = !isLockdown)
         }
     }
 }

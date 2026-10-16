@@ -1,6 +1,9 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.database
 
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.BorderStroke
@@ -21,7 +24,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -100,7 +103,7 @@ fun RethinkDatabaseScreen(
                 onBackClick = onBackClick,
                 actions = {
                     IconButton(onClick = onCopy, enabled = selectedTable != null && preview != null && !isCopying) {
-                        if (isCopying) CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp)
+                        if (isCopying) LoadingIndicator(Modifier.size(SharedDimensions.iconSizeMd))
                         else Icon(MaterialSymbols.Filled.ContentCopy, strings.copyFull)
                     }
                 },
@@ -126,7 +129,7 @@ fun RethinkDatabaseScreen(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
             )
             if (isLoadingTables) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator(Modifier.size(36.dp)) }
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { LoadingIndicator() }
             } else {
                 BoxWithConstraints(Modifier.fillMaxSize()) {
                     val wide = maxWidth >= 860.dp
@@ -211,7 +214,7 @@ private fun RethinkDatabaseTableList(
             } else {
                 androidx.compose.foundation.lazy.LazyColumn(
                     contentPadding = PaddingValues(horizontal = SharedDimensions.spacingSm, vertical = SharedDimensions.spacingXs),
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                    verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile),
                 ) {
                     tables.forEachIndexed { index, table ->
                         item(key = table) {
@@ -272,7 +275,7 @@ private fun RethinkDatabaseDetail(
                 }
             }
             if (loadingPreview) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator(Modifier.size(36.dp)) }
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { LoadingIndicator() }
             } else if (preview != null) {
                 SelectionContainer {
                     Column(

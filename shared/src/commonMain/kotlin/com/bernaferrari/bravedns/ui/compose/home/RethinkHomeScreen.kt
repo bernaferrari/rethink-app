@@ -11,13 +11,14 @@
 package com.bernaferrari.bravedns.ui.compose.home
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
@@ -31,24 +32,28 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.ToggleButton
-import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -56,6 +61,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -67,6 +74,8 @@ import com.bernaferrari.bravedns.ui.compose.common.rethinkContentWidth
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.roundToInt
@@ -96,11 +105,11 @@ data class RethinkHomeStrings(
     val networkProtection: String,
     val live: String,
     val offline: String,
+    val reconnecting: String,
 )
 
 private enum class ProtectionVisualState { Protected, Recovering, Off }
 
-private const val STATE_CHANGE_MILLIS = 280
 private const val BEACON_TURN_MILLIS = 22_000
 private val BeaconCompactWidth = 184.dp
 private val BeaconCompactHeight = 220.dp
@@ -114,12 +123,7 @@ fun RethinkHomeScreen(
     modifier: Modifier = Modifier,
     showAtmosphere: Boolean = true,
 ) {
-    val motion = LocalRethinkMotion.current
-    val visualState = when {
-        uiState.isVpnActive && uiState.isProtectionFailing -> ProtectionVisualState.Recovering
-        uiState.isVpnActive -> ProtectionVisualState.Protected
-        else -> ProtectionVisualState.Off
-    }
+    val visualState = uiState.visualState()
     val status = uiState.protectionStatus.ifBlank {
         if (uiState.isVpnActive) strings.protected else strings.notActive
     }
@@ -128,29 +132,12 @@ fun RethinkHomeScreen(
         ProtectionVisualState.Recovering -> strings.failingSubtitle
         ProtectionVisualState.Off -> strings.inactiveSubtitle
     }
-    val activeProgress by animateFloatAsState(
-        targetValue = if (uiState.isVpnActive) 1f else 0f,
-        animationSpec = tween(if (motion.reducedMotion) 0 else STATE_CHANGE_MILLIS, easing = FastOutSlowInEasing),
-        label = "homeBeaconState",
+    val activeProgress by animateStateProgress(uiState.isVpnActive, "homeBeaconState")
+    val recoveringProgress by animateStateProgress(
+        visualState == ProtectionVisualState.Recovering,
+        "homeRecoveringProgress",
     )
-    val recoveringProgress by animateFloatAsState(
-        targetValue = if (visualState == ProtectionVisualState.Recovering) 1f else 0f,
-        animationSpec = tween(if (motion.reducedMotion) 0 else STATE_CHANGE_MILLIS, easing = FastOutSlowInEasing),
-        label = "homeRecoveringProgress",
-    )
-    val phase = if (motion.reducedMotion) {
-        0f
-    } else {
-        rememberInfiniteTransition(label = "homeAtmosphereMotion").animateFloat(
-            initialValue = 0f,
-            targetValue = 1f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(BEACON_TURN_MILLIS, easing = LinearEasing),
-                repeatMode = RepeatMode.Restart,
-            ),
-            label = "homeAtmospherePhase",
-        ).value
-    }
+    val phase = rememberBeaconPhase()
     val palette = rememberBeaconPalette(visualState)
 
     Scaffold(
@@ -188,10 +175,15 @@ fun RethinkHomeScreen(
                     HomeMasthead(
                         name = strings.productName,
                         networkProtection = strings.networkProtection,
-                        live = strings.live,
-                        offline = strings.offline,
-                        isProtected = visualState == ProtectionVisualState.Protected,
-                        accent = palette.accent,
+                        stateLabel = when (visualState) {
+                            ProtectionVisualState.Protected -> strings.live
+                            ProtectionVisualState.Recovering -> strings.reconnecting
+                            ProtectionVisualState.Off -> strings.offline
+                        },
+                        stateColor = when (visualState) {
+                            ProtectionVisualState.Off -> MaterialTheme.colorScheme.outline
+                            else -> palette.accent
+                        },
                         modifier = Modifier
                             .rethinkContentWidth(widthClass)
                             .padding(top = SharedDimensions.spacingLg),
@@ -209,6 +201,7 @@ fun RethinkHomeScreen(
                             palette = palette,
                             status = status,
                             subtitle = subtitle,
+                            isActive = uiState.isVpnActive,
                             action = if (uiState.isVpnActive) strings.stop else strings.start,
                             onToggle = onStartStopClick,
                             widthClass = widthClass,
@@ -233,10 +226,8 @@ fun RethinkHomeScreen(
 private fun HomeMasthead(
     name: String,
     networkProtection: String,
-    live: String,
-    offline: String,
-    isProtected: Boolean,
-    accent: Color,
+    stateLabel: String,
+    stateColor: Color,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -258,19 +249,17 @@ private fun HomeMasthead(
             )
         }
         Row(
+            modifier = Modifier.semantics(mergeDescendants = true) {},
             horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
                 Modifier
-                    .size(6.dp)
-                    .background(
-                        if (isProtected) accent else MaterialTheme.colorScheme.outline,
-                        androidx.compose.foundation.shape.CircleShape,
-                    ),
+                    .size(SharedDimensions.spacingSm)
+                    .background(stateColor, CircleShape),
             )
             Text(
-                text = if (isProtected) live else offline,
+                text = stateLabel,
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -309,7 +298,8 @@ private fun rememberBeaconPalette(state: ProtectionVisualState): BeaconPalette {
         ProtectionVisualState.Recovering -> scheme.onError
         ProtectionVisualState.Off -> scheme.onSurfaceVariant
     }
-    val spec = tween<Color>(if (motion.reducedMotion) 0 else STATE_CHANGE_MILLIS, easing = FastOutSlowInEasing)
+    val spec: AnimationSpec<Color> =
+        if (motion.reducedMotion) snap() else MaterialTheme.motionScheme.defaultEffectsSpec()
     val accent by animateColorAsState(accentTarget, spec, label = "beaconAccent")
     val secondary by animateColorAsState(secondaryTarget, spec, label = "beaconSecondary")
     val field by animateColorAsState(fieldTarget, spec, label = "beaconField")
@@ -322,35 +312,13 @@ internal fun RethinkHomeAtmosphere(
     uiState: RethinkHomeUiState,
     modifier: Modifier = Modifier,
 ) {
-    val motion = LocalRethinkMotion.current
-    val visualState = when {
-        uiState.isVpnActive && uiState.isProtectionFailing -> ProtectionVisualState.Recovering
-        uiState.isVpnActive -> ProtectionVisualState.Protected
-        else -> ProtectionVisualState.Off
-    }
-    val activeProgress by animateFloatAsState(
-        targetValue = if (uiState.isVpnActive) 1f else 0f,
-        animationSpec = tween(if (motion.reducedMotion) 0 else STATE_CHANGE_MILLIS, easing = FastOutSlowInEasing),
-        label = "homeAtmosphereState",
+    val visualState = uiState.visualState()
+    val activeProgress by animateStateProgress(uiState.isVpnActive, "homeAtmosphereState")
+    val recoveringProgress by animateStateProgress(
+        visualState == ProtectionVisualState.Recovering,
+        "homeAtmosphereRecovering",
     )
-    val recoveringProgress by animateFloatAsState(
-        targetValue = if (visualState == ProtectionVisualState.Recovering) 1f else 0f,
-        animationSpec = tween(if (motion.reducedMotion) 0 else STATE_CHANGE_MILLIS, easing = FastOutSlowInEasing),
-        label = "homeAtmosphereRecovering",
-    )
-    val phase = if (motion.reducedMotion) {
-        0f
-    } else {
-        rememberInfiniteTransition(label = "homeFullBleedAtmosphere").animateFloat(
-            initialValue = 0f,
-            targetValue = 1f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(BEACON_TURN_MILLIS, easing = LinearEasing),
-                repeatMode = RepeatMode.Restart,
-            ),
-            label = "homeFullBleedAtmospherePhase",
-        ).value
-    }
+    val phase = rememberBeaconPhase()
     val palette = rememberBeaconPalette(visualState)
 
     Box(modifier = modifier) {
@@ -368,14 +336,52 @@ internal fun RethinkHomeAtmosphere(
     }
 }
 
+private fun RethinkHomeUiState.visualState(): ProtectionVisualState = when {
+    isVpnActive && isProtectionFailing -> ProtectionVisualState.Recovering
+    isVpnActive -> ProtectionVisualState.Protected
+    else -> ProtectionVisualState.Off
+}
+
+@Composable
+private fun animateStateProgress(target: Boolean, label: String): State<Float> {
+    val motion = LocalRethinkMotion.current
+    return animateFloatAsState(
+        targetValue = if (target) 1f else 0f,
+        animationSpec = if (motion.reducedMotion) snap() else MaterialTheme.motionScheme.defaultEffectsSpec(),
+        label = label,
+    )
+}
+
+/**
+ * The ambient 0..1 clock behind the beacon and the protection field. It is handed out as a
+ * provider and only read in draw scopes, so the screen does not recompose on every frame.
+ */
+@Composable
+private fun rememberBeaconPhase(): () -> Float {
+    if (LocalRethinkMotion.current.reducedMotion) return StaticPhase
+    val phase = rememberInfiniteTransition(label = "homeBeaconClock").animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(BEACON_TURN_MILLIS, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart,
+        ),
+        label = "homeBeaconPhase",
+    )
+    return remember(phase) { { phase.value } }
+}
+
+private val StaticPhase: () -> Float = { 0f }
+
 @Composable
 private fun ProtectionBeacon(
     visualState: ProtectionVisualState,
     activeProgress: Float,
-    phase: Float,
+    phase: () -> Float,
     palette: BeaconPalette,
     status: String,
     subtitle: String,
+    isActive: Boolean,
     action: String,
     onToggle: () -> Unit,
     widthClass: WindowWidthClass,
@@ -434,8 +440,9 @@ private fun ProtectionBeacon(
         }
         Spacer(Modifier.height(SharedDimensions.spacingXs))
         BeaconAction(
-            isActive = visualState != ProtectionVisualState.Off,
+            isActive = isActive,
             label = action,
+            stateDescription = status,
             onClick = onToggle,
         )
     }
@@ -444,7 +451,7 @@ private fun ProtectionBeacon(
 @Composable
 private fun ProtectionTunnel(
     visualState: ProtectionVisualState,
-    phase: Float,
+    phase: () -> Float,
     activeProgress: Float,
     palette: BeaconPalette,
     expanded: Boolean,
@@ -452,21 +459,21 @@ private fun ProtectionTunnel(
     val initialRoutes = remember { randomTunnelRoutes() }
     var incomingLanes by remember { mutableStateOf(initialRoutes.first) }
     var outgoingLanes by remember { mutableStateOf(initialRoutes.second) }
-    val routingMoment = when {
-        phase in 0.48f..0.52f -> 1
-        phase >= 0.98f || phase <= 0.02f -> 2
-        else -> 0
-    }
-    LaunchedEffect(routingMoment) {
-        if (routingMoment != 0) {
-            val nextIncoming = randomIncomingLanes()
-            val outgoingCount = Random.nextInt(
-                from = 2,
-                until = minOf(incomingLanes.size, nextIncoming.size) + 1,
-            )
-            outgoingLanes = incomingLanes.shuffled(Random).take(outgoingCount)
-            incomingLanes = nextIncoming
-        }
+    // Reroute twice per turn (mid-cycle and at the wrap). Observed off the composition so the
+    // clock never forces a recomposition; lanes are state read only by the Canvas draw.
+    LaunchedEffect(phase) {
+        snapshotFlow { routingMoment(phase()) }
+            .distinctUntilChanged()
+            .filter { it != 0 }
+            .collect {
+                val nextIncoming = randomIncomingLanes()
+                val outgoingCount = Random.nextInt(
+                    from = 2,
+                    until = minOf(incomingLanes.size, nextIncoming.size) + 1,
+                )
+                outgoingLanes = incomingLanes.shuffled(Random).take(outgoingCount)
+                incomingLanes = nextIncoming
+            }
     }
 
     Surface(
@@ -487,6 +494,7 @@ private fun ProtectionTunnel(
     ) {
         Box(contentAlignment = Alignment.Center) {
             Canvas(Modifier.fillMaxSize()) {
+                val currentPhase = phase()
                 val centerX = size.width / 2f
                 val centerY = size.height / 2f
                 val laneCount = 7
@@ -517,7 +525,7 @@ private fun ProtectionTunnel(
                         style = Stroke(width = 1.dp.toPx(), cap = StrokeCap.Round),
                     )
                 }
-                val packetWave = (phase * 2f) % 1f
+                val packetWave = (currentPhase * 2f) % 1f
                 incomingLanes.forEachIndexed { index, laneIndex ->
                     val delay = index * 0.045f
                     val localProgress =
@@ -534,7 +542,7 @@ private fun ProtectionTunnel(
                     )
                     val breath =
                         0.94f +
-                            0.06f * sin((phase * 6.0 * PI + index * 1.7).toFloat())
+                            0.06f * sin((currentPhase * 6.0 * PI + index * 1.7).toFloat())
                     val visibility =
                         packetVisibility(localProgress) *
                             (0.18f + activeProgress * 0.82f)
@@ -563,7 +571,7 @@ private fun ProtectionTunnel(
                     val breath =
                         0.94f +
                             0.06f *
-                            sin((phase * 6.0 * PI + index * 1.9 + 0.8).toFloat())
+                            sin((currentPhase * 6.0 * PI + index * 1.9 + 0.8).toFloat())
                     val visibility =
                         packetVisibility(localProgress) *
                             (0.18f + activeProgress * 0.82f)
@@ -583,36 +591,32 @@ private fun ProtectionTunnel(
                 )
             }
             Surface(
-                shape = androidx.compose.foundation.shape.CircleShape,
+                shape = CircleShape,
                 color = palette.accent,
                 modifier = Modifier.size(68.dp),
                 shadowElevation = 0.dp,
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    when (visualState) {
-                        ProtectionVisualState.Off -> Icon(
-                            imageVector = MaterialSymbols.Filled.Shield,
-                            contentDescription = null,
-                            tint = palette.icon,
-                            modifier = Modifier.size(30.dp),
-                        )
-                        ProtectionVisualState.Recovering -> Icon(
-                            imageVector = MaterialSymbols.Filled.WarningAmber,
-                            contentDescription = null,
-                            tint = palette.icon,
-                            modifier = Modifier.size(30.dp),
-                        )
-                        ProtectionVisualState.Protected -> Icon(
-                            imageVector = MaterialSymbols.Filled.Shield,
-                            contentDescription = null,
-                            tint = palette.icon,
-                            modifier = Modifier.size(30.dp),
-                        )
-                    }
+                    Icon(
+                        imageVector = if (visualState == ProtectionVisualState.Recovering) {
+                            MaterialSymbols.Filled.WarningAmber
+                        } else {
+                            MaterialSymbols.Filled.Shield
+                        },
+                        contentDescription = null,
+                        tint = palette.icon,
+                        modifier = Modifier.size(30.dp),
+                    )
                 }
             }
         }
     }
+}
+
+private fun routingMoment(phase: Float): Int = when {
+    phase in 0.48f..0.52f -> 1
+    phase >= 0.98f || phase <= 0.02f -> 2
+    else -> 0
 }
 
 private fun randomIncomingLanes(): List<Int> =
@@ -693,31 +697,44 @@ private fun cubicBezier(
         t * t * t * end
 }
 
+/**
+ * The one hero action on Home. A plain [Button] (not a ToggleButton): its label already flips
+ * between Start and Stop, so toggle semantics would announce "Stop, on". The protection state is
+ * exposed as the state description instead, and press feedback comes from the expressive
+ * shape morph. Active swaps to a high-contrast inverse pill with square-ish corners.
+ */
 @Composable
 private fun BeaconAction(
     isActive: Boolean,
     label: String,
+    stateDescription: String,
     onClick: () -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
-    ToggleButton(
-        checked = isActive,
-        onCheckedChange = { onClick() },
-        modifier = Modifier.height(56.dp),
-        colors = ToggleButtonDefaults.colors(
-            checkedContainerColor = scheme.onSurface,
-            checkedContentColor = scheme.surface,
-            containerColor = scheme.primary,
-            contentColor = scheme.onPrimary,
+    val height = ButtonDefaults.MediumContainerHeight
+    Button(
+        onClick = onClick,
+        shapes = if (isActive) {
+            ButtonDefaults.shapes(ButtonDefaults.squareShape, ButtonDefaults.mediumPressedShape)
+        } else {
+            ButtonDefaults.shapesFor(height)
+        },
+        modifier = Modifier
+            .heightIn(min = height)
+            .semantics { this.stateDescription = stateDescription },
+        contentPadding = ButtonDefaults.contentPaddingFor(height),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = if (isActive) scheme.inverseSurface else scheme.primary,
+            contentColor = if (isActive) scheme.inverseOnSurface else scheme.onPrimary,
         ),
     ) {
         Icon(
             imageVector = if (isActive) MaterialSymbols.Filled.Stop else MaterialSymbols.Filled.PlayArrow,
             contentDescription = null,
-            modifier = Modifier.size(SharedDimensions.iconSizeMd),
+            modifier = Modifier.size(ButtonDefaults.iconSizeFor(height)),
         )
-        Spacer(Modifier.width(SharedDimensions.spacingSm))
-        Text(text = label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
+        Spacer(Modifier.width(ButtonDefaults.iconSpacingFor(height)))
+        Text(text = label, style = ButtonDefaults.textStyleFor(height))
     }
 }
 
@@ -749,7 +766,7 @@ private fun HomeActivityFooter(
 
 @Composable
 private fun ActivityMetric(value: String, label: String, modifier: Modifier = Modifier) {
-    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(modifier = modifier.semantics(mergeDescendants = true) {}, horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = value,
             style = MaterialTheme.typography.titleMedium.copy(

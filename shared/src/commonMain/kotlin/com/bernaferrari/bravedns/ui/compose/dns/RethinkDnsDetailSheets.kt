@@ -1,6 +1,10 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.dns
 
+import androidx.compose.ui.semantics.Role
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
@@ -20,7 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -117,10 +121,10 @@ fun RethinkDnsRecordTypesSheet(
                             position = cardPositionFor(index, types.lastIndex),
                             enabled = !autoMode,
                             highlighted = checked && !autoMode,
-                            onClick = { if (!autoMode) onToggle(type.id) },
+                            selection = RethinkListSelection(checked = checked, role = Role.Checkbox) { if (!autoMode) onToggle(type.id) },
                             trailing = {
                                 Box(Modifier.width(SharedDimensions.touchTargetMin), contentAlignment = Alignment.CenterEnd) {
-                                    Checkbox(checked = checked, enabled = !autoMode, onCheckedChange = { if (!autoMode) onToggle(type.id) })
+                                    Checkbox(checked = checked, enabled = !autoMode, onCheckedChange = null)
                                 }
                             },
                         )
@@ -223,7 +227,7 @@ fun RethinkLocalBlocklistSheet(
                             position = cardPositionFor(index, maintenance.lastIndex),
                             enabled = item.enabled,
                             onClick = item.onClick,
-                            trailing = if (item.showProgress) ({ CircularProgressIndicator(Modifier.size(SharedDimensions.iconSizeMd), strokeWidth = 2.dp) }) else null,
+                            trailing = if (item.showProgress) ({ LoadingIndicator(Modifier.size(SharedDimensions.iconSizeMd)) }) else null,
                         )
                     }
                 }

@@ -194,7 +194,7 @@ private fun SupportSheetHeader(title: String, description: String) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Surface(
-            modifier = Modifier.size(48.dp),
+            modifier = Modifier.size(SharedDimensions.iconContainerLg),
             shape = CircleShape,
             color = MaterialTheme.colorScheme.primaryContainer,
         ) {
@@ -203,7 +203,7 @@ private fun SupportSheetHeader(title: String, description: String) {
                     imageVector = MaterialSymbols.Filled.Headset,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.size(24.dp),
+                    modifier = Modifier.size(SharedDimensions.iconSizeMd),
                 )
             }
         }

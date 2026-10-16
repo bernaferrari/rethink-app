@@ -2,6 +2,9 @@
 
 package com.bernaferrari.bravedns.ui.compose.settings
 
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.ui.semantics.Role
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.material3.MaterialTheme
@@ -57,7 +60,7 @@ fun RethinkAntiCensorshipScreen(
         topBarScrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) {
         item {
-            RethinkListGroup {
+            RethinkListGroup(Modifier.selectableGroup()) {
                 dialOptions.forEachIndexed { index, option ->
                     RethinkStrategyOption(
                         option = option,
@@ -79,7 +82,7 @@ fun RethinkAntiCensorshipScreen(
                     vertical = SharedDimensions.spacingXs,
                 ),
             )
-            RethinkListGroup {
+            RethinkListGroup(Modifier.selectableGroup()) {
                 retryOptions.forEachIndexed { index, option ->
                     RethinkStrategyOption(
                         option = option,
@@ -108,7 +111,7 @@ private fun RethinkStrategyOption(
         position = position,
         enabled = option.enabled,
         contentOffset = Modifier.offset(x = -SharedDimensions.spacingXs),
-        onClick = onClick,
+        selection = RethinkListSelection(checked = selected, role = Role.RadioButton) { onClick() },
         trailing = { RadioButton(selected = selected, onClick = null, enabled = option.enabled) },
     )
 }

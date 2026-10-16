@@ -8,5 +8,6 @@ data class RethinkNavigationItem(
     val label: String,
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector = selectedIcon,
-    val contentDescription: String = label,
+    /** Only for icon-only presentations; the visible label already names the destination. */
+    val contentDescription: String? = null,
 )

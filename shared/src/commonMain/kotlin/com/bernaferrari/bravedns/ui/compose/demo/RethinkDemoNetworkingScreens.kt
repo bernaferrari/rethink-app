@@ -608,6 +608,8 @@ internal fun DemoEventLogsScreen(modifier: Modifier, onBack: () -> Unit) {
             all = "All", severity = "Severity", source = "Source", low = "Low", medium = "Medium", high = "High", critical = "Critical",
             deleteDialogTitle = "Clear event logs?", deleteDialogDescription = "This demo will remove all event log rows.", cancel = "Cancel",
             noEventsTitle = "No events recorded yet", noEventsDescription = "Event logs will appear here once the app starts recording system activities.", copy = "Copy",
+            userAction = "User", noMatchesTitle = "No matching events",
+            noMatchesDescription = "Try a different search, or clear the filters to see all events.", clearFilters = "Clear filters",
         ),
         isLoading = false,
         isEmpty = visibleEvents.isEmpty(),
@@ -640,6 +642,7 @@ internal fun DemoEventLogsScreen(modifier: Modifier, onBack: () -> Unit) {
                         else -> RethinkEventCardPosition.Middle
                     },
                     copyDescription = "Copy",
+                    userActionLabel = "User",
                     onCopy = {},
                 )
             }

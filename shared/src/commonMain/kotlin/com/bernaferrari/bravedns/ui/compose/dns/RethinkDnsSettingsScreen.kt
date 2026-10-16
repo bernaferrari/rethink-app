@@ -1,13 +1,10 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.dns
 
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -18,7 +15,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -28,12 +28,11 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -41,6 +40,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormSection
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusColors
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
@@ -129,6 +129,8 @@ data class RethinkDnsSettingsStrings(
     val fallbackDnsDescription: String,
     val preventLeaks: String,
     val preventLeaksDescription: String,
+    /** Accessibility label for a row's info button, e.g. "About System DNS". */
+    val aboutItem: @Composable (String) -> String,
 )
 
 /** All DNS settings chrome and interactions, portable across Android and the WASM demo. */
@@ -164,11 +166,6 @@ fun RethinkDnsSettingsScreen(
 ) {
     val motion = LocalRethinkMotion.current
     val listState = rememberLazyListState()
-    val rotation by animateFloatAsState(
-        targetValue = if (state.isRefreshing && !motion.reducedMotion) 360f else 0f,
-        animationSpec = if (state.isRefreshing && !motion.reducedMotion) infiniteRepeatable(tween(900, easing = LinearEasing), RepeatMode.Restart) else tween(0),
-        label = "dns_settings_refresh",
-    )
     LaunchedEffect(focusedSettingId) {
         dnsSettingsSectionFor(focusedSettingId)?.let {
             if (motion.reducedMotion) listState.scrollToItem(it) else listState.animateScrollToItem(it)
@@ -184,7 +181,11 @@ fun RethinkDnsSettingsScreen(
                 onBackClick = onBackClick,
                 actions = {
                     IconButton(onClick = onRefresh, enabled = !state.isRefreshing) {
-                        Icon(MaterialSymbols.Filled.Refresh, strings.refresh, Modifier.rotate(rotation))
+                        if (state.isRefreshing) {
+                            LoadingIndicator(Modifier.size(SharedDimensions.iconSizeMd))
+                        } else {
+                            Icon(MaterialSymbols.Filled.Refresh, strings.refresh)
+                        }
                     }
                 },
             )
@@ -203,11 +204,11 @@ fun RethinkDnsSettingsScreen(
         ) {
             item {
                 RethinkFormSection(strings.modesSection) {
-                    RethinkListGroup {
-                        RethinkDnsRadioRow(strings.systemDns, strings.systemDnsDescription, state.isSystemDnsEnabled, MaterialSymbols.Filled.Settings, CardPosition.First, focusedSettingId == "dns_mode_system", onSystemDns, onSystemDnsInfo)
+                    RethinkListGroup(Modifier.selectableGroup()) {
+                        RethinkDnsRadioRow(strings.systemDns, strings.systemDnsDescription, state.isSystemDnsEnabled, MaterialSymbols.Filled.Settings, CardPosition.First, focusedSettingId == "dns_mode_system", onSystemDns, onSystemDnsInfo, strings.aboutItem(strings.systemDns))
                         RethinkDnsRadioRow(strings.customDns, strings.customDnsDescription, !state.isSystemDnsEnabled && !state.isRethinkDnsConnected && !state.isSmartDnsEnabled, MaterialSymbols.Filled.Dns, CardPosition.Middle, focusedSettingId == "dns_mode_custom", onCustomDns)
                         RethinkDnsRadioRow(strings.rethinkDns, strings.rethinkDnsDescription, state.isRethinkDnsConnected, MaterialSymbols.Filled.Security, CardPosition.Middle, focusedSettingId == "dns_mode_rethink", onRethinkDns)
-                        RethinkDnsRadioRow(strings.smartDns, strings.smartDnsDescription, state.isSmartDnsEnabled, MaterialSymbols.Filled.Language, CardPosition.Last, focusedSettingId == "dns_mode_smart", onSmartDns, onSmartDnsInfo)
+                        RethinkDnsRadioRow(strings.smartDns, strings.smartDnsDescription, state.isSmartDnsEnabled, MaterialSymbols.Filled.Language, CardPosition.Last, focusedSettingId == "dns_mode_smart", onSmartDns, onSmartDnsInfo, strings.aboutItem(strings.smartDns))
                     }
                 }
             }
@@ -257,8 +258,10 @@ fun RethinkDnsSettingsScreen(
             item {
                 RethinkFormSection(strings.blockFreeSection) {
                     RethinkListGroup {
-                        RethinkBlockFreeDnsMode.entries.forEachIndexed { index, mode ->
-                            RethinkDnsRadioRow(strings.blockFreeLabel(mode), strings.blockFreeDescription(mode), state.blockFreeDnsMode == mode, MaterialSymbols.Filled.Dns, cardPositionFor(index, RethinkBlockFreeDnsMode.entries.lastIndex + 1), false, { onBlockFreeModeChange(mode) })
+                        Column(Modifier.selectableGroup()) {
+                            RethinkBlockFreeDnsMode.entries.forEachIndexed { index, mode ->
+                                RethinkDnsRadioRow(strings.blockFreeLabel(mode), strings.blockFreeDescription(mode), state.blockFreeDnsMode == mode, MaterialSymbols.Filled.Dns, cardPositionFor(index, RethinkBlockFreeDnsMode.entries.lastIndex + 1), false, { onBlockFreeModeChange(mode) })
+                            }
                         }
                         RethinkListItem(
                             headline = strings.trustedEndpoint,
@@ -310,6 +313,7 @@ private fun RethinkDnsRadioRow(
     highlighted: Boolean,
     onClick: () -> Unit,
     onInfo: (() -> Unit)? = null,
+    infoDescription: String? = null,
 ) {
     RethinkListItem(
         headline = title,
@@ -321,7 +325,7 @@ private fun RethinkDnsRadioRow(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (onInfo != null) {
                     IconButton(onClick = onInfo) {
-                        Icon(MaterialSymbols.Filled.Public, title, Modifier.size(18.dp))
+                        Icon(MaterialSymbols.Filled.Info, infoDescription, Modifier.size(SharedDimensions.iconSizeSm))
                     }
                 }
                 // The complete row is the selection target. A passive indicator avoids exposing
@@ -329,7 +333,7 @@ private fun RethinkDnsRadioRow(
                 RadioButton(selected = selected, onClick = null)
             }
         },
-        onClick = onClick,
+        selection = RethinkListSelection(checked = selected, role = Role.RadioButton) { onClick() },
     )
 }
 
@@ -350,7 +354,7 @@ private fun RethinkDnsToggleRow(
         position = position,
         highlighted = highlighted,
         trailing = { Switch(checked = checked, onCheckedChange = null) },
-        onClick = { onCheckedChange(!checked) },
+        selection = RethinkListSelection(checked = checked, onCheckedChange = onCheckedChange),
     )
 }
 

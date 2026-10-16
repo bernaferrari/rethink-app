@@ -1,6 +1,7 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.settings
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
@@ -165,7 +166,7 @@ private fun RethinkMiscToggleRow(
         position = position,
         highlighted = highlighted,
         trailing = { Switch(checked = toggle.checked, onCheckedChange = null) },
-        onClick = { onCheckedChange(!toggle.checked) },
+        selection = RethinkListSelection(checked = toggle.checked, onCheckedChange = onCheckedChange),
     )
 }
 

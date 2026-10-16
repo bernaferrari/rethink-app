@@ -1,6 +1,7 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.settings
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
@@ -174,7 +175,7 @@ private fun RethinkTunnelSettingGroup(
                     highlighted = focusedRowId == row.id,
                     enabled = row.enabled,
                     trailing = { Switch(checked = row.checked, onCheckedChange = null, enabled = row.enabled) },
-                    onClick = { onToggleChange(row.id, !row.checked) },
+                    selection = RethinkListSelection(checked = row.checked) { onToggleChange(row.id, it) },
                 )
             } else {
                 RethinkListItem(

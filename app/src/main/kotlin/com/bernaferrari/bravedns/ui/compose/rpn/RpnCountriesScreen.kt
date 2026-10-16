@@ -1,5 +1,7 @@
 package com.bernaferrari.bravedns.ui.compose.rpn
 
+import Logger.LOG_TAG_UI
+import Logger
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -26,6 +28,7 @@ fun RpnCountriesScreen(
     val loadFailed = stringResource(R.string.rpn_countries_load_failed)
     val refreshFailed = stringResource(R.string.rpn_countries_refresh_failed)
     val resetFailed = stringResource(R.string.rpn_countries_reset_failed)
+    val toggleFailed = stringResource(R.string.rpn_countries_toggle_failed)
     var servers by remember { mutableStateOf<List<CountryConfig>>(emptyList()) }
     var frequent by remember { mutableStateOf<Set<String>>(emptySet()) }
     var busyKey by remember { mutableStateOf<String?>(null) }
@@ -45,7 +48,10 @@ fun RpnCountriesScreen(
                     .thenBy { it.city },
             )
             frequent = frequentCodes
-        }.onFailure { errorMessage = it.message ?: loadFailed }
+        }.onFailure {
+            Logger.w(LOG_TAG_UI, "RpnCountriesScreen load failed: ${it.message}", it as? Exception)
+            errorMessage = loadFailed
+        }
     }
 
     RethinkRpnCountriesScreen(
@@ -66,6 +72,9 @@ fun RpnCountriesScreen(
             frequentlyUsed = stringResource(R.string.rpn_countries_frequently_used),
             addFavourite = stringResource(R.string.rpn_countries_add_favourite),
             removeFavourite = stringResource(R.string.rpn_countries_remove_favourite),
+            resetConfirmationTitle = stringResource(R.string.rpn_server_reset_confirmation_title),
+            resetConfirmationDescription = stringResource(R.string.rpn_server_reset_confirmation_desc),
+            cancel = stringResource(R.string.lbl_cancel),
         ),
         onBackClick = onBackClick,
         onServerDetails = onServerDetails,
@@ -74,7 +83,10 @@ fun RpnCountriesScreen(
             busyKey = "refresh"
             scope.launch {
                 runCatching { withContext(Dispatchers.IO) { RpnProxyManager.updateWinProxy() } }
-                    .onFailure { errorMessage = it.message ?: refreshFailed }
+                    .onFailure {
+                        Logger.w(LOG_TAG_UI, "RpnCountriesScreen refresh failed: ${it.message}", it as? Exception)
+                        errorMessage = refreshFailed
+                    }
                 busyKey = null
                 reloadToken++
             }
@@ -83,7 +95,10 @@ fun RpnCountriesScreen(
             busyKey = "reset"
             scope.launch {
                 runCatching { withContext(Dispatchers.IO) { RpnProxyManager.resetAndRefetchRpn() } }
-                    .onFailure { errorMessage = it.message ?: resetFailed }
+                    .onFailure {
+                        Logger.w(LOG_TAG_UI, "RpnCountriesScreen reset failed: ${it.message}", it as? Exception)
+                        errorMessage = resetFailed
+                    }
                 busyKey = null
                 reloadToken++
             }
@@ -95,7 +110,10 @@ fun RpnCountriesScreen(
                     if (enabled) RpnProxyManager.enableWinServer(country.key) else RpnProxyManager.disableWinServer(country.key)
                 }
                 busyKey = null
-                if (!result.first) errorMessage = result.second
+                if (!result.first) {
+                    Logger.w(LOG_TAG_UI, "RpnCountriesScreen toggle ${country.key} failed: ${result.second}")
+                    errorMessage = toggleFailed
+                }
                 reloadToken++
             }
         },

@@ -1,6 +1,7 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.rpn
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
@@ -220,6 +221,6 @@ private fun RethinkRpnWinOption(
 ) = RethinkListItem(
     headline = label,
     position = position,
-    onClick = { onCheckedChange(!checked) },
+    selection = RethinkListSelection(checked = checked, onCheckedChange = onCheckedChange),
     trailing = { Switch(checked = checked, onCheckedChange = null) },
 )

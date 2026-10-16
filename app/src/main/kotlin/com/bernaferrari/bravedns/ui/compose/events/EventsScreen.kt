@@ -64,6 +64,7 @@ fun EventsScreen(
     val isLoading = items.loadState.refresh is LoadState.Loading && items.itemCount == 0
     val isEmpty = items.itemCount == 0 && items.loadState.refresh is LoadState.NotLoading
     val copyLabel = stringResource(R.string.dns_info_neutral)
+    val userActionLabel = stringResource(R.string.events_user_action_badge)
 
     fun applyFilters(next: RethinkEventFilters) {
         filters = next
@@ -87,10 +88,12 @@ fun EventsScreen(
         filters = filters,
         strings = RethinkEventsStrings(
             title = stringResource(R.string.event_logs_title), searchHint = stringResource(R.string.search_event_logs), clearSearch = stringResource(R.string.cd_clear_search),
-            refresh = stringResource(R.string.cd_refresh), delete = stringResource(R.string.lbl_delete), all = stringResource(R.string.lbl_all), severity = EventsSeverityFilterLabel, source = stringResource(R.string.events_filter_source),
+            refresh = stringResource(R.string.cd_refresh), delete = stringResource(R.string.lbl_delete), all = stringResource(R.string.lbl_all), severity = stringResource(R.string.events_filter_severity), source = stringResource(R.string.events_filter_source),
             low = stringResource(R.string.events_severity_low), medium = stringResource(R.string.events_severity_medium), high = stringResource(R.string.events_severity_high), critical = stringResource(R.string.events_severity_critical),
             deleteDialogTitle = stringResource(R.string.ada_delete_logs_dialog_title), deleteDialogDescription = stringResource(R.string.ada_delete_logs_dialog_desc), cancel = stringResource(R.string.lbl_cancel),
             noEventsTitle = stringResource(R.string.no_events_recorded), noEventsDescription = stringResource(R.string.no_events_desc), copy = copyLabel,
+            userAction = userActionLabel, noMatchesTitle = stringResource(R.string.events_no_matches_title),
+            noMatchesDescription = stringResource(R.string.events_no_matches_desc), clearFilters = stringResource(R.string.events_clear_filters),
         ),
         isLoading = isLoading,
         isEmpty = isEmpty,
@@ -109,6 +112,7 @@ fun EventsScreen(
             items = items,
             query = activeQuery,
             copyDescription = copyLabel,
+            userActionLabel = userActionLabel,
             onCopy = { copyEventToClipboard(context, it) },
         )
     }
@@ -120,6 +124,7 @@ private fun AndroidEventsList(
     items: androidx.paging.compose.LazyPagingItems<Event>,
     query: String,
     copyDescription: String,
+    userActionLabel: String,
     onCopy: (String) -> Unit,
 ) {
     LazyColumn(
@@ -139,6 +144,7 @@ private fun AndroidEventsList(
                 query = query,
                 position = eventPosition(index, items.itemCount),
                 copyDescription = copyDescription,
+                userActionLabel = userActionLabel,
                 onCopy = onCopy,
             )
         }
@@ -220,8 +226,6 @@ private fun EventSource.displayLabel() = name.displayLabel()
 private fun String.displayLabel() = lowercase(Locale.getDefault())
     .replace('_', ' ')
     .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
-
-private const val EventsSeverityFilterLabel = "Severity"
 
 private fun eventPosition(index: Int, itemCount: Int) = when {
     itemCount <= 1 -> RethinkEventCardPosition.Single
