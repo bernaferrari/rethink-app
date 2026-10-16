@@ -15,26 +15,23 @@
  */
 package com.bernaferrari.bravedns.ui.compose.dns
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceOption
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkConnectedChoiceGroup
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.ToggleButton
-import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -305,35 +302,9 @@ private fun RethinkSkyMaxToggleRow(
     onSky: () -> Unit,
     onMax: () -> Unit,
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-    ) {
-        ToggleButton(
-            checked = !isMax,
-            onCheckedChange = { checked -> if (checked && isMax) onSky() },
-            shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
-            colors = ToggleButtonDefaults.colors(
-                checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            ),
-            border = null,
-            modifier = Modifier.weight(1f),
-        ) { Text(skyLabel) }
-        ToggleButton(
-            checked = isMax,
-            onCheckedChange = { checked -> if (checked && !isMax) onMax() },
-            shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
-            colors = ToggleButtonDefaults.colors(
-                checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            ),
-            border = null,
-            modifier = Modifier.weight(1f),
-        ) { Text(maxLabel) }
-    }
+    RethinkConnectedChoiceGroup(
+        options = listOf(RethinkChoiceOption(false, skyLabel), RethinkChoiceOption(true, maxLabel)),
+        selected = isMax,
+        onSelect = { max -> if (max) onMax() else onSky() },
+    )
 }

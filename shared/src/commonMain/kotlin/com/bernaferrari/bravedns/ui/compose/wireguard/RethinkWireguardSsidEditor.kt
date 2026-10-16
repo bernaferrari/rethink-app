@@ -3,23 +3,21 @@
 
 package com.bernaferrari.bravedns.ui.compose.wireguard
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceOption
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkConnectedChoiceGroup
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.ToggleButton
-import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -207,45 +205,10 @@ private fun RethinkSsidOptionGroup(
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)) {
-            RethinkSsidToggle(
-                label = firstLabel,
-                selected = firstSelected,
-                onSelected = onFirstSelected,
-                shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
-                modifier = Modifier.weight(1f),
-            )
-            RethinkSsidToggle(
-                label = secondLabel,
-                selected = !firstSelected,
-                onSelected = onSecondSelected,
-                shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
-                modifier = Modifier.weight(1f),
-            )
-        }
-    }
-}
-
-@Composable
-private fun RethinkSsidToggle(
-    label: String,
-    selected: Boolean,
-    onSelected: () -> Unit,
-    shapes: androidx.compose.material3.ToggleButtonShapes,
-    modifier: Modifier,
-) {
-    ToggleButton(
-        checked = selected,
-        onCheckedChange = { if (it && !selected) onSelected() },
-        shapes = shapes,
-        modifier = modifier,
-        colors = ToggleButtonDefaults.colors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            checkedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-            checkedContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-        ),
-    ) {
-        Text(label, style = MaterialTheme.typography.labelLarge, maxLines = 1)
+        RethinkConnectedChoiceGroup(
+            options = listOf(RethinkChoiceOption(true, firstLabel), RethinkChoiceOption(false, secondLabel)),
+            selected = firstSelected,
+            onSelect = { first -> if (first) onFirstSelected() else onSecondSelected() },
+        )
     }
 }

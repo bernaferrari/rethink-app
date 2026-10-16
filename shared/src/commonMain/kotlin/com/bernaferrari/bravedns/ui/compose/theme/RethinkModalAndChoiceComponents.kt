@@ -16,15 +16,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SheetValue
-import androidx.compose.material3.ToggleButton
-import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -37,59 +33,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-
-/** Two-target shared choice control for compact manual/automatic configuration modes. */
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-fun RethinkTwoOptionSegmentedRow(
-    leftLabel: String,
-    rightLabel: String,
-    leftSelected: Boolean,
-    onLeftClick: () -> Unit,
-    onRightClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    minHeight: Dp = SharedDimensions.buttonHeightSm,
-) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-    ) {
-        ToggleButton(
-            checked = leftSelected,
-            onCheckedChange = { if (it) onLeftClick() },
-            modifier = Modifier.weight(1f).heightIn(min = minHeight),
-            shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
-            colors = ToggleButtonDefaults.colors(
-                checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            ),
-        ) {
-            Text(leftLabel)
-        }
-        ToggleButton(
-            checked = !leftSelected,
-            onCheckedChange = { if (it) onRightClick() },
-            modifier = Modifier.weight(1f).heightIn(min = minHeight),
-            shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
-            colors = ToggleButtonDefaults.colors(
-                checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            ),
-        ) {
-            Text(rightLabel)
-        }
-    }
-}
 
 /**
  * Radio-choice content for dialogs and sheets. The row, not only the radio glyph, is interactive;

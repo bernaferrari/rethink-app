@@ -3,6 +3,8 @@
 
 package com.bernaferrari.bravedns.ui.compose.wireguard
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceOption
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkConnectedChoiceGroup
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
@@ -11,7 +13,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,7 +22,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -33,8 +33,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.ToggleButton
-import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -142,51 +140,19 @@ fun <T> RethinkWireguardScreen(
 
 @Composable
 private fun RethinkWgTabs(selected: RethinkWgTab, strings: RethinkWireguardStrings, onClick: (RethinkWgTab) -> Unit) {
-    Row(
-        Modifier.fillMaxWidth().padding(
+    RethinkConnectedChoiceGroup(
+        options = listOf(
+            RethinkChoiceOption(RethinkWgTab.One, strings.oneTab),
+            RethinkChoiceOption(RethinkWgTab.General, strings.generalTab),
+        ),
+        selected = selected,
+        onSelect = onClick,
+        modifier = Modifier.padding(
             start = SharedDimensions.screenPaddingHorizontal,
             top = SharedDimensions.spacingLg,
             end = SharedDimensions.screenPaddingHorizontal,
         ),
-        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-    ) {
-        RethinkWgTabToggle(
-            label = strings.oneTab,
-            checked = selected == RethinkWgTab.One,
-            onCheckedChange = { onClick(RethinkWgTab.One) },
-            shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
-        )
-        RethinkWgTabToggle(
-            label = strings.generalTab,
-            checked = selected == RethinkWgTab.General,
-            onCheckedChange = { onClick(RethinkWgTab.General) },
-            shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
-        )
-    }
-}
-
-@Composable
-private fun RowScope.RethinkWgTabToggle(
-    label: String,
-    checked: Boolean,
-    onCheckedChange: () -> Unit,
-    shapes: androidx.compose.material3.ToggleButtonShapes,
-) {
-    ToggleButton(
-        checked = checked,
-        onCheckedChange = { isChecked -> if (isChecked && !checked) onCheckedChange() },
-        shapes = shapes,
-        colors = ToggleButtonDefaults.colors(
-            checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-            checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        ),
-        border = null,
-        modifier = Modifier.weight(1f),
-    ) {
-        Text(label)
-    }
+    )
 }
 
 @Composable

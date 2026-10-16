@@ -5,6 +5,8 @@ package com.bernaferrari.bravedns.ui.compose.dns
 
 import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.selection.toggleable
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceOption
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkConnectedChoiceGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,15 +21,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.ToggleButton
-import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -284,46 +283,17 @@ fun RethinkDnsCryptEndpointEditor(
             }
         },
     ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)) {
-            val resolverSelected = kind == RethinkDnsCryptEndpointKind.Resolver
-            ToggleButton(
-                checked = resolverSelected,
-                onCheckedChange = { checked ->
-                    if (checked && !resolverSelected) {
-                        kind = RethinkDnsCryptEndpointKind.Resolver
-                        name = resolverDefaultName
-                    }
-                },
-                shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
-                colors = ToggleButtonDefaults.colors(
-                    checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                    checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                ),
-                border = null,
-                modifier = Modifier.weight(1f),
-            ) { Text(resolverLabel) }
-            val relaySelected = kind == RethinkDnsCryptEndpointKind.Relay
-            ToggleButton(
-                checked = relaySelected,
-                onCheckedChange = { checked ->
-                    if (checked && !relaySelected) {
-                        kind = RethinkDnsCryptEndpointKind.Relay
-                        name = relayDefaultName
-                    }
-                },
-                shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
-                colors = ToggleButtonDefaults.colors(
-                    checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                    checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                ),
-                border = null,
-                modifier = Modifier.weight(1f),
-            ) { Text(relayLabel) }
-        }
+        RethinkConnectedChoiceGroup(
+            options = listOf(
+                RethinkChoiceOption(RethinkDnsCryptEndpointKind.Resolver, resolverLabel),
+                RethinkChoiceOption(RethinkDnsCryptEndpointKind.Relay, relayLabel),
+            ),
+            selected = kind,
+            onSelect = { next ->
+                kind = next
+                name = if (next == RethinkDnsCryptEndpointKind.Resolver) resolverDefaultName else relayDefaultName
+            },
+        )
         RethinkFormTextField(name, onValueChange = { name = it }, label = nameLabel)
         RethinkFormTextField(stamp, onValueChange = { stamp = it }, label = stampLabel)
         RethinkFormTextField(description, onValueChange = { description = it }, label = descriptionLabel)

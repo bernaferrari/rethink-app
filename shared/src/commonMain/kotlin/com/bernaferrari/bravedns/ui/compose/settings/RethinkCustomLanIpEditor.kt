@@ -24,7 +24,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormSection
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormTextField
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkTwoOptionSegmentedRow
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceOption
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkConnectedChoiceGroup
 
 data class RethinkLanIpAddress(
     val address: String,
@@ -71,16 +72,18 @@ fun RethinkCustomLanIpEditor(
     val manual = configuration.manual
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd)) {
         RethinkLanEditorCard {
-            RethinkTwoOptionSegmentedRow(
-                leftLabel = strings.automatic,
-                rightLabel = strings.manual,
-                leftSelected = !manual,
-                onLeftClick = {
-                    configuration = defaultConfiguration.copy(manual = false)
-                    errorMessage = null
-                },
-                onRightClick = {
-                    configuration = if (configuration.manual) configuration else initialConfiguration.copy(manual = true)
+            RethinkConnectedChoiceGroup(
+                options = listOf(
+                    RethinkChoiceOption(false, strings.automatic),
+                    RethinkChoiceOption(true, strings.manual),
+                ),
+                selected = manual,
+                onSelect = { isManual ->
+                    configuration = when {
+                        !isManual -> defaultConfiguration.copy(manual = false)
+                        configuration.manual -> configuration
+                        else -> initialConfiguration.copy(manual = true)
+                    }
                     errorMessage = null
                 },
             )

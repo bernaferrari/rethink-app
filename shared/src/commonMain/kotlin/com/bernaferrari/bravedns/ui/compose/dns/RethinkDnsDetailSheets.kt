@@ -5,6 +5,8 @@ package com.bernaferrari.bravedns.ui.compose.dns
 
 import androidx.compose.ui.semantics.Role
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceOption
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkConnectedChoiceGroup
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
@@ -22,15 +24,12 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.ToggleButton
-import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -78,34 +77,11 @@ fun RethinkDnsRecordTypesSheet(
                     RethinkDnsSheetPill(if (autoMode) strings.auto else strings.manual)
                     RethinkDnsSheetPill(strings.selected(selectedCount, types.size))
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)) {
-                    ToggleButton(
-                        checked = autoMode,
-                        onCheckedChange = { if (it && !autoMode) onAutoModeChange(true) },
-                        shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
-                        colors = ToggleButtonDefaults.colors(
-                            checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                            checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        ),
-                        border = null,
-                        modifier = Modifier.weight(1f),
-                    ) { Text(strings.auto, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold) }
-                    ToggleButton(
-                        checked = !autoMode,
-                        onCheckedChange = { if (it && autoMode) onAutoModeChange(false) },
-                        shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
-                        colors = ToggleButtonDefaults.colors(
-                            checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                            checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        ),
-                        border = null,
-                        modifier = Modifier.weight(1f),
-                    ) { Text(strings.manual, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold) }
-                }
+                RethinkConnectedChoiceGroup(
+                    options = listOf(RethinkChoiceOption(true, strings.auto), RethinkChoiceOption(false, strings.manual)),
+                    selected = autoMode,
+                    onSelect = onAutoModeChange,
+                )
             }
             RethinkFormSection(strings.allowed) {
                 LazyColumn(

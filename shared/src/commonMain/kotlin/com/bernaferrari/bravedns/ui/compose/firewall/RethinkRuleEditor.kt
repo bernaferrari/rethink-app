@@ -1,28 +1,22 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.firewall
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceOption
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkConnectedChoiceGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.ToggleButton
-import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
@@ -133,12 +127,15 @@ private fun RethinkRuleTrustBlockToggles(
     onActionChange: (RethinkRuleAction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    RethinkConnectedChoiceRow(
-        options = listOf(RethinkRuleAction.Trust, RethinkRuleAction.Block),
+    RethinkConnectedChoiceGroup(
+        options = listOf(
+            RethinkChoiceOption(RethinkRuleAction.Trust, strings.trust),
+            RethinkChoiceOption(RethinkRuleAction.Block, strings.block),
+        ),
         selected = action,
-        onSelected = { next -> onActionChange(if (next == action) RethinkRuleAction.None else next) },
-        label = { option -> if (option == RethinkRuleAction.Trust) strings.trust else strings.block },
+        onSelect = onActionChange,
         modifier = modifier,
+        onDeselect = { onActionChange(RethinkRuleAction.None) },
     )
 }
 
@@ -151,58 +148,12 @@ fun RethinkRuleActionSelector(
     onActionChange: (RethinkRuleAction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    RethinkConnectedChoiceRow(
-        options = options,
-        selected = options.firstOrNull { it.action == selectedAction },
-        onSelected = { onActionChange(it.action) },
-        label = { it.label },
-        modifier = modifier.fillMaxWidth().padding(horizontal = SharedDimensions.screenPaddingHorizontal),
+    RethinkConnectedChoiceGroup(
+        options = options.map { RethinkChoiceOption(it.action, it.label) },
+        selected = selectedAction,
+        onSelect = onActionChange,
+        modifier = modifier.padding(horizontal = SharedDimensions.screenPaddingHorizontal),
     )
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-private fun <T> RethinkConnectedChoiceRow(
-    options: List<T>,
-    selected: T?,
-    onSelected: (T) -> Unit,
-    label: (T) -> String,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-    ) {
-        options.forEachIndexed { index, option ->
-            val isSelected = option == selected
-            ToggleButton(
-                checked = isSelected,
-                onCheckedChange = { checked -> if (checked || isSelected) onSelected(option) },
-                shapes = when (index) {
-                    0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                    options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                },
-                colors = ToggleButtonDefaults.colors(
-                    checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                    checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                ),
-                border = null,
-                modifier = Modifier.weight(1f).semantics { role = Role.RadioButton },
-            ) {
-                Text(
-                    label(option),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
-                )
-            }
-        }
-    }
 }
 
 /** Compact list row for domain rules attached to an IP rule. */

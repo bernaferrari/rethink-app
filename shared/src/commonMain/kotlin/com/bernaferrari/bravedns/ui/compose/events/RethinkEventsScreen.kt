@@ -3,6 +3,8 @@
 
 package com.bernaferrari.bravedns.ui.compose.events
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceOption
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkConnectedChoiceGroup
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.animation.AnimatedVisibility
@@ -27,12 +29,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -42,8 +42,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.ToggleButton
-import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -54,9 +52,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -230,18 +225,19 @@ private fun RethinkEventControls(
             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
         )
         Spacer(Modifier.height(SharedDimensions.spacingSm))
-        RethinkEventExclusiveToggleRow(
+        RethinkConnectedChoiceGroup(
             options = listOf(
-                strings.all to (filters.mode == RethinkEventFilterMode.All),
-                strings.severity to (filters.mode == RethinkEventFilterMode.Severity),
-                strings.source to (filters.mode == RethinkEventFilterMode.Source),
+                RethinkChoiceOption(RethinkEventFilterMode.All, strings.all),
+                RethinkChoiceOption(RethinkEventFilterMode.Severity, strings.severity),
+                RethinkChoiceOption(RethinkEventFilterMode.Source, strings.source),
             ),
-            onSelect = { index ->
+            selected = filters.mode,
+            onSelect = { mode ->
                 onFiltersChange(
-                    when (index) {
-                        1 -> filters.copy(mode = RethinkEventFilterMode.Severity, sources = emptySet())
-                        2 -> filters.copy(mode = RethinkEventFilterMode.Source, severity = null)
-                        else -> RethinkEventFilters(RethinkEventFilterMode.All)
+                    when (mode) {
+                        RethinkEventFilterMode.Severity -> filters.copy(mode = mode, sources = emptySet())
+                        RethinkEventFilterMode.Source -> filters.copy(mode = mode, severity = null)
+                        RethinkEventFilterMode.All -> RethinkEventFilters(RethinkEventFilterMode.All)
                     },
                 )
             },
@@ -250,16 +246,16 @@ private fun RethinkEventControls(
             RethinkEventFilterMode.All -> Unit
             RethinkEventFilterMode.Severity -> {
                 Spacer(Modifier.height(SharedDimensions.spacingSm))
-                val severities = listOf(
-                    RethinkEventSeverity.Low to strings.low,
-                    RethinkEventSeverity.Medium to strings.medium,
-                    RethinkEventSeverity.High to strings.high,
-                    RethinkEventSeverity.Critical to strings.critical,
-                )
-                RethinkEventExclusiveToggleRow(
-                    options = severities.map { (severity, label) -> label to (filters.severity == severity) },
-                    onSelect = { index ->
-                        onFiltersChange(RethinkEventFilters(RethinkEventFilterMode.Severity, severity = severities[index].first))
+                RethinkConnectedChoiceGroup(
+                    options = listOf(
+                        RethinkChoiceOption(RethinkEventSeverity.Low, strings.low),
+                        RethinkChoiceOption(RethinkEventSeverity.Medium, strings.medium),
+                        RethinkChoiceOption(RethinkEventSeverity.High, strings.high),
+                        RethinkChoiceOption(RethinkEventSeverity.Critical, strings.critical),
+                    ),
+                    selected = filters.severity,
+                    onSelect = { severity ->
+                        onFiltersChange(RethinkEventFilters(RethinkEventFilterMode.Severity, severity = severity))
                     },
                 )
             }
@@ -276,39 +272,6 @@ private fun RethinkEventControls(
                         }
                     }
                 }
-            }
-        }
-    }
-}
-
-@Composable
-private fun RethinkEventExclusiveToggleRow(
-    options: List<Pair<String, Boolean>>,
-    onSelect: (Int) -> Unit,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-    ) {
-        options.forEachIndexed { index, (label, selected) ->
-            ToggleButton(
-                checked = selected,
-                onCheckedChange = { if (it && !selected) onSelect(index) },
-                shapes = when (index) {
-                    0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                    options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                },
-                colors = ToggleButtonDefaults.colors(
-                    checkedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    checkedContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                ),
-                border = null,
-                modifier = Modifier.weight(1f).heightIn(min = SharedDimensions.touchTargetMin).semantics { role = Role.RadioButton },
-            ) {
-                Text(label, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
     }

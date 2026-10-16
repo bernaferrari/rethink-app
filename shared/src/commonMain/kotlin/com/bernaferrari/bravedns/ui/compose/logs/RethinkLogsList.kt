@@ -3,31 +3,21 @@
 
 package com.bernaferrari.bravedns.ui.compose.logs
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceOption
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkConnectedChoiceGroup
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.ToggleButton
-import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 
@@ -66,46 +56,18 @@ fun RethinkLogFilterRow(
     modifier: Modifier = Modifier,
 ) {
     val options = listOf(
-        Triple(RethinkLogFilter.All, strings.all, MaterialSymbols.Filled.Public),
-        Triple(RethinkLogFilter.Allowed, strings.allowed, MaterialSymbols.Filled.CheckCircle),
-        Triple(RethinkLogFilter.Blocked, strings.blocked, MaterialSymbols.Filled.Block),
+        RethinkChoiceOption(RethinkLogFilter.All, strings.all, MaterialSymbols.Filled.Public),
+        RethinkChoiceOption(RethinkLogFilter.Allowed, strings.allowed, MaterialSymbols.Filled.CheckCircle),
+        RethinkChoiceOption(RethinkLogFilter.Blocked, strings.blocked, MaterialSymbols.Filled.Block),
     )
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
         val compact = maxWidth < 420.dp
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-        ) {
-            options.forEachIndexed { index, (filter, label, icon) ->
-                val isSelected = filter == selected
-                ToggleButton(
-                    checked = isSelected,
-                    onCheckedChange = { if (it && !isSelected) onSelected(filter) },
-                    shapes = when (index) {
-                        0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                        options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                        else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                    },
-                    colors = ToggleButtonDefaults.colors(
-                        checkedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        checkedContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    ),
-                    border = null,
-                    modifier = Modifier.weight(1f).semantics { role = Role.RadioButton },
-                ) {
-                    Icon(icon, contentDescription = if (compact) label else null)
-                    if (!compact) {
-                        Text(
-                            label,
-                            modifier = Modifier.padding(start = SharedDimensions.spacingXs),
-                            style = MaterialTheme.typography.labelLarge,
-                        )
-                    }
-                }
-            }
-        }
+        RethinkConnectedChoiceGroup(
+            options = options,
+            selected = selected,
+            onSelect = onSelected,
+            iconOnly = compact,
+        )
     }
 }
 

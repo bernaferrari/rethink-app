@@ -4,7 +4,11 @@
 package com.bernaferrari.bravedns.ui.compose.dns
 
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceOption
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkConnectedChoiceGroup
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -16,14 +20,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.LoadingIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.ToggleButton
-import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -157,35 +156,15 @@ fun RethinkBlocklistEditor(
 
 @Composable
 private fun RethinkBlocklistEditorTabs(selected: RethinkBlocklistEditorView, strings: RethinkBlocklistEditorStrings, onChange: (RethinkBlocklistEditorView) -> Unit) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)) {
-        val packsSelected = selected == RethinkBlocklistEditorView.Packs
-        ToggleButton(
-            checked = packsSelected,
-            onCheckedChange = { checked -> if (checked && !packsSelected) onChange(RethinkBlocklistEditorView.Packs) },
-            shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
-            colors = RethinkBlocklistTabColors(),
-            border = null,
-            modifier = Modifier.weight(1f),
-        ) { Text(strings.packs) }
-        val advancedSelected = selected == RethinkBlocklistEditorView.Advanced
-        ToggleButton(
-            checked = advancedSelected,
-            onCheckedChange = { checked -> if (checked && !advancedSelected) onChange(RethinkBlocklistEditorView.Advanced) },
-            shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
-            colors = RethinkBlocklistTabColors(),
-            border = null,
-            modifier = Modifier.weight(1f),
-        ) { Text(strings.advanced) }
-    }
+    RethinkConnectedChoiceGroup(
+        options = listOf(
+            RethinkChoiceOption(RethinkBlocklistEditorView.Packs, strings.packs),
+            RethinkChoiceOption(RethinkBlocklistEditorView.Advanced, strings.advanced),
+        ),
+        selected = selected,
+        onSelect = onChange,
+    )
 }
-
-@Composable
-private fun RethinkBlocklistTabColors() = ToggleButtonDefaults.colors(
-    checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-    checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-    contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-)
 
 @Composable
 private fun RethinkBlocklistSubgroupMenu(selected: Set<String>, all: List<String>, contentDescription: String, onChange: (Set<String>) -> Unit) {

@@ -32,7 +32,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormTextField
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkTwoOptionSegmentedRow
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceOption
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkConnectedChoiceGroup
 import kotlinx.coroutines.launch
 
 enum class RethinkReachabilityProbeField {
@@ -83,17 +84,18 @@ fun RethinkNetworkReachabilityEditor(
     val automatic = configuration.automatic
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd)) {
         RethinkReachabilityCard {
-            RethinkTwoOptionSegmentedRow(
-                leftLabel = strings.automatic,
-                rightLabel = strings.manual,
-                leftSelected = automatic,
-                onLeftClick = {
-                    configuration = configuration.copy(automatic = true)
-                    probeResults = emptyMap()
-                    errorMessage = null
-                },
-                onRightClick = {
-                    configuration = if (configuration.automatic) initialConfiguration.copy(automatic = false) else configuration
+            RethinkConnectedChoiceGroup(
+                options = listOf(
+                    RethinkChoiceOption(true, strings.automatic),
+                    RethinkChoiceOption(false, strings.manual),
+                ),
+                selected = automatic,
+                onSelect = { auto ->
+                    configuration = when {
+                        auto -> configuration.copy(automatic = true)
+                        configuration.automatic -> initialConfiguration.copy(automatic = false)
+                        else -> configuration
+                    }
                     probeResults = emptyMap()
                     errorMessage = null
                 },

@@ -3,6 +3,8 @@
 
 package com.bernaferrari.bravedns.ui.compose.settings
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceOption
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkConnectedChoiceGroup
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.animation.core.AnimationSpec
@@ -20,22 +22,16 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.ToggleButton
-import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -149,47 +145,20 @@ fun RethinkAppearanceSettingsCard(
                 shape = rethinkGroupedListShape(CardPosition.First),
                 color = MaterialTheme.colorScheme.surfaceContainerLow,
             ) {
-                Row(
+                RethinkConnectedChoiceGroup(
+                    options = modes.map { (mode, label) ->
+                        RethinkChoiceOption(mode, label, icon = mode.icon(), selectedIcon = MaterialSymbols.Filled.Check)
+                    },
+                    selected = appearanceMode,
+                    onSelect = { mode ->
+                        appearanceMode = mode
+                        onModeSelected(mode)
+                    },
                     modifier = Modifier
-                        .fillMaxWidth()
                         .horizontalScroll(rememberScrollState())
                         .padding(SharedDimensions.cardPadding),
-                    horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    modes.forEachIndexed { index, (mode, label) ->
-                        val selected = mode == appearanceMode
-                        ToggleButton(
-                            checked = selected,
-                            onCheckedChange = { checked ->
-                                if (checked && mode != appearanceMode) {
-                                    appearanceMode = mode
-                                    onModeSelected(mode)
-                                }
-                            },
-                            shapes = when (index) {
-                                0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                                modes.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                                else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                            },
-                            colors = ToggleButtonDefaults.colors(
-                                checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                                checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            ),
-                            modifier = Modifier.semantics { role = Role.RadioButton },
-                        ) {
-                            Icon(
-                                imageVector = if (selected) MaterialSymbols.Filled.Check else mode.icon(),
-                                contentDescription = null,
-                                modifier = Modifier.size(ToggleButtonDefaults.IconSize),
-                            )
-                            Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-                            Text(label, style = MaterialTheme.typography.labelLarge, maxLines = 1)
-                        }
-                    }
-                }
+                    fillWidth = false,
+                )
             }
             Surface(
                 modifier = Modifier.fillMaxWidth(),

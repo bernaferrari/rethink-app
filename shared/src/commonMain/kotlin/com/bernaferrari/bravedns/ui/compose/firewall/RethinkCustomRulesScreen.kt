@@ -3,6 +3,8 @@
 
 package com.bernaferrari.bravedns.ui.compose.firewall
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceOption
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkConnectedChoiceGroup
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
@@ -13,11 +15,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -25,8 +25,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.ToggleButton
-import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -38,11 +36,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
@@ -289,26 +282,14 @@ private fun RethinkRuleTabSelector(
     modifier: Modifier = Modifier,
     onSelected: (RethinkRulesTab) -> Unit,
 ) {
-    RethinkRulesConnectedChoiceButtonRow(
-        options = listOf(RethinkRulesTab.IP, RethinkRulesTab.DOMAIN),
-        selectedOption = selected,
-        onOptionSelected = onSelected,
-        modifier = modifier.fillMaxWidth(),
-        buttonMinHeight = if (compact) 40.dp else 0.dp,
-        label = { option, isSelected ->
-            Text(
-                text = when (option) {
-                    RethinkRulesTab.IP -> if (compact) strings.ip else strings.ipRules
-                    RethinkRulesTab.DOMAIN -> if (compact) strings.domain else strings.domainRules
-                },
-                modifier = Modifier.fillMaxWidth(),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center,
-                style = if (compact) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelLarge,
-                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
-            )
-        },
+    RethinkConnectedChoiceGroup(
+        options = listOf(
+            RethinkChoiceOption(RethinkRulesTab.IP, if (compact) strings.ip else strings.ipRules),
+            RethinkChoiceOption(RethinkRulesTab.DOMAIN, if (compact) strings.domain else strings.domainRules),
+        ),
+        selected = selected,
+        onSelect = onSelected,
+        modifier = modifier,
     )
 }
 
@@ -319,23 +300,14 @@ private fun RethinkRuleScopeSelector(
     modifier: Modifier = Modifier,
     onSelected: (RethinkRulesMode) -> Unit,
 ) {
-    RethinkRulesConnectedChoiceButtonRow(
-        options = listOf(RethinkRulesMode.APP_SPECIFIC, RethinkRulesMode.ALL_RULES),
-        selectedOption = selected,
-        onOptionSelected = onSelected,
-        modifier = modifier.fillMaxWidth(),
-        buttonMinHeight = 40.dp,
-        label = { option, isSelected ->
-            Text(
-                text = if (option == RethinkRulesMode.APP_SPECIFIC) strings.universal else strings.appWise,
-                modifier = Modifier.fillMaxWidth(),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
-            )
-        },
+    RethinkConnectedChoiceGroup(
+        options = listOf(
+            RethinkChoiceOption(RethinkRulesMode.APP_SPECIFIC, strings.universal),
+            RethinkChoiceOption(RethinkRulesMode.ALL_RULES, strings.appWise),
+        ),
+        selected = selected,
+        onSelect = onSelected,
+        modifier = modifier,
     )
 }
 
@@ -517,42 +489,6 @@ private fun RethinkAddFirewallRuleDialog(
                 onDismiss = onDismiss,
                 confirmEnabled = value.isNotBlank(),
             )
-        }
-    }
-}
-
-@Composable
-private fun <T> RethinkRulesConnectedChoiceButtonRow(
-    options: List<T>,
-    selectedOption: T,
-    onOptionSelected: (T) -> Unit,
-    modifier: Modifier = Modifier,
-    buttonMinHeight: androidx.compose.ui.unit.Dp = 0.dp,
-    label: @Composable (option: T, selected: Boolean) -> Unit,
-) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-    ) {
-        options.forEachIndexed { index, option ->
-            val selected = option == selectedOption
-            ToggleButton(
-                checked = selected,
-                onCheckedChange = { checked -> if (checked && !selected) onOptionSelected(option) },
-                shapes = when (index) {
-                    0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                    options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                },
-                colors = ToggleButtonDefaults.colors(
-                    checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                    checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                ),
-                border = null,
-                modifier = Modifier.weight(1f).heightIn(min = buttonMinHeight).semantics { role = Role.RadioButton },
-            ) { label(option, selected) }
         }
     }
 }
