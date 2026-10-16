@@ -65,7 +65,7 @@ fun RethinkTwoOptionSegmentedRow(
             onCheckedChange = { if (it) onLeftClick() },
             modifier = Modifier.weight(1f).heightIn(min = minHeight),
             shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
-            colors = ToggleButtonDefaults.toggleButtonColors(
+            colors = ToggleButtonDefaults.colors(
                 checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                 checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -79,7 +79,7 @@ fun RethinkTwoOptionSegmentedRow(
             onCheckedChange = { if (it) onRightClick() },
             modifier = Modifier.weight(1f).heightIn(min = minHeight),
             shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
-            colors = ToggleButtonDefaults.toggleButtonColors(
+            colors = ToggleButtonDefaults.colors(
                 checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                 checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,

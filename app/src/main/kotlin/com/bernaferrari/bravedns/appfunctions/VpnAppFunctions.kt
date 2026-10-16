@@ -15,6 +15,7 @@
  */
 package com.bernaferrari.bravedns.appfunctions
 
+import android.annotation.SuppressLint
 import androidx.appfunctions.AppFunctionContext
 import androidx.appfunctions.AppFunctionSerializable
 import androidx.appfunctions.service.AppFunction
@@ -25,6 +26,8 @@ import kotlinx.coroutines.withContext
 /**
  * AppFunctions that expose RethinkDNS VPN and firewall controls to on-device AI agents.
  */
+// AppFunctions compiler alpha13 still requires this restricted context (b/500281348).
+@SuppressLint("RestrictedApi")
 class VpnAppFunctions {
 
     /** The current VPN and firewall protection status. */

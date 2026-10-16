@@ -179,7 +179,7 @@ private fun RethinkBlocklistEditorTabs(selected: RethinkBlocklistEditorView, str
 }
 
 @Composable
-private fun RethinkBlocklistTabColors() = ToggleButtonDefaults.toggleButtonColors(
+private fun RethinkBlocklistTabColors() = ToggleButtonDefaults.colors(
     checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
     checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
     containerColor = MaterialTheme.colorScheme.surfaceContainerLow,

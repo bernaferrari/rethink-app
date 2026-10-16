@@ -108,7 +108,9 @@ try {
 }
 
 android {
-    compileSdk = 37
+    compileSdk {
+        version = release(37) { minorApiLevel = 2 }
+    }
     namespace = "com.bernaferrari.bravedns"
 
     androidResources {
@@ -117,7 +119,7 @@ android {
 
     defaultConfig {
         applicationId = "com.bernaferrari.bravedns"
-        minSdk = 23
+        minSdk = 24
         targetSdk = 37
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         versionCode = getVersionCode(project)

@@ -704,7 +704,7 @@ private fun BeaconAction(
         checked = isActive,
         onCheckedChange = { onClick() },
         modifier = Modifier.height(56.dp),
-        colors = ToggleButtonDefaults.toggleButtonColors(
+        colors = ToggleButtonDefaults.colors(
             checkedContainerColor = scheme.onSurface,
             checkedContentColor = scheme.surface,
             containerColor = scheme.primary,

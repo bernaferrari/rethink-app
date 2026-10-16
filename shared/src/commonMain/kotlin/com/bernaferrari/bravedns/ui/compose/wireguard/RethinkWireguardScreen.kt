@@ -176,7 +176,7 @@ private fun RowScope.RethinkWgTabToggle(
         checked = checked,
         onCheckedChange = { isChecked -> if (isChecked && !checked) onCheckedChange() },
         shapes = shapes,
-        colors = ToggleButtonDefaults.toggleButtonColors(
+        colors = ToggleButtonDefaults.colors(
             checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
             checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow,

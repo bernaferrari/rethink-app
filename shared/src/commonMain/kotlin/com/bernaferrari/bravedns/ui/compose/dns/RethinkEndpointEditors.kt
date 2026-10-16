@@ -286,7 +286,7 @@ fun RethinkDnsCryptEndpointEditor(
                     }
                 },
                 shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
-                colors = ToggleButtonDefaults.toggleButtonColors(
+                colors = ToggleButtonDefaults.colors(
                     checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                     checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                     containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
@@ -305,7 +305,7 @@ fun RethinkDnsCryptEndpointEditor(
                     }
                 },
                 shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
-                colors = ToggleButtonDefaults.toggleButtonColors(
+                colors = ToggleButtonDefaults.colors(
                     checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                     checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                     containerColor = MaterialTheme.colorScheme.surfaceContainerLow,

@@ -479,10 +479,6 @@ object Utilities {
         return null
     }
 
-    fun isAtleastN(): Boolean {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
-    }
-
     fun isAtleastO(): Boolean {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
     }

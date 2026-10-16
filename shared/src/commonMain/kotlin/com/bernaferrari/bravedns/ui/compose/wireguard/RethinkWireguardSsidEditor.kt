@@ -239,7 +239,7 @@ private fun RethinkSsidToggle(
         onCheckedChange = { if (it && !selected) onSelected() },
         shapes = shapes,
         modifier = modifier,
-        colors = ToggleButtonDefaults.toggleButtonColors(
+        colors = ToggleButtonDefaults.colors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
             contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
             checkedContainerColor = MaterialTheme.colorScheme.secondaryContainer,

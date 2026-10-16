@@ -15,8 +15,7 @@ plugins {
     alias(libs.plugins.android.kotlin.multiplatform.library)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.compose.compiler)
-    // Matches NetGuard's KMP UI stack and exposes Material 3 Expressive shapes on wasmJs.
-    id("org.jetbrains.compose") version "1.12.0-beta02"
+    alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.koin.compiler)
     alias(libs.plugins.ksp)
     alias(libs.plugins.room3)
@@ -28,8 +27,10 @@ kotlin {
     // of truth for Android and the browser.
     androidLibrary {
         namespace = "com.bernaferrari.bravedns.shared"
-        compileSdk = 37
-        minSdk = 23
+        compileSdk {
+            version = release(37) { minorApiLevel = 2 }
+        }
+        minSdk = 24
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_17)
         }
@@ -67,9 +68,7 @@ kotlin {
 
             implementation(compose.runtime)
             implementation(compose.foundation)
-            // Keep Material 3 Expressive aligned with the Compose Multiplatform beta on every
-            // target so Android and Wasm render the same commonMain controls and shapes.
-            implementation("org.jetbrains.compose.material3:material3:1.12.0-alpha03")
+            implementation(libs.compose.material3)
             // NavigationSuiteScaffold gives the shared UI the same adaptive bottom-bar/rail
             // behavior without platform-specific navigation chrome.
             implementation(libs.jetbrains.material3.adaptive.navigation.suite)

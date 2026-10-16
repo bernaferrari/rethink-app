@@ -156,7 +156,7 @@ private fun RethinkAppWiseTimeRangeRow(selected: RethinkAppWiseLogTimeRange, str
                     options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
                     else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
                 },
-                colors = ToggleButtonDefaults.toggleButtonColors(
+                colors = ToggleButtonDefaults.colors(
                     checkedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
                     checkedContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                     containerColor = MaterialTheme.colorScheme.surfaceContainerLow,

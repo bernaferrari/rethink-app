@@ -24,7 +24,6 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Paint
 import android.net.Uri
-import android.os.Build
 import android.provider.Settings
 import android.text.Html
 import android.text.Spanned
@@ -34,7 +33,6 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
-import androidx.core.text.HtmlCompat
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.database.DnsLog
 import com.bernaferrari.bravedns.image.FavIconDownloader
@@ -172,12 +170,7 @@ object UIUtils {
 
     fun openVpnProfile(context: Context) {
         try {
-            val intent =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    Intent(Settings.ACTION_VPN_SETTINGS)
-                } else {
-                    Intent(Constants.ACTION_VPN_SETTINGS_INTENT)
-                }
+            val intent = Intent(Settings.ACTION_VPN_SETTINGS)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
             context.startActivity(intent)
         } catch (e: ActivityNotFoundException) {
@@ -242,11 +235,7 @@ object UIUtils {
     }
 
     fun htmlToSpannedText(text: String): Spanned {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            Html.fromHtml(text, Html.FROM_HTML_MODE_LEGACY)
-        } else {
-            HtmlCompat.fromHtml(text, HtmlCompat.FROM_HTML_MODE_LEGACY)
-        }
+        return Html.fromHtml(text, Html.FROM_HTML_MODE_LEGACY)
     }
 
     fun sendEmailIntent(context: Context) {

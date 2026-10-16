@@ -79,7 +79,7 @@ fun RethinkDnsRecordTypesSheet(
                         checked = autoMode,
                         onCheckedChange = { if (it && !autoMode) onAutoModeChange(true) },
                         shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
-                        colors = ToggleButtonDefaults.toggleButtonColors(
+                        colors = ToggleButtonDefaults.colors(
                             checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                             checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                             containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
@@ -92,7 +92,7 @@ fun RethinkDnsRecordTypesSheet(
                         checked = !autoMode,
                         onCheckedChange = { if (it && autoMode) onAutoModeChange(false) },
                         shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
-                        colors = ToggleButtonDefaults.toggleButtonColors(
+                        colors = ToggleButtonDefaults.colors(
                             checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                             checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                             containerColor = MaterialTheme.colorScheme.surfaceContainerLow,

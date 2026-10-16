@@ -22,10 +22,8 @@ import android.app.UiModeManager
 import android.content.Intent
 import android.content.res.Configuration
 import android.net.VpnService
-import android.os.Build
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
-import androidx.annotation.RequiresApi
 import com.bernaferrari.bravedns.ui.HomeScreenActivity
 import com.bernaferrari.bravedns.util.BioMetricType
 import com.bernaferrari.bravedns.util.Utilities
@@ -39,7 +37,6 @@ import kotlinx.coroutines.flow.onEach
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
-@RequiresApi(api = Build.VERSION_CODES.N)
 class BraveTileService : TileService(), KoinComponent {
 
     private val persistentState by inject<PersistentState>()

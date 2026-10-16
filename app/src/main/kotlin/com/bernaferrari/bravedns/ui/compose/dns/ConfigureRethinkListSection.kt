@@ -313,7 +313,7 @@ private fun RethinkSkyMaxToggleRow(
             checked = !isMax,
             onCheckedChange = { checked -> if (checked && isMax) onSky() },
             shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
-            colors = ToggleButtonDefaults.toggleButtonColors(
+            colors = ToggleButtonDefaults.colors(
                 checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                 checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
@@ -326,7 +326,7 @@ private fun RethinkSkyMaxToggleRow(
             checked = isMax,
             onCheckedChange = { checked -> if (checked && !isMax) onMax() },
             shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
-            colors = ToggleButtonDefaults.toggleButtonColors(
+            colors = ToggleButtonDefaults.colors(
                 checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                 checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 containerColor = MaterialTheme.colorScheme.surfaceContainerLow,

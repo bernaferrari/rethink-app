@@ -193,8 +193,8 @@ class ConnectionMonitorTest {
     }
 
     @Test
-    @Config(sdk = [23])
-    fun `transport callback onAvailable on Android 6 pushes network change`() = runTest(scheduler) {
+    @Config(sdk = [24])
+    fun `transport callback onAvailable on Android 7 pushes network change`() = runTest(scheduler) {
         every { persistentState.vpnBuilderPolicy } returns VpnBuilderPolicy.AUTO.ordinal
         val callbackSlot = slot<ConnectivityManager.NetworkCallback>()
         every {
@@ -672,8 +672,8 @@ class ConnectionMonitorTest {
     }
 
     @Test
-    @Config(sdk = [23])
-    fun `android 6 transport callback does not include location info flag`() {
+    @Config(sdk = [24])
+    fun `android 7 transport callback does not include location info flag`() {
         val monitor = newMonitor()
         val transportCallback = monitor.transportCallback()
         assertNotNull(transportCallback)
