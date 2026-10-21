@@ -4,6 +4,7 @@ import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FilterChip
@@ -21,7 +22,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 
 @Composable
 fun RethinkSearchField(
@@ -32,9 +32,13 @@ fun RethinkSearchField(
     leadingIconTint: Color = MaterialTheme.colorScheme.primary, iconSize: Dp = SharedDimensions.iconSizeSm,
     trailingIconSize: Dp = iconSize, trailingIconButtonSize: Dp? = null, clearQueryContentDescription: String? = null,
     closeWhenEmptyContentDescription: String? = null, onClearQuery: (() -> Unit)? = null, onCloseWhenEmpty: (() -> Unit)? = null,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    /** Replaces the search glyph (e.g. with the scoped app's icon); null removes the leading slot. */
+    leadingContent: (@Composable () -> Unit)? = { Icon(MaterialSymbols.Filled.Search, null, Modifier.size(iconSize), leadingIconTint) },
 ) = TextField(
     value = query, onValueChange = onQueryChange, modifier = modifier, singleLine = true, enabled = enabled, textStyle = textStyle,
-    placeholder = { Text(placeholder) }, leadingIcon = { Icon(MaterialSymbols.Filled.Search, null, Modifier.size(iconSize), leadingIconTint) },
+    keyboardOptions = keyboardOptions,
+    placeholder = { Text(placeholder, maxLines = 1, overflow = TextOverflow.Ellipsis) }, leadingIcon = leadingContent,
     trailingIcon = {
         val action = if (query.isNotEmpty()) onClearQuery ?: { onQueryChange("") } else onCloseWhenEmpty
         val actionModifier = trailingIconButtonSize?.let { requestedSize ->

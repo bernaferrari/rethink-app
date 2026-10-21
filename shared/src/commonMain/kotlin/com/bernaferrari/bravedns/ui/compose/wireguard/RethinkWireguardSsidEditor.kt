@@ -3,6 +3,7 @@
 
 package com.bernaferrari.bravedns.ui.compose.wireguard
 
+import androidx.compose.foundation.lazy.itemsIndexed
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceOption
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConnectedChoiceGroup
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
@@ -12,7 +13,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -26,7 +26,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import com.bernaferrari.bravedns.ui.compose.components.RethinkSharedIconContainer
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormActionRow
@@ -112,19 +111,16 @@ fun RethinkWireguardSsidEditor(
                 modifier = Modifier.fillMaxWidth().heightIn(max = SharedDimensions.heroCornerRadius * 10),
                 verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
             ) {
-                items(rules, key = { "${it.name}_${it.type.name}" }) { rule ->
+                itemsIndexed(rules, key = { _, it -> "${it.name}_${it.type.name}" }) { index, rule ->
                     RethinkListItem(
                         headline = rule.name,
                         supporting = "${if (rule.type.connects) strings.connect else strings.pause} · ${if (rule.type.exact) strings.exact else strings.wildcard}",
-                        position = cardPositionFor(rules.indexOf(rule), rules.lastIndex),
-                        leadingContent = {
-                            RethinkSharedIconContainer(MaterialTheme.colorScheme.primary) {
-                                Icon(MaterialSymbols.Filled.Wifi, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                            }
-                        },
+                        position = cardPositionFor(index, rules.lastIndex),
+                        leadingIcon = MaterialSymbols.Filled.Wifi,
                         trailing = {
+                            // A light "remove from list" inside an editor, not a heavy trash can.
                             IconButton(onClick = { deleteTarget = rule }) {
-                                Icon(MaterialSymbols.Filled.Delete, strings.delete, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Icon(MaterialSymbols.Filled.Close, strings.delete, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         },
                     )

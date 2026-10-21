@@ -99,7 +99,9 @@ fun AppWiseDomainLogsScreen(
 
     RethinkAppWiseLogsScaffold(
         title = appName.ifBlank { stringResource(R.string.lbl_logs) },
-        onBackClick = onBackClick
+        onBackClick = onBackClick,
+        strings = appWiseLogsStrings(),
+        onDeleteClick = { showDeleteDialog = true },
     ) { paddingValues ->
         if (showDeleteDialog) {
             RethinkAppWiseLogsDeleteDialog(
@@ -118,7 +120,6 @@ fun AppWiseDomainLogsScreen(
                 selectedCategory = range.toAppWiseTimeCategory()
                 viewModel.timeCategoryChanged(selectedCategory, true)
             },
-            onDeleteClick = { showDeleteDialog = true },
             onQueryChange = { query ->
                 viewModel.setFilter(query, AppConnectionsViewModel.FilterType.DOMAIN)
             },

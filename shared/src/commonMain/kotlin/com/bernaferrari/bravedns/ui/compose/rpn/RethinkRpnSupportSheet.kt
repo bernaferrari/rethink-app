@@ -1,21 +1,19 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.rpn
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWell
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -160,20 +158,14 @@ private fun SupportSheetHeader(title: String, description: String) {
         horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Surface(
-            modifier = Modifier.size(SharedDimensions.iconContainerLg),
+        RethinkIconWell(
+            icon = MaterialSymbols.Filled.Headset,
+            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            size = SharedDimensions.iconContainerLg,
+            iconSize = SharedDimensions.iconSizeMd,
             shape = CircleShape,
-            color = MaterialTheme.colorScheme.primaryContainer,
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(
-                    imageVector = MaterialSymbols.Filled.Headset,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.size(SharedDimensions.iconSizeMd),
-                )
-            }
-        }
+        )
         Column(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),

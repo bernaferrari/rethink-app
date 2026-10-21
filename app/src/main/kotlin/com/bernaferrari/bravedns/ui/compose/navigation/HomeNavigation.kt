@@ -15,11 +15,9 @@
  */
 package com.bernaferrari.bravedns.ui.compose.navigation
 
-import android.graphics.drawable.Drawable
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -32,10 +30,8 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.paging.compose.collectAsLazyPagingItems
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.data.SummaryStatisticsType
 import com.bernaferrari.bravedns.data.AppConfig
@@ -86,7 +82,6 @@ import com.bernaferrari.bravedns.ui.compose.statistics.SummaryStatisticsScreen
 import com.bernaferrari.bravedns.ui.compose.database.DatabaseScreen
 import com.bernaferrari.bravedns.database.EventDao
 import com.bernaferrari.bravedns.service.EventLogger
-import com.bernaferrari.bravedns.service.FirewallManager
 import com.bernaferrari.bravedns.service.PersistentState
 import com.bernaferrari.bravedns.service.ProxyManager
 import com.bernaferrari.bravedns.viewmodel.AppConnectionsViewModel
@@ -114,10 +109,8 @@ import com.bernaferrari.bravedns.viewmodel.AppInfoViewModel
 import com.bernaferrari.bravedns.database.RefreshDatabase
 import com.bernaferrari.bravedns.viewmodel.ConnectionTrackerViewModel
 import com.bernaferrari.bravedns.viewmodel.DnsLogViewModel
-import com.bernaferrari.bravedns.viewmodel.RethinkLogViewModel
 import com.bernaferrari.bravedns.database.ConnectionTrackerRepository
 import com.bernaferrari.bravedns.database.DnsLogRepository
-import com.bernaferrari.bravedns.database.RethinkLogRepository
 import com.bernaferrari.bravedns.ui.compose.dns.ConfigureOtherDnsScreen
 import com.bernaferrari.bravedns.ui.compose.dns.DnsScreenType
 import com.bernaferrari.bravedns.ui.compose.firewall.UniversalFirewallSettingsScreen
@@ -135,14 +128,10 @@ import com.bernaferrari.bravedns.viewmodel.PurchaseHistoryViewModel
 import com.bernaferrari.bravedns.viewmodel.ServerOrderHistoryViewModel
 import com.bernaferrari.bravedns.viewmodel.BlockFreeDnsViewModel
 import com.bernaferrari.bravedns.ui.compose.logs.AppWiseDomainLogsScreen
-import com.bernaferrari.bravedns.ui.compose.theme.rememberReducedMotion
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 import com.bernaferrari.bravedns.viewmodel.WgConfigViewModel
 import com.bernaferrari.bravedns.ui.compose.wireguard.WgMainScreen
 import com.bernaferrari.bravedns.util.Constants.Companion.UID_EVERYBODY
-import com.bernaferrari.bravedns.util.Utilities
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 enum class HomeDestination(
     val root: RethinkRootDestination,
@@ -420,6 +409,7 @@ fun HomeScreenRoot(
                 HomeScreen(
                     uiState = latestHomeUiState.value,
                     onStartStopClick = onHomeStartStopClick,
+                    onActivityClick = { nav.selectRoot(RethinkRootDestination.Statistics) },
                 )
             }
             entry<RethinkRoute.Statistics> {

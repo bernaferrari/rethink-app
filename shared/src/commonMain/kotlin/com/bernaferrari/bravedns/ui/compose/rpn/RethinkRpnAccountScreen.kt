@@ -3,13 +3,12 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.rpn
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkKeyValueListItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,10 +27,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
 import com.bernaferrari.bravedns.ui.compose.common.RethinkLoadingState
@@ -43,7 +39,6 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.SectionHeaderWithSubtitle
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
-import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListShape
 
 data class RethinkRpnAccountEntry(val title: String, val supporting: String? = null)
 
@@ -191,7 +186,7 @@ private fun RethinkRpnManageTab(
             account.summary.isNotEmpty() -> item {
                 RethinkListGroup {
                     account.summary.forEachIndexed { index, entry ->
-                        RethinkRpnInfoRow(entry, cardPositionFor(index, account.summary.lastIndex))
+                        RethinkKeyValueListItem(entry.title, entry.supporting.orEmpty(), cardPositionFor(index, account.summary.lastIndex))
                     }
                 }
             }
@@ -281,7 +276,7 @@ private fun RethinkRpnAccountEntries(entries: List<RethinkRpnAccountEntry>, keyV
     ) {
         itemsIndexed(entries, key = { index, item -> "${item.title}_${item.supporting}_$index" }) { index, item ->
             if (keyValue) {
-                RethinkRpnInfoRow(item, cardPositionFor(index, entries.lastIndex))
+                RethinkKeyValueListItem(item.title, item.supporting.orEmpty(), cardPositionFor(index, entries.lastIndex))
             } else {
                 RethinkListItem(
                     headline = item.title,
@@ -289,47 +284,6 @@ private fun RethinkRpnAccountEntries(entries: List<RethinkRpnAccountEntry>, keyV
                     position = cardPositionFor(index, entries.lastIndex),
                 )
             }
-        }
-    }
-}
-
-/**
- * Read-only key/value row (Status, Renews, Client ID…): no press feedback, the key as a quiet
- * label on the leading edge and the value as the emphasized content on the trailing edge, so
- * it never reads as a tappable navigation row.
- */
-@Composable
-private fun RethinkRpnInfoRow(entry: RethinkRpnAccountEntry, position: CardPosition) {
-    val topGap = if (position == CardPosition.First || position == CardPosition.Single) {
-        SharedDimensions.spacingNone
-    } else {
-        SharedDimensions.spacingGridTile
-    }
-    Surface(
-        shape = rethinkGroupedListShape(position),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        modifier = Modifier.fillMaxWidth().padding(top = topGap),
-    ) {
-        Row(
-            modifier = Modifier
-                .heightIn(min = SharedDimensions.listItemHeightSm)
-                .padding(horizontal = SharedDimensions.cardPadding, vertical = SharedDimensions.spacingMd),
-            horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                entry.title,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(
-                entry.supporting.orEmpty(),
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.End,
-                modifier = Modifier.weight(1f),
-            )
         }
     }
 }

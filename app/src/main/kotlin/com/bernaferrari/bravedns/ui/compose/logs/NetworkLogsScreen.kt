@@ -19,54 +19,26 @@ import android.graphics.drawable.Drawable
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.ButtonGroupDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.ToggleButton
-import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -74,47 +46,28 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.window.Dialog
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.ui.compose.logs.ConnectionRow
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkToolbarRow
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkToolbarIconToggle
 import com.bernaferrari.bravedns.ui.compose.dns.DnsLogRow
-import com.bernaferrari.bravedns.database.ConnectionTracker
 import com.bernaferrari.bravedns.database.ConnectionTrackerRepository
 import com.bernaferrari.bravedns.database.DnsLog
 import com.bernaferrari.bravedns.database.DnsLogRepository
 import com.bernaferrari.bravedns.database.LogAppCount
-import com.bernaferrari.bravedns.database.RethinkLogRepository
-import com.bernaferrari.bravedns.service.EventLogger
 import com.bernaferrari.bravedns.service.FirewallRuleset
 import com.bernaferrari.bravedns.service.PersistentState
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkBottomSheetCard
 import com.bernaferrari.bravedns.ui.compose.theme.Dimensions
-import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
-import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkModalBottomSheet
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkSearchField
 import com.bernaferrari.bravedns.ui.compose.rememberDrawablePainter
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 import com.bernaferrari.bravedns.util.Utilities
 import com.bernaferrari.bravedns.viewmodel.ConnectionTrackerViewModel
 import com.bernaferrari.bravedns.viewmodel.DnsLogViewModel
-import com.bernaferrari.bravedns.viewmodel.RethinkLogViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
@@ -270,7 +223,7 @@ private fun ConnectionLogsContent(
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             RethinkLogsControlsDeck {
-                RethinkLogToolbarRow {
+                RethinkToolbarRow {
                     RethinkLogFilterRow(
                         selected = parentFilter.toRethinkLogFilter(),
                         strings = logFilterStrings(),
@@ -281,7 +234,7 @@ private fun ConnectionLogsContent(
                         modifier = Modifier.weight(1f)
                     )
 
-                    RethinkLogCompactIconAction(
+                    RethinkToolbarIconToggle(
                         icon = MaterialSymbols.Filled.FilterList,
                         contentDescription = stringResource(R.string.lbl_rules),
                         selected = childFilters.isNotEmpty(),
@@ -290,7 +243,7 @@ private fun ConnectionLogsContent(
                         onClick = { showRulesDialog = true }
                     )
 
-                    RethinkLogCompactIconAction(
+                    RethinkToolbarIconToggle(
                         icon = MaterialSymbols.Filled.Apps,
                         contentDescription = stringResource(R.string.lbl_apps),
                         selected = selectedAppFilter != null,
@@ -443,7 +396,7 @@ private fun DnsLogsContent(
 
     Column(modifier = Modifier.fillMaxSize()) {
         RethinkLogsControlsDeck {
-            RethinkLogToolbarRow {
+            RethinkToolbarRow {
                 RethinkLogFilterRow(
                     selected = filterType.toRethinkLogFilter(),
                     strings = logFilterStrings(),
@@ -453,7 +406,7 @@ private fun DnsLogsContent(
                     modifier = Modifier.weight(1f)
                 )
 
-                RethinkLogCompactIconAction(
+                RethinkToolbarIconToggle(
                     icon = MaterialSymbols.Filled.Apps,
                     contentDescription = stringResource(R.string.lbl_apps),
                     selected = selectedAppFilter != null,

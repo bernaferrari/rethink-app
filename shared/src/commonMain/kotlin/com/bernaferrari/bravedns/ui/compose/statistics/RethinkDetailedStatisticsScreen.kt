@@ -3,6 +3,10 @@
 
 package com.bernaferrari.bravedns.ui.compose.statistics
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillDefaults
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillSize
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWell
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -82,7 +86,15 @@ fun RethinkDetailedStatisticsScreen(
                     onBackClick = onBackClick,
                     scrollBehavior = scrollBehavior,
                     actions = {
-                        if (itemCount > 0) StatisticsCountPill(itemCount)
+                        if (itemCount > 0) {
+                            RethinkPill(
+                                itemCount.toString(),
+                                Modifier.padding(end = SharedDimensions.spacingSm),
+                                colors = RethinkPillDefaults.primary(),
+                                size = RethinkPillSize.Large,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                        }
                     },
                 )
             },
@@ -131,23 +143,6 @@ fun RethinkDetailedStatisticsScreen(
 }
 
 @Composable
-private fun StatisticsCountPill(itemCount: Int) {
-    Surface(
-        shape = RoundedCornerShape(SharedDimensions.cornerRadiusFull),
-        color = MaterialTheme.colorScheme.primaryContainer,
-        modifier = Modifier.padding(end = SharedDimensions.spacingSm),
-    ) {
-        Text(
-            itemCount.toString(),
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onPrimaryContainer,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(horizontal = SharedDimensions.spacingSmMd, vertical = SharedDimensions.spacingXs),
-        )
-    }
-}
-
-@Composable
 private fun StatisticsLoading(label: String, modifier: Modifier) {
     RethinkLoadingState(label = label, modifier = modifier)
 }
@@ -178,21 +173,18 @@ private fun RethinkDetailedStatisticRow(
         supporting = item.supporting,
         position = position,
         leadingContent = {
-            Surface(
-                shape = RoundedCornerShape(SharedDimensions.iconContainerRadius),
-                color = when {
+            RethinkIconWell(
+                containerColor = when {
                     item.leadingContent != null -> Color.Transparent
                     isCountry -> MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.32f)
                     else -> MaterialTheme.colorScheme.surfaceContainerHighest
                 },
-                modifier = Modifier.size(SharedDimensions.iconContainerMd),
+                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
             ) {
-                Box(contentAlignment = Alignment.Center) {
-                    when {
-                        item.leadingContent != null -> item.leadingContent.invoke()
-                        isCountry -> Text(item.countryFlag.orEmpty(), style = MaterialTheme.typography.titleMedium)
-                        else -> Icon(MaterialSymbols.Filled.Info, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
+                when {
+                    item.leadingContent != null -> item.leadingContent.invoke()
+                    isCountry -> Text(item.countryFlag.orEmpty(), style = MaterialTheme.typography.titleMedium)
+                    else -> Icon(MaterialSymbols.Filled.Info, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         },

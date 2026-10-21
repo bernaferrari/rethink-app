@@ -3,6 +3,8 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.dns
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillDefaults
 import androidx.compose.ui.semantics.Role
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceOption
@@ -15,19 +17,16 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -73,7 +72,7 @@ fun RethinkDnsRecordTypesSheet(
         ) {
             RethinkFormSection(strings.title, strings.description) {
                 // Auto/Manual is already visible in the connected group; the pill only adds the count.
-                RethinkDnsSheetPill(strings.selected(selectedCount, types.size))
+                RethinkPill(strings.selected(selectedCount, types.size), colors = RethinkPillDefaults.secondary())
                 RethinkConnectedChoiceGroup(
                     options = listOf(RethinkChoiceOption(true, strings.auto), RethinkChoiceOption(false, strings.manual)),
                     selected = autoMode,
@@ -217,10 +216,3 @@ private data class RethinkLocalBlocklistAction(
     val showProgress: Boolean,
     val onClick: () -> Unit,
 )
-
-@Composable
-private fun RethinkDnsSheetPill(text: String) {
-    Surface(shape = RoundedCornerShape(SharedDimensions.chipCornerRadius), color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f)) {
-        Text(text, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSecondaryContainer, modifier = Modifier.padding(horizontal = SharedDimensions.spacingSm, vertical = SharedDimensions.spacingXs))
-    }
-}

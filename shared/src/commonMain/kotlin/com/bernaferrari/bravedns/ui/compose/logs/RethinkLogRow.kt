@@ -3,6 +3,10 @@
 
 package com.bernaferrari.bravedns.ui.compose.logs
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWell
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillSize
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkKeyValueRow
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -22,7 +26,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -49,7 +52,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
@@ -181,7 +183,7 @@ fun RethinkLogRow(
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm), verticalAlignment = Alignment.CenterVertically) {
                             Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm), verticalAlignment = Alignment.CenterVertically) {
                                 Text(model.appLabel, style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
-                                LogTypeTag(model.typeLabel)
+                                RethinkPill(model.typeLabel, size = RethinkPillSize.Small, fontWeight = FontWeight.Bold)
                             }
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
                                 Text(model.timeLabel, style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"), color = scheme.onSurfaceVariant, maxLines = 1)
@@ -213,17 +215,14 @@ private fun LogIconSlot(statusContainer: Color, icon: (@Composable (Color) -> Un
         if (icon != null) {
             icon(statusContainer)
         } else {
-            Surface(shape = RoundedCornerShape(SharedDimensions.cornerRadiusSmMd), color = statusContainer, modifier = Modifier.size(SharedDimensions.iconContainerSm)) {
-                Box(contentAlignment = Alignment.Center) { Icon(MaterialSymbols.Filled.Language, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(SharedDimensions.iconSizeSm)) }
-            }
+            RethinkIconWell(
+                icon = MaterialSymbols.Filled.Language,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                containerColor = statusContainer,
+                size = SharedDimensions.iconContainerSm,
+                shape = RoundedCornerShape(SharedDimensions.cornerRadiusSmMd),
+            )
         }
-    }
-}
-
-@Composable
-private fun LogTypeTag(label: String) {
-    Box(Modifier.clip(RoundedCornerShape(SharedDimensions.cornerRadiusXs)).background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.58f)).padding(horizontal = SharedDimensions.spacingSm)) {
-        Text(label, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -243,7 +242,18 @@ private fun LogDetailsPanel(model: RethinkLogRowModel, statusColor: Color) {
         Column(Modifier.padding(start = SharedDimensions.spacingXl + SharedDimensions.spacingGridTile, end = SharedDimensions.spacingLg, top = SharedDimensions.spacingSmMd, bottom = SharedDimensions.spacingLg)) {
             model.latencyMs?.let { LogLatency(it, model.latencyStrings) }
             if (model.latencyMs != null && model.details.isNotEmpty()) Spacer(Modifier.height(SharedDimensions.spacingSm))
-            model.details.forEach { detail -> LogDetailRow(detail) }
+            model.details.forEach { detail ->
+                RethinkKeyValueRow(
+                    label = detail.label,
+                    value = detail.value,
+                    modifier = Modifier.padding(vertical = SharedDimensions.spacingXs),
+                    valueColor = if (detail.isError) scheme.error else scheme.onSurface,
+                    monospace = detail.monospace,
+                    labelStyle = MaterialTheme.typography.labelSmall,
+                    valueStyle = MaterialTheme.typography.labelSmall,
+                    valueMaxLines = 2,
+                )
+            }
             model.blocklistsLabel?.takeIf { it.isNotBlank() }?.let { label ->
                 Spacer(Modifier.height(SharedLogDimensions.detailGap))
                 val blocklistShape = RoundedCornerShape(SharedDimensions.cornerRadiusSmMd)
@@ -277,14 +287,6 @@ private fun LogLatency(latency: Long, strings: RethinkLogLatencyStrings?) {
             color = color,
             trackColor = scheme.outlineVariant.copy(alpha = 0.35f),
         )
-    }
-}
-
-@Composable
-private fun LogDetailRow(detail: RethinkLogDetail) {
-    Row(Modifier.fillMaxWidth().padding(vertical = SharedDimensions.spacingXs), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Top) {
-        Text(detail.label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.widthIn(min = 72.dp))
-        Text(detail.value, style = MaterialTheme.typography.labelSmall, color = if (detail.isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface, fontFamily = if (detail.monospace) FontFamily.Monospace else FontFamily.Default, fontWeight = FontWeight.Medium, textAlign = TextAlign.End, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
     }
 }
 

@@ -3,21 +3,16 @@
 /*
  * Copyright 2026 RethinkDNS and its authors
  *
- * The home screen is intentionally a control surface, not a settings summary. It gives
- * protection a single unmistakable visual home: a live beacon that quietly maps the state of
- * the device. Configuration belongs elsewhere; the only supporting information here is the
- * traffic this device has actually handled.
+ * The home screen is a control surface, not a settings summary. It gives protection one
+ * unmistakable hero: a shape-morphing protection mark (a quiet circle when off, a turning cookie
+ * with soft pulse rings when protected), a headline that says the state in words, one primary
+ * action, and the traffic this device has actually handled. Configuration belongs elsewhere.
  */
 package com.bernaferrari.bravedns.ui.compose.home
 
-import androidx.compose.ui.unit.LayoutDirection
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.Outline
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.graphics.shapes.Morph
-import androidx.compose.material3.MaterialShapes
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillColors
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillSize
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.LinearEasing
@@ -28,7 +23,6 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -43,52 +37,48 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.graphics.shapes.Morph
 import com.bernaferrari.bravedns.ui.compose.common.RethinkAdaptiveWidth
-import com.bernaferrari.bravedns.ui.compose.common.WindowWidthClass
 import com.bernaferrari.bravedns.ui.compose.common.isExpanded
 import com.bernaferrari.bravedns.ui.compose.common.rethinkContentWidth
-import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
+import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
-import kotlin.math.PI
-import kotlin.math.cos
 import kotlin.math.roundToInt
-import kotlin.math.sin
-import kotlin.math.sqrt
-import kotlin.random.Random
 
 data class RethinkHomeUiState(
     val isVpnActive: Boolean = false,
@@ -113,14 +103,25 @@ data class RethinkHomeStrings(
     val live: String,
     val offline: String,
     val reconnecting: String,
+    val activityTitle: String,
+    val activitySubtitle: String,
 )
 
 private enum class ProtectionVisualState { Protected, Recovering, Off }
 
 private const val BEACON_TURN_MILLIS = 22_000
-private val BeaconCompactWidth = 184.dp
-private val BeaconCompactHeight = 220.dp
-private const val BEACON_EXPANDED_SCALE = 1.3f
+
+/** Pulse rings emitted per clock turn (one every two seconds). */
+private const val PULSES_PER_TURN = 11
+private const val PULSE_RINGS = 3
+
+/** The morphing shape's share of the mark; the remainder is the pulse field. */
+private const val MARK_SHAPE_RATIO = 0.62f
+private const val MARK_ICON_RATIO = 0.22f
+private val MarkSizeCompact = 248.dp
+private val MarkSizeExpanded = 300.dp
+private val ActionMinWidth = 208.dp
+private val ActivityDividerHeight = 40.dp
 
 @Composable
 fun RethinkHomeScreen(
@@ -129,6 +130,8 @@ fun RethinkHomeScreen(
     onStartStopClick: () -> Unit,
     modifier: Modifier = Modifier,
     showAtmosphere: Boolean = true,
+    /** Opens the full breakdown (Statistics); null keeps the activity card informational. */
+    onActivityClick: (() -> Unit)? = null,
 ) {
     val visualState = uiState.visualState()
     val status = uiState.protectionStatus.ifBlank {
@@ -144,6 +147,14 @@ fun RethinkHomeScreen(
         visualState == ProtectionVisualState.Recovering,
         "homeRecoveringProgress",
     )
+    // The shape itself rides a spatial spring (slight overshoot) so the circle → cookie change
+    // feels physical; colors and the atmosphere keep the calmer effects spec.
+    val motion = LocalRethinkMotion.current
+    val morphProgress by animateFloatAsState(
+        targetValue = if (uiState.isVpnActive) 1f else 0f,
+        animationSpec = if (motion.reducedMotion) snap() else MaterialTheme.motionScheme.slowSpatialSpec(),
+        label = "homeMarkMorph",
+    )
     val phase = rememberBeaconPhase()
     val palette = rememberBeaconPalette(visualState)
 
@@ -154,10 +165,7 @@ fun RethinkHomeScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(insets)
-                .background(
-                    if (showAtmosphere) MaterialTheme.colorScheme.surface else Color.Transparent,
-                ),
+                .padding(insets),
         ) {
             if (showAtmosphere) {
                 ProtectionFlowBackground(
@@ -173,10 +181,11 @@ fun RethinkHomeScreen(
                 )
             }
             RethinkAdaptiveWidth(Modifier.fillMaxSize()) { widthClass ->
+                val expanded = widthClass.isExpanded
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(horizontal = SharedDimensions.spacingXl),
+                        .padding(horizontal = SharedDimensions.screenPaddingHorizontal),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     HomeMasthead(
@@ -195,30 +204,39 @@ fun RethinkHomeScreen(
                             .rethinkContentWidth(widthClass)
                             .padding(top = SharedDimensions.spacingLg),
                     )
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        ProtectionBeacon(
-                            visualState = visualState,
-                            activeProgress = activeProgress,
-                            phase = phase,
-                            palette = palette,
-                            status = status,
-                            subtitle = subtitle,
-                            isActive = uiState.isVpnActive,
-                            action = if (uiState.isVpnActive) strings.stop else strings.start,
-                            onToggle = onStartStopClick,
-                            widthClass = widthClass,
-                        )
-                    }
-                    HomeActivityFooter(
+                    Spacer(Modifier.weight(1f))
+                    ProtectionMark(
+                        visualState = visualState,
+                        activeProgress = activeProgress,
+                        morphProgress = morphProgress,
+                        phase = phase,
+                        palette = palette,
+                        size = if (expanded) MarkSizeExpanded else MarkSizeCompact,
+                    )
+                    Spacer(Modifier.height(SharedDimensions.spacingLg))
+                    HomeStatus(
+                        status = status,
+                        subtitle = subtitle,
+                        isRecovering = visualState == ProtectionVisualState.Recovering,
+                        expanded = expanded,
+                        modifier = Modifier.rethinkContentWidth(widthClass),
+                    )
+                    Spacer(Modifier.height(SharedDimensions.spacingXl))
+                    BeaconAction(
+                        isActive = uiState.isVpnActive,
+                        label = if (uiState.isVpnActive) strings.stop else strings.start,
+                        stateDescription = status,
+                        onClick = onStartStopClick,
+                    )
+                    Spacer(Modifier.weight(1f))
+                    HomeActivityCard(
+                        title = strings.activityTitle,
+                        caption = strings.activitySubtitle,
                         connectionsLabel = strings.connections,
                         dnsQueriesLabel = strings.dnsQueries,
                         connections = uiState.networkLogsCount,
                         dnsQueries = uiState.dnsLogsCount,
+                        onClick = onActivityClick,
                         modifier = Modifier
                             .rethinkContentWidth(widthClass)
                             .padding(bottom = SharedDimensions.spacingLg),
@@ -242,35 +260,26 @@ private fun HomeMasthead(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
+        Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile)) {
             Text(
                 text = name,
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
                 text = networkProtection,
-                style = MaterialTheme.typography.labelSmall,
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        Row(
-            modifier = Modifier.semantics(mergeDescendants = true) {},
-            horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(
-                Modifier
-                    .size(SharedDimensions.spacingSm)
-                    .background(stateColor, CircleShape),
-            )
-            Text(
-                text = stateLabel,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
+        // Live/Off as a tonal status pill, so the state reads as a control-surface readout.
+        RethinkPill(
+            text = stateLabel,
+            colors = RethinkPillColors(MaterialTheme.colorScheme.surfaceContainerHigh, MaterialTheme.colorScheme.onSurface),
+            size = RethinkPillSize.Large,
+            dotColor = stateColor,
+        )
     }
 }
 
@@ -287,7 +296,7 @@ private fun rememberBeaconPalette(state: ProtectionVisualState): BeaconPalette {
     val motion = LocalRethinkMotion.current
     val scheme = MaterialTheme.colorScheme
     // Protected follows RethinkStatusColors ("allowed is always primary"); tertiary only
-    // supplies the outgoing-packet contrast.
+    // supplies contrast in the atmosphere.
     val accentTarget = when (state) {
         ProtectionVisualState.Protected -> scheme.primary
         ProtectionVisualState.Recovering -> scheme.error
@@ -303,8 +312,7 @@ private fun rememberBeaconPalette(state: ProtectionVisualState): BeaconPalette {
         ProtectionVisualState.Recovering -> scheme.tertiary
         ProtectionVisualState.Off -> scheme.outlineVariant
     }
-    // Off reads as a quiet, tonal disc rather than a filled outline-colored blob (which turns
-    // into a heavy grey dot in light themes).
+    // Off is a quiet tonal circle, not a filled outline-colored blob.
     val discTarget = when (state) {
         ProtectionVisualState.Off -> scheme.surfaceContainerHighest
         else -> accentTarget
@@ -370,8 +378,8 @@ private fun animateStateProgress(target: Boolean, label: String): State<Float> {
 }
 
 /**
- * The ambient 0..1 clock behind the beacon and the protection field. It is handed out as a
- * provider and only read in draw scopes, so the screen does not recompose on every frame.
+ * The ambient 0..1 clock behind the mark and the protection field. It is handed out as a
+ * provider and only read in draw/layer scopes, so the screen does not recompose on every frame.
  */
 @Composable
 private fun rememberBeaconPhase(): () -> Float {
@@ -390,249 +398,91 @@ private fun rememberBeaconPhase(): () -> Float {
 
 private val StaticPhase: () -> Float = { 0f }
 
+/**
+ * The hero: a Material shape that morphs from a circle (off) into a 12-sided cookie
+ * (protected) and turns slowly, with pulse rings radiating while protected. Rings and rotation
+ * read the clock in draw/layer scopes only; with reduced motion they hold still.
+ */
 @Composable
-private fun ProtectionBeacon(
+private fun ProtectionMark(
     visualState: ProtectionVisualState,
     activeProgress: Float,
+    morphProgress: Float,
     phase: () -> Float,
     palette: BeaconPalette,
+    size: Dp,
+) {
+    val morph = remember { Morph(MaterialShapes.Circle, MaterialShapes.Cookie12Sided) }
+    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(size)) {
+        Canvas(Modifier.matchParentSize()) {
+            val outer = this.size.minDimension / 2f
+            val inner = outer * MARK_SHAPE_RATIO
+            // A hairline boundary is always there, so "off" still has a defined object.
+            drawCircle(
+                color = palette.accent.copy(alpha = 0.16f),
+                radius = outer - 1.dp.toPx(),
+                style = Stroke(width = 1.dp.toPx()),
+            )
+            if (activeProgress > 0f) {
+                val turn = phase() * PULSES_PER_TURN
+                repeat(PULSE_RINGS) { ring ->
+                    val progress = (turn + ring / PULSE_RINGS.toFloat()) % 1f
+                    drawCircle(
+                        color = palette.accent.copy(alpha = (1f - progress) * 0.32f * activeProgress),
+                        radius = inner + (outer - inner) * progress,
+                        style = Stroke(width = 1.5.dp.toPx()),
+                    )
+                }
+            }
+        }
+        Box(
+            Modifier
+                .size(size * MARK_SHAPE_RATIO)
+                .graphicsLayer { rotationZ = phase() * 360f * activeProgress }
+                .background(palette.disc, MorphShape(morph, morphProgress)),
+        )
+        Icon(
+            imageVector = if (visualState == ProtectionVisualState.Recovering) {
+                MaterialSymbols.Filled.WarningAmber
+            } else {
+                MaterialSymbols.Filled.Shield
+            },
+            contentDescription = null,
+            tint = palette.icon,
+            modifier = Modifier.size(size * MARK_ICON_RATIO),
+        )
+    }
+}
+
+@Composable
+private fun HomeStatus(
     status: String,
     subtitle: String,
-    isActive: Boolean,
-    action: String,
-    onToggle: () -> Unit,
-    widthClass: WindowWidthClass,
-) {
-    val expanded = widthClass.isExpanded
-    Column(
-        modifier = if (expanded) Modifier.rethinkContentWidth(widthClass) else Modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(
-            if (expanded) SharedDimensions.spacingLg else SharedDimensions.spacingMd,
-        ),
-    ) {
-        ProtectionTunnel(
-            visualState = visualState,
-            activeProgress = activeProgress,
-            phase = phase,
-            palette = palette,
-            expanded = expanded,
-        )
-        Spacer(Modifier.height(SharedDimensions.spacingXs))
-        Column(
-            modifier = if (expanded) Modifier.fillMaxWidth() else Modifier,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(
-                text = status,
-                style = if (expanded) {
-                    MaterialTheme.typography.displaySmall
-                } else {
-                    MaterialTheme.typography.headlineLarge
-                },
-                fontWeight = FontWeight.Bold,
-                letterSpacing = (-0.6f).sp,
-                color = if (visualState == ProtectionVisualState.Recovering) {
-                    MaterialTheme.colorScheme.error
-                } else {
-                    MaterialTheme.colorScheme.onSurface
-                },
-            )
-            Spacer(Modifier.height(SharedDimensions.spacingXs))
-            Text(
-                text = subtitle,
-                style = if (expanded) {
-                    MaterialTheme.typography.bodyLarge
-                } else {
-                    MaterialTheme.typography.bodyMedium
-                },
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                modifier = if (expanded) {
-                    Modifier.fillMaxWidth()
-                } else {
-                    Modifier.padding(horizontal = SharedDimensions.spacingSm)
-                },
-            )
-        }
-        Spacer(Modifier.height(SharedDimensions.spacingXs))
-        BeaconAction(
-            isActive = isActive,
-            label = action,
-            stateDescription = status,
-            onClick = onToggle,
-        )
-    }
-}
-
-@Composable
-private fun ProtectionTunnel(
-    visualState: ProtectionVisualState,
-    phase: () -> Float,
-    activeProgress: Float,
-    palette: BeaconPalette,
+    isRecovering: Boolean,
     expanded: Boolean,
+    modifier: Modifier = Modifier,
 ) {
-    val initialRoutes = remember { randomTunnelRoutes() }
-    var incomingLanes by remember { mutableStateOf(initialRoutes.first) }
-    var outgoingLanes by remember { mutableStateOf(initialRoutes.second) }
-    // Reroute twice per turn (mid-cycle and at the wrap). Observed off the composition so the
-    // clock never forces a recomposition; lanes are state read only by the Canvas draw.
-    LaunchedEffect(phase) {
-        snapshotFlow { routingMoment(phase()) }
-            .distinctUntilChanged()
-            .filter { it != 0 }
-            .collect {
-                val nextIncoming = randomIncomingLanes()
-                val outgoingCount = Random.nextInt(
-                    from = 2,
-                    until = minOf(incomingLanes.size, nextIncoming.size) + 1,
-                )
-                outgoingLanes = incomingLanes.shuffled(Random).take(outgoingCount)
-                incomingLanes = nextIncoming
-            }
-    }
-
-    Surface(
-        // A fixed step up on wide screens; a fraction of the window would balloon on desktops.
-        modifier = if (expanded) {
-            Modifier.size(width = BeaconCompactWidth * BEACON_EXPANDED_SCALE, height = BeaconCompactHeight * BEACON_EXPANDED_SCALE)
-        } else {
-            Modifier.size(width = BeaconCompactWidth, height = BeaconCompactHeight)
-        },
-        shape = RoundedCornerShape(SharedDimensions.beaconCornerRadius),
-        color = palette.field.copy(alpha = 0.96f - activeProgress * 0.06f),
-        border = BorderStroke(
-            1.dp,
-            palette.accent.copy(alpha = 0.20f + 0.18f * activeProgress),
-        ),
-        shadowElevation = 0.dp,
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
     ) {
-        Box(contentAlignment = Alignment.Center) {
-            Canvas(Modifier.fillMaxSize()) {
-                val currentPhase = phase()
-                val centerX = size.width / 2f
-                val centerY = size.height / 2f
-                val laneCount = 7
-                repeat(laneCount) { index ->
-                    val spread = (index - (laneCount - 1) / 2f) * size.width * 0.105f
-                    val path = Path().apply {
-                        moveTo(centerX + spread, 0f)
-                        cubicTo(
-                            centerX + spread,
-                            centerY * 0.40f,
-                            centerX + spread * 0.24f,
-                            centerY * 0.70f,
-                            centerX + spread * 0.12f,
-                            centerY,
-                        )
-                        cubicTo(
-                            centerX + spread * 0.24f,
-                            centerY * 1.30f,
-                            centerX + spread,
-                            centerY * 1.60f,
-                            centerX + spread,
-                            size.height,
-                        )
-                    }
-                    drawPath(
-                        path = path,
-                        color = palette.accent.copy(alpha = 0.08f + activeProgress * 0.10f),
-                        style = Stroke(width = 1.dp.toPx(), cap = StrokeCap.Round),
-                    )
-                }
-                val packetWave = (currentPhase * 2f) % 1f
-                incomingLanes.forEachIndexed { index, laneIndex ->
-                    val delay = index * 0.045f
-                    val localProgress =
-                        ((packetWave - delay) / (1f - delay)).coerceIn(0f, 1f)
-                    val progress = 0.03f + packetEase(localProgress) * 0.46f
-                    val spread =
-                        (laneIndex - (laneCount - 1) / 2f) * size.width * 0.105f
-                    val point = tunnelLanePoint(
-                        progress = progress,
-                        centerX = centerX,
-                        centerY = centerY,
-                        height = size.height,
-                        spread = spread,
-                    )
-                    val breath =
-                        0.94f +
-                            0.06f * sin((currentPhase * 6.0 * PI + index * 1.7).toFloat())
-                    val visibility =
-                        packetVisibility(localProgress) *
-                            (0.18f + activeProgress * 0.82f)
-                    drawCircle(
-                        color = palette.accent.copy(
-                            alpha = (visibility * breath).coerceIn(0f, 1f),
-                        ),
-                        radius = ((2.2f + activeProgress * 1.2f) * breath).dp.toPx(),
-                        center = point,
-                    )
-                }
-                outgoingLanes.forEachIndexed { index, laneIndex ->
-                    val delay = 0.03f + index * 0.055f
-                    val localProgress =
-                        ((packetWave - delay) / (1f - delay)).coerceIn(0f, 1f)
-                    val progress = 0.51f + packetEase(localProgress) * 0.46f
-                    val spread =
-                        (laneIndex - (laneCount - 1) / 2f) * size.width * 0.105f
-                    val point = tunnelLanePoint(
-                        progress = progress,
-                        centerX = centerX,
-                        centerY = centerY,
-                        height = size.height,
-                        spread = spread,
-                    )
-                    val breath =
-                        0.94f +
-                            0.06f *
-                            sin((currentPhase * 6.0 * PI + index * 1.9 + 0.8).toFloat())
-                    val visibility =
-                        packetVisibility(localProgress) *
-                            (0.18f + activeProgress * 0.82f)
-                    drawCircle(
-                        color = palette.secondary.copy(
-                            alpha = (visibility * breath).coerceIn(0f, 1f),
-                        ),
-                        radius = ((2.2f + activeProgress * 1.2f) * breath).dp.toPx(),
-                        center = point,
-                    )
-                }
-                drawCircle(
-                    color = palette.accent.copy(alpha = 0.12f),
-                    radius = 45.dp.toPx(),
-                    center = Offset(centerX, centerY),
-                    style = Stroke(width = 1.dp.toPx()),
-                )
-            }
-            // The one hero moment on Home: the disc morphs from a circle (off) into a 9-sided
-            // cookie (protected) and turns slowly with the beacon clock. Rotation is applied in
-            // the layer, so the clock still never recomposes; the icon stays upright above it.
-            val morph = remember { Morph(MaterialShapes.Circle, MaterialShapes.Cookie9Sided) }
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(BeaconDiscSize)) {
-                Box(
-                    Modifier
-                        .matchParentSize()
-                        .graphicsLayer { rotationZ = phase() * 360f * activeProgress }
-                        .background(palette.disc, MorphShape(morph, activeProgress)),
-                )
-                Icon(
-                        imageVector = if (visualState == ProtectionVisualState.Recovering) {
-                            MaterialSymbols.Filled.WarningAmber
-                        } else {
-                            MaterialSymbols.Filled.Shield
-                        },
-                        contentDescription = null,
-                        tint = palette.icon,
-                        modifier = Modifier.size(30.dp),
-                    )
-            }
-        }
+        Text(
+            text = status,
+            style = if (expanded) MaterialTheme.typography.displayMedium else MaterialTheme.typography.displaySmall,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = (-0.5f).sp,
+            textAlign = TextAlign.Center,
+            color = if (isRecovering) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+        )
+        Text(
+            text = subtitle,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
     }
 }
-
-private val BeaconDiscSize = 72.dp
 
 /** A [Morph] between two normalized Material shapes, scaled to the layout size. */
 private class MorphShape(private val morph: Morph, private val progress: Float) : Shape {
@@ -652,95 +502,11 @@ private class MorphShape(private val morph: Morph, private val progress: Float) 
     }
 }
 
-private fun routingMoment(phase: Float): Int = when {
-    phase in 0.48f..0.52f -> 1
-    phase >= 0.98f || phase <= 0.02f -> 2
-    else -> 0
-}
-
-private fun randomIncomingLanes(): List<Int> =
-    (0 until 7)
-        .shuffled(Random)
-        .take(Random.nextInt(from = 3, until = 6))
-
-private fun randomTunnelRoutes(): Pair<List<Int>, List<Int>> {
-    val incoming = randomIncomingLanes()
-    val outgoingCount = Random.nextInt(from = 2, until = incoming.size + 1)
-    val outgoing = incoming.shuffled(Random).take(outgoingCount)
-    return incoming to outgoing
-}
-
-private fun packetEase(progress: Float): Float =
-    ((1f - cos((PI * progress).toFloat())) * 0.5f)
-
-private fun packetVisibility(progress: Float): Float =
-    sqrt(sin((PI * progress).toFloat()).coerceAtLeast(0f))
-
-private fun tunnelLanePoint(
-    progress: Float,
-    centerX: Float,
-    centerY: Float,
-    height: Float,
-    spread: Float,
-): Offset {
-    val firstHalf = progress < 0.5f
-    val t = if (firstHalf) progress * 2f else (progress - 0.5f) * 2f
-    return if (firstHalf) {
-        Offset(
-            x = cubicBezier(
-                start = centerX + spread,
-                control1 = centerX + spread,
-                control2 = centerX + spread * 0.24f,
-                end = centerX + spread * 0.12f,
-                t = t,
-            ),
-            y = cubicBezier(
-                start = 0f,
-                control1 = centerY * 0.40f,
-                control2 = centerY * 0.70f,
-                end = centerY,
-                t = t,
-            ),
-        )
-    } else {
-        Offset(
-            x = cubicBezier(
-                start = centerX + spread * 0.12f,
-                control1 = centerX + spread * 0.24f,
-                control2 = centerX + spread,
-                end = centerX + spread,
-                t = t,
-            ),
-            y = cubicBezier(
-                start = centerY,
-                control1 = centerY * 1.30f,
-                control2 = centerY * 1.60f,
-                end = height,
-                t = t,
-            ),
-        )
-    }
-}
-
-private fun cubicBezier(
-    start: Float,
-    control1: Float,
-    control2: Float,
-    end: Float,
-    t: Float,
-): Float {
-    val inverse = 1f - t
-    return inverse * inverse * inverse * start +
-        3f * inverse * inverse * t * control1 +
-        3f * inverse * t * t * control2 +
-        t * t * t * end
-}
-
 /**
  * The one hero action on Home. A plain [Button] (not a ToggleButton): its label already flips
  * between Start and Stop, so toggle semantics would announce "Stop, on". The protection state is
  * exposed as the state description instead, and press feedback comes from the expressive
- * shape morph. Active swaps to a high-contrast inverse pill with square-ish corners.
+ * shape morph. Active swaps to a quieter tonal button with square-ish corners.
  */
 @Composable
 private fun BeaconAction(
@@ -760,11 +526,13 @@ private fun BeaconAction(
         },
         modifier = Modifier
             .heightIn(min = height)
+            .widthIn(min = ActionMinWidth)
             .semantics { this.stateDescription = stateDescription },
         contentPadding = ButtonDefaults.contentPaddingFor(height),
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (isActive) scheme.inverseSurface else scheme.primary,
-            contentColor = if (isActive) scheme.inverseOnSurface else scheme.onPrimary,
+            // Starting is the call to action; once protected, stopping is secondary and tonal.
+            containerColor = if (isActive) scheme.surfaceContainerHighest else scheme.primary,
+            contentColor = if (isActive) scheme.onSurface else scheme.onPrimary,
         ),
     ) {
         Icon(
@@ -777,47 +545,97 @@ private fun BeaconAction(
     }
 }
 
+/** Traffic handled since logs were last cleared, as hero numbers in a tonal card. */
 @Composable
-private fun HomeActivityFooter(
+private fun HomeActivityCard(
+    title: String,
+    caption: String,
     connectionsLabel: String,
     dnsQueriesLabel: String,
     connections: Long,
     dnsQueries: Long,
+    onClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically,
+    val shape = RoundedCornerShape(SharedDimensions.groupCornerRadius)
+    val color = MaterialTheme.colorScheme.surfaceContainerLow
+    val content: @Composable () -> Unit = { HomeActivityContent(title, caption, connectionsLabel, dnsQueriesLabel, connections, dnsQueries, onClick != null) }
+    if (onClick != null) {
+        Surface(onClick = onClick, modifier = modifier, shape = shape, color = color, content = content)
+    } else {
+        Surface(modifier = modifier, shape = shape, color = color, content = content)
+    }
+}
+
+@Composable
+private fun HomeActivityContent(
+    title: String,
+    caption: String,
+    connectionsLabel: String,
+    dnsQueriesLabel: String,
+    connections: Long,
+    dnsQueries: Long,
+    navigable: Boolean,
+) {
+    Column(
+        modifier = Modifier.padding(SharedDimensions.cardPadding),
+        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
     ) {
-        ActivityMetric(
-            value = formatCompactCount(connections),
-            label = connectionsLabel,
-            modifier = Modifier.weight(1f),
-        )
-        ActivityMetric(
-            value = formatCompactCount(dnsQueries),
-            label = dnsQueriesLabel,
-            modifier = Modifier.weight(1f),
-        )
+        Row(verticalAlignment = Alignment.Bottom) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                text = caption,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            if (navigable) {
+                Icon(
+                    MaterialSymbols.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(SharedDimensions.iconSizeSm),
+                )
+            }
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            ActivityMetric(
+                value = formatCompactCount(connections),
+                label = connectionsLabel,
+                modifier = Modifier.weight(1f),
+            )
+            VerticalDivider(
+                modifier = Modifier
+                    .height(ActivityDividerHeight)
+                    .padding(horizontal = SharedDimensions.spacingLg),
+                color = MaterialTheme.colorScheme.outlineVariant,
+            )
+            ActivityMetric(
+                value = formatCompactCount(dnsQueries),
+                label = dnsQueriesLabel,
+                modifier = Modifier.weight(1f),
+            )
+        }
     }
 }
 
 @Composable
 private fun ActivityMetric(value: String, label: String, modifier: Modifier = Modifier) {
-    Column(modifier = modifier.semantics(mergeDescendants = true) {}, horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(modifier = modifier.semantics(mergeDescendants = true) {}) {
         Text(
             text = value,
-            style = MaterialTheme.typography.titleMedium.copy(
-                fontWeight = FontWeight.SemiBold,
-                letterSpacing = (-0.2f).sp,
-                fontFeatureSettings = "tnum",
-            ),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.headlineSmall.copy(fontFeatureSettings = "tnum"),
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
         )
         Text(
             text = label,
-            style = MaterialTheme.typography.labelSmall,
+            style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1,
         )

@@ -65,21 +65,21 @@ internal fun DemoLogsScreen(modifier: Modifier, onBack: () -> Unit) {
             }
             Column(Modifier.fillMaxSize()) {
                 RethinkLogsControlsDeck {
-                    RethinkLogToolbarRow {
+                    RethinkToolbarRow {
                         RethinkLogFilterRow(
                             selected = networkFilter,
                             strings = demoLogListStrings,
                             onSelected = { networkFilter = it },
                             modifier = Modifier.weight(1f),
                         )
-                        RethinkLogCompactIconAction(
+                        RethinkToolbarIconToggle(
                             icon = MaterialSymbols.Filled.FilterList,
                             contentDescription = "Filter rules",
                             selected = selectedRules.isNotEmpty(),
                             count = selectedRules.size,
                             onClick = { showRulesPicker = true },
                         )
-                        RethinkLogCompactIconAction(
+                        RethinkToolbarIconToggle(
                             icon = MaterialSymbols.Filled.Apps,
                             contentDescription = "Filter apps",
                             selected = selectedNetworkApp != null,
@@ -105,14 +105,14 @@ internal fun DemoLogsScreen(modifier: Modifier, onBack: () -> Unit) {
             }
             Column(Modifier.fillMaxSize()) {
                 RethinkLogsControlsDeck {
-                    RethinkLogToolbarRow {
+                    RethinkToolbarRow {
                         RethinkLogFilterRow(
                             selected = dnsFilter,
                             strings = demoLogListStrings,
                             onSelected = { dnsFilter = it },
                             modifier = Modifier.weight(1f),
                         )
-                        RethinkLogCompactIconAction(
+                        RethinkToolbarIconToggle(
                             icon = MaterialSymbols.Filled.Apps,
                             contentDescription = "Filter apps",
                             selected = selectedDnsApp != null,

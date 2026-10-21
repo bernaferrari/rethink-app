@@ -67,6 +67,8 @@ internal val demoHomeStrings = RethinkHomeStrings(
     live = "Live",
     offline = "Off",
     reconnecting = "Reconnecting",
+    activityTitle = "Activity",
+    activitySubtitle = "Since logs were last cleared",
 )
 
 internal val demoConfigureStrings = RethinkConfigureStrings(

@@ -1,6 +1,7 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.wireguard
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,7 +18,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -181,7 +181,7 @@ private fun RethinkWireguardHopRow(
             if (chips.isNotEmpty()) {
                 Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
                     chips.forEach { label ->
-                        RethinkWireguardHopTag(label)
+                        RethinkPill(label)
                     }
                 }
             }
@@ -190,23 +190,5 @@ private fun RethinkWireguardHopRow(
                 LinearProgressIndicator(Modifier.fillMaxWidth())
             }
         }
-    }
-}
-
-@Composable
-private fun RethinkWireguardHopTag(label: String) {
-    Surface(
-        shape = RoundedCornerShape(SharedDimensions.chipCornerRadius),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(
-                horizontal = SharedDimensions.spacingSm,
-                vertical = SharedDimensions.spacingXs,
-            ),
-        )
     }
 }

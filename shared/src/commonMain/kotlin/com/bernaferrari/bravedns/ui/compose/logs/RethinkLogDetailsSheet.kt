@@ -3,6 +3,7 @@
 
 package com.bernaferrari.bravedns.ui.compose.logs
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkKeyValueRow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -54,34 +55,20 @@ fun RethinkLogDetailsSheet(
                     fontWeight = FontWeight.SemiBold,
                 )
             }
-            details.forEach { entry -> RethinkLogDetailRow(entry) }
+            details.forEach { entry ->
+                RethinkKeyValueRow(
+                    label = entry.label,
+                    value = entry.value,
+                    modifier = Modifier.padding(vertical = SharedDimensions.spacingXs),
+                    valueColor = if (entry.isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+                    valueFontWeight = FontWeight.SemiBold,
+                )
+            }
 
             Spacer(modifier = Modifier.height(SharedDimensions.spacingXl))
             TextButton(onClick = dismissSheet, modifier = Modifier.align(Alignment.End)) {
                 Text(text = dismissLabel)
             }
         }
-    }
-}
-
-@Composable
-private fun RethinkLogDetailRow(entry: RethinkLogDetailEntry) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = SharedDimensions.spacingXs),
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Text(
-            text = entry.label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Text(
-            text = entry.value,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = if (entry.isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
-        )
     }
 }

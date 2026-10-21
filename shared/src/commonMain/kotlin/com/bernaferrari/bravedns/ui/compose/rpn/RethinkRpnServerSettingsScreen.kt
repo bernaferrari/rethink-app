@@ -2,21 +2,18 @@
 
 package com.bernaferrari.bravedns.ui.compose.rpn
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWellContainerColor
 import androidx.compose.ui.semantics.Role
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -25,10 +22,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.bernaferrari.bravedns.ui.compose.components.RethinkSharedIconContainer
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLazyColumnScreenScaffold
@@ -184,7 +179,7 @@ private fun RpnToggleRow(
     RethinkListItem(
         headline = title, supporting = description.takeIf(String::isNotBlank), position = position,
         selection = RethinkListSelection(checked = checked, onCheckedChange = onCheckedChange),
-        leadingContent = { RethinkSharedIconContainer(MaterialTheme.colorScheme.primary) { Icon(icon, null, tint = MaterialTheme.colorScheme.primary) } },
+        leadingIcon = icon,
         trailing = { Switch(checked = checked, onCheckedChange = null) },
     )
 }
@@ -197,7 +192,9 @@ private fun RpnActionRow(
     val accent = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
     RethinkListItem(
         headline = title, supporting = description, position = position, enabled = enabled, onClick = onClick,
-        leadingContent = { RethinkSharedIconContainer(accent) { Icon(icon, null, tint = accent) } },
+        leadingIcon = icon,
+        leadingIconTint = accent,
+        leadingIconContainerColor = if (destructive) accent.copy(alpha = 0.16f) else RethinkIconWellContainerColor,
         // Navigation rows get the standard chevron; destructive actions open a confirmation instead.
         showTrailingChevron = !destructive,
     )

@@ -1,6 +1,9 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.wireguard
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillDefaults
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,7 +19,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -99,18 +101,7 @@ fun RethinkWireguardConfigCard(
                             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
                         ) {
                             state.chips.forEach { chip ->
-                                Surface(
-                                    shape = RoundedCornerShape(SharedDimensions.cornerRadiusFull),
-                                    color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.72f),
-                                ) {
-                                    Text(
-                                        chip,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                        maxLines = 1,
-                                        modifier = Modifier.padding(horizontal = SharedDimensions.spacingSm, vertical = SharedDimensions.spacingXs),
-                                    )
-                                }
+                                RethinkPill(chip, colors = RethinkPillDefaults.secondary(), size = RethinkPillSize.Small)
                             }
                         }
                     }

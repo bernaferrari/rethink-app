@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 /*
  * Copyright 2026 RethinkDNS and its authors
  *
@@ -6,6 +8,11 @@
  */
 package com.bernaferrari.bravedns.ui.compose.home
 
+import androidx.compose.ui.text.style.LineBreak
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.toShape
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,7 +25,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -96,6 +102,7 @@ fun RethinkWelcomeScreen(
 
                 Button(
                     onClick = onFinish,
+                    shapes = ButtonDefaults.shapes(),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(SharedDimensions.buttonHeightLg),
@@ -113,17 +120,19 @@ private fun RethinkWelcomeHero(content: RethinkWelcomeContent) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
     ) {
+        // The same 12-sided cookie Home shows when protected: first run introduces the mark the
+        // user will see every day.
         Surface(
             modifier = Modifier.size(SharedDimensions.iconSizeXl * 2),
-            shape = RoundedCornerShape(SharedDimensions.heroCornerRadius),
-            color = MaterialTheme.colorScheme.primaryContainer,
+            shape = MaterialShapes.Cookie12Sided.toShape(),
+            color = MaterialTheme.colorScheme.primary,
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
                     imageVector = content.heroIcon,
                     contentDescription = null,
                     modifier = Modifier.size(SharedDimensions.iconSizeXl),
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    tint = MaterialTheme.colorScheme.onPrimary,
                 )
             }
         }
@@ -133,8 +142,9 @@ private fun RethinkWelcomeHero(content: RethinkWelcomeContent) {
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
         ) {
             Text(
-                text = content.title,
-                style = MaterialTheme.typography.headlineLarge,
+                // Keep hyphenated names ("Re-Rethink") whole; balance the heading's lines.
+                text = content.title.replace('-', '\u2011'),
+                style = MaterialTheme.typography.headlineLarge.copy(lineBreak = LineBreak.Heading),
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
             )

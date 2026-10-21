@@ -91,6 +91,7 @@ fun WgPeerRow(
             deleteMessage = stringResource(R.string.config_delete_dialog_desc),
             deleteConfirm = deleteTitle,
             cancel = stringResource(R.string.lbl_cancel),
+            moreActions = stringResource(R.string.cd_more),
         ),
         onEdit = { showEditDialog = true },
         onDelete = { deletePeer(scope, configId, wgPeer, onPeerChanged) },

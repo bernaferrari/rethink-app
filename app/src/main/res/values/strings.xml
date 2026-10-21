@@ -2439,4 +2439,16 @@
     <string name="welcome_feature_dns_desc">Encrypt lookups and block ads, trackers, and malware.</string>
     <string name="welcome_feature_routing">Secure routing</string>
     <string name="welcome_feature_routing_desc">Send apps through WireGuard or a proxy on any network.</string>
+    <string name="custom_rule_port_format">Port %1$d</string>
+    <plurals name="custom_rules_selected_count">
+        <item quantity="one">%1$d selected</item>
+        <item quantity="other">%1$d selected</item>
+    </plurals>
+    <plurals name="custom_rules_delete_selected_title">
+        <item quantity="one">Delete %1$d rule?</item>
+        <item quantity="other">Delete %1$d rules?</item>
+    </plurals>
+    <string name="custom_rules_clear_selection">Clear selection</string>
+    <string name="custom_rules_select">Select</string>
+    <string name="custom_rules_delete_rule">Delete rule</string>
 </resources>

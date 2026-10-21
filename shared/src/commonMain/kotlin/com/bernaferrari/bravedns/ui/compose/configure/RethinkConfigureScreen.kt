@@ -1,6 +1,8 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.configure
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkSearchField
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWell
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import com.bernaferrari.bravedns.ui.compose.common.RethinkAdaptiveWidth
@@ -11,7 +13,6 @@ import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -26,17 +27,13 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -60,7 +57,6 @@ import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListPairShape
-import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListShape
 
 enum class RethinkConfigureLayout { GridFour, GridTriad, List }
 
@@ -140,37 +136,17 @@ fun RethinkConfigureScreen(
                         }
                     },
                     title = {
-                        val searchShape = RoundedCornerShape(SharedDimensions.cornerRadiusFull)
-                        TextField(
-                            value = query,
-                            onValueChange = onQueryChange,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .focusRequester(focusRequester)
-                                .clip(searchShape),
-                            singleLine = true,
-                            textStyle = MaterialTheme.typography.bodyLarge,
-                            placeholder = {
-                                Text(strings.searchHint, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            },
+                        RethinkSearchField(
+                            query = query,
+                            onQueryChange = onQueryChange,
+                            placeholder = strings.searchHint,
+                            modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            clearQueryContentDescription = strings.clearSearch,
                             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                            shape = searchShape,
-                            colors = TextFieldDefaults.colors(
-                                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                                disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                                focusedIndicatorColor = Color.Transparent,
-                                unfocusedIndicatorColor = Color.Transparent,
-                                disabledIndicatorColor = Color.Transparent,
-                            ),
+                            // The back arrow already says "search mode"; no second glyph.
+                            leadingContent = null,
                         )
-                    },
-                    actions = {
-                        if (query.isNotEmpty()) {
-                            IconButton(onClick = { onQueryChange("") }) {
-                                Icon(MaterialSymbols.Filled.Close, strings.clearSearch)
-                            }
-                        }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.surface,
@@ -387,17 +363,12 @@ private fun ConfigureListRow(entry: RethinkConfigureEntry, position: CardPositio
 }
 
 @Composable
-private fun ConfigureIconWell(colors: ConfigureTileColors, icon: @Composable () -> Unit) {
-    Surface(
-        shape = RoundedCornerShape(SharedDimensions.cornerRadiusMdLg),
-        color = colors.well,
-        modifier = Modifier.size(SharedDimensions.iconContainerMd),
-    ) {
-        Box(contentAlignment = Alignment.Center) {
-            CompositionLocalProvider(LocalContentColor provides colors.icon) { icon() }
-        }
-    }
-}
+private fun ConfigureIconWell(colors: ConfigureTileColors, icon: @Composable () -> Unit) = RethinkIconWell(
+    containerColor = colors.well,
+    contentColor = colors.icon,
+    shape = RoundedCornerShape(SharedDimensions.cornerRadiusMdLg),
+    content = icon,
+)
 @Composable private fun NoResults(strings: RethinkConfigureStrings) = Surface(shape = RoundedCornerShape(SharedDimensions.cornerRadiusXl), color = MaterialTheme.colorScheme.surfaceContainerLow, border = BorderStroke(SharedDimensions.dividerThicknessBold, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))) {
     RethinkEmptyState(icon = MaterialSymbols.Filled.Search, title = strings.noResultsTitle, message = strings.noResultsSubtitle)
 }

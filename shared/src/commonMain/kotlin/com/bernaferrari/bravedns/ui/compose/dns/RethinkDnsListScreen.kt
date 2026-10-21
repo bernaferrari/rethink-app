@@ -2,6 +2,10 @@
 
 package com.bernaferrari.bravedns.ui.compose.dns
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillDefaults
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillSize
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWell
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
@@ -200,15 +204,12 @@ private fun DnsProtocolCard(
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Surface(
-                    shape = RoundedCornerShape(SharedDimensions.iconContainerRadius),
-                    color = titleColor.copy(alpha = 0.12f),
-                    modifier = Modifier.size(SharedDimensions.iconContainerSm),
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(protocol.icon, contentDescription = null, tint = titleColor, modifier = Modifier.size(SharedDimensions.iconSizeSm))
-                    }
-                }
+                RethinkIconWell(
+                    icon = protocol.icon,
+                    tint = titleColor,
+                    containerColor = titleColor.copy(alpha = 0.12f),
+                    size = SharedDimensions.iconContainerSm,
+                )
                 Spacer(Modifier.weight(1f))
                 if (selected) {
                     Icon(
@@ -257,9 +258,9 @@ private fun DnsCapabilityChipRow(capabilities: List<RethinkDnsCapability>, strin
     val gap = SharedDimensions.spacingXs
     Layout(
         content = {
-            capabilities.forEach { capability -> DnsCapabilityChip(capability.tint(), strings.labelFor(capability)) }
+            capabilities.forEach { capability -> RethinkPill(strings.labelFor(capability), colors = RethinkPillDefaults.status(capability.tint()), size = RethinkPillSize.Small) }
             // One candidate overflow chip per possible hidden count; only the needed one is placed.
-            for (hidden in 1..capabilities.size) DnsCapabilityChip(overflowColor, "+$hidden")
+            for (hidden in 1..capabilities.size) RethinkPill("+$hidden", colors = RethinkPillDefaults.status(overflowColor), size = RethinkPillSize.Small)
         },
     ) { measurables, constraints ->
         val loose = Constraints(maxWidth = constraints.maxWidth)
@@ -284,24 +285,6 @@ private fun DnsCapabilityChipRow(capabilities: List<RethinkDnsCapability>, strin
                 x += placeable.width + gapPx
             }
         }
-    }
-}
-
-@Composable
-private fun DnsCapabilityChip(color: Color, label: String) {
-    Surface(
-        shape = RoundedCornerShape(SharedDimensions.cornerRadiusFull),
-        color = color.copy(alpha = 0.14f),
-    ) {
-        Text(
-            label,
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.Medium,
-            color = color,
-            maxLines = 1,
-            softWrap = false,
-            modifier = Modifier.padding(horizontal = SharedDimensions.spacingSm, vertical = SharedDimensions.spacingXs),
-        )
     }
 }
 

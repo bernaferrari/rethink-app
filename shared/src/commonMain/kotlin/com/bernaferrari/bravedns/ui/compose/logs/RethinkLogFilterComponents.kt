@@ -3,16 +3,16 @@
 
 package com.bernaferrari.bravedns.ui.compose.logs
 
-import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.FilledTonalIconToggleButton
-import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Badge
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWell
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWellContainerColor
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillDefaults
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -35,12 +35,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
@@ -93,75 +91,6 @@ fun RethinkLogsControlsDeck(
         verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
         content = { content() },
     )
-}
-
-/**
- * One toolbar strip (connected group or search field + [RethinkLogCompactIconAction]s). Fixes
- * the gap between controls and their vertical centering so every log-like screen (network, DNS,
- * console, events, database) lines up the same way.
- */
-@Composable
-fun RethinkLogToolbarRow(
-    modifier: Modifier = Modifier,
-    content: @Composable RowScope.() -> Unit,
-) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
-        verticalAlignment = Alignment.CenterVertically,
-        content = content,
-    )
-}
-
-/**
- * Toolbar action beside the log filter group. Same height and tonal family as the connected
- * segments so the row reads as one control strip; [selected] (an active filter) uses the checked
- * container, and [count] shows as a badge. Toggle semantics, since it reflects filter state.
- */
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-fun RethinkLogCompactIconAction(
-    icon: ImageVector,
-    contentDescription: String,
-    selected: Boolean = false,
-    enabled: Boolean = true,
-    count: Int = 0,
-    modifier: Modifier = Modifier,
-    /** Match the neighbouring control's height (48dp groups; 56dp text fields). */
-    size: Dp = SharedDimensions.touchTargetMin,
-    /** Shows a dot badge while [selected] when there is no [count] to show. */
-    showSelectedDot: Boolean = false,
-    onClick: () -> Unit,
-) {
-    BadgedBox(
-        modifier = modifier,
-        badge = {
-            when {
-                count > 0 -> Badge { Text(count.toString()) }
-                showSelectedDot && selected -> Badge()
-            }
-        },
-    ) {
-        FilledTonalIconToggleButton(
-            checked = selected,
-            onCheckedChange = { onClick() },
-            enabled = enabled,
-            shapes = IconButtonDefaults.toggleableShapes(),
-            colors = IconButtonDefaults.filledTonalIconToggleButtonColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                checkedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                checkedContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-            ),
-            modifier = Modifier.size(size),
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = contentDescription,
-                modifier = Modifier.size(SharedDimensions.iconSizeSm),
-            )
-        }
-    }
 }
 
 /** Common app picker; a host may supply platform app artwork for each real app option. */
@@ -295,17 +224,7 @@ private fun RethinkLogAppFilterItem(
                 modifier = Modifier.weight(1f),
                 color = MaterialTheme.colorScheme.onSurface,
             )
-            Surface(
-                shape = RoundedCornerShape(SharedDimensions.cornerRadiusFull),
-                color = if (selected) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.84f) else MaterialTheme.colorScheme.surfaceContainerHigh,
-            ) {
-                Text(
-                    text = count.toString(),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = if (selected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = SharedDimensions.spacingSm, vertical = SharedDimensions.spacingGridTile),
-                )
-            }
+            RethinkPill(count.toString(), colors = if (selected) RethinkPillDefaults.secondary() else RethinkPillDefaults.neutral())
         }
     }
 }
@@ -341,9 +260,7 @@ fun RethinkLogRulesDialog(
                     Text(strings.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                     if (selectedCount > 0) {
                         Spacer(Modifier.size(SharedDimensions.spacingSm))
-                        Surface(shape = RoundedCornerShape(SharedDimensions.cornerRadiusFull), color = MaterialTheme.colorScheme.primaryContainer) {
-                            Text(selectedCount.toString(), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimaryContainer, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(horizontal = SharedDimensions.spacingSm, vertical = SharedDimensions.spacingGridTile))
-                        }
+                        RethinkPill(selectedCount.toString(), colors = RethinkPillDefaults.primary(), size = RethinkPillSize.Small, fontWeight = FontWeight.SemiBold)
                     }
                     Spacer(Modifier.weight(1f))
                     if (selectedCount > 0) TextButton(onClick = onClear) { Text(strings.clear, fontWeight = FontWeight.SemiBold) }
@@ -383,18 +300,16 @@ private fun RethinkLogRuleIconSlot(
     icon: (@Composable (tint: androidx.compose.ui.graphics.Color) -> Unit)?,
     selected: Boolean,
 ) {
-    Surface(
-        shape = RoundedCornerShape(SharedDimensions.iconContainerRadius),
-        color = if (selected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f) else MaterialTheme.colorScheme.surfaceContainerHighest,
-        modifier = Modifier.size(SharedDimensions.iconContainerSm),
+    val tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+    RethinkIconWell(
+        containerColor = if (selected) RethinkIconWellContainerColor else MaterialTheme.colorScheme.surfaceContainerHighest,
+        contentColor = tint,
+        size = SharedDimensions.iconContainerSm,
     ) {
-        Box(contentAlignment = Alignment.Center) {
-            val tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-            if (icon == null) {
-                Icon(MaterialSymbols.Filled.FilterList, null, modifier = Modifier.size(SharedDimensions.iconSizeSm), tint = tint)
-            } else {
-                icon(tint)
-            }
+        if (icon == null) {
+            Icon(MaterialSymbols.Filled.FilterList, null, modifier = Modifier.size(SharedDimensions.iconSizeSm), tint = tint)
+        } else {
+            icon(tint)
         }
     }
 }

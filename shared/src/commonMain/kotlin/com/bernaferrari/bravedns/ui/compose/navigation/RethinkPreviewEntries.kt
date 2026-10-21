@@ -81,6 +81,7 @@ fun EntryProviderScope<NavKey>.rethinkPreviewEntries(
                 strings = demoHomeStrings,
                 onStartStopClick = { vpnOn.value = !vpnOn.value },
                 showAtmosphere = false,
+                onActivityClick = { nav.selectRoot(RethinkRootDestination.Statistics) },
             )
         }
     }

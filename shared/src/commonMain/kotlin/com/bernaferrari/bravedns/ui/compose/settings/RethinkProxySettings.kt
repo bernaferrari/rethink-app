@@ -3,11 +3,8 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.settings
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkSplitSwitch
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.ui.Alignment
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.Row
-import androidx.compose.material3.VerticalDivider
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
@@ -24,7 +21,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -32,7 +28,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
@@ -225,15 +220,12 @@ private fun RethinkProxyToggleRow(
         trailing = {
             // The row opens configuration; the switch is a separate action. The divider makes the
             // two targets visually distinct.
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd)) {
-                VerticalDivider(Modifier.height(SharedDimensions.iconSizeLg))
-                Switch(
-                    checked = checked,
-                    enabled = enabled,
-                    onCheckedChange = onCheckedChange,
-                    modifier = Modifier.semantics { contentDescription = title },
-                )
-            }
+            RethinkSplitSwitch(
+                checked = checked,
+                enabled = enabled,
+                onCheckedChange = onCheckedChange,
+                contentDescription = title,
+            )
         },
         onClick = onRowClick,
     )
@@ -269,15 +261,12 @@ private fun RethinkOrbotPanel(
             highlighted = highlighted,
             enabled = enabled,
             trailing = {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd)) {
-                    VerticalDivider(Modifier.height(SharedDimensions.iconSizeLg))
-                    Switch(
-                        checked = state.orbotEnabled,
-                        enabled = enabled,
-                        onCheckedChange = onCheckedChange,
-                        modifier = Modifier.semantics { contentDescription = strings.orbot },
-                    )
-                }
+                RethinkSplitSwitch(
+                    checked = state.orbotEnabled,
+                    enabled = enabled,
+                    onCheckedChange = onCheckedChange,
+                    contentDescription = strings.orbot,
+                )
             },
             onClick = onMainClick,
         )

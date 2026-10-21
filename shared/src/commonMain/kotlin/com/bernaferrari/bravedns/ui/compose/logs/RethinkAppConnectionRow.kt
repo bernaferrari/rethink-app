@@ -1,6 +1,8 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.logs
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillDefaults
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -92,15 +94,7 @@ fun RethinkAppConnectionRow(
                         Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
-                Surface(shape = CircleShape, color = accent.copy(alpha = 0.12f)) {
-                    Text(
-                        item.count,
-                        style = MaterialTheme.typography.labelMedium.copy(fontFeatureSettings = "tnum"),
-                        color = accent,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(horizontal = SharedDimensions.spacingSm, vertical = SharedDimensions.spacingXs),
-                    )
-                }
+                RethinkPill(item.count, colors = RethinkPillDefaults.status(accent), fontWeight = FontWeight.SemiBold)
             }
             item.activity?.let { activity ->
                 LinearProgressIndicator(

@@ -1,26 +1,21 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.firewall
 
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkSplitSwitch
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -28,7 +23,6 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
@@ -113,27 +107,20 @@ fun RethinkUniversalFirewallSettingsScreen(
                             leadingIconTint = MaterialTheme.colorScheme.onSurfaceVariant,
                             leadingIconContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                             position = cardPositionFor(index, settings.lastIndex),
+                            // Split row: the row opens this rule's blocked-connection logs; the
+                            // switch toggles the rule.
                             trailing = {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    if (!isLoadingStats && setting.blockedCount > 0) {
-                                        IconButton(
-                                            onClick = { onLogsClick(setting.id) },
-                                            modifier = Modifier.size(SharedDimensions.touchTargetMin),
-                                        ) {
-                                            Icon(MaterialSymbols.AutoMirrored.Filled.KeyboardArrowRight, strings.logs, Modifier.size(SharedDimensions.iconSizeSm), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                                RethinkSplitSwitch(
+                                    checked = setting.checked,
+                                    contentDescription = setting.label,
+                                    onCheckedChange = { checked ->
+                                        if (onSettingChange(setting.id, checked) == RethinkUniversalFirewallChange.RequiresAccessibility) {
+                                            showAccessibilityDialog = true
                                         }
-                                    }
-                                    Switch(
-                                        checked = setting.checked,
-                                        onCheckedChange = null,
-                                    )
-                                }
+                                    },
+                                )
                             },
-                            selection = RethinkListSelection(checked = setting.checked) { checked ->
-                                if (onSettingChange(setting.id, checked) == RethinkUniversalFirewallChange.RequiresAccessibility) {
-                                    showAccessibilityDialog = true
-                                }
-                            },
+                            onClick = { onLogsClick(setting.id) },
                         )
                     }
                 }

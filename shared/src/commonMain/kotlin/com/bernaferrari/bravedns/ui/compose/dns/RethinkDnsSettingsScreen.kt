@@ -3,6 +3,9 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.dns
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillDefaults
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWell
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
@@ -405,39 +408,24 @@ private fun RethinkDnsConnectionCard(
             // Same 32dp icon container + 16dp inset as the grouped rows above, so the card's
             // leading edge lines up with the radio rows' icons.
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg)) {
-                Surface(
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.iconContainerRadius),
-                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
-                    modifier = Modifier.size(SharedDimensions.iconContainerSm),
-                ) {
-                    androidx.compose.foundation.layout.Box(contentAlignment = Alignment.Center) {
-                        Icon(MaterialSymbols.Filled.Dns, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(SharedDimensions.iconSizeSm))
-                    }
-                }
+                RethinkIconWell(MaterialSymbols.Filled.Dns, size = SharedDimensions.iconContainerSm)
                 Column(Modifier.weight(1f)) {
                     overline?.let { Text(it, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary) }
                     Text(displayName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
                 state.dnsLatency.trim('(', ')', ' ').takeIf { it.isNotBlank() }?.let { latency ->
                     val tone = latencyTone(latency)
-                    RethinkDnsPill(latency, tone.copy(alpha = 0.14f), tone)
+                    RethinkPill(latency, colors = RethinkPillDefaults.status(tone))
                 }
             }
             Text(strings.connectedDescription, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm), verticalAlignment = Alignment.CenterVertically) {
-                RethinkDnsPill(protocol, MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.onSecondaryContainer)
+                RethinkPill(protocol, colors = RethinkPillDefaults.secondary())
                 endpoint.takeIf { it.isNotBlank() }?.let {
-                    RethinkDnsPill(it, MaterialTheme.colorScheme.surfaceContainerHighest, MaterialTheme.colorScheme.onSurfaceVariant, Modifier.weight(1f, fill = false))
+                    RethinkPill(it, Modifier.weight(1f, fill = false))
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun RethinkDnsPill(text: String, container: Color, content: Color, modifier: Modifier = Modifier) {
-    Surface(shape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.cornerRadiusFull), color = container, modifier = modifier) {
-        Text(text, Modifier.padding(horizontal = SharedDimensions.spacingSmMd, vertical = SharedDimensions.spacingXs), style = MaterialTheme.typography.labelMedium, color = content, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 

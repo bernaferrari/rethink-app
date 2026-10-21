@@ -1,6 +1,10 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.apps
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillDefaults
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillSize
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWell
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -14,9 +18,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Column
@@ -45,7 +47,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -270,42 +271,13 @@ private fun RethinkAppStatusChips(state: RethinkAppInfoState, strings: RethinkAp
         horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
         verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
     ) {
-        RethinkAppStatusChip(state.status, toneIcon, toneColor)
+        RethinkPill(state.status, colors = RethinkPillDefaults.status(toneColor), size = RethinkPillSize.Large, leadingIcon = toneIcon, maxLines = Int.MAX_VALUE)
         if (state.temporaryAllowed) {
-            RethinkAppStatusChip(strings.temporaryAllow, MaterialSymbols.Filled.Timer, RethinkStatusColors.allowed)
+            RethinkPill(strings.temporaryAllow, colors = RethinkPillDefaults.status(RethinkStatusColors.allowed), size = RethinkPillSize.Large, leadingIcon = MaterialSymbols.Filled.Timer, maxLines = Int.MAX_VALUE)
         }
         if (state.proxyDetails.isNotBlank()) {
-            RethinkAppStatusChip(state.proxyDetails, MaterialSymbols.Filled.VpnKey, RethinkStatusColors.idle)
+            RethinkPill(state.proxyDetails, colors = RethinkPillDefaults.status(RethinkStatusColors.idle), size = RethinkPillSize.Large, leadingIcon = MaterialSymbols.Filled.VpnKey, maxLines = Int.MAX_VALUE)
         }
-    }
-}
-
-@Composable
-private fun RethinkAppStatusChip(label: String, icon: ImageVector, color: Color) {
-    Surface(
-        shape = RoundedCornerShape(SharedDimensions.chipCornerRadius),
-        color = color.copy(alpha = STATUS_CHIP_CONTAINER_ALPHA),
-        contentColor = color,
-    ) {
-        Row(
-            modifier = Modifier
-                .heightIn(min = SharedDimensions.iconContainerSm)
-                .padding(start = SharedDimensions.spacingSmMd, end = SharedDimensions.spacingMd, top = SharedDimensions.spacingXs, bottom = SharedDimensions.spacingXs),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
-        ) {
-            Icon(icon, contentDescription = null, modifier = Modifier.size(SharedDimensions.iconSizeXs))
-            Text(label, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Medium)
-        }
-    }
-}
-
-private const val STATUS_CHIP_CONTAINER_ALPHA = 0.12f
-
-@Composable
-private fun RethinkAppStatusPill(label: String, active: Boolean) {
-    Surface(shape = RoundedCornerShape(SharedDimensions.chipCornerRadius), color = if (active) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHighest) {
-        Text(label, style = MaterialTheme.typography.labelSmall, color = if (active) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(horizontal = SharedDimensions.spacingSm, vertical = SharedDimensions.spacingXs))
     }
 }
 
@@ -433,13 +405,7 @@ private fun RethinkAppNetworkTile(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
         ) {
-            Box(
-                modifier = Modifier
-                    .size(SharedDimensions.iconContainerSm)
-                    .clip(CircleShape)
-                    .background(iconContainerColor),
-                contentAlignment = Alignment.Center,
-            ) {
+            RethinkIconWell(containerColor = iconContainerColor, size = SharedDimensions.iconContainerSm, shape = CircleShape) {
                 DiagonalWipeIcon(
                     blocked = blocked,
                     allowedIcon = allowedIcon,
@@ -565,7 +531,11 @@ private fun RethinkAppLogCard(section: RethinkAppInfoLogSection, strings: Rethin
                     horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    RethinkAppStatusPill(section.count.toString(), section.count > 0)
+                    RethinkPill(
+                        section.count.toString(),
+                        colors = if (section.count > 0) RethinkPillDefaults.primary() else RethinkPillDefaults.neutral(),
+                        size = RethinkPillSize.Small,
+                    )
                     if (onOpen != null) Icon(MaterialSymbols.AutoMirrored.Filled.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }

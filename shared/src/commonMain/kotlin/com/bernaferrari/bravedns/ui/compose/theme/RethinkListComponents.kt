@@ -3,6 +3,15 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.theme
 
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.material3.Switch
+import androidx.compose.material3.VerticalDivider
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
@@ -18,7 +27,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -133,7 +141,7 @@ fun RethinkListItem(
     leadingIcon: ImageVector? = null,
     leadingIconPainter: Painter? = null,
     leadingIconTint: Color = MaterialTheme.colorScheme.primary,
-    leadingIconContainerColor: Color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+    leadingIconContainerColor: Color = RethinkIconWellContainerColor,
     leadingIconContainerShape: Shape = RoundedCornerShape(SharedDimensions.iconContainerRadius),
     leadingContent: (@Composable () -> Unit)? = null,
     trailing: (@Composable () -> Unit)? = null,
@@ -144,6 +152,13 @@ fun RethinkListItem(
     highlightContainerColor: Color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.56f),
     showTrailingChevron: Boolean = false,
     selection: RethinkListSelection? = null,
+    /**
+     * For identifiers (IPs, hosts, keys): keep the headline on one line and elide the middle, so
+     * both the start and the meaningful tail (port, TLD) stay visible.
+     */
+    singleLineHeadline: Boolean = false,
+    /** Secondary gesture (e.g. enter multi-select). Requires [onClick]. */
+    onLongClick: (() -> Unit)? = null,
     onClick: (() -> Unit)? = null,
 ) {
     val motion = LocalRethinkMotion.current
@@ -183,6 +198,8 @@ fun RethinkListItem(
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha),
                         ),
                         color = if (headlineAnnotated != null) Color.Unspecified else MaterialTheme.colorScheme.onSurface.copy(alpha = alpha),
+                        maxLines = if (singleLineHeadline) 1 else Int.MAX_VALUE,
+                        overflow = if (singleLineHeadline) TextOverflow.MiddleEllipsis else TextOverflow.Clip,
                         modifier = contentOffset,
                     )
                 },
@@ -206,13 +223,11 @@ fun RethinkListItem(
                         when {
                             leadingContent != null -> leadingContent()
                             leadingIcon != null || leadingIconPainter != null -> {
-                                Surface(shape = leadingIconContainerShape, color = leadingIconContainerColor, modifier = Modifier.size(SharedDimensions.iconContainerMd)) {
-                                    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(SharedDimensions.iconContainerMd)) {
-                                        when {
-                                            leadingIcon != null -> androidx.compose.material3.Icon(leadingIcon, null, tint = leadingIconTint.copy(alpha = alpha), modifier = Modifier.size(SharedDimensions.iconSizeSm))
-                                            leadingIconPainter != null && leadingIconTint == Color.Unspecified -> Image(leadingIconPainter, null, modifier = Modifier.size(SharedDimensions.iconSizeSm))
-                                            leadingIconPainter != null -> androidx.compose.material3.Icon(leadingIconPainter, null, tint = leadingIconTint.copy(alpha = alpha), modifier = Modifier.size(SharedDimensions.iconSizeSm))
-                                        }
+                                RethinkIconWell(containerColor = leadingIconContainerColor, contentColor = leadingIconTint, shape = leadingIconContainerShape) {
+                                    when {
+                                        leadingIcon != null -> androidx.compose.material3.Icon(leadingIcon, null, tint = leadingIconTint.copy(alpha = alpha), modifier = Modifier.size(SharedDimensions.iconSizeSm))
+                                        leadingIconPainter != null && leadingIconTint == Color.Unspecified -> Image(leadingIconPainter, null, modifier = Modifier.size(SharedDimensions.iconSizeSm))
+                                        leadingIconPainter != null -> androidx.compose.material3.Icon(leadingIconPainter, null, tint = leadingIconTint.copy(alpha = alpha), modifier = Modifier.size(SharedDimensions.iconSizeSm))
                                     }
                                 }
                             }
@@ -259,6 +274,20 @@ fun RethinkListItem(
                 modifier = surfaceModifier.then(controlModifier),
                 content = content,
             )
+        } else if (onClick != null && onLongClick != null) {
+            Surface(
+                shape = shape,
+                color = containerColor,
+                border = border,
+                modifier = surfaceModifier.combinedClickable(
+                    interactionSource = interactionSource,
+                    indication = ripple(),
+                    enabled = enabled,
+                    onLongClick = onLongClick,
+                    onClick = onClick,
+                ),
+                content = content,
+            )
         } else if (onClick != null) {
             Surface(
                 onClick = onClick,
@@ -279,5 +308,31 @@ fun RethinkListItem(
                 content = content,
             )
         }
+    }
+}
+
+/**
+ * Trailing control for a split row: the row itself navigates (opens details/logs) and this
+ * switch is a separate target. The divider makes the two targets visually distinct; the switch
+ * carries [contentDescription] so it is announced on its own.
+ */
+@Composable
+fun RethinkSplitSwitch(
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    contentDescription: String,
+    enabled: Boolean = true,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
+    ) {
+        VerticalDivider(Modifier.height(SharedDimensions.iconSizeLg))
+        Switch(
+            checked = checked,
+            enabled = enabled,
+            onCheckedChange = onCheckedChange,
+            modifier = Modifier.semantics { this.contentDescription = contentDescription },
+        )
     }
 }

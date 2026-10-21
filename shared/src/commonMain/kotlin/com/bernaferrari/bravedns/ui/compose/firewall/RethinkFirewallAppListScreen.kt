@@ -3,6 +3,10 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.firewall
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWell
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillDefaults
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillSize
 import androidx.compose.foundation.layout.width
 import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.core.animateFloat
@@ -77,7 +81,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormActionRow
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkModalBottomSheet
-import com.bernaferrari.bravedns.ui.compose.logs.RethinkLogCompactIconAction
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkToolbarIconToggle
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSearchField
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusColors
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBar
@@ -354,15 +358,12 @@ private fun RethinkFirewallAppControls(
             onQueryChange = onQueryChange,
             placeholder = strings.searchHint(count),
             clearQueryContentDescription = strings.clearSearch,
-            onClearQuery = { onQueryChange("") },
             modifier = Modifier.weight(1f),
-            shape = RoundedCornerShape(SharedDimensions.cornerRadiusFull),
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
         )
         // The single filter entry point: status, view and categories all live in the sheet. Same
         // tonal toggle as the Logs toolbar, sized to the search field so the strip reads as one;
         // the badge tells the user a non-default filter is narrowing the list.
-        RethinkLogCompactIconAction(
+        RethinkToolbarIconToggle(
             icon = MaterialSymbols.Filled.FilterList,
             contentDescription = strings.filter,
             selected = hasActiveFilters,
@@ -545,14 +546,10 @@ private fun RethinkFirewallAppRow(
                         horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
                     ) {
                         if (statusLabel.isNotBlank()) {
-                            RethinkFirewallStatusBadge(statusLabel, accent, accent.copy(alpha = .12f))
+                            RethinkPill(statusLabel, colors = RethinkPillDefaults.status(accent), size = RethinkPillSize.Small, fontWeight = FontWeight.SemiBold)
                         }
                         if (app.proxyEnabled) {
-                            RethinkFirewallStatusBadge(
-                                proxyLabel,
-                                MaterialTheme.colorScheme.onTertiaryContainer,
-                                MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = .76f),
-                            )
+                            RethinkPill(proxyLabel, colors = RethinkPillDefaults.tertiary(), size = RethinkPillSize.Small, fontWeight = FontWeight.SemiBold)
                         }
                         usage?.let {
                             Text(
@@ -598,21 +595,6 @@ private fun RethinkFirewallAppRow(
 
 /** Two 48dp toggles whose bubbles are 40dp apart center-to-center (10dp visual gap). */
 private val NetworkTogglePairWidth = 88.dp
-
-@Composable
-private fun RethinkFirewallStatusBadge(label: String, contentColor: Color, containerColor: Color) {
-    Surface(shape = RoundedCornerShape(SharedDimensions.buttonCornerRadius), color = containerColor) {
-        Text(
-            label,
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = contentColor,
-            maxLines = 1,
-            softWrap = false,
-            modifier = Modifier.padding(horizontal = SharedDimensions.spacingSm, vertical = SharedDimensions.spacingGridTile),
-        )
-    }
-}
 
 @Composable
 fun RethinkFirewallNetworkToggle(
@@ -965,9 +947,14 @@ private fun RethinkFirewallBulkIcon(action: RethinkFirewallBulkAction) {
         RethinkFirewallBulkAction.Exclude -> MaterialSymbols.Filled.Security
         RethinkFirewallBulkAction.Lockdown -> MaterialSymbols.Filled.Block
     }
-    Surface(shape = CircleShape, color = MaterialTheme.colorScheme.surfaceContainerHighest, modifier = Modifier.size(SharedDimensions.iconContainerSm)) {
-        Box(contentAlignment = Alignment.Center) { Icon(icon, null, modifier = Modifier.size(SharedDimensions.iconSizeXs)) }
-    }
+    RethinkIconWell(
+        icon = icon,
+        tint = MaterialTheme.colorScheme.onSurface,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+        size = SharedDimensions.iconContainerSm,
+        iconSize = SharedDimensions.iconSizeXs,
+        shape = CircleShape,
+    )
 }
 
 /** Leading chip icon per filter; "All" is the neutral reset and carries no icon. */

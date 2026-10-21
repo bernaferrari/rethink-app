@@ -3,6 +3,9 @@
 
 package com.bernaferrari.bravedns.ui.compose.events
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillDefaults
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillSize
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkOverflowMenu
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkOverflowItem
 import androidx.compose.animation.AnimatedVisibility
@@ -42,7 +45,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -242,11 +244,7 @@ private fun RethinkEventControls(
             onQueryChange = onQueryChange,
             placeholder = strings.searchHint,
             clearQueryContentDescription = strings.clearSearch,
-            onClearQuery = { onQueryChange("") },
             modifier = Modifier.fillMaxWidth(),
-            // Same pill search field as the apps list and console logs.
-            shape = RoundedCornerShape(SharedDimensions.cornerRadiusFull),
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
         )
         Spacer(Modifier.height(SharedDimensions.spacingSm))
         // One filter row: "All" resets, and each dimension is a menu chip that shows its current
@@ -430,9 +428,9 @@ fun RethinkEventCard(
                     Text(event.timestampLabel, style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"), color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, modifier = Modifier.alignByBaseline())
                 }
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
-                    CompactEventBadge(event.sourceLabel, MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f), MaterialTheme.colorScheme.onSecondaryContainer)
-                    CompactEventBadge(event.eventTypeLabel, MaterialTheme.colorScheme.surfaceContainerHighest, MaterialTheme.colorScheme.onSurfaceVariant)
-                    if (event.userAction) CompactEventBadge(userActionLabel, MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f), MaterialTheme.colorScheme.primary)
+                    RethinkPill(event.sourceLabel, colors = RethinkPillDefaults.secondary(), size = RethinkPillSize.Small)
+                    RethinkPill(event.eventTypeLabel, size = RethinkPillSize.Small)
+                    if (event.userAction) RethinkPill(userActionLabel, colors = RethinkPillDefaults.status(MaterialTheme.colorScheme.primary), size = RethinkPillSize.Small)
                 }
                 AnimatedVisibility(
                     visible = expanded,
@@ -476,13 +474,6 @@ private fun EventSeverityIcon(severity: RethinkEventSeverity, severityLabel: Str
                 Icon(severity.icon(), severityLabel, tint = accent, modifier = Modifier.size(SharedDimensions.iconSizeSm))
             }
         }
-    }
-}
-
-@Composable
-private fun CompactEventBadge(text: String, containerColor: Color, contentColor: Color) {
-    Surface(shape = RoundedCornerShape(SharedDimensions.cornerRadiusSm), color = containerColor) {
-        Text(text, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Medium, color = contentColor, modifier = Modifier.padding(horizontal = SharedDimensions.spacingSm, vertical = SharedDimensions.spacingGridTile), maxLines = 1)
     }
 }
 

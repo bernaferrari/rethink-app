@@ -12,7 +12,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
-import com.bernaferrari.bravedns.ui.compose.components.RethinkSharedIconContainer
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFilterChip
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormSection
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
@@ -74,11 +73,7 @@ fun RethinkBlockFreeDnsScreen(
                         position = cardPositionFor(index, items.lastIndex),
                         highlighted = selected,
                         onClick = { onItemSelected(item) },
-                        leadingContent = {
-                            RethinkSharedIconContainer(MaterialTheme.colorScheme.primary) {
-                                Icon(MaterialSymbols.Filled.Public, null, tint = MaterialTheme.colorScheme.primary)
-                            }
-                        },
+                        leadingIcon = MaterialSymbols.Filled.Public,
                         trailing = if (selected) ({ Icon(MaterialSymbols.Filled.Check, strings.selectedDescription) }) else null,
                     )
                 }

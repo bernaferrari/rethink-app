@@ -140,6 +140,7 @@ internal fun appWiseLogsStrings(): RethinkAppWiseLogsStrings = RethinkAppWiseLog
     oneHour = stringResource(R.string.ci_desc, "1", stringResource(R.string.lbl_hour)),
     twentyFourHours = stringResource(R.string.ci_desc, "24", stringResource(R.string.lbl_hour)),
     sevenDays = stringResource(R.string.ci_desc, "7", stringResource(R.string.lbl_day)),
+    moreActions = stringResource(R.string.cd_more),
 )
 
 internal fun AppConnectionsViewModel.TimeCategory.toRethinkTimeRange() = when (this) {

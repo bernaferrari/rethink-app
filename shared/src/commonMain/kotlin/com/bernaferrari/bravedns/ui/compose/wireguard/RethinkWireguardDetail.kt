@@ -1,6 +1,9 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.wireguard
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWell
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillDefaults
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
@@ -11,9 +14,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -154,9 +155,12 @@ private fun RethinkWireguardDetailOverview(state: RethinkWireguardDetailState) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
         ) {
-            Surface(shape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.iconContainerRadius), color = MaterialTheme.colorScheme.primaryContainer) {
-                Icon(MaterialSymbols.Filled.VpnKey, null, Modifier.size(SharedDimensions.iconContainerMd).padding(SharedDimensions.spacingSm), tint = MaterialTheme.colorScheme.onPrimaryContainer)
-            }
+            RethinkIconWell(
+                icon = MaterialSymbols.Filled.VpnKey,
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                iconSize = SharedDimensions.iconSizeMd,
+            )
             Column(Modifier.weight(1f)) {
                 Text(state.name, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                 // With a status color the pill carries the status; never say it twice.
@@ -165,9 +169,7 @@ private fun RethinkWireguardDetailOverview(state: RethinkWireguardDetailState) {
                 }
             }
             state.statusColor?.let { color ->
-                Surface(shape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.cornerRadiusFull), color = color.copy(alpha = 0.14f)) {
-                    Text(state.status, style = MaterialTheme.typography.labelMedium, color = color, modifier = Modifier.padding(horizontal = SharedDimensions.spacingSmMd, vertical = SharedDimensions.spacingXs))
-                }
+                RethinkPill(state.status, colors = RethinkPillDefaults.status(color))
             }
         }
     }

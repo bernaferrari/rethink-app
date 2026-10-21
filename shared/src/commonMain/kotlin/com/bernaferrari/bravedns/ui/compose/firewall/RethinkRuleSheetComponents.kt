@@ -11,13 +11,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkModalBottomSheet
@@ -97,26 +94,4 @@ fun RethinkRuleSheetDeleteDialog(
         onDismiss = onDismiss,
         isConfirmDestructive = true,
     )
-}
-
-@Composable
-fun RethinkRuleSheetSummaryPill(
-    text: String,
-    modifier: Modifier = Modifier,
-    containerColor: Color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.72f),
-    textColor: Color = MaterialTheme.colorScheme.onSecondaryContainer,
-) {
-    Surface(
-        modifier = modifier,
-        shape = MaterialTheme.shapes.extraLarge,
-        color = containerColor,
-    ) {
-        Text(
-            text,
-            style = MaterialTheme.typography.labelMedium,
-            color = textColor,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(horizontal = SharedDimensions.spacingMd, vertical = SharedDimensions.spacingSm),
-        )
-    }
 }

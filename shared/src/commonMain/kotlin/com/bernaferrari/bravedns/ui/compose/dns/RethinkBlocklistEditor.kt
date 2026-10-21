@@ -130,7 +130,7 @@ fun RethinkBlocklistEditor(
             ) {
                 RethinkBlocklistEditorTabs(activeView, strings, onViewChange)
                 if (activeView == RethinkBlocklistEditorView.Advanced) {
-                    RethinkSearchField(query, onQueryChange, placeholder = strings.search, clearQueryContentDescription = strings.clearSearch, onClearQuery = { onQueryChange("") }, modifier = Modifier.fillMaxWidth())
+                    RethinkSearchField(query, onQueryChange, placeholder = strings.search, clearQueryContentDescription = strings.clearSearch, modifier = Modifier.fillMaxWidth())
                     Row(
                         Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,

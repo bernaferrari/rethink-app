@@ -3,6 +3,23 @@
 
 package com.bernaferrari.bravedns.ui.compose.firewall
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillDefaults
+import androidx.compose.material3.SwipeToDismissBoxValue
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.shape.CircleShape
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListShape
+import androidx.compose.foundation.background
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.material3.SwipeToDismissBox
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceLabels
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,7 +36,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -119,6 +135,8 @@ data class RethinkRulesAddResult(
 }
 
 data class RethinkCustomRulesStrings(
+    /** "Port %s"-style label for the port line under an IP rule. */
+    val port: (Int) -> String = { "Port $it" },
     val universalTitle: String,
     val appWiseTitle: String,
     val appRulesTitle: String,
@@ -143,6 +161,11 @@ data class RethinkCustomRulesStrings(
     val uid: (Int) -> String,
     /** Title of the per-rule delete confirmation; the message is the rule itself. */
     val deleteRuleTitle: String = "Delete rule?",
+    val deleteSelectedTitle: @Composable (Int) -> String = { "Delete $it rules?" },
+    val selectedCount: @Composable (Int) -> String = { "$it selected" },
+    val clearSelection: String = "Clear selection",
+    val select: String = "Select",
+    val deleteRule: String = "Delete rule",
 )
 
 /**
@@ -179,13 +202,39 @@ fun RethinkCustomRulesScreen(
     LaunchedEffect(effectiveMode) {
         if (effectiveMode == RethinkRulesMode.ALL_APPS) showAddDialog = false
     }
+    // Long-press enters multi-select; tap opens a per-rule action sheet; swipe is a shortcut.
+    // Selection resets when the list it refers to changes.
+    var selection by remember(uid, selectedTab, effectiveMode) { mutableStateOf(emptyMap<String, RethinkFirewallRule>()) }
+    var actionRule by remember { mutableStateOf<RethinkFirewallRule?>(null) }
+    var pendingDelete by remember { mutableStateOf<List<RethinkFirewallRule>>(emptyList()) }
+    val selecting = selection.isNotEmpty()
+    fun toggle(rule: RethinkFirewallRule) {
+        selection = if (rule.id in selection) selection - rule.id else selection + (rule.id to rule)
+    }
 
     Scaffold(
         modifier = modifier,
         containerColor = MaterialTheme.colorScheme.surface,
-        topBar = { RethinkTopBar(title = title, onBackClick = onBackClick) },
+        topBar = {
+            if (selecting) {
+                RethinkTopBar(
+                    title = strings.selectedCount(selection.size),
+                    onBackClick = { selection = emptyMap() },
+                    backDescription = strings.clearSelection,
+                    navigationIcon = MaterialSymbols.Filled.Close,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                    actions = {
+                        IconButton(onClick = { pendingDelete = selection.values.toList() }) {
+                            Icon(MaterialSymbols.Filled.DeleteOutline, strings.delete)
+                        }
+                    },
+                )
+            } else {
+                RethinkTopBar(title = title, onBackClick = onBackClick)
+            }
+        },
         floatingActionButton = {
-            if (effectiveMode == RethinkRulesMode.SELECTED_UID && (rules.isLoading || rules.itemCount > 0)) {
+            if (!selecting && effectiveMode == RethinkRulesMode.SELECTED_UID && (rules.isLoading || rules.itemCount > 0)) {
                 ExtendedFloatingActionButton(
                     onClick = { showAddDialog = true },
                     icon = { Icon(MaterialSymbols.Filled.Add, null) },
@@ -211,7 +260,10 @@ fun RethinkCustomRulesScreen(
                 selectedTab = selectedTab,
                 selectedMode = effectiveMode,
                 strings = strings,
-                onDeleteRule = { onDeleteRule(selectedTab, it) },
+                selection = selection.keys,
+                onRuleClick = { rule -> if (selecting) toggle(rule) else actionRule = rule },
+                onRuleLongClick = ::toggle,
+                onRequestDelete = { pendingDelete = listOf(it) },
                 onRuleOwnerVisible = onRuleOwnerVisible,
                 onAddRule = if (effectiveMode == RethinkRulesMode.SELECTED_UID) {
                     { showAddDialog = true }
@@ -220,6 +272,32 @@ fun RethinkCustomRulesScreen(
                 },
             )
         }
+    }
+
+    actionRule?.let { rule ->
+        RethinkRuleActionsSheet(
+            rule = rule,
+            strings = strings,
+            onDismiss = { actionRule = null },
+            onSelect = { toggle(rule) },
+            onDelete = { pendingDelete = listOf(rule) },
+        )
+    }
+    if (pendingDelete.isNotEmpty()) {
+        val single = pendingDelete.singleOrNull()
+        RethinkConfirmDialog(
+            onDismissRequest = { pendingDelete = emptyList() },
+            title = if (single != null) strings.deleteRuleTitle else strings.deleteSelectedTitle(pendingDelete.size),
+            message = single?.let { listOfNotNull(it.value, it.port?.let(strings.port)).joinToString(" · ") } ?: "",
+            confirmText = strings.delete,
+            dismissText = strings.cancel,
+            isConfirmDestructive = true,
+            onConfirm = {
+                pendingDelete.forEach { onDeleteRule(selectedTab, it) }
+                selection = selection - pendingDelete.map { it.id }.toSet()
+                pendingDelete = emptyList()
+            },
+        )
     }
 
     if (showAddDialog && effectiveMode == RethinkRulesMode.SELECTED_UID) {
@@ -255,22 +333,37 @@ private fun RethinkRulesControlDeck(
         ),
         verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
     ) {
-        // Scope and rule type are two separate questions, so they stack as two full-width
-        // groups rather than sitting side by side where they read as one 4-segment control.
-        if (canSwitchScope) {
-            RethinkRuleScopeSelector(selected = selectedMode, strings = strings, onSelected = onModeChange)
+        // Scope and rule type share one row as two separate groups: each shows only its selected
+        // label (others collapse to icons), and the gap plus each group's own rounded ends keep
+        // them from reading as one 4-segment control.
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
+        ) {
+            val labels = if (canSwitchScope) RethinkChoiceLabels.SelectedOnly else RethinkChoiceLabels.Always
+            if (canSwitchScope) {
+                RethinkRuleScopeSelector(
+                    selected = selectedMode,
+                    strings = strings,
+                    labels = labels,
+                    onSelected = onModeChange,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            RethinkRuleTabSelector(
+                selectedTab,
+                strings,
+                labels = labels,
+                onSelected = onTabChange,
+                modifier = Modifier.weight(1f),
+            )
         }
-        RethinkRuleTabSelector(selectedTab, strings, onSelected = onTabChange)
         RethinkSearchField(
             query = query,
             onQueryChange = onQueryChange,
             placeholder = "${strings.search}: ${if (selectedTab == RethinkRulesTab.IP) strings.ipRules else strings.domainRules}",
             clearQueryContentDescription = strings.clearSearch,
-            onClearQuery = { onQueryChange("") },
             modifier = Modifier.fillMaxWidth(),
-            // Same pill search field as the apps list, events and database.
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.cornerRadiusFull),
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
         )
     }
 }
@@ -279,6 +372,7 @@ private fun RethinkRulesControlDeck(
 private fun RethinkRuleTabSelector(
     selected: RethinkRulesTab,
     strings: RethinkCustomRulesStrings,
+    labels: RethinkChoiceLabels,
     modifier: Modifier = Modifier,
     onSelected: (RethinkRulesTab) -> Unit,
 ) {
@@ -292,6 +386,7 @@ private fun RethinkRuleTabSelector(
         selected = selected,
         onSelect = onSelected,
         modifier = modifier,
+        labels = labels,
     )
 }
 
@@ -299,6 +394,7 @@ private fun RethinkRuleTabSelector(
 private fun RethinkRuleScopeSelector(
     selected: RethinkRulesMode,
     strings: RethinkCustomRulesStrings,
+    labels: RethinkChoiceLabels,
     modifier: Modifier = Modifier,
     onSelected: (RethinkRulesMode) -> Unit,
 ) {
@@ -310,6 +406,7 @@ private fun RethinkRuleScopeSelector(
         selected = selected,
         onSelect = onSelected,
         modifier = modifier,
+        labels = labels,
     )
 }
 
@@ -319,7 +416,10 @@ private fun RethinkRulesContent(
     selectedTab: RethinkRulesTab,
     selectedMode: RethinkRulesMode,
     strings: RethinkCustomRulesStrings,
-    onDeleteRule: (RethinkFirewallRule) -> Unit,
+    selection: Set<String>,
+    onRuleClick: (RethinkFirewallRule) -> Unit,
+    onRuleLongClick: (RethinkFirewallRule) -> Unit,
+    onRequestDelete: (RethinkFirewallRule) -> Unit,
     onRuleOwnerVisible: (Int) -> Unit,
     onAddRule: (() -> Unit)?,
     modifier: Modifier = Modifier,
@@ -356,7 +456,16 @@ private fun RethinkRulesContent(
                         else -> CardPosition.Middle
                     }
                 }
-                RethinkFirewallRuleRow(rule, position, strings, onDelete = { onDeleteRule(rule) })
+                RethinkFirewallRuleRow(
+                    rule = rule,
+                    position = position,
+                    strings = strings,
+                    selected = rule.id in selection,
+                    selecting = selection.isNotEmpty(),
+                    onClick = { onRuleClick(rule) },
+                    onLongClick = { onRuleLongClick(rule) },
+                    onRequestDelete = { onRequestDelete(rule) },
+                )
             }
         }
     }
@@ -416,61 +525,131 @@ private fun RethinkFirewallRuleRow(
     rule: RethinkFirewallRule,
     position: CardPosition,
     strings: RethinkCustomRulesStrings,
-    onDelete: () -> Unit,
+    selected: Boolean,
+    selecting: Boolean,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+    onRequestDelete: () -> Unit,
 ) {
-    val statusLabel = when (rule.status) {
-        RethinkFirewallRuleStatus.Block -> strings.block
-        RethinkFirewallRuleStatus.Trust -> strings.trust
-        RethinkFirewallRuleStatus.Bypass -> strings.bypass
-        RethinkFirewallRuleStatus.None -> strings.noRule
-    }
-    val accent: Color = when (rule.status) {
-        RethinkFirewallRuleStatus.Block -> RethinkStatusColors.blocked
-        RethinkFirewallRuleStatus.Trust -> RethinkStatusColors.allowed
-        RethinkFirewallRuleStatus.Bypass -> RethinkStatusColors.mixed
-        RethinkFirewallRuleStatus.None -> RethinkStatusColors.idle
-    }
-    val headline = rule.port?.let { "${rule.value}:$it" } ?: rule.value
-    var confirmDelete by remember(rule.id) { mutableStateOf(false) }
-    if (confirmDelete) {
-        RethinkConfirmDialog(
-            onDismissRequest = { confirmDelete = false },
-            title = strings.deleteRuleTitle,
-            message = headline,
-            confirmText = strings.delete,
-            dismissText = strings.cancel,
-            isConfirmDestructive = true,
-            onConfirm = {
-                confirmDelete = false
-                onDelete()
-            },
-        )
-    }
-    RethinkListItem(
-        headline = headline,
-        leadingIcon = if (rule.tab == RethinkRulesTab.IP) MaterialSymbols.Filled.Public else MaterialSymbols.Filled.Language,
-        leadingIconTint = accent,
-        leadingIconContainerColor = accent.copy(alpha = .14f),
-        position = position,
-        trailing = {
-            Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile), verticalAlignment = Alignment.CenterVertically) {
-                Surface(
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.cornerRadiusFull),
-                    color = accent.copy(alpha = .14f),
-                ) {
-                    Text(
-                        statusLabel,
-                        Modifier.padding(horizontal = SharedDimensions.spacingSm, vertical = SharedDimensions.spacingXs),
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
-                        color = accent,
-                        maxLines = 1,
-                    )
-                }
-                IconButton(onClick = { confirmDelete = true }) { Icon(MaterialSymbols.Filled.DeleteOutline, strings.delete) }
+    val accent = rule.status.accent()
+    // Swipe (end → start) onto an error backdrop is a shortcut only; tap opens the action sheet
+    // and long-press enters multi-select, so delete never depends on a hidden gesture.
+    val swipeState = rememberSwipeToDismissBoxState()
+    val scope = rememberCoroutineScope()
+    val shape = rethinkGroupedListShape(position)
+    val topGap = if (position == CardPosition.First || position == CardPosition.Single) 0.dp else SharedDimensions.spacingGridTile
+    SwipeToDismissBox(
+        state = swipeState,
+        enableDismissFromStartToEnd = false,
+        gesturesEnabled = !selecting,
+        modifier = Modifier.semantics {
+            customActions = listOf(CustomAccessibilityAction(strings.delete) { onRequestDelete(); true })
+        },
+        onDismiss = {
+            onRequestDelete()
+            scope.launch { swipeState.reset() }
+        },
+        backgroundContent = {
+            // Only while actually swiping: tonal (translucent) row states must not reveal it.
+            if (swipeState.dismissDirection == SwipeToDismissBoxValue.EndToStart) Box(
+                Modifier
+                    .fillMaxSize()
+                    .padding(top = topGap)
+                    .background(MaterialTheme.colorScheme.errorContainer, shape)
+                    .padding(horizontal = SharedDimensions.spacingXl),
+                contentAlignment = Alignment.CenterEnd,
+            ) {
+                Icon(
+                    MaterialSymbols.Filled.DeleteOutline,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onErrorContainer,
+                )
             }
         },
-    )
+    ) {
+        RethinkListItem(
+            // The address keeps the headline (elided in the middle if needed); the port gets its
+            // own line instead of being cut off at the end.
+            headline = rule.value,
+            supporting = rule.port?.let(strings.port),
+            singleLineHeadline = true,
+            leadingIcon = when {
+                selected -> MaterialSymbols.Filled.CheckCircle
+                rule.tab == RethinkRulesTab.IP -> MaterialSymbols.Filled.Public
+                else -> MaterialSymbols.Filled.Language
+            },
+            leadingIconTint = if (selected) MaterialTheme.colorScheme.onPrimary else accent,
+            leadingIconContainerColor = if (selected) MaterialTheme.colorScheme.primary else accent.copy(alpha = .14f),
+            leadingIconContainerShape = CircleShape,
+            highlighted = selected,
+            position = position,
+            trailing = { RethinkPill(rule.status.label(strings), colors = RethinkPillDefaults.status(accent), fontWeight = FontWeight.SemiBold) },
+            onClick = onClick,
+            onLongClick = onLongClick,
+        )
+    }
+}
+
+private fun RethinkFirewallRuleStatus.label(strings: RethinkCustomRulesStrings): String = when (this) {
+    RethinkFirewallRuleStatus.Block -> strings.block
+    RethinkFirewallRuleStatus.Trust -> strings.trust
+    RethinkFirewallRuleStatus.Bypass -> strings.bypass
+    RethinkFirewallRuleStatus.None -> strings.noRule
+}
+
+@Composable
+private fun RethinkFirewallRuleStatus.accent(): Color = when (this) {
+    RethinkFirewallRuleStatus.Block -> RethinkStatusColors.blocked
+    RethinkFirewallRuleStatus.Trust -> RethinkStatusColors.allowed
+    RethinkFirewallRuleStatus.Bypass -> RethinkStatusColors.mixed
+    RethinkFirewallRuleStatus.None -> RethinkStatusColors.idle
+}
+
+/** Per-rule actions: the discoverable home of Delete (and the entry into multi-select). */
+@Composable
+private fun RethinkRuleActionsSheet(
+    rule: RethinkFirewallRule,
+    strings: RethinkCustomRulesStrings,
+    onDismiss: () -> Unit,
+    onSelect: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    val accent = rule.status.accent()
+    RethinkModalBottomSheet(onDismissRequest = onDismiss) { dismiss ->
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(
+                    rule.value,
+                    style = MaterialTheme.typography.titleLarge,
+                    maxLines = 1,
+                    overflow = TextOverflow.MiddleEllipsis,
+                )
+                rule.port?.let {
+                    Text(strings.port(it), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            RethinkPill(rule.status.label(strings), colors = RethinkPillDefaults.status(accent), fontWeight = FontWeight.SemiBold)
+        }
+        RethinkListGroup {
+            RethinkListItem(
+                headline = strings.select,
+                leadingIcon = MaterialSymbols.Filled.CheckCircle,
+                position = CardPosition.First,
+                onClick = { onSelect(); dismiss() },
+            )
+            RethinkListItem(
+                headline = strings.deleteRule,
+                leadingIcon = MaterialSymbols.Filled.DeleteOutline,
+                leadingIconTint = MaterialTheme.colorScheme.onErrorContainer,
+                leadingIconContainerColor = MaterialTheme.colorScheme.errorContainer,
+                position = CardPosition.Last,
+                onClick = { onDelete(); dismiss() },
+            )
+        }
+    }
 }
 
 @Composable

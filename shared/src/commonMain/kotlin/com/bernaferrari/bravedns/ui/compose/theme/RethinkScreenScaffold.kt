@@ -1,5 +1,6 @@
 package com.bernaferrari.bravedns.ui.compose.theme
 
+import androidx.compose.ui.graphics.vector.ImageVector
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
@@ -107,9 +108,11 @@ fun RethinkTopBar(
     scrolledContainerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
     actions: @Composable RowScope.() -> Unit = {},
     backDescription: String = LocalRethinkBackDescription.current,
+    /** Close (X) for contextual modes such as multi-select; back arrow otherwise. */
+    navigationIcon: ImageVector = MaterialSymbols.AutoMirrored.Filled.ArrowBack,
 ) = TopAppBar(
     title = { Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.SemiBold) },
-    navigationIcon = { if (onBackClick != null) IconButton(onBackClick) { Icon(MaterialSymbols.AutoMirrored.Filled.ArrowBack, backDescription) } },
+    navigationIcon = { if (onBackClick != null) IconButton(onBackClick) { Icon(navigationIcon, backDescription) } },
     actions = actions,
     scrollBehavior = scrollBehavior,
     colors = TopAppBarDefaults.topAppBarColors(containerColor = containerColor, scrolledContainerColor = scrolledContainerColor, navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant, titleContentColor = MaterialTheme.colorScheme.onSurface, actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant),

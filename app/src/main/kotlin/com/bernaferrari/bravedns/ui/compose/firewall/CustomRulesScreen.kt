@@ -1,6 +1,7 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.firewall
 
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -213,7 +214,14 @@ private fun CustomDomain.toRethinkRule(ownerName: String?): RethinkFirewallRule 
 )
 
 @Composable
-private fun androidCustomRulesStrings() = RethinkCustomRulesStrings(
+private fun androidCustomRulesStrings(): RethinkCustomRulesStrings {
+    val portFormat = stringResource(R.string.custom_rule_port_format)
+    return androidCustomRulesStrings(port = { portFormat.format(it) })
+}
+
+@Composable
+private fun androidCustomRulesStrings(port: (Int) -> String) = RethinkCustomRulesStrings(
+    port = port,
     universalTitle = stringResource(R.string.univ_view_blocked_ip),
     appWiseTitle = stringResource(R.string.lbl_app_wise),
     appRulesTitle = stringResource(R.string.app_ip_domain_rules),
@@ -237,4 +245,9 @@ private fun androidCustomRulesStrings() = RethinkCustomRulesStrings(
     noRule = stringResource(R.string.ci_no_rule),
     uid = { value -> "UID $value" },
     deleteRuleTitle = stringResource(R.string.custom_rule_delete_title),
+    deleteSelectedTitle = { count -> pluralStringResource(R.plurals.custom_rules_delete_selected_title, count, count) },
+    selectedCount = { count -> pluralStringResource(R.plurals.custom_rules_selected_count, count, count) },
+    clearSelection = stringResource(R.string.custom_rules_clear_selection),
+    select = stringResource(R.string.custom_rules_select),
+    deleteRule = stringResource(R.string.custom_rules_delete_rule),
 )

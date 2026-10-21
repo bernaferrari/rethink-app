@@ -31,11 +31,13 @@ data class HomeScreenUiState(
 fun HomeScreen(
     uiState: HomeScreenUiState,
     onStartStopClick: () -> Unit,
+    onActivityClick: (() -> Unit)? = null,
 ) {
     RethinkHomeScreen(
         uiState = uiState.toCommonUiState(),
         strings = androidHomeStrings(),
         onStartStopClick = onStartStopClick,
+        onActivityClick = onActivityClick,
     )
 }
 
@@ -79,4 +81,6 @@ private fun androidHomeStrings() = RethinkHomeStrings(
     live = stringResource(R.string.home_live),
     offline = stringResource(R.string.home_offline),
     reconnecting = stringResource(R.string.home_reconnecting),
+    activityTitle = stringResource(R.string.home_activity_title),
+    activitySubtitle = stringResource(R.string.home_activity_subtitle),
 )

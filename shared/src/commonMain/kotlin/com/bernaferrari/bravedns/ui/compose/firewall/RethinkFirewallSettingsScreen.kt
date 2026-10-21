@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -24,7 +23,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import com.bernaferrari.bravedns.ui.compose.components.RethinkSharedIconContainer
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormSection
@@ -175,11 +173,7 @@ private fun FirewallNavigationRow(
         position = position,
         highlighted = highlighted,
         onClick = onClick,
-        leadingContent = {
-            RethinkSharedIconContainer(MaterialTheme.colorScheme.primary) {
-                Icon(icon, null, tint = MaterialTheme.colorScheme.primary)
-            }
-        },
+        leadingIcon = icon,
         showTrailingChevron = true,
     )
 }

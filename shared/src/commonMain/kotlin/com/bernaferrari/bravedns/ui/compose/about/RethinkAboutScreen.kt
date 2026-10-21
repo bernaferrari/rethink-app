@@ -8,11 +8,13 @@
 
 package com.bernaferrari.bravedns.ui.compose.about
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWell
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillDefaults
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -42,7 +44,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import com.bernaferrari.bravedns.ui.compose.components.RethinkSharedIconContainer
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
@@ -227,38 +228,21 @@ private fun AboutIdentityHero(
             horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Surface(
+            RethinkIconWell(
+                icon = MaterialSymbols.Filled.Shield,
+                tint = MaterialTheme.colorScheme.onPrimary,
+                containerColor = MaterialTheme.colorScheme.primary,
+                size = SharedDimensions.iconContainerLg,
+                iconSize = SharedDimensions.iconSizeLg,
                 shape = RoundedCornerShape(SharedDimensions.cornerRadiusXl),
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(SharedDimensions.iconContainerLg),
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        MaterialSymbols.Filled.Shield,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(SharedDimensions.iconSizeLg),
-                    )
-                }
-            }
+            )
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
             ) {
                 Text(appName, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                 version?.let {
-                    Surface(
-                        shape = RoundedCornerShape(SharedDimensions.cornerRadiusFull),
-                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.12f),
-                    ) {
-                        Text(
-                            text = it,
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier.padding(horizontal = SharedDimensions.spacingSmMd, vertical = SharedDimensions.spacingXs),
-                        )
-                    }
+                    RethinkPill(it, colors = RethinkPillDefaults.status(MaterialTheme.colorScheme.onPrimaryContainer), fontWeight = FontWeight.SemiBold)
                 }
             }
         }
@@ -326,7 +310,7 @@ private fun AboutListRow(row: AboutRow, accent: Color, position: CardPosition) {
         onClick = row.onClick,
         trailing = row.trailing,
         leadingContent = {
-            RethinkSharedIconContainer(accent) { row.icon(accent) }
+            RethinkIconWell(containerColor = accent.copy(alpha = 0.16f), contentColor = accent) { row.icon(accent) }
         },
     )
 }
@@ -385,9 +369,7 @@ private fun AboutSocialRow(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
         ) {
-            RethinkSharedIconContainer(accent) {
-                Icon(MaterialSymbols.Filled.Share, contentDescription = null, tint = accent)
-            }
+            RethinkIconWell(MaterialSymbols.Filled.Share, tint = accent, containerColor = accent.copy(alpha = 0.16f), iconSize = SharedDimensions.iconSizeMd)
             Spacer(Modifier.weight(1f))
             AboutSocialIcon(strings.twitter, actions.onTwitter, assets.twitter, accent)
             AboutSocialIcon(strings.email, actions.onEmail, assets.email, accent)

@@ -1,6 +1,7 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.rpn
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkKeyValueRow
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
@@ -25,10 +26,8 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusColors
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.PrimaryButton
@@ -174,33 +173,13 @@ private fun RethinkRpnWinDetails(state: RethinkRpnWinProxyDetailsState, strings:
             Text(state.proxyName.ifBlank { strings.proxyName }, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
             Text(state.countryCode.uppercase(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.height(SharedDimensions.spacingMd))
-            RethinkRpnWinDetailRow(strings.who, state.proxyWho.ifBlank { strings.fallback })
-            if (state.proxyError.isNotEmpty()) RethinkRpnWinDetailRow(strings.error, state.proxyError, MaterialTheme.colorScheme.error)
-            RethinkRpnWinDetailRow(strings.latency, state.proxyLatency)
-            RethinkRpnWinDetailRow(strings.lastConnected, state.proxyLastConnected)
-            RethinkRpnWinDetailRow(strings.status, state.proxyStatus, statusColor)
+            val rowModifier = Modifier.padding(vertical = SharedDimensions.spacingSm)
+            RethinkKeyValueRow(strings.who, state.proxyWho.ifBlank { strings.fallback }, rowModifier)
+            if (state.proxyError.isNotEmpty()) RethinkKeyValueRow(strings.error, state.proxyError, rowModifier, valueColor = MaterialTheme.colorScheme.error)
+            RethinkKeyValueRow(strings.latency, state.proxyLatency, rowModifier)
+            RethinkKeyValueRow(strings.lastConnected, state.proxyLastConnected, rowModifier)
+            RethinkKeyValueRow(strings.status, state.proxyStatus, rowModifier, valueColor = statusColor)
         }
-    }
-}
-
-@Composable
-private fun RethinkRpnWinDetailRow(label: String, value: String, valueColor: Color = MaterialTheme.colorScheme.onSurface) {
-    // Quiet key, emphasized value; the value takes the remaining width and wraps rather than
-    // pushing into the key.
-    Row(
-        Modifier.fillMaxWidth().padding(vertical = SharedDimensions.spacingSm),
-        horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(
-            value,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Medium,
-            color = valueColor,
-            textAlign = TextAlign.End,
-            modifier = Modifier.weight(1f),
-        )
     }
 }
 

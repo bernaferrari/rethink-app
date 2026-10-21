@@ -3,32 +3,25 @@
 
 package com.bernaferrari.bravedns.ui.compose.settings
 
-import com.bernaferrari.bravedns.ui.compose.logs.RethinkLogCompactIconAction
-import com.bernaferrari.bravedns.ui.compose.logs.RethinkLogToolbarRow
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkToolbarIconToggle
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkToolbarRow
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSearchField
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkOverflowMenu
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkOverflowItem
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -37,12 +30,9 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkModalBottomSheet
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkRadioChoiceList
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
@@ -183,7 +173,7 @@ private fun RethinkConsoleLogSearchRow(
     filterActive: Boolean,
     onFilterClick: () -> Unit,
 ) {
-    RethinkLogToolbarRow(
+    RethinkToolbarRow(
         modifier = Modifier.padding(
             horizontal = SharedDimensions.screenPaddingHorizontal,
             vertical = SharedDimensions.spacingSm,
@@ -196,7 +186,7 @@ private fun RethinkConsoleLogSearchRow(
             clearQueryContentDescription = strings.clearSearchDescription,
             modifier = Modifier.weight(1f),
         )
-        RethinkLogCompactIconAction(
+        RethinkToolbarIconToggle(
             icon = MaterialSymbols.Filled.FilterList,
             contentDescription = strings.filterDescription,
             selected = filterActive,

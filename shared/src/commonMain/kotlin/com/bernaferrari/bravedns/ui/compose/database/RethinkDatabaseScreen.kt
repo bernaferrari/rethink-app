@@ -3,6 +3,7 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.database
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -122,9 +123,6 @@ fun RethinkDatabaseScreen(
                 clearQueryContentDescription = strings.clearSearch,
                 onClearQuery = { query = "" },
                 modifier = Modifier.fillMaxWidth(),
-                // Same pill search field as the apps list, events and console logs.
-                shape = RoundedCornerShape(SharedDimensions.cornerRadiusFull),
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
             )
             if (isLoadingTables) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { LoadingIndicator() }
@@ -218,7 +216,7 @@ private fun RethinkDatabaseTableList(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 SectionHeader(title = strings.tables, modifier = Modifier.weight(1f))
-                RethinkDatabaseMetaChip("${tables.size}/$totalCount")
+                RethinkPill("${tables.size}/$totalCount")
             }
             if (tables.isEmpty()) {
                 RethinkDatabaseNoTables(strings, Modifier.fillMaxSize())
@@ -300,8 +298,8 @@ private fun RethinkDatabaseDetail(
                     }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
-                    RethinkDatabaseMetaChip(strings.rows(it.rowCount))
-                    RethinkDatabaseMetaChip(strings.columns(it.columnCount))
+                    RethinkPill(strings.rows(it.rowCount))
+                    RethinkPill(strings.columns(it.columnCount))
                 }
             }
             errorText?.takeIf { it.isNotBlank() }?.let { error ->
@@ -343,9 +341,3 @@ private fun RethinkDatabaseDetail(
     }
 }
 
-@Composable
-private fun RethinkDatabaseMetaChip(text: String) {
-    Surface(shape = RoundedCornerShape(SharedDimensions.cornerRadiusFull), color = MaterialTheme.colorScheme.surfaceContainerHighest) {
-        Text(text, style = MaterialTheme.typography.labelMedium.copy(fontFeatureSettings = "tnum"), color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, modifier = Modifier.padding(horizontal = SharedDimensions.spacingMd, vertical = SharedDimensions.spacingXs))
-    }
-}

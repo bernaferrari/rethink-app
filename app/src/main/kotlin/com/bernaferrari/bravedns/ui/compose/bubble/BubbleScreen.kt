@@ -2,18 +2,15 @@
 
 package com.bernaferrari.bravedns.ui.compose.bubble
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWell
 import Logger
 import Logger.LOG_TAG_UI
 import android.graphics.drawable.Drawable
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -72,11 +69,10 @@ fun BubbleScreen(
 private fun AndroidAppIcon(packageName: String) {
     val context = LocalContext.current
     val icon = remember(packageName) { loadAppIcon(context, packageName) }
-    Box(
-        // Same 40dp leading well as every other grouped list row.
-        Modifier.size(SharedDimensions.iconContainerMd).background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(SharedDimensions.iconContainerRadius)),
-        contentAlignment = Alignment.Center,
-    ) { rememberDrawablePainter(icon)?.let { Image(it, null, Modifier.size(SharedDimensions.iconSizeLg)) } }
+    // Same 40dp leading well as every other grouped list row.
+    RethinkIconWell(containerColor = MaterialTheme.colorScheme.secondaryContainer) {
+        rememberDrawablePainter(icon)?.let { Image(it, null, Modifier.size(SharedDimensions.iconSizeLg)) }
+    }
 }
 
 private fun AllowedAppInfo.id() = "$uid:$packageName"
