@@ -5,6 +5,10 @@
  */
 package com.bernaferrari.bravedns.ui.compose.common
 
+import androidx.compose.ui.unit.dp
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.toShape
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,7 +18,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.FilledTonalButton
@@ -28,6 +31,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+
+private val EmptyStateIconWell = 72.dp
 
 @Composable
 fun RethinkEmptyState(
@@ -49,25 +54,26 @@ fun RethinkEmptyState(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         if (icon != null) {
+            // Expressive shape echoes the Home beacon; sized as an illustration, not a list icon.
             Surface(
-                shape = CircleShape,
+                shape = MaterialShapes.Cookie6Sided.toShape(),
                 color = MaterialTheme.colorScheme.secondaryContainer,
-                modifier = Modifier.size(SharedDimensions.iconContainerLg),
+                modifier = Modifier.size(EmptyStateIconWell),
             ) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                        modifier = Modifier.size(SharedDimensions.iconSizeMd),
+                        modifier = Modifier.size(SharedDimensions.iconSizeLg),
                     )
                 }
             }
-            Spacer(Modifier.height(SharedDimensions.spacingMd))
+            Spacer(Modifier.height(SharedDimensions.spacingLg))
         }
         Text(
             text = title,
-            style = MaterialTheme.typography.headlineSmall,
+            style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
         )
@@ -82,7 +88,7 @@ fun RethinkEmptyState(
         }
         if (ctaLabel != null && onCtaClick != null) {
             Spacer(Modifier.height(SharedDimensions.spacingLg))
-            FilledTonalButton(onClick = onCtaClick) {
+            FilledTonalButton(onClick = onCtaClick, shapes = ButtonDefaults.shapes()) {
                 Text(ctaLabel)
             }
         }

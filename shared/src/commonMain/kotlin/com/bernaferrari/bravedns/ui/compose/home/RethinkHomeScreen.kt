@@ -10,6 +10,14 @@
  */
 package com.bernaferrari.bravedns.ui.compose.home
 
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.graphics.shapes.Morph
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.LinearEasing
@@ -28,7 +36,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -113,7 +120,7 @@ private enum class ProtectionVisualState { Protected, Recovering, Off }
 private const val BEACON_TURN_MILLIS = 22_000
 private val BeaconCompactWidth = 184.dp
 private val BeaconCompactHeight = 220.dp
-private val BeaconAspect = BeaconCompactWidth / BeaconCompactHeight
+private const val BEACON_EXPANDED_SCALE = 1.3f
 
 @Composable
 fun RethinkHomeScreen(
@@ -279,18 +286,20 @@ private data class BeaconPalette(
 private fun rememberBeaconPalette(state: ProtectionVisualState): BeaconPalette {
     val motion = LocalRethinkMotion.current
     val scheme = MaterialTheme.colorScheme
+    // Protected follows RethinkStatusColors ("allowed is always primary"); tertiary only
+    // supplies the outgoing-packet contrast.
     val accentTarget = when (state) {
-        ProtectionVisualState.Protected -> scheme.tertiary
+        ProtectionVisualState.Protected -> scheme.primary
         ProtectionVisualState.Recovering -> scheme.error
         ProtectionVisualState.Off -> scheme.outline
     }
     val fieldTarget = when (state) {
-        ProtectionVisualState.Protected -> scheme.tertiaryContainer
+        ProtectionVisualState.Protected -> scheme.primaryContainer
         ProtectionVisualState.Recovering -> scheme.errorContainer
         ProtectionVisualState.Off -> scheme.surfaceContainerLow
     }
     val secondaryTarget = when (state) {
-        ProtectionVisualState.Protected -> scheme.primary
+        ProtectionVisualState.Protected -> scheme.tertiary
         ProtectionVisualState.Recovering -> scheme.tertiary
         ProtectionVisualState.Off -> scheme.outlineVariant
     }
@@ -301,7 +310,7 @@ private fun rememberBeaconPalette(state: ProtectionVisualState): BeaconPalette {
         else -> accentTarget
     }
     val iconTarget = when (state) {
-        ProtectionVisualState.Protected -> scheme.onTertiary
+        ProtectionVisualState.Protected -> scheme.onPrimary
         ProtectionVisualState.Recovering -> scheme.onError
         ProtectionVisualState.Off -> scheme.onSurfaceVariant
     }
@@ -485,10 +494,9 @@ private fun ProtectionTunnel(
     }
 
     Surface(
+        // A fixed step up on wide screens; a fraction of the window would balloon on desktops.
         modifier = if (expanded) {
-            Modifier
-                .fillMaxWidth(1f / 3f)
-                .aspectRatio(BeaconAspect)
+            Modifier.size(width = BeaconCompactWidth * BEACON_EXPANDED_SCALE, height = BeaconCompactHeight * BEACON_EXPANDED_SCALE)
         } else {
             Modifier.size(width = BeaconCompactWidth, height = BeaconCompactHeight)
         },
@@ -598,14 +606,18 @@ private fun ProtectionTunnel(
                     style = Stroke(width = 1.dp.toPx()),
                 )
             }
-            Surface(
-                shape = CircleShape,
-                color = palette.disc,
-                modifier = Modifier.size(68.dp),
-                shadowElevation = 0.dp,
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
+            // The one hero moment on Home: the disc morphs from a circle (off) into a 9-sided
+            // cookie (protected) and turns slowly with the beacon clock. Rotation is applied in
+            // the layer, so the clock still never recomposes; the icon stays upright above it.
+            val morph = remember { Morph(MaterialShapes.Circle, MaterialShapes.Cookie9Sided) }
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(BeaconDiscSize)) {
+                Box(
+                    Modifier
+                        .matchParentSize()
+                        .graphicsLayer { rotationZ = phase() * 360f * activeProgress }
+                        .background(palette.disc, MorphShape(morph, activeProgress)),
+                )
+                Icon(
                         imageVector = if (visualState == ProtectionVisualState.Recovering) {
                             MaterialSymbols.Filled.WarningAmber
                         } else {
@@ -615,9 +627,28 @@ private fun ProtectionTunnel(
                         tint = palette.icon,
                         modifier = Modifier.size(30.dp),
                     )
-                }
             }
         }
+    }
+}
+
+private val BeaconDiscSize = 72.dp
+
+/** A [Morph] between two normalized Material shapes, scaled to the layout size. */
+private class MorphShape(private val morph: Morph, private val progress: Float) : Shape {
+    override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
+        val path = Path()
+        val cubics = morph.asCubics(progress)
+        cubics.firstOrNull()?.let { path.moveTo(it.anchor0X * size.width, it.anchor0Y * size.height) }
+        cubics.forEach { cubic ->
+            path.cubicTo(
+                cubic.control0X * size.width, cubic.control0Y * size.height,
+                cubic.control1X * size.width, cubic.control1Y * size.height,
+                cubic.anchor1X * size.width, cubic.anchor1Y * size.height,
+            )
+        }
+        path.close()
+        return Outline.Generic(path)
     }
 }
 

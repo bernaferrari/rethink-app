@@ -58,7 +58,9 @@ fun RethinkAdaptiveWidth(
 
 fun Modifier.rethinkContentWidth(widthClass: WindowWidthClass): Modifier =
     if (widthClass.isExpanded) {
-        fillMaxWidth().widthIn(max = RethinkWindowBreakpoints.ContentMax)
+        // Cap first, then fill: fillMaxWidth() first would pin min width to the parent and
+        // make the max cap a no-op.
+        widthIn(max = RethinkWindowBreakpoints.ContentMax).fillMaxWidth()
     } else {
         fillMaxWidth()
     }

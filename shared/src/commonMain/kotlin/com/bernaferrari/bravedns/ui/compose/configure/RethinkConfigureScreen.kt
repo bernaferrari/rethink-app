@@ -1,6 +1,8 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.configure
 
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import com.bernaferrari.bravedns.ui.compose.common.RethinkAdaptiveWidth
 import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
 import com.bernaferrari.bravedns.ui.compose.common.WindowWidthClass
@@ -120,8 +122,14 @@ fun RethinkConfigureScreen(
         if (searchOpen) focusRequester.requestFocus()
     }
 
+    // Wide windows: one centered column (top bar included, so the title aligns with the
+    // content) wide enough for a 4-up grid, but rows never stretch edge to edge.
     Scaffold(
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = modifier
+            .fillMaxSize()
+            .wrapContentWidth()
+            .widthIn(max = ConfigureMaxWidth)
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             if (searchOpen) {
@@ -132,7 +140,7 @@ fun RethinkConfigureScreen(
                         }
                     },
                     title = {
-                        val searchShape = RoundedCornerShape(SharedDimensions.cornerRadiusLg)
+                        val searchShape = RoundedCornerShape(SharedDimensions.cornerRadiusFull)
                         TextField(
                             value = query,
                             onValueChange = onQueryChange,
@@ -238,11 +246,11 @@ private fun ConfigureSection(section: RethinkConfigureSection, widthClass: Windo
 @Composable private fun FourGrid(entries: List<RethinkConfigureEntry>, widthClass: WindowWidthClass) {
     // A host that adds or hides an entry must not make the whole section vanish.
     if (entries.size != 4) {
-        AdaptiveTileGrid(entries, columns = if (widthClass.isExpanded) 3 else 2)
+        AdaptiveTileGrid(entries, columns = if (widthClass.isExpanded) expandedColumns(entries.size) else 2)
         return
     }
     if (widthClass.isExpanded) {
-        AdaptiveTileGrid(entries, columns = 3)
+        AdaptiveTileGrid(entries, columns = expandedColumns(entries.size))
         return
     }
     Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile)) {
@@ -253,19 +261,16 @@ private fun ConfigureSection(section: RethinkConfigureSection, widthClass: Windo
 @Composable private fun TriadGrid(entries: List<RethinkConfigureEntry>, widthClass: WindowWidthClass) {
     if (entries.size < 2) return
     if (widthClass.isExpanded) {
-        AdaptiveTileGrid(entries, columns = 3)
+        AdaptiveTileGrid(entries, columns = expandedColumns(entries.size))
         return
     }
-    Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile)) {
+    Column {
         GridRow(entries[0], entries[1], rethinkGroupedListPairShape(true, CardPosition.First), rethinkGroupedListPairShape(false, CardPosition.First), 0)
-        entries.drop(2).forEachIndexed { index, entry ->
-            val isLast = index == entries.lastIndex - 2
-            GridTile(
-                entry,
-                rethinkGroupedListShape(if (isLast) CardPosition.Last else CardPosition.Middle),
-                Modifier.fillMaxWidth(),
-                index + 2,
-            )
+        // Full-width entries are list rows, so they line up exactly with the list sections below
+        // (same inset, type and spacing) instead of being wide grid tiles.
+        val rest = entries.drop(2)
+        rest.forEachIndexed { index, entry ->
+            ConfigureListRow(entry, if (index == rest.lastIndex) CardPosition.Last else CardPosition.Middle)
         }
     }
 }
@@ -301,7 +306,7 @@ private fun configureGridCellShape(
     isFirstRow: Boolean,
     isLastRow: Boolean,
 ): Shape {
-    val outer = SharedDimensions.cornerRadius4xl
+    val outer = SharedDimensions.groupCornerRadius
     val inner = SharedDimensions.cornerRadiusSm
     return RoundedCornerShape(
         topStart = if (column == 0 && isFirstRow) outer else inner,
@@ -335,7 +340,7 @@ private fun configureGridCellShape(
                 .fillMaxWidth()
                 .padding(SharedDimensions.cardPadding),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
+            horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
         ) {
             ConfigureIconWell(colors) { entry.icon() }
             Column(modifier = Modifier.weight(1f)) {
@@ -364,16 +369,21 @@ private fun configureGridCellShape(
 }
 @Composable private fun EntryList(entries: List<RethinkConfigureEntry>) = Column {
     entries.forEachIndexed { index, entry ->
-        val colors = configureTileColors(entry.accent)
-        RethinkListItem(
-            headline = entry.title,
-            supporting = entry.subtitle,
-            position = cardPositionFor(index, entries.lastIndex),
-            onClick = entry.onClick,
-            defaultContainerColor = colors.fill,
-            leadingContent = { ConfigureIconWell(colors) { entry.icon() } },
-        )
+        ConfigureListRow(entry, cardPositionFor(index, entries.lastIndex))
     }
+}
+
+@Composable
+private fun ConfigureListRow(entry: RethinkConfigureEntry, position: CardPosition) {
+    val colors = configureTileColors(entry.accent)
+    RethinkListItem(
+        headline = entry.title,
+        supporting = entry.subtitle,
+        position = position,
+        onClick = entry.onClick,
+        defaultContainerColor = colors.fill,
+        leadingContent = { ConfigureIconWell(colors) { entry.icon() } },
+    )
 }
 
 @Composable
@@ -411,4 +421,13 @@ private fun SearchResults(results: List<RethinkConfigureSearchEntry>, query: Str
             )
         }
     }
+}
+
+private val ConfigureMaxWidth = 960.dp
+
+/** One row for up to four tiles, else balanced rows of at most three: never a lone orphan. */
+private fun expandedColumns(count: Int): Int = when {
+    count <= 4 -> count.coerceAtLeast(1)
+    count % 3 == 1 -> 4
+    else -> 3
 }

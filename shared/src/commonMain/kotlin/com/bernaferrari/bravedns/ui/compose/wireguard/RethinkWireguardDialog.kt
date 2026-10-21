@@ -41,7 +41,7 @@ fun RethinkWireguardDialog(
                 Modifier
                     .widthIn(max = 640.dp)
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(SharedDimensions.cornerRadius4xl))
+                    .clip(RoundedCornerShape(SharedDimensions.groupCornerRadius))
             } else {
                 Modifier.fillMaxWidth()
             }
@@ -49,7 +49,7 @@ fun RethinkWireguardDialog(
                 if (useSurface) {
                     Surface(
                         modifier = contentModifier,
-                        shape = if (wideWindow) RoundedCornerShape(SharedDimensions.cornerRadius4xl) else androidx.compose.ui.graphics.RectangleShape,
+                        shape = if (wideWindow) RoundedCornerShape(SharedDimensions.groupCornerRadius) else androidx.compose.ui.graphics.RectangleShape,
                         color = MaterialTheme.colorScheme.surface,
                         content = content,
                     )

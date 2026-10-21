@@ -28,6 +28,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusColors
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.PrimaryButton
 import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
@@ -137,7 +139,7 @@ fun RethinkRpnWinProxyDetailsScreen(
 private fun RethinkRpnWinStats(state: RethinkRpnWinProxyDetailsState, strings: RethinkRpnWinProxyDetailsStrings) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(SharedDimensions.cornerRadius4xl),
+        shape = RoundedCornerShape(SharedDimensions.groupCornerRadius),
         color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.42f),
     ) {
         Row(
@@ -155,17 +157,17 @@ private fun RethinkRpnWinStats(state: RethinkRpnWinProxyDetailsState, strings: R
 @Composable
 private fun RethinkRpnWinStat(label: String, value: String, modifier: Modifier) {
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
-        Text(value, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+        Text(value, style = MaterialTheme.typography.headlineSmall.copy(fontFeatureSettings = "tnum"), fontWeight = FontWeight.SemiBold)
         Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
 @Composable
 private fun RethinkRpnWinDetails(state: RethinkRpnWinProxyDetailsState, strings: RethinkRpnWinProxyDetailsStrings) {
-    val statusColor = if (state.isProxyActive) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurfaceVariant
+    val statusColor = if (state.isProxyActive) RethinkStatusColors.allowed else RethinkStatusColors.idle
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(SharedDimensions.cornerRadius4xl),
+        shape = RoundedCornerShape(SharedDimensions.groupCornerRadius),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
         Column(Modifier.padding(SharedDimensions.spacingLg)) {
@@ -183,9 +185,22 @@ private fun RethinkRpnWinDetails(state: RethinkRpnWinProxyDetailsState, strings:
 
 @Composable
 private fun RethinkRpnWinDetailRow(label: String, value: String, valueColor: Color = MaterialTheme.colorScheme.onSurface) {
-    Row(Modifier.fillMaxWidth().padding(vertical = SharedDimensions.spacingSm), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-        Text(label, style = MaterialTheme.typography.bodyMedium)
-        Text(value, style = MaterialTheme.typography.bodyMedium, color = valueColor)
+    // Quiet key, emphasized value; the value takes the remaining width and wraps rather than
+    // pushing into the key.
+    Row(
+        Modifier.fillMaxWidth().padding(vertical = SharedDimensions.spacingSm),
+        horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            value,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Medium,
+            color = valueColor,
+            textAlign = TextAlign.End,
+            modifier = Modifier.weight(1f),
+        )
     }
 }
 
@@ -214,7 +229,7 @@ private fun RethinkRpnWinServerOptions(
                 leadingIcon = MaterialSymbols.Filled.Wifi,
                 position = CardPosition.Last,
                 enabled = options.ssidBased,
-                showTrailingChevron = true,
+                // Opens the SSID editor dialog in place, so no navigation chevron.
                 onClick = onEditSsids,
             )
         }

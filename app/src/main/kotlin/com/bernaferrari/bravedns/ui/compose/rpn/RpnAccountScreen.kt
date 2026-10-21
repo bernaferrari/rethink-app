@@ -80,7 +80,7 @@ fun RpnAccountScreen(
         stringResource(R.string.rpn_account_manage_tab),
         stringResource(R.string.rpn_account_history_tab),
         stringResource(R.string.rpn_account_orders_tab),
-        stringResource(R.string.rpn_account_entitlement_tab),
+        stringResource(R.string.rpn_account_access_tab),
     )
 
     var entitlementRows by remember { mutableStateOf<List<RethinkRpnAccountEntry>>(emptyList()) }

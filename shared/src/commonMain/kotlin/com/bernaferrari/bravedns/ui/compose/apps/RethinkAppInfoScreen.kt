@@ -17,13 +17,17 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -191,12 +195,8 @@ fun RethinkAppInfoScreen(
                 }
             } else {
                 item {
-                    val firewallDescription = buildString {
-                        append(state.status)
-                        if (state.temporaryAllowed) append(" · ").append(strings.temporaryAllow)
-                        if (state.proxyDetails.isNotBlank()) append('\n').append(state.proxyDetails)
-                    }
-                    RethinkFormSection(strings.firewall, firewallDescription) {
+                    RethinkFormSection(strings.firewall) {
+                        RethinkAppStatusChips(state, strings)
                         RethinkAppNetworkPair(state, strings, onWifiClick, onMobileClick)
                         RethinkListGroup {
                             RethinkAppExclusiveRow(strings.isolate, strings.isolateDescription, state.isolated, MaterialSymbols.Filled.Security, RethinkStatusColors.blocked, CardPosition.First, onIsolateClick)
@@ -244,6 +244,64 @@ fun RethinkAppInfoScreen(
     }
 }
 
+/** The app's effective firewall verdict, derived from the same flags the controls below edit. */
+private enum class RethinkAppStatusTone { Allowed, Partial, Blocked }
+
+private fun RethinkAppInfoState.statusTone(): RethinkAppStatusTone = when {
+    isolated || (wifiBlocked && mobileBlocked) -> RethinkAppStatusTone.Blocked
+    excluded || bypassDnsFirewall || bypassUniversalFirewall || wifiBlocked || mobileBlocked -> RethinkAppStatusTone.Partial
+    else -> RethinkAppStatusTone.Allowed
+}
+
+/**
+ * Status summary as a wrapping row of tonal pills (verdict, temporary allow, proxy routing)
+ * instead of two cramped lines of caption text. Pills wrap rather than truncate.
+ */
+@Composable
+private fun RethinkAppStatusChips(state: RethinkAppInfoState, strings: RethinkAppInfoStrings) {
+    val tone = state.statusTone()
+    val (toneColor, toneIcon) = when (tone) {
+        RethinkAppStatusTone.Allowed -> RethinkStatusColors.allowed to MaterialSymbols.Filled.CheckCircle
+        RethinkAppStatusTone.Partial -> RethinkStatusColors.mixed to MaterialSymbols.Filled.Tune
+        RethinkAppStatusTone.Blocked -> RethinkStatusColors.blocked to MaterialSymbols.Filled.Block
+    }
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
+        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
+    ) {
+        RethinkAppStatusChip(state.status, toneIcon, toneColor)
+        if (state.temporaryAllowed) {
+            RethinkAppStatusChip(strings.temporaryAllow, MaterialSymbols.Filled.Timer, RethinkStatusColors.allowed)
+        }
+        if (state.proxyDetails.isNotBlank()) {
+            RethinkAppStatusChip(state.proxyDetails, MaterialSymbols.Filled.VpnKey, RethinkStatusColors.idle)
+        }
+    }
+}
+
+@Composable
+private fun RethinkAppStatusChip(label: String, icon: ImageVector, color: Color) {
+    Surface(
+        shape = RoundedCornerShape(SharedDimensions.chipCornerRadius),
+        color = color.copy(alpha = STATUS_CHIP_CONTAINER_ALPHA),
+        contentColor = color,
+    ) {
+        Row(
+            modifier = Modifier
+                .heightIn(min = SharedDimensions.iconContainerSm)
+                .padding(start = SharedDimensions.spacingSmMd, end = SharedDimensions.spacingMd, top = SharedDimensions.spacingXs, bottom = SharedDimensions.spacingXs),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
+        ) {
+            Icon(icon, contentDescription = null, modifier = Modifier.size(SharedDimensions.iconSizeXs))
+            Text(label, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Medium)
+        }
+    }
+}
+
+private const val STATUS_CHIP_CONTAINER_ALPHA = 0.12f
+
 @Composable
 private fun RethinkAppStatusPill(label: String, active: Boolean) {
     Surface(shape = RoundedCornerShape(SharedDimensions.chipCornerRadius), color = if (active) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHighest) {
@@ -258,10 +316,11 @@ private fun RethinkAppNetworkPair(
     onWifiClick: () -> Unit,
     onMobileClick: () -> Unit,
 ) {
-    // Compact horizontal network cards with a 2.dp gap like list rows.
+    // Compact horizontal network cards with the grouped-list gap. IntrinsicSize.Min keeps both
+    // tiles the same height when one label wraps to two lines.
     Row(
-                horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile),
-        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile),
+        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
     ) {
         RethinkAppNetworkTile(
             label = strings.wifi,
@@ -271,7 +330,7 @@ private fun RethinkAppNetworkPair(
             allowedIcon = MaterialSymbols.Filled.Wifi,
             blockedIcon = MaterialSymbols.Filled.WifiOff,
             shape = rethinkGroupedListPairShape(isLeadingTile = true, position = CardPosition.Single),
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).fillMaxHeight(),
             onClick = onWifiClick,
         )
         RethinkAppNetworkTile(
@@ -282,15 +341,15 @@ private fun RethinkAppNetworkPair(
             allowedIcon = MaterialSymbols.Outlined.MobiledataArrows,
             blockedIcon = MaterialSymbols.Outlined.MobiledataOff,
             shape = rethinkGroupedListPairShape(isLeadingTile = false, position = CardPosition.Single),
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).fillMaxHeight(),
             onClick = onMobileClick,
         )
     }
 }
 
 /**
- * Compact allow/block network card:
- * fixed 72.dp height, circular icon pill, and Allowed/Blocked status text.
+ * Compact allow/block network card: at least list-item-large tall, circular icon well, and
+ * Allowed/Blocked status text. The title may take two lines so "Mobile data" never truncates.
  */
 @Composable
 private fun RethinkAppNetworkTile(
@@ -363,20 +422,20 @@ private fun RethinkAppNetworkTile(
 
     Surface(
         onClick = onClick,
-        modifier = modifier.height(SharedDimensions.listItemHeightLg),
+        modifier = modifier.heightIn(min = SharedDimensions.listItemHeightLg),
         shape = animatedShape,
         color = containerColor,
     ) {
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = SharedDimensions.spacingLg, vertical = SharedDimensions.spacingMd),
+                .padding(horizontal = SharedDimensions.spacingMd, vertical = SharedDimensions.spacingMd),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
+            horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
         ) {
             Box(
                 modifier = Modifier
-                    .size(SharedDimensions.iconContainerMd)
+                    .size(SharedDimensions.iconContainerSm)
                     .clip(CircleShape)
                     .background(iconContainerColor),
                 contentAlignment = Alignment.Center,
@@ -388,7 +447,7 @@ private fun RethinkAppNetworkTile(
                     allowedTint = iconAllowedTint,
                     blockedTint = iconBlockedTint,
                     contentDescription = null,
-                    modifier = Modifier.size(SharedDimensions.iconSizeMd),
+                    modifier = Modifier.size(SharedDimensions.iconSizeSm),
                 )
             }
             Column(
@@ -400,7 +459,7 @@ private fun RethinkAppNetworkTile(
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = contentColor,
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
                 AnimatedContent(
@@ -481,7 +540,7 @@ private fun RethinkAppNavigationRow(title: String, icon: androidx.compose.ui.gra
 @Composable
 private fun RethinkAppNoActivity(message: String) {
     Surface(
-        shape = RoundedCornerShape(SharedDimensions.cornerRadius4xl),
+        shape = RoundedCornerShape(SharedDimensions.groupCornerRadius),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
         modifier = Modifier.fillMaxWidth(),
     ) {

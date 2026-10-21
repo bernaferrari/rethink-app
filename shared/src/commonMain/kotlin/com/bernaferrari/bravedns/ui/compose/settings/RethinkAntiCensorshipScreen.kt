@@ -46,11 +46,10 @@ fun RethinkAntiCensorshipScreen(
     onBackClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
-    val selectedDialLabel = dialOptions.firstOrNull { it.id == selectedDialId }?.title.orEmpty()
-    val selectedRetryLabel = retryOptions.firstOrNull { it.id == selectedRetryId }?.title.orEmpty()
+    // No "Split: … · Retry: …" subtitle: it truncated at phone widths and only repeated the
+    // radio selections visible directly below.
     RethinkTopBarLazyColumnScreen(
         title = strings.title,
-        subtitle = "${strings.split}: $selectedDialLabel · ${strings.retryHeading}: $selectedRetryLabel",
         onBackClick = onBackClick,
         modifier = modifier,
         containerColor = MaterialTheme.colorScheme.surface,

@@ -8,7 +8,6 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.ui.semantics.Role
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +16,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -39,7 +39,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
@@ -116,27 +115,18 @@ private fun CheckoutPaymentContent(
     onStartPayment: () -> Unit,
     onNavigateToProxy: () -> Unit,
 ) {
+    // The top bar already names the product and the section header asks to choose a plan, so
+    // the plan list leads directly instead of a hero card repeating both.
     Column(
-        Modifier.fillMaxWidth().padding(bottom = SharedDimensions.spacingLg),
+        Modifier.fillMaxWidth().padding(
+            start = SharedDimensions.screenPaddingHorizontal,
+            end = SharedDimensions.screenPaddingHorizontal,
+            bottom = SharedDimensions.spacing2xl,
+        ),
         verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
     ) {
-        Surface(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = SharedDimensions.screenPaddingHorizontal),
-            shape = RoundedCornerShape(SharedDimensions.cardCornerRadiusLarge),
-            color = MaterialTheme.colorScheme.surfaceContainerLow,
-            border = BorderStroke(SharedDimensions.dividerThicknessBold, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)),
-            tonalElevation = 1.dp,
-        ) {
-            Column(Modifier.padding(SharedDimensions.spacingLg), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
-                Text(strings.appName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                Text(strings.choosePlan, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        }
-        Column(
-            Modifier.fillMaxWidth().padding(horizontal = SharedDimensions.screenPaddingHorizontal),
-            verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
-        ) {
-            SectionHeader(strings.choosePlan, modifier = Modifier.padding(horizontal = SharedDimensions.spacingXs))
+        Column {
+            SectionHeader(strings.choosePlan)
             RethinkListGroup(Modifier.selectableGroup()) {
                 plans.forEachIndexed { index, plan ->
                     val selected = selectedPlanId == plan.id
@@ -144,30 +134,33 @@ private fun CheckoutPaymentContent(
                         headline = plan.title,
                         supporting = plan.subtitle,
                         position = cardPositionFor(index, plans.lastIndex),
+                        highlighted = selected,
                         selection = RethinkListSelection(checked = selected, role = Role.RadioButton) { onPlanSelected(plan.id) },
                         trailing = { RadioButton(selected = selected, onClick = null) },
                     )
                 }
             }
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
-            ) {
-                Button(
-                    modifier = Modifier.fillMaxWidth().height(SharedDimensions.buttonHeight),
-                    onClick = onStartPayment,
-                    shape = RoundedCornerShape(SharedDimensions.buttonCornerRadius),
-                ) { Text(strings.purchase, style = MaterialTheme.typography.labelLarge) }
-                TextButton(onClick = onNavigateToProxy) { Text(strings.restore) }
+        }
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
+        ) {
+            Button(
+                modifier = Modifier.fillMaxWidth().height(SharedDimensions.buttonHeight),
+                onClick = onStartPayment,
+                shape = RoundedCornerShape(SharedDimensions.buttonCornerRadius),
+            ) { Text(strings.purchase, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold) }
+            TextButton(onClick = onNavigateToProxy, modifier = Modifier.heightIn(min = SharedDimensions.touchTargetMin)) { Text(strings.restore) }
+        }
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(SharedDimensions.groupCornerRadius),
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+        ) {
+            Column(Modifier.padding(SharedDimensions.cardPadding), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
+                Text(strings.termsTitle, style = MaterialTheme.typography.titleSmall)
+                Text(strings.termsBody, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Spacer(Modifier.height(SharedDimensions.spacingMd))
-            Surface(shape = RoundedCornerShape(SharedDimensions.cornerRadius2xl), color = MaterialTheme.colorScheme.surfaceContainerLow, tonalElevation = 1.dp) {
-                Column(Modifier.padding(horizontal = SharedDimensions.spacingLg, vertical = SharedDimensions.spacingMd), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
-                    Text(strings.termsTitle, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
-                    Text(strings.termsBody, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-            Spacer(Modifier.height(SharedDimensions.spacingLg))
         }
     }
 }
@@ -179,7 +172,11 @@ private fun CheckoutAwaiting(strings: RethinkCheckoutStrings) = CheckoutStatusCa
 
 @Composable
 private fun CheckoutStatus(title: String, message: String, button: String, onClick: () -> Unit) = CheckoutStatusCard(title, message) {
-    Button(modifier = Modifier.fillMaxWidth(), onClick = onClick, shape = RoundedCornerShape(SharedDimensions.buttonCornerRadius)) { Text(button) }
+    Button(
+        modifier = Modifier.fillMaxWidth().height(SharedDimensions.buttonHeight),
+        onClick = onClick,
+        shape = RoundedCornerShape(SharedDimensions.buttonCornerRadius),
+    ) { Text(button, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold) }
 }
 
 @Composable
@@ -187,10 +184,8 @@ private fun CheckoutStatusCard(title: String, message: String, content: @Composa
     Box(Modifier.fillMaxWidth().padding(horizontal = SharedDimensions.screenPaddingHorizontal, vertical = SharedDimensions.spacingXl)) {
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(SharedDimensions.cornerRadius4xl),
+            shape = RoundedCornerShape(SharedDimensions.groupCornerRadius),
             color = MaterialTheme.colorScheme.surfaceContainerLow,
-            border = BorderStroke(SharedDimensions.dividerThicknessBold, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.26f)),
-            tonalElevation = 1.dp,
         ) {
             Column(
                 Modifier.fillMaxWidth().padding(horizontal = SharedDimensions.spacingXl, vertical = SharedDimensions.spacingXl),

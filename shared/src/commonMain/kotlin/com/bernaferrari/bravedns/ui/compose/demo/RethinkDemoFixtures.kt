@@ -199,12 +199,15 @@ internal fun demoCountryStatistic(
     connections: String,
     supporting: String,
     appConnections: List<Pair<String, String>>,
+    /** Largest country count in the fixture; the ranking bar is relative to it. */
+    maxConnections: Float = 1240f,
 ) = RethinkSummaryStatisticsRow(
     id = id,
     headline = name,
     supporting = supporting,
     metric = connections,
     countryFlag = flag,
+    share = connections.filter(Char::isDigit).toFloatOrNull()?.div(maxConnections)?.coerceIn(0f, 1f),
     expandedContent = {
         RethinkCountryBreakdown(
             title = "Most active apps",

@@ -65,10 +65,7 @@ internal fun DemoLogsScreen(modifier: Modifier, onBack: () -> Unit) {
             }
             Column(Modifier.fillMaxSize()) {
                 RethinkLogsControlsDeck {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
-                    ) {
+                    RethinkLogToolbarRow {
                         RethinkLogFilterRow(
                             selected = networkFilter,
                             strings = demoLogListStrings,
@@ -108,10 +105,7 @@ internal fun DemoLogsScreen(modifier: Modifier, onBack: () -> Unit) {
             }
             Column(Modifier.fillMaxSize()) {
                 RethinkLogsControlsDeck {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
-                    ) {
+                    RethinkLogToolbarRow {
                         RethinkLogFilterRow(
                             selected = dnsFilter,
                             strings = demoLogListStrings,

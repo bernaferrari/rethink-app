@@ -38,6 +38,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusColors
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 
@@ -252,9 +253,9 @@ private fun RethinkOrbotPanel(
     val highlighted = highlightedKey == "proxy_orbot"
     val enabled = state.canEnableProxy && !state.orbotConnecting
     val status = when {
-        state.orbotConnecting -> strings.waiting to MaterialTheme.colorScheme.primary
-        state.orbotEnabled -> strings.active to MaterialTheme.colorScheme.tertiary
-        else -> strings.inactive to MaterialTheme.colorScheme.onSurfaceVariant
+        state.orbotConnecting -> strings.waiting to RethinkStatusColors.mixed
+        state.orbotEnabled -> strings.active to RethinkStatusColors.allowed
+        else -> strings.inactive to RethinkStatusColors.idle
     }
     val actionCount = if (enabled) 1 + (if (state.orbotAppCount != null && onAppsClick != null) 1 else 0) + 2 else 1
     RethinkListGroup {
@@ -308,7 +309,7 @@ private fun RethinkOrbotPanel(
                 leadingIcon = MaterialSymbols.Filled.Info,
                 position = cardPositionFor(row, actionCount - 1),
                 highlighted = highlightedKey == "proxy_orbot_info",
-                showTrailingChevron = true,
+                // Opens an explanation dialog in place; chevrons are reserved for navigation.
                 onClick = onInfoClick,
             )
         }

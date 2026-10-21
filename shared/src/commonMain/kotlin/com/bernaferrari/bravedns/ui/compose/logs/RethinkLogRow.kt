@@ -118,7 +118,7 @@ fun RethinkLogRow(
         label = "log_row_scale_${model.id}",
     )
     val chevron by animateFloatAsState(
-        targetValue = if (expanded) 90f else 0f,
+        targetValue = if (expanded) 180f else 0f,
         animationSpec = if (motion.reducedMotion) snap() else motionScheme.fastSpatialSpec(),
         label = "log_row_chevron_${model.id}",
     )
@@ -170,18 +170,25 @@ fun RethinkLogRow(
                     horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSmMd),
                 ) {
                     LogIconSlot(statusContainer, model.icon)
+                    // Two lines, each a single baseline: destination + verdict, then app/type +
+                    // time. Sharing rows (instead of two independent columns) keeps "• Allowed"
+                    // on the headline's baseline at every font scale.
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
-                        Text(model.destination, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge, color = scheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm), verticalAlignment = Alignment.CenterVertically) {
-                            Text(model.appLabel, style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
-                            LogTypeTag(model.typeLabel)
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
+                            Text(model.destination, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge, color = scheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f).alignByBaseline())
+                            LogStatusLabel(if (model.isBlocked) model.blockedLabel else model.allowedLabel, statusColor, Modifier.alignByBaseline())
                         }
-                    }
-                    Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
-                        LogStatusLabel(if (model.isBlocked) model.blockedLabel else model.allowedLabel, statusColor)
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
-                            Text(model.timeLabel, style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant.copy(alpha = 0.92f))
-                            Icon(MaterialSymbols.AutoMirrored.Filled.KeyboardArrowRight, null, tint = scheme.onSurfaceVariant, modifier = Modifier.size(SharedDimensions.iconSizeXs).rotate(chevron))
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm), verticalAlignment = Alignment.CenterVertically) {
+                            Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm), verticalAlignment = Alignment.CenterVertically) {
+                                Text(model.appLabel, style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                                LogTypeTag(model.typeLabel)
+                            }
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
+                                Text(model.timeLabel, style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"), color = scheme.onSurfaceVariant, maxLines = 1)
+                                // Inline accordion, not navigation: a down chevron that flips,
+                                // rather than a forward arrow that implies a new screen.
+                                Icon(MaterialSymbols.Filled.KeyboardArrowDown, null, tint = scheme.onSurfaceVariant, modifier = Modifier.size(SharedDimensions.iconSizeXs).rotate(chevron))
+                            }
                         }
                     }
                 }
@@ -221,10 +228,10 @@ private fun LogTypeTag(label: String) {
 }
 
 @Composable
-private fun LogStatusLabel(label: String, color: Color) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
+private fun LogStatusLabel(label: String, color: Color, modifier: Modifier = Modifier) {
+    Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
         Box(Modifier.size(SharedDimensions.spacingXs).clip(CircleShape).background(color))
-        Text(label, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold, color = color)
+        Text(label, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold, color = color, maxLines = 1)
     }
 }
 

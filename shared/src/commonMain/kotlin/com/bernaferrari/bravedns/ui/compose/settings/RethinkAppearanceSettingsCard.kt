@@ -20,7 +20,8 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -44,6 +45,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -153,6 +155,7 @@ fun RethinkAppearanceSettingsCard(
                         onModeSelected(mode)
                     },
                     modifier = Modifier.padding(SharedDimensions.cardPadding),
+                    unselectedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                 )
             }
             Surface(
@@ -160,29 +163,39 @@ fun RethinkAppearanceSettingsCard(
                 shape = rethinkGroupedListShape(CardPosition.Last),
                 color = MaterialTheme.colorScheme.surfaceContainerLow,
             ) {
-                FlowRow(
+                // Fixed column grid: every cell has the same width on every row, so swatches line up
+                // vertically and a shorter last row sits centered (11 → 6 + 5, 10 → 5 + 5).
+                val columns = ((visiblePresets.size + 1) / 2).coerceAtLeast(1)
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = SharedDimensions.spacingSm, vertical = SharedDimensions.spacingXs),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingNone),
-                    itemVerticalAlignment = Alignment.CenterVertically,
-                    // Two balanced rows: 10 presets → 5 + 5, Android's 11 (with dynamic) → 6 + 5.
-                    maxItemsInEachRow = (visiblePresets.size + 1) / 2,
+                        .padding(horizontal = SharedDimensions.spacingSm, vertical = SharedDimensions.spacingSm),
                 ) {
-                    visiblePresets.forEach { preset ->
-                        RethinkThemeColorSwatch(
-                            preset = preset,
-                            selected = preset.id == displayedPresetId,
-                            enabled = true,
-                            dynamicColor = dynamicColor,
-                            onClick = {
-                                if (preset.id != colorPresetId) {
-                                    colorPresetId = preset.id
-                                    onPresetSelected(preset)
+                    visiblePresets.chunked(columns).forEach { rowPresets ->
+                        val missing = columns - rowPresets.size
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            if (missing > 0) Spacer(Modifier.weight(missing / 2f))
+                            rowPresets.forEach { preset ->
+                                Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                                    RethinkThemeColorSwatch(
+                                        preset = preset,
+                                        selected = preset.id == displayedPresetId,
+                                        enabled = true,
+                                        dynamicColor = dynamicColor,
+                                        onClick = {
+                                            if (preset.id != colorPresetId) {
+                                                colorPresetId = preset.id
+                                                onPresetSelected(preset)
+                                            }
+                                        },
+                                    )
                                 }
-                            },
-                        )
+                            }
+                            if (missing > 0) Spacer(Modifier.weight(missing / 2f))
+                        }
                     }
                 }
             }
@@ -190,9 +203,10 @@ fun RethinkAppearanceSettingsCard(
     }
 }
 
-private val ColorTileHitSize = 50.dp
-private val ColorTileGlowSize = 56.dp
+private val ColorTileHitSize = 48.dp
 private val ColorTileSize = 40.dp
+private val ColorTileRingWidth = 2.dp
+private val SwatchInk = Color(0xFF1C1B18)
 
 @Composable
 private fun RethinkThemeColorSwatch(
@@ -205,7 +219,10 @@ private fun RethinkThemeColorSwatch(
     val motion = LocalRethinkMotion.current
     val baseColor = if (preset.isDynamic) dynamicColor else preset.color ?: dynamicColor
     val displayColor = if (enabled) baseColor else baseColor.copy(alpha = 0.42f)
-    val onSwatch = if (displayColor.luminance() < 0.5f) Color.White else Color(0xFF1C1B18)
+    // Pick whichever ink has the higher WCAG contrast on this swatch, so the check stays legible on
+    // light seeds (Amber, Green, Cyan) where a plain luminance < 0.5 cut-off picks white.
+    val onSwatch = contrastingInk(displayColor)
+    val ringColor = MaterialTheme.colorScheme.primary
     val springOrSnap: AnimationSpec<Float> =
         if (motion.reducedMotion) snap() else spring(dampingRatio = 0.7f, stiffness = 520f)
     val cornerFraction by animateFloatAsState(
@@ -214,7 +231,7 @@ private fun RethinkThemeColorSwatch(
         label = "swatchCorner_${preset.id}",
     )
     val scale by animateFloatAsState(
-        targetValue = if (selected) 1.02f else 0.86f,
+        targetValue = if (selected) 0.92f else 0.86f,
         animationSpec = if (motion.reducedMotion) snap() else spring(dampingRatio = 0.56f, stiffness = 600f),
         label = "swatchScale_${preset.id}",
     )
@@ -253,14 +270,17 @@ private fun RethinkThemeColorSwatch(
             },
         contentAlignment = Alignment.Center,
     ) {
+        // Selection ring in primary, separated from the swatch by a small gap.
         Box(
             modifier = Modifier
-                .size(ColorTileGlowSize)
+                .size(ColorTileHitSize)
                 .graphicsLayer { alpha = glowAlpha }
                 .drawBehind {
+                    val stroke = ColorTileRingWidth.toPx()
                     drawCircle(
-                        color = displayColor.copy(alpha = 0.44f),
-                        radius = size.minDimension * 0.5f,
+                        color = ringColor,
+                        radius = (size.minDimension - stroke) / 2f,
+                        style = Stroke(width = stroke),
                     )
                 },
         )
@@ -310,6 +330,13 @@ private fun RethinkThemeColorSwatch(
             }
         }
     }
+}
+
+private fun contrastingInk(background: Color): Color {
+    val luminance = background.luminance()
+    val whiteContrast = 1.05f / (luminance + 0.05f)
+    val inkContrast = (luminance + 0.05f) / (SwatchInk.luminance() + 0.05f)
+    return if (whiteContrast >= inkContrast) Color.White else SwatchInk
 }
 
 private fun RethinkAppearanceMode.icon() = when (this) {

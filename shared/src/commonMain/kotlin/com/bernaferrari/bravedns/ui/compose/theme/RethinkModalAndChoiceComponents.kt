@@ -1,6 +1,7 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.theme
 
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -185,7 +186,12 @@ fun RethinkModalBottomSheet(
             modifier = modifier.fillMaxWidth().padding(contentPadding),
             verticalArrangement = Arrangement.spacedBy(verticalSpacing),
         ) {
-            content(dismiss)
+            // The sheet itself is surfaceContainerLow; lift grouped rows one tone so they read.
+            CompositionLocalProvider(
+                LocalRethinkListContainerColor provides MaterialTheme.colorScheme.surfaceContainerHigh,
+            ) {
+                content(dismiss)
+            }
             if (includeBottomSpacer) Spacer(Modifier.height(SharedDimensions.spacing2xl))
         }
     }

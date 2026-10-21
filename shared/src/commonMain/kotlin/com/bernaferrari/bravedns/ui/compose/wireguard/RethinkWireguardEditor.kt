@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -118,12 +119,14 @@ fun RethinkWireguardEditor(
                         onValueChange = { onStateChange(state.copy(addresses = it)) },
                         label = strings.addresses,
                         minLines = 2,
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace),
                     )
                     RethinkFormTextField(
                         value = state.dnsServers,
                         onValueChange = { onStateChange(state.copy(dnsServers = it)) },
                         label = strings.dnsServers,
                         minLines = 2,
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace),
                     )
                 }
             }
@@ -178,7 +181,14 @@ fun RethinkWireguardEditor(
             if (state.advancedProperties.isNotEmpty()) {
                 item {
                     RethinkFormSection(strings.advanced) {
-                        Text(state.advancedProperties, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        SelectionContainer {
+                            Text(
+                                state.advancedProperties,
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontFamily = FontFamily.Monospace,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                     }
                 }
             }

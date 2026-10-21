@@ -104,7 +104,8 @@ fun RethinkWireguardDetail(
                 SectionHeader(strings.configure)
                 RethinkListGroup {
                     RethinkWireguardDetailAction(strings.addPeer, strings.peer, MaterialSymbols.Filled.Add, CardPosition.First, onAddPeer)
-                    RethinkWireguardDetailAction(strings.edit, strings.title, MaterialSymbols.Filled.Edit, CardPosition.Middle, onEdit)
+                    // Only Edit leaves the screen; the other rows open dialogs, so they get no chevron.
+                    RethinkWireguardDetailAction(strings.edit, strings.title, MaterialSymbols.Filled.Edit, CardPosition.Middle, onEdit, navigates = true)
                     RethinkWireguardDetailAction(strings.delete, strings.deleteDescription, MaterialSymbols.Filled.Delete, CardPosition.Last, onDelete, MaterialTheme.colorScheme.error)
                 }
             }
@@ -157,8 +158,11 @@ private fun RethinkWireguardDetailOverview(state: RethinkWireguardDetailState) {
                 Icon(MaterialSymbols.Filled.VpnKey, null, Modifier.size(SharedDimensions.iconContainerMd).padding(SharedDimensions.spacingSm), tint = MaterialTheme.colorScheme.onPrimaryContainer)
             }
             Column(Modifier.weight(1f)) {
-                Text(state.name, style = MaterialTheme.typography.titleMedium)
-                Text(state.status, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(state.name, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                // With a status color the pill carries the status; never say it twice.
+                if (state.statusColor == null) {
+                    Text(state.status, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
             state.statusColor?.let { color ->
                 Surface(shape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.cornerRadiusFull), color = color.copy(alpha = 0.14f)) {
@@ -185,6 +189,7 @@ private fun RethinkWireguardDetailAction(
     onClick: () -> Unit,
     accent: Color = MaterialTheme.colorScheme.primary,
     enabled: Boolean = true,
+    navigates: Boolean = false,
 ) = RethinkListItem(
     headline = title,
     supporting = description,
@@ -193,7 +198,7 @@ private fun RethinkWireguardDetailAction(
     leadingIconContainerColor = accent.copy(alpha = 0.14f),
     position = position,
     enabled = enabled,
-    showTrailingChevron = accent != MaterialTheme.colorScheme.error,
+    showTrailingChevron = navigates,
     onClick = onClick,
 )
 

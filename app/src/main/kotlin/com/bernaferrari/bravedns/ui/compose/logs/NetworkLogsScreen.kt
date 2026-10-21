@@ -83,13 +83,13 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.ui.compose.logs.ConnectionRow
+import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.dns.DnsLogRow
 import com.bernaferrari.bravedns.database.ConnectionTracker
 import com.bernaferrari.bravedns.database.ConnectionTrackerRepository
@@ -270,11 +270,7 @@ private fun ConnectionLogsContent(
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             RethinkLogsControlsDeck {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingXs),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                RethinkLogToolbarRow {
                     RethinkLogFilterRow(
                         selected = parentFilter.toRethinkLogFilter(),
                         strings = logFilterStrings(),
@@ -447,11 +443,7 @@ private fun DnsLogsContent(
 
     Column(modifier = Modifier.fillMaxSize()) {
         RethinkLogsControlsDeck {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingXs),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            RethinkLogToolbarRow {
                 RethinkLogFilterRow(
                     selected = filterType.toRethinkLogFilter(),
                     strings = logFilterStrings(),
@@ -627,7 +619,7 @@ private fun PlatformLogAppIcon(option: RethinkLogAppOption) {
         Image(
             painter = painter,
             contentDescription = null,
-            modifier = Modifier.size(24.dp).clip(RoundedCornerShape(7.dp)),
+            modifier = Modifier.size(SharedDimensions.iconSizeMd).clip(RoundedCornerShape(SharedDimensions.cornerRadiusSm)),
         )
     }
 }
@@ -638,7 +630,7 @@ private fun PlatformLogRuleIcon(ruleId: String, tint: Color) {
         painter = painterResource(FirewallRuleset.getRulesIcon(ruleId)),
         contentDescription = null,
         tint = tint,
-        modifier = Modifier.size(18.dp),
+        modifier = Modifier.size(SharedDimensions.iconSizeSm),
     )
 }
 
@@ -747,8 +739,8 @@ private fun LogDetailsSheet(
                     painter = painter,
                     contentDescription = null,
                     modifier = Modifier
-                        .size(30.dp)
-                        .clip(RoundedCornerShape(9.dp)),
+                        .size(SharedDimensions.iconContainerSm)
+                        .clip(RoundedCornerShape(SharedDimensions.cornerRadiusSmMd)),
                 )
             }
         },

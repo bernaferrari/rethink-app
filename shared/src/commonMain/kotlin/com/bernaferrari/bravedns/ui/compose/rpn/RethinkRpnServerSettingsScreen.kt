@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -220,11 +220,12 @@ private fun RethinkCountryExclusionDialog(
             modifier = Modifier.fillMaxWidth().heightIn(min = 360.dp, max = 640.dp),
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile),
         ) {
-            items(countries, key = RethinkRpnCountryOption::code) { country ->
+            itemsIndexed(countries, key = { _, country -> country.code }) { index, country ->
                 val checked = country.code in selected
                 RethinkListItem(
                     headline = country.name,
-                    position = CardPosition.Single,
+                    // One grouped list (not a stack of single cards), one tone above the sheet.
+                    position = cardPositionFor(index, countries.lastIndex),
                     highlighted = checked,
                     selection = RethinkListSelection(checked = checked, role = Role.Checkbox) { isChecked ->
                         selected = selected.toMutableSet().apply {

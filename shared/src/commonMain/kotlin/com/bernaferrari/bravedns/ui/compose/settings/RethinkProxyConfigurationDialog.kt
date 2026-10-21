@@ -216,6 +216,7 @@ private fun RethinkProxyToggleRow(
         headline = label,
         position = position,
         enabled = enabled,
+        // Rendered inside a surfaceContainerLow sheet: step up one tone so the group reads.
         trailing = { Switch(checked = checked, enabled = enabled, onCheckedChange = null) },
         selection = RethinkListSelection(checked = checked, onCheckedChange = onCheckedChange),
     )

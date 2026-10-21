@@ -47,6 +47,7 @@ fun ConsoleLogScreen(
             filterDescription = stringResource(R.string.cd_filter),
             shareDescription = stringResource(R.string.about_bug_report_desc),
             clearDescription = stringResource(R.string.console_log_delete_all_cd),
+            moreDescription = stringResource(R.string.cd_more),
             clearSearchDescription = stringResource(R.string.cd_clear_search),
             deleteDialogTitle = stringResource(R.string.console_log_delete_dialog_title),
             deleteDialogMessage = stringResource(R.string.console_log_delete_dialog_desc),

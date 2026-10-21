@@ -4,6 +4,8 @@
  * Shared pause renderer. The host owns VPN state and the repeating long-press action; this file
  * owns the complete visual and touch treatment on every Compose target.
  */
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package com.bernaferrari.bravedns.ui.compose.home
 
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
@@ -21,9 +23,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonGroup
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -37,10 +42,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import kotlinx.coroutines.delay
 
@@ -55,8 +58,8 @@ data class RethinkPauseStrings(
     val title: String,
     val pauseLabel: String,
     val resume: String,
-    val decreaseDuration: String = "Decrease duration",
-    val increaseDuration: String = "Increase duration",
+    val decreaseDuration: String,
+    val increaseDuration: String,
 )
 
 @Composable
@@ -80,9 +83,8 @@ fun RethinkPauseScreen(
         ) {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(SharedDimensions.cornerRadius5xl),
+                shape = RoundedCornerShape(SharedDimensions.cornerRadius2xl),
                 color = MaterialTheme.colorScheme.surfaceContainer,
-                tonalElevation = 0.dp,
             ) {
                 Column(
                     modifier = Modifier
@@ -102,9 +104,10 @@ fun RethinkPauseScreen(
                     )
                     Text(
                         text = state.timerText,
-                        style = MaterialTheme.typography.displayLarge,
-                        fontFamily = FontFamily.Monospace,
-                        fontWeight = FontWeight.Bold,
+                        // Tabular figures keep the digits from jittering as the countdown ticks,
+                        // without switching to a monospace face.
+                        style = MaterialTheme.typography.displayLarge.copy(fontFeatureSettings = "tnum"),
+                        fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Center,
                     )
@@ -116,30 +119,48 @@ fun RethinkPauseScreen(
                             textAlign = TextAlign.Center,
                         )
                     }
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
-                        verticalAlignment = Alignment.CenterVertically,
+                    val decreaseInteraction = remember { MutableInteractionSource() }
+                    val increaseInteraction = remember { MutableInteractionSource() }
+                    Spacer(Modifier.height(SharedDimensions.spacingSm))
+                    ButtonGroup(
+                        overflowIndicator = {},
+                        horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm, Alignment.CenterHorizontally),
                     ) {
-                        RethinkPauseAdjustButton(
-                            icon = MaterialSymbols.Filled.Remove,
-                            contentDescription = strings.decreaseDuration,
-                            onClick = onDecrease,
-                            onLongClick = { onAutoAdjustmentStart(RethinkPauseAdjustment.Decrease) },
-                            onRelease = onAutoAdjustmentStop,
+                        customItem(
+                            buttonGroupContent = {
+                                RethinkPauseAdjustButton(
+                                    icon = MaterialSymbols.Filled.Remove,
+                                    contentDescription = strings.decreaseDuration,
+                                    interactionSource = decreaseInteraction,
+                                    onClick = onDecrease,
+                                    onLongClick = { onAutoAdjustmentStart(RethinkPauseAdjustment.Decrease) },
+                                    onRelease = onAutoAdjustmentStop,
+                                    modifier = Modifier.animateWidth(decreaseInteraction),
+                                )
+                            },
+                            menuContent = {},
                         )
-                        RethinkPauseAdjustButton(
-                            icon = MaterialSymbols.Filled.Add,
-                            contentDescription = strings.increaseDuration,
-                            onClick = onIncrease,
-                            onLongClick = { onAutoAdjustmentStart(RethinkPauseAdjustment.Increase) },
-                            onRelease = onAutoAdjustmentStop,
+                        customItem(
+                            buttonGroupContent = {
+                                RethinkPauseAdjustButton(
+                                    icon = MaterialSymbols.Filled.Add,
+                                    contentDescription = strings.increaseDuration,
+                                    interactionSource = increaseInteraction,
+                                    onClick = onIncrease,
+                                    onLongClick = { onAutoAdjustmentStart(RethinkPauseAdjustment.Increase) },
+                                    onRelease = onAutoAdjustmentStop,
+                                    modifier = Modifier.animateWidth(increaseInteraction),
+                                )
+                            },
+                            menuContent = {},
                         )
                     }
                 }
             }
 
             Spacer(Modifier.height(SharedDimensions.spacingXl))
-            FilledTonalButton(
+            // Resuming is the screen's one primary action: a filled button, not tonal.
+            Button(
                 onClick = onResume,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -166,11 +187,12 @@ fun RethinkPauseScreen(
 private fun RethinkPauseAdjustButton(
     icon: ImageVector,
     contentDescription: String,
+    interactionSource: MutableInteractionSource,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
     onRelease: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
     var repeating by remember { mutableStateOf(false) }
     LaunchedEffect(pressed) {
@@ -183,15 +205,19 @@ private fun RethinkPauseAdjustButton(
             repeating = false
         }
     }
-    IconButton(
+    FilledTonalIconButton(
         onClick = { if (!repeating) onClick() },
+        shapes = IconButtonDefaults.shapes(
+            shape = IconButtonDefaults.mediumRoundShape,
+            pressedShape = IconButtonDefaults.mediumPressedShape,
+        ),
         interactionSource = interactionSource,
+        modifier = modifier.size(IconButtonDefaults.mediumContainerSize()),
     ) {
         Icon(
             icon,
             contentDescription = contentDescription,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(SharedDimensions.iconSizeMd),
+            modifier = Modifier.size(IconButtonDefaults.mediumIconSize),
         )
     }
 }

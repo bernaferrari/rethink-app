@@ -342,7 +342,12 @@ private fun RethinkDnsRadioRow(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (onInfo != null) {
                     IconButton(onClick = onInfo) {
-                        Icon(MaterialSymbols.Filled.Info, infoDescription, Modifier.size(SharedDimensions.iconSizeSm))
+                        Icon(
+                            MaterialSymbols.Filled.Info,
+                            infoDescription,
+                            Modifier.size(SharedDimensions.iconSizeSm),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                 }
                 // The complete row is the selection target. A passive indicator avoids exposing
@@ -390,36 +395,66 @@ private fun RethinkDnsConnectionCard(
     val overline = strings.rethinkDns.takeUnless { it.isRedundantWith(displayName) }
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.cornerRadius4xl),
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.groupCornerRadius),
         color = if (highlighted) MaterialTheme.colorScheme.primaryContainer.copy(alpha = .42f) else MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
         Column(
             Modifier.fillMaxWidth().padding(SharedDimensions.spacingLg),
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
-                Icon(MaterialSymbols.Filled.Dns, null, tint = MaterialTheme.colorScheme.primary)
+            // Same 32dp icon container + 16dp inset as the grouped rows above, so the card's
+            // leading edge lines up with the radio rows' icons.
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg)) {
+                Surface(
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.iconContainerRadius),
+                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+                    modifier = Modifier.size(SharedDimensions.iconContainerSm),
+                ) {
+                    androidx.compose.foundation.layout.Box(contentAlignment = Alignment.Center) {
+                        Icon(MaterialSymbols.Filled.Dns, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(SharedDimensions.iconSizeSm))
+                    }
+                }
                 Column(Modifier.weight(1f)) {
                     overline?.let { Text(it, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary) }
                     Text(displayName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
-                state.dnsLatency.trim('(', ')').takeIf { it.isNotBlank() }?.let { RethinkDnsPill(it, MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onTertiaryContainer) }
+                state.dnsLatency.trim('(', ')', ' ').takeIf { it.isNotBlank() }?.let { latency ->
+                    val tone = latencyTone(latency)
+                    RethinkDnsPill(latency, tone.copy(alpha = 0.14f), tone)
+                }
             }
-            Text(strings.connectedDescription, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
+            Text(strings.connectedDescription, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm), verticalAlignment = Alignment.CenterVertically) {
                 RethinkDnsPill(protocol, MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.onSecondaryContainer)
-                endpoint.takeIf { it.isNotBlank() }?.let { RethinkDnsPill(it, MaterialTheme.colorScheme.surfaceContainerHighest, MaterialTheme.colorScheme.onSurface) }
+                endpoint.takeIf { it.isNotBlank() }?.let {
+                    RethinkDnsPill(it, MaterialTheme.colorScheme.surfaceContainerHighest, MaterialTheme.colorScheme.onSurfaceVariant, Modifier.weight(1f, fill = false))
+                }
             }
         }
     }
 }
 
 @Composable
-private fun RethinkDnsPill(text: String, container: Color, content: Color) {
-    Surface(shape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.cornerRadiusPill), color = container) {
+private fun RethinkDnsPill(text: String, container: Color, content: Color, modifier: Modifier = Modifier) {
+    Surface(shape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.cornerRadiusFull), color = container, modifier = modifier) {
         Text(text, Modifier.padding(horizontal = SharedDimensions.spacingSmMd, vertical = SharedDimensions.spacingXs), style = MaterialTheme.typography.labelMedium, color = content, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
+
+/** Latency reads as a status: fast uses the allowed role, sluggish mixed, very slow blocked. */
+@Composable
+private fun latencyTone(latency: String): Color {
+    val ms = latency.takeWhile { it.isDigit() || it == '.' }.toDoubleOrNull()
+        ?: return RethinkStatusColors.idle
+    return when {
+        ms < FAST_LATENCY_MS -> RethinkStatusColors.allowed
+        ms < SLOW_LATENCY_MS -> RethinkStatusColors.mixed
+        else -> RethinkStatusColors.blocked
+    }
+}
+
+private const val FAST_LATENCY_MS = 150.0
+private const val SLOW_LATENCY_MS = 500.0
 
 @Composable
 private fun RethinkDnsStatusText(text: String, enabled: Boolean) {

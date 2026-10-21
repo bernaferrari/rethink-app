@@ -282,7 +282,7 @@ internal fun DemoRpnAccountScreen(modifier: Modifier, onBack: () -> Unit) {
             orders = listOf(RethinkRpnAccountEntry("rethink.plus.monthly", "Purchased · Renews next month")),
         ),
         strings = RethinkRpnAccountStrings(
-            title = "Rethink Plus", manageTab = "Manage", historyTab = "History", ordersTab = "Orders", entitlementTab = "Entitlement",
+            title = "Rethink Plus", manageTab = "Manage", historyTab = "History", ordersTab = "Orders", entitlementTab = "Access",
             manageHeading = "Subscription", manageDescription = "Manage this device's subscription.", actionsHeading = "Actions", actionsDescription = "Account changes take effect across your signed-in devices.",
             cancel = "Cancel subscription", cancelDescription = "Keep access until the current billing period ends.", revoke = "Revoke this device", revokeDescription = "Remove this device from the subscription.",
             cancelConfirmation = "Cancel this subscription at the end of the current period?", revokeConfirmation = "Revoke this device's subscription access?", proceed = "Proceed", dismiss = "Cancel",

@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -73,10 +72,8 @@ fun RethinkDnsRecordTypesSheet(
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
         ) {
             RethinkFormSection(strings.title, strings.description) {
-                Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
-                    RethinkDnsSheetPill(if (autoMode) strings.auto else strings.manual)
-                    RethinkDnsSheetPill(strings.selected(selectedCount, types.size))
-                }
+                // Auto/Manual is already visible in the connected group; the pill only adds the count.
+                RethinkDnsSheetPill(strings.selected(selectedCount, types.size))
                 RethinkConnectedChoiceGroup(
                     options = listOf(RethinkChoiceOption(true, strings.auto), RethinkChoiceOption(false, strings.manual)),
                     selected = autoMode,
@@ -91,6 +88,7 @@ fun RethinkDnsRecordTypesSheet(
                 ) {
                     itemsIndexed(types, key = { _, type -> type.id }) { index, type ->
                         val checked = type.id in selectedIds
+                        // Sheets sit on surfaceContainerLow; rows step up one tone to stay visible.
                         RethinkListItem(
                             headline = type.name,
                             supporting = type.description,
@@ -182,9 +180,9 @@ fun RethinkLocalBlocklistSheet(
             }
             RethinkFormSection(strings.actions) {
                 RethinkListGroup {
-                    RethinkListItem(headline = strings.configure, leadingIcon = MaterialSymbols.Filled.Settings, position = CardPosition.First, enabled = state.canConfigure, onClick = onConfigure)
-                    RethinkListItem(headline = strings.copy, leadingIcon = MaterialSymbols.Filled.ContentCopy, position = CardPosition.Middle, enabled = state.canCopy, onClick = onCopy)
-                    RethinkListItem(headline = strings.search, leadingIcon = MaterialSymbols.Filled.Search, position = CardPosition.Last, enabled = state.canSearch, onClick = onSearch)
+                    RethinkListItem(defaultContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh, headline = strings.configure, leadingIcon = MaterialSymbols.Filled.Settings, position = CardPosition.First, enabled = state.canConfigure, onClick = onConfigure)
+                    RethinkListItem(defaultContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh, headline = strings.copy, leadingIcon = MaterialSymbols.Filled.ContentCopy, position = CardPosition.Middle, enabled = state.canCopy, onClick = onCopy)
+                    RethinkListItem(defaultContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh, headline = strings.search, leadingIcon = MaterialSymbols.Filled.Search, position = CardPosition.Last, enabled = state.canSearch, onClick = onSearch)
                 }
             }
             RethinkFormSection(strings.maintenance) {

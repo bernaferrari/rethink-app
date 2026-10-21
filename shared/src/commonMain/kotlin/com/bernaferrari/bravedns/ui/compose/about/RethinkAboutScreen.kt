@@ -248,7 +248,7 @@ private fun AboutIdentityHero(
                 Text(appName, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                 version?.let {
                     Surface(
-                        shape = RoundedCornerShape(SharedDimensions.cornerRadiusPill),
+                        shape = RoundedCornerShape(SharedDimensions.cornerRadiusFull),
                         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.12f),
                     ) {
                         Text(
@@ -380,16 +380,14 @@ private fun AboutSocialRow(
         modifier = Modifier.fillMaxWidth().padding(top = SharedDimensions.spacingGridTile).clip(shape),
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(start = SharedDimensions.spacingMd, end = SharedDimensions.spacingXs, top = SharedDimensions.spacingXs, bottom = SharedDimensions.spacingXs),
+            // Same 16dp inset and icon container as the rows above, so the leading column aligns.
+            modifier = Modifier.fillMaxWidth().padding(start = SharedDimensions.spacingLg, end = SharedDimensions.spacingXs, top = SharedDimensions.spacingSm, bottom = SharedDimensions.spacingSm),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
         ) {
-            Icon(
-                MaterialSymbols.Filled.Share,
-                contentDescription = null,
-                tint = accent,
-                modifier = Modifier.size(SharedDimensions.iconSizeSm),
-            )
+            RethinkSharedIconContainer(accent) {
+                Icon(MaterialSymbols.Filled.Share, contentDescription = null, tint = accent)
+            }
             Spacer(Modifier.weight(1f))
             AboutSocialIcon(strings.twitter, actions.onTwitter, assets.twitter, accent)
             AboutSocialIcon(strings.email, actions.onEmail, assets.email, accent)

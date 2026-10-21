@@ -29,7 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
+import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.data.AppConnection
 import com.bernaferrari.bravedns.service.FirewallManager
@@ -125,7 +125,7 @@ fun ConnectionRow(dc: AppConnection) {
         onClick = onClick,
         leadingContent = {
             rememberDrawablePainter(icon)?.let { painter ->
-                Image(painter = painter, contentDescription = null, modifier = Modifier.size(32.dp))
+                Image(painter = painter, contentDescription = null, modifier = Modifier.size(SharedDimensions.iconContainerSm))
             }
         },
     )

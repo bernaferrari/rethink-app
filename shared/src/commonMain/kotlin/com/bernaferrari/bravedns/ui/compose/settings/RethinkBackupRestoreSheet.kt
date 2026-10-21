@@ -118,6 +118,7 @@ fun RethinkBackupRestoreSheet(
                     headline = strings.backupTitle,
                     supporting = strings.backupDescription,
                     leadingIcon = MaterialSymbols.Filled.Backup,
+                    // Hosted in a surfaceContainerLow sheet: rows step up one tone to stay visible.
                     position = CardPosition.First,
                     onClick = onBackup,
                 )

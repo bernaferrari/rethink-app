@@ -85,5 +85,7 @@ private fun RethinkPeerTextField(
         label = label,
         keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = keyboardType),
         singleLine = true,
+        // Keys, endpoints and CIDRs read in monospace everywhere in WireGuard (rows, editor).
+        textStyle = MaterialTheme.typography.bodyLarge.copy(fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace),
     )
 }

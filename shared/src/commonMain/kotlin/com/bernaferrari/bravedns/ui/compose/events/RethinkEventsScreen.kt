@@ -3,6 +3,8 @@
 
 package com.bernaferrari.bravedns.ui.compose.events
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkOverflowMenu
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkOverflowItem
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -114,6 +116,7 @@ data class RethinkEventsStrings(
     val clearSearch: String,
     val refresh: String,
     val delete: String,
+    val moreActions: String = "More options",
     val all: String,
     val severity: String,
     val source: String,
@@ -161,8 +164,14 @@ fun RethinkEventsScreen(
                 title = strings.title,
                 onBackClick = onBackClick,
                 actions = {
-                    IconButton(onClick = onRefresh) { Icon(MaterialSymbols.Filled.Refresh, strings.refresh) }
-                    IconButton(onClick = { showDeleteDialog = true }) { Icon(MaterialSymbols.Filled.Delete, strings.delete) }
+                    // Same overflow as Logs and Console logs: secondary/destructive actions tucked away.
+                    RethinkOverflowMenu(
+                        moreDescription = strings.moreActions,
+                        items = listOf(
+                            RethinkOverflowItem(strings.refresh, MaterialSymbols.Filled.Refresh, onRefresh),
+                            RethinkOverflowItem(strings.delete, MaterialSymbols.Filled.DeleteOutline) { showDeleteDialog = true },
+                        ),
+                    )
                 },
             )
         },
@@ -225,6 +234,7 @@ private fun RethinkEventControls(
             start = SharedDimensions.screenPaddingHorizontal,
             end = SharedDimensions.screenPaddingHorizontal,
             top = SharedDimensions.spacingSm,
+            bottom = SharedDimensions.spacingXs,
         ),
     ) {
         RethinkSearchField(
@@ -234,8 +244,9 @@ private fun RethinkEventControls(
             clearQueryContentDescription = strings.clearSearch,
             onClearQuery = { onQueryChange("") },
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(SharedDimensions.cornerRadiusLg),
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            // Same pill search field as the apps list and console logs.
+            shape = RoundedCornerShape(SharedDimensions.cornerRadiusFull),
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
         )
         Spacer(Modifier.height(SharedDimensions.spacingSm))
         // One filter row: "All" resets, and each dimension is a menu chip that shows its current
@@ -250,6 +261,11 @@ private fun RethinkEventControls(
                 selected = filters.mode == RethinkEventFilterMode.All,
                 onClick = { onFiltersChange(RethinkEventFilters(RethinkEventFilterMode.All)) },
                 minHeight = SharedDimensions.touchTargetMin,
+                // Same tonal family as the connected groups and toolbar toggles in Logs.
+                selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                textStyle = MaterialTheme.typography.labelLarge,
+                selectedLabelWeight = FontWeight.SemiBold,
             )
             val severity = filters.severity.takeIf { filters.mode == RethinkEventFilterMode.Severity }
             RethinkEventMenuChip(
@@ -328,7 +344,15 @@ private fun RethinkEventMenuChip(
         FilterChip(
             selected = selected,
             onClick = { expanded = true },
-            label = { Text(label, style = MaterialTheme.typography.labelMedium, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+            label = {
+                Text(
+                    label,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            },
             trailingIcon = { Icon(MaterialSymbols.Filled.KeyboardArrowDown, null, Modifier.size(FilterChipDefaults.IconSize)) },
             shape = RoundedCornerShape(SharedDimensions.cornerRadiusMdLg),
             border = null,
@@ -336,9 +360,9 @@ private fun RethinkEventMenuChip(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                 labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                selectedTrailingIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                selectedTrailingIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
             ),
             modifier = Modifier.heightIn(min = SharedDimensions.touchTargetMin),
         )
@@ -400,9 +424,10 @@ fun RethinkEventCard(
         ) {
             EventSeverityIcon(event.severity, event.severityLabel, accent, Modifier.size(SharedDimensions.iconContainerMd))
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
-                    Text(highlightedMessage, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface, maxLines = if (expanded) Int.MAX_VALUE else 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-                    Text(event.timestampLabel, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                // Timestamp sits on the message's first baseline, also when the message expands.
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
+                    Text(highlightedMessage, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface, maxLines = if (expanded) Int.MAX_VALUE else 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f).alignByBaseline())
+                    Text(event.timestampLabel, style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"), color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, modifier = Modifier.alignByBaseline())
                 }
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
                     CompactEventBadge(event.sourceLabel, MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f), MaterialTheme.colorScheme.onSecondaryContainer)

@@ -26,8 +26,9 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun RethinkSearchField(
     query: String, onQueryChange: (String) -> Unit, placeholder: String, modifier: Modifier = Modifier,
-    enabled: Boolean = true, shape: RoundedCornerShape = RoundedCornerShape(SharedDimensions.cornerRadiusMdLg),
-    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh, textStyle: TextStyle = MaterialTheme.typography.bodyLarge,
+    // Pill on the same tonal level as toolbar actions, so search + filter buttons read as one strip.
+    enabled: Boolean = true, shape: RoundedCornerShape = RoundedCornerShape(SharedDimensions.cornerRadiusFull),
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerLow, textStyle: TextStyle = MaterialTheme.typography.bodyLarge,
     leadingIconTint: Color = MaterialTheme.colorScheme.primary, iconSize: Dp = SharedDimensions.iconSizeSm,
     trailingIconSize: Dp = iconSize, trailingIconButtonSize: Dp? = null, clearQueryContentDescription: String? = null,
     closeWhenEmptyContentDescription: String? = null, onClearQuery: (() -> Unit)? = null, onCloseWhenEmpty: (() -> Unit)? = null,
@@ -50,7 +51,8 @@ fun RethinkSearchField(
 fun RethinkFilterChip(
     label: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier,
     shape: RoundedCornerShape = RoundedCornerShape(SharedDimensions.cornerRadiusMdLg),
-    selectedContainerColor: Color = MaterialTheme.colorScheme.primaryContainer, selectedLabelColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
+    // Selection family shared with connected groups and toggle actions.
+    selectedContainerColor: Color = MaterialTheme.colorScheme.secondaryContainer, selectedLabelColor: Color = MaterialTheme.colorScheme.onSecondaryContainer,
     containerColor: Color = MaterialTheme.colorScheme.surfaceContainerLow, labelColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     textStyle: TextStyle = MaterialTheme.typography.labelMedium, leadingIcon: (@Composable () -> Unit)? = null,
     selectedLeadingIconColor: Color = selectedLabelColor, leadingIconColor: Color = labelColor, border: BorderStroke? = null,

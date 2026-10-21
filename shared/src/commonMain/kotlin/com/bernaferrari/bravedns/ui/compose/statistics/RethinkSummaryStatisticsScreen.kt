@@ -5,6 +5,12 @@ package com.bernaferrari.bravedns.ui.compose.statistics
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,6 +39,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import com.bernaferrari.bravedns.ui.compose.common.RethinkAdaptiveWidth
 import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
 import com.bernaferrari.bravedns.ui.compose.common.isExpanded
@@ -57,7 +64,18 @@ data class RethinkSummaryStatisticsRow(
     val countryFlag: String? = null,
     val leadingContent: (@Composable () -> Unit)? = null,
     val expandedContent: (@Composable () -> Unit)? = null,
+    /** This row's value relative to the section's largest (0..1); drives the ranking bar. */
+    val share: Float? = null,
 )
+
+/**
+ * Relative shares for a ranked section: each value divided by the section maximum, so the top
+ * row reads as a full bar. Returns nulls when there is nothing to compare.
+ */
+fun rethinkRelativeShares(values: List<Long>): List<Float?> {
+    val max = values.maxOrNull()?.takeIf { it > 0L } ?: return values.map { null }
+    return values.map { (it.toFloat() / max).coerceIn(0f, 1f) }
+}
 
 data class RethinkSummaryStatisticsSection(
     val id: String,
@@ -229,7 +247,7 @@ private fun RethinkSummaryStatisticsSectionCard(
                         } else null,
                         trailing = {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(row.metric, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold, color = section.accentColor)
+                                RethinkStatisticsMetric(row.metric, row.share, section.accentColor)
                                 if (!row.countryFlag.isNullOrBlank()) {
                                     Spacer(Modifier.size(SharedDimensions.spacingXs))
                                     val chevronRotation by animateFloatAsState(
@@ -276,11 +294,59 @@ private fun RethinkSummaryStatisticsSectionCard(
     }
 }
 
+/**
+ * Trailing metric with a thin proportional bar beneath it, so a section's ranking reads at a
+ * glance. Purely visual: the metric text already carries the value for accessibility.
+ */
+@Composable
+private fun RethinkStatisticsMetric(metric: String, share: Float?, accentColor: Color) {
+    Column(horizontalAlignment = Alignment.End) {
+        Text(
+            metric,
+            style = MaterialTheme.typography.labelLarge.copy(fontFeatureSettings = "tnum"),
+            fontWeight = FontWeight.SemiBold,
+            color = accentColor,
+            maxLines = 1,
+        )
+        if (share != null) {
+            val motion = LocalRethinkMotion.current
+            val animatedShare by animateFloatAsState(
+                targetValue = share.coerceIn(0f, 1f),
+                animationSpec = if (motion.reducedMotion) snap() else MaterialTheme.motionScheme.slowEffectsSpec(),
+                label = "statistic_share",
+            )
+            Box(
+                Modifier
+                    .padding(top = SharedDimensions.spacingXs)
+                    .width(SharedDimensions.iconContainerLg)
+                    .height(SharedDimensions.tabIndicatorHeight)
+                    .clip(CircleShape)
+                    .background(accentColor.copy(alpha = SHARE_TRACK_ALPHA)),
+                contentAlignment = Alignment.CenterEnd,
+            ) {
+                // Grows from the trailing edge, aligned with the right-aligned metric above it.
+                Box(
+                    Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(animatedShare.coerceAtLeast(MIN_VISIBLE_SHARE))
+                        .clip(CircleShape)
+                        .background(accentColor),
+                )
+            }
+        }
+    }
+}
+
+private const val SHARE_TRACK_ALPHA = 0.24f
+
+/** Keeps a tiny-but-nonzero share visible as a dot instead of vanishing. */
+private const val MIN_VISIBLE_SHARE = 0.08f
+
 @Composable
 private fun RethinkSummaryLoadingCard() {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.cornerRadius4xl),
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.groupCornerRadius),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
         Box(Modifier.fillMaxWidth().padding(SharedDimensions.spacingLg), contentAlignment = Alignment.Center) {
@@ -293,7 +359,7 @@ private fun RethinkSummaryLoadingCard() {
 private fun RethinkSummaryEmptyCard(message: String) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.cornerRadius4xl),
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.groupCornerRadius),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
         RethinkEmptyState(
@@ -330,9 +396,14 @@ fun RethinkCountryBreakdown(
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm), verticalAlignment = Alignment.CenterVertically) {
                             Box(Modifier.size(SharedDimensions.iconSizeSm), contentAlignment = Alignment.Center) { app.leadingContent?.invoke() }
-                            Text(app.headline, maxLines = 1, style = MaterialTheme.typography.bodySmall)
+                            Text(app.headline, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodyMedium)
                         }
-                        Text(app.metric, style = MaterialTheme.typography.labelSmall, color = accentColor, fontWeight = FontWeight.SemiBold)
+                        Text(
+                            app.metric,
+                            style = MaterialTheme.typography.labelMedium.copy(fontFeatureSettings = "tnum"),
+                            color = accentColor,
+                            fontWeight = FontWeight.SemiBold,
+                        )
                     }
                 }
             }

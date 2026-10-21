@@ -3,7 +3,6 @@ package com.bernaferrari.bravedns.ui.compose.wireguard
 
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -24,6 +24,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextOverflow
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 
@@ -60,16 +62,15 @@ fun RethinkWireguardPeerRow(
     var showDeleteDialog by remember(item.publicKey) { mutableStateOf(false) }
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(SharedDimensions.cornerRadius4xl),
+        shape = RoundedCornerShape(SharedDimensions.groupCornerRadius),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-        border = BorderStroke(SharedDimensions.dividerThicknessBold, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.24f)),
     ) {
         Column(
             modifier = Modifier.padding(SharedDimensions.spacingLg),
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
         ) {
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text(strings.peer, style = MaterialTheme.typography.titleMedium)
+                Text(strings.peer, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
                 Spacer(Modifier.weight(1f))
                 IconButton(onClick = onEdit) {
                     Icon(MaterialSymbols.Filled.Edit, strings.editDescription)
@@ -98,10 +99,20 @@ fun RethinkWireguardPeerRow(
     }
 }
 
+/** Key/value pair shared by WireGuard peer and interface rows: quiet label, monospace selectable value. */
 @Composable
-private fun RethinkPeerLabelValue(label: String, value: String) {
-    Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
-        Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(value, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface)
+internal fun RethinkPeerLabelValue(label: String, value: String) {
+    Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile)) {
+        Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        // Keys, addresses and endpoints are copied into other clients: keep them selectable and
+        // in a monospace face so look-alike characters (0/O, l/1) stay distinguishable.
+        SelectionContainer {
+            Text(
+                value,
+                style = MaterialTheme.typography.bodyMedium,
+                fontFamily = FontFamily.Monospace,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+        }
     }
 }

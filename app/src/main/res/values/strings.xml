@@ -2248,6 +2248,7 @@
     <string name="rpn_account_history_tab">History</string>
     <string name="rpn_account_orders_tab">Orders</string>
     <string name="rpn_account_entitlement_tab">Entitlement</string>
+    <string name="rpn_account_access_tab">Access</string>
     <string name="rpn_account_entitlement_status">Status</string>
     <string name="rpn_account_entitlement_client_id">Client ID</string>
     <string name="rpn_account_entitlement_device_id">Device ID</string>

@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 
@@ -65,7 +66,7 @@ fun RethinkWireguardConfigCard(
     Card(
         onClick = onOpen,
         modifier = modifier.fillMaxWidth().padding(vertical = SharedDimensions.spacingXs),
-        shape = RoundedCornerShape(SharedDimensions.cornerRadius4xl),
+        shape = RoundedCornerShape(SharedDimensions.groupCornerRadius),
         colors = CardDefaults.cardColors(containerColor = containerColor),
     ) {
         Column(
@@ -74,12 +75,22 @@ fun RethinkWireguardConfigCard(
         ) {
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
-                        Text(state.name, style = MaterialTheme.typography.titleMedium)
+                    // Name and id share a baseline (different type sizes would otherwise float apart
+                    // when centered); the name yields room before the id is ever clipped.
+                    Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
+                        Text(
+                            state.name,
+                            style = MaterialTheme.typography.titleMedium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.alignByBaseline().weight(1f, fill = false),
+                        )
                         Text(
                             state.identifier,
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            modifier = Modifier.alignByBaseline(),
                         )
                     }
                     if (state.chips.isNotEmpty()) {
@@ -89,13 +100,14 @@ fun RethinkWireguardConfigCard(
                         ) {
                             state.chips.forEach { chip ->
                                 Surface(
-                                    shape = MaterialTheme.shapes.small,
+                                    shape = RoundedCornerShape(SharedDimensions.cornerRadiusFull),
                                     color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.72f),
                                 ) {
                                     Text(
                                         chip,
                                         style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                        maxLines = 1,
                                         modifier = Modifier.padding(horizontal = SharedDimensions.spacingSm, vertical = SharedDimensions.spacingXs),
                                     )
                                 }
@@ -116,28 +128,44 @@ fun RethinkWireguardConfigCard(
                     )
                 }
             }
+            // Status sits flush with the title's leading edge; the dot is centered on the text's
+            // x-height via CenterVertically on a single-line label.
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
+                modifier = Modifier.padding(top = SharedDimensions.spacingXs),
             ) {
                 if (accent != null) {
                     Box(Modifier.size(SharedDimensions.spacingSm).background(accent, CircleShape))
                 }
                 Text(
                     state.statusText,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.labelLarge,
                     color = accent ?: MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
-            state.appsText?.takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+            state.appsText?.takeIf { it.isNotBlank() }?.let {
+                Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
             if (!state.uptimeText.isNullOrBlank() || !state.rxTxText.isNullOrBlank()) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(state.uptimeText.orEmpty(), style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
-                    Text(state.rxTxText.orEmpty(), style = MaterialTheme.typography.bodySmall)
+                    Text(
+                        state.uptimeText.orEmpty(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Text(
+                        state.rxTxText.orEmpty(),
+                        style = MaterialTheme.typography.bodySmall.copy(fontFeatureSettings = "tnum"),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             }
         }

@@ -7,7 +7,6 @@ import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -34,7 +33,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import com.bernaferrari.bravedns.ui.compose.common.RethinkAdaptiveWidth
 import com.bernaferrari.bravedns.ui.compose.common.WindowWidthClass
 import com.bernaferrari.bravedns.ui.compose.common.isExpanded
@@ -165,18 +167,19 @@ private fun DnsProtocolCard(
     modifier: Modifier,
     onClick: () -> Unit,
 ) {
+    // Selection is a calm tonal shift (secondaryContainer + check), not a saturated fill.
     val containerColor = if (selected) {
-        MaterialTheme.colorScheme.primaryContainer
+        MaterialTheme.colorScheme.secondaryContainer
     } else {
         MaterialTheme.colorScheme.surfaceContainerLow
     }
     val labelColor = if (selected) {
-        MaterialTheme.colorScheme.onPrimaryContainer
+        MaterialTheme.colorScheme.onSecondaryContainer
     } else {
         MaterialTheme.colorScheme.onSurfaceVariant
     }
     val titleColor = if (selected) {
-        MaterialTheme.colorScheme.onPrimaryContainer
+        MaterialTheme.colorScheme.onSecondaryContainer
     } else {
         MaterialTheme.colorScheme.onSurface
     }
@@ -193,7 +196,7 @@ private fun DnsProtocolCard(
         tonalElevation = SharedDimensions.spacingNone,
     ) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(SharedDimensions.spacingMd),
+            modifier = Modifier.fillMaxSize().padding(SharedDimensions.cardPaddingSm),
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -227,19 +230,15 @@ private fun DnsProtocolCard(
                     Text(
                         it,
                         style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.Medium,
                         color = labelColor,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
             }
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
-                verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
-            ) {
-                protocol.capabilities.forEach { capability ->
-                    DnsCapabilityChip(capability, strings.labelFor(capability))
-                }
-            }
+            // One line of chips: whatever does not fit collapses into a "+N" chip instead of
+            // wrapping a lone chip onto a second line.
+            DnsCapabilityChipRow(protocol.capabilities, strings)
             if (selected && !selectedWorking && strings.notWorking.isNotBlank()) {
                 Text(
                     strings.notWorking,
@@ -252,10 +251,46 @@ private fun DnsProtocolCard(
 }
 
 @Composable
-private fun DnsCapabilityChip(capability: RethinkDnsCapability, label: String) {
-    val color = capability.tint()
+private fun DnsCapabilityChipRow(capabilities: List<RethinkDnsCapability>, strings: RethinkDnsListStrings) {
+    if (capabilities.isEmpty()) return
+    val overflowColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val gap = SharedDimensions.spacingXs
+    Layout(
+        content = {
+            capabilities.forEach { capability -> DnsCapabilityChip(capability.tint(), strings.labelFor(capability)) }
+            // One candidate overflow chip per possible hidden count; only the needed one is placed.
+            for (hidden in 1..capabilities.size) DnsCapabilityChip(overflowColor, "+$hidden")
+        },
+    ) { measurables, constraints ->
+        val loose = Constraints(maxWidth = constraints.maxWidth)
+        val chips = measurables.take(capabilities.size).map { it.measure(loose) }
+        val overflow = measurables.drop(capabilities.size).map { it.measure(loose) }
+        val gapPx = gap.roundToPx()
+        fun widthOf(count: Int): Int = chips.take(count).sumOf { it.width } + gapPx * (count - 1).coerceAtLeast(0)
+        var shown = chips.size
+        if (widthOf(shown) > constraints.maxWidth) {
+            shown = (chips.size - 1 downTo 0).firstOrNull { count ->
+                val tail = overflow[chips.size - count - 1].width + if (count > 0) gapPx else 0
+                widthOf(count) + tail <= constraints.maxWidth
+            } ?: 0
+        }
+        val placed = chips.take(shown) + if (shown < chips.size) listOf(overflow[chips.size - shown - 1]) else emptyList()
+        val height = placed.maxOfOrNull { it.height } ?: 0
+        val width = (placed.sumOf { it.width } + gapPx * (placed.size - 1).coerceAtLeast(0)).coerceAtMost(constraints.maxWidth)
+        layout(width, height) {
+            var x = 0
+            placed.forEach { placeable ->
+                placeable.placeRelative(x, (height - placeable.height) / 2)
+                x += placeable.width + gapPx
+            }
+        }
+    }
+}
+
+@Composable
+private fun DnsCapabilityChip(color: Color, label: String) {
     Surface(
-        shape = RoundedCornerShape(SharedDimensions.cornerRadiusPill),
+        shape = RoundedCornerShape(SharedDimensions.cornerRadiusFull),
         color = color.copy(alpha = 0.14f),
     ) {
         Text(
@@ -263,6 +298,8 @@ private fun DnsCapabilityChip(capability: RethinkDnsCapability, label: String) {
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.Medium,
             color = color,
+            maxLines = 1,
+            softWrap = false,
             modifier = Modifier.padding(horizontal = SharedDimensions.spacingSm, vertical = SharedDimensions.spacingXs),
         )
     }

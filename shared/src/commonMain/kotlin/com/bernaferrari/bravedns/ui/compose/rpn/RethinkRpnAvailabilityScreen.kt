@@ -7,10 +7,8 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -30,10 +28,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusColors
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 
@@ -83,40 +81,40 @@ fun RethinkRpnAvailabilityScreen(
             modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(padding),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Surface(
-                modifier = Modifier.fillMaxWidth().padding(
-                    horizontal = SharedDimensions.screenPaddingHorizontal,
-                    vertical = SharedDimensions.spacingSm,
-                ),
-                shape = RoundedCornerShape(SharedDimensions.cornerRadius4xl),
-                color = MaterialTheme.colorScheme.surfaceContainerLow,
-                tonalElevation = 1.dp,
-            ) {
-                Column(Modifier.padding(SharedDimensions.spacingLg)) {
-                    Text(strings.title, style = MaterialTheme.typography.titleMedium)
-                    Text(strings.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
+            // The large title already names the screen; the description stands alone beneath it.
+            Text(
+                strings.description,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = SharedDimensions.screenPaddingHorizontal),
+            )
             Column(
                 modifier = Modifier.fillMaxWidth().padding(
-                    horizontal = SharedDimensions.screenPaddingHorizontal,
-                    vertical = SharedDimensions.spacingLg,
+                    start = SharedDimensions.screenPaddingHorizontal,
+                    end = SharedDimensions.screenPaddingHorizontal,
+                    bottom = SharedDimensions.spacing3xl,
                 ),
             ) {
-                Spacer(Modifier.height(SharedDimensions.spacingSm))
                 Box(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = SharedDimensions.spacingLg),
+                    modifier = Modifier.fillMaxWidth().padding(vertical = SharedDimensions.spacingXl),
                     contentAlignment = Alignment.Center,
                 ) {
                     CircularProgressIndicator(progress = { progress }, modifier = Modifier.size(SharedDimensions.brandMarkSize), strokeWidth = SharedDimensions.spacingSm)
-                    Text("$activeCount/${items.size}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Text(
+                        "$activeCount/${items.size}",
+                        style = MaterialTheme.typography.headlineSmall.copy(fontFeatureSettings = "tnum"),
+                        fontWeight = FontWeight.SemiBold,
+                    )
                 }
                 if (items.isEmpty()) {
                     EmptyAvailabilityMessage(if (loadFailed) strings.loadFailed else strings.noSelected)
                 } else {
                     AvailabilityList(items, strings)
                 }
-                TextButton(onClick = onRetry, modifier = Modifier.align(Alignment.End)) { Text(strings.retry) }
+                TextButton(
+                    onClick = onRetry,
+                    modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = SharedDimensions.spacingSm),
+                ) { Text(strings.retry) }
             }
         }
     }
@@ -126,7 +124,7 @@ fun RethinkRpnAvailabilityScreen(
 private fun EmptyAvailabilityMessage(message: String) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(SharedDimensions.cornerRadius4xl),
+        shape = RoundedCornerShape(SharedDimensions.groupCornerRadius),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
         Text(
@@ -155,13 +153,13 @@ private fun AvailabilityList(items: List<RethinkRpnAvailabilityItem>, strings: R
 private fun AvailabilityStatus(status: RethinkRpnAvailabilityStatus, strings: RethinkRpnAvailabilityStrings) {
     when (status) {
         RethinkRpnAvailabilityStatus.Loading -> LoadingIndicator(Modifier.size(SharedDimensions.iconSizeMd))
-        RethinkRpnAvailabilityStatus.Active -> AvailabilityStatusText(strings.active, MaterialTheme.colorScheme.primary)
-        RethinkRpnAvailabilityStatus.Inactive -> AvailabilityStatusText(strings.inactive, MaterialTheme.colorScheme.error)
-        RethinkRpnAvailabilityStatus.Unavailable -> AvailabilityStatusText(strings.unavailable, MaterialTheme.colorScheme.onSurfaceVariant)
+        RethinkRpnAvailabilityStatus.Active -> AvailabilityStatusText(strings.active, RethinkStatusColors.allowed)
+        RethinkRpnAvailabilityStatus.Inactive -> AvailabilityStatusText(strings.inactive, RethinkStatusColors.blocked)
+        RethinkRpnAvailabilityStatus.Unavailable -> AvailabilityStatusText(strings.unavailable, RethinkStatusColors.idle)
     }
 }
 
 @Composable
 private fun AvailabilityStatusText(label: String, color: Color) {
-    Text(label, color = color, style = MaterialTheme.typography.bodyMedium)
+    Text(label, color = color, style = MaterialTheme.typography.labelLarge, maxLines = 1)
 }

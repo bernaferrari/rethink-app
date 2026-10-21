@@ -82,7 +82,7 @@ fun RethinkStatisticsSummaryItem(
                 }
 
                 Spacer(Modifier.width(SharedDimensions.spacingSm))
-                Text(countText, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                Text(countText, style = MaterialTheme.typography.labelLarge.copy(fontFeatureSettings = "tnum"), fontWeight = FontWeight.SemiBold, maxLines = 1)
                 if (showIndicator && onClick != null) {
                     Spacer(Modifier.width(SharedDimensions.spacingSm))
                     Icon(

@@ -4,7 +4,6 @@
 package com.bernaferrari.bravedns.ui.compose.logs
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,7 +13,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceLabels
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceOption
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConnectedChoiceGroup
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
@@ -54,24 +53,21 @@ fun RethinkLogFilterRow(
     onSelected: (RethinkLogFilter) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
-        // Labels are always visible (M3 Expressive: never drop labels); on narrow widths the
-        // decorative glyphs go first so the text keeps its room.
-        val showIcons = maxWidth >= COMPACT_FILTER_WIDTH
-        val options = listOf(
-            RethinkChoiceOption(RethinkLogFilter.All, strings.all, MaterialSymbols.Filled.Public.takeIf { showIcons }),
-            RethinkChoiceOption(RethinkLogFilter.Allowed, strings.allowed, MaterialSymbols.Filled.CheckCircle.takeIf { showIcons }),
-            RethinkChoiceOption(RethinkLogFilter.Blocked, strings.blocked, MaterialSymbols.Filled.Block.takeIf { showIcons }),
-        )
-        RethinkConnectedChoiceGroup(
-            options = options,
-            selected = selected,
-            onSelect = onSelected,
-        )
-    }
+    // Icon-only until selected (the selected filter expands to icon + label): three full labels
+    // plus the trailing filter actions don't fit a phone row without truncating.
+    val options = listOf(
+        RethinkChoiceOption(RethinkLogFilter.All, strings.all, MaterialSymbols.AutoMirrored.Filled.Subject),
+        RethinkChoiceOption(RethinkLogFilter.Allowed, strings.allowed, MaterialSymbols.Filled.CheckCircle),
+        RethinkChoiceOption(RethinkLogFilter.Blocked, strings.blocked, MaterialSymbols.Filled.Block),
+    )
+    RethinkConnectedChoiceGroup(
+        options = options,
+        selected = selected,
+        onSelect = onSelected,
+        modifier = modifier.fillMaxWidth(),
+        labels = RethinkChoiceLabels.SelectedOnly,
+    )
 }
-
-private val COMPACT_FILTER_WIDTH = 420.dp
 
 @Composable
 fun RethinkLogList(

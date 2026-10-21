@@ -99,7 +99,7 @@ fun RethinkBlocklistEditor(
         if (showDownload) {
             Surface(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = SharedDimensions.screenPaddingHorizontal),
-                shape = RoundedCornerShape(SharedDimensions.cornerRadius4xl),
+                shape = RoundedCornerShape(SharedDimensions.groupCornerRadius),
                 color = MaterialTheme.colorScheme.surfaceContainerLow,
             ) {
                 Column(

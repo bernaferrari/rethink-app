@@ -7,7 +7,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.foundation.layout.size
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusColors
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormTextField
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceOption
@@ -185,9 +186,9 @@ fun RethinkNetworkReachabilityEditor(
 private fun RethinkReachabilityCard(content: @Composable () -> Unit) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(SharedDimensions.cornerRadius3xl),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        border = BorderStroke(SharedDimensions.dividerThicknessBold, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)),
+        // Hosted in a surfaceContainerLow sheet: one tone up separates the cards without outlines.
+        shape = RoundedCornerShape(SharedDimensions.groupCornerRadius),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
     ) {
         Column(Modifier.padding(SharedDimensions.cardPadding), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) { content() }
     }
@@ -199,7 +200,8 @@ private fun RethinkReachabilityHeader(title: String, supported: Boolean, trailin
         Icon(
             imageVector = if (supported) MaterialSymbols.Filled.Check else MaterialSymbols.Filled.Close,
             contentDescription = null,
-            tint = if (supported) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+            tint = if (supported) RethinkStatusColors.allowed else RethinkStatusColors.blocked,
+            modifier = Modifier.size(SharedDimensions.iconSizeSm),
         )
         Text(title, Modifier.padding(start = SharedDimensions.spacingSm), style = MaterialTheme.typography.titleSmall)
         androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
@@ -221,6 +223,7 @@ private fun RethinkReachabilityField(
         label = null,
         enabled = enabled,
         singleLine = true,
+        textStyle = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace),
         trailingIcon = {
             when {
                 testing -> LoadingIndicator(Modifier.size(SharedDimensions.iconSizeMd))
@@ -232,8 +235,8 @@ private fun RethinkReachabilityField(
 
 @Composable
 private fun reachabilityTint(status: RethinkReachabilityProbeStatus) = when (status) {
-    RethinkReachabilityProbeStatus.Failure -> MaterialTheme.colorScheme.error
-    else -> MaterialTheme.colorScheme.primary
+    RethinkReachabilityProbeStatus.Failure -> RethinkStatusColors.blocked
+    else -> RethinkStatusColors.allowed
 }
 
 private fun reachabilityIcon(status: RethinkReachabilityProbeStatus): ImageVector = when (status) {

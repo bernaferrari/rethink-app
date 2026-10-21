@@ -18,7 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.os.ConfigurationCompat
 import androidx.paging.LoadState
@@ -74,9 +73,10 @@ private fun AndroidAppIcon(packageName: String) {
     val context = LocalContext.current
     val icon = remember(packageName) { loadAppIcon(context, packageName) }
     Box(
-        Modifier.size(46.dp).background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(SharedDimensions.cornerRadiusMdLg)),
+        // Same 40dp leading well as every other grouped list row.
+        Modifier.size(SharedDimensions.iconContainerMd).background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(SharedDimensions.iconContainerRadius)),
         contentAlignment = Alignment.Center,
-    ) { rememberDrawablePainter(icon)?.let { Image(it, null, Modifier.size(26.dp)) } }
+    ) { rememberDrawablePainter(icon)?.let { Image(it, null, Modifier.size(SharedDimensions.iconSizeLg)) } }
 }
 
 private fun AllowedAppInfo.id() = "$uid:$packageName"

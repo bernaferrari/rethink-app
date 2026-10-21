@@ -1,6 +1,8 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.navigation
 
+import com.bernaferrari.bravedns.ui.compose.common.RethinkWindowBreakpoints
+import androidx.compose.foundation.background
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.material3.adaptive.navigationsuite.rememberNavigationSuiteScaffoldState
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldValue
@@ -99,13 +101,17 @@ private fun RethinkNavSurface(
 
 @Composable
 fun RethinkCenteredScreen(content: @Composable () -> Unit) {
+    // Opaque across the full width: the side gutters must hide the entry underneath (a pushed
+    // screen slides over its parent), not reveal it.
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surface),
         contentAlignment = Alignment.TopCenter,
     ) {
         Box(
             modifier = Modifier
-                .widthIn(max = 720.dp)
+                .widthIn(max = RethinkWindowBreakpoints.ContentMax)
                 .fillMaxWidth(),
         ) {
             content()

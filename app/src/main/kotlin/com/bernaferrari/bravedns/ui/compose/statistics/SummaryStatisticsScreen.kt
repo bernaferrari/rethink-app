@@ -30,7 +30,6 @@ import androidx.compose.ui.graphics.Color.Companion.Unspecified
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -138,8 +137,13 @@ private fun summarySection(
     refreshToken: TimeCategory,
     onSeeMoreClick: (SummaryStatisticsType) -> Unit,
 ): RethinkSummaryStatisticsSection {
-    val rows = pagingItems.itemSnapshotList.items.filterNotNull().map { item ->
-        item.toRethinkSummaryRow(type, accentColor, viewModel, refreshToken)
+    val items = pagingItems.itemSnapshotList.items.filterNotNull()
+    // Rank against the same unit the trailing metric shows: bytes when every row has them,
+    // otherwise connection counts (mixing the two would make the bars meaningless).
+    val useBytes = items.isNotEmpty() && items.all { (it.totalBytes ?: 0L) > 0L }
+    val shares = rethinkRelativeShares(items.map { if (useBytes) it.totalBytes ?: 0L else it.count.toLong() })
+    val rows = items.mapIndexed { index, item ->
+        item.toRethinkSummaryRow(type, accentColor, viewModel, refreshToken).copy(share = shares[index])
     }
     return RethinkSummaryStatisticsSection(
         id = type.name,
@@ -183,9 +187,9 @@ private fun AppConnection.toRethinkSummaryRow(
         leadingContent = if (!isCountry) {
             {
                 if (appIconPainter != null) {
-                    Icon(appIconPainter, contentDescription = null, tint = Unspecified, modifier = Modifier.size(24.dp))
+                    Icon(appIconPainter, contentDescription = null, tint = Unspecified, modifier = Modifier.size(SharedDimensions.iconSizeMd))
                 } else {
-                    Icon(painterResource(R.drawable.ic_app_info), contentDescription = null, tint = accentColor, modifier = Modifier.size(24.dp))
+                    Icon(painterResource(R.drawable.ic_app_info), contentDescription = null, tint = accentColor, modifier = Modifier.size(SharedDimensions.iconSizeMd))
                 }
             }
         } else null,
@@ -239,8 +243,8 @@ private fun CountryBreakdown(
                     ?: stringResource(R.string.network_log_app_name_unknown),
                 metric = app.count.toString(),
                 leadingContent = {
-                    if (painter != null) Icon(painter, null, tint = Unspecified, modifier = Modifier.size(20.dp))
-                    else Icon(painterResource(R.drawable.ic_app_info), null, modifier = Modifier.size(18.dp))
+                    if (painter != null) Icon(painter, null, tint = Unspecified, modifier = Modifier.size(SharedDimensions.iconSizeSm))
+                    else Icon(painterResource(R.drawable.ic_app_info), null, modifier = Modifier.size(SharedDimensions.iconSizeSm))
                 },
             )
         },

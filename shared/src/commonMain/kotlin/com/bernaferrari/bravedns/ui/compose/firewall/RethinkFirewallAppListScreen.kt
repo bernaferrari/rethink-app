@@ -3,6 +3,7 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.firewall
 
+import androidx.compose.foundation.layout.width
 import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
@@ -23,7 +24,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -31,8 +31,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -44,6 +42,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -78,6 +77,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormActionRow
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkModalBottomSheet
+import com.bernaferrari.bravedns.ui.compose.logs.RethinkLogCompactIconAction
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSearchField
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusColors
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBar
@@ -356,36 +356,20 @@ private fun RethinkFirewallAppControls(
             clearQueryContentDescription = strings.clearSearch,
             onClearQuery = { onQueryChange("") },
             modifier = Modifier.weight(1f),
-            shape = RoundedCornerShape(SharedDimensions.cornerRadiusMdLg),
+            shape = RoundedCornerShape(SharedDimensions.cornerRadiusFull),
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
         )
-        // The single filter entry point: status, view and categories all live in the sheet; the
-        // badge tells the user a non-default filter is narrowing the list.
-        Surface(
+        // The single filter entry point: status, view and categories all live in the sheet. Same
+        // tonal toggle as the Logs toolbar, sized to the search field so the strip reads as one;
+        // the badge tells the user a non-default filter is narrowing the list.
+        RethinkLogCompactIconAction(
+            icon = MaterialSymbols.Filled.FilterList,
+            contentDescription = strings.filter,
+            selected = hasActiveFilters,
+            size = TextFieldDefaults.MinHeight,
+            showSelectedDot = true,
             onClick = onOpenFilters,
-            shape = RoundedCornerShape(SharedDimensions.cornerRadiusMdLg),
-            color = if (hasActiveFilters) {
-                MaterialTheme.colorScheme.secondaryContainer
-            } else {
-                MaterialTheme.colorScheme.surfaceContainerLow
-            },
-            modifier = Modifier.size(SharedDimensions.buttonHeight),
-        ) {
-            BadgedBox(
-                badge = { if (hasActiveFilters) Badge() },
-                modifier = Modifier.wrapContentSize(Alignment.Center),
-            ) {
-                Icon(
-                    MaterialSymbols.Filled.FilterList,
-                    strings.filter,
-                    tint = if (hasActiveFilters) {
-                        MaterialTheme.colorScheme.onSecondaryContainer
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    },
-                )
-            }
-        }
+        )
     }
 }
 
@@ -585,26 +569,35 @@ private fun RethinkFirewallAppRow(
                 }
             }
             if (app.canToggleConnections) {
-                Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
-                    RethinkFirewallNetworkToggle(
-                        blocked = app.wifiBlocked,
-                        allowedIcon = MaterialSymbols.Filled.Wifi,
-                        blockedIcon = MaterialSymbols.Filled.WifiOff,
-                        contentDescription = wifiActionLabel,
-                        onClick = onWifiToggle,
-                    )
-                    RethinkFirewallNetworkToggle(
-                        blocked = app.mobileBlocked,
-                        allowedIcon = MaterialSymbols.Outlined.MobiledataArrows,
-                        blockedIcon = MaterialSymbols.Outlined.MobiledataOff,
-                        contentDescription = mobileActionLabel,
-                        onClick = onMobileToggle,
-                    )
+                // The pair reads as one control: 48dp touch boxes overlap so the 30dp bubbles sit
+                // ~10dp apart instead of floating 22dp from each other.
+                Box(Modifier.width(NetworkTogglePairWidth)) {
+                    Box(Modifier.align(Alignment.CenterStart)) {
+                        RethinkFirewallNetworkToggle(
+                            blocked = app.wifiBlocked,
+                            allowedIcon = MaterialSymbols.Filled.Wifi,
+                            blockedIcon = MaterialSymbols.Filled.WifiOff,
+                            contentDescription = wifiActionLabel,
+                            onClick = onWifiToggle,
+                        )
+                    }
+                    Box(Modifier.align(Alignment.CenterEnd)) {
+                        RethinkFirewallNetworkToggle(
+                            blocked = app.mobileBlocked,
+                            allowedIcon = MaterialSymbols.Outlined.MobiledataArrows,
+                            blockedIcon = MaterialSymbols.Outlined.MobiledataOff,
+                            contentDescription = mobileActionLabel,
+                            onClick = onMobileToggle,
+                        )
+                    }
                 }
             }
         }
     }
 }
+
+/** Two 48dp toggles whose bubbles are 40dp apart center-to-center (10dp visual gap). */
+private val NetworkTogglePairWidth = 88.dp
 
 @Composable
 private fun RethinkFirewallStatusBadge(label: String, contentColor: Color, containerColor: Color) {

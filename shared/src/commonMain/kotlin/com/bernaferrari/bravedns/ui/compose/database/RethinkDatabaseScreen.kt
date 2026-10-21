@@ -23,13 +23,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -121,7 +122,8 @@ fun RethinkDatabaseScreen(
                 clearQueryContentDescription = strings.clearSearch,
                 onClearQuery = { query = "" },
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(SharedDimensions.cornerRadiusMdLg),
+                // Same pill search field as the apps list, events and console logs.
+                shape = RoundedCornerShape(SharedDimensions.cornerRadiusFull),
                 containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
             )
             if (isLoadingTables) {
@@ -184,6 +186,10 @@ private fun RethinkDatabaseInlineSelector(tables: List<String>, selected: String
                 selected = selected == table,
                 onClick = { if (selected != table) onSelect(table) },
                 minHeight = SharedDimensions.touchTargetMin,
+                // Selection uses the same secondaryContainer as connected groups and toolbar toggles.
+                selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                textStyle = MaterialTheme.typography.labelLarge,
                 selectedLabelWeight = FontWeight.SemiBold,
                 defaultLabelWeight = FontWeight.Medium,
             )
@@ -202,7 +208,7 @@ private fun RethinkDatabaseTableList(
 ) {
     Surface(
         modifier = modifier.fillMaxSize(),
-        shape = RoundedCornerShape(SharedDimensions.cornerRadius3xl),
+        shape = RoundedCornerShape(SharedDimensions.groupCornerRadius),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
         Column(Modifier.fillMaxSize()) {
@@ -256,19 +262,32 @@ private fun RethinkDatabaseDetail(
 ) {
     Surface(
         modifier = modifier.fillMaxSize(),
-        shape = RoundedCornerShape(SharedDimensions.cornerRadius3xl),
+        shape = RoundedCornerShape(SharedDimensions.groupCornerRadius),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
         Column(Modifier.fillMaxSize().padding(SharedDimensions.spacingMd), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
             preview?.let {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Text(it.table, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = onRefresh, enabled = !loadingPreview) { Icon(MaterialSymbols.Filled.Refresh, strings.refresh) }
-                        TextButton(
+                    // Refresh + copy as one tonal pair of equal height (40dp), not a bare icon
+                    // beside a text button.
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
+                        FilledTonalIconButton(
+                            onClick = onRefresh,
+                            enabled = !loadingPreview,
+                            shapes = IconButtonDefaults.shapes(),
+                            colors = IconButtonDefaults.filledTonalIconButtonColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            ),
+                        ) {
+                            Icon(MaterialSymbols.Filled.Refresh, strings.refresh, Modifier.size(SharedDimensions.iconSizeSm))
+                        }
+                        FilledTonalButton(
                             onClick = onCopy,
                             enabled = selectedTable != null && !loadingCopy,
-                            contentPadding = ButtonDefaults.TextButtonWithIconContentPadding,
+                            shapes = ButtonDefaults.shapes(),
+                            contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
                         ) {
                             if (loadingCopy) {
                                 LoadingIndicator(Modifier.size(ButtonDefaults.IconSize))
@@ -276,7 +295,7 @@ private fun RethinkDatabaseDetail(
                                 Icon(MaterialSymbols.Filled.ContentCopy, null, Modifier.size(ButtonDefaults.IconSize))
                             }
                             Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                            Text(if (loadingCopy) strings.copying else strings.copyFull)
+                            Text(if (loadingCopy) strings.copying else strings.copyFull, maxLines = 1)
                         }
                     }
                 }
@@ -293,17 +312,29 @@ private fun RethinkDatabaseDetail(
             if (loadingPreview) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { LoadingIndicator() }
             } else if (preview != null) {
-                SelectionContainer {
-                    Column(
-                        Modifier
-                            .fillMaxSize()
-                            .verticalScroll(rememberScrollState())
-                            .padding(start = SharedDimensions.spacingSm, top = SharedDimensions.spacingSm, end = SharedDimensions.spacingSm, bottom = SharedDimensions.spacingXl),
-                    ) {
-                        Text(preview.dumpPreview, style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace))
-                        if (preview.isTruncated) {
-                            Spacer(Modifier.size(SharedDimensions.spacingSm))
-                            Text(strings.previewTruncated, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                // The dump sits in its own inset well so the monospace text has a clear edge and
+                // comfortable margins instead of running into the card's chrome.
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    shape = RoundedCornerShape(SharedDimensions.cornerRadiusLg),
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                ) {
+                    SelectionContainer {
+                        Column(
+                            Modifier
+                                .fillMaxSize()
+                                .verticalScroll(rememberScrollState())
+                                .padding(SharedDimensions.cardPadding),
+                        ) {
+                            Text(
+                                preview.dumpPreview,
+                                style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                            if (preview.isTruncated) {
+                                Spacer(Modifier.size(SharedDimensions.spacingMd))
+                                Text(strings.previewTruncated, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
                         }
                     }
                 }
@@ -314,7 +345,7 @@ private fun RethinkDatabaseDetail(
 
 @Composable
 private fun RethinkDatabaseMetaChip(text: String) {
-    Surface(shape = RoundedCornerShape(SharedDimensions.cornerRadiusPill), color = MaterialTheme.colorScheme.surfaceContainerHighest) {
-        Text(text, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = SharedDimensions.spacingMd, vertical = SharedDimensions.spacingXs))
+    Surface(shape = RoundedCornerShape(SharedDimensions.cornerRadiusFull), color = MaterialTheme.colorScheme.surfaceContainerHighest) {
+        Text(text, style = MaterialTheme.typography.labelMedium.copy(fontFeatureSettings = "tnum"), color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, modifier = Modifier.padding(horizontal = SharedDimensions.spacingMd, vertical = SharedDimensions.spacingXs))
     }
 }

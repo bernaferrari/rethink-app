@@ -9,7 +9,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,10 +20,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
+import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.database.AppInfo
 import com.bernaferrari.bravedns.database.EventSource
@@ -238,7 +236,7 @@ fun AppListScreen(
             confirmText = stringResource(R.string.lbl_proceed),
             dismissText = stringResource(R.string.ctbs_dialog_negative_btn),
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
                     request.packages.forEach { Text(it, style = MaterialTheme.typography.bodyMedium) }
                 }
             },
@@ -429,7 +427,8 @@ private fun AndroidFirewallAppIcon(app: RethinkFirewallApp) {
         }
     }
     rememberDrawablePainter(icon ?: Utilities.getDefaultIcon(context))?.let { painter ->
-        Image(painter, null, Modifier.size(38.dp).clip(RoundedCornerShape(11.dp)))
+        // The shared row clips the 40dp well; the icon fills it.
+        Image(painter, null, Modifier.size(SharedDimensions.iconContainerMd))
     }
 }
 

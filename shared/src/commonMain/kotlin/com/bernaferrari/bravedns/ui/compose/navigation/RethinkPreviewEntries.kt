@@ -70,7 +70,7 @@ fun EntryProviderScope<NavKey>.rethinkPreviewEntries(
 ) {
     entry<RethinkRoute.Home> {
         val active = vpnOn.value
-        RethinkCenteredScreen {
+        run {
             RethinkHomeScreen(
                 uiState = RethinkHomeUiState(
                     isVpnActive = active,
@@ -85,7 +85,7 @@ fun EntryProviderScope<NavKey>.rethinkPreviewEntries(
         }
     }
     entry<RethinkRoute.Statistics> {
-        RethinkCenteredScreen {
+        run {
             RethinkSummaryStatisticsScreen(
                 overview = RethinkUsageOverview(download = "1.8 GB", upload = "248 MB", connections = "4,320"),
                 selectedWindow = statisticsWindow.value,
@@ -112,6 +112,7 @@ fun EntryProviderScope<NavKey>.rethinkPreviewEntries(
                         rows = listOf(
                             RethinkSummaryStatisticsRow(
                                 "browser", "Browser", "1,240 connections", "684 MB",
+                                share = 1f,
                                 leadingContent = {
                                     RethinkWebDemoAppIcon(
                                         "com.demo.browser",
@@ -122,6 +123,7 @@ fun EntryProviderScope<NavKey>.rethinkPreviewEntries(
                             ),
                             RethinkSummaryStatisticsRow(
                                 "messenger", "Messenger", "684 connections", "248 MB",
+                                share = 248f / 684f,
                                 leadingContent = {
                                     RethinkWebDemoAppIcon(
                                         "com.demo.messenger",
@@ -132,6 +134,7 @@ fun EntryProviderScope<NavKey>.rethinkPreviewEntries(
                             ),
                             RethinkSummaryStatisticsRow(
                                 "mail", "Mail", "312 connections", "96 MB",
+                                share = 96f / 684f,
                                 leadingContent = {
                                     RethinkWebDemoAppIcon(
                                         "com.google.android.gm",
@@ -148,9 +151,9 @@ fun EntryProviderScope<NavKey>.rethinkPreviewEntries(
                         accentColor = MaterialTheme.colorScheme.error,
                         canSeeMore = true,
                         rows = listOf(
-                            RethinkSummaryStatisticsRow("tracker", "tracker.example", "Browser · News", "326"),
-                            RethinkSummaryStatisticsRow("ads", "ads.example", "Browser · Social", "214"),
-                            RethinkSummaryStatisticsRow("metrics", "metrics.example", "Mail", "88"),
+                            RethinkSummaryStatisticsRow("tracker", "tracker.example", "Browser · News", "326", share = 1f),
+                            RethinkSummaryStatisticsRow("ads", "ads.example", "Browser · Social", "214", share = 214f / 326f),
+                            RethinkSummaryStatisticsRow("metrics", "metrics.example", "Mail", "88", share = 88f / 326f),
                         ),
                     ),
                     RethinkSummaryStatisticsSection(
@@ -175,7 +178,7 @@ fun EntryProviderScope<NavKey>.rethinkPreviewEntries(
         }
     }
     entry<RethinkRoute.Configure> {
-        RethinkCenteredScreen {
+        run {
             val sections = demoConfigureSections(nav::push)
             RethinkConfigureScreen(
                 sections = sections,
@@ -194,16 +197,16 @@ fun EntryProviderScope<NavKey>.rethinkPreviewEntries(
         }
     }
     entry<RethinkRoute.NetworkLogs> {
-        RethinkCenteredScreen { DemoLogsScreen(Modifier.fillMaxSize(), nav::popBackStack) }
+        run { DemoLogsScreen(Modifier.fillMaxSize(), nav::popBackStack) }
     }
     entry<RethinkRoute.ConsoleLogs> {
-        RethinkCenteredScreen { DemoConsoleLogsScreen(Modifier.fillMaxSize(), nav::popBackStack) }
+        run { DemoConsoleLogsScreen(Modifier.fillMaxSize(), nav::popBackStack) }
     }
     entry<RethinkRoute.Database> {
-        RethinkCenteredScreen { DemoDatabaseScreen(Modifier.fillMaxSize(), nav::popBackStack) }
+        run { DemoDatabaseScreen(Modifier.fillMaxSize(), nav::popBackStack) }
     }
     entry<RethinkRoute.MiscSettings> {
-        RethinkCenteredScreen {
+        run {
             DemoMiscSettingsScreen(
                 modifier = Modifier.fillMaxSize(),
                 onOpenAbout = { nav.push(RethinkRoute.About) },
@@ -212,7 +215,7 @@ fun EntryProviderScope<NavKey>.rethinkPreviewEntries(
         }
     }
     entry<RethinkRoute.About> {
-        RethinkCenteredScreen {
+        run {
             RethinkAboutScreen(
                 uiState = RethinkAboutUiState(
                     versionName = demoDependencies.appMetadata.versionName,
@@ -226,10 +229,10 @@ fun EntryProviderScope<NavKey>.rethinkPreviewEntries(
         }
     }
     entry<RethinkRoute.RpnAccount> {
-        RethinkCenteredScreen { DemoRpnAccountScreen(Modifier.fillMaxSize(), nav::popBackStack) }
+        run { DemoRpnAccountScreen(Modifier.fillMaxSize(), nav::popBackStack) }
     }
     entry<RethinkRoute.RpnCountries> {
-        RethinkCenteredScreen {
+        run {
             DemoRpnCountriesScreen(
                 modifier = Modifier.fillMaxSize(),
                 onBack = nav::popBackStack,
@@ -239,15 +242,15 @@ fun EntryProviderScope<NavKey>.rethinkPreviewEntries(
         }
     }
     entry<RethinkRoute.RpnServerDetails> { key ->
-        RethinkCenteredScreen {
+        run {
             DemoRpnServerDetailsScreen(Modifier.fillMaxSize(), key.key, nav::popBackStack)
         }
     }
     entry<RethinkRoute.RpnSettings> {
-        RethinkCenteredScreen { DemoRpnSettingsScreen(Modifier.fillMaxSize(), nav::popBackStack) }
+        run { DemoRpnSettingsScreen(Modifier.fillMaxSize(), nav::popBackStack) }
     }
     entry<RethinkRoute.AppList> {
-        RethinkCenteredScreen {
+        run {
             DemoFirewallAppListScreen(
                 modifier = Modifier.fillMaxSize(),
                 onBack = nav::popBackStack,
@@ -257,33 +260,33 @@ fun EntryProviderScope<NavKey>.rethinkPreviewEntries(
     }
     entry<RethinkRoute.AppInfo> { key ->
         val app = demoFirewallApps.firstOrNull { it.uid == key.uid }
-        RethinkCenteredScreen {
+        run {
             DemoAppInfoScreen(Modifier.fillMaxSize(), app, nav::popBackStack)
         }
     }
     entry<RethinkRoute.CustomRules> {
-        RethinkCenteredScreen { DemoCustomRulesScreen(Modifier.fillMaxSize(), nav::popBackStack) }
+        run { DemoCustomRulesScreen(Modifier.fillMaxSize(), nav::popBackStack) }
     }
     entry<RethinkRoute.UniversalFirewall> {
-        RethinkCenteredScreen { DemoUniversalFirewallScreen(Modifier.fillMaxSize(), nav::popBackStack) }
+        run { DemoUniversalFirewallScreen(Modifier.fillMaxSize(), nav::popBackStack) }
     }
     entry<RethinkRoute.Blocklists> {
-        RethinkCenteredScreen { DemoBlocklistEditorScreen(Modifier.fillMaxSize(), nav::popBackStack) }
+        run { DemoBlocklistEditorScreen(Modifier.fillMaxSize(), nav::popBackStack) }
     }
     entry<RethinkRoute.ConfigureOtherDns> {
-        RethinkCenteredScreen { DemoOtherDnsScreen(Modifier.fillMaxSize(), nav::popBackStack) }
+        run { DemoOtherDnsScreen(Modifier.fillMaxSize(), nav::popBackStack) }
     }
     entry<RethinkRoute.WireGuard> {
-        RethinkCenteredScreen { DemoWireguardScreen(Modifier.fillMaxSize(), nav::popBackStack) }
+        run { DemoWireguardScreen(Modifier.fillMaxSize(), nav::popBackStack) }
     }
     entry<RethinkRoute.TunnelSettings> {
-        RethinkCenteredScreen { DemoTunnelSettingsScreen(Modifier.fillMaxSize(), nav::popBackStack) }
+        run { DemoTunnelSettingsScreen(Modifier.fillMaxSize(), nav::popBackStack) }
     }
     entry<RethinkRoute.ProxySettings> {
-        RethinkCenteredScreen { DemoProxySettingsScreen(Modifier.fillMaxSize(), nav::popBackStack) }
+        run { DemoProxySettingsScreen(Modifier.fillMaxSize(), nav::popBackStack) }
     }
     entry<RethinkRoute.FirewallSettings> {
-        RethinkCenteredScreen {
+        run {
             DemoFirewallSettingsScreen(
                 modifier = Modifier.fillMaxSize(),
                 onBack = nav::popBackStack,
@@ -293,10 +296,10 @@ fun EntryProviderScope<NavKey>.rethinkPreviewEntries(
         }
     }
     entry<RethinkRoute.DnsList> {
-        RethinkCenteredScreen { DemoDnsListScreen(Modifier.fillMaxSize(), nav::popBackStack) }
+        run { DemoDnsListScreen(Modifier.fillMaxSize(), nav::popBackStack) }
     }
     entry<RethinkRoute.DnsSettings> {
-        RethinkCenteredScreen {
+        run {
             DemoDnsSettingsScreen(
                 modifier = Modifier.fillMaxSize(),
                 onBack = nav::popBackStack,
@@ -305,15 +308,15 @@ fun EntryProviderScope<NavKey>.rethinkPreviewEntries(
         }
     }
     entry<RethinkRoute.PingTest> {
-        RethinkCenteredScreen { DemoPingTestScreen(Modifier.fillMaxSize(), nav::popBackStack) }
+        run { DemoPingTestScreen(Modifier.fillMaxSize(), nav::popBackStack) }
     }
     entry<RethinkRoute.AntiCensorship> {
-        RethinkCenteredScreen { DemoAntiCensorshipScreen(Modifier.fillMaxSize(), nav::popBackStack) }
+        run { DemoAntiCensorshipScreen(Modifier.fillMaxSize(), nav::popBackStack) }
     }
     entry<RethinkRoute.Events> {
-        RethinkCenteredScreen { DemoEventLogsScreen(Modifier.fillMaxSize(), nav::popBackStack) }
+        run { DemoEventLogsScreen(Modifier.fillMaxSize(), nav::popBackStack) }
     }
     entry<RethinkRoute.BlockFreeDns> {
-        RethinkCenteredScreen { DemoBlockFreeDnsScreen(Modifier.fillMaxSize(), nav::popBackStack) }
+        run { DemoBlockFreeDnsScreen(Modifier.fillMaxSize(), nav::popBackStack) }
     }
 }

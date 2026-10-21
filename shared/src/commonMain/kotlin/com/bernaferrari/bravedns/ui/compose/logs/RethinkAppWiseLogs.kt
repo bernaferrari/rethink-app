@@ -111,7 +111,7 @@ fun RethinkAppWiseLogsContent(
     Column(modifier.fillMaxSize()) {
         Column(Modifier.padding(horizontal = SharedDimensions.screenPaddingHorizontal, vertical = SharedDimensions.spacingSm)) {
             RethinkAppWiseTimeRangeRow(selectedRange, strings, onRangeSelected)
-            Spacer(Modifier.height(SharedDimensions.spacingMd))
+            Spacer(Modifier.height(SharedDimensions.spacingSm))
             RethinkAppWiseSearchRow(searchHint, fallbackSearchHint, strings, onQueryChange, onDeleteClick, queryEnabled, appIcon)
         }
         content()
@@ -129,7 +129,6 @@ private fun RethinkAppWiseTimeRangeRow(selected: RethinkAppWiseLogTimeRange, str
         options = options.map { (range, label) -> RethinkChoiceOption(range, label) },
         selected = selected,
         onSelect = onSelected,
-        modifier = Modifier.padding(vertical = SharedDimensions.spacingSm),
     )
 }
 
@@ -140,7 +139,8 @@ private fun RethinkAppWiseSearchRow(
 ) {
     var query by remember { mutableStateOf("") }
     LaunchedEffect(Unit) { snapshotFlow { query }.debounce(500).distinctUntilChanged().collect(onQueryChange) }
-    Surface(Modifier.fillMaxWidth(), shape = RoundedCornerShape(SharedDimensions.cardCornerRadiusLarge), color = MaterialTheme.colorScheme.surfaceContainerHigh) {
+    // Pill on surfaceContainerLow: the same search-field look as the apps list, events and logs.
+    Surface(Modifier.fillMaxWidth(), shape = RoundedCornerShape(SharedDimensions.cornerRadiusFull), color = MaterialTheme.colorScheme.surfaceContainerLow) {
         Row(Modifier.padding(horizontal = SharedDimensions.spacingSm), verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.padding(SharedDimensions.spacingSm).size(SharedDimensions.iconSizeMd).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)), contentAlignment = Alignment.Center) {
                 if (appIcon == null) Icon(MaterialSymbols.Filled.Search, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(SharedDimensions.iconSizeSm)) else appIcon()

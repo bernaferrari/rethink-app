@@ -156,7 +156,7 @@ private fun StatisticsLoading(label: String, modifier: Modifier) {
 private fun StatisticsEmpty(label: String, modifier: Modifier) {
     Surface(
         modifier = modifier.padding(horizontal = SharedDimensions.screenPaddingHorizontal),
-        shape = RoundedCornerShape(SharedDimensions.cornerRadius4xl),
+        shape = RoundedCornerShape(SharedDimensions.groupCornerRadius),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
         RethinkEmptyState(

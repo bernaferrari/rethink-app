@@ -23,7 +23,6 @@ object SharedDimensions {
     val spacing2xl = 32.dp
     val spacing3xl = 48.dp
 
-    val cornerRadius2xs = 3.dp
     val cornerRadiusXs = 4.dp
     val cornerRadiusSm = 8.dp
     val cornerRadiusSmMd = 10.dp
@@ -33,10 +32,10 @@ object SharedDimensions {
     val cornerRadiusXl = 20.dp
     val cornerRadius2xl = 28.dp
     val cornerRadius3xl = 32.dp
-    val cornerRadius4xl = 24.dp
-    val cornerRadius5xl = 28.dp
-    val cornerRadiusPill = 50.dp
     val cornerRadiusFull = 999.dp
+
+    /** Outer corners of an expressive grouped list (inner corners use [cornerRadiusSm]). */
+    val groupCornerRadius = 24.dp
 
     val cardCornerRadius = 20.dp
     val cardCornerRadiusLarge = 28.dp
@@ -45,7 +44,6 @@ object SharedDimensions {
     val chipCornerRadius = 50.dp
     val iconContainerRadius = 12.dp
     val buttonCornerRadius = 50.dp
-    val buttonCornerRadiusLarge = 50.dp
 
     val cardPadding = 16.dp
     val cardPaddingSm = 12.dp

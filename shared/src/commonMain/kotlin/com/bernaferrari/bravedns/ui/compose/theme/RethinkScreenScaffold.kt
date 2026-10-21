@@ -70,7 +70,9 @@ fun RethinkLargeTopBar(
                 text = subtitle,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.labelMedium,
+                // Body, not label: a sentence under a display-size title reads as prose, and the
+                // bar's subtitle slot already supplies the spacing below the title.
+                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }

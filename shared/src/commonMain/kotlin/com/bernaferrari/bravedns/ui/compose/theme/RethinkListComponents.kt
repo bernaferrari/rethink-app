@@ -3,6 +3,7 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.theme
 
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.ripple
@@ -45,6 +46,12 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
+/**
+ * Default container for grouped rows. Surfaces that already sit on surfaceContainerLow (bottom
+ * sheets) provide a lifted tone here so their rows don't vanish into the background.
+ */
+val LocalRethinkListContainerColor = compositionLocalOf<Color?> { null }
+
 /** Material's disabled-content opacity (md.sys.state.disabled). */
 private const val DISABLED_CONTENT_ALPHA = 0.38f
 
@@ -63,18 +70,18 @@ fun cardPositionFor(index: Int, lastIndex: Int): CardPosition = when {
  * screen from inventing a slightly different version of the same visual rule.
  */
 fun rethinkGroupedListShape(position: CardPosition): RoundedCornerShape = when (position) {
-    CardPosition.Single -> RoundedCornerShape(SharedDimensions.cornerRadius4xl)
+    CardPosition.Single -> RoundedCornerShape(SharedDimensions.groupCornerRadius)
     CardPosition.First -> RoundedCornerShape(
-        topStart = SharedDimensions.cornerRadius4xl,
-        topEnd = SharedDimensions.cornerRadius4xl,
+        topStart = SharedDimensions.groupCornerRadius,
+        topEnd = SharedDimensions.groupCornerRadius,
         bottomStart = SharedDimensions.cornerRadiusSm,
         bottomEnd = SharedDimensions.cornerRadiusSm,
     )
     CardPosition.Last -> RoundedCornerShape(
         topStart = SharedDimensions.cornerRadiusSm,
         topEnd = SharedDimensions.cornerRadiusSm,
-        bottomStart = SharedDimensions.cornerRadius4xl,
-        bottomEnd = SharedDimensions.cornerRadius4xl,
+        bottomStart = SharedDimensions.groupCornerRadius,
+        bottomEnd = SharedDimensions.groupCornerRadius,
     )
     CardPosition.Middle -> RoundedCornerShape(SharedDimensions.cornerRadiusSm)
 }
@@ -87,10 +94,10 @@ fun rethinkGroupedListPairShape(
     val hasTopOuterCorner = position == CardPosition.First || position == CardPosition.Single
     val hasBottomOuterCorner = position == CardPosition.Last || position == CardPosition.Single
     return RoundedCornerShape(
-        topStart = if (isLeadingTile && hasTopOuterCorner) SharedDimensions.cornerRadius4xl else SharedDimensions.cornerRadiusSm,
-        topEnd = if (!isLeadingTile && hasTopOuterCorner) SharedDimensions.cornerRadius4xl else SharedDimensions.cornerRadiusSm,
-        bottomEnd = if (!isLeadingTile && hasBottomOuterCorner) SharedDimensions.cornerRadius4xl else SharedDimensions.cornerRadiusSm,
-        bottomStart = if (isLeadingTile && hasBottomOuterCorner) SharedDimensions.cornerRadius4xl else SharedDimensions.cornerRadiusSm,
+        topStart = if (isLeadingTile && hasTopOuterCorner) SharedDimensions.groupCornerRadius else SharedDimensions.cornerRadiusSm,
+        topEnd = if (!isLeadingTile && hasTopOuterCorner) SharedDimensions.groupCornerRadius else SharedDimensions.cornerRadiusSm,
+        bottomEnd = if (!isLeadingTile && hasBottomOuterCorner) SharedDimensions.groupCornerRadius else SharedDimensions.cornerRadiusSm,
+        bottomStart = if (isLeadingTile && hasBottomOuterCorner) SharedDimensions.groupCornerRadius else SharedDimensions.cornerRadiusSm,
     )
 }
 
@@ -133,7 +140,7 @@ fun RethinkListItem(
     position: CardPosition = CardPosition.Middle,
     enabled: Boolean = true,
     highlighted: Boolean = false,
-    defaultContainerColor: Color = MaterialTheme.colorScheme.surfaceContainerLow,
+    defaultContainerColor: Color = LocalRethinkListContainerColor.current ?: MaterialTheme.colorScheme.surfaceContainerLow,
     highlightContainerColor: Color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.56f),
     showTrailingChevron: Boolean = false,
     selection: RethinkListSelection? = null,
@@ -199,8 +206,8 @@ fun RethinkListItem(
                         when {
                             leadingContent != null -> leadingContent()
                             leadingIcon != null || leadingIconPainter != null -> {
-                                Surface(shape = leadingIconContainerShape, color = leadingIconContainerColor, modifier = Modifier.size(SharedDimensions.iconContainerSm)) {
-                                    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(SharedDimensions.iconContainerSm)) {
+                                Surface(shape = leadingIconContainerShape, color = leadingIconContainerColor, modifier = Modifier.size(SharedDimensions.iconContainerMd)) {
+                                    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(SharedDimensions.iconContainerMd)) {
                                         when {
                                             leadingIcon != null -> androidx.compose.material3.Icon(leadingIcon, null, tint = leadingIconTint.copy(alpha = alpha), modifier = Modifier.size(SharedDimensions.iconSizeSm))
                                             leadingIconPainter != null && leadingIconTint == Color.Unspecified -> Image(leadingIconPainter, null, modifier = Modifier.size(SharedDimensions.iconSizeSm))

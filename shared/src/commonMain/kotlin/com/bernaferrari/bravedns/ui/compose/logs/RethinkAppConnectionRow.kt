@@ -95,7 +95,7 @@ fun RethinkAppConnectionRow(
                 Surface(shape = CircleShape, color = accent.copy(alpha = 0.12f)) {
                     Text(
                         item.count,
-                        style = MaterialTheme.typography.labelMedium,
+                        style = MaterialTheme.typography.labelMedium.copy(fontFeatureSettings = "tnum"),
                         color = accent,
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.padding(horizontal = SharedDimensions.spacingSm, vertical = SharedDimensions.spacingXs),

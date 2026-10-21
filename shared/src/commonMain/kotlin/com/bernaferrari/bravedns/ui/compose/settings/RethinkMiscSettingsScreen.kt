@@ -88,7 +88,7 @@ fun RethinkMiscSettingsScreen(
         contentPadding = PaddingValues(
             start = SharedDimensions.screenPaddingHorizontal,
             end = SharedDimensions.screenPaddingHorizontal,
-            top = SharedDimensions.spacingSm,
+            top = SharedDimensions.spacingMd,
             bottom = SharedDimensions.spacing3xl,
         ),
         verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
@@ -105,7 +105,7 @@ fun RethinkMiscSettingsScreen(
                             leadingIconContainerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = .7f),
                             position = CardPosition.Single,
                             highlighted = focusedSettingId == "general_backup" || focusedSettingId == "general_backup_restore",
-                            showTrailingChevron = true,
+                            // Opens a sheet in place; chevrons are reserved for navigation.
                             onClick = onBackupRestore,
                         )
                     }

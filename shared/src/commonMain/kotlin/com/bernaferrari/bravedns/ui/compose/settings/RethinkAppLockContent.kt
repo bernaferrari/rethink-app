@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -45,15 +46,21 @@ fun RethinkAppLockContent(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
+            // Identity first (mark + name), then what is asked of the user, then the one action.
             Surface(
-                shape = RoundedCornerShape(SharedDimensions.cornerRadius5xl),
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(SharedDimensions.cornerRadius2xl),
                 color = MaterialTheme.colorScheme.surfaceContainerLow,
             ) {
                 Column(
-                    modifier = Modifier.padding(horizontal = SharedDimensions.spacing2xl, vertical = SharedDimensions.spacing2xl),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = SharedDimensions.spacingXl, vertical = SharedDimensions.spacing2xl),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    Text(title, style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center)
+                    Box(Modifier.size(SharedDimensions.brandMarkSize), contentAlignment = Alignment.Center) { brandMark() }
+                    Spacer(Modifier.height(SharedDimensions.spacingLg))
+                    Text(appName, style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center)
+                    Spacer(Modifier.height(SharedDimensions.spacingSm))
+                    Text(title, style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
                     if (subtitle.isNotBlank()) {
                         Spacer(Modifier.height(SharedDimensions.spacingXs))
                         Text(
@@ -63,16 +70,16 @@ fun RethinkAppLockContent(
                             textAlign = TextAlign.Center,
                         )
                     }
-                    Spacer(Modifier.height(SharedDimensions.spacingMd))
-                    Box(Modifier.size(SharedDimensions.brandMarkSize), contentAlignment = Alignment.Center) { brandMark() }
-                    Spacer(Modifier.height(SharedDimensions.spacingMd))
-                    Text(appName, style = MaterialTheme.typography.titleLarge)
                 }
             }
             if (onUnlockClick != null) {
                 Spacer(Modifier.height(SharedDimensions.spacingXl))
-                Button(onClick = onUnlockClick) {
-                    Text(unlockLabel ?: title)
+                Button(
+                    onClick = onUnlockClick,
+                    modifier = Modifier.fillMaxWidth().height(SharedDimensions.buttonHeight),
+                    shape = RoundedCornerShape(SharedDimensions.buttonCornerRadius),
+                ) {
+                    Text(unlockLabel ?: title, style = MaterialTheme.typography.titleMedium)
                 }
             }
         }

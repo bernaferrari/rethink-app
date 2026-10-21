@@ -3,6 +3,12 @@
 
 package com.bernaferrari.bravedns.ui.compose.settings
 
+import com.bernaferrari.bravedns.ui.compose.logs.RethinkLogCompactIconAction
+import com.bernaferrari.bravedns.ui.compose.logs.RethinkLogToolbarRow
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkSearchField
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBar
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkOverflowMenu
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkOverflowItem
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
@@ -50,6 +56,8 @@ data class RethinkConsoleLogStrings(
     val shareDescription: String,
     /** Content description of the "delete all logs" action. */
     val clearDescription: String,
+    /** Content description of the top-bar overflow ("More options"). */
+    val moreDescription: String = "More options",
     /** Content description of the search field's clear-query button. */
     val clearSearchDescription: String,
     val deleteDialogTitle: String,
@@ -123,11 +131,22 @@ fun RethinkConsoleLogsScreen(
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        // Same chrome as Logs and Events: small bar, destructive action tucked in the overflow.
         topBar = {
-            RethinkLargeTopBar(
+            RethinkTopBar(
                 title = strings.title,
                 onBackClick = onBackClick,
                 scrollBehavior = scrollBehavior,
+                actions = {
+                    RethinkOverflowMenu(
+                        moreDescription = strings.moreDescription,
+                        items = listOf(
+                            RethinkOverflowItem(strings.clearDescription, MaterialSymbols.Filled.DeleteOutline) {
+                                showDeleteDialog = true
+                            },
+                        ),
+                    )
+                },
             )
         },
         floatingActionButton = {
@@ -145,11 +164,11 @@ fun RethinkConsoleLogsScreen(
                 query = query,
                 strings = strings,
                 onQueryChange = { query = it },
+                filterActive = selectedLogLevel != initialLogLevel,
                 onFilterClick = {
                     selectedLogLevel = initialLogLevel
                     filterVisible = true
                 },
-                onClearClick = { showDeleteDialog = true },
             )
             Box(Modifier.fillMaxSize()) { content() }
         }
@@ -161,51 +180,27 @@ private fun RethinkConsoleLogSearchRow(
     query: String,
     strings: RethinkConsoleLogStrings,
     onQueryChange: (String) -> Unit,
+    filterActive: Boolean,
     onFilterClick: () -> Unit,
-    onClearClick: () -> Unit,
 ) {
-    val searchShape = RoundedCornerShape(SharedDimensions.cornerRadiusLg)
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(
-                horizontal = SharedDimensions.screenPaddingHorizontal,
-                vertical = SharedDimensions.spacingMd,
-            ),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
+    RethinkLogToolbarRow(
+        modifier = Modifier.padding(
+            horizontal = SharedDimensions.screenPaddingHorizontal,
+            vertical = SharedDimensions.spacingSm,
+        ),
     ) {
-        TextField(
-            value = query,
-            onValueChange = onQueryChange,
+        RethinkSearchField(
+            query = query,
+            onQueryChange = onQueryChange,
+            placeholder = strings.searchHint,
+            clearQueryContentDescription = strings.clearSearchDescription,
             modifier = Modifier.weight(1f),
-            singleLine = true,
-            placeholder = { Text(strings.searchHint, style = MaterialTheme.typography.bodyMedium) },
-            leadingIcon = {
-                Icon(MaterialSymbols.Filled.Search, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-            },
-            trailingIcon = {
-                if (query.isNotEmpty()) {
-                    IconButton(onClick = { onQueryChange("") }) {
-                        Icon(MaterialSymbols.Filled.Close, strings.clearSearchDescription, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                }
-            },
-            shape = searchShape,
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                disabledIndicatorColor = Color.Transparent,
-            ),
         )
-        IconButton(onClick = onFilterClick) {
-            Icon(MaterialSymbols.Filled.FilterList, strings.filterDescription, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        IconButton(onClick = onClearClick) {
-            Icon(MaterialSymbols.Filled.DeleteOutline, strings.clearDescription, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
+        RethinkLogCompactIconAction(
+            icon = MaterialSymbols.Filled.FilterList,
+            contentDescription = strings.filterDescription,
+            selected = filterActive,
+            onClick = onFilterClick,
+        )
     }
 }

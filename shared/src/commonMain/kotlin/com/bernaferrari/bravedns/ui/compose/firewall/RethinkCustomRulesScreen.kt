@@ -268,6 +268,9 @@ private fun RethinkRulesControlDeck(
             clearQueryContentDescription = strings.clearSearch,
             onClearQuery = { onQueryChange("") },
             modifier = Modifier.fillMaxWidth(),
+            // Same pill search field as the apps list, events and database.
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.cornerRadiusFull),
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
         )
     }
 }
@@ -281,8 +284,10 @@ private fun RethinkRuleTabSelector(
 ) {
     RethinkConnectedChoiceGroup(
         options = listOf(
-            RethinkChoiceOption(RethinkRulesTab.IP, strings.ipRules, MaterialSymbols.Filled.Public),
-            RethinkChoiceOption(RethinkRulesTab.DOMAIN, strings.domainRules, MaterialSymbols.Filled.Language),
+            // The screen title already says "rules"; the short type names fit every locale at
+            // phone width without truncating.
+            RethinkChoiceOption(RethinkRulesTab.IP, strings.ip, MaterialSymbols.Filled.Public),
+            RethinkChoiceOption(RethinkRulesTab.DOMAIN, strings.domain, MaterialSymbols.Filled.Language),
         ),
         selected = selected,
         onSelect = onSelected,
@@ -403,7 +408,6 @@ private fun RethinkRuleOwnerHeader(
         supporting = uidLabel.takeIf { it != owner },
         leadingIcon = MaterialSymbols.Filled.Apps,
         position = CardPosition.Single,
-        defaultContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
     )
 }
 
@@ -451,14 +455,16 @@ private fun RethinkFirewallRuleRow(
         trailing = {
             Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile), verticalAlignment = Alignment.CenterVertically) {
                 Surface(
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.cornerRadiusPill),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.cornerRadiusFull),
                     color = accent.copy(alpha = .14f),
                 ) {
                     Text(
                         statusLabel,
-                        Modifier.padding(horizontal = SharedDimensions.spacingSm, vertical = SharedDimensions.spacingGridTile),
-                        style = MaterialTheme.typography.labelSmall,
+                        Modifier.padding(horizontal = SharedDimensions.spacingSm, vertical = SharedDimensions.spacingXs),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
                         color = accent,
+                        maxLines = 1,
                     )
                 }
                 IconButton(onClick = { confirmDelete = true }) { Icon(MaterialSymbols.Filled.DeleteOutline, strings.delete) }

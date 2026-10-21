@@ -1,7 +1,6 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.settings
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -146,9 +145,9 @@ fun RethinkCustomLanIpEditor(
 private fun RethinkLanEditorCard(content: @Composable () -> Unit) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(SharedDimensions.cornerRadius3xl),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        border = BorderStroke(SharedDimensions.dividerThicknessBold, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)),
+        // Hosted in a surfaceContainerLow sheet: one tone up separates the cards without outlines.
+        shape = RoundedCornerShape(SharedDimensions.groupCornerRadius),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
     ) {
         Column(
             modifier = Modifier.padding(SharedDimensions.cardPadding),

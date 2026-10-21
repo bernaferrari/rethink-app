@@ -18,6 +18,7 @@ limitations under the License.
 
 package com.bernaferrari.bravedns.ui.compose.logs
 
+import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import android.content.Context
 import android.graphics.drawable.Drawable
 import androidx.compose.animation.Crossfade
@@ -196,8 +197,8 @@ private fun AppIconSlot(
                         contentDescription = null,
                         modifier =
                             Modifier
-                                .size(34.dp)
-                                .clip(RoundedCornerShape(7.dp)),
+                                .size(SharedDimensions.iconContainerSm)
+                                .clip(RoundedCornerShape(SharedDimensions.cornerRadiusSm)),
                     )
                 }
             }
@@ -205,8 +206,8 @@ private fun AppIconSlot(
             Box(
                 modifier =
                     Modifier
-                        .size(34.dp)
-                        .clip(RoundedCornerShape(10.dp))
+                        .size(SharedDimensions.iconContainerSm)
+                        .clip(RoundedCornerShape(SharedDimensions.cornerRadiusSmMd))
                         .background(statusColor.copy(alpha = 0.5f))
             )
         }

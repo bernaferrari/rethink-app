@@ -125,10 +125,10 @@ fun RethinkBubbleScreen(
 private fun BubbleSectionHeader(title: String, count: Int) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         SectionHeader(title, modifier = Modifier.weight(1f))
-        Surface(color = MaterialTheme.colorScheme.secondaryContainer, shape = RoundedCornerShape(SharedDimensions.cornerRadiusPill)) {
+        Surface(color = MaterialTheme.colorScheme.secondaryContainer, shape = RoundedCornerShape(SharedDimensions.cornerRadiusFull)) {
             Text(
                 count.toString(),
-                style = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.labelMedium.copy(fontFeatureSettings = "tnum"),
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                 modifier = Modifier.padding(horizontal = SharedDimensions.spacingSmMd, vertical = SharedDimensions.spacingXs),
             )

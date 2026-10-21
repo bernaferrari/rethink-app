@@ -3,11 +3,16 @@
 
 package com.bernaferrari.bravedns.ui.compose.logs
 
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.FilledTonalIconToggleButton
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Badge
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -35,6 +40,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
@@ -82,13 +88,37 @@ fun RethinkLogsControlsDeck(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = SharedDimensions.screenPaddingHorizontal)
-            .padding(top = SharedDimensions.spacingXs),
+            // Symmetric vertical inset: the strip sits centered between the top bar and the list.
+            .padding(horizontal = SharedDimensions.screenPaddingHorizontal, vertical = SharedDimensions.spacingXs),
         verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
         content = { content() },
     )
 }
 
+/**
+ * One toolbar strip (connected group or search field + [RethinkLogCompactIconAction]s). Fixes
+ * the gap between controls and their vertical centering so every log-like screen (network, DNS,
+ * console, events, database) lines up the same way.
+ */
+@Composable
+fun RethinkLogToolbarRow(
+    modifier: Modifier = Modifier,
+    content: @Composable RowScope.() -> Unit,
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
+        verticalAlignment = Alignment.CenterVertically,
+        content = content,
+    )
+}
+
+/**
+ * Toolbar action beside the log filter group. Same height and tonal family as the connected
+ * segments so the row reads as one control strip; [selected] (an active filter) uses the checked
+ * container, and [count] shows as a badge. Toggle semantics, since it reflects filter state.
+ */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun RethinkLogCompactIconAction(
     icon: ImageVector,
@@ -96,42 +126,40 @@ fun RethinkLogCompactIconAction(
     selected: Boolean = false,
     enabled: Boolean = true,
     count: Int = 0,
+    modifier: Modifier = Modifier,
+    /** Match the neighbouring control's height (48dp groups; 56dp text fields). */
+    size: Dp = SharedDimensions.touchTargetMin,
+    /** Shows a dot badge while [selected] when there is no [count] to show. */
+    showSelectedDot: Boolean = false,
     onClick: () -> Unit,
 ) {
-    Box(modifier = Modifier.size(SharedDimensions.touchTargetMin)) {
-        IconButton(onClick = onClick, enabled = enabled, modifier = Modifier.matchParentSize()) {
+    BadgedBox(
+        modifier = modifier,
+        badge = {
+            when {
+                count > 0 -> Badge { Text(count.toString()) }
+                showSelectedDot && selected -> Badge()
+            }
+        },
+    ) {
+        FilledTonalIconToggleButton(
+            checked = selected,
+            onCheckedChange = { onClick() },
+            enabled = enabled,
+            shapes = IconButtonDefaults.toggleableShapes(),
+            colors = IconButtonDefaults.filledTonalIconToggleButtonColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                checkedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                checkedContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            ),
+            modifier = Modifier.size(size),
+        ) {
             Icon(
                 imageVector = icon,
                 contentDescription = contentDescription,
                 modifier = Modifier.size(SharedDimensions.iconSizeSm),
-                tint = when {
-                    !enabled -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.42f)
-                    selected -> MaterialTheme.colorScheme.primary
-                    else -> MaterialTheme.colorScheme.onSurfaceVariant
-                },
             )
-        }
-        if (selected) {
-            Surface(
-                shape = RoundedCornerShape(SharedDimensions.cornerRadiusPill),
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.align(Alignment.TopEnd).padding(top = 5.dp, end = 5.dp).size(6.dp),
-            ) {}
-        }
-        if (count > 0) {
-            Surface(
-                shape = RoundedCornerShape(SharedDimensions.cornerRadiusPill),
-                color = MaterialTheme.colorScheme.secondaryContainer,
-                modifier = Modifier.align(Alignment.TopEnd).padding(top = 1.dp, end = 1.dp),
-            ) {
-                Text(
-                    text = count.toString(),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp),
-                )
-            }
         }
     }
 }
@@ -268,7 +296,7 @@ private fun RethinkLogAppFilterItem(
                 color = MaterialTheme.colorScheme.onSurface,
             )
             Surface(
-                shape = RoundedCornerShape(SharedDimensions.cornerRadiusPill),
+                shape = RoundedCornerShape(SharedDimensions.cornerRadiusFull),
                 color = if (selected) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.84f) else MaterialTheme.colorScheme.surfaceContainerHigh,
             ) {
                 Text(
@@ -313,7 +341,7 @@ fun RethinkLogRulesDialog(
                     Text(strings.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                     if (selectedCount > 0) {
                         Spacer(Modifier.size(SharedDimensions.spacingSm))
-                        Surface(shape = RoundedCornerShape(SharedDimensions.cornerRadiusPill), color = MaterialTheme.colorScheme.primaryContainer) {
+                        Surface(shape = RoundedCornerShape(SharedDimensions.cornerRadiusFull), color = MaterialTheme.colorScheme.primaryContainer) {
                             Text(selectedCount.toString(), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimaryContainer, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(horizontal = SharedDimensions.spacingSm, vertical = SharedDimensions.spacingGridTile))
                         }
                     }

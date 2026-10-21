@@ -8,6 +8,8 @@ import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,7 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PrimaryScrollableTabRow
+import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -26,7 +28,11 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
 import com.bernaferrari.bravedns.ui.compose.common.RethinkLoadingState
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
@@ -37,6 +43,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.SectionHeaderWithSubtitle
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListShape
 
 data class RethinkRpnAccountEntry(val title: String, val supporting: String? = null)
 
@@ -109,17 +116,14 @@ fun RethinkRpnAccountScreen(
     val tabs = listOf(strings.manageTab, strings.historyTab, strings.ordersTab, strings.entitlementTab)
     androidx.compose.material3.Scaffold(modifier = modifier, topBar = { RethinkTopBar(strings.title, onBackClick) }) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
-            PrimaryScrollableTabRow(
-                selectedTabIndex = selectedTab,
-                edgePadding = SharedDimensions.screenPaddingHorizontal,
-            ) {
+            // Four short labels fit a fixed row at 360dp, so the tabs share the width evenly
+            // instead of scrolling a clipped "Entitlement" off the edge.
+            PrimaryTabRow(selectedTabIndex = selectedTab) {
                 tabs.forEachIndexed { index, label ->
-                    // Scrollable tabs size to their label, so never ellipsize: a truncated
-                    // "Entitlement…" is worse than scrolling the row.
                     Tab(
                         selected = selectedTab == index,
                         onClick = { selectedTab = index },
-                        text = { Text(label, maxLines = 1, softWrap = false) },
+                        text = { Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                     )
                 }
             }
@@ -187,11 +191,7 @@ private fun RethinkRpnManageTab(
             account.summary.isNotEmpty() -> item {
                 RethinkListGroup {
                     account.summary.forEachIndexed { index, entry ->
-                        RethinkListItem(
-                            headline = entry.title,
-                            supporting = entry.supporting,
-                            position = cardPositionFor(index, account.summary.lastIndex),
-                        )
+                        RethinkRpnInfoRow(entry, cardPositionFor(index, account.summary.lastIndex))
                     }
                 }
             }
@@ -230,7 +230,7 @@ private fun RethinkRpnManageTab(
                     supporting = strings.supportDescription,
                     leadingIcon = MaterialSymbols.Filled.Headset,
                     position = CardPosition.Single,
-                    showTrailingChevron = true,
+                    // Opens the support sheet in place; chevrons are reserved for navigation.
                     onClick = onSupport,
                 )
             }
@@ -263,7 +263,7 @@ private fun RethinkRpnEntitlementTab(loading: Boolean, error: String?, entries: 
         loading -> RethinkRpnAccountLoading(strings.loading)
         error != null -> RethinkEmptyState(error, "", Modifier.fillMaxWidth(), icon = MaterialSymbols.Filled.WarningAmber)
         entries.isEmpty() -> RethinkEmptyState(strings.noSubscriptionTitle, strings.noSubscriptionMessage, Modifier.fillMaxWidth(), icon = MaterialSymbols.Filled.Star)
-        else -> RethinkRpnAccountEntries(entries)
+        else -> RethinkRpnAccountEntries(entries, keyValue = true)
     }
 }
 
@@ -273,17 +273,62 @@ private fun RethinkRpnAccountLoading(label: String) {
 }
 
 @Composable
-private fun RethinkRpnAccountEntries(entries: List<RethinkRpnAccountEntry>) {
+private fun RethinkRpnAccountEntries(entries: List<RethinkRpnAccountEntry>, keyValue: Boolean = false) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(SharedDimensions.screenPaddingHorizontal),
         verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile),
     ) {
         itemsIndexed(entries, key = { index, item -> "${item.title}_${item.supporting}_$index" }) { index, item ->
-            RethinkListItem(
-                headline = item.title,
-                supporting = item.supporting,
-                position = cardPositionFor(index, entries.lastIndex),
+            if (keyValue) {
+                RethinkRpnInfoRow(item, cardPositionFor(index, entries.lastIndex))
+            } else {
+                RethinkListItem(
+                    headline = item.title,
+                    supporting = item.supporting,
+                    position = cardPositionFor(index, entries.lastIndex),
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Read-only key/value row (Status, Renews, Client ID…): no press feedback, the key as a quiet
+ * label on the leading edge and the value as the emphasized content on the trailing edge, so
+ * it never reads as a tappable navigation row.
+ */
+@Composable
+private fun RethinkRpnInfoRow(entry: RethinkRpnAccountEntry, position: CardPosition) {
+    val topGap = if (position == CardPosition.First || position == CardPosition.Single) {
+        SharedDimensions.spacingNone
+    } else {
+        SharedDimensions.spacingGridTile
+    }
+    Surface(
+        shape = rethinkGroupedListShape(position),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        modifier = Modifier.fillMaxWidth().padding(top = topGap),
+    ) {
+        Row(
+            modifier = Modifier
+                .heightIn(min = SharedDimensions.listItemHeightSm)
+                .padding(horizontal = SharedDimensions.cardPadding, vertical = SharedDimensions.spacingMd),
+            horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                entry.title,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                entry.supporting.orEmpty(),
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.End,
+                modifier = Modifier.weight(1f),
             )
         }
     }

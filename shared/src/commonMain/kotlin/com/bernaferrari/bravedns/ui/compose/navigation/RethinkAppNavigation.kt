@@ -221,7 +221,14 @@ fun RethinkAppNavigation(
                     rememberViewModelStoreNavEntryDecorator(),
                 ),
                 entryProvider = { key ->
-                    provider(key) ?: NavEntry(key) {}
+                    val entry = provider(key) ?: NavEntry(key) {}
+                    // Readable width everywhere (tablets, foldables, wide browser panes) except the
+                    // screens that own an expanded layout of their own.
+                    if ((key as? RethinkRoute)?.hasAdaptiveLayout() == true) {
+                        entry
+                    } else {
+                        NavEntry(entry) { _: NavKey -> RethinkCenteredScreen { entry.Content() } }
+                    }
                 },
             )
         }
@@ -235,4 +242,10 @@ fun RethinkAppNavigation(
             predictivePopTransitionSpec = { if (tabTransition) fadeTransition else popTransition },
         )
     }
+}
+
+/** Routes whose screens switch to multi-column layouts at Expanded width. */
+private fun RethinkRoute.hasAdaptiveLayout(): Boolean = when (this) {
+    RethinkRoute.Home, RethinkRoute.Statistics, RethinkRoute.Configure, RethinkRoute.DnsList -> true
+    else -> false
 }

@@ -113,7 +113,7 @@ fun RethinkPingTestScreen(
             contentPadding = PaddingValues(
                 start = SharedDimensions.screenPaddingHorizontal,
                 end = SharedDimensions.screenPaddingHorizontal,
-                top = SharedDimensions.spacingSm,
+                top = SharedDimensions.spacingMd,
                 bottom = SharedDimensions.spacing3xl,
             ),
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
@@ -164,7 +164,7 @@ fun RethinkPingTestScreen(
 private fun PingCheckCard(content: @Composable () -> Unit) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(SharedDimensions.cornerRadius4xl),
+        shape = RoundedCornerShape(SharedDimensions.groupCornerRadius),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
         content = content,
     )
@@ -184,8 +184,10 @@ private fun PingCheckSection(
 ) {
     val fixed = checks.filterNot { it.editable }
     val editable = checks.filter { it.editable }
-    Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
+    // The header hugs its group like every other section; spacing only separates group and field.
+    Column {
         SectionHeader(title)
+        Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
         if (fixed.isNotEmpty()) {
             RethinkListGroup {
                 fixed.forEachIndexed { index, check ->
@@ -207,6 +209,7 @@ private fun PingCheckSection(
                 textStyle = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace),
                 trailingIcon = { PingStatusIndicator(check.status, strings, showLabel = false) },
             )
+        }
         }
     }
 }
