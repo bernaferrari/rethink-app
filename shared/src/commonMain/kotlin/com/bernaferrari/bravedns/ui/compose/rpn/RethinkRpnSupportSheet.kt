@@ -100,7 +100,7 @@ fun RethinkRpnSupportSheet(
                         selected = category == item,
                         onClick = { category = if (category == item) null else item },
                         label = item,
-                        minHeight = 40.dp,
+                        minHeight = SharedDimensions.buttonHeightSm,
                         shape = RoundedCornerShape(SharedDimensions.cornerRadiusPill),
                         containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                         selectedContainerColor = MaterialTheme.colorScheme.primary,
@@ -265,7 +265,7 @@ private fun SupportDataToggle(
                     } else {
                         MaterialTheme.colorScheme.onSurfaceVariant
                     },
-                    modifier = Modifier.size(18.dp),
+                    modifier = Modifier.size(SharedDimensions.iconSizeSm),
                 )
             }
         }

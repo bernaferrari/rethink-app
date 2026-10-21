@@ -2390,4 +2390,52 @@
     <string name="log_latency_ok">ok</string>
     <string name="about_diagnostics">Diagnostics</string>
     <string name="about_flight_recorder">Flight recorder</string>
+    <!-- Logs / console / events / database / statistics / firewall polish -->
+    <string name="console_severity_debug">Debug</string>
+    <string name="console_severity_info">Info</string>
+    <string name="console_severity_warning">Warning</string>
+    <string name="console_severity_error">Error</string>
+    <string name="logs_disabled_title">Logging is off</string>
+    <string name="logs_disabled_message">Turn on on-device logging to see network and DNS activity here.</string>
+    <string name="logs_enable_action">Enable logs</string>
+    <string name="state_expanded">Expanded</string>
+    <string name="state_collapsed">Collapsed</string>
+    <string name="custom_rule_delete_title">Delete rule?</string>
+    <!-- UI polish: settings / DNS / RPN / WireGuard / About / Welcome -->
+    <string name="rpn_account_no_subscription_title">No active subscription</string>
+    <string name="rpn_account_no_subscription_desc">Subscribe to Rethink Plus to route apps through Rethink\'s proxy network.</string>
+    <string name="rpn_account_view_plans">View plans</string>
+    <string name="settings_misc_data_section">Data</string>
+    <string name="settings_misc_behavior_section">Behavior</string>
+    <string name="settings_misc_website">Website</string>
+    <string name="settings_misc_about_app">About %1$s</string>
+    <string name="settings_misc_about_desc">Version, support, and legal information</string>
+    <string name="settings_misc_backup_desc">Export settings and logs, or restore them from a backup file</string>
+    <string name="proxy_servers_section">Proxy servers</string>
+    <string name="proxy_tor_section">Tor</string>
+    <plurals name="orbot_apps_count">
+        <item quantity="one">%d app uses Orbot</item>
+        <item quantity="other">%d apps use Orbot</item>
+    </plurals>
+    <string name="ac_split_options_title">Split strategy</string>
+    <string name="ac_split_options_desc">How the first bytes of each connection are split to slip past deep-packet inspection.</string>
+    <string name="rpn_countries_no_matches">No locations match</string>
+    <string name="dns_list_subtitle">Choose how domain names are resolved</string>
+    <string name="dns_list_protocol_section">Protocol</string>
+    <string name="wg_fab_import_file">Import file</string>
+    <string name="wg_fab_scan_qr">Scan QR code</string>
+    <string name="wg_fab_add_configuration">Add configuration</string>
+    <string name="ping_status_reachable">Reachable</string>
+    <string name="ping_status_unreachable">Unreachable</string>
+    <string name="ping_status_testing">Testing…</string>
+    <string name="ping_custom_target">Custom target</string>
+    <string name="about_partner_mozilla" translatable="false">Mozilla</string>
+    <string name="about_partner_foss" translatable="false">FOSS United</string>
+    <string name="about_partner_floss_funds" translatable="false">FLOSS/fund</string>
+    <string name="welcome_feature_firewall">App firewall</string>
+    <string name="welcome_feature_firewall_desc">Choose which apps can reach the internet, per network.</string>
+    <string name="welcome_feature_dns">Private DNS</string>
+    <string name="welcome_feature_dns_desc">Encrypt lookups and block ads, trackers, and malware.</string>
+    <string name="welcome_feature_routing">Secure routing</string>
+    <string name="welcome_feature_routing_desc">Send apps through WireGuard or a proxy on any network.</string>
 </resources>

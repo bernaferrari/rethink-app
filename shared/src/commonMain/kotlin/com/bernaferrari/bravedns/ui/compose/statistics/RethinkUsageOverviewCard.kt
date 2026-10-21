@@ -1,6 +1,5 @@
 package com.bernaferrari.bravedns.ui.compose.statistics
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,7 +13,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.style.TextOverflow
+import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 
 data class RethinkUsageOverview(
@@ -23,6 +23,10 @@ data class RethinkUsageOverview(
     val connections: String,
 )
 
+/**
+ * Usage totals as one connected tile group (download first), matching the grouped-list surface
+ * language instead of a bordered card.
+ */
 @Composable
 fun RethinkUsageOverviewCard(
     overview: RethinkUsageOverview,
@@ -32,29 +36,38 @@ fun RethinkUsageOverviewCard(
     connectionsLabel: String,
     modifier: Modifier = Modifier,
 ) {
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(SharedDimensions.cornerRadius4xl),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.24f)),
-    ) {
-        Column(Modifier.padding(horizontal = 14.dp, vertical = 14.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(overallLabel, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                UsagePill(downloadLabel, overview.download, MaterialTheme.colorScheme.primaryContainer.copy(alpha = .44f), MaterialTheme.colorScheme.primary, Modifier.weight(1f))
-                UsagePill(uploadLabel, overview.upload, MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = .42f), MaterialTheme.colorScheme.tertiary, Modifier.weight(1f))
-                UsagePill(connectionsLabel, overview.connections, MaterialTheme.colorScheme.surfaceContainerHighest, MaterialTheme.colorScheme.onSurface, Modifier.weight(1f))
-            }
+    Column(modifier.fillMaxWidth()) {
+        SectionHeader(title = overallLabel)
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile)) {
+            UsageTile(downloadLabel, overview.download, MaterialTheme.colorScheme.primary, UsageTilePosition.Leading, Modifier.weight(1f))
+            UsageTile(uploadLabel, overview.upload, MaterialTheme.colorScheme.tertiary, UsageTilePosition.Middle, Modifier.weight(1f))
+            UsageTile(connectionsLabel, overview.connections, MaterialTheme.colorScheme.onSurface, UsageTilePosition.Trailing, Modifier.weight(1f))
         }
     }
 }
 
+private enum class UsageTilePosition { Leading, Middle, Trailing }
+
+private fun usageTileShape(position: UsageTilePosition): RoundedCornerShape {
+    val outer = SharedDimensions.cornerRadius4xl
+    val inner = SharedDimensions.cornerRadiusSm
+    return RoundedCornerShape(
+        topStart = if (position == UsageTilePosition.Leading) outer else inner,
+        bottomStart = if (position == UsageTilePosition.Leading) outer else inner,
+        topEnd = if (position == UsageTilePosition.Trailing) outer else inner,
+        bottomEnd = if (position == UsageTilePosition.Trailing) outer else inner,
+    )
+}
+
 @Composable
-private fun UsagePill(label: String, value: String, container: Color, valueColor: Color, modifier: Modifier) {
-    Surface(modifier = modifier, shape = RoundedCornerShape(SharedDimensions.cornerRadiusLg), color = container) {
-        Column(Modifier.padding(horizontal = 10.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(value, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = valueColor)
-            Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+private fun UsageTile(label: String, value: String, valueColor: Color, position: UsageTilePosition, modifier: Modifier) {
+    Surface(modifier = modifier, shape = usageTileShape(position), color = MaterialTheme.colorScheme.surfaceContainerLow) {
+        Column(
+            Modifier.padding(horizontal = SharedDimensions.cardPaddingSm, vertical = SharedDimensions.cardPaddingSm),
+            verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile),
+        ) {
+            Text(value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = valueColor, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
 }

@@ -3,11 +3,8 @@
 
 package com.bernaferrari.bravedns.ui.compose.firewall
 
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceOption
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkConnectedChoiceGroup
-import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
-
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -16,9 +13,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -35,19 +31,23 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
+import com.bernaferrari.bravedns.ui.compose.common.RethinkLoadingState
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceOption
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkConnectedChoiceGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormActionRow
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormTextField
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkModalBottomSheet
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSearchField
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusColors
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
+import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 /** The portable custom-rules screen supports both universal and app-specific rule scopes. */
 enum class RethinkRulesTab(val value: Int) {
@@ -59,12 +59,21 @@ enum class RethinkRulesTab(val value: Int) {
     }
 }
 
+/**
+ * Which rules the screen lists. Values are the persisted/navigation ints and must stay stable.
+ */
 enum class RethinkRulesMode(val value: Int) {
-    ALL_RULES(0),
-    APP_SPECIFIC(1);
+    /** Every app's rules, grouped by owning app ("App-wise"). Only offered on the universal screen. */
+    ALL_APPS(0),
+
+    /**
+     * Rules owned by the screen's own uid: the universal rules on the universal screen
+     * ("Universal"), or one app's rules on an app screen.
+     */
+    SELECTED_UID(1);
 
     companion object {
-        fun fromValue(value: Int): RethinkRulesMode = entries.firstOrNull { it.value == value } ?: APP_SPECIFIC
+        fun fromValue(value: Int): RethinkRulesMode = entries.firstOrNull { it.value == value } ?: SELECTED_UID
     }
 }
 
@@ -132,6 +141,8 @@ data class RethinkCustomRulesStrings(
     val bypass: String,
     val noRule: String,
     val uid: (Int) -> String,
+    /** Title of the per-rule delete confirmation; the message is the rule itself. */
+    val deleteRuleTitle: String = "Delete rule?",
 )
 
 /**
@@ -156,17 +167,17 @@ fun RethinkCustomRulesScreen(
     modifier: Modifier = Modifier,
 ) {
     val canSwitchScope = uid == RETHINK_UID_EVERYBODY
-    val effectiveMode = if (canSwitchScope) selectedMode else RethinkRulesMode.APP_SPECIFIC
-    val isUniversalRules = uid == RETHINK_UID_EVERYBODY && effectiveMode == RethinkRulesMode.APP_SPECIFIC
+    val effectiveMode = if (canSwitchScope) selectedMode else RethinkRulesMode.SELECTED_UID
+    val isUniversalRules = uid == RETHINK_UID_EVERYBODY && effectiveMode == RethinkRulesMode.SELECTED_UID
     var showAddDialog by rememberSaveable(uid) { mutableStateOf(false) }
     val title = when {
         isUniversalRules -> strings.universalTitle
-        effectiveMode == RethinkRulesMode.ALL_RULES -> strings.appWiseTitle
+        effectiveMode == RethinkRulesMode.ALL_APPS -> strings.appWiseTitle
         else -> strings.appRulesTitle
     }
 
     LaunchedEffect(effectiveMode) {
-        if (effectiveMode == RethinkRulesMode.ALL_RULES) showAddDialog = false
+        if (effectiveMode == RethinkRulesMode.ALL_APPS) showAddDialog = false
     }
 
     Scaffold(
@@ -174,7 +185,7 @@ fun RethinkCustomRulesScreen(
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = { RethinkTopBar(title = title, onBackClick = onBackClick) },
         floatingActionButton = {
-            if (effectiveMode == RethinkRulesMode.APP_SPECIFIC && (rules.isLoading || rules.itemCount > 0)) {
+            if (effectiveMode == RethinkRulesMode.SELECTED_UID && (rules.isLoading || rules.itemCount > 0)) {
                 ExtendedFloatingActionButton(
                     onClick = { showAddDialog = true },
                     icon = { Icon(MaterialSymbols.Filled.Add, null) },
@@ -202,7 +213,7 @@ fun RethinkCustomRulesScreen(
                 strings = strings,
                 onDeleteRule = { onDeleteRule(selectedTab, it) },
                 onRuleOwnerVisible = onRuleOwnerVisible,
-                onAddRule = if (effectiveMode == RethinkRulesMode.APP_SPECIFIC) {
+                onAddRule = if (effectiveMode == RethinkRulesMode.SELECTED_UID) {
                     { showAddDialog = true }
                 } else {
                     null
@@ -211,7 +222,7 @@ fun RethinkCustomRulesScreen(
         }
     }
 
-    if (showAddDialog && effectiveMode == RethinkRulesMode.APP_SPECIFIC) {
+    if (showAddDialog && effectiveMode == RethinkRulesMode.SELECTED_UID) {
         RethinkAddFirewallRuleDialog(
             tab = selectedTab,
             strings = strings,
@@ -242,27 +253,14 @@ private fun RethinkRulesControlDeck(
             end = SharedDimensions.screenPaddingHorizontal,
             top = SharedDimensions.spacingXs,
         ),
-        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
+        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
     ) {
+        // Scope and rule type are two separate questions, so they stack as two full-width
+        // groups rather than sitting side by side where they read as one 4-segment control.
         if (canSwitchScope) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
-                RethinkRuleTabSelector(
-                    selected = selectedTab,
-                    strings = strings,
-                    compact = true,
-                    modifier = Modifier.weight(1f),
-                    onSelected = onTabChange,
-                )
-                RethinkRuleScopeSelector(
-                    selected = selectedMode,
-                    strings = strings,
-                    modifier = Modifier.weight(1f),
-                    onSelected = onModeChange,
-                )
-            }
-        } else {
-            RethinkRuleTabSelector(selectedTab, strings, compact = false, onSelected = onTabChange)
+            RethinkRuleScopeSelector(selected = selectedMode, strings = strings, onSelected = onModeChange)
         }
+        RethinkRuleTabSelector(selectedTab, strings, onSelected = onTabChange)
         RethinkSearchField(
             query = query,
             onQueryChange = onQueryChange,
@@ -278,14 +276,13 @@ private fun RethinkRulesControlDeck(
 private fun RethinkRuleTabSelector(
     selected: RethinkRulesTab,
     strings: RethinkCustomRulesStrings,
-    compact: Boolean,
     modifier: Modifier = Modifier,
     onSelected: (RethinkRulesTab) -> Unit,
 ) {
     RethinkConnectedChoiceGroup(
         options = listOf(
-            RethinkChoiceOption(RethinkRulesTab.IP, if (compact) strings.ip else strings.ipRules),
-            RethinkChoiceOption(RethinkRulesTab.DOMAIN, if (compact) strings.domain else strings.domainRules),
+            RethinkChoiceOption(RethinkRulesTab.IP, strings.ipRules, MaterialSymbols.Filled.Public),
+            RethinkChoiceOption(RethinkRulesTab.DOMAIN, strings.domainRules, MaterialSymbols.Filled.Language),
         ),
         selected = selected,
         onSelect = onSelected,
@@ -302,8 +299,8 @@ private fun RethinkRuleScopeSelector(
 ) {
     RethinkConnectedChoiceGroup(
         options = listOf(
-            RethinkChoiceOption(RethinkRulesMode.APP_SPECIFIC, strings.universal),
-            RethinkChoiceOption(RethinkRulesMode.ALL_RULES, strings.appWise),
+            RethinkChoiceOption(RethinkRulesMode.SELECTED_UID, strings.universal, MaterialSymbols.Filled.Security),
+            RethinkChoiceOption(RethinkRulesMode.ALL_APPS, strings.appWise, MaterialSymbols.Filled.Apps),
         ),
         selected = selected,
         onSelect = onSelected,
@@ -331,18 +328,18 @@ private fun RethinkRulesContent(
                 start = SharedDimensions.screenPaddingHorizontal,
                 end = SharedDimensions.screenPaddingHorizontal,
                 top = SharedDimensions.spacingSm,
-                bottom = if (selectedMode == RethinkRulesMode.APP_SPECIFIC) 112.dp else SharedDimensions.spacing3xl,
+                bottom = if (selectedMode == RethinkRulesMode.SELECTED_UID) 112.dp else SharedDimensions.spacing3xl,
             ),
         ) {
             items(rules.itemCount, key = { index -> rules[index]?.id ?: "rule-$index" }) { index ->
                 val rule = rules[index] ?: return@items
                 val previous = rules.getOrNull(index - 1)
                 val next = rules.getOrNull(index + 1)
-                val isGrouped = selectedMode == RethinkRulesMode.ALL_RULES
+                val isGrouped = selectedMode == RethinkRulesMode.ALL_APPS
                 if (isGrouped && (previous == null || previous.uid != rule.uid)) {
                     if (index > 0) Spacer(Modifier.height(SharedDimensions.spacingSm))
                     RethinkRuleOwnerHeader(rule, strings, onRuleOwnerVisible)
-                    Spacer(Modifier.height(4.dp))
+                    Spacer(Modifier.height(SharedDimensions.spacingXs))
                 }
                 val position = if (!isGrouped) {
                     cardPositionFor(index, rules.itemCount - 1)
@@ -365,12 +362,8 @@ private fun RethinkFirewallRulesFeed.getOrNull(index: Int): RethinkFirewallRule?
 
 @Composable
 private fun RethinkRulesInfo(text: String, modifier: Modifier) {
-    RethinkListGroup(modifier.padding(
-        start = SharedDimensions.screenPaddingHorizontal,
-        end = SharedDimensions.screenPaddingHorizontal,
-        top = SharedDimensions.spacingSm,
-    )) {
-        RethinkListItem(headline = text, enabled = false, position = CardPosition.Single)
+    Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        RethinkLoadingState(label = text)
     }
 }
 
@@ -389,10 +382,10 @@ private fun RethinkRulesEmptyState(
         RethinkEmptyState(
             title = if (tab == RethinkRulesTab.IP) strings.noIpRules else strings.noDomainRules,
             message = "",
+            icon = if (tab == RethinkRulesTab.IP) MaterialSymbols.Filled.Public else MaterialSymbols.Filled.Language,
+            ctaLabel = strings.add,
+            onCtaClick = onAddRule,
         )
-        if (onAddRule != null) {
-            Button(onClick = onAddRule) { Text(strings.add) }
-        }
     }
 }
 
@@ -428,11 +421,27 @@ private fun RethinkFirewallRuleRow(
         RethinkFirewallRuleStatus.None -> strings.noRule
     }
     val accent: Color = when (rule.status) {
-        RethinkFirewallRuleStatus.Block -> MaterialTheme.colorScheme.error
-        RethinkFirewallRuleStatus.Trust -> MaterialTheme.colorScheme.primary
-        RethinkFirewallRuleStatus.Bypass, RethinkFirewallRuleStatus.None -> MaterialTheme.colorScheme.onSurfaceVariant
+        RethinkFirewallRuleStatus.Block -> RethinkStatusColors.blocked
+        RethinkFirewallRuleStatus.Trust -> RethinkStatusColors.allowed
+        RethinkFirewallRuleStatus.Bypass -> RethinkStatusColors.mixed
+        RethinkFirewallRuleStatus.None -> RethinkStatusColors.idle
     }
     val headline = rule.port?.let { "${rule.value}:$it" } ?: rule.value
+    var confirmDelete by remember(rule.id) { mutableStateOf(false) }
+    if (confirmDelete) {
+        RethinkConfirmDialog(
+            onDismissRequest = { confirmDelete = false },
+            title = strings.deleteRuleTitle,
+            message = headline,
+            confirmText = strings.delete,
+            dismissText = strings.cancel,
+            isConfirmDestructive = true,
+            onConfirm = {
+                confirmDelete = false
+                onDelete()
+            },
+        )
+    }
     RethinkListItem(
         headline = headline,
         leadingIcon = if (rule.tab == RethinkRulesTab.IP) MaterialSymbols.Filled.Public else MaterialSymbols.Filled.Language,
@@ -447,12 +456,12 @@ private fun RethinkFirewallRuleRow(
                 ) {
                     Text(
                         statusLabel,
-                        Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                        Modifier.padding(horizontal = SharedDimensions.spacingSm, vertical = SharedDimensions.spacingGridTile),
                         style = MaterialTheme.typography.labelSmall,
                         color = accent,
                     )
                 }
-                IconButton(onClick = onDelete) { Icon(MaterialSymbols.Filled.Delete, strings.delete) }
+                IconButton(onClick = { confirmDelete = true }) { Icon(MaterialSymbols.Filled.DeleteOutline, strings.delete) }
             }
         },
     )
@@ -473,7 +482,7 @@ private fun RethinkAddFirewallRuleDialog(
         expandOnShow = true,
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd)) {
-            Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+            Text(title, style = MaterialTheme.typography.titleLarge)
             RethinkFormTextField(
                 value = value,
                 onValueChange = { value = it; error = null },

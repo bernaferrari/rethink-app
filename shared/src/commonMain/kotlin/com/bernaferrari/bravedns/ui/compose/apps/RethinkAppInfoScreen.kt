@@ -1,9 +1,6 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.apps
 
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
-import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
-
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -58,13 +55,18 @@ import androidx.compose.ui.unit.Dp
 import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
 import com.bernaferrari.bravedns.ui.compose.common.RethinkLoadingState
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
+import com.bernaferrari.bravedns.ui.compose.theme.CompactEmptyState
 import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormSection
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusColors
+import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListPairShape
+import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 data class RethinkAppInfoLogItem(val id: String, val title: String, val subtitle: String? = null)
 
@@ -197,33 +199,45 @@ fun RethinkAppInfoScreen(
                     RethinkFormSection(strings.firewall, firewallDescription) {
                         RethinkAppNetworkPair(state, strings, onWifiClick, onMobileClick)
                         RethinkListGroup {
-                            RethinkAppExclusiveRow(strings.isolate, strings.isolateDescription, state.isolated, MaterialSymbols.Filled.Security, MaterialTheme.colorScheme.error, CardPosition.First, onIsolateClick)
-                            RethinkAppExclusiveRow(strings.bypassDns, strings.bypassDnsDescription, state.bypassDnsFirewall, MaterialSymbols.Filled.Dns, MaterialTheme.colorScheme.tertiary, CardPosition.Middle, onBypassDnsClick)
-                            RethinkAppExclusiveRow(strings.bypassUniversal, strings.bypassUniversalDescription, state.bypassUniversalFirewall, MaterialSymbols.Filled.Public, MaterialTheme.colorScheme.tertiary, CardPosition.Middle, onBypassUniversalClick)
+                            RethinkAppExclusiveRow(strings.isolate, strings.isolateDescription, state.isolated, MaterialSymbols.Filled.Security, RethinkStatusColors.blocked, CardPosition.First, onIsolateClick)
+                            RethinkAppExclusiveRow(strings.bypassDns, strings.bypassDnsDescription, state.bypassDnsFirewall, MaterialSymbols.Filled.Dns, RethinkStatusColors.mixed, CardPosition.Middle, onBypassDnsClick)
+                            RethinkAppExclusiveRow(strings.bypassUniversal, strings.bypassUniversalDescription, state.bypassUniversalFirewall, MaterialSymbols.Filled.Public, RethinkStatusColors.mixed, CardPosition.Middle, onBypassUniversalClick)
                             RethinkAppExclusiveRow(strings.exclude, strings.excludeDescription, state.excluded, MaterialSymbols.Filled.Apps, MaterialTheme.colorScheme.secondary, CardPosition.Last, onExcludeClick)
-                        }
-                    }
-                }
-                item {
-                    RethinkFormSection(strings.advanced) {
-                        RethinkListGroup {
-                            RethinkAppToggleRow(strings.proxyExclude, strings.proxyExcludeDescription, state.proxyExcluded, MaterialSymbols.Filled.Settings, CardPosition.First, onProxyExcludedChange)
-                            RethinkAppToggleRow(strings.temporaryAllow, strings.temporaryAllowDescription, state.tempAllowed, MaterialSymbols.Filled.Timer, CardPosition.Last, onTempAllowChange)
                         }
                     }
                 }
                 item {
                     RethinkFormSection(strings.rules) {
                         RethinkListGroup {
-                            RethinkAppNavigationRow(strings.systemAppInfo, MaterialSymbols.Filled.Settings, CardPosition.First, onSystemAppInfo)
-                            RethinkAppNavigationRow(strings.ipRules, MaterialSymbols.Filled.Public, CardPosition.Middle, onIpRules)
+                            RethinkAppNavigationRow(strings.ipRules, MaterialSymbols.Filled.Public, CardPosition.First, onIpRules)
                             RethinkAppNavigationRow(strings.domainRules, MaterialSymbols.Filled.Dns, CardPosition.Last, onDomainRules)
                         }
                     }
                 }
-                item { RethinkAppLogCard(state.activeConnections, strings, onActiveConnections, onActiveEntry) }
-                item { RethinkAppLogCard(state.domainLogs, strings, onDomains, onDomainEntry) }
-                item { RethinkAppLogCard(state.ipLogs, strings, onIps, onIpEntry) }
+                item {
+                    // System app info is an app-level escape hatch, not a rule: it closes the
+                    // Advanced group instead of sitting among IP/domain rules.
+                    RethinkFormSection(strings.advanced) {
+                        RethinkListGroup {
+                            RethinkAppToggleRow(strings.proxyExclude, strings.proxyExcludeDescription, state.proxyExcluded, MaterialSymbols.Filled.VpnKey, CardPosition.First, onProxyExcludedChange)
+                            RethinkAppToggleRow(strings.temporaryAllow, strings.temporaryAllowDescription, state.tempAllowed, MaterialSymbols.Filled.Timer, CardPosition.Middle, onTempAllowChange)
+                            RethinkAppNavigationRow(strings.systemAppInfo, MaterialSymbols.Filled.PhoneAndroid, CardPosition.Last, onSystemAppInfo)
+                        }
+                    }
+                }
+                val logSections = listOf(
+                    Triple(state.activeConnections, onActiveConnections, onActiveEntry),
+                    Triple(state.domainLogs, onDomains, onDomainEntry),
+                    Triple(state.ipLogs, onIps, onIpEntry),
+                )
+                if (logSections.all { (section) -> section.empty && !section.loading }) {
+                    // One compact note instead of three stacked full empty states.
+                    item { RethinkAppNoActivity(strings.empty) }
+                } else {
+                    logSections.forEach { (section, onOpen, onEntry) ->
+                        item { RethinkAppLogCard(section, strings, onOpen, onEntry) }
+                    }
+                }
                 item { Spacer(Modifier.height(SharedDimensions.spacingSm)) }
             }
         }
@@ -465,6 +479,17 @@ private fun RethinkAppNavigationRow(title: String, icon: androidx.compose.ui.gra
 }
 
 @Composable
+private fun RethinkAppNoActivity(message: String) {
+    Surface(
+        shape = RoundedCornerShape(SharedDimensions.cornerRadius4xl),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        CompactEmptyState(message = message, icon = MaterialSymbols.Filled.Info)
+    }
+}
+
+@Composable
 private fun RethinkAppLogCard(section: RethinkAppInfoLogSection, strings: RethinkAppInfoStrings, onOpen: (() -> Unit)?, onEntry: ((RethinkAppInfoLogItem) -> Unit)?) {
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -472,12 +497,15 @@ private fun RethinkAppLogCard(section: RethinkAppInfoLogSection, strings: Rethin
     ) {
         val header: @Composable () -> Unit = {
             Row(
-                Modifier.fillMaxWidth().padding(horizontal = SharedDimensions.spacingSm, vertical = SharedDimensions.spacingXs),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(section.title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
-                Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm), verticalAlignment = Alignment.CenterVertically) {
+                SectionHeader(title = section.title, horizontalPadding = SharedDimensions.spacingXs, modifier = Modifier.weight(1f))
+                Row(
+                    modifier = Modifier.padding(end = SharedDimensions.spacingXs),
+                    horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     RethinkAppStatusPill(section.count.toString(), section.count > 0)
                     if (onOpen != null) Icon(MaterialSymbols.AutoMirrored.Filled.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
@@ -495,11 +523,7 @@ private fun RethinkAppLogCard(section: RethinkAppInfoLogSection, strings: Rethin
         }
         when {
             section.loading -> RethinkLoadingState(label = strings.loading)
-            section.empty -> RethinkEmptyState(
-                icon = MaterialSymbols.Filled.Info,
-                title = strings.empty,
-                message = "",
-            )
+            section.empty -> CompactEmptyState(message = strings.empty, icon = MaterialSymbols.Filled.Info)
             else -> RethinkListGroup {
                 section.entries.forEachIndexed { index, item ->
                     RethinkListItem(

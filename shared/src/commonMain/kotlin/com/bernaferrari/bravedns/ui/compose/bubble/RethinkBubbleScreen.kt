@@ -3,44 +3,39 @@
 
 package com.bernaferrari.bravedns.ui.compose.bubble
 
-import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
-
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.withStyle
+import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
+import com.bernaferrari.bravedns.ui.compose.common.RethinkLoadingState
+import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusColors
 import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
+import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 data class RethinkBubbleAllowedItem(val id: String, val packageName: String, val appName: String, val remainingLabel: String)
 data class RethinkBubbleBlockedItem(val id: String, val packageName: String, val appName: String, val blockedLabel: String, val timeLabel: String)
@@ -80,149 +75,117 @@ fun RethinkBubbleScreen(
     val showAllowed = vpnOn && allowedItems.isNotEmpty()
     LazyColumn(
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(top = SharedDimensions.spacingMd, bottom = SharedDimensions.spacingXl),
-        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
+        contentPadding = PaddingValues(
+            start = SharedDimensions.screenPaddingHorizontal,
+            end = SharedDimensions.screenPaddingHorizontal,
+            top = SharedDimensions.spacingMd,
+            bottom = SharedDimensions.spacingXl,
+        ),
     ) {
-        item { BubbleHeader(strings) }
+        item(key = "bubble_header") {
+            RethinkListItem(
+                headline = strings.title,
+                supporting = strings.subtitle,
+                leadingIcon = MaterialSymbols.Filled.Security,
+                position = CardPosition.Single,
+            )
+        }
         if (showAllowed) {
-            item { AllowedHeader(strings.allowedTitle, allowedItems.size) }
-            items(allowedItems, key = { it.id }) { item ->
-                BubbleAllowedRow(item, strings.remove, appIcon, onRemove)
+            item(key = "bubble_allowed_header") { BubbleSectionHeader(strings.allowedTitle, allowedItems.size) }
+            itemsIndexed(allowedItems, key = { _, it -> "allowed_${it.id}" }) { index, item ->
+                BubbleAllowedRow(item, strings.remove, cardPositionFor(index, allowedItems.lastIndex), appIcon, onRemove)
             }
         }
-        item { SectionHeader(strings.activityTitle, modifier = Modifier.padding(horizontal = SharedDimensions.screenPaddingHorizontal)) }
+        item(key = "bubble_activity_header") { SectionHeader(strings.activityTitle) }
         when {
             !vpnOn -> item {
-                BubbleMessage(MaterialSymbols.Filled.Shield, strings.vpnOffTitle, strings.vpnOffDescription)
+                RethinkEmptyState(icon = MaterialSymbols.Filled.Shield, title = strings.vpnOffTitle, message = strings.vpnOffDescription)
             }
-            blockedLoading -> item { BubbleLoading(strings.loading) }
+            blockedLoading -> item { RethinkLoadingState(label = strings.loading) }
             blockedError -> item {
-                BubbleMessage(MaterialSymbols.Filled.WarningAmber, strings.errorTitle, strings.errorDescription, strings.retry, onRetry)
+                RethinkEmptyState(
+                    icon = MaterialSymbols.Filled.WarningAmber,
+                    title = strings.errorTitle,
+                    message = strings.errorDescription,
+                    ctaLabel = strings.retry,
+                    onCtaClick = onRetry,
+                )
             }
             blockedItems.isEmpty() -> item {
-                BubbleMessage(MaterialSymbols.Filled.Security, strings.emptyTitle, strings.emptyDescription)
+                RethinkEmptyState(icon = MaterialSymbols.Filled.Security, title = strings.emptyTitle, message = strings.emptyDescription)
             }
-            else -> items(blockedItems, key = { it.id }) { item -> BubbleBlockedRow(item, strings.allow, appIcon, onAllow) }
-        }
-    }
-}
-
-@Composable
-private fun BubbleHeader(strings: RethinkBubbleStrings) {
-    Surface(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = SharedDimensions.screenPaddingHorizontal),
-        shape = RoundedCornerShape(SharedDimensions.cardCornerRadiusLarge),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)),
-        tonalElevation = 1.dp,
-    ) {
-        Row(Modifier.fillMaxWidth().padding(SharedDimensions.spacingLg), horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd), verticalAlignment = Alignment.CenterVertically) {
-            Icon(MaterialSymbols.Filled.Security, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(strings.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                Text(strings.subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            else -> itemsIndexed(blockedItems, key = { _, it -> "blocked_${it.id}" }) { index, item ->
+                BubbleBlockedRow(item, strings.allow, cardPositionFor(index, blockedItems.lastIndex), appIcon, onAllow)
             }
         }
     }
 }
 
 @Composable
-private fun AllowedHeader(title: String, count: Int) {
-    Row(Modifier.fillMaxWidth().padding(horizontal = SharedDimensions.screenPaddingHorizontal), verticalAlignment = Alignment.CenterVertically) {
-        Text(title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-        Surface(color = MaterialTheme.colorScheme.secondaryContainer, shape = RoundedCornerShape(SharedDimensions.cornerRadiusMdLg)) {
-            Text(count.toString(), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSecondaryContainer, modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
+private fun BubbleSectionHeader(title: String, count: Int) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        SectionHeader(title, modifier = Modifier.weight(1f))
+        Surface(color = MaterialTheme.colorScheme.secondaryContainer, shape = RoundedCornerShape(SharedDimensions.cornerRadiusPill)) {
+            Text(
+                count.toString(),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier.padding(horizontal = SharedDimensions.spacingSmMd, vertical = SharedDimensions.spacingXs),
+            )
         }
     }
 }
 
 @Composable
-private fun BubbleAllowedRow(item: RethinkBubbleAllowedItem, remove: String, appIcon: @Composable (String) -> Unit, onRemove: (String) -> Unit) {
-    BubbleAppRow(item.packageName, item.appName, appIcon, details = {
-        Spacer(Modifier.height(2.dp))
-        Text(item.remainingLabel, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
-    }) {
-        TextButton(onClick = { onRemove(item.id) }) { Text(remove, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.SemiBold) }
-    }
+private fun BubbleAllowedRow(
+    item: RethinkBubbleAllowedItem,
+    remove: String,
+    position: CardPosition,
+    appIcon: @Composable (String) -> Unit,
+    onRemove: (String) -> Unit,
+) {
+    RethinkListItem(
+        headline = item.appName,
+        supporting = item.remainingLabel,
+        leadingContent = { appIcon(item.packageName) },
+        position = position,
+        trailing = {
+            TextButton(onClick = { onRemove(item.id) }) {
+                Text(remove, color = RethinkStatusColors.blocked, fontWeight = FontWeight.SemiBold)
+            }
+        },
+    )
 }
 
 @Composable
-private fun BubbleBlockedRow(item: RethinkBubbleBlockedItem, allow: String, appIcon: @Composable (String) -> Unit, onAllow: (String) -> Unit) {
-    BubbleAppRow(item.packageName, item.appName, appIcon, details = {
-        Spacer(Modifier.height(2.dp))
-        Text(item.packageName, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        Spacer(Modifier.height(4.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(item.blockedLabel, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
-            Spacer(Modifier.width(SharedDimensions.spacingSm))
-            Text(item.timeLabel, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        }
-    }) {
-        Button(
-            onClick = { onAllow(item.id) },
-            modifier = Modifier.height(SharedDimensions.buttonHeightSm),
-            shape = RoundedCornerShape(SharedDimensions.cornerRadiusMdLg),
-            contentPadding = PaddingValues(horizontal = SharedDimensions.spacingMd),
-        ) { Text(allow) }
-    }
-}
-
-@Composable
-private fun BubbleAppRow(packageName: String, appName: String, appIcon: @Composable (String) -> Unit, details: @Composable () -> Unit, trailing: @Composable () -> Unit) {
-    BubbleListCard {
-        appIcon(packageName)
-        Spacer(Modifier.width(SharedDimensions.spacingMd))
-        Column(Modifier.weight(1f)) {
-            Text(appName, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            details()
-        }
-        trailing()
-    }
-}
-
-@Composable
-private fun BubbleLoading(label: String) = BubbleCard {
-    Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        LoadingIndicator(); Spacer(Modifier.height(10.dp)); Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
-}
-
-@Composable
-private fun BubbleMessage(
-    icon: ImageVector,
-    title: String,
-    description: String,
-    actionLabel: String? = null,
-    onAction: (() -> Unit)? = null,
-) = BubbleCard {
-    Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 22.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        Surface(shape = RoundedCornerShape(SharedDimensions.cornerRadiusLg), color = MaterialTheme.colorScheme.secondaryContainer) { Icon(icon, null, modifier = Modifier.padding(10.dp).size(28.dp), tint = MaterialTheme.colorScheme.onSecondaryContainer) }
-        Spacer(Modifier.height(SharedDimensions.spacingMd))
-        Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
-        Spacer(Modifier.height(SharedDimensions.spacingSm))
-        Text(description, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
-        if (actionLabel != null && onAction != null) {
-            Spacer(Modifier.height(SharedDimensions.spacingMd))
-            FilledTonalButton(onClick = onAction) { Text(actionLabel) }
+private fun BubbleBlockedRow(
+    item: RethinkBubbleBlockedItem,
+    allow: String,
+    position: CardPosition,
+    appIcon: @Composable (String) -> Unit,
+    onAllow: (String) -> Unit,
+) {
+    val blockedColor = RethinkStatusColors.blocked
+    val supporting = remember(item.blockedLabel, item.timeLabel, blockedColor) {
+        buildAnnotatedString {
+            withStyle(SpanStyle(color = blockedColor)) { append(item.blockedLabel) }
+            if (item.timeLabel.isNotBlank()) {
+                append(" · ")
+                append(item.timeLabel)
+            }
         }
     }
+    RethinkListItem(
+        headline = item.appName,
+        supportingAnnotated = supporting,
+        leadingContent = { appIcon(item.packageName) },
+        position = position,
+        trailing = {
+            FilledTonalButton(
+                onClick = { onAllow(item.id) },
+                modifier = Modifier.height(SharedDimensions.buttonHeightSm),
+                contentPadding = PaddingValues(horizontal = SharedDimensions.spacingMd),
+            ) { Text(allow) }
+        },
+    )
 }
-
-@Composable
-private fun BubbleCard(content: @Composable () -> Unit) = Surface(
-    modifier = Modifier.fillMaxWidth().padding(horizontal = SharedDimensions.screenPaddingHorizontal),
-    shape = RoundedCornerShape(SharedDimensions.cornerRadius4xl),
-    color = MaterialTheme.colorScheme.surfaceContainerLow,
-    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
-    tonalElevation = 1.dp,
-    content = content,
-)
-
-@Composable
-private fun BubbleListCard(content: @Composable RowScope.() -> Unit) = Surface(
-    modifier = Modifier.fillMaxWidth().padding(horizontal = SharedDimensions.screenPaddingHorizontal),
-    shape = RoundedCornerShape(SharedDimensions.cornerRadius4xl),
-    color = MaterialTheme.colorScheme.surfaceContainerLow,
-    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.28f)),
-    tonalElevation = 1.dp,
-) { Row(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically, content = content) }

@@ -47,6 +47,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBarLazyColumnScreen
+import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListShape
@@ -99,6 +100,10 @@ data class RethinkAboutStrings(
     val flightRecorder: String,
     val eventLogs: String,
     val supportedBy: String,
+    /** Partner names: text fallback for hosts without logo assets, and the logos' a11y labels. */
+    val partnerMozilla: String,
+    val partnerFoss: String,
+    val partnerFlossFunds: String,
 )
 
 /** Every side effect lives in the host adapter, keeping this renderer fully commonMain. */
@@ -145,16 +150,14 @@ data class RethinkAboutAssets(
     val reddit: @Composable (Color) -> Unit = { tint -> Icon(MaterialSymbols.Filled.Share, null, tint = tint) },
     val element: @Composable (Color) -> Unit = { tint -> Icon(MaterialSymbols.Filled.Share, null, tint = tint) },
     val mastodon: @Composable (Color) -> Unit = { tint -> Icon(MaterialSymbols.Filled.Share, null, tint = tint) },
-    val mozillaLogo: @Composable (Modifier) -> Unit = { modifier ->
-        Text("Mozilla", modifier = modifier, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-    },
-    val fossLogo: @Composable (Modifier) -> Unit = { modifier ->
-        Text("FOSS", modifier = modifier, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-    },
-    val flossFundsLogo: @Composable (Modifier) -> Unit = { modifier ->
-        Text("FLOSS Funds", modifier = modifier, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-    },
+    /** Null renders the partner name from [RethinkAboutStrings] as text. */
+    val mozillaLogo: (@Composable (Modifier) -> Unit)? = null,
+    val fossLogo: (@Composable (Modifier) -> Unit)? = null,
+    val flossFundsLogo: (@Composable (Modifier) -> Unit)? = null,
 )
+
+private val MozillaLogoWidth = 132.dp
+private val PartnerLogoWidth = 100.dp
 
 private data class AboutRow(
     val headline: String,
@@ -299,7 +302,7 @@ private fun AboutDiagnosticsSection(strings: RethinkAboutStrings, actions: Rethi
 @Composable
 private fun AboutSection(title: String, accent: Color, rows: List<AboutRow>) {
     Column {
-        AboutSectionHeader(title, accent)
+        AboutSectionHeader(title)
         RethinkListGroup {
             rows.forEachIndexed { index, row ->
                 AboutListRow(row, accent, cardPositionFor(index, rows.lastIndex))
@@ -308,15 +311,10 @@ private fun AboutSection(title: String, accent: Color, rows: List<AboutRow>) {
     }
 }
 
+/** Headers use the theme's primary section style; [accent] only tints each section's icons. */
 @Composable
-private fun AboutSectionHeader(title: String, accent: Color) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.titleSmall,
-        fontWeight = FontWeight.SemiBold,
-        color = accent,
-        modifier = Modifier.padding(start = SharedDimensions.spacingNone, top = SharedDimensions.spacingMd, bottom = SharedDimensions.spacingSm),
-    )
+private fun AboutSectionHeader(title: String) {
+    SectionHeader(title)
 }
 
 @Composable
@@ -342,7 +340,7 @@ private fun AboutCommunitySection(
 ) {
     val accent = MaterialTheme.colorScheme.tertiary
     Column {
-        AboutSectionHeader(strings.connect, accent)
+        AboutSectionHeader(strings.connect)
         RethinkListGroup {
             AboutListRow(
                 AboutRow(strings.joinTelegram, assets.telegram, actions.onTelegram),
@@ -432,29 +430,52 @@ private fun AboutPartners(strings: RethinkAboutStrings, actions: RethinkAboutAct
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.alpha(0.78f),
         )
-        assets.mozillaLogo(
-            Modifier
-                .width(132.dp)
-                .padding(SharedDimensions.spacingXs),
+        AboutPartnerLogo(
+            label = strings.partnerMozilla,
+            logo = assets.mozillaLogo,
+            textStyle = MaterialTheme.typography.headlineSmall,
+            modifier = Modifier.width(MozillaLogoWidth).padding(SharedDimensions.spacingXs),
         )
         Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
-            assets.fossLogo(
-                Modifier
-                    .width(100.dp)
+            AboutPartnerLogo(
+                label = strings.partnerFoss,
+                logo = assets.fossLogo,
+                textStyle = MaterialTheme.typography.titleSmall,
+                modifier = Modifier
+                    .width(PartnerLogoWidth)
                     .heightIn(min = SharedDimensions.touchTargetMin)
                     .clip(logoShape)
                     .clickable(onClick = actions.onFoss)
                     .padding(SharedDimensions.spacingXs),
             )
-            assets.flossFundsLogo(
-                Modifier
-                    .width(100.dp)
+            AboutPartnerLogo(
+                label = strings.partnerFlossFunds,
+                logo = assets.flossFundsLogo,
+                textStyle = MaterialTheme.typography.titleSmall,
+                modifier = Modifier
+                    .width(PartnerLogoWidth)
                     .heightIn(min = SharedDimensions.touchTargetMin)
                     .clip(logoShape)
                     .clickable(onClick = actions.onFlossFunds)
                     .padding(SharedDimensions.spacingXs),
             )
         }
+    }
+}
+
+@Composable
+private fun AboutPartnerLogo(
+    label: String,
+    logo: (@Composable (Modifier) -> Unit)?,
+    textStyle: androidx.compose.ui.text.TextStyle,
+    modifier: Modifier,
+) {
+    // Logos are images without their own label, so the partner name is the accessible name.
+    val labelled = modifier.semantics { contentDescription = label }
+    if (logo != null) {
+        logo(labelled)
+    } else {
+        Text(label, modifier = labelled, style = textStyle, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
     }
 }
 
@@ -486,7 +507,7 @@ private fun AboutFooter(uiState: RethinkAboutUiState, actions: RethinkAboutActio
             modifier = Modifier.fillMaxWidth().alpha(0.75f),
         )
         if (uiState.buildNumber.isNotBlank()) {
-            Spacer(Modifier.height(2.dp))
+            Spacer(Modifier.height(SharedDimensions.spacingGridTile))
             Text(uiState.buildNumber, style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.fillMaxWidth().alpha(0.55f))
         }
     }

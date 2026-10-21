@@ -276,14 +276,14 @@ internal fun DemoUniversalFirewallScreen(modifier: Modifier, onBack: () -> Unit)
 @Composable
 internal fun DemoCustomRulesScreen(modifier: Modifier, onBack: () -> Unit) {
     var tab by remember { mutableStateOf(RethinkRulesTab.IP) }
-    var mode by remember { mutableStateOf(RethinkRulesMode.APP_SPECIFIC) }
+    var mode by remember { mutableStateOf(RethinkRulesMode.SELECTED_UID) }
     var ipQuery by remember { mutableStateOf("") }
     var domainQuery by remember { mutableStateOf("") }
     var rules by remember { mutableStateOf(demoFirewallRules) }
     val query = if (tab == RethinkRulesTab.IP) ipQuery else domainQuery
     val visible = rules.filter { rule ->
         val tabMatches = rule.tab == tab
-        val modeMatches = mode == RethinkRulesMode.ALL_RULES || rule.uid == -1000
+        val modeMatches = mode == RethinkRulesMode.ALL_APPS || rule.uid == -1000
         tabMatches && modeMatches && (query.isBlank() || rule.value.contains(query, ignoreCase = true))
     }
     RethinkCustomRulesScreen(

@@ -1,14 +1,10 @@
 /* Copyright 2026 RethinkDNS and its authors */
-@file:OptIn(ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 
 package com.bernaferrari.bravedns.ui.compose.statistics
 
-import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
-
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,9 +13,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -31,15 +28,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.common.RethinkAdaptiveWidth
 import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
+import com.bernaferrari.bravedns.ui.compose.common.RethinkLoadingState
 import com.bernaferrari.bravedns.ui.compose.common.rethinkContentWidth
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
+import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 data class RethinkDetailedStatisticsStrings(
     val loading: String,
@@ -70,6 +68,8 @@ fun RethinkDetailedStatisticsScreen(
     onBackClick: () -> Unit,
     itemAt: @Composable (Int) -> RethinkDetailedStatistic?,
     modifier: Modifier = Modifier,
+    /** Stable per-row key from the model (not the position) so rows keep state across reloads. */
+    itemKey: ((Int) -> Any)? = null,
 ) {
     RethinkAdaptiveWidth(modifier) { widthClass ->
         val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -81,7 +81,6 @@ fun RethinkDetailedStatisticsScreen(
                     subtitle = subtitle,
                     onBackClick = onBackClick,
                     scrollBehavior = scrollBehavior,
-                    titleTextStyle = MaterialTheme.typography.headlineMedium,
                     actions = {
                         if (itemCount > 0) StatisticsCountPill(itemCount)
                     },
@@ -105,9 +104,8 @@ fun RethinkDetailedStatisticsScreen(
                             top = SharedDimensions.spacingSm,
                             bottom = SharedDimensions.spacing3xl,
                         ),
-                        verticalArrangement = Arrangement.spacedBy(0.dp),
                     ) {
-                        items(itemCount, key = { index -> index }) { index ->
+                        items(itemCount, key = itemKey) { index ->
                             itemAt(index)?.let { item ->
                                 RethinkDetailedStatisticRow(
                                     item = item,
@@ -121,7 +119,7 @@ fun RethinkDetailedStatisticsScreen(
                                     Modifier.fillMaxWidth().padding(SharedDimensions.spacingLg),
                                     contentAlignment = Alignment.Center,
                                 ) {
-                                    CircularProgressIndicator(Modifier.size(SharedDimensions.iconSizeMd))
+                                    LoadingIndicator()
                                 }
                             }
                         }
@@ -144,27 +142,14 @@ private fun StatisticsCountPill(itemCount: Int) {
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onPrimaryContainer,
             fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+            modifier = Modifier.padding(horizontal = SharedDimensions.spacingSmMd, vertical = SharedDimensions.spacingXs),
         )
     }
 }
 
 @Composable
 private fun StatisticsLoading(label: String, modifier: Modifier) {
-    Surface(
-        modifier = modifier.padding(horizontal = SharedDimensions.screenPaddingHorizontal),
-        shape = RoundedCornerShape(SharedDimensions.cornerRadius4xl),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = SharedDimensions.spacingLg, vertical = SharedDimensions.spacingMd),
-            horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            CircularProgressIndicator(Modifier.size(SharedDimensions.iconSizeMd), strokeWidth = 3.dp)
-            Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-    }
+    RethinkLoadingState(label = label, modifier = modifier)
 }
 
 @Composable

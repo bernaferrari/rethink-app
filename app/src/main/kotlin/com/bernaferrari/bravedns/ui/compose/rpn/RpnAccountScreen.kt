@@ -65,6 +65,7 @@ fun RpnAccountScreen(
     historyViewModel: PurchaseHistoryViewModel,
     ordersViewModel: ServerOrderHistoryViewModel,
     onBackClick: () -> Unit,
+    onViewPlans: (() -> Unit)? = null,
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     var showSupport by remember { mutableStateOf(false) }
@@ -93,6 +94,7 @@ fun RpnAccountScreen(
         stringResource(R.string.rpn_account_entitlement_provider),
         stringResource(R.string.rpn_account_entitlement_allow_restore),
     )
+    val entitlementLoadFailed = stringResource(R.string.rpn_account_entitlement_load_failed)
     androidx.compose.runtime.LaunchedEffect(Unit) {
         entitlementLoading = true
         runCatching {
@@ -108,41 +110,31 @@ fun RpnAccountScreen(
                     )
                 }.orEmpty()
             }
-        }.onSuccess { entitlementRows = it }.onFailure { entitlementError = it.message ?: "Unable to load entitlement." }
+        }.onSuccess { entitlementRows = it }.onFailure {
+            if (it is kotlinx.coroutines.CancellationException) throw it
+            entitlementError = it.message ?: entitlementLoadFailed
+        }
         entitlementLoading = false
     }
     val manageState by manageViewModel.operationState.collectAsStateWithLifecycle()
     val historyItems = historyViewModel.historyFlow.collectAsLazyPagingItems()
     val orderState by ordersViewModel.uiState.collectAsStateWithLifecycle()
-    val accountManage = when (val value = manageState) {
-        is ManagePurchaseViewModel.OperationState.InProgress -> RethinkRpnAccountOperation(busy = true, message = value.step.name.replace('_', ' ').lowercase().replaceFirstChar(Char::uppercase))
-        is ManagePurchaseViewModel.OperationState.Success -> RethinkRpnAccountOperation(message = value.message)
-        is ManagePurchaseViewModel.OperationState.Failure -> RethinkRpnAccountOperation(message = value.message, error = true)
-        ManagePurchaseViewModel.OperationState.Idle -> RethinkRpnAccountOperation()
-    }
+    val accountManage = manageState.toAccountOperation()
     val accountHistory = historyItems.itemSnapshotList.items.map { item ->
         RethinkRpnAccountEntry(
             title = "${item.fromStateName} → ${item.toStateName}",
             supporting = listOfNotNull(item.reason?.takeIf(String::isNotBlank), formatTime(item.timestamp)).joinToString(" · "),
         )
     }
-    val accountOrders = (orderState as? ServerOrderHistoryViewModel.UiState.Success)?.orders.orEmpty().map { item ->
-        val status = item.subscriptionState ?: when (item.purchaseState) {
-            ServerOrderEntry.PURCHASE_STATE_PURCHASED -> "PURCHASED"
-            ServerOrderEntry.PURCHASE_STATE_PENDING -> "PENDING"
-            else -> "UNKNOWN"
-        }
-        val time = listOf(item.expiryTimeMs, item.purchaseTimeMs, item.mtime).firstOrNull { it > 0L } ?: 0L
-        RethinkRpnAccountEntry(
-            title = item.productId.ifBlank { item.sku },
-            supporting = listOfNotNull(status.removePrefix("SUBSCRIPTION_STATE_").replace('_', ' ').lowercase().replaceFirstChar(Char::uppercase), formatTime(time).takeIf { time > 0L }).joinToString(" · "),
-        )
-    }
+    val accountOrders = (orderState as? ServerOrderHistoryViewModel.UiState.Success)?.orders.orEmpty()
+        .map { it.toAccountEntry() }
     RethinkRpnAccountScreen(
         state = RethinkRpnAccountState(
             entitlementLoading = entitlementLoading,
             entitlementError = entitlementError,
             entitlement = entitlementRows,
+            // Status + expiry summarise the subscription on the Manage tab.
+            summary = listOfNotNull(entitlementRows.getOrNull(0), entitlementRows.getOrNull(3)),
             manage = accountManage,
             historyLoading = historyItems.loadState.refresh is androidx.paging.LoadState.Loading,
             history = accountHistory,
@@ -150,24 +142,13 @@ fun RpnAccountScreen(
             ordersError = (orderState as? ServerOrderHistoryViewModel.UiState.Error)?.message,
             orders = accountOrders,
         ),
-        strings = RethinkRpnAccountStrings(
-            title = stringResource(R.string.rpn_account_title),
-            manageTab = tabs[0], historyTab = tabs[1], ordersTab = tabs[2], entitlementTab = tabs[3],
-            manageHeading = stringResource(R.string.rpn_account_manage_heading), manageDescription = stringResource(R.string.rpn_account_manage_desc),
-            actionsHeading = stringResource(R.string.rpn_account_actions_heading), actionsDescription = stringResource(R.string.rpn_account_actions_desc),
-            cancel = stringResource(R.string.rpn_account_cancel), cancelDescription = stringResource(R.string.rpn_account_cancel_desc),
-            revoke = stringResource(R.string.rpn_account_revoke), revokeDescription = stringResource(R.string.rpn_account_revoke_desc),
-            cancelConfirmation = stringResource(R.string.rpn_account_cancel_confirm), revokeConfirmation = stringResource(R.string.rpn_account_revoke_confirm),
-            proceed = stringResource(R.string.lbl_proceed), dismiss = stringResource(R.string.lbl_cancel),
-            helpHeading = stringResource(R.string.rpn_account_help_heading), helpDescription = stringResource(R.string.rpn_account_help_desc),
-            support = stringResource(R.string.rpn_account_support), supportDescription = stringResource(R.string.rpn_account_support_desc),
-            noHistory = stringResource(R.string.rpn_account_no_history), noOrders = stringResource(R.string.rpn_account_no_orders), retry = stringResource(R.string.rpn_account_retry), loading = stringResource(R.string.lbl_loading),
-        ),
+        strings = rpnAccountStrings(tabs),
         onBackClick = onBackClick,
         onCancelSubscription = manageViewModel::cancelSubscription,
         onRevokeSubscription = manageViewModel::revokeSubscription,
         onSupport = { showSupport = true },
         onRetryOrders = ordersViewModel::reload,
+        onViewPlans = onViewPlans,
     )
 
     serverError?.let { error ->
@@ -183,6 +164,45 @@ fun RpnAccountScreen(
     if (showSupport) {
         RpnSupportDialog(onDismiss = { showSupport = false })
     }
+}
+
+@Composable
+private fun rpnAccountStrings(tabs: List<String>) = RethinkRpnAccountStrings(
+    title = stringResource(R.string.rpn_account_title),
+    manageTab = tabs[0], historyTab = tabs[1], ordersTab = tabs[2], entitlementTab = tabs[3],
+    manageHeading = stringResource(R.string.rpn_account_manage_heading), manageDescription = stringResource(R.string.rpn_account_manage_desc),
+    actionsHeading = stringResource(R.string.rpn_account_actions_heading), actionsDescription = stringResource(R.string.rpn_account_actions_desc),
+    cancel = stringResource(R.string.rpn_account_cancel), cancelDescription = stringResource(R.string.rpn_account_cancel_desc),
+    revoke = stringResource(R.string.rpn_account_revoke), revokeDescription = stringResource(R.string.rpn_account_revoke_desc),
+    cancelConfirmation = stringResource(R.string.rpn_account_cancel_confirm), revokeConfirmation = stringResource(R.string.rpn_account_revoke_confirm),
+    proceed = stringResource(R.string.lbl_proceed), dismiss = stringResource(R.string.lbl_cancel),
+    helpHeading = stringResource(R.string.rpn_account_help_heading), helpDescription = stringResource(R.string.rpn_account_help_desc),
+    support = stringResource(R.string.rpn_account_support), supportDescription = stringResource(R.string.rpn_account_support_desc),
+    noHistory = stringResource(R.string.rpn_account_no_history), noOrders = stringResource(R.string.rpn_account_no_orders), retry = stringResource(R.string.rpn_account_retry), loading = stringResource(R.string.lbl_loading),
+    noSubscriptionTitle = stringResource(R.string.rpn_account_no_subscription_title),
+    noSubscriptionMessage = stringResource(R.string.rpn_account_no_subscription_desc),
+    viewPlans = stringResource(R.string.rpn_account_view_plans),
+)
+
+private fun ManagePurchaseViewModel.OperationState.toAccountOperation(): RethinkRpnAccountOperation =
+    when (val value = this) {
+        is ManagePurchaseViewModel.OperationState.InProgress -> RethinkRpnAccountOperation(busy = true, message = value.step.name.replace('_', ' ').lowercase().replaceFirstChar(Char::uppercase))
+        is ManagePurchaseViewModel.OperationState.Success -> RethinkRpnAccountOperation(message = value.message)
+        is ManagePurchaseViewModel.OperationState.Failure -> RethinkRpnAccountOperation(message = value.message, error = true)
+        ManagePurchaseViewModel.OperationState.Idle -> RethinkRpnAccountOperation()
+    }
+
+private fun ServerOrderEntry.toAccountEntry(): RethinkRpnAccountEntry {
+    val status = subscriptionState ?: when (purchaseState) {
+        ServerOrderEntry.PURCHASE_STATE_PURCHASED -> "PURCHASED"
+        ServerOrderEntry.PURCHASE_STATE_PENDING -> "PENDING"
+        else -> "UNKNOWN"
+    }
+    val time = listOf(expiryTimeMs, purchaseTimeMs, mtime).firstOrNull { it > 0L } ?: 0L
+    return RethinkRpnAccountEntry(
+        title = productId.ifBlank { sku },
+        supporting = listOfNotNull(status.removePrefix("SUBSCRIPTION_STATE_").replace('_', ' ').lowercase().replaceFirstChar(Char::uppercase), formatTime(time).takeIf { time > 0L }).joinToString(" · "),
+    )
 }
 
 @Composable

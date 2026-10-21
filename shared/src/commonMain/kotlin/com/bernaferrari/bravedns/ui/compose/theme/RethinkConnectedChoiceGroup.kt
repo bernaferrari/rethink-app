@@ -1,6 +1,8 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.theme
 
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -90,6 +92,9 @@ fun <T> RethinkConnectedChoiceGroup(
                 },
                 colors = colors,
                 border = null,
+                // Equal-width segments are already centered by weight; the default side padding
+                // only steals room from the label ("Allow…", "Block…") on phones.
+                contentPadding = if (fillWidth) FillWidthContentPadding else ButtonDefaults.ContentPadding,
                 modifier = Modifier
                     .then(if (fillWidth) Modifier.weight(1f) else Modifier)
                     .heightIn(min = SharedDimensions.touchTargetMin)
@@ -117,3 +122,8 @@ fun <T> RethinkConnectedChoiceGroup(
         }
     }
 }
+
+private val FillWidthContentPadding = PaddingValues(
+    horizontal = SharedDimensions.spacingSm,
+    vertical = SharedDimensions.spacingSm,
+)

@@ -121,6 +121,8 @@ fun SummaryStatisticsScreen(
             noLogs = stringResource(R.string.lbl_no_logs),
             seeMore = stringResource(R.string.ssv_see_more),
             seeLess = stringResource(R.string.ssv_see_less),
+            expanded = stringResource(R.string.state_expanded),
+            collapsed = stringResource(R.string.state_collapsed),
         ),
         onWindowSelected = { viewModel.timeCategoryChanged(it.toAndroidTimeCategory()) },
     )

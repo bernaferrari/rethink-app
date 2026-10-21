@@ -10,6 +10,7 @@ import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -32,11 +33,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.font.FontFamily
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.ui.compose.theme.PrimaryButton
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormTextField
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusColors
+import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 
@@ -64,6 +73,10 @@ data class RethinkPingTestStrings(
     val test: String,
     val strength: String,
     val strengthValue: @Composable (Int, Int) -> String,
+    val reachable: String,
+    val unreachable: String,
+    val testing: String,
+    val customTarget: String,
 )
 
 /** Portable connectivity-check form; hosts perform the actual reachability work. */
@@ -89,6 +102,7 @@ fun RethinkPingTestScreen(
         topBar = {
             RethinkLargeTopBar(
                 title = strings.title,
+                subtitle = strings.subtitle,
                 onBackClick = onBackClick,
                 scrollBehavior = scrollBehavior,
             )
@@ -104,29 +118,8 @@ fun RethinkPingTestScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
         ) {
-            item {
-                Text(
-                    text = strings.subtitle,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            item {
-                SectionHeader(strings.ipSection)
-                Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
-                    ipChecks.forEach { check ->
-                        PingCheckField(check, onValueChange)
-                    }
-                }
-            }
-            item {
-                SectionHeader(strings.hostSection)
-                Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
-                    hostChecks.forEach { check ->
-                        PingCheckField(check, onValueChange)
-                    }
-                }
-            }
+            item { PingCheckSection(strings.ipSection, ipChecks, strings, onValueChange) }
+            item { PingCheckSection(strings.hostSection, hostChecks, strings, onValueChange) }
             item {
                 PrimaryButton(text = strings.test, onClick = onTest, modifier = Modifier.fillMaxWidth())
             }
@@ -177,28 +170,69 @@ private fun PingCheckCard(content: @Composable () -> Unit) {
     )
 }
 
+/**
+ * Fixed targets are read-only, so they render as a grouped list with monospace values rather than
+ * as disabled-looking inputs; only the custom target is an editable field. Each row reports its
+ * own result inline.
+ */
 @Composable
-private fun PingCheckField(
-    check: RethinkPingCheck,
+private fun PingCheckSection(
+    title: String,
+    checks: List<RethinkPingCheck>,
+    strings: RethinkPingTestStrings,
     onValueChange: (String, String) -> Unit,
 ) {
-    RethinkFormTextField(
-        value = check.value,
-        onValueChange = { onValueChange(check.id, it) },
-        label = null,
-        readOnly = !check.editable,
-        singleLine = true,
-        trailingIcon = {
-            when (val status = check.status) {
-                RethinkPingStatus.Idle -> Unit
-                RethinkPingStatus.Loading -> LoadingIndicator(Modifier.size(SharedDimensions.iconSizeSm))
-                is RethinkPingStatus.Result -> Icon(
-                    if (status.success) MaterialSymbols.Filled.CheckCircle else MaterialSymbols.Filled.Cancel,
-                    contentDescription = null,
-                    modifier = Modifier.size(SharedDimensions.iconSizeSm),
-                    tint = if (status.success) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
-                )
+    val fixed = checks.filterNot { it.editable }
+    val editable = checks.filter { it.editable }
+    Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
+        SectionHeader(title)
+        if (fixed.isNotEmpty()) {
+            RethinkListGroup {
+                fixed.forEachIndexed { index, check ->
+                    RethinkListItem(
+                        headline = check.value,
+                        headlineAnnotated = AnnotatedString(check.value, SpanStyle(fontFamily = FontFamily.Monospace)),
+                        position = cardPositionFor(index, fixed.lastIndex),
+                        trailing = { PingStatusIndicator(check.status, strings) },
+                    )
+                }
             }
-        },
-    )
+        }
+        editable.forEach { check ->
+            RethinkFormTextField(
+                value = check.value,
+                onValueChange = { onValueChange(check.id, it) },
+                label = strings.customTarget,
+                singleLine = true,
+                textStyle = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace),
+                trailingIcon = { PingStatusIndicator(check.status, strings, showLabel = false) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun PingStatusIndicator(status: RethinkPingStatus, strings: RethinkPingTestStrings, showLabel: Boolean = true) {
+    when (status) {
+        RethinkPingStatus.Idle -> Unit
+        RethinkPingStatus.Loading -> LoadingIndicator(
+            Modifier.size(SharedDimensions.iconSizeMd).semantics { contentDescription = strings.testing },
+        )
+        is RethinkPingStatus.Result -> {
+            val color = if (status.success) RethinkStatusColors.allowed else RethinkStatusColors.blocked
+            val label = if (status.success) strings.reachable else strings.unreachable
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
+            ) {
+                Icon(
+                    if (status.success) MaterialSymbols.Filled.CheckCircle else MaterialSymbols.Filled.Cancel,
+                    contentDescription = if (showLabel) null else label,
+                    modifier = Modifier.size(SharedDimensions.iconSizeSm),
+                    tint = color,
+                )
+                if (showLabel) Text(label, style = MaterialTheme.typography.labelMedium, color = color)
+            }
+        }
+    }
 }

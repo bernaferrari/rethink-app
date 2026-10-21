@@ -124,7 +124,7 @@ private fun CheckoutPaymentContent(
             modifier = Modifier.fillMaxWidth().padding(horizontal = SharedDimensions.screenPaddingHorizontal),
             shape = RoundedCornerShape(SharedDimensions.cardCornerRadiusLarge),
             color = MaterialTheme.colorScheme.surfaceContainerLow,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)),
+            border = BorderStroke(SharedDimensions.dividerThicknessBold, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)),
             tonalElevation = 1.dp,
         ) {
             Column(Modifier.padding(SharedDimensions.spacingLg), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
@@ -189,11 +189,11 @@ private fun CheckoutStatusCard(title: String, message: String, content: @Composa
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(SharedDimensions.cornerRadius4xl),
             color = MaterialTheme.colorScheme.surfaceContainerLow,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.26f)),
+            border = BorderStroke(SharedDimensions.dividerThicknessBold, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.26f)),
             tonalElevation = 1.dp,
         ) {
             Column(
-                Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 22.dp),
+                Modifier.fillMaxWidth().padding(horizontal = SharedDimensions.spacingXl, vertical = SharedDimensions.spacingXl),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
             ) {

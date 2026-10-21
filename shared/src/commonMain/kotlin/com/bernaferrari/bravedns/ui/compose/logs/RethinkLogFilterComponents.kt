@@ -3,8 +3,6 @@
 
 package com.bernaferrari.bravedns.ui.compose.logs
 
-import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
-
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,11 +36,13 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkModalBottomSheet
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSearchField
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
+import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 data class RethinkLogAppOption(
     val id: String,
@@ -103,7 +103,7 @@ fun RethinkLogCompactIconAction(
             Icon(
                 imageVector = icon,
                 contentDescription = contentDescription,
-                modifier = Modifier.size(20.dp),
+                modifier = Modifier.size(SharedDimensions.iconSizeSm),
                 tint = when {
                     !enabled -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.42f)
                     selected -> MaterialTheme.colorScheme.primary
@@ -158,12 +158,12 @@ fun RethinkLogAppFilterDialog(
     RethinkModalBottomSheet(
         onDismissRequest = onDismiss,
         contentPadding = PaddingValues(horizontal = SharedDimensions.spacingMd, vertical = SharedDimensions.spacingSm),
-        verticalSpacing = 2.dp,
+        verticalSpacing = SharedDimensions.spacingGridTile,
         includeBottomSpacer = false,
     ) { dismissSheet ->
         Column(
             modifier = Modifier.fillMaxWidth().heightIn(max = 560.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
+            verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile),
         ) {
                 RethinkSearchField(
                     query = searchQuery,
@@ -177,8 +177,8 @@ fun RethinkLogAppFilterDialog(
                     shape = RoundedCornerShape(SharedDimensions.cornerRadiusMdLg),
                     containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                     textStyle = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
-                    iconSize = 18.dp,
-                    trailingIconSize = 16.dp,
+                    iconSize = SharedDimensions.iconSizeXs,
+                    trailingIconSize = SharedDimensions.iconSizeXs,
                     trailingIconButtonSize = SharedDimensions.touchTargetMin,
                 )
                 if (selectedId != null) {
@@ -194,7 +194,7 @@ fun RethinkLogAppFilterDialog(
                 } else {
                     LazyColumn(
                         modifier = Modifier.fillMaxWidth().weight(1f, fill = false),
-                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile),
                     ) {
                         item("all_apps") {
                             RethinkLogAppFilterItem(
@@ -247,16 +247,16 @@ private fun RethinkLogAppFilterItem(
                 Icon(
                     MaterialSymbols.Filled.Public,
                     contentDescription = null,
-                    modifier = Modifier.size(24.dp),
+                    modifier = Modifier.size(SharedDimensions.iconSizeMd),
                     tint = if (selected) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             } else if (appIcon != null) {
                 appIcon(option)
             } else {
                 Surface(
-                    shape = RoundedCornerShape(7.dp),
+                    shape = RoundedCornerShape(SharedDimensions.cornerRadiusSm),
                     color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                    modifier = Modifier.size(24.dp),
+                    modifier = Modifier.size(SharedDimensions.iconSizeMd),
                 ) {}
             }
             Spacer(modifier = Modifier.size(SharedDimensions.spacingMd))
@@ -275,7 +275,7 @@ private fun RethinkLogAppFilterItem(
                     text = count.toString(),
                     style = MaterialTheme.typography.labelMedium,
                     color = if (selected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                    modifier = Modifier.padding(horizontal = SharedDimensions.spacingSm, vertical = SharedDimensions.spacingGridTile),
                 )
             }
         }
@@ -294,8 +294,8 @@ fun RethinkLogRulesDialog(
     val selectedCount = selectedIds.size
     RethinkModalBottomSheet(
         onDismissRequest = onDismiss,
-        contentPadding = PaddingValues(0.dp),
-        verticalSpacing = 0.dp,
+        contentPadding = PaddingValues(SharedDimensions.spacingNone),
+        verticalSpacing = SharedDimensions.spacingNone,
         includeBottomSpacer = false,
     ) { dismissSheet ->
         Column(Modifier.fillMaxWidth().heightIn(max = 560.dp)) {
@@ -308,13 +308,13 @@ fun RethinkLogRulesDialog(
                     ),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(MaterialSymbols.Filled.FilterList, null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.primary)
+                    Icon(MaterialSymbols.Filled.FilterList, null, modifier = Modifier.size(SharedDimensions.iconSizeSm), tint = MaterialTheme.colorScheme.primary)
                     Spacer(Modifier.size(SharedDimensions.spacingSm))
                     Text(strings.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                     if (selectedCount > 0) {
                         Spacer(Modifier.size(SharedDimensions.spacingSm))
                         Surface(shape = RoundedCornerShape(SharedDimensions.cornerRadiusPill), color = MaterialTheme.colorScheme.primaryContainer) {
-                            Text(selectedCount.toString(), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimaryContainer, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp))
+                            Text(selectedCount.toString(), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimaryContainer, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(horizontal = SharedDimensions.spacingSm, vertical = SharedDimensions.spacingGridTile))
                         }
                     }
                     Spacer(Modifier.weight(1f))
@@ -323,7 +323,7 @@ fun RethinkLogRulesDialog(
                         onClick = dismissSheet,
                         modifier = Modifier.size(SharedDimensions.touchTargetMin),
                     ) {
-                        Icon(MaterialSymbols.Filled.Close, strings.dismissDescription, modifier = Modifier.size(18.dp))
+                        Icon(MaterialSymbols.Filled.Close, strings.dismissDescription, modifier = Modifier.size(SharedDimensions.iconSizeXs))
                     }
                 }
                 LazyColumn(
@@ -340,7 +340,7 @@ fun RethinkLogRulesDialog(
                             highlighted = selected,
                             highlightContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.28f),
                             trailing = if (selected) {
-                                { Icon(MaterialSymbols.Filled.CheckCircle, null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.primary) }
+                                { Icon(MaterialSymbols.Filled.CheckCircle, null, modifier = Modifier.size(SharedDimensions.iconSizeSm), tint = MaterialTheme.colorScheme.primary) }
                             } else null,
                             onClick = { onToggle(rule.id) },
                         )
@@ -371,23 +371,26 @@ private fun RethinkLogRuleIconSlot(
     }
 }
 
+/**
+ * Shown when on-device logging is off. With [actionLabel] + [onEnable] the host offers a direct
+ * "Enable logs" action instead of sending the user to Settings.
+ */
 @Composable
-fun RethinkLogsDisabledState(message: String, modifier: Modifier = Modifier) {
+fun RethinkLogsDisabledState(
+    message: String,
+    modifier: Modifier = Modifier,
+    title: String? = null,
+    actionLabel: String? = null,
+    onEnable: (() -> Unit)? = null,
+) {
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Surface(
-            shape = RoundedCornerShape(SharedDimensions.cornerRadius2xl),
-            color = MaterialTheme.colorScheme.surfaceContainerLow,
-            modifier = Modifier.padding(horizontal = SharedDimensions.screenPaddingHorizontal, vertical = SharedDimensions.spacingXl),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = SharedDimensions.spacingLg, vertical = SharedDimensions.spacingMd),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
-            ) {
-                Icon(MaterialSymbols.AutoMirrored.Filled.Subject, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
-                Text(message, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        }
+        RethinkEmptyState(
+            icon = MaterialSymbols.AutoMirrored.Filled.Subject,
+            title = title ?: message,
+            message = if (title != null) message else "",
+            ctaLabel = actionLabel,
+            onCtaClick = onEnable,
+        )
     }
 }
 

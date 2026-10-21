@@ -31,11 +31,15 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+/**
+ * The one section label style: primary titleSmall, as in Material settings lists. Screens never
+ * hand-roll header Text; pass [color] only for data-driven accents (e.g. statistics categories).
+ */
 @Composable
 fun SectionHeader(
     title: String,
     modifier: Modifier = Modifier,
-    color: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    color: Color = MaterialTheme.colorScheme.primary,
     horizontalPadding: Dp = SharedDimensions.spacingNone,
     actionLabel: String? = null,
     onAction: (() -> Unit)? = null,
@@ -64,7 +68,7 @@ fun SectionHeaderWithSubtitle(
     modifier: Modifier = Modifier,
     title: String,
     subtitle: String? = null,
-    color: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    color: Color = MaterialTheme.colorScheme.primary,
     horizontalPadding: Dp = SharedDimensions.spacingNone,
     actionLabel: String? = null,
     onAction: (() -> Unit)? = null,
@@ -106,24 +110,12 @@ fun RethinkFormSection(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
     ) {
-        Column(
+        // Same header as every other grouped section, so form screens don't drift.
+        SectionHeaderWithSubtitle(
             modifier = titleModifier,
-            verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.primary,
-            )
-            description?.takeIf { it.isNotBlank() }?.let {
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
+            title = title,
+            subtitle = description?.takeIf { it.isNotBlank() },
+        )
         Column(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),

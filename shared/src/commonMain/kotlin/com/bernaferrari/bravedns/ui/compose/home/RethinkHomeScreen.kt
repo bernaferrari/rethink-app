@@ -272,6 +272,7 @@ private data class BeaconPalette(
     val secondary: Color,
     val field: Color,
     val icon: Color,
+    val disc: Color,
 )
 
 @Composable
@@ -293,6 +294,12 @@ private fun rememberBeaconPalette(state: ProtectionVisualState): BeaconPalette {
         ProtectionVisualState.Recovering -> scheme.tertiary
         ProtectionVisualState.Off -> scheme.outlineVariant
     }
+    // Off reads as a quiet, tonal disc rather than a filled outline-colored blob (which turns
+    // into a heavy grey dot in light themes).
+    val discTarget = when (state) {
+        ProtectionVisualState.Off -> scheme.surfaceContainerHighest
+        else -> accentTarget
+    }
     val iconTarget = when (state) {
         ProtectionVisualState.Protected -> scheme.onTertiary
         ProtectionVisualState.Recovering -> scheme.onError
@@ -304,7 +311,8 @@ private fun rememberBeaconPalette(state: ProtectionVisualState): BeaconPalette {
     val secondary by animateColorAsState(secondaryTarget, spec, label = "beaconSecondary")
     val field by animateColorAsState(fieldTarget, spec, label = "beaconField")
     val icon by animateColorAsState(iconTarget, spec, label = "beaconIcon")
-    return BeaconPalette(accent, secondary, field, icon)
+    val disc by animateColorAsState(discTarget, spec, label = "beaconDisc")
+    return BeaconPalette(accent, secondary, field, icon, disc)
 }
 
 @Composable
@@ -592,7 +600,7 @@ private fun ProtectionTunnel(
             }
             Surface(
                 shape = CircleShape,
-                color = palette.accent,
+                color = palette.disc,
                 modifier = Modifier.size(68.dp),
                 shadowElevation = 0.dp,
             ) {

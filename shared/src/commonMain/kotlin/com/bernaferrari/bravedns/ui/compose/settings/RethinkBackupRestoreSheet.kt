@@ -5,21 +5,25 @@ import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormActionRow
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
@@ -40,6 +44,7 @@ data class RethinkBackupRestoreStrings(
     val backupDescription: String,
     val restoreTitle: String,
     val restoreDescription: String,
+    /** Not shown: creating a backup is non-destructive, so it starts without a confirmation step. */
     val backupConfirmation: RethinkBackupRestoreDialogCopy,
     val restoreConfirmation: RethinkBackupRestoreDialogCopy,
     val backupFailure: RethinkBackupRestoreDialogCopy,
@@ -75,22 +80,34 @@ fun RethinkBackupRestoreSheet(
                 Text(copy.title, style = MaterialTheme.typography.titleLarge)
                 Text(copy.message, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            RethinkFormActionRow(
-                confirmLabel = copy.confirm,
-                onConfirm = {
-                    if (failure != null) {
-                        onFailureDismiss()
+            // Restoring overwrites current settings and logs, so its confirmation is error-toned;
+            // a retry after a failure is a normal primary action.
+            val destructive = failure == null && action == RethinkBackupRestoreFailure.Restore
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs, Alignment.End),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                TextButton(onClick = { if (failure != null) onFailureDismiss() else confirmation = null }) {
+                    Text(copy.dismiss)
+                }
+                Button(
+                    onClick = {
+                        if (failure != null) onFailureDismiss() else confirmation = null
                         if (action == RethinkBackupRestoreFailure.Backup) onBackup() else onRestore()
+                    },
+                    colors = if (destructive) {
+                        ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error,
+                            contentColor = MaterialTheme.colorScheme.onError,
+                        )
                     } else {
-                        confirmation = null
-                        if (action == RethinkBackupRestoreFailure.Backup) onBackup() else onRestore()
-                    }
-                },
-                dismissLabel = copy.dismiss,
-                onDismiss = {
-                    if (failure != null) onFailureDismiss() else confirmation = null
-                },
-            )
+                        ButtonDefaults.buttonColors()
+                    },
+                ) {
+                    Text(copy.confirm)
+                }
+            }
         } else {
             Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
                 Text(strings.title, style = MaterialTheme.typography.titleLarge)
@@ -102,12 +119,14 @@ fun RethinkBackupRestoreSheet(
                     supporting = strings.backupDescription,
                     leadingIcon = MaterialSymbols.Filled.Backup,
                     position = CardPosition.First,
-                    onClick = { confirmation = RethinkBackupRestoreFailure.Backup },
+                    onClick = onBackup,
                 )
                 RethinkListItem(
                     headline = strings.restoreTitle,
                     supporting = strings.restoreDescription,
                     leadingIcon = MaterialSymbols.Filled.Restore,
+                    leadingIconTint = MaterialTheme.colorScheme.error,
+                    leadingIconContainerColor = MaterialTheme.colorScheme.errorContainer,
                     position = CardPosition.Last,
                     onClick = { confirmation = RethinkBackupRestoreFailure.Restore },
                 )

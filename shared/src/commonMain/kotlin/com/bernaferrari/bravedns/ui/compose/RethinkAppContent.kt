@@ -77,9 +77,9 @@ fun RethinkAppContent(
                     description = "Open-source privacy tools, designed to keep your connection in your control.",
                     heroIcon = MaterialSymbols.Filled.Shield,
                     features = listOf(
-                        RethinkWelcomeFeature("App firewall", MaterialSymbols.Filled.Security),
-                        RethinkWelcomeFeature("Private DNS", MaterialSymbols.Filled.Dns),
-                        RethinkWelcomeFeature("Secure routing", MaterialSymbols.Filled.VpnKey),
+                        RethinkWelcomeFeature("App firewall", MaterialSymbols.Filled.Security, "Choose which apps can reach the internet, per network."),
+                        RethinkWelcomeFeature("Private DNS", MaterialSymbols.Filled.Dns, "Encrypt lookups and block ads, trackers, and malware."),
+                        RethinkWelcomeFeature("Secure routing", MaterialSymbols.Filled.VpnKey, "Send apps through WireGuard or a proxy on any network."),
                     ),
                 ),
                 ctaLabel = "Get started",

@@ -3,10 +3,6 @@
 
 package com.bernaferrari.bravedns.ui.compose.logs
 
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceOption
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkConnectedChoiceGroup
-import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
-
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,12 +20,18 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceOption
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkConnectedChoiceGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
+import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 enum class RethinkLogTab { Network, Dns }
 
@@ -56,7 +58,9 @@ fun RethinkLogsScreenShell(
     networkContent: @Composable (onToolbarActionsChange: (RethinkLogToolbarActions) -> Unit) -> Unit,
     dnsContent: @Composable (onToolbarActionsChange: (RethinkLogToolbarActions) -> Unit) -> Unit,
 ) {
-    var tab by remember { mutableStateOf(RethinkLogTab.Network) }
+    // Saved as an ordinal so the selected tab survives rotation/process death on every target.
+    var tabIndex by rememberSaveable { mutableIntStateOf(RethinkLogTab.Network.ordinal) }
+    val tab = RethinkLogTab.entries[tabIndex]
     var toolbarActions by remember { mutableStateOf(RethinkLogToolbarActions()) }
     LaunchedEffect(tab) { toolbarActions = RethinkLogToolbarActions() }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -68,14 +72,21 @@ fun RethinkLogsScreenShell(
                 title = strings.title,
                 onBackClick = onBackClick,
                 scrollBehavior = scrollBehavior,
-                actions = {
-                    RethinkLogsTabSwitch(tab, strings.network, strings.dns, onTabSelected = { tab = it })
-                    RethinkLogsOverflow(toolbarActions, strings)
-                },
+                actions = { RethinkLogsOverflow(toolbarActions, strings) },
             )
         },
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
+            RethinkLogsTabSwitch(
+                selected = tab,
+                networkLabel = strings.network,
+                dnsLabel = strings.dns,
+                onTabSelected = { tabIndex = it.ordinal },
+                modifier = Modifier.padding(
+                    horizontal = SharedDimensions.screenPaddingHorizontal,
+                    vertical = SharedDimensions.spacingXs,
+                ),
+            )
             when (tab) {
                 RethinkLogTab.Network -> networkContent { toolbarActions = it }
                 RethinkLogTab.Dns -> dnsContent { toolbarActions = it }
@@ -84,22 +95,24 @@ fun RethinkLogsScreenShell(
     }
 }
 
+/** Primary Network/DNS switch: a full-width labelled connected group under the title. */
 @Composable
 private fun RethinkLogsTabSwitch(
     selected: RethinkLogTab,
     networkLabel: String,
     dnsLabel: String,
     onTabSelected: (RethinkLogTab) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val options = listOf(
         RethinkChoiceOption(RethinkLogTab.Network, networkLabel, MaterialSymbols.Filled.NetworkPing),
-        RethinkChoiceOption(RethinkLogTab.Dns, dnsLabel, MaterialSymbols.Filled.Shield),
+        RethinkChoiceOption(RethinkLogTab.Dns, dnsLabel, MaterialSymbols.Filled.Dns),
     )
     RethinkConnectedChoiceGroup(
         options = options,
         selected = selected,
         onSelect = onTabSelected,
-        fillWidth = false,
+        modifier = modifier,
     )
 }
 
@@ -123,7 +136,7 @@ private fun RethinkLogsOverflow(actions: RethinkLogToolbarActions, strings: Reth
             actions.onClear?.let { clear ->
                 DropdownMenuItem(
                     text = { Text(strings.clear) },
-                    leadingIcon = { Icon(MaterialSymbols.Filled.Clear, null) },
+                    leadingIcon = { Icon(MaterialSymbols.Filled.DeleteOutline, null) },
                     onClick = { expanded = false; clear() },
                 )
             }

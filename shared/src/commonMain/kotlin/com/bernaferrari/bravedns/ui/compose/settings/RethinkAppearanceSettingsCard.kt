@@ -15,7 +15,6 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -26,7 +25,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -112,7 +110,7 @@ fun RethinkAppearanceSettingsCard(
     onModeSelected: (RethinkAppearanceMode) -> Unit,
     onPresetSelected: (RethinkAppearancePreset) -> Unit,
     modifier: Modifier = Modifier,
-    sectionHeaderColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    sectionHeaderColor: Color = MaterialTheme.colorScheme.primary,
     showSectionHeader: Boolean = true,
 ) {
     var appearanceMode by remember(selectedMode) { mutableStateOf(selectedMode) }
@@ -154,10 +152,7 @@ fun RethinkAppearanceSettingsCard(
                         appearanceMode = mode
                         onModeSelected(mode)
                     },
-                    modifier = Modifier
-                        .horizontalScroll(rememberScrollState())
-                        .padding(SharedDimensions.cardPadding),
-                    fillWidth = false,
+                    modifier = Modifier.padding(SharedDimensions.cardPadding),
                 )
             }
             Surface(
@@ -169,12 +164,11 @@ fun RethinkAppearanceSettingsCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = SharedDimensions.spacingSm, vertical = SharedDimensions.spacingXs),
-                    horizontalArrangement = Arrangement.spacedBy(
-                        SharedDimensions.spacingNone,
-                        Alignment.CenterHorizontally,
-                    ),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingNone),
                     itemVerticalAlignment = Alignment.CenterVertically,
+                    // Two balanced rows: 10 presets → 5 + 5, Android's 11 (with dynamic) → 6 + 5.
+                    maxItemsInEachRow = (visiblePresets.size + 1) / 2,
                 ) {
                     visiblePresets.forEach { preset ->
                         RethinkThemeColorSwatch(

@@ -35,12 +35,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.components.RethinkFastScrollerMark
 import com.bernaferrari.bravedns.ui.compose.components.RethinkIndexedFastScroller
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSearchField
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBar
+import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 
 enum class RethinkIncludeAppsFilter { All, Selected }
@@ -95,12 +95,7 @@ fun RethinkIncludeAppsPicker(
                 onClick = onDone,
                 icon = { Icon(MaterialSymbols.Filled.Check, null) },
                 text = { Text(strings.done) },
-                elevation = FloatingActionButtonDefaults.elevation(
-                    defaultElevation = 0.dp,
-                    focusedElevation = 0.dp,
-                    hoveredElevation = 1.dp,
-                    pressedElevation = 1.dp,
-                ),
+                elevation = FloatingActionButtonDefaults.loweredElevation(),
             )
         },
         topBar = {
@@ -120,7 +115,10 @@ fun RethinkIncludeAppsPicker(
             LazyColumn(
                 state = listState,
                 modifier = Modifier.fillMaxSize().padding(horizontal = SharedDimensions.screenPaddingHorizontal),
-                contentPadding = PaddingValues(end = if (showFastScroller) 32.dp else 0.dp, bottom = 112.dp),
+                contentPadding = PaddingValues(
+                    end = if (showFastScroller) SharedDimensions.spacing2xl else SharedDimensions.spacingNone,
+                    bottom = SharedDimensions.buttonHeightLg + SharedDimensions.spacing3xl,
+                ),
             ) {
                 item {
                     RethinkSearchField(
@@ -131,8 +129,8 @@ fun RethinkIncludeAppsPicker(
                         clearQueryContentDescription = strings.clearSearch,
                         containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                         textStyle = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
-                        iconSize = 18.dp,
-                        trailingIconSize = 16.dp,
+                        iconSize = SharedDimensions.iconSizeSm,
+                        trailingIconSize = SharedDimensions.iconSizeXs,
                         trailingIconButtonSize = SharedDimensions.touchTargetMin,
                         modifier = Modifier.fillMaxWidth().padding(bottom = SharedDimensions.spacingSm),
                     )
@@ -147,12 +145,9 @@ fun RethinkIncludeAppsPicker(
                     val last = next == null || next.sectionKey != item.sectionKey
                     if (first) {
                         stickyHeader(key = "include_apps_header_${item.sectionKey}") {
-                            Text(
-                                item.sectionKey,
-                                style = MaterialTheme.typography.titleSmall,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface).padding(start = 20.dp, top = 20.dp, bottom = 4.dp),
+                            SectionHeader(
+                                title = item.sectionKey,
+                                modifier = Modifier.background(MaterialTheme.colorScheme.surface),
                             )
                         }
                     }
@@ -170,7 +165,7 @@ fun RethinkIncludeAppsPicker(
                 RethinkIndexedFastScroller(
                     marks = remember(items) { rethinkIncludeAppsScrollerMarks(items) },
                     listState = listState,
-                    modifier = Modifier.align(Alignment.CenterEnd).padding(vertical = SharedDimensions.spacingSm).padding(end = 2.dp),
+                    modifier = Modifier.align(Alignment.CenterEnd).padding(vertical = SharedDimensions.spacingSm).padding(end = SharedDimensions.spacingGridTile),
                 )
             }
         }

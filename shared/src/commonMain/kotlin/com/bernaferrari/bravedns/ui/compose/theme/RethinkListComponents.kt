@@ -161,17 +161,14 @@ fun RethinkListItem(
         .fillMaxWidth()
         .padding(top = if (position == CardPosition.First || position == CardPosition.Single) 0.dp else SharedDimensions.spacingGridTile)
         .clip(shape)
-    val border = if (highlighted) {
-        BorderStroke(
-            SharedDimensions.dividerThicknessBold,
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
-        )
-    } else {
-        null
-    }
+    // Highlight (deep-link focus, selection) is tonal only: grouped rows never draw borders.
+    val border: BorderStroke? = null
     val content: @Composable () -> Unit = {
+        // The expressive ListItem overload centers trailing controls (switches, radios) even on
+        // three-line rows, where the legacy one top-aligns them.
         ListItem(
-                headlineContent = {
+                verticalAlignment = Alignment.CenterVertically,
+                content = {
                     Text(
                         text = headlineAnnotated ?: AnnotatedString(headline),
                         style = MaterialTheme.typography.bodyLarge.copy(
@@ -223,8 +220,6 @@ fun RethinkListItem(
                     else -> null
                 },
                 colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                tonalElevation = 0.dp,
-                shadowElevation = 0.dp,
                 modifier = Modifier.clip(shape).padding(vertical = 1.dp),
         )
     }

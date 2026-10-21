@@ -95,6 +95,8 @@ fun PingTestScreen(onBackClick: (() -> Unit)? = null) {
             ipSection = stringResource(R.string.ping_ip_port_title), hostSection = stringResource(R.string.ping_host_port_title),
             test = stringResource(R.string.lbl_test), strength = stringResource(R.string.ping_strength_title),
             strengthValue = { value, max -> stringResource(R.string.two_argument, value.toString(), max.toString()) },
+            reachable = stringResource(R.string.ping_status_reachable), unreachable = stringResource(R.string.ping_status_unreachable),
+            testing = stringResource(R.string.ping_status_testing), customTarget = stringResource(R.string.ping_custom_target),
         ),
         onValueChange = { id, value -> if (id == "ip3") ip3 = value else if (id == "host3") host3 = value },
         onTest = ::performPing,

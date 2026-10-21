@@ -156,19 +156,27 @@ fun RethinkModalBottomSheet(
     val scope = rememberCoroutineScope()
     val currentOnDismissRequest by rememberUpdatedState(onDismissRequest)
     var dismissing by remember { mutableStateOf(false) }
+    // Dismissal from inside the sheet (a Cancel/Done button) animates out first, then removes the
+    // host; removing it first would skip the exit animation. See [sheetHidesBeforeDismiss].
     val dismiss: () -> Unit = {
         if (!dismissing) {
             dismissing = true
-            // Remove the host immediately. On WebAssembly, waiting for hide() can leave the
-            // sheet's semantics/scrim mounted after it has visually disappeared.
-            currentOnDismissRequest()
-            scope.launch {
-                sheetState.hide()
+            if (sheetHidesBeforeDismiss) {
+                scope.launch { sheetState.hide() }.invokeOnCompletion { currentOnDismissRequest() }
+            } else {
+                currentOnDismissRequest()
+                scope.launch { sheetState.hide() }
             }
         }
     }
     ModalBottomSheet(
-        onDismissRequest = dismiss,
+        // Scrim taps and swipes arrive here after the sheet has already animated away.
+        onDismissRequest = {
+            if (!dismissing) {
+                dismissing = true
+                currentOnDismissRequest()
+            }
+        },
         dragHandle = dragHandle,
         containerColor = if (containerColor == Color.Unspecified) MaterialTheme.colorScheme.surfaceContainerLow else containerColor,
         sheetState = sheetState,

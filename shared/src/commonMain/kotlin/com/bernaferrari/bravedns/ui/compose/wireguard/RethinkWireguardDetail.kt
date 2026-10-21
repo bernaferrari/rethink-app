@@ -24,7 +24,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
@@ -114,7 +113,7 @@ fun RethinkWireguardDetail(
                     SectionHeader(strings.apps)
                     RethinkListGroup {
                         RethinkWireguardDetailAction(strings.manageApps(state.appsCount), null, MaterialSymbols.Filled.Apps, CardPosition.First, onManageApps, enabled = !state.catchAllEnabled)
-                        RethinkWireguardDetailAction(strings.manageHops, null, MaterialSymbols.AutoMirrored.Filled.ArrowForward, CardPosition.Last, onManageHops)
+                        RethinkWireguardDetailAction(strings.manageHops, null, MaterialSymbols.Filled.MobiledataArrows, CardPosition.Last, onManageHops)
                     }
                 }
             }
@@ -163,7 +162,7 @@ private fun RethinkWireguardDetailOverview(state: RethinkWireguardDetailState) {
             }
             state.statusColor?.let { color ->
                 Surface(shape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.cornerRadiusFull), color = color.copy(alpha = 0.14f)) {
-                    Text(state.status, style = MaterialTheme.typography.labelMedium, color = color, modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp))
+                    Text(state.status, style = MaterialTheme.typography.labelMedium, color = color, modifier = Modifier.padding(horizontal = SharedDimensions.spacingSmMd, vertical = SharedDimensions.spacingXs))
                 }
             }
         }
@@ -173,7 +172,7 @@ private fun RethinkWireguardDetailOverview(state: RethinkWireguardDetailState) {
 @Composable
 private fun RethinkOneWireguardNotice(message: String) {
     Surface(shape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.cornerRadius2xl), color = MaterialTheme.colorScheme.tertiaryContainer) {
-        Text(message, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onTertiaryContainer, modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp))
+        Text(message, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onTertiaryContainer, modifier = Modifier.padding(horizontal = SharedDimensions.cardPadding, vertical = SharedDimensions.spacingMd))
     }
 }
 
@@ -194,6 +193,7 @@ private fun RethinkWireguardDetailAction(
     leadingIconContainerColor = accent.copy(alpha = 0.14f),
     position = position,
     enabled = enabled,
+    showTrailingChevron = accent != MaterialTheme.colorScheme.error,
     onClick = onClick,
 )
 

@@ -3,10 +3,6 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.database
 
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
-
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,9 +20,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -43,12 +41,15 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFilterChip
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSearchField
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBar
+import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
+import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 data class RethinkDatabaseTablePreview(
     val table: String,
@@ -100,13 +101,8 @@ fun RethinkDatabaseScreen(
         topBar = {
             RethinkTopBar(
                 title = strings.title,
+                // Copy lives once, next to the dump it copies (see RethinkDatabaseDetail).
                 onBackClick = onBackClick,
-                actions = {
-                    IconButton(onClick = onCopy, enabled = selectedTable != null && preview != null && !isCopying) {
-                        if (isCopying) LoadingIndicator(Modifier.size(SharedDimensions.iconSizeMd))
-                        else Icon(MaterialSymbols.Filled.ContentCopy, strings.copyFull)
-                    }
-                },
             )
         },
     ) { padding ->
@@ -148,6 +144,10 @@ fun RethinkDatabaseScreen(
                                 onRefresh, onCopy, Modifier.weight(1f),
                             )
                         }
+                    } else if (filteredTables.isEmpty()) {
+                        // Narrow layouts have no table pane to host the message, so say it here
+                        // instead of leaving a stale preview under an empty chip row.
+                        RethinkDatabaseNoTables(strings, Modifier.fillMaxSize())
                     } else {
                         Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
                             RethinkDatabaseInlineSelector(filteredTables, selectedTable, onTableSelected)
@@ -157,6 +157,17 @@ fun RethinkDatabaseScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun RethinkDatabaseNoTables(strings: RethinkDatabaseStrings, modifier: Modifier = Modifier) {
+    Box(modifier, contentAlignment = Alignment.Center) {
+        RethinkEmptyState(
+            title = strings.noTables,
+            message = "",
+            icon = MaterialSymbols.Filled.Storage,
+        )
     }
 }
 
@@ -193,7 +204,6 @@ private fun RethinkDatabaseTableList(
         modifier = modifier.fillMaxSize(),
         shape = RoundedCornerShape(SharedDimensions.cornerRadius3xl),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
-        border = BorderStroke(SharedDimensions.dividerThicknessBold, MaterialTheme.colorScheme.outlineVariant.copy(alpha = .22f)),
     ) {
         Column(Modifier.fillMaxSize()) {
             Row(
@@ -201,16 +211,11 @@ private fun RethinkDatabaseTableList(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(MaterialSymbols.Filled.Storage, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
-                    Text(strings.tables, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                }
+                SectionHeader(title = strings.tables, modifier = Modifier.weight(1f))
                 RethinkDatabaseMetaChip("${tables.size}/$totalCount")
             }
             if (tables.isEmpty()) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(strings.noTables, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
+                RethinkDatabaseNoTables(strings, Modifier.fillMaxSize())
             } else {
                 androidx.compose.foundation.lazy.LazyColumn(
                     contentPadding = PaddingValues(horizontal = SharedDimensions.spacingSm, vertical = SharedDimensions.spacingXs),
@@ -226,7 +231,7 @@ private fun RethinkDatabaseTableList(
                                 leadingIconContainerColor = if (active) MaterialTheme.colorScheme.primaryContainer.copy(alpha = .6f) else MaterialTheme.colorScheme.surfaceContainerHighest,
                                 position = cardPositionFor(index, tables.lastIndex),
                                 highlighted = active,
-                                trailing = if (active) { { Icon(MaterialSymbols.Filled.CheckCircle, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp)) } } else null,
+                                trailing = if (active) { { Icon(MaterialSymbols.Filled.CheckCircle, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(SharedDimensions.iconSizeSm)) } } else null,
                                 onClick = { onTableSelected(table) },
                             )
                         }
@@ -253,7 +258,6 @@ private fun RethinkDatabaseDetail(
         modifier = modifier.fillMaxSize(),
         shape = RoundedCornerShape(SharedDimensions.cornerRadius3xl),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
-        border = BorderStroke(SharedDimensions.dividerThicknessBold, MaterialTheme.colorScheme.outlineVariant.copy(alpha = .22f)),
     ) {
         Column(Modifier.fillMaxSize().padding(SharedDimensions.spacingMd), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
             preview?.let {
@@ -261,7 +265,19 @@ private fun RethinkDatabaseDetail(
                     Text(it.table, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         IconButton(onClick = onRefresh, enabled = !loadingPreview) { Icon(MaterialSymbols.Filled.Refresh, strings.refresh) }
-                        TextButton(onClick = onCopy, enabled = selectedTable != null && !loadingCopy) { Text(if (loadingCopy) strings.copying else strings.copyFull) }
+                        TextButton(
+                            onClick = onCopy,
+                            enabled = selectedTable != null && !loadingCopy,
+                            contentPadding = ButtonDefaults.TextButtonWithIconContentPadding,
+                        ) {
+                            if (loadingCopy) {
+                                LoadingIndicator(Modifier.size(ButtonDefaults.IconSize))
+                            } else {
+                                Icon(MaterialSymbols.Filled.ContentCopy, null, Modifier.size(ButtonDefaults.IconSize))
+                            }
+                            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                            Text(if (loadingCopy) strings.copying else strings.copyFull)
+                        }
                     }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {

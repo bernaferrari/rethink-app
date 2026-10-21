@@ -5,19 +5,15 @@ package com.bernaferrari.bravedns.ui.compose.settings
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.ui.semantics.Role
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBarLazyColumnScreen
-import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
-import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.theme.SectionHeaderWithSubtitle
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 
 data class RethinkAntiCensorshipOption(
@@ -30,6 +26,8 @@ data class RethinkAntiCensorshipOption(
 data class RethinkAntiCensorshipStrings(
     val title: String,
     val split: String,
+    val splitHeading: String,
+    val splitDescription: String,
     val retryHeading: String,
     val retryDescription: String,
 )
@@ -60,6 +58,7 @@ fun RethinkAntiCensorshipScreen(
         topBarScrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) {
         item {
+            SectionHeaderWithSubtitle(title = strings.splitHeading, subtitle = strings.splitDescription)
             RethinkListGroup(Modifier.selectableGroup()) {
                 dialOptions.forEachIndexed { index, option ->
                     RethinkStrategyOption(
@@ -72,16 +71,7 @@ fun RethinkAntiCensorshipScreen(
             }
         }
         item {
-            SectionHeader(strings.retryHeading)
-            Text(
-                strings.retryDescription,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(
-                    horizontal = SharedDimensions.spacingMd,
-                    vertical = SharedDimensions.spacingXs,
-                ),
-            )
+            SectionHeaderWithSubtitle(title = strings.retryHeading, subtitle = strings.retryDescription)
             RethinkListGroup(Modifier.selectableGroup()) {
                 retryOptions.forEachIndexed { index, option ->
                     RethinkStrategyOption(
@@ -110,7 +100,6 @@ private fun RethinkStrategyOption(
         supporting = option.description,
         position = position,
         enabled = option.enabled,
-        contentOffset = Modifier.offset(x = -SharedDimensions.spacingXs),
         selection = RethinkListSelection(checked = selected, role = Role.RadioButton) { onClick() },
         trailing = { RadioButton(selected = selected, onClick = null, enabled = option.enabled) },
     )

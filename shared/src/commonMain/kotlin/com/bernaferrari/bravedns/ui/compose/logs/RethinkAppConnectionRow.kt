@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -19,7 +18,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusColors
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListShape
 
 /** Target-neutral presentation state for one app-wise connection entry. */
 data class RethinkAppConnectionItem(
@@ -43,23 +45,21 @@ fun RethinkAppConnectionRow(
     item: RethinkAppConnectionItem,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    position: CardPosition = CardPosition.Single,
 ) {
     val accent = when (item.ruleState) {
-        RethinkConnectionRuleState.Block -> MaterialTheme.colorScheme.error
-        RethinkConnectionRuleState.Trust,
-        RethinkConnectionRuleState.Bypass -> MaterialTheme.colorScheme.tertiary
-        RethinkConnectionRuleState.None -> MaterialTheme.colorScheme.primary
+        RethinkConnectionRuleState.Block -> RethinkStatusColors.blocked
+        RethinkConnectionRuleState.Trust -> RethinkStatusColors.allowed
+        RethinkConnectionRuleState.Bypass -> RethinkStatusColors.mixed
+        RethinkConnectionRuleState.None -> RethinkStatusColors.idle
     }
-    val rowShape = RoundedCornerShape(SharedDimensions.cardCornerRadiusLarge)
+    // Grouped-list row: the host's list supplies the 2dp gap, the shape carries the grouping.
+    val rowShape = rethinkGroupedListShape(position)
     Surface(
         onClick = onClick,
         modifier = modifier.fillMaxWidth().clip(rowShape),
         shape = rowShape,
         color = MaterialTheme.colorScheme.surfaceContainerLow,
-        border = androidx.compose.foundation.BorderStroke(
-            SharedDimensions.dividerThickness,
-            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.34f),
-        ),
     ) {
         Column(
             modifier = Modifier.padding(SharedDimensions.spacingMd),

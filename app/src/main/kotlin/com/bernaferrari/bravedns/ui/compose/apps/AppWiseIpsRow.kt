@@ -22,6 +22,7 @@ import com.bernaferrari.bravedns.service.IpRulesManager
 import com.bernaferrari.bravedns.ui.compose.logs.RethinkAppConnectionItem
 import com.bernaferrari.bravedns.ui.compose.logs.RethinkAppConnectionRow
 import com.bernaferrari.bravedns.ui.compose.logs.RethinkConnectionRuleState
+import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.util.Utilities
 import com.bernaferrari.bravedns.util.Utilities.removeBeginningTrailingCommas
 import kotlin.math.log2
@@ -32,7 +33,8 @@ fun IpRow(
     conn: AppConnection,
     isAsn: Boolean,
     refreshToken: Int,
-    onIpClick: (AppConnection) -> Unit
+    onIpClick: (AppConnection) -> Unit,
+    position: CardPosition = CardPosition.Single,
 ) {
     val flagText =
         if (isAsn) {
@@ -73,6 +75,7 @@ fun IpRow(
             activity = activity,
         ),
         onClick = { onIpClick(conn) },
+        position = position,
     )
 }
 

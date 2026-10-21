@@ -50,8 +50,8 @@ fun DnsListScreen(
         selectedProtocolWorking = selectedWorking,
         strings = RethinkDnsListStrings(
             title = stringResource(R.string.lbl_dns_servers),
-            subtitle = stringResource(R.string.dns_desc),
-            configure = stringResource(R.string.lbl_configure),
+            subtitle = stringResource(R.string.dns_list_subtitle),
+            configure = stringResource(R.string.dns_list_protocol_section),
             fast = stringResource(R.string.lbl_fast),
             private = stringResource(R.string.lbl_private),
             secure = stringResource(R.string.lbl_secure),

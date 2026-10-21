@@ -76,7 +76,7 @@ internal val demoConfigureStrings = RethinkConfigureStrings(
 )
 
 internal val demoAboutStrings = RethinkAboutStrings(
-    appName = "RethinkDNS",
+    appName = "Re-Rethink",
     about = "About",
     app = "App",
     whatsNew = "What's new",
@@ -109,6 +109,9 @@ internal val demoAboutStrings = RethinkAboutStrings(
     flightRecorder = "Flight recorder",
     eventLogs = "Event logs",
     supportedBy = "Supported by Mozilla",
+    partnerMozilla = "Mozilla",
+    partnerFoss = "FOSS United",
+    partnerFlossFunds = "FLOSS/fund",
 )
 
 internal val demoLogsStrings = RethinkLogsStrings(
@@ -253,10 +256,10 @@ internal val demoBlockFreeDnsItems = listOf(
 internal val demoDnsProtocols = listOf(
     RethinkDnsProtocol(1, "DoH", "DNS over HTTPS", listOf(RethinkDnsCapability.Private, RethinkDnsCapability.Secure), MaterialSymbols.Filled.Language),
     RethinkDnsProtocol(6, "DoT", "DNS over TLS", listOf(RethinkDnsCapability.Private, RethinkDnsCapability.Secure), MaterialSymbols.Filled.Shield),
-    RethinkDnsProtocol(2, "DNSCrypt", "DNSCrypt", listOf(RethinkDnsCapability.Private, RethinkDnsCapability.Secure, RethinkDnsCapability.Anonymous), MaterialSymbols.Filled.VpnKey),
+    RethinkDnsProtocol(2, "DNSCrypt", "Authenticated DNS", listOf(RethinkDnsCapability.Private, RethinkDnsCapability.Secure, RethinkDnsCapability.Anonymous), MaterialSymbols.Filled.VpnKey),
     RethinkDnsProtocol(3, "DP", "DNS Proxy", listOf(RethinkDnsCapability.Fast), MaterialSymbols.Filled.Dns),
     RethinkDnsProtocol(7, "ODoH", "Oblivious DoH", listOf(RethinkDnsCapability.Private, RethinkDnsCapability.Secure, RethinkDnsCapability.Anonymous), MaterialSymbols.Filled.ShieldMoon),
-    RethinkDnsProtocol(4, "Rethink", "RethinkDNS", listOf(RethinkDnsCapability.Fast, RethinkDnsCapability.Private, RethinkDnsCapability.Secure), MaterialSymbols.Filled.Security),
+    RethinkDnsProtocol(4, "Rethink", "Blocklist-aware DoH", listOf(RethinkDnsCapability.Fast, RethinkDnsCapability.Private, RethinkDnsCapability.Secure), MaterialSymbols.Filled.Security),
 )
 
 internal val demoDialOptions = listOf(
@@ -361,7 +364,7 @@ internal val demoFirewallApps =
             else -> RethinkFirewallAppStatus.Allowed
         }
         val traffic = listOf(
-            "842 MB down · 71 MB up", "194 MB down · 28 MB up", "96 MB down · 12 MB up", "46 MB down · 8 MB up",
+            "↓ 842 MB · ↑ 71 MB", "↓ 194 MB · ↑ 28 MB", "↓ 96 MB · ↑ 12 MB", "↓ 46 MB · ↑ 8 MB",
             "↓ 31 MB · ↑ 4 MB", "↓ 22 MB · ↑ 3 MB", "↓ 17 MB · ↑ 2 MB", "↓ 8 MB · ↑ 1 MB",
         )[index % 8]
         when (app.packageName) {
@@ -480,7 +483,7 @@ internal val demoMiscToggles = listOf(
     RethinkMiscToggle("general_tombstone", "Remember removed apps", "Keep rules for apps that are temporarily uninstalled.", true, RethinkMiscSettingIcon.Tombstone),
     RethinkMiscToggle("general_firewall_bubble", "Firewall bubble", "Show quick firewall controls over other apps.", false, RethinkMiscSettingIcon.FirewallBubble),
     RethinkMiscToggle("general_ip_info", "Download IP information", "Enrich connection rows with IP ownership details.", true, RethinkMiscSettingIcon.IpInfo),
-    RethinkMiscToggle("general_custom_downloader", "Custom downloader", "Use RethinkDNS's downloader for configuration files.", false, RethinkMiscSettingIcon.Downloader),
+    RethinkMiscToggle("general_custom_downloader", "Custom downloader", "Use Re-Rethink's built-in downloader for blocklists.", false, RethinkMiscSettingIcon.Downloader),
 )
 
 internal val demoDatabasePreviews = listOf(
@@ -590,16 +593,10 @@ internal val demoDnsLogs = listOf(
 )
 
 internal val demoConsoleLogs = listOf(
-    RethinkLogRowModel(
-        id = "console-1", destination = "VPN service connected", appLabel = "RethinkDNS", typeLabel = "INFO", timeLabel = "Now",
-        isBlocked = false, allowedLabel = "Info", blockedLabel = "Error",
-        details = listOf(RethinkLogDetail("Component", "VpnController"), RethinkLogDetail("Thread", "main")),
-    ),
-    RethinkLogRowModel(
-        id = "console-2", destination = "Resolver latency 24ms", appLabel = "DNS", typeLabel = "DEBUG", timeLabel = "1m",
-        isBlocked = false, allowedLabel = "Info", blockedLabel = "Error",
-        details = listOf(RethinkLogDetail("Resolver", "1.1.1.1", monospace = true)),
-    ),
+    RethinkConsoleLogItem('I', "09:41:02", "VpnController: VPN service connected"),
+    RethinkConsoleLogItem('D', "09:41:03", "DnsTransport: resolver 1.1.1.1 latency 24 ms"),
+    RethinkConsoleLogItem('W', "09:41:15", "ConnectionMonitor: network changed, re-binding sockets"),
+    RethinkConsoleLogItem('E', "09:42:40", "WireGuard: handshake with peer timed out"),
 )
 
 internal fun demoConfigureSections(

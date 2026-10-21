@@ -12,14 +12,14 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Tab
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -27,8 +27,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextOverflow
 import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
+import com.bernaferrari.bravedns.ui.compose.common.RethinkLoadingState
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
@@ -50,6 +50,8 @@ data class RethinkRpnAccountState(
     val entitlementLoading: Boolean,
     val entitlementError: String? = null,
     val entitlement: List<RethinkRpnAccountEntry> = emptyList(),
+    /** Current-subscription summary (e.g. status and expiry) shown on the Manage tab. */
+    val summary: List<RethinkRpnAccountEntry> = emptyList(),
     val manage: RethinkRpnAccountOperation = RethinkRpnAccountOperation(),
     val historyLoading: Boolean = false,
     val history: List<RethinkRpnAccountEntry> = emptyList(),
@@ -84,6 +86,9 @@ data class RethinkRpnAccountStrings(
     val noOrders: String,
     val retry: String,
     val loading: String,
+    val noSubscriptionTitle: String,
+    val noSubscriptionMessage: String,
+    val viewPlans: String,
 )
 
 /** Shared RPN account surface. Billing, paging and entitlement fetches stay with the Android host. */
@@ -97,6 +102,7 @@ fun RethinkRpnAccountScreen(
     onSupport: () -> Unit,
     onRetryOrders: () -> Unit,
     modifier: Modifier = Modifier,
+    onViewPlans: (() -> Unit)? = null,
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     var pendingAction by remember { mutableStateOf<RethinkAccountAction?>(null) }
@@ -105,18 +111,20 @@ fun RethinkRpnAccountScreen(
         Column(Modifier.fillMaxSize().padding(padding)) {
             PrimaryScrollableTabRow(
                 selectedTabIndex = selectedTab,
-                edgePadding = SharedDimensions.spacingMd,
+                edgePadding = SharedDimensions.screenPaddingHorizontal,
             ) {
                 tabs.forEachIndexed { index, label ->
+                    // Scrollable tabs size to their label, so never ellipsize: a truncated
+                    // "Entitlement…" is worse than scrolling the row.
                     Tab(
                         selected = selectedTab == index,
                         onClick = { selectedTab = index },
-                        text = { Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                        text = { Text(label, maxLines = 1, softWrap = false) },
                     )
                 }
             }
             when (selectedTab) {
-                0 -> RethinkRpnManageTab(state.manage, strings, onSupport) { pendingAction = it }
+                0 -> RethinkRpnManageTab(state, strings, onSupport, onViewPlans) { pendingAction = it }
                 1 -> RethinkRpnHistoryTab(state.historyLoading, state.history, strings)
                 2 -> RethinkRpnOrdersTab(state.ordersLoading, state.ordersError, state.orders, strings, onRetryOrders)
                 else -> RethinkRpnEntitlementTab(state.entitlementLoading, state.entitlementError, state.entitlement, strings)
@@ -144,44 +152,89 @@ fun RethinkRpnAccountScreen(
 private enum class RethinkAccountAction { Cancel, Revoke }
 
 @Composable
-private fun RethinkRpnManageTab(state: RethinkRpnAccountOperation, strings: RethinkRpnAccountStrings, onSupport: () -> Unit, onAction: (RethinkAccountAction) -> Unit) {
+private fun RethinkRpnManageTab(
+    account: RethinkRpnAccountState,
+    strings: RethinkRpnAccountStrings,
+    onSupport: () -> Unit,
+    onViewPlans: (() -> Unit)?,
+    onAction: (RethinkAccountAction) -> Unit,
+) {
+    val state = account.manage
+    // Only a loaded, error-free, empty entitlement means "no subscription". While loading or on
+    // error the account actions stay available so a user is never locked out of cancelling.
+    val noSubscription = !account.entitlementLoading && account.entitlementError == null && account.entitlement.isEmpty()
     LazyColumn(
-        modifier = Modifier.fillMaxSize().padding(horizontal = SharedDimensions.screenPaddingHorizontal),
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(
+            start = SharedDimensions.screenPaddingHorizontal,
+            end = SharedDimensions.screenPaddingHorizontal,
+            bottom = SharedDimensions.spacing3xl,
+        ),
         verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
     ) {
         item { SectionHeaderWithSubtitle(title = strings.manageHeading, subtitle = strings.manageDescription) }
+        when {
+            account.entitlementLoading -> item { RethinkLoadingState(strings.loading) }
+            noSubscription -> item {
+                RethinkEmptyState(
+                    title = strings.noSubscriptionTitle,
+                    message = strings.noSubscriptionMessage,
+                    icon = MaterialSymbols.Filled.Star,
+                    ctaLabel = onViewPlans?.let { strings.viewPlans },
+                    onCtaClick = onViewPlans,
+                )
+            }
+            account.summary.isNotEmpty() -> item {
+                RethinkListGroup {
+                    account.summary.forEachIndexed { index, entry ->
+                        RethinkListItem(
+                            headline = entry.title,
+                            supporting = entry.supporting,
+                            position = cardPositionFor(index, account.summary.lastIndex),
+                        )
+                    }
+                }
+            }
+        }
         state.message?.let { message ->
             item {
-                androidx.compose.material3.Surface(
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.cornerRadiusMd),
-                    color = if (state.error) {
-                        androidx.compose.material3.MaterialTheme.colorScheme.errorContainer
-                    } else {
-                        androidx.compose.material3.MaterialTheme.colorScheme.primaryContainer
-                    },
+                Surface(
+                    shape = RoundedCornerShape(SharedDimensions.cornerRadiusMd),
+                    color = if (state.error) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer,
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text(
                         message,
-                        color = if (state.error) {
-                            androidx.compose.material3.MaterialTheme.colorScheme.onErrorContainer
-                        } else {
-                            androidx.compose.material3.MaterialTheme.colorScheme.onPrimaryContainer
-                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (state.error) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer,
                         modifier = Modifier.padding(SharedDimensions.spacingMd),
                     )
                 }
             }
         }
-        if (state.busy) item { Column(Modifier.fillMaxWidth().padding(SharedDimensions.spacingLg), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) { LoadingIndicator(Modifier.size(SharedDimensions.iconSizeXl)); Text(strings.loading) } }
-        item { SectionHeaderWithSubtitle(title = strings.actionsHeading, subtitle = strings.actionsDescription) }
-        item {
-            RethinkListGroup {
-                RethinkListItem(headline = strings.cancel, supporting = strings.cancelDescription, leadingIcon = MaterialSymbols.Filled.Close, position = CardPosition.First, enabled = !state.busy, leadingIconTint = androidx.compose.material3.MaterialTheme.colorScheme.error, onClick = { onAction(RethinkAccountAction.Cancel) })
-                RethinkListItem(headline = strings.revoke, supporting = strings.revokeDescription, leadingIcon = MaterialSymbols.Filled.Block, position = CardPosition.Last, enabled = !state.busy, leadingIconTint = androidx.compose.material3.MaterialTheme.colorScheme.error, onClick = { onAction(RethinkAccountAction.Revoke) })
+        if (state.busy) item { RethinkLoadingState(strings.loading) }
+        if (!noSubscription) {
+            item { SectionHeaderWithSubtitle(title = strings.actionsHeading, subtitle = strings.actionsDescription) }
+            item {
+                RethinkListGroup {
+                    RethinkListItem(headline = strings.cancel, supporting = strings.cancelDescription, leadingIcon = MaterialSymbols.Filled.Close, position = CardPosition.First, enabled = !state.busy, leadingIconTint = MaterialTheme.colorScheme.error, leadingIconContainerColor = MaterialTheme.colorScheme.errorContainer, onClick = { onAction(RethinkAccountAction.Cancel) })
+                    RethinkListItem(headline = strings.revoke, supporting = strings.revokeDescription, leadingIcon = MaterialSymbols.Filled.Block, position = CardPosition.Last, enabled = !state.busy, leadingIconTint = MaterialTheme.colorScheme.error, leadingIconContainerColor = MaterialTheme.colorScheme.errorContainer, onClick = { onAction(RethinkAccountAction.Revoke) })
+                }
             }
         }
         item { SectionHeaderWithSubtitle(title = strings.helpHeading, subtitle = strings.helpDescription) }
-        item { RethinkListGroup { RethinkListItem(headline = strings.support, supporting = strings.supportDescription, position = CardPosition.Single, onClick = onSupport) } }
+        item {
+            RethinkListGroup {
+                RethinkListItem(
+                    headline = strings.support,
+                    supporting = strings.supportDescription,
+                    leadingIcon = MaterialSymbols.Filled.Headset,
+                    position = CardPosition.Single,
+                    showTrailingChevron = true,
+                    onClick = onSupport,
+                )
+            }
+        }
     }
 }
 
@@ -189,7 +242,7 @@ private fun RethinkRpnManageTab(state: RethinkRpnAccountOperation, strings: Reth
 private fun RethinkRpnHistoryTab(loading: Boolean, entries: List<RethinkRpnAccountEntry>, strings: RethinkRpnAccountStrings) {
     when {
         loading -> RethinkRpnAccountLoading(strings.loading)
-        entries.isEmpty() -> RethinkEmptyState(strings.noHistory, "", Modifier.fillMaxWidth())
+        entries.isEmpty() -> RethinkEmptyState(strings.noHistory, "", Modifier.fillMaxWidth(), icon = MaterialSymbols.Filled.EventNote)
         else -> RethinkRpnAccountEntries(entries)
     }
 }
@@ -198,8 +251,8 @@ private fun RethinkRpnHistoryTab(loading: Boolean, entries: List<RethinkRpnAccou
 private fun RethinkRpnOrdersTab(loading: Boolean, error: String?, entries: List<RethinkRpnAccountEntry>, strings: RethinkRpnAccountStrings, onRetry: () -> Unit) {
     when {
         loading -> RethinkRpnAccountLoading(strings.loading)
-        error != null -> Column(Modifier.fillMaxWidth().padding(SharedDimensions.spacingXl), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) { Text(error, color = androidx.compose.material3.MaterialTheme.colorScheme.error); TextButton(onClick = onRetry) { Text(strings.retry) } }
-        entries.isEmpty() -> RethinkEmptyState(strings.noOrders, "", Modifier.fillMaxWidth())
+        error != null -> RethinkEmptyState(title = error, message = "", icon = MaterialSymbols.Filled.WarningAmber, ctaLabel = strings.retry, onCtaClick = onRetry)
+        entries.isEmpty() -> RethinkEmptyState(strings.noOrders, "", Modifier.fillMaxWidth(), icon = MaterialSymbols.Filled.ShoppingCart)
         else -> RethinkRpnAccountEntries(entries)
     }
 }
@@ -208,17 +261,15 @@ private fun RethinkRpnOrdersTab(loading: Boolean, error: String?, entries: List<
 private fun RethinkRpnEntitlementTab(loading: Boolean, error: String?, entries: List<RethinkRpnAccountEntry>, strings: RethinkRpnAccountStrings) {
     when {
         loading -> RethinkRpnAccountLoading(strings.loading)
-        error != null -> RethinkEmptyState(error, "", Modifier.fillMaxWidth())
+        error != null -> RethinkEmptyState(error, "", Modifier.fillMaxWidth(), icon = MaterialSymbols.Filled.WarningAmber)
+        entries.isEmpty() -> RethinkEmptyState(strings.noSubscriptionTitle, strings.noSubscriptionMessage, Modifier.fillMaxWidth(), icon = MaterialSymbols.Filled.Star)
         else -> RethinkRpnAccountEntries(entries)
     }
 }
 
 @Composable
 private fun RethinkRpnAccountLoading(label: String) {
-    Column(Modifier.fillMaxWidth().padding(SharedDimensions.spacingXl), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
-        LoadingIndicator(Modifier.size(SharedDimensions.iconSizeXl))
-        Text(label)
-    }
+    RethinkLoadingState(label)
 }
 
 @Composable

@@ -31,9 +31,9 @@ fun WelcomeScreen(onFinish: () -> Unit) {
             description = stringResource(R.string.slide_2_desc),
             heroIcon = MaterialSymbols.Filled.Shield,
             features = listOf(
-                RethinkWelcomeFeature(stringResource(R.string.firewall_mode_info_title), MaterialSymbols.Filled.Security),
-                RethinkWelcomeFeature(stringResource(R.string.dns_mode_info_title), MaterialSymbols.Filled.Dns),
-                RethinkWelcomeFeature(stringResource(R.string.lbl_wireguard), MaterialSymbols.Filled.VpnKey),
+                RethinkWelcomeFeature(stringResource(R.string.welcome_feature_firewall), MaterialSymbols.Filled.Security, stringResource(R.string.welcome_feature_firewall_desc)),
+                RethinkWelcomeFeature(stringResource(R.string.welcome_feature_dns), MaterialSymbols.Filled.Dns, stringResource(R.string.welcome_feature_dns_desc)),
+                RethinkWelcomeFeature(stringResource(R.string.welcome_feature_routing), MaterialSymbols.Filled.VpnKey, stringResource(R.string.welcome_feature_routing_desc)),
             ),
         ),
         ctaLabel = stringResource(R.string.finish),

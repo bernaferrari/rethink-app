@@ -75,8 +75,8 @@ data class RethinkDnsProxyEditorInput(
 fun RethinkEndpointEditorDialog(onDismiss: () -> Unit, content: @Composable () -> Unit) {
     RethinkModalBottomSheet(
         onDismissRequest = onDismiss,
-        contentPadding = PaddingValues(0.dp),
-        verticalSpacing = 0.dp,
+        contentPadding = PaddingValues(SharedDimensions.spacingNone),
+        verticalSpacing = SharedDimensions.spacingNone,
         includeBottomSpacer = false,
         expandOnShow = true,
     ) {
@@ -146,7 +146,7 @@ fun RethinkUrlEndpointEditor(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Checkbox(insecure, onCheckedChange = null)
-            Spacer(Modifier.width(6.dp))
+            Spacer(Modifier.width(SharedDimensions.spacingSm))
             Text(insecureLabel)
         }
     }
@@ -222,7 +222,7 @@ fun RethinkDnsProxyEndpointEditor(
         if (isLockdown) TextButton(onClick = onOpenVpnProfile) { Text(strings.lockdownMessage) }
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(strings.app, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(0.3f))
-            Spacer(Modifier.width(8.dp))
+            Spacer(Modifier.width(SharedDimensions.spacingSm))
             Box(Modifier.weight(0.7f)) {
                 TextButton(onClick = { appMenuExpanded = true }) { Text(appNames.getOrNull(selectedAppIndex).orEmpty()) }
                 DropdownMenu(expanded = appMenuExpanded, onDismissRequest = { appMenuExpanded = false }) {

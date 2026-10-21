@@ -3,50 +3,48 @@
 
 package com.bernaferrari.bravedns.ui.compose.wireguard
 
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceOption
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkConnectedChoiceGroup
-import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
-
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButtonMenu
+import androidx.compose.material3.FloatingActionButtonMenuItem
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.ToggleFloatingActionButton
+import androidx.compose.material3.ToggleFloatingActionButtonDefaults.animateIcon
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
+import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
 import com.bernaferrari.bravedns.ui.compose.dns.RethinkEndpointFeed
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceOption
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkConnectedChoiceGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 enum class RethinkWgTab { One, General }
 
@@ -57,6 +55,10 @@ data class RethinkWireguardStrings(
     val create: String,
     val import: String,
     val qrCode: String,
+    /** Content description of the FAB-menu toggle, e.g. "Add configuration". */
+    val addConfiguration: String,
+    val expanded: String,
+    val collapsed: String,
     val noConfigurations: String,
     val disableTitle: String,
     val disableMessage: String,
@@ -65,6 +67,7 @@ data class RethinkWireguardStrings(
 )
 
 /** Full target-neutral WireGuard landing screen; hosts retain config operations and row behavior. */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun <T> RethinkWireguardScreen(
     selectedTab: RethinkWgTab,
@@ -80,7 +83,7 @@ fun <T> RethinkWireguardScreen(
     onConfirmDisable: () -> Unit,
     onCreate: () -> Unit,
     onImport: () -> Unit,
-    onQrCode: () -> Unit,
+    onQrCode: (() -> Unit)?,
     modifier: Modifier = Modifier,
     configRow: @Composable (T, RethinkWgTab) -> Unit,
 ) {
@@ -95,14 +98,22 @@ fun <T> RethinkWireguardScreen(
             onDismiss = onDismissDisable,
         )
     }
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     Scaffold(
-        modifier = modifier,
+        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.surface,
-        topBar = { RethinkLargeTopBar(strings.title, onBackClick = onBackClick) },
+        topBar = { RethinkLargeTopBar(strings.title, onBackClick = onBackClick, scrollBehavior = scrollBehavior) },
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding)) {
             if (isEmpty) {
-                RethinkWgEmptyState(strings.noConfigurations, bottomInset)
+                RethinkEmptyState(
+                    title = strings.noConfigurations,
+                    message = "",
+                    icon = MaterialSymbols.Filled.VpnKey,
+                    ctaLabel = strings.create,
+                    onCtaClick = onCreate,
+                    modifier = Modifier.align(Alignment.Center).padding(bottom = bottomInset),
+                )
             } else {
                 Column(Modifier.fillMaxSize()) {
                     RethinkWgOverview(overview)
@@ -113,7 +124,8 @@ fun <T> RethinkWireguardScreen(
                             start = SharedDimensions.screenPaddingHorizontal,
                             end = SharedDimensions.screenPaddingHorizontal,
                             top = SharedDimensions.spacingSm,
-                            bottom = 84.dp + bottomInset,
+                            // Clear the docked FAB so the last card is never hidden under it.
+                            bottom = SharedDimensions.buttonHeightLg + SharedDimensions.spacing2xl + bottomInset,
                         ),
                     ) {
                         items(configs.itemCount) { index ->
@@ -123,12 +135,8 @@ fun <T> RethinkWireguardScreen(
                     }
                 }
             }
-            RethinkWgActions(
-                modifier = Modifier.align(Alignment.BottomCenter).padding(
-                    start = SharedDimensions.screenPaddingHorizontal,
-                    end = SharedDimensions.screenPaddingHorizontal,
-                    bottom = bottomInset + SharedDimensions.spacingMd,
-                ),
+            RethinkWgFabMenu(
+                modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = bottomInset),
                 strings = strings,
                 onCreate = onCreate,
                 onImport = onImport,
@@ -175,66 +183,53 @@ private fun RethinkWgOverview(text: String) {
     }
 }
 
+/** M3 Expressive FAB menu: one toggle FAB that fans out the ways to add a configuration. */
 @Composable
-private fun RethinkWgEmptyState(message: String, bottomInset: Dp) {
-    Surface(
-        modifier = Modifier.fillMaxSize().padding(
-            start = SharedDimensions.screenPaddingHorizontal,
-            top = SharedDimensions.spacingXl,
-            end = SharedDimensions.screenPaddingHorizontal,
-            bottom = SharedDimensions.spacingXl + bottomInset,
-        ),
-        shape = RoundedCornerShape(SharedDimensions.cornerRadius2xl),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)),
-    ) {
-        Column(Modifier.fillMaxSize().padding(SharedDimensions.spacingXl), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-            Surface(shape = RoundedCornerShape(SharedDimensions.cornerRadius5xl), color = MaterialTheme.colorScheme.secondaryContainer) {
-                Icon(MaterialSymbols.Filled.VpnKey, null, Modifier.size(112.dp).padding(SharedDimensions.spacing2xl), tint = MaterialTheme.colorScheme.onSecondaryContainer)
-            }
-            Spacer(Modifier.height(SharedDimensions.spacingLg))
-            Text(message, style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
-        }
-    }
-}
-
-@Composable
-private fun RethinkWgActions(
+private fun RethinkWgFabMenu(
     modifier: Modifier,
     strings: RethinkWireguardStrings,
     onCreate: () -> Unit,
     onImport: () -> Unit,
-    onQrCode: () -> Unit,
+    onQrCode: (() -> Unit)?,
 ) {
-    var expanded by remember { mutableStateOf(false) }
-    Row(modifier, horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm), verticalAlignment = Alignment.CenterVertically) {
-        ExtendedFloatingActionButton(
-            onClick = onCreate,
-            elevation = FloatingActionButtonDefaults.elevation(
-                defaultElevation = 0.dp,
-                focusedElevation = 0.dp,
-                hoveredElevation = 1.dp,
-                pressedElevation = 1.dp,
-            ),
-        ) {
-            Icon(MaterialSymbols.Filled.Add, null)
-            Spacer(Modifier.width(8.dp))
-            Text(strings.create)
-        }
-        Box {
-            IconButton(
-                onClick = { expanded = true },
-                colors = IconButtonDefaults.iconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                ),
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    FloatingActionButtonMenu(
+        expanded = expanded,
+        modifier = modifier,
+        button = {
+            ToggleFloatingActionButton(
+                checked = expanded,
+                onCheckedChange = { expanded = it },
+                modifier = Modifier.semantics {
+                    traversalIndex = -1f
+                    contentDescription = strings.addConfiguration
+                    stateDescription = if (expanded) strings.expanded else strings.collapsed
+                },
             ) {
-                Icon(MaterialSymbols.Filled.KeyboardArrowDown, strings.import)
+                Icon(
+                    if (checkedProgress > 0.5f) MaterialSymbols.Filled.Close else MaterialSymbols.Filled.Add,
+                    contentDescription = null,
+                    modifier = Modifier.animateIcon({ checkedProgress }),
+                )
             }
-            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                DropdownMenuItem(text = { Text(strings.import) }, onClick = { expanded = false; onImport() })
-                DropdownMenuItem(text = { Text(strings.qrCode) }, onClick = { expanded = false; onQrCode() })
-            }
+        },
+    ) {
+        FloatingActionButtonMenuItem(
+            onClick = { expanded = false; onCreate() },
+            text = { Text(strings.create) },
+            icon = { Icon(MaterialSymbols.Filled.Edit, null) },
+        )
+        FloatingActionButtonMenuItem(
+            onClick = { expanded = false; onImport() },
+            text = { Text(strings.import) },
+            icon = { Icon(MaterialSymbols.Filled.Download, null) },
+        )
+        if (onQrCode != null) {
+            FloatingActionButtonMenuItem(
+                onClick = { expanded = false; onQrCode() },
+                text = { Text(strings.qrCode) },
+                icon = { Icon(MaterialSymbols.Filled.CameraAlt, null) },
+            )
         }
     }
 }

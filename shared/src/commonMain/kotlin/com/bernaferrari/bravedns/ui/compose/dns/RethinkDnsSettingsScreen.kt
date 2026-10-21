@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
@@ -26,22 +27,23 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormSection
+import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusColors
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
@@ -134,6 +136,7 @@ data class RethinkDnsSettingsStrings(
 )
 
 /** All DNS settings chrome and interactions, portable across Android and the WASM demo. */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RethinkDnsSettingsScreen(
     state: RethinkDnsSettingsState,
@@ -172,13 +175,15 @@ fun RethinkDnsSettingsScreen(
         }
     }
 
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     Scaffold(
-        modifier = modifier,
+        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             RethinkLargeTopBar(
                 title = strings.title,
                 onBackClick = onBackClick,
+                scrollBehavior = scrollBehavior,
                 actions = {
                     IconButton(onClick = onRefresh, enabled = !state.isRefreshing) {
                         if (state.isRefreshing) {
@@ -203,20 +208,28 @@ fun RethinkDnsSettingsScreen(
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
         ) {
             item {
-                RethinkFormSection(strings.modesSection) {
+                Column {
+                    SectionHeader(strings.modesSection)
                     RethinkListGroup(Modifier.selectableGroup()) {
                         RethinkDnsRadioRow(strings.systemDns, strings.systemDnsDescription, state.isSystemDnsEnabled, MaterialSymbols.Filled.Settings, CardPosition.First, focusedSettingId == "dns_mode_system", onSystemDns, onSystemDnsInfo, strings.aboutItem(strings.systemDns))
                         RethinkDnsRadioRow(strings.customDns, strings.customDnsDescription, !state.isSystemDnsEnabled && !state.isRethinkDnsConnected && !state.isSmartDnsEnabled, MaterialSymbols.Filled.Dns, CardPosition.Middle, focusedSettingId == "dns_mode_custom", onCustomDns)
                         RethinkDnsRadioRow(strings.rethinkDns, strings.rethinkDnsDescription, state.isRethinkDnsConnected, MaterialSymbols.Filled.Security, CardPosition.Middle, focusedSettingId == "dns_mode_rethink", onRethinkDns)
                         RethinkDnsRadioRow(strings.smartDns, strings.smartDnsDescription, state.isSmartDnsEnabled, MaterialSymbols.Filled.Language, CardPosition.Last, focusedSettingId == "dns_mode_smart", onSmartDns, onSmartDnsInfo, strings.aboutItem(strings.smartDns))
                     }
+                    // Part of the modes item so focus indices in dnsSettingsSectionFor stay stable.
+                    if (state.isRethinkDnsConnected) {
+                        RethinkDnsConnectionCard(
+                            state,
+                            strings,
+                            focusedSettingId == "dns_mode_rethink",
+                            Modifier.padding(top = SharedDimensions.spacingSm),
+                        )
+                    }
                 }
             }
-            if (state.isRethinkDnsConnected) {
-                item { RethinkDnsConnectionCard(state, strings, focusedSettingId == "dns_mode_rethink") }
-            }
             item {
-                RethinkFormSection(strings.blockSection) {
+                Column {
+                    SectionHeader(strings.blockSection)
                     RethinkListGroup {
                         RethinkListItem(
                             headline = strings.localBlocklists,
@@ -238,7 +251,8 @@ fun RethinkDnsSettingsScreen(
                     if (state.showSplitDns) add(RethinkDnsToggle(strings.splitDns, strings.splitDnsDescription, state.splitDns, MaterialSymbols.Filled.Language, "dns_filter_split", onSplitDnsChange))
                     if (state.showBypassDnsBlock) add(RethinkDnsToggle(strings.rulesAsFirewall, strings.rulesAsFirewallDescription, state.bypassBlockInDns, MaterialSymbols.Filled.Security, "dns_filter_rules_as_firewall", onRulesAsFirewallChange))
                 }
-                RethinkFormSection(strings.filteringSection) {
+                Column {
+                    SectionHeader(strings.filteringSection)
                     RethinkListGroup {
                         rows.forEachIndexed { index, row ->
                             RethinkDnsToggleRow(row.title, row.description, row.checked, row.icon, cardPositionFor(index, rows.lastIndex + 1), focusedSettingId == row.id, row.onChange)
@@ -256,7 +270,8 @@ fun RethinkDnsSettingsScreen(
                 }
             }
             item {
-                RethinkFormSection(strings.blockFreeSection) {
+                Column {
+                    SectionHeader(strings.blockFreeSection)
                     RethinkListGroup {
                         Column(Modifier.selectableGroup()) {
                             RethinkBlockFreeDnsMode.entries.forEachIndexed { index, mode ->
@@ -268,6 +283,7 @@ fun RethinkDnsSettingsScreen(
                             supporting = strings.trustedEndpointDescription,
                             leadingIcon = MaterialSymbols.Filled.Security,
                             position = CardPosition.Last,
+                            showTrailingChevron = true,
                             onClick = onTrustedEndpoint,
                         )
                     }
@@ -282,7 +298,8 @@ fun RethinkDnsSettingsScreen(
                     RethinkDnsToggle(strings.fallbackDns, strings.fallbackDnsDescription, state.useFallbackDnsToBypass, MaterialSymbols.Filled.Security, "dns_advanced_fallback", onFallbackDnsChange),
                     RethinkDnsToggle(strings.preventLeaks, strings.preventLeaksDescription, state.preventDnsLeaks, MaterialSymbols.Filled.Security, "dns_advanced_leaks", onPreventLeaksChange),
                 )
-                RethinkFormSection(strings.advancedSection) {
+                Column {
+                    SectionHeader(strings.advancedSection)
                     RethinkListGroup {
                         rows.forEachIndexed { index, row ->
                             RethinkDnsToggleRow(row.title, row.description, row.checked, row.icon, cardPositionFor(index, rows.lastIndex), focusedSettingId == row.id, row.onChange)
@@ -359,11 +376,20 @@ private fun RethinkDnsToggleRow(
 }
 
 @Composable
-private fun RethinkDnsConnectionCard(state: RethinkDnsSettingsState, strings: RethinkDnsSettingsStrings, highlighted: Boolean) {
+private fun RethinkDnsConnectionCard(
+    state: RethinkDnsSettingsState,
+    strings: RethinkDnsSettingsStrings,
+    highlighted: Boolean,
+    modifier: Modifier = Modifier,
+) {
     val endpoint = state.connectedDnsName.substringAfter(',', "").trim()
     val displayName = state.connectedDnsName.substringBefore(',').trim().ifBlank { "--" }
     val protocol = state.dnsType.protocol(endpoint)
+    // "Rethink DNS" above "RethinkDNS" says the same thing twice; keep the overline only when it
+    // adds context to the resolver name.
+    val overline = strings.rethinkDns.takeUnless { it.isRedundantWith(displayName) }
     Surface(
+        modifier = modifier.fillMaxWidth(),
         shape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.cornerRadius4xl),
         color = if (highlighted) MaterialTheme.colorScheme.primaryContainer.copy(alpha = .42f) else MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
@@ -374,7 +400,7 @@ private fun RethinkDnsConnectionCard(state: RethinkDnsSettingsState, strings: Re
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
                 Icon(MaterialSymbols.Filled.Dns, null, tint = MaterialTheme.colorScheme.primary)
                 Column(Modifier.weight(1f)) {
-                    Text(strings.rethinkDns, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+                    overline?.let { Text(it, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary) }
                     Text(displayName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
                 state.dnsLatency.trim('(', ')').takeIf { it.isNotBlank() }?.let { RethinkDnsPill(it, MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onTertiaryContainer) }
@@ -391,7 +417,7 @@ private fun RethinkDnsConnectionCard(state: RethinkDnsSettingsState, strings: Re
 @Composable
 private fun RethinkDnsPill(text: String, container: Color, content: Color) {
     Surface(shape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.cornerRadiusPill), color = container) {
-        Text(text, Modifier.padding(horizontal = 10.dp, vertical = 5.dp), style = MaterialTheme.typography.labelMedium, color = content, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(text, Modifier.padding(horizontal = SharedDimensions.spacingSmMd, vertical = SharedDimensions.spacingXs), style = MaterialTheme.typography.labelMedium, color = content, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 

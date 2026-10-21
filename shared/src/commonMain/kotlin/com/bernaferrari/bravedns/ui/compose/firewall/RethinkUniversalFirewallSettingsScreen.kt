@@ -1,24 +1,20 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.firewall
 
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
-import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
-
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,14 +23,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormSection
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
+import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 enum class RethinkUniversalFirewallIcon { DeviceLock, Background, Unknown, Udp, Dns, NewApp, Metered, Http, Lockdown }
 enum class RethinkUniversalFirewallChange { Applied, RequiresAccessibility }
@@ -60,6 +57,7 @@ data class RethinkUniversalFirewallStrings(
 )
 
 /** Shared universal-firewall settings list. Hosts own persistence, stats queries, and permissions. */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RethinkUniversalFirewallSettingsScreen(
     settings: List<RethinkUniversalFirewallSetting>,
@@ -73,14 +71,17 @@ fun RethinkUniversalFirewallSettingsScreen(
 ) {
     var showAccessibilityDialog by remember { mutableStateOf(false) }
     val total = settings.sumOf { it.blockedCount }
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     Scaffold(
-        modifier = modifier,
+        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             RethinkLargeTopBar(
                 title = strings.title,
-                subtitle = if (isLoadingStats) strings.explanation else strings.blocked(total),
+                // The explanation lives once, above the list; the subtitle only carries the total.
+                subtitle = if (isLoadingStats) null else strings.blocked(total),
                 onBackClick = onBackClick,
+                scrollBehavior = scrollBehavior,
             )
         },
     ) { padding ->
@@ -94,7 +95,14 @@ fun RethinkUniversalFirewallSettingsScreen(
             ),
         ) {
             item {
-                RethinkFormSection(strings.title, strings.explanation) {
+                Text(
+                    strings.explanation,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = SharedDimensions.spacingXs, vertical = SharedDimensions.spacingSm),
+                )
+            }
+            item {
                 RethinkListGroup {
                     settings.forEachIndexed { index, setting ->
                         val countText = if (isLoadingStats) strings.loading else strings.blocked(setting.blockedCount)
@@ -128,7 +136,6 @@ fun RethinkUniversalFirewallSettingsScreen(
                             },
                         )
                     }
-                }
                 }
             }
         }

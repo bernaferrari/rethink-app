@@ -43,7 +43,7 @@ typealias RulesMode = RethinkRulesMode
 fun CustomRulesScreen(
     uid: Int = UID_EVERYBODY,
     initialTab: RulesTab = RulesTab.IP,
-    initialMode: RulesMode = RulesMode.APP_SPECIFIC,
+    initialMode: RulesMode = RulesMode.SELECTED_UID,
     domainViewModel: CustomDomainViewModel,
     ipViewModel: CustomIpViewModel,
     eventLogger: EventLogger,
@@ -56,11 +56,11 @@ fun CustomRulesScreen(
     var ipQuery by rememberSaveable(uid) { mutableStateOf("") }
     var domainQuery by rememberSaveable(uid) { mutableStateOf("") }
     val appNames = remember { mutableStateMapOf<Int, String>() }
-    val effectiveMode = if (uid == UID_EVERYBODY) selectedMode else RulesMode.APP_SPECIFIC
+    val effectiveMode = if (uid == UID_EVERYBODY) selectedMode else RulesMode.SELECTED_UID
     val query = if (selectedTab == RulesTab.IP) ipQuery else domainQuery
 
     LaunchedEffect(uid, effectiveMode) {
-        val rulesUid = if (effectiveMode == RulesMode.APP_SPECIFIC) uid else UID_EVERYBODY
+        val rulesUid = if (effectiveMode == RulesMode.SELECTED_UID) uid else UID_EVERYBODY
         ipViewModel.setUid(rulesUid)
         domainViewModel.setUid(rulesUid)
     }
@@ -72,15 +72,15 @@ fun CustomRulesScreen(
     val feed: RethinkFirewallRulesFeed = when (selectedTab) {
         RulesTab.IP -> {
             val items = when (effectiveMode) {
-                RulesMode.APP_SPECIFIC -> ipViewModel.customIpDetails.collectAsLazyPagingItems()
-                RulesMode.ALL_RULES -> ipViewModel.allIpRules.collectAsLazyPagingItems()
+                RulesMode.SELECTED_UID -> ipViewModel.customIpDetails.collectAsLazyPagingItems()
+                RulesMode.ALL_APPS -> ipViewModel.allIpRules.collectAsLazyPagingItems()
             }
             AndroidRulesFeed(items) { it.toRethinkRule(appNames[it.uid]) }
         }
         RulesTab.DOMAIN -> {
             val items = when (effectiveMode) {
-                RulesMode.APP_SPECIFIC -> domainViewModel.customDomains.collectAsLazyPagingItems()
-                RulesMode.ALL_RULES -> domainViewModel.allDomainRules.collectAsLazyPagingItems()
+                RulesMode.SELECTED_UID -> domainViewModel.customDomains.collectAsLazyPagingItems()
+                RulesMode.ALL_APPS -> domainViewModel.allDomainRules.collectAsLazyPagingItems()
             }
             AndroidRulesFeed(items) { it.toRethinkRule(appNames[it.uid]) }
         }
@@ -236,4 +236,5 @@ private fun androidCustomRulesStrings() = RethinkCustomRulesStrings(
     bypass = stringResource(R.string.firewall_status_whitelisted),
     noRule = stringResource(R.string.ci_no_rule),
     uid = { value -> "UID $value" },
+    deleteRuleTitle = stringResource(R.string.custom_rule_delete_title),
 )

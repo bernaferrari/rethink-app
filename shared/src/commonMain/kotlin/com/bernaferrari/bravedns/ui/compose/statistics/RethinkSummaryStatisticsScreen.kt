@@ -3,13 +3,8 @@
 
 package com.bernaferrari.bravedns.ui.compose.statistics
 
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceOption
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkConnectedChoiceGroup
-import com.bernaferrari.bravedns.ui.compose.common.RethinkAdaptiveWidth
-import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
-import com.bernaferrari.bravedns.ui.compose.common.isExpanded
-import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
-
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,11 +13,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -35,14 +30,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
+import com.bernaferrari.bravedns.ui.compose.common.RethinkAdaptiveWidth
+import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
+import com.bernaferrari.bravedns.ui.compose.common.isExpanded
+import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceOption
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkConnectedChoiceGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBarLazyColumnScreen
 import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
+import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 enum class RethinkStatisticsWindow { OneHour, TwentyFourHours, SevenDays }
 
@@ -85,6 +88,9 @@ data class RethinkSummaryStatisticsStrings(
     val noLogs: String,
     val seeMore: String,
     val seeLess: String,
+    /** Accessibility state for expandable country rows. */
+    val expanded: String = "Expanded",
+    val collapsed: String = "Collapsed",
 )
 
 /**
@@ -105,7 +111,6 @@ fun RethinkSummaryStatisticsScreen(
             title = strings.title,
             modifier = Modifier.fillMaxWidth(),
             containerColor = MaterialTheme.colorScheme.surface,
-            topBarTitleTextStyle = MaterialTheme.typography.headlineMedium,
             contentPadding = androidx.compose.foundation.layout.PaddingValues(
                 start = SharedDimensions.screenPaddingHorizontal,
                 end = SharedDimensions.screenPaddingHorizontal,
@@ -188,13 +193,21 @@ private fun RethinkSummaryStatisticsSectionCard(
             else -> RethinkListGroup {
                 displayedRows.forEachIndexed { index, row ->
                     val isExpanded = expandedCountryId == row.id
+                    val isExpandable = !row.countryFlag.isNullOrBlank()
                     RethinkListItem(
+                        modifier = if (isExpandable) {
+                            Modifier.semantics {
+                                stateDescription = if (isExpanded) strings.expanded else strings.collapsed
+                            }
+                        } else {
+                            Modifier
+                        },
                         headline = row.headline,
                         supporting = row.supporting,
                         // ListItem's text column begins at 16dp without a leading slot.
                         // Text-only statistics read best with a deliberate 20dp inset.
                         contentOffset = if (row.countryFlag.isNullOrBlank() && row.leadingContent == null) {
-                            Modifier.padding(start = 4.dp)
+                            Modifier.padding(start = SharedDimensions.spacingXs)
                         } else {
                             Modifier
                         },
@@ -219,11 +232,16 @@ private fun RethinkSummaryStatisticsSectionCard(
                                 Text(row.metric, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold, color = section.accentColor)
                                 if (!row.countryFlag.isNullOrBlank()) {
                                     Spacer(Modifier.size(SharedDimensions.spacingXs))
+                                    val chevronRotation by animateFloatAsState(
+                                        targetValue = if (isExpanded) 90f else 0f,
+                                        animationSpec = if (LocalRethinkMotion.current.reducedMotion) snap() else MaterialTheme.motionScheme.fastSpatialSpec(),
+                                        label = "country_chevron",
+                                    )
                                     Icon(
                                         MaterialSymbols.AutoMirrored.Filled.KeyboardArrowRight,
                                         contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                        modifier = Modifier.size(18.dp).rotate(if (isExpanded) 90f else 0f),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(SharedDimensions.iconSizeSm).rotate(chevronRotation),
                                     )
                                 }
                             }
@@ -266,7 +284,7 @@ private fun RethinkSummaryLoadingCard() {
         color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
         Box(Modifier.fillMaxWidth().padding(SharedDimensions.spacingLg), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(Modifier.size(SharedDimensions.iconSizeMd))
+            LoadingIndicator()
         }
     }
 }
@@ -304,14 +322,14 @@ fun RethinkCountryBreakdown(
             Modifier.padding(horizontal = SharedDimensions.spacingMd, vertical = SharedDimensions.spacingSm),
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
         ) {
-            Text(title, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold, color = accentColor)
+            SectionHeader(title = title, color = accentColor)
             if (apps.isEmpty()) {
                 Text(emptyMessage, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             } else {
                 apps.forEach { app ->
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm), verticalAlignment = Alignment.CenterVertically) {
-                            Box(Modifier.size(20.dp), contentAlignment = Alignment.Center) { app.leadingContent?.invoke() }
+                            Box(Modifier.size(SharedDimensions.iconSizeSm), contentAlignment = Alignment.Center) { app.leadingContent?.invoke() }
                             Text(app.headline, maxLines = 1, style = MaterialTheme.typography.bodySmall)
                         }
                         Text(app.metric, style = MaterialTheme.typography.labelSmall, color = accentColor, fontWeight = FontWeight.SemiBold)

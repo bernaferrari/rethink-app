@@ -95,7 +95,7 @@ fun AppWiseIpLogsScreen(
     }
 
     RethinkAppWiseLogsScaffold(
-        title = appName,
+        title = appName.ifBlank { stringResource(R.string.lbl_logs) },
         onBackClick = onBackClick
     ) { paddingValues ->
         if (showDeleteDialog) {
@@ -107,7 +107,6 @@ fun AppWiseIpLogsScreen(
         }
 
         RethinkAppWiseLogsContent(
-            title = appName.ifBlank { stringResource(R.string.lbl_logs) },
             searchHint = searchHint,
             fallbackSearchHint = stringResource(R.string.search_universal_ips),
             strings = appWiseLogsStrings(),
@@ -174,9 +173,10 @@ private fun AppWiseIpList(
     }
     val items = flow.collectAsLazyPagingItems()
 
-    AppWiseLogsPagedList(items = items) { item ->
+    AppWiseLogsPagedList(items = items) { item, position ->
             IpRow(
                 conn = item,
+                position = position,
                 isAsn = isAsn,
                 refreshToken = refreshToken,
                 onIpClick = { conn ->

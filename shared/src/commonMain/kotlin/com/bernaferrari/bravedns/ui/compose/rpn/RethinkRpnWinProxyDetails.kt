@@ -15,20 +15,22 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.PrimaryButton
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormSection
+import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
@@ -80,6 +82,7 @@ data class RethinkRpnWinProxyDetailsStrings(
 )
 
 /** Shared RPN Windows proxy detail screen. Android supplies service state and persists option changes. */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RethinkRpnWinProxyDetailsScreen(
     state: RethinkRpnWinProxyDetailsState,
@@ -94,9 +97,10 @@ fun RethinkRpnWinProxyDetailsScreen(
     onSelectApps: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     Scaffold(
-        modifier = modifier,
-        topBar = { RethinkLargeTopBar(title = strings.title, onBackClick = onBackClick) },
+        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = { RethinkLargeTopBar(title = strings.title, onBackClick = onBackClick, scrollBehavior = scrollBehavior) },
     ) { paddingValues ->
         Column(
             modifier = Modifier.fillMaxSize().padding(paddingValues).verticalScroll(rememberScrollState()).padding(
@@ -196,19 +200,24 @@ private fun RethinkRpnWinServerOptions(
     onSsidChanged: (Boolean) -> Unit,
     onEditSsids: () -> Unit,
 ) {
-    RethinkFormSection(strings.serverOptions) {
+    Column {
+        SectionHeader(strings.serverOptions)
         RethinkListGroup {
             RethinkRpnWinOption(strings.hop, options.hopEnabled, CardPosition.First, onHopChanged)
             RethinkRpnWinOption(strings.catchAll, options.catchAll, CardPosition.Middle, onCatchAllChanged)
             RethinkRpnWinOption(strings.lockdown, options.lockdown, CardPosition.Middle, onLockdownChanged)
             RethinkRpnWinOption(strings.mobileOnly, options.mobileOnly, CardPosition.Middle, onMobileOnlyChanged)
-            RethinkRpnWinOption(strings.wifiOnly, options.ssidBased, CardPosition.Last, onSsidChanged)
+            RethinkRpnWinOption(strings.wifiOnly, options.ssidBased, CardPosition.Middle, onSsidChanged)
+            // A grouped navigation row instead of a detached text button under the list.
+            RethinkListItem(
+                headline = strings.editWifi,
+                leadingIcon = MaterialSymbols.Filled.Wifi,
+                position = CardPosition.Last,
+                enabled = options.ssidBased,
+                showTrailingChevron = true,
+                onClick = onEditSsids,
+            )
         }
-        TextButton(
-            onClick = onEditSsids,
-            enabled = options.ssidBased,
-            modifier = Modifier.align(Alignment.End),
-        ) { Text(strings.editWifi) }
     }
 }
 

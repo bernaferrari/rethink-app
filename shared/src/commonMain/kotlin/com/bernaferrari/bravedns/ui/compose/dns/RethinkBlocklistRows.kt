@@ -3,20 +3,16 @@ package com.bernaferrari.bravedns.ui.compose.dns
 
 import androidx.compose.ui.semantics.Role
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Color
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
-import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.theme.SectionHeaderWithSubtitle
 
 data class RethinkBlocklistGroup(
     val id: String,
@@ -60,17 +56,15 @@ fun RethinkBlocklistPackRow(
     strings: RethinkBlocklistRowStrings,
     onToggle: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
+    position: CardPosition = CardPosition.Single,
 ) {
-    Column(
-        modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
-    ) {
+    Column(modifier.fillMaxWidth()) {
         if (showGroupHeader) RethinkBlocklistGroupHeader(pack.group)
         RethinkListItem(
             headline = pack.name.replaceFirstChar(Char::titlecase),
             supporting = strings.blocklistCount(pack.blocklistCount),
-            position = CardPosition.Single,
-            highlighted = pack.selected,
+            position = position,
+            defaultContainerColor = blocklistRowContainer(pack.selected),
             selection = RethinkListSelection(checked = pack.selected, role = Role.Checkbox, onCheckedChange = onToggle),
             trailing = { Checkbox(pack.selected, onCheckedChange = null) },
         )
@@ -86,19 +80,17 @@ fun RethinkBlocklistFileTagRow(
     onToggle: (Boolean) -> Unit,
     onOpenUrl: (String) -> Unit,
     modifier: Modifier = Modifier,
+    position: CardPosition = CardPosition.Single,
 ) {
     val subgroup = tag.subgroup.ifBlank { tag.group.title }
     val entries = strings.entries(tag.entries)
-    Column(
-        modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
-    ) {
+    Column(modifier.fillMaxWidth()) {
         if (showGroupHeader) RethinkBlocklistGroupHeader(tag.group)
         RethinkListItem(
             headline = tag.name,
             supporting = "$subgroup · $entries",
-            position = CardPosition.Single,
-            highlighted = tag.selected,
+            position = position,
+            defaultContainerColor = blocklistRowContainer(tag.selected),
             selection = RethinkListSelection(checked = tag.selected, role = Role.Checkbox, onCheckedChange = onToggle),
             trailing = { Checkbox(tag.selected, onCheckedChange = null) },
         )
@@ -107,14 +99,23 @@ fun RethinkBlocklistFileTagRow(
 
 @Composable
 private fun RethinkBlocklistGroupHeader(group: RethinkBlocklistGroup) {
-    Column(
-        Modifier.fillMaxWidth().padding(
-            start = SharedDimensions.spacingGridTile,
-            bottom = SharedDimensions.spacingGridTile,
-        ),
-        horizontalAlignment = Alignment.Start,
-    ) {
-        Text(group.title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
-        if (group.description.isNotBlank()) Text(group.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    SectionHeaderWithSubtitle(title = group.title, subtitle = group.description.takeIf { it.isNotBlank() })
+}
+
+/** Selection reads through container tone inside the grouped list, never through a border. */
+@Composable
+private fun blocklistRowContainer(selected: Boolean): Color =
+    if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerLow
+
+/** Grouped-list position of row [index] in a feed whose rows are grouped by [groupIdAt]. */
+fun rethinkBlocklistPosition(index: Int, count: Int, groupIdAt: (Int) -> String?): CardPosition {
+    val id = groupIdAt(index)
+    val first = index == 0 || groupIdAt(index - 1) != id
+    val last = index == count - 1 || groupIdAt(index + 1) != id
+    return when {
+        first && last -> CardPosition.Single
+        first -> CardPosition.First
+        last -> CardPosition.Last
+        else -> CardPosition.Middle
     }
 }

@@ -218,7 +218,7 @@ fun RethinkConfigureScreen(
 @Composable
 private fun ConfigureSection(section: RethinkConfigureSection, widthClass: WindowWidthClass) {
     Column {
-        SectionHeader(section.title, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        SectionHeader(section.title)
         section.subtitle?.let {
             Text(
                 it,
@@ -236,7 +236,11 @@ private fun ConfigureSection(section: RethinkConfigureSection, widthClass: Windo
 }
 
 @Composable private fun FourGrid(entries: List<RethinkConfigureEntry>, widthClass: WindowWidthClass) {
-    if (entries.size != 4) return
+    // A host that adds or hides an entry must not make the whole section vanish.
+    if (entries.size != 4) {
+        AdaptiveTileGrid(entries, columns = if (widthClass.isExpanded) 3 else 2)
+        return
+    }
     if (widthClass.isExpanded) {
         AdaptiveTileGrid(entries, columns = 3)
         return
@@ -335,20 +339,22 @@ private fun configureGridCellShape(
         ) {
             ConfigureIconWell(colors) { entry.icon() }
             Column(modifier = Modifier.weight(1f)) {
+                // Same type roles as RethinkListItem so grid tiles and list rows on this screen
+                // read as one family; two lines survive large font scales.
                 Text(
                     entry.title,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
                     color = colors.title,
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
                 entry.subtitle?.let { subtitle ->
                     Text(
                         subtitle,
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }

@@ -384,8 +384,11 @@ internal fun DemoWireguardScreen(modifier: Modifier, onBack: () -> Unit) {
             oneTab = "Simple",
             generalTab = "Advanced",
             create = "Create",
-            import = "Import configuration",
+            import = "Import file",
             qrCode = "Scan QR code",
+            addConfiguration = "Add configuration",
+            expanded = "Expanded",
+            collapsed = "Collapsed",
             noConfigurations = "Create or import a WireGuard configuration to get started.",
             disableTitle = "Disable active tunnel?",
             disableMessage = "Switching modes turns off the current WireGuard tunnel.",
@@ -555,6 +558,7 @@ internal fun DemoPingTestScreen(modifier: Modifier, onBack: () -> Unit) {
             noVpnTitle = "VPN is not active", noVpnDescription = "Start protection before running these checks.", dismiss = "Dismiss",
             ipSection = "IP and port", hostSection = "Host and port", test = "Test", strength = "Strength",
             strengthValue = { value, max -> "$value / $max" },
+            reachable = "Reachable", unreachable = "Unreachable", testing = "Testing…", customTarget = "Custom target",
         ),
         onValueChange = { id, value -> if (id == "ip3") customIp = value else if (id == "host3") customHost = value },
         onTest = { tested = true },
@@ -576,8 +580,10 @@ internal fun DemoAntiCensorshipScreen(modifier: Modifier, onBack: () -> Unit) {
         selectedDialId = dialId,
         selectedRetryId = retryId,
         strings = RethinkAntiCensorshipStrings(
-            title = "Anti-censorship", split = "Split", retryHeading = "Retry strategy",
-            retryDescription = "Choose how RethinkDNS should retry connections when censorship is detected.",
+            title = "Anti-censorship", split = "Split",
+            splitHeading = "Split strategy", splitDescription = "How the first bytes of each connection are split to slip past deep-packet inspection.",
+            retryHeading = "Retry strategy",
+            retryDescription = "Choose how Re-Rethink retries connections when censorship is detected.",
         ),
         onDialSelected = { id ->
             dialId = id
@@ -629,7 +635,6 @@ internal fun DemoEventLogsScreen(modifier: Modifier, onBack: () -> Unit) {
                 top = SharedDimensions.spacingSm,
                 bottom = SharedDimensions.spacing3xl,
             ),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             itemsIndexed(visibleEvents, key = { _, event -> event.id }) { index, event ->
                 RethinkEventCard(
@@ -662,9 +667,21 @@ internal fun DemoConsoleLogsScreen(modifier: Modifier, onBack: () -> Unit) {
         onBackClick = onBack,
         modifier = modifier,
     ) {
-        RethinkLogList(
-            state = RethinkLogListState.Content(demoConsoleLogs),
-            strings = demoLogListStrings,
-        )
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(
+                start = SharedDimensions.screenPaddingHorizontal,
+                end = SharedDimensions.screenPaddingHorizontal,
+                bottom = SharedDimensions.spacing3xl,
+            ),
+        ) {
+            itemsIndexed(demoConsoleLogs) { index, item ->
+                RethinkConsoleLogRow(
+                    item = item,
+                    position = cardPositionFor(index, demoConsoleLogs.lastIndex),
+                    severityDescription = rethinkConsoleLogSeverity(item.level).name,
+                )
+            }
+        }
     }
 }

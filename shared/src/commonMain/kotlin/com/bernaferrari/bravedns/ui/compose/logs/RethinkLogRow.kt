@@ -3,14 +3,11 @@
 
 package com.bernaferrari.bravedns.ui.compose.logs
 
-import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
-
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.snap
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -60,6 +57,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusColors
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListShape
+import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 data class RethinkLogDetail(
     val label: String,
@@ -156,9 +154,7 @@ fun RethinkLogRow(
         interactionSource = interactionSource,
         shape = shape,
         color = cardColor,
-        tonalElevation = if (expanded) 1.dp else 0.dp,
         shadowElevation = elevation,
-        border = if (expanded) BorderStroke(1.dp, scheme.outlineVariant.copy(alpha = 0.45f)) else null,
         modifier = modifier.fillMaxWidth().scale(scale).clip(shape),
     ) {
         Box(Modifier.fillMaxWidth()) {
@@ -185,7 +181,7 @@ fun RethinkLogRow(
                         LogStatusLabel(if (model.isBlocked) model.blockedLabel else model.allowedLabel, statusColor)
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
                             Text(model.timeLabel, style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant.copy(alpha = 0.92f))
-                            Icon(MaterialSymbols.AutoMirrored.Filled.KeyboardArrowRight, null, tint = scheme.onSurfaceVariant, modifier = Modifier.size(12.dp).rotate(chevron))
+                            Icon(MaterialSymbols.AutoMirrored.Filled.KeyboardArrowRight, null, tint = scheme.onSurfaceVariant, modifier = Modifier.size(SharedDimensions.iconSizeXs).rotate(chevron))
                         }
                     }
                 }
@@ -211,7 +207,7 @@ private fun LogIconSlot(statusContainer: Color, icon: (@Composable (Color) -> Un
             icon(statusContainer)
         } else {
             Surface(shape = RoundedCornerShape(SharedDimensions.cornerRadiusSmMd), color = statusContainer, modifier = Modifier.size(SharedDimensions.iconContainerSm)) {
-                Box(contentAlignment = Alignment.Center) { Icon(MaterialSymbols.Filled.Language, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(19.dp)) }
+                Box(contentAlignment = Alignment.Center) { Icon(MaterialSymbols.Filled.Language, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(SharedDimensions.iconSizeSm)) }
             }
         }
     }
@@ -236,7 +232,7 @@ private fun LogStatusLabel(label: String, color: Color) {
 private fun LogDetailsPanel(model: RethinkLogRowModel, statusColor: Color) {
     val scheme = MaterialTheme.colorScheme
     Column(Modifier.fillMaxWidth()) {
-        HorizontalDivider(color = scheme.outlineVariant.copy(alpha = 0.42f), thickness = 0.5.dp)
+        HorizontalDivider(color = scheme.outlineVariant.copy(alpha = 0.42f), thickness = SharedDimensions.dividerThickness)
         Column(Modifier.padding(start = SharedDimensions.spacingXl + SharedDimensions.spacingGridTile, end = SharedDimensions.spacingLg, top = SharedDimensions.spacingSmMd, bottom = SharedDimensions.spacingLg)) {
             model.latencyMs?.let { LogLatency(it, model.latencyStrings) }
             if (model.latencyMs != null && model.details.isNotEmpty()) Spacer(Modifier.height(SharedDimensions.spacingSm))
@@ -263,7 +259,7 @@ private fun LogLatency(latency: Long, strings: RethinkLogLatencyStrings?) {
     }
     val label = if (quality.isNullOrBlank()) "${latency}ms" else "${latency}ms · $quality"
     val fraction = (latency.toFloat() / 100f).coerceIn(0.04f, 1f)
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(strings?.title.orEmpty(), style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)
             Text(label, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Medium, color = color)

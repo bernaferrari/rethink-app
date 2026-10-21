@@ -189,6 +189,8 @@ private fun ConnectionLogsContent(
     persistentState: PersistentState,
     onTopBarActionsChange: (refreshAction: (() -> Unit)?, clearAction: (() -> Unit)?) -> Unit
 ) {
+    // Local mirror of the pref so the inline "Enable logs" action recomposes immediately.
+    var logsEnabled by remember { mutableStateOf(persistentState.logsEnabled) }
     val logsFlow = remember(viewModel) { viewModel.connectionTrackerList }
     val items = logsFlow.collectAsLazyPagingItems()
 
@@ -210,10 +212,10 @@ private fun ConnectionLogsContent(
         selectedAppFilter = null
     }
 
-    LaunchedEffect(refreshAction, clearAction, persistentState.logsEnabled, items.itemCount) {
+    LaunchedEffect(refreshAction, clearAction, logsEnabled, items.itemCount) {
         onTopBarActionsChange(
-            refreshAction.takeIf { persistentState.logsEnabled },
-            clearAction.takeIf { persistentState.logsEnabled && items.itemCount > 0 }
+            refreshAction.takeIf { logsEnabled },
+            clearAction.takeIf { logsEnabled && items.itemCount > 0 }
         )
     }
 
@@ -231,8 +233,11 @@ private fun ConnectionLogsContent(
             }
     }
 
-    if (!persistentState.logsEnabled) {
-        RethinkLogsDisabledState(stringResource(R.string.logs_disabled_summary))
+    if (!logsEnabled) {
+        LogsDisabled {
+            persistentState.logsEnabled = true
+            logsEnabled = true
+        }
         return
     }
 
@@ -243,8 +248,8 @@ private fun ConnectionLogsContent(
     }
     val hasRulesFilter = ruleFilters.isNotEmpty()
 
-    LaunchedEffect(showAppFilterDialog, parentFilter, childFilters, persistentState.logsEnabled) {
-        if (!showAppFilterDialog || !persistentState.logsEnabled) return@LaunchedEffect
+    LaunchedEffect(showAppFilterDialog, parentFilter, childFilters, logsEnabled) {
+        if (!showAppFilterDialog || !logsEnabled) return@LaunchedEffect
         appFilterOptionsLoading = true
         appFilterOptions =
             withContext(Dispatchers.IO) {
@@ -374,6 +379,8 @@ private fun DnsLogsContent(
     onTopBarActionsChange: (refreshAction: (() -> Unit)?, clearAction: (() -> Unit)?) -> Unit,
     onShowDnsLog: (DnsLog) -> Unit
 ) {
+    // Local mirror of the pref so the inline "Enable logs" action recomposes immediately.
+    var logsEnabled by remember { mutableStateOf(persistentState.logsEnabled) }
     val logsFlow = remember(viewModel) { viewModel.dnsLogsList }
     val items = logsFlow.collectAsLazyPagingItems()
 
@@ -392,10 +399,10 @@ private fun DnsLogsContent(
         selectedAppFilter = null
     }
 
-    LaunchedEffect(refreshAction, clearAction, persistentState.logsEnabled, items.itemCount) {
+    LaunchedEffect(refreshAction, clearAction, logsEnabled, items.itemCount) {
         onTopBarActionsChange(
-            refreshAction.takeIf { persistentState.logsEnabled },
-            clearAction.takeIf { persistentState.logsEnabled && items.itemCount > 0 }
+            refreshAction.takeIf { logsEnabled },
+            clearAction.takeIf { logsEnabled && items.itemCount > 0 }
         )
     }
 
@@ -413,13 +420,16 @@ private fun DnsLogsContent(
             }
     }
 
-    if (!persistentState.logsEnabled) {
-        RethinkLogsDisabledState(stringResource(R.string.logs_disabled_summary))
+    if (!logsEnabled) {
+        LogsDisabled {
+            persistentState.logsEnabled = true
+            logsEnabled = true
+        }
         return
     }
 
-    LaunchedEffect(showAppFilterDialog, filterType, persistentState.logsEnabled) {
-        if (!showAppFilterDialog || !persistentState.logsEnabled) return@LaunchedEffect
+    LaunchedEffect(showAppFilterDialog, filterType, logsEnabled) {
+        if (!showAppFilterDialog || !logsEnabled) return@LaunchedEffect
         appFilterOptionsLoading = true
         appFilterOptions =
             withContext(Dispatchers.IO) {
@@ -742,5 +752,16 @@ private fun LogDetailsSheet(
                 )
             }
         },
+    )
+}
+
+/** Logging is off: explain why the list is empty and offer to turn it back on in place. */
+@Composable
+private fun LogsDisabled(onEnable: () -> Unit) {
+    RethinkLogsDisabledState(
+        message = stringResource(R.string.logs_disabled_message),
+        title = stringResource(R.string.logs_disabled_title),
+        actionLabel = stringResource(R.string.logs_enable_action),
+        onEnable = onEnable,
     )
 }

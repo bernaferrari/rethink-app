@@ -13,7 +13,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.bernaferrari.bravedns.R
@@ -22,6 +21,7 @@ import com.bernaferrari.bravedns.data.SummaryStatisticsType
 import com.bernaferrari.bravedns.ui.compose.statistics.RethinkDetailedStatistic
 import com.bernaferrari.bravedns.ui.compose.statistics.RethinkDetailedStatisticsScreen
 import com.bernaferrari.bravedns.ui.compose.statistics.RethinkDetailedStatisticsStrings
+import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.util.UIUtils.formatBytes
 import com.bernaferrari.bravedns.viewmodel.DetailedStatisticsViewModel
 import com.bernaferrari.bravedns.viewmodel.SummaryStatisticsViewModel.TimeCategory
@@ -83,11 +83,11 @@ private fun AppConnection.toRethinkDetailedStatistic(type: SummaryStatisticsType
     }
     return RethinkDetailedStatistic(
         id = "$type-$uid-$title-$count-$flag",
-        headline = if (isCountryType) metric else title,
-        supporting = if (isCountryType) countryName ?: title else metric,
+        headline = if (isCountryType) countryName ?: title else title,
+        supporting = metric,
         countryFlag = flag.takeIf { isCountryType && it.isNotBlank() },
         leadingContent = appIconPainter?.let { painter ->
-            { Icon(painter, null, tint = Color.Unspecified, modifier = Modifier.size(24.dp)) }
+            { Icon(painter, null, tint = Color.Unspecified, modifier = Modifier.size(SharedDimensions.iconSizeMd)) }
         },
     )
 }

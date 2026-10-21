@@ -98,7 +98,7 @@ fun AppWiseDomainLogsScreen(
     val items = remember(uid) { viewModel.appDomainLogs }.collectAsLazyPagingItems()
 
     RethinkAppWiseLogsScaffold(
-        title = appName,
+        title = appName.ifBlank { stringResource(R.string.lbl_logs) },
         onBackClick = onBackClick
     ) { paddingValues ->
         if (showDeleteDialog) {
@@ -110,7 +110,6 @@ fun AppWiseDomainLogsScreen(
         }
 
         RethinkAppWiseLogsContent(
-            title = appName.ifBlank { stringResource(R.string.lbl_logs) },
             searchHint = searchHint,
             fallbackSearchHint = stringResource(R.string.search_custom_domains),
             strings = appWiseLogsStrings(),
@@ -164,9 +163,10 @@ private fun AppWiseDomainList(
         )
     }
 
-    AppWiseLogsPagedList(items = items) { item ->
+    AppWiseLogsPagedList(items = items) { item, position ->
         DomainRow(
             conn = item,
+            position = position,
             uid = uid,
             isActiveConn = false,
             refreshToken = refreshToken,

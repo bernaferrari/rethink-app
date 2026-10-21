@@ -916,6 +916,7 @@ fun HomeScreenRoot(
                     historyViewModel = purchaseHistoryViewModel,
                     ordersViewModel = serverOrderHistoryViewModel,
                     onBackClick = { nav.popBackStack() },
+                    onViewPlans = viewPlansAction(checkoutViewModel != null, nav),
                 )
             }
             entry<RethinkRoute.AppWiseDomainLogs> { args ->
@@ -951,3 +952,11 @@ fun HomeScreenRoot(
             },
     )
 }
+
+/** Only offer plans where this channel can actually sell them. */
+private fun viewPlansAction(canCheckout: Boolean, nav: RethinkNavOps): (() -> Unit)? =
+    if (canCheckout) {
+        { nav.push(RethinkRoute.Checkout) }
+    } else {
+        null
+    }

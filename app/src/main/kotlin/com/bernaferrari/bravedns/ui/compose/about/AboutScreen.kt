@@ -95,6 +95,9 @@ fun AboutScreen(
             flightRecorder = stringResource(R.string.about_flight_recorder),
             eventLogs = stringResource(R.string.event_logs_title),
             supportedBy = stringResource(R.string.about_mozilla),
+            partnerMozilla = stringResource(R.string.about_partner_mozilla),
+            partnerFoss = stringResource(R.string.about_partner_foss),
+            partnerFlossFunds = stringResource(R.string.about_partner_floss_funds),
         ),
         actions = RethinkAboutActions(
             onTelegram = onTelegramClick,

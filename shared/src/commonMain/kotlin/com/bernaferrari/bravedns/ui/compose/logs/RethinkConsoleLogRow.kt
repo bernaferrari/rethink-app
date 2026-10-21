@@ -9,14 +9,21 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontFamily
+import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusColors
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListShape
+import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 data class RethinkConsoleLogItem(
     val level: Char,
@@ -24,25 +31,57 @@ data class RethinkConsoleLogItem(
     val message: String,
 )
 
-/** Portable console-log row; only time formatting and data retrieval remain platform-specific. */
+/** Severity buckets for console lines; the glyph and tint carry the level, so it is shown once. */
+enum class RethinkConsoleLogSeverity { Debug, Info, Warning, Error }
+
+fun rethinkConsoleLogSeverity(level: Char): RethinkConsoleLogSeverity = when (level.uppercaseChar()) {
+    'E', 'F', 'A' -> RethinkConsoleLogSeverity.Error
+    'W' -> RethinkConsoleLogSeverity.Warning
+    'I' -> RethinkConsoleLogSeverity.Info
+    else -> RethinkConsoleLogSeverity.Debug
+}
+
+private val RethinkConsoleLogSeverity.icon: ImageVector
+    get() = when (this) {
+        RethinkConsoleLogSeverity.Error -> MaterialSymbols.Filled.Cancel
+        RethinkConsoleLogSeverity.Warning -> MaterialSymbols.Filled.Warning
+        RethinkConsoleLogSeverity.Info -> MaterialSymbols.Filled.Info
+        RethinkConsoleLogSeverity.Debug -> MaterialSymbols.Filled.BugReport
+    }
+
+@Composable
+private fun RethinkConsoleLogSeverity.tint(): Color = when (this) {
+    RethinkConsoleLogSeverity.Error -> RethinkStatusColors.blocked
+    RethinkConsoleLogSeverity.Warning -> RethinkStatusColors.mixed
+    RethinkConsoleLogSeverity.Info -> RethinkStatusColors.allowed
+    RethinkConsoleLogSeverity.Debug -> RethinkStatusColors.idle
+}
+
+/**
+ * Portable console-log row; only time formatting and data retrieval remain platform-specific.
+ *
+ * @param position grouped-list position when the host renders rows as one connected group;
+ * null keeps a compact standalone shape for dense paged lists.
+ * @param severityDescription accessibility label for the severity glyph (e.g. "Warning").
+ */
 @Composable
 fun RethinkConsoleLogRow(
     item: RethinkConsoleLogItem,
     modifier: Modifier = Modifier,
+    position: CardPosition? = null,
+    severityDescription: String? = null,
 ) {
-    val color = when (item.level) {
-        'W' -> MaterialTheme.colorScheme.tertiary
-        'E' -> MaterialTheme.colorScheme.error
-        else -> MaterialTheme.colorScheme.onSurfaceVariant
+    val severity = rethinkConsoleLogSeverity(item.level)
+    val tint = severity.tint()
+    val shape = position?.let(::rethinkGroupedListShape) ?: RoundedCornerShape(SharedDimensions.cornerRadiusMdLg)
+    val topGap = when (position) {
+        null, CardPosition.First, CardPosition.Single -> SharedDimensions.spacingNone
+        else -> SharedDimensions.spacingGridTile
     }
     Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(SharedDimensions.cornerRadiusMdLg),
+        modifier = modifier.fillMaxWidth().padding(top = topGap),
+        shape = shape,
         color = MaterialTheme.colorScheme.surfaceContainerLow,
-        border = androidx.compose.foundation.BorderStroke(
-            SharedDimensions.dividerThickness,
-            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.28f),
-        ),
     ) {
         Row(
             modifier = Modifier.padding(horizontal = SharedDimensions.spacingMd, vertical = SharedDimensions.spacingSmMd),
@@ -51,16 +90,26 @@ fun RethinkConsoleLogRow(
         ) {
             Surface(
                 modifier = Modifier.size(SharedDimensions.iconSizeMd),
-                shape = RoundedCornerShape(SharedDimensions.cornerRadiusMd),
-                color = color.copy(alpha = 0.14f),
+                shape = RoundedCornerShape(SharedDimensions.cornerRadiusSm),
+                color = tint.copy(alpha = 0.14f),
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Text(item.level.toString(), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = color)
+                    Icon(
+                        imageVector = severity.icon,
+                        contentDescription = severityDescription,
+                        tint = tint,
+                        modifier = Modifier.size(SharedDimensions.iconSizeXs),
+                    )
                 }
             }
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
                 Text(item.timestamp, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text(item.message, style = MaterialTheme.typography.bodySmall, color = color)
+                Text(
+                    item.message,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontFamily = FontFamily.Monospace,
+                    color = if (severity == RethinkConsoleLogSeverity.Error) tint else MaterialTheme.colorScheme.onSurface,
+                )
             }
         }
     }

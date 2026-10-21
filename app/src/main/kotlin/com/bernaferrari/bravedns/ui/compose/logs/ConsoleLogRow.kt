@@ -16,11 +16,14 @@
 package com.bernaferrari.bravedns.ui.compose.logs
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.RethinkDnsApplication.Companion.DEBUG
 import com.bernaferrari.bravedns.database.ConsoleLog
 import com.bernaferrari.bravedns.ui.compose.logs.RethinkConsoleLogItem
 import com.bernaferrari.bravedns.ui.compose.logs.RethinkConsoleLogRow
+import com.bernaferrari.bravedns.ui.compose.logs.RethinkConsoleLogSeverity
+import com.bernaferrari.bravedns.ui.compose.logs.rethinkConsoleLogSeverity
 import com.bernaferrari.bravedns.util.Constants.Companion.TIME_FORMAT_1
 import com.bernaferrari.bravedns.util.Utilities
 
@@ -34,7 +37,14 @@ fun ConsoleLogRow(log: ConsoleLog, isDebug: Boolean = DEBUG) {
             Utilities.convertLongToTime(log.timestamp, TIME_FORMAT_1)
         }
 
+    val severityDescription = when (rethinkConsoleLogSeverity(logLevel)) {
+        RethinkConsoleLogSeverity.Error -> stringResource(R.string.console_severity_error)
+        RethinkConsoleLogSeverity.Warning -> stringResource(R.string.console_severity_warning)
+        RethinkConsoleLogSeverity.Info -> stringResource(R.string.console_severity_info)
+        RethinkConsoleLogSeverity.Debug -> stringResource(R.string.console_severity_debug)
+    }
     RethinkConsoleLogRow(
         RethinkConsoleLogItem(level = logLevel, timestamp = timestamp, message = log.message),
+        severityDescription = severityDescription,
     )
 }

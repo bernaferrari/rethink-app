@@ -27,6 +27,7 @@ import com.bernaferrari.bravedns.service.VpnController
 import com.bernaferrari.bravedns.ui.compose.logs.RethinkAppConnectionItem
 import com.bernaferrari.bravedns.ui.compose.logs.RethinkAppConnectionRow
 import com.bernaferrari.bravedns.ui.compose.logs.RethinkConnectionRuleState
+import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.util.Utilities.removeBeginningTrailingCommas
 import com.bernaferrari.bravedns.util.Utilities.showToastUiCentered
@@ -39,7 +40,8 @@ fun DomainRow(
     uid: Int,
     isActiveConn: Boolean,
     refreshToken: Int,
-    onIpClick: (AppConnection) -> Unit
+    onIpClick: (AppConnection) -> Unit,
+    position: CardPosition = CardPosition.Single,
 ) {
     val (primaryText, secondaryText) =
         if (isActiveConn) {
@@ -76,6 +78,7 @@ fun DomainRow(
             activity = activity,
         ),
         onClick = { onIpClick(conn) },
+        position = position,
     )
 }
 

@@ -5,22 +5,27 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLazyColumnScreenScaffold
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormSection
+import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
+import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 
 enum class RethinkMiscSettingIcon {
     Logs, AutoStart, Tombstone, FirewallBubble, IpInfo, AppUpdates, CrashReports, Downloader,
@@ -48,6 +53,7 @@ data class RethinkMiscSettingsStrings(
 )
 
 /** Shared general-settings screen. Hosts retain preference persistence and platform actions only. */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RethinkMiscSettingsScreen(
     strings: RethinkMiscSettingsStrings,
@@ -73,10 +79,11 @@ fun RethinkMiscSettingsScreen(
             if (motion.reducedMotion) listState.scrollToItem(it) else listState.animateScrollToItem(it)
         }
     }
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     RethinkLazyColumnScreenScaffold(
-        modifier = modifier,
+        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.surface,
-        topBar = { RethinkLargeTopBar(strings.title, onBackClick = onBackClick) },
+        topBar = { RethinkLargeTopBar(strings.title, onBackClick = onBackClick, scrollBehavior = scrollBehavior) },
         listState = listState,
         contentPadding = PaddingValues(
             start = SharedDimensions.screenPaddingHorizontal,
@@ -87,7 +94,8 @@ fun RethinkMiscSettingsScreen(
         verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
     ) {
             item {
-                RethinkFormSection(strings.backupSection) {
+                Column {
+                    SectionHeader(strings.backupSection)
                     RethinkListGroup {
                         RethinkListItem(
                             headline = strings.backupTitle,
@@ -97,23 +105,20 @@ fun RethinkMiscSettingsScreen(
                             leadingIconContainerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = .7f),
                             position = CardPosition.Single,
                             highlighted = focusedSettingId == "general_backup" || focusedSettingId == "general_backup_restore",
+                            showTrailingChevron = true,
                             onClick = onBackupRestore,
                         )
                     }
                 }
             }
             item {
-                RethinkFormSection(strings.generalSection) {
+                Column {
+                    SectionHeader(strings.generalSection)
                     RethinkListGroup {
                         toggles.forEachIndexed { index, toggle ->
                             RethinkMiscToggleRow(
                                 toggle = toggle,
-                                position = when {
-                                    toggles.size == 1 -> CardPosition.Single
-                                    index == 0 -> CardPosition.First
-                                    index == toggles.lastIndex -> CardPosition.Last
-                                    else -> CardPosition.Middle
-                                },
+                                position = cardPositionFor(index, toggles.lastIndex),
                                 highlighted = focusedSettingId == toggle.id,
                                 onCheckedChange = { onToggleChange(toggle.id, it) },
                             )
@@ -122,7 +127,8 @@ fun RethinkMiscSettingsScreen(
                 }
             }
             item {
-                RethinkFormSection(strings.aboutSection) {
+                Column {
+                    SectionHeader(strings.aboutSection)
                     RethinkListGroup {
                         RethinkListItem(
                             headline = strings.websiteTitle,
@@ -142,6 +148,7 @@ fun RethinkMiscSettingsScreen(
                             leadingIconContainerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = .7f),
                             position = CardPosition.Last,
                             highlighted = focusedSettingId == "general_about",
+                            showTrailingChevron = true,
                             onClick = onOpenAbout,
                         )
                     }

@@ -1,10 +1,15 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.navigation
 
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -67,7 +72,16 @@ fun RethinkAppNavigation(
     fun stackOf(stack: NavBackStack<NavKey>): List<RethinkRoute> =
         stack.mapNotNull { it as? RethinkRoute }
 
-    fun currentStack(): List<RethinkRoute> = stackOf(backStack)
+    // Entries for every root are built in the first composition (while Home is active) and keep
+    // the ops they captured, so stack lookups must resolve the active root when called rather
+    // than closing over this composition's `backStack`; otherwise a push from Settings lands on
+    // the hidden Home stack.
+    fun liveActiveRoot(): RethinkRootDestination =
+        RethinkRootDestination.entries.first { it.name == activeRootName }
+
+    fun liveBackStack(): NavBackStack<NavKey> = backStacks.getValue(liveActiveRoot())
+
+    fun currentStack(): List<RethinkRoute> = stackOf(liveBackStack())
 
     fun applyStackOn(
         stack: NavBackStack<NavKey>,
@@ -91,19 +105,20 @@ fun RethinkAppNavigation(
         val current = currentStack()
         val next = stackAfterPop(current) ?: return
         // Configure/Statistics roots exit through Home instead of finishing.
-        if (activeRoot != RethinkRootDestination.Home && next == listOf(RethinkRoute.Home)) {
+        if (liveActiveRoot() != RethinkRootDestination.Home && next == listOf(RethinkRoute.Home)) {
             tabTransition = true
             activeRootName = RethinkRootDestination.Home.name
             return
         }
         tabTransition = false
-        applyStackOn(backStack, current, next)
+        applyStackOn(liveBackStack(), current, next)
     }
 
     fun push(destination: RethinkRoute) {
         tabTransition = false
-        if (backStack.lastOrNull() != destination) {
-            backStack.add(destination)
+        val stack = liveBackStack()
+        if (stack.lastOrNull() != destination) {
+            stack.add(destination)
         }
     }
 
@@ -111,7 +126,7 @@ fun RethinkAppNavigation(
         val targetRoot = destination.rootDestination() ?: RethinkRootDestination.Home
         val target = backStacks.getValue(targetRoot)
         val current = stackOf(target)
-        tabTransition = targetRoot != activeRoot
+        tabTransition = targetRoot != liveActiveRoot()
         activeRootName = targetRoot.name
         applyStackOn(target, current, stackAfterOpen(current, destination))
     }
@@ -120,13 +135,13 @@ fun RethinkAppNavigation(
         val targetRoot = destination.rootDestination() ?: RethinkRootDestination.Home
         val target = backStacks.getValue(targetRoot)
         val current = stackOf(target)
-        tabTransition = targetRoot != activeRoot
+        tabTransition = targetRoot != liveActiveRoot()
         activeRootName = targetRoot.name
         applyStackOn(target, current, stackAfterOpenFromApp(current, destination))
     }
 
     fun selectRoot(destination: RethinkRootDestination) {
-        if (destination == activeRoot) return
+        if (destination == liveActiveRoot()) return
         tabTransition = true
         activeRootName = destination.name
     }
@@ -142,7 +157,7 @@ fun RethinkAppNavigation(
         pushRoute = { push(it) },
         openRoute = { open(it) },
         selectRootTab = { selectRoot(it) },
-        current = { backStack.lastOrNull() as? RethinkRoute },
+        current = { liveBackStack().lastOrNull() as? RethinkRoute },
     )
 
     LaunchedEffect(pendingRoute) {
@@ -153,38 +168,30 @@ fun RethinkAppNavigation(
 
     // Push/pop motion applied as NavDisplay defaults
     // (https://developer.android.com/guide/navigation/navigation-3/animate-destinations).
-    // Root tabs cross-fade; details keep the horizontal slide.
-    val fadeMillis = if (motion.reducedMotion) 0 else motion.durationFast
-    val fadeTransition: ContentTransform = remember(motion) {
+    // Root tabs cross-fade; details slide on the Material motion scheme's spatial springs.
+    val motionScheme = MaterialTheme.motionScheme
+    val fadeTransition: ContentTransform = remember(motion, motionScheme) {
+        val fade: FiniteAnimationSpec<Float> =
+            if (motion.reducedMotion) snap() else motionScheme.defaultEffectsSpec()
         ContentTransform(
-            targetContentEnter = fadeIn(
-                animationSpec = tween(durationMillis = fadeMillis, easing = motion.easingDecelerate),
-            ),
-            initialContentExit = fadeOut(
-                animationSpec = tween(durationMillis = fadeMillis, easing = motion.easingStandard),
-            ),
+            targetContentEnter = fadeIn(animationSpec = fade),
+            initialContentExit = fadeOut(animationSpec = fade),
         )
     }
-    val forwardTransition: ContentTransform = remember(motion) {
+    val forwardTransition: ContentTransform = remember(motion, motionScheme) {
         ContentTransform(
             targetContentEnter = slideInHorizontally(
-                animationSpec = tween(
-                    durationMillis = if (motion.reducedMotion) 0 else motion.durationMedium,
-                    easing = motion.easingDecelerate,
-                ),
+                animationSpec = if (motion.reducedMotion) snap() else motionScheme.defaultSpatialSpec(),
                 initialOffsetX = { fullWidth -> fullWidth },
             ),
             initialContentExit = ExitTransition.None,
         )
     }
-    val popTransition: ContentTransform = remember(motion) {
+    val popTransition: ContentTransform = remember(motion, motionScheme) {
         ContentTransform(
             targetContentEnter = EnterTransition.None,
             initialContentExit = slideOutHorizontally(
-                animationSpec = tween(
-                    durationMillis = if (motion.reducedMotion) 0 else motion.durationExit,
-                    easing = motion.easingAccelerate,
-                ),
+                animationSpec = if (motion.reducedMotion) snap() else motionScheme.fastSpatialSpec(),
                 targetOffsetX = { fullWidth -> fullWidth },
             ),
         )

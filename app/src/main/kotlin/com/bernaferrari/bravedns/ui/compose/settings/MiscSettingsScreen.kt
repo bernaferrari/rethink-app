@@ -64,15 +64,15 @@ fun MiscSettingsScreen(
     RethinkMiscSettingsScreen(
         strings = RethinkMiscSettingsStrings(
             title = stringResource(R.string.settings_general_header).titlecaseFirst(),
-            backupSection = stringResource(R.string.brbs_title),
-            backupTitle = stringResource(R.string.brbs_backup_title),
-            backupDescription = stringResource(R.string.brbs_backup_desc),
-            generalSection = stringResource(R.string.settings_general_header).titlecaseFirst(),
+            backupSection = stringResource(R.string.settings_misc_data_section),
+            backupTitle = stringResource(R.string.brbs_title),
+            backupDescription = stringResource(R.string.settings_misc_backup_desc),
+            generalSection = stringResource(R.string.settings_misc_behavior_section),
             aboutSection = stringResource(R.string.title_about),
-            websiteTitle = stringResource(R.string.about_website),
+            websiteTitle = stringResource(R.string.settings_misc_website),
             websiteDescription = websiteLink,
-            aboutTitle = stringResource(R.string.title_about),
-            aboutDescription = stringResource(R.string.app_name),
+            aboutTitle = stringResource(R.string.settings_misc_about_app, stringResource(R.string.app_name)),
+            aboutDescription = stringResource(R.string.settings_misc_about_desc),
         ),
         toggles = toggles,
         onToggleChange = { id, enabled ->

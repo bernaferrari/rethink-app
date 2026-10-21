@@ -9,7 +9,6 @@ package com.bernaferrari.bravedns.ui.compose.home
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -34,13 +33,19 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
-import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListShape
+
+/** A narrow single column reads as a composed first-run card rather than a stretched form. */
+private val WelcomeContentMaxWidth = 560.dp
 
 data class RethinkWelcomeFeature(
     val label: String,
     val icon: ImageVector,
+    /** One line on the value this feature delivers; onboarding should explain, not just list. */
+    val description: String? = null,
 )
 
 data class RethinkWelcomeContent(
@@ -68,7 +73,7 @@ fun RethinkWelcomeScreen(
         ) {
             Column(
                 modifier = Modifier
-                    .widthIn(max = 560.dp)
+                    .widthIn(max = WelcomeContentMaxWidth)
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .padding(
@@ -145,46 +150,16 @@ private fun RethinkWelcomeHero(content: RethinkWelcomeContent) {
 
 @Composable
 private fun RethinkWelcomeFeatures(features: List<RethinkWelcomeFeature>) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile),
-    ) {
+    RethinkListGroup {
         features.forEachIndexed { index, feature ->
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = rethinkGroupedListShape(cardPositionFor(index, features.lastIndex)),
-                color = MaterialTheme.colorScheme.surfaceContainerLow,
-            ) {
-                Row(
-                    modifier = Modifier.padding(
-                        horizontal = SharedDimensions.spacingLg,
-                        vertical = SharedDimensions.spacingMd,
-                    ),
-                    horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Surface(
-                        modifier = Modifier.size(SharedDimensions.iconContainerMd),
-                        shape = RoundedCornerShape(SharedDimensions.iconContainerRadius),
-                        color = MaterialTheme.colorScheme.secondaryContainer,
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = feature.icon,
-                                contentDescription = null,
-                                modifier = Modifier.size(SharedDimensions.iconSizeSm),
-                                tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                            )
-                        }
-                    }
-                    Text(
-                        text = feature.label,
-                        modifier = Modifier.weight(1f),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                }
-            }
+            RethinkListItem(
+                headline = feature.label,
+                supporting = feature.description,
+                leadingIcon = feature.icon,
+                leadingIconTint = MaterialTheme.colorScheme.onSecondaryContainer,
+                leadingIconContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                position = cardPositionFor(index, features.lastIndex),
+            )
         }
     }
 }

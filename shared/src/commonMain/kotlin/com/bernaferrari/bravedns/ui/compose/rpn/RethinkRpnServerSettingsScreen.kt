@@ -27,7 +27,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.components.RethinkSharedIconContainer
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
@@ -37,6 +36,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormActionRow
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkModalBottomSheet
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBar
+import com.bernaferrari.bravedns.ui.compose.theme.SectionHeaderWithSubtitle
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 
@@ -173,18 +173,7 @@ private fun RethinkRpnServerSettingsStrings.dnsModeTitle(mode: RethinkRpnDnsMode
 
 @Composable
 private fun SettingsSectionHeader(title: String, subtitle: String) {
-    Column(
-        modifier = Modifier.padding(top = SharedDimensions.spacingMd),
-        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
-    ) {
-        Text(
-            title,
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.primary,
-        )
-        Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
+    SectionHeaderWithSubtitle(title = title, subtitle = subtitle)
 }
 
 @Composable
@@ -209,7 +198,8 @@ private fun RpnActionRow(
     RethinkListItem(
         headline = title, supporting = description, position = position, enabled = enabled, onClick = onClick,
         leadingContent = { RethinkSharedIconContainer(accent) { Icon(icon, null, tint = accent) } },
-        trailing = { Icon(MaterialSymbols.AutoMirrored.Filled.ArrowForward, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
+        // Navigation rows get the standard chevron; destructive actions open a confirmation instead.
+        showTrailingChevron = !destructive,
     )
 }
 

@@ -18,6 +18,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeFlexibleTopAppBar
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -32,8 +33,6 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -44,16 +43,16 @@ fun RethinkLargeTopBar(
     scrollBehavior: TopAppBarScrollBehavior? = null,
     containerColor: Color = MaterialTheme.colorScheme.surface,
     scrolledContainerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
-    titleTextStyle: TextStyle = MaterialTheme.typography.headlineSmall,
-    titleStartPadding: Dp = 0.dp,
+    /** Null keeps the bar's own expanded/collapsed type scale; only override for data titles. */
+    titleTextStyle: TextStyle? = null,
     titleLeading: (@Composable () -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
     backDescription: String = LocalRethinkBackDescription.current,
 ) = LargeFlexibleTopAppBar(
     title = {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(start = titleStartPadding),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSmMd),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             titleLeading?.invoke()
@@ -61,7 +60,7 @@ fun RethinkLargeTopBar(
                 text = title,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                style = titleTextStyle,
+                style = titleTextStyle ?: LocalTextStyle.current,
             )
         }
     },
@@ -76,7 +75,7 @@ fun RethinkLargeTopBar(
             )
         }
     } else {
-        {}
+        null
     },
     navigationIcon = {
         if (onBackClick != null) {
@@ -156,7 +155,7 @@ fun RethinkTopBarLazyColumnScreen(
     containerColor: Color = MaterialTheme.colorScheme.surface,
     topBarContainerColor: Color = MaterialTheme.colorScheme.surface,
     topBarScrolledContainerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
-    topBarTitleTextStyle: TextStyle = MaterialTheme.typography.titleLarge,
+    topBarTitleTextStyle: TextStyle? = null,
     listState: LazyListState? = null,
     contentPadding: PaddingValues = PaddingValues(
         start = SharedDimensions.screenPaddingHorizontal,

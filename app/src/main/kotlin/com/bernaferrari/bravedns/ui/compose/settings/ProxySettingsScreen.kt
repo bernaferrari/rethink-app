@@ -32,6 +32,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.core.os.ConfigurationCompat
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.R
@@ -388,30 +389,8 @@ fun ProxySettingsScreen(
         }
         if (showWarning) index++
 
-        val hasWireguard = onWireguardClick != null
-        if (hasWireguard && key == "proxy_wireguard") {
-            listState.animateScrollToItem(index)
-            delay(900)
-            if (activeFocusKey == key) {
-                activeFocusKey = null
-            }
-            pendingFocusKey = ""
-            return@LaunchedEffect
-        }
-        if (hasWireguard) index++
-
-        if (key == "proxy_socks") {
-            listState.animateScrollToItem(index)
-            delay(900)
-            if (activeFocusKey == key) {
-                activeFocusKey = null
-            }
-            pendingFocusKey = ""
-            return@LaunchedEffect
-        }
-        index++
-
-        if (key == "proxy_http") {
+        // WireGuard, SOCKS5 and HTTP share one "servers" section item; Orbot is the next item.
+        if (key == "proxy_wireguard" || key == "proxy_socks" || key == "proxy_http") {
             listState.animateScrollToItem(index)
             delay(900)
             if (activeFocusKey == key) {
@@ -471,8 +450,11 @@ fun ProxySettingsScreen(
             inactive = stringResource(R.string.lbl_inactive),
             waiting = stringResource(R.string.status_waiting),
             apps = stringResource(R.string.lbl_apps),
+            appsCount = { count -> pluralStringResource(R.plurals.orbot_apps_count, count, count) },
             openApp = stringResource(R.string.settings_orbot_notification_action),
             info = stringResource(R.string.lbl_info),
+            serversSection = stringResource(R.string.proxy_servers_section),
+            torSection = stringResource(R.string.proxy_tor_section),
         ),
         activeFocusKey = activeFocusKey,
         onBackClick = onBackClick,

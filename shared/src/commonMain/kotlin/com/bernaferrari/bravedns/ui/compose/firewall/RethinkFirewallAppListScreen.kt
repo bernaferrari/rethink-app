@@ -3,24 +3,13 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.firewall
 
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.LoadingIndicator
-import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
-
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.FiniteAnimationSpec
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.keyframes
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.snap
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -29,14 +18,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -44,9 +31,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -61,23 +54,24 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.bernaferrari.bravedns.ui.compose.components.RethinkFastScrollerMark
-import com.bernaferrari.bravedns.ui.compose.components.RethinkIndexedFastScroller
 import com.bernaferrari.bravedns.ui.compose.apps.DiagonalWipeIcon
 import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
+import com.bernaferrari.bravedns.ui.compose.components.RethinkFastScrollerMark
+import com.bernaferrari.bravedns.ui.compose.components.RethinkIndexedFastScroller
+import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
+import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFilterChip
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormActionRow
@@ -85,13 +79,13 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkModalBottomSheet
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSearchField
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBar
-import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
-import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
-import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusColors
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBar
+import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
+import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListShape
+import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 /** Data the portable firewall app-list renderer needs from a host. */
 data class RethinkFirewallApp(
@@ -158,7 +152,19 @@ data class RethinkFirewallAppListStrings(
     val bulkDialogCopy: (RethinkFirewallBulkAction, Boolean) -> RethinkFirewallBulkDialogCopy,
     val filterLabel: @Composable (RethinkFirewallFilter) -> String,
     val statusLabel: @Composable (RethinkFirewallAppStatus) -> String,
+    /** Content description of the top-bar overflow button that holds the bulk-rules entry. */
+    val moreOptions: String = "More options",
 )
+
+/**
+ * Canonical data-usage line: download first, single line ("↓ 8 MB · ↑ 1 MB"). Hosts format the
+ * byte counts; this keeps the order and separators identical on every surface.
+ */
+fun rethinkUsageText(download: String, upload: String): String = "↓ $download · ↑ $upload"
+
+/** Width reserved at the end of indexed lists for [RethinkIndexedFastScroller]. */
+private val FastScrollerGutter = 36.dp
+private const val FAST_SCROLLER_MIN_MARKS = 4
 
 /**
  * Full target-neutral app firewall UI. Hosts own installed-app discovery, package icons, shared
@@ -190,8 +196,24 @@ fun RethinkFirewallAppListScreen(
     var showFilters by remember { mutableStateOf(false) }
     var showRules by remember { mutableStateOf(false) }
     var pendingBulkAction by remember { mutableStateOf<RethinkFirewallBulkAction?>(null) }
-    val hasAdvancedFilters = filters.topLevel != RethinkFirewallTopLevelFilter.Installed ||
+    val hasActiveFilters = selectedQuickFilter != RethinkFirewallFilter.All ||
+        filters.topLevel != RethinkFirewallTopLevelFilter.Installed ||
         filters.categories.isNotEmpty()
+
+    // Hosts may return packages in install/UID order. Keep the renderer deterministic so the
+    // letter headers, fast scroller, and rows always describe the same alphabetical sequence.
+    val orderedApps = remember(apps) {
+        apps.sortedWith(
+            compareBy(
+                { it.appName.ifBlank { it.packageName }.trim().lowercase() },
+                { it.packageName.lowercase() },
+            ),
+        )
+    }
+    val scrollerMarks = remember(orderedApps) { rethinkFirewallScrollerMarks(orderedApps) }
+    // The search row and the list share one end inset so their right edges line up, whether or
+    // not the fast scroller is shown.
+    val endGutter = if (scrollerMarks.size >= FAST_SCROLLER_MIN_MARKS) FastScrollerGutter else 0.dp
 
     Scaffold(
         modifier = modifier,
@@ -201,14 +223,12 @@ fun RethinkFirewallAppListScreen(
                 title = strings.title,
                 onBackClick = onBackClick,
                 actions = {
-                    IconButton(onClick = onRefresh, enabled = !isRefreshing) {
-                        if (isRefreshing) {
-                            LoadingIndicator(Modifier.size(SharedDimensions.iconSizeMd))
-                        } else {
-                            Icon(MaterialSymbols.Filled.Refresh, strings.refresh)
-                        }
-                    }
-                    IconButton(onClick = { showRules = true }) { Icon(MaterialSymbols.Filled.Gavel, strings.rules) }
+                    RethinkFirewallTopBarActions(
+                        isRefreshing = isRefreshing,
+                        strings = strings,
+                        onRefresh = onRefresh,
+                        onOpenRules = { showRules = true },
+                    )
                 },
             )
         },
@@ -217,16 +237,17 @@ fun RethinkFirewallAppListScreen(
             RethinkFirewallAppControls(
                 query = query,
                 count = apps.size,
-                selected = selectedQuickFilter,
-                hasAdvancedFilters = hasAdvancedFilters,
+                hasActiveFilters = hasActiveFilters,
+                endGutter = endGutter,
                 strings = strings,
                 onQueryChange = onQueryChange,
-                onQuickFilterChange = onQuickFilterChange,
-                onOpenAdvancedFilters = { showFilters = true },
+                onOpenFilters = { showFilters = true },
             )
             RethinkFirewallAppList(
                 modifier = Modifier.weight(1f),
-                apps = apps,
+                apps = orderedApps,
+                scrollerMarks = scrollerMarks,
+                endGutter = endGutter,
                 query = query,
                 strings = strings,
                 appIcon = appIcon,
@@ -274,140 +295,94 @@ fun RethinkFirewallAppListScreen(
     }
 }
 
+/** Refresh stays visible; the bulk-rules sheet lives in a labelled overflow item. */
+@Composable
+private fun RethinkFirewallTopBarActions(
+    isRefreshing: Boolean,
+    strings: RethinkFirewallAppListStrings,
+    onRefresh: () -> Unit,
+    onOpenRules: () -> Unit,
+) {
+    IconButton(onClick = onRefresh, enabled = !isRefreshing) {
+        if (isRefreshing) {
+            LoadingIndicator(Modifier.size(SharedDimensions.iconSizeMd))
+        } else {
+            Icon(MaterialSymbols.Filled.Refresh, strings.refresh)
+        }
+    }
+    // DropdownMenu anchors to its layout parent; keep trigger and popup in one Box.
+    Box {
+        var showOverflow by remember { mutableStateOf(false) }
+        IconButton(onClick = { showOverflow = true }) {
+            Icon(MaterialSymbols.Filled.MoreVert, strings.moreOptions)
+        }
+        DropdownMenu(expanded = showOverflow, onDismissRequest = { showOverflow = false }) {
+            DropdownMenuItem(
+                text = { Text(strings.rules) },
+                leadingIcon = { Icon(MaterialSymbols.Filled.Gavel, null) },
+                onClick = {
+                    showOverflow = false
+                    onOpenRules()
+                },
+            )
+        }
+    }
+}
+
 @Composable
 private fun RethinkFirewallAppControls(
     query: String,
     count: Int,
-    selected: RethinkFirewallFilter,
-    hasAdvancedFilters: Boolean,
+    hasActiveFilters: Boolean,
+    endGutter: Dp,
     strings: RethinkFirewallAppListStrings,
     onQueryChange: (String) -> Unit,
-    onQuickFilterChange: (RethinkFirewallFilter) -> Unit,
-    onOpenAdvancedFilters: () -> Unit,
+    onOpenFilters: () -> Unit,
 ) {
-    val quickFilters = listOf(
-        RethinkFirewallFilter.All,
-        RethinkFirewallFilter.Allowed,
-        RethinkFirewallFilter.Blocked,
-        RethinkFirewallFilter.Bypass,
-        RethinkFirewallFilter.Excluded,
-        RethinkFirewallFilter.Lockdown,
-    )
-    val hasQuickFilter = selected != RethinkFirewallFilter.All
-    var filtersExpanded by remember { mutableStateOf(hasQuickFilter || hasAdvancedFilters) }
-    val motion = LocalRethinkMotion.current
-    val expandSpec = tween<IntSize>(
-        durationMillis = motion.durationMedium,
-        easing = motion.easingStandard,
-    )
-    val fadeSpec = tween<Float>(
-        durationMillis = motion.durationMedium,
-        easing = motion.easingStandard,
-    )
-    val collapseSpec = tween<IntSize>(
-        durationMillis = motion.durationExit,
-        easing = motion.easingStandard,
-    )
-    val fadeOutSpec = tween<Float>(
-        durationMillis = motion.durationExit,
-        easing = motion.easingStandard,
-    )
-    Column(
-        Modifier.fillMaxWidth().padding(
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(
             start = SharedDimensions.screenPaddingHorizontal,
-            end = SharedDimensions.screenPaddingHorizontal,
+            end = SharedDimensions.screenPaddingHorizontal + endGutter,
             top = SharedDimensions.spacingSm,
             bottom = SharedDimensions.spacingXs,
         ),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
+        RethinkSearchField(
+            query = query,
+            onQueryChange = onQueryChange,
+            placeholder = strings.searchHint(count),
+            clearQueryContentDescription = strings.clearSearch,
+            onClearQuery = { onQueryChange("") },
+            modifier = Modifier.weight(1f),
+            shape = RoundedCornerShape(SharedDimensions.cornerRadiusMdLg),
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        )
+        // The single filter entry point: status, view and categories all live in the sheet; the
+        // badge tells the user a non-default filter is narrowing the list.
+        Surface(
+            onClick = onOpenFilters,
+            shape = RoundedCornerShape(SharedDimensions.cornerRadiusMdLg),
+            color = if (hasActiveFilters) {
+                MaterialTheme.colorScheme.secondaryContainer
+            } else {
+                MaterialTheme.colorScheme.surfaceContainerLow
+            },
+            modifier = Modifier.size(SharedDimensions.buttonHeight),
         ) {
-            RethinkSearchField(
-                query = query,
-                onQueryChange = onQueryChange,
-                placeholder = strings.searchHint(count),
-                clearQueryContentDescription = strings.clearSearch,
-                onClearQuery = { onQueryChange("") },
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(SharedDimensions.cornerRadiusMdLg),
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-            )
-            Surface(
-                onClick = { filtersExpanded = !filtersExpanded },
-                shape = RoundedCornerShape(SharedDimensions.cornerRadiusMdLg),
-                color = if (filtersExpanded || hasQuickFilter || hasAdvancedFilters) {
-                    MaterialTheme.colorScheme.secondaryContainer
-                } else {
-                    MaterialTheme.colorScheme.surfaceContainerLow
-                },
-                modifier = Modifier.size(56.dp),
+            BadgedBox(
+                badge = { if (hasActiveFilters) Badge() },
+                modifier = Modifier.wrapContentSize(Alignment.Center),
             ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        MaterialSymbols.Filled.FilterList,
-                        strings.filter,
-                        tint = if (filtersExpanded || hasQuickFilter || hasAdvancedFilters) {
-                            MaterialTheme.colorScheme.onSecondaryContainer
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        },
-                    )
-                    if (hasQuickFilter || hasAdvancedFilters) {
-                        Box(
-                            Modifier
-                                .align(Alignment.TopEnd)
-                                .padding(top = 10.dp, end = 10.dp)
-                                .size(8.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primary),
-                        )
-                    }
-                }
-            }
-        }
-        AnimatedVisibility(
-            visible = filtersExpanded,
-            enter = fadeIn(fadeSpec) + expandVertically(
-                animationSpec = expandSpec,
-                expandFrom = Alignment.Top,
-            ),
-            exit = fadeOut(fadeOutSpec) + shrinkVertically(
-                animationSpec = collapseSpec,
-                shrinkTowards = Alignment.Top,
-            ),
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = SharedDimensions.spacingSm)
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                quickFilters.forEach { filter ->
-                    RethinkFilterChip(
-                        label = strings.filterLabel(filter),
-                        selected = selected == filter,
-                        onClick = {
-                            onQuickFilterChange(if (selected == filter) RethinkFirewallFilter.All else filter)
-                        },
-                        leadingIcon = filter.icon()?.let { icon -> @Composable { Icon(icon, null, Modifier.size(14.dp)) } },
-                        minHeight = SharedDimensions.touchTargetMin,
-                        selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                    )
-                }
-                RethinkFilterChip(
-                    label = strings.filter,
-                    selected = hasAdvancedFilters,
-                    onClick = onOpenAdvancedFilters,
-                    leadingIcon = { Icon(MaterialSymbols.Filled.Tune, null, Modifier.size(14.dp)) },
-                    minHeight = SharedDimensions.touchTargetMin,
-                    selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                Icon(
+                    MaterialSymbols.Filled.FilterList,
+                    strings.filter,
+                    tint = if (hasActiveFilters) {
+                        MaterialTheme.colorScheme.onSecondaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
                 )
             }
         }
@@ -417,6 +392,8 @@ private fun RethinkFirewallAppControls(
 @Composable
 private fun RethinkFirewallAppList(
     apps: List<RethinkFirewallApp>,
+    scrollerMarks: List<RethinkFastScrollerMark>,
+    endGutter: Dp,
     query: String,
     strings: RethinkFirewallAppListStrings,
     appIcon: @Composable (RethinkFirewallApp) -> Unit,
@@ -435,36 +412,24 @@ private fun RethinkFirewallAppList(
         return
     }
 
-    // Hosts may return packages in install/UID order. Keep the renderer deterministic so the
-    // letter headers, fast scroller, and rows always describe the same alphabetical sequence.
-    val orderedApps = remember(apps) {
-        apps.sortedWith(
-            compareBy(
-                { it.appName.ifBlank { it.packageName }.trim().lowercase() },
-                { it.packageName.lowercase() },
-            ),
-        )
-    }
     val state = rememberLazyListState()
-    val scrollerMarks = remember(orderedApps) { rethinkFirewallScrollerMarks(orderedApps) }
     Box(modifier.fillMaxSize()) {
         RethinkFirewallAppRows(
-            apps = orderedApps,
+            apps = apps,
             state = state,
+            endGutter = endGutter,
             query = query,
             strings = strings,
             appIcon = appIcon,
             onAppClick = onAppClick,
             onWifiToggle = onWifiToggle,
             onMobileToggle = onMobileToggle,
-            proxyLabel = strings.proxy,
-            wifiActionLabel = strings.wifiActionLabel,
-            mobileActionLabel = strings.mobileActionLabel,
         )
         RethinkIndexedFastScroller(
             marks = scrollerMarks,
             listState = state,
-            modifier = Modifier.align(Alignment.CenterEnd).padding(end = 2.dp, bottom = SharedDimensions.spacingLg),
+            minMarkCount = FAST_SCROLLER_MIN_MARKS,
+            modifier = Modifier.align(Alignment.CenterEnd).padding(end = SharedDimensions.spacingGridTile, bottom = SharedDimensions.spacingLg),
         )
     }
 }
@@ -473,21 +438,19 @@ private fun RethinkFirewallAppList(
 private fun RethinkFirewallAppRows(
     apps: List<RethinkFirewallApp>,
     state: LazyListState,
+    endGutter: Dp,
     query: String,
     strings: RethinkFirewallAppListStrings,
     appIcon: @Composable (RethinkFirewallApp) -> Unit,
     onAppClick: (RethinkFirewallApp) -> Unit,
     onWifiToggle: (RethinkFirewallApp) -> Unit,
     onMobileToggle: (RethinkFirewallApp) -> Unit,
-    proxyLabel: String,
-    wifiActionLabel: @Composable (Boolean) -> String,
-    mobileActionLabel: @Composable (Boolean) -> String,
 ) {
     LazyColumn(
         state = state,
         contentPadding = PaddingValues(
             start = SharedDimensions.screenPaddingHorizontal,
-            end = SharedDimensions.screenPaddingHorizontal + 36.dp,
+            end = SharedDimensions.screenPaddingHorizontal + endGutter,
             top = SharedDimensions.spacingXs,
             bottom = SharedDimensions.spacingXl,
         ),
@@ -499,15 +462,22 @@ private fun RethinkFirewallAppRows(
             if (index == 0 || initial != previousInitial) {
                 // The same initial can legitimately appear in separate groups after filtering;
                 // include the source position so LazyColumn never receives duplicate keys.
-                stickyHeader(key = "firewall_header_${initial}_$index") { RethinkFirewallLetterHeader(initial) }
+                stickyHeader(key = "firewall_header_${initial}_$index", contentType = "header") {
+                    SectionHeader(
+                        title = initial,
+                        horizontalPadding = SharedDimensions.spacingLg,
+                        modifier = Modifier.background(MaterialTheme.colorScheme.surface),
+                    )
+                }
             }
+            // Rows group per letter: the first/last row of each letter gets the outer corners.
             val position = when {
                 previousInitial != initial && nextInitial != initial -> CardPosition.Single
                 previousInitial != initial -> CardPosition.First
                 nextInitial != initial -> CardPosition.Last
                 else -> CardPosition.Middle
             }
-            item(key = app.id) {
+            item(key = app.id, contentType = "app") {
                 RethinkFirewallAppRow(
                     app = app,
                     query = query,
@@ -517,22 +487,12 @@ private fun RethinkFirewallAppRows(
                     onClick = { onAppClick(app) },
                     onWifiToggle = { onWifiToggle(app) },
                     onMobileToggle = { onMobileToggle(app) },
-                    proxyLabel = proxyLabel,
-                    wifiActionLabel = wifiActionLabel(app.wifiBlocked),
-                    mobileActionLabel = mobileActionLabel(app.mobileBlocked),
+                    proxyLabel = strings.proxy,
+                    wifiActionLabel = strings.wifiActionLabel(app.wifiBlocked),
+                    mobileActionLabel = strings.mobileActionLabel(app.mobileBlocked),
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun RethinkFirewallLetterHeader(letter: String) {
-    Box(
-        Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface)
-            .padding(start = SharedDimensions.spacingLg, top = SharedDimensions.spacingLg, bottom = SharedDimensions.spacingXs),
-    ) {
-        Text(letter, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -555,15 +515,21 @@ private fun RethinkFirewallAppRow(
     val pressed by interaction.collectIsPressedAsState()
     val scale by animateFloatAsState(
         targetValue = if (pressed && !motion.reducedMotion) .98f else 1f,
-        animationSpec = if (motion.reducedMotion) snap() else spring(dampingRatio = .72f),
+        animationSpec = if (motion.reducedMotion) snap() else MaterialTheme.motionScheme.fastSpatialSpec(),
         label = "firewall_app_row_scale",
     )
     val shape = rethinkGroupedListShape(position)
     val accent = statusColor(app.status, app.wifiBlocked || app.mobileBlocked)
+    val usage = app.dataUsage?.takeIf { it.isNotBlank() }
+    val hasSupportingLine = statusLabel.isNotBlank() || app.proxyEnabled || usage != null
     Surface(
         onClick = onClick,
         interactionSource = interaction,
-        modifier = Modifier.fillMaxWidth().padding(top = if (position == CardPosition.First || position == CardPosition.Single) 0.dp else 2.dp).scale(scale).clip(shape),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = if (position == CardPosition.First || position == CardPosition.Single) SharedDimensions.spacingNone else SharedDimensions.spacingGridTile)
+            .scale(scale)
+            .clip(shape),
         shape = shape,
         color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
@@ -574,30 +540,48 @@ private fun RethinkFirewallAppRow(
         ) {
             Box(Modifier.size(SharedDimensions.iconContainerMd).clip(RoundedCornerShape(SharedDimensions.iconContainerRadius)), contentAlignment = Alignment.Center) { appIcon() }
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile)) {
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
-                    Text(
-                        text = highlighted(
-                            app.appName.ifBlank { app.packageName },
-                            query,
-                            MaterialTheme.colorScheme.primary,
-                        ),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (app.hasInternetPermission) 1f else .42f),
-                        textDecoration = if (app.tombstoned) TextDecoration.LineThrough else null,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f),
-                    )
-                    if (statusLabel.isNotBlank()) RethinkFirewallStatusBadge(statusLabel, accent)
-                }
-                if (app.proxyEnabled) {
-                    Surface(shape = RoundedCornerShape(SharedDimensions.buttonCornerRadius), color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = .76f)) {
-                        Text(proxyLabel, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onTertiaryContainer, modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp))
+                Text(
+                    text = highlighted(
+                        app.appName.ifBlank { app.packageName },
+                        query,
+                        MaterialTheme.colorScheme.primary,
+                    ),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (app.hasInternetPermission) 1f else .42f),
+                    textDecoration = if (app.tombstoned) TextDecoration.LineThrough else null,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                // One non-wrapping supporting line: status/proxy badges first, then usage, which
+                // is the only part allowed to ellipsize.
+                if (hasSupportingLine) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
+                    ) {
+                        if (statusLabel.isNotBlank()) {
+                            RethinkFirewallStatusBadge(statusLabel, accent, accent.copy(alpha = .12f))
+                        }
+                        if (app.proxyEnabled) {
+                            RethinkFirewallStatusBadge(
+                                proxyLabel,
+                                MaterialTheme.colorScheme.onTertiaryContainer,
+                                MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = .76f),
+                            )
+                        }
+                        usage?.let {
+                            Text(
+                                it,
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                softWrap = false,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f, fill = false),
+                            )
+                        }
                     }
-                }
-                app.dataUsage?.takeIf { it.isNotBlank() }?.let { usage ->
-                    Text(usage, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = .72f))
                 }
             }
             if (app.canToggleConnections) {
@@ -623,9 +607,17 @@ private fun RethinkFirewallAppRow(
 }
 
 @Composable
-private fun RethinkFirewallStatusBadge(label: String, color: Color) {
-    Surface(shape = RoundedCornerShape(SharedDimensions.buttonCornerRadius), color = color.copy(alpha = .12f)) {
-        Text(label, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold, color = color, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
+private fun RethinkFirewallStatusBadge(label: String, contentColor: Color, containerColor: Color) {
+    Surface(shape = RoundedCornerShape(SharedDimensions.buttonCornerRadius), color = containerColor) {
+        Text(
+            label,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = contentColor,
+            maxLines = 1,
+            softWrap = false,
+            modifier = Modifier.padding(horizontal = SharedDimensions.spacingSm, vertical = SharedDimensions.spacingGridTile),
+        )
     }
 }
 
@@ -885,8 +877,8 @@ private fun RethinkFirewallFilterDialog(
 
 @Composable
 private fun RethinkFirewallFilterSection(title: String, content: @Composable () -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
-        Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+    Column {
+        SectionHeader(title)
         content()
     }
 }
@@ -909,7 +901,7 @@ private fun <T> RethinkFirewallFilterOptions(
                 label = label(option),
                 selected = option == selected,
                 onClick = { if (option != selected) onSelect(option) },
-                leadingIcon = icon?.invoke(option)?.let { vector -> @Composable { Icon(vector, null, Modifier.size(14.dp)) } },
+                leadingIcon = icon?.invoke(option)?.let { vector -> @Composable { Icon(vector, null, Modifier.size(SharedDimensions.iconSizeXs)) } },
                 minHeight = SharedDimensions.touchTargetMin,
                 selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
                 selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -980,8 +972,8 @@ private fun RethinkFirewallBulkIcon(action: RethinkFirewallBulkAction) {
         RethinkFirewallBulkAction.Exclude -> MaterialSymbols.Filled.Security
         RethinkFirewallBulkAction.Lockdown -> MaterialSymbols.Filled.Block
     }
-    Surface(shape = CircleShape, color = MaterialTheme.colorScheme.surfaceContainerHighest, modifier = Modifier.size(32.dp)) {
-        Box(contentAlignment = Alignment.Center) { Icon(icon, null, modifier = Modifier.size(17.dp)) }
+    Surface(shape = CircleShape, color = MaterialTheme.colorScheme.surfaceContainerHighest, modifier = Modifier.size(SharedDimensions.iconContainerSm)) {
+        Box(contentAlignment = Alignment.Center) { Icon(icon, null, modifier = Modifier.size(SharedDimensions.iconSizeXs)) }
     }
 }
 

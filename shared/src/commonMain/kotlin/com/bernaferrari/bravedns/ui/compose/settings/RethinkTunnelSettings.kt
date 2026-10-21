@@ -30,7 +30,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormSection
+import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListShape
@@ -113,7 +113,8 @@ fun RethinkTunnelSettingsScreen(
             }
             item { RethinkTunnelSettingGroup(coreRows, focusedRowId, onActionClick, onToggleChange) }
             item {
-                RethinkFormSection(strings.advanced) {
+                Column {
+                    SectionHeader(strings.advanced)
                     RethinkTunnelSettingGroup(
                         rows = advancedRows,
                         focusedRowId = focusedRowId,

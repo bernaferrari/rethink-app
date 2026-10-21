@@ -1,8 +1,6 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.statistics
 
-import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
-
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,11 +21,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListShape
+import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 /** Portable connection-summary row. Hosts provide platform artwork and the navigation action. */
 @Composable
@@ -49,7 +46,7 @@ fun RethinkStatisticsSummaryItem(
     Surface(
         onClick = onClick ?: {},
         enabled = onClick != null,
-        modifier = modifier.fillMaxWidth().padding(top = if (position == CardPosition.First || position == CardPosition.Single) 0.dp else SharedDimensions.spacingGridTile).clip(rowShape),
+        modifier = modifier.fillMaxWidth().padding(top = if (position == CardPosition.First || position == CardPosition.Single) SharedDimensions.spacingNone else SharedDimensions.spacingGridTile).clip(rowShape),
         shape = rowShape,
         color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
@@ -57,7 +54,7 @@ fun RethinkStatisticsSummaryItem(
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.size(SharedDimensions.iconContainerMd), contentAlignment = Alignment.Center) {
                     when {
-                        !flagText.isNullOrEmpty() -> Text(flagText, fontSize = 22.sp)
+                        !flagText.isNullOrEmpty() -> Text(flagText, style = MaterialTheme.typography.titleLarge)
                         leadingContent != null -> leadingContent()
                     }
                 }
@@ -89,9 +86,9 @@ fun RethinkStatisticsSummaryItem(
                 if (showIndicator && onClick != null) {
                     Spacer(Modifier.width(SharedDimensions.spacingSm))
                     Icon(
-                        MaterialSymbols.AutoMirrored.Filled.ArrowForward,
+                        MaterialSymbols.AutoMirrored.Filled.KeyboardArrowRight,
                         contentDescription = null,
-                        modifier = Modifier.size(SharedDimensions.iconSizeXs),
+                        modifier = Modifier.size(SharedDimensions.iconSizeMd),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }

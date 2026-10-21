@@ -11,6 +11,7 @@ import androidx.compose.material3.VerticalDivider
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -32,11 +33,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormSection
+import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
+import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 
@@ -67,8 +68,14 @@ data class RethinkProxySettingsStrings(
     val inactive: String,
     val waiting: String,
     val apps: String,
+    /** Plural-aware supporting line for the Orbot apps row, e.g. "4 apps use Orbot". */
+    val appsCount: @Composable (Int) -> String,
     val openApp: String,
     val info: String,
+    /** Header above WireGuard, SOCKS5 and HTTP; must not repeat any row title. */
+    val serversSection: String,
+    /** Header above the Orbot group; must not repeat the "Orbot" row title. */
+    val torSection: String,
 )
 
 /** Shared proxy-settings shell. Hosts keep proxy services, Orbot availability, and form dialogs. */
@@ -100,7 +107,6 @@ fun RethinkProxySettingsScreen(
                 title = strings.title,
                 onBackClick = onBackClick,
                 scrollBehavior = scrollBehavior,
-                titleStartPadding = SharedDimensions.spacingSm,
                 actions = {
                     if (state.canEnableProxy) {
                         IconButton(onClick = onRefresh, enabled = !state.isRefreshing) {
@@ -125,48 +131,51 @@ fun RethinkProxySettingsScreen(
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
         ) {
             if (!state.canEnableProxy) item { RethinkProxyWarning(strings.warning, activeFocusKey == "proxy_warning") }
-            if (state.wireguardAvailable) item {
-                RethinkFormSection(strings.wireguard) {
+            item {
+                Column {
+                    SectionHeader(strings.serversSection)
                     RethinkListGroup {
-                        RethinkListItem(
-                            headline = strings.wireguard,
-                            supporting = state.wireguardDescription,
-                            leadingIcon = MaterialSymbols.Filled.VpnKey,
-                            position = CardPosition.Single,
-                            highlighted = activeFocusKey == "proxy_wireguard",
-                            onClick = onWireguardClick,
+                        val rowCount = if (state.wireguardAvailable) 3 else 2
+                        var row = 0
+                        if (state.wireguardAvailable) {
+                            RethinkListItem(
+                                headline = strings.wireguard,
+                                supporting = state.wireguardDescription,
+                                leadingIcon = MaterialSymbols.Filled.VpnKey,
+                                position = cardPositionFor(row++, rowCount - 1),
+                                highlighted = activeFocusKey == "proxy_wireguard",
+                                showTrailingChevron = true,
+                                onClick = onWireguardClick,
+                            )
+                        }
+                        RethinkProxyToggleRow(
+                            title = strings.socks5,
+                            description = state.socks5Description,
+                            checked = state.socks5Enabled,
+                            enabled = state.canEnableProxy || !state.socks5Enabled,
+                            highlighted = activeFocusKey == "proxy_socks",
+                            icon = MaterialSymbols.Filled.Security,
+                            position = cardPositionFor(row++, rowCount - 1),
+                            onRowClick = onSocksRowClick,
+                            onCheckedChange = onSocksChange,
+                        )
+                        RethinkProxyToggleRow(
+                            title = strings.http,
+                            description = state.httpDescription,
+                            checked = state.httpEnabled,
+                            enabled = state.canEnableProxy || !state.httpEnabled,
+                            highlighted = activeFocusKey == "proxy_http",
+                            icon = MaterialSymbols.Filled.Http,
+                            position = cardPositionFor(row, rowCount - 1),
+                            onRowClick = onHttpRowClick,
+                            onCheckedChange = onHttpChange,
                         )
                     }
                 }
             }
             item {
-                RethinkListGroup {
-                    RethinkProxyToggleRow(
-                        title = strings.socks5,
-                        description = state.socks5Description,
-                        checked = state.socks5Enabled,
-                        enabled = state.canEnableProxy || !state.socks5Enabled,
-                        highlighted = activeFocusKey == "proxy_socks",
-                        icon = MaterialSymbols.Filled.Security,
-                        position = CardPosition.First,
-                        onRowClick = onSocksRowClick,
-                        onCheckedChange = onSocksChange,
-                    )
-                    RethinkProxyToggleRow(
-                        title = strings.http,
-                        description = state.httpDescription,
-                        checked = state.httpEnabled,
-                        enabled = state.canEnableProxy || !state.httpEnabled,
-                        highlighted = activeFocusKey == "proxy_http",
-                        icon = MaterialSymbols.Filled.Http,
-                        position = CardPosition.Last,
-                        onRowClick = onHttpRowClick,
-                        onCheckedChange = onHttpChange,
-                    )
-                }
-            }
-            item {
-                RethinkFormSection(strings.orbot) {
+                Column {
+                    SectionHeader(strings.torSection)
                     RethinkOrbotPanel(
                         state = state,
                         strings = strings,
@@ -276,7 +285,8 @@ private fun RethinkOrbotPanel(
             state.orbotAppCount?.let { count ->
                 onAppsClick?.let { openApps ->
                     RethinkListItem(
-                        headline = "${strings.apps} $count",
+                        headline = strings.apps,
+                        supporting = strings.appsCount(count),
                         leadingIcon = MaterialSymbols.Filled.Apps,
                         position = cardPositionFor(row++, actionCount - 1),
                         highlighted = highlightedKey == "proxy_orbot_apps",
@@ -287,7 +297,7 @@ private fun RethinkOrbotPanel(
             }
             RethinkListItem(
                 headline = strings.openApp,
-                leadingIcon = MaterialSymbols.AutoMirrored.Filled.ArrowForward,
+                leadingIcon = MaterialSymbols.Filled.PhoneAndroid,
                 position = cardPositionFor(row++, actionCount - 1),
                 highlighted = highlightedKey == "proxy_orbot_open_app" || highlightedKey == "proxy_orbot_notification",
                 showTrailingChevron = true,

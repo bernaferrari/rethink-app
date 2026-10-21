@@ -3,12 +3,7 @@
 
 package com.bernaferrari.bravedns.ui.compose.logs
 
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceOption
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkConnectedChoiceGroup
-import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
-
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -43,12 +38,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceOption
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkConnectedChoiceGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -98,7 +94,6 @@ fun RethinkAppWiseLogsDeleteDialog(strings: RethinkAppWiseLogsStrings, onDismiss
 
 @Composable
 fun RethinkAppWiseLogsContent(
-    title: String,
     searchHint: String,
     fallbackSearchHint: String,
     strings: RethinkAppWiseLogsStrings,
@@ -111,17 +106,10 @@ fun RethinkAppWiseLogsContent(
     appIcon: @Composable (() -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
+    // The large top bar already names the app and the search field carries the hint, so there is
+    // no extra header card repeating either.
     Column(modifier.fillMaxSize()) {
-        Surface(
-            modifier = Modifier.padding(horizontal = SharedDimensions.screenPaddingHorizontal, vertical = SharedDimensions.spacingSm),
-            shape = RoundedCornerShape(SharedDimensions.cardCornerRadiusLarge), color = MaterialTheme.colorScheme.surfaceContainerLow, tonalElevation = 1.dp,
-        ) {
-            Column(Modifier.padding(SharedDimensions.spacingLg), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
-                Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                Text(searchHint, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        }
-        Column(Modifier.padding(horizontal = SharedDimensions.screenPaddingHorizontal, vertical = SharedDimensions.spacingMd)) {
+        Column(Modifier.padding(horizontal = SharedDimensions.screenPaddingHorizontal, vertical = SharedDimensions.spacingSm)) {
             RethinkAppWiseTimeRangeRow(selectedRange, strings, onRangeSelected)
             Spacer(Modifier.height(SharedDimensions.spacingMd))
             RethinkAppWiseSearchRow(searchHint, fallbackSearchHint, strings, onQueryChange, onDeleteClick, queryEnabled, appIcon)
@@ -155,7 +143,7 @@ private fun RethinkAppWiseSearchRow(
     Surface(Modifier.fillMaxWidth(), shape = RoundedCornerShape(SharedDimensions.cardCornerRadiusLarge), color = MaterialTheme.colorScheme.surfaceContainerHigh) {
         Row(Modifier.padding(horizontal = SharedDimensions.spacingSm), verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.padding(SharedDimensions.spacingSm).size(SharedDimensions.iconSizeMd).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)), contentAlignment = Alignment.Center) {
-                if (appIcon == null) Icon(MaterialSymbols.Filled.Search, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp)) else appIcon()
+                if (appIcon == null) Icon(MaterialSymbols.Filled.Search, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(SharedDimensions.iconSizeSm)) else appIcon()
             }
             OutlinedTextField(
                 value = query, onValueChange = { query = it }, modifier = Modifier.weight(1f), singleLine = true, enabled = queryEnabled,

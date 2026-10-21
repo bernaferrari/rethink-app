@@ -45,6 +45,7 @@ import com.bernaferrari.bravedns.ui.compose.firewall.RethinkFirewallBulkDialogCo
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkFirewallFilter
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkFirewallFilters
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkFirewallTopLevelFilter
+import com.bernaferrari.bravedns.ui.compose.firewall.rethinkUsageText
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.util.Utilities
 import com.bernaferrari.bravedns.util.Utilities.getIcon
@@ -180,11 +181,8 @@ fun AppListScreen(
     }
 
     val loadedApps by viewModel.appInfo.collectAsState()
-    val uploadTemplate = stringResource(R.string.symbol_upload)
-    val downloadTemplate = stringResource(R.string.symbol_download)
-    val twoArgumentTemplate = stringResource(R.string.two_argument)
-    val portableApps = remember(loadedApps, context, uploadTemplate, downloadTemplate, twoArgumentTemplate) {
-        loadedApps.map { it.toRethinkFirewallApp(context, uploadTemplate, downloadTemplate, twoArgumentTemplate) }
+    val portableApps = remember(loadedApps, context) {
+        loadedApps.map { it.toRethinkFirewallApp(context) }
     }
     fun requestConnectionToggle(app: RethinkFirewallApp, wifi: Boolean) {
         scope.launch(Dispatchers.IO) {
@@ -303,6 +301,7 @@ private fun androidFirewallAppListStrings(dialogs: AndroidBulkDialogCopy): Rethi
         refresh = stringResource(R.string.cd_refresh),
         filter = stringResource(R.string.cd_filter),
         rules = stringResource(R.string.lbl_rules),
+        moreOptions = stringResource(R.string.cd_more),
         clearSearch = stringResource(R.string.cd_clear_search),
         emptyTitle = stringResource(R.string.fapps_empty_title),
         emptyDescription = stringResource(R.string.fapps_empty_subtitle),
@@ -384,9 +383,6 @@ private fun androidFirewallAppListStrings(dialogs: AndroidBulkDialogCopy): Rethi
 
 private fun AppInfo.toRethinkFirewallApp(
     context: Context,
-    uploadTemplate: String,
-    downloadTemplate: String,
-    twoArgumentTemplate: String,
 ): RethinkFirewallApp {
     val appStatus = FirewallManager.FirewallStatus.getStatus(firewallStatus)
     val connection = FirewallManager.ConnectionStatus.getStatus(connectionStatus)
@@ -405,7 +401,7 @@ private fun AppInfo.toRethinkFirewallApp(
         status = status,
         wifiBlocked = appStatus == FirewallManager.FirewallStatus.NONE && (connection == FirewallManager.ConnectionStatus.UNMETERED || connection == FirewallManager.ConnectionStatus.BOTH),
         mobileBlocked = appStatus == FirewallManager.FirewallStatus.NONE && (connection == FirewallManager.ConnectionStatus.METERED || connection == FirewallManager.ConnectionStatus.BOTH),
-        dataUsage = dataUsageText(this, uploadTemplate, downloadTemplate, twoArgumentTemplate),
+        dataUsage = dataUsageText(this),
         proxyEnabled = !isProxyExcluded && ProxyManager.getProxyIdForApp(uid) != ProxyManager.ID_NONE,
         hasInternetPermission = hasInternetPermission(context.packageManager),
         tombstoned = tombstoneTs > 0,
@@ -413,16 +409,12 @@ private fun AppInfo.toRethinkFirewallApp(
     )
 }
 
-private fun dataUsageText(
-    app: AppInfo,
-    uploadTemplate: String,
-    downloadTemplate: String,
-    twoArgumentTemplate: String,
-): String? {
+private fun dataUsageText(app: AppInfo): String? {
     if (app.uploadBytes <= 0L && app.downloadBytes <= 0L) return null
-    val upload = uploadTemplate.format(Utilities.humanReadableByteCount(app.uploadBytes, true))
-    val download = downloadTemplate.format(Utilities.humanReadableByteCount(app.downloadBytes, true))
-    return twoArgumentTemplate.format(upload, download)
+    return rethinkUsageText(
+        download = Utilities.humanReadableByteCount(app.downloadBytes, true),
+        upload = Utilities.humanReadableByteCount(app.uploadBytes, true),
+    )
 }
 
 @Composable

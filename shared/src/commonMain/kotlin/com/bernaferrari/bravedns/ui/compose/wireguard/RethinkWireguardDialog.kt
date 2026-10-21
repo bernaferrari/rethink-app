@@ -1,6 +1,7 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.wireguard
 
+import com.bernaferrari.bravedns.ui.compose.common.RethinkWindowBreakpoints
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -35,7 +36,7 @@ fun RethinkWireguardDialog(
         properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
         BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-            val wideWindow = maxWidth >= 600.dp
+            val wideWindow = maxWidth >= RethinkWindowBreakpoints.CompactMax
             val contentModifier = if (wideWindow) {
                 Modifier
                     .widthIn(max = 640.dp)

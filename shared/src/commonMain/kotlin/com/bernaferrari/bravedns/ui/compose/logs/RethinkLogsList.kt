@@ -3,10 +3,6 @@
 
 package com.bernaferrari.bravedns.ui.compose.logs
 
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceOption
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkConnectedChoiceGroup
-import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
-
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
@@ -19,7 +15,10 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceOption
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkConnectedChoiceGroup
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 enum class RethinkLogFilter { All, Allowed, Blocked }
 
@@ -55,21 +54,24 @@ fun RethinkLogFilterRow(
     onSelected: (RethinkLogFilter) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val options = listOf(
-        RethinkChoiceOption(RethinkLogFilter.All, strings.all, MaterialSymbols.Filled.Public),
-        RethinkChoiceOption(RethinkLogFilter.Allowed, strings.allowed, MaterialSymbols.Filled.CheckCircle),
-        RethinkChoiceOption(RethinkLogFilter.Blocked, strings.blocked, MaterialSymbols.Filled.Block),
-    )
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
-        val compact = maxWidth < 420.dp
+        // Labels are always visible (M3 Expressive: never drop labels); on narrow widths the
+        // decorative glyphs go first so the text keeps its room.
+        val showIcons = maxWidth >= COMPACT_FILTER_WIDTH
+        val options = listOf(
+            RethinkChoiceOption(RethinkLogFilter.All, strings.all, MaterialSymbols.Filled.Public.takeIf { showIcons }),
+            RethinkChoiceOption(RethinkLogFilter.Allowed, strings.allowed, MaterialSymbols.Filled.CheckCircle.takeIf { showIcons }),
+            RethinkChoiceOption(RethinkLogFilter.Blocked, strings.blocked, MaterialSymbols.Filled.Block.takeIf { showIcons }),
+        )
         RethinkConnectedChoiceGroup(
             options = options,
             selected = selected,
             onSelect = onSelected,
-            iconOnly = compact,
         )
     }
 }
+
+private val COMPACT_FILTER_WIDTH = 420.dp
 
 @Composable
 fun RethinkLogList(
@@ -85,7 +87,7 @@ fun RethinkLogList(
             top = SharedDimensions.spacingXs,
             bottom = SharedDimensions.screenPaddingHorizontal,
         ),
-        verticalArrangement = Arrangement.spacedBy(2.dp),
+        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile),
     ) {
         when (state) {
             RethinkLogListState.Loading -> item { RethinkLogLoadingState(strings.loading) }
@@ -118,7 +120,7 @@ fun RethinkPagedLogList(
             top = SharedDimensions.spacingXs,
             bottom = bottomPadding,
         ),
-        verticalArrangement = Arrangement.spacedBy(2.dp),
+        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile),
     ) {
         when (state) {
             RethinkPagedLogListState.Loading -> item("logs_loading") { RethinkLogLoadingState(strings.loading) }

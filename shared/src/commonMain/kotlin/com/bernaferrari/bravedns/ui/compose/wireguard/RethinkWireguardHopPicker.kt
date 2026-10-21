@@ -1,7 +1,6 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.wireguard
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,8 +26,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import kotlinx.coroutines.launch
 
@@ -136,10 +133,11 @@ private fun RethinkWireguardHopRow(
     strings: RethinkWireguardHopPickerStrings,
     onCheckedChange: (Boolean) -> Unit,
 ) {
-    val strokeColor = when {
-        checked && item.isActive -> MaterialTheme.colorScheme.tertiary
-        checked -> MaterialTheme.colorScheme.error
-        else -> Color.Transparent
+    // A selected hop whose config is not active is a problem state, so it reads as an error tone.
+    val containerColor = when {
+        checked && item.isActive -> MaterialTheme.colorScheme.secondaryContainer
+        checked -> MaterialTheme.colorScheme.errorContainer
+        else -> MaterialTheme.colorScheme.surfaceContainerLow
     }
     val chips = buildList {
         if (item.hasIpv4) add(strings.ipv4)
@@ -157,12 +155,8 @@ private fun RethinkWireguardHopRow(
             .fillMaxWidth()
             .padding(horizontal = SharedDimensions.spacingSm, vertical = SharedDimensions.spacingXs),
         shape = RoundedCornerShape(SharedDimensions.cornerRadius2xl),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest),
-        border = if (checked) {
-            BorderStroke(2.dp, strokeColor)
-        } else {
-            BorderStroke(SharedDimensions.dividerThicknessBold, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.24f))
-        },
+        // Selection reads through container tone (as in grouped lists), never through a border.
+        colors = CardDefaults.cardColors(containerColor = containerColor),
     ) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(SharedDimensions.cardPadding),

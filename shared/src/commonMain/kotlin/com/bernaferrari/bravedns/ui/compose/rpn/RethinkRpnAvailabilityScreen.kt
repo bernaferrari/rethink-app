@@ -108,7 +108,7 @@ fun RethinkRpnAvailabilityScreen(
                     modifier = Modifier.fillMaxWidth().padding(vertical = SharedDimensions.spacingLg),
                     contentAlignment = Alignment.Center,
                 ) {
-                    CircularProgressIndicator(progress = { progress }, modifier = Modifier.size(120.dp), strokeWidth = 8.dp)
+                    CircularProgressIndicator(progress = { progress }, modifier = Modifier.size(SharedDimensions.brandMarkSize), strokeWidth = SharedDimensions.spacingSm)
                     Text("$activeCount/${items.size}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 }
                 if (items.isEmpty()) {

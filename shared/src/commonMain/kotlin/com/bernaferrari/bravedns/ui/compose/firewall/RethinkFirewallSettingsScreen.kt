@@ -3,8 +3,6 @@
 
 package com.bernaferrari.bravedns.ui.compose.firewall
 
-import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
-
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,14 +26,15 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.components.RethinkSharedIconContainer
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
+import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormSection
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
-import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
-import kotlinx.coroutines.delay
+import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 import kotlin.math.roundToInt
+import kotlinx.coroutines.delay
 
 data class RethinkFirewallSettingsStrings(
     val title: String,
@@ -181,6 +180,6 @@ private fun FirewallNavigationRow(
                 Icon(icon, null, tint = MaterialTheme.colorScheme.primary)
             }
         },
-        trailing = { Icon(MaterialSymbols.AutoMirrored.Filled.ArrowForward, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
+        showTrailingChevron = true,
     )
 }

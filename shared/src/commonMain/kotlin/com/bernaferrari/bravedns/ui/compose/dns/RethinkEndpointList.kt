@@ -12,24 +12,25 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormSection
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBar
+import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 
 /** A small bridge keeps Paging Android-only while every endpoint-list visual is portable. */
@@ -44,6 +45,7 @@ data class RethinkInMemoryEndpointFeed<T>(val items: List<T>) : RethinkEndpointF
 }
 
 /** Shared page frame for a concrete DNS transport's endpoint list. */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RethinkEndpointConfigurationScaffold(
     title: String,
@@ -52,10 +54,11 @@ fun RethinkEndpointConfigurationScaffold(
     modifier: Modifier = Modifier,
     content: @Composable (PaddingValues) -> Unit,
 ) {
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     Scaffold(
-        modifier = modifier,
+        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.surface,
-        topBar = { RethinkLargeTopBar(title = title, subtitle = subtitle, onBackClick = onBackClick) },
+        topBar = { RethinkLargeTopBar(title = title, subtitle = subtitle, onBackClick = onBackClick, scrollBehavior = scrollBehavior) },
     ) { padding ->
         Box(
             modifier = Modifier
@@ -74,25 +77,29 @@ fun <T> RethinkEndpointListWithAdd(
     createLabel: String,
     onCreate: () -> Unit,
     modifier: Modifier = Modifier,
-    contentPadding: PaddingValues = PaddingValues(0.dp),
+    contentPadding: PaddingValues = PaddingValues(SharedDimensions.spacingNone),
     emptyTitle: String = createLabel,
     emptyMessage: String = "",
     itemContent: @Composable (T) -> Unit,
 ) {
     Box(modifier.fillMaxSize().padding(contentPadding)) {
         if (feed.itemCount == 0) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                RethinkEmptyState(title = emptyTitle, message = emptyMessage)
-                Button(onClick = onCreate) { Text(createLabel) }
-            }
+            RethinkEmptyState(
+                title = emptyTitle,
+                message = emptyMessage,
+                icon = MaterialSymbols.Filled.Dns,
+                ctaLabel = createLabel,
+                onCtaClick = onCreate,
+                modifier = Modifier.align(Alignment.Center),
+            )
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(top = SharedDimensions.spacingXs, bottom = 84.dp),
+                // Clear the extended FAB so the last endpoint is never hidden under it.
+                contentPadding = PaddingValues(
+                    top = SharedDimensions.spacingXs,
+                    bottom = SharedDimensions.buttonHeightLg + SharedDimensions.spacing2xl,
+                ),
                 verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
             ) {
                 items(feed.itemCount) { index ->
@@ -105,12 +112,7 @@ fun <T> RethinkEndpointListWithAdd(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(SharedDimensions.spacingLg),
-                elevation = FloatingActionButtonDefaults.elevation(
-                    defaultElevation = 0.dp,
-                    focusedElevation = 0.dp,
-                    hoveredElevation = 1.dp,
-                    pressedElevation = 1.dp,
-                ),
+                elevation = FloatingActionButtonDefaults.loweredElevation(),
             ) {
                 Icon(MaterialSymbols.Filled.Add, contentDescription = null)
                 Spacer(Modifier.width(SharedDimensions.spacingSm))
@@ -165,7 +167,8 @@ fun RethinkDnsCryptRelayShortcut(
     onConfigure: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    RethinkFormSection(sectionTitle, modifier = modifier) {
+    Column(modifier) {
+        SectionHeader(sectionTitle)
         RethinkListGroup {
             RethinkListItem(
                 headline = relayTitle,

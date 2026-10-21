@@ -2,10 +2,8 @@
 
 package com.bernaferrari.bravedns.ui.compose.events
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -19,7 +17,6 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.bernaferrari.bravedns.R
@@ -30,14 +27,14 @@ import com.bernaferrari.bravedns.database.Severity
 import com.bernaferrari.bravedns.ui.compose.events.copyEventToClipboard
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.viewmodel.EventsViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 /** Android paging, database deletion and clipboard bridge for shared Event Logs UI. */
 @OptIn(FlowPreview::class)
@@ -65,6 +62,7 @@ fun EventsScreen(
     val isEmpty = items.itemCount == 0 && items.loadState.refresh is LoadState.NotLoading
     val copyLabel = stringResource(R.string.dns_info_neutral)
     val userActionLabel = stringResource(R.string.events_user_action_badge)
+    val filterValueTemplate = stringResource(R.string.two_argument_colon)
 
     fun applyFilters(next: RethinkEventFilters) {
         filters = next
@@ -94,6 +92,7 @@ fun EventsScreen(
             noEventsTitle = stringResource(R.string.no_events_recorded), noEventsDescription = stringResource(R.string.no_events_desc), copy = copyLabel,
             userAction = userActionLabel, noMatchesTitle = stringResource(R.string.events_no_matches_title),
             noMatchesDescription = stringResource(R.string.events_no_matches_desc), clearFilters = stringResource(R.string.events_clear_filters),
+            filterValue = { name, value -> filterValueTemplate.format(name, value) },
         ),
         isLoading = isLoading,
         isEmpty = isEmpty,
@@ -135,7 +134,6 @@ private fun AndroidEventsList(
             top = SharedDimensions.spacingSm,
             bottom = SharedDimensions.spacing3xl,
         ),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         items(count = items.itemCount, key = { index -> items[index]?.id ?: index }) { index ->
             val event = items[index] ?: return@items
