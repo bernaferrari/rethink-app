@@ -132,7 +132,6 @@ fun DnsDetailScreen(
     // Local blocklist state
     var showDownloadDialog by remember { mutableStateOf(false) }
     var downloadDialogIsRedownload by remember { mutableStateOf(false) }
-    var showDeleteDialog by remember { mutableStateOf(false) }
     var showLockdownDialog by remember { mutableStateOf(false) }
 
     var headingText by remember { mutableStateOf("") }
@@ -697,7 +696,7 @@ fun DnsDetailScreen(
                 downloadDialogIsRedownload = true
                 showDownloadDialog = true
             },
-            onDelete = { showDeleteDialog = true }
+            onDelete = { deleteLocalBlocklist() }
         )
     }
 
@@ -730,23 +729,6 @@ fun DnsDetailScreen(
                 downloadLocalBlocklist(downloadDialogIsRedownload)
             },
             onDismiss = { showDownloadDialog = false }
-        )
-    }
-
-    // Delete Dialog
-    if (showDeleteDialog) {
-        RethinkConfirmDialog(
-            onDismissRequest = { showDeleteDialog = false },
-            title = stringResource(R.string.lbl_delete),
-            message = stringResource(R.string.local_blocklist_delete_desc),
-            confirmText = stringResource(R.string.lbl_delete),
-            dismissText = stringResource(R.string.lbl_cancel),
-            isConfirmDestructive = true,
-            onConfirm = {
-                showDeleteDialog = false
-                deleteLocalBlocklist()
-            },
-            onDismiss = { showDeleteDialog = false }
         )
     }
 
@@ -883,6 +865,8 @@ private fun AndroidLocalBlocklistsSheet(
             download = stringResource(R.string.local_blocklist_download),
             redownload = stringResource(R.string.local_blocklist_redownload),
             delete = stringResource(R.string.lbl_delete),
+            deleteMessage = stringResource(R.string.local_blocklist_delete_desc),
+            cancel = stringResource(R.string.lbl_cancel),
         ),
         onDismiss = onDismiss,
         onEnableToggle = onEnableBlocklist,

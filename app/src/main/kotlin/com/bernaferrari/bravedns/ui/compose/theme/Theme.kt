@@ -143,7 +143,7 @@ fun RethinkTheme(
     ) {
         MaterialExpressiveTheme(
             colorScheme = colorScheme,
-            typography = Typography,
+            typography = RethinkTypography,
             shapes = RethinkShapes,
             content = content
         )

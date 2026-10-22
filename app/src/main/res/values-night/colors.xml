@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Untinted vector drawables (default_app_icon, foss_logo, ic_floss_fund_badge) draw with
+         these via ?attr/svgStrokeColor / ?attr/primaryTextColor: light on dark surfaces. -->
+    <color name="stroke">#FFFFFF</color>
+    <color name="primaryText">#FDFDFD</color>
+</resources>

@@ -107,6 +107,7 @@ internal fun DemoWireguardScreen(modifier: Modifier, onBack: () -> Unit) {
                     amnezia = "Amnezia",
                     hopSource = "Hopping",
                     alreadyHop = "Relay",
+                    empty = "No WireGuard available for relay; please add more.",
                 ),
                 onToggle = { item, checked ->
                     RethinkWireguardHopToggleResult(succeeded = true, selectedId = if (checked) item.id else null)
@@ -205,6 +206,9 @@ internal fun DemoWireguardScreen(modifier: Modifier, onBack: () -> Unit) {
                 edit = "Edit",
                 delete = "Delete",
                 deleteDescription = "Remove this WireGuard configuration",
+                deleteConfirmTitle = "Delete WireGuard",
+                deleteConfirmMessage = "Are you sure you want to delete this WireGuard VPN configuration?",
+                cancel = "Cancel",
                 apps = "Apps",
                 manageApps = { "$it apps included" },
                 manageHops = "Manage hops",
@@ -523,7 +527,7 @@ internal fun DemoBlocklistEditorScreen(modifier: Modifier, onBack: () -> Unit) {
             packs = RethinkInMemoryBlocklistFeed(shownPacks), fileTags = RethinkInMemoryBlocklistFeed(shownTags), activeView = view,
             query = query, selectionFilter = filter, selectedSubgroups = groups, availableSubgroups = (packs.map { it.group.id } + tags.map { it.group.id }).distinct(),
             showDownload = false, showEditor = true, isDownloading = false,
-            strings = RethinkBlocklistEditorStrings("Download a fresh blocklist before choosing filters.", "Download", "Cancel", "Packs", "Advanced", "Search blocklists", "Clear search", "All", "Selected", "Filter groups", "Filter the visible blocklists", "Apply", "Discard", { "$it blocklists" }, { "$it entries" }),
+            strings = RethinkBlocklistEditorStrings("Download a fresh blocklist before choosing filters.", "Download", "Cancel", "Packs", "Advanced", "Search blocklists", "Clear search", "All", "Selected", "Filter groups", "Filter the visible blocklists", "Apply", "Discard", { "$it blocklists" }, { "$it entries" }, openSource = "Source"),
             onViewChange = { view = it }, onQueryChange = { query = it }, onSelectionFilterChange = { filter = it }, onSubgroupsChange = { groups = it },
             onDownload = {}, onCancelDownload = onBack,
             onPackToggle = { pack, selected -> packs = packs.map { if (it.id == pack.id) it.copy(selected = selected) else it } },
@@ -580,7 +584,7 @@ internal fun DemoAntiCensorshipScreen(modifier: Modifier, onBack: () -> Unit) {
         selectedDialId = dialId,
         selectedRetryId = retryId,
         strings = RethinkAntiCensorshipStrings(
-            title = "Anti-censorship", split = "Split",
+            title = "Anti-censorship",
             splitHeading = "Split strategy", splitDescription = "How the first bytes of each connection are split to slip past deep-packet inspection.",
             retryHeading = "Retry strategy",
             retryDescription = "Choose how Re-Rethink retries connections when censorship is detected.",
@@ -640,12 +644,7 @@ internal fun DemoEventLogsScreen(modifier: Modifier, onBack: () -> Unit) {
                 RethinkEventCard(
                     event = event,
                     query = activeQuery,
-                    position = when {
-                        visibleEvents.size == 1 -> RethinkEventCardPosition.Single
-                        index == 0 -> RethinkEventCardPosition.First
-                        index == visibleEvents.lastIndex -> RethinkEventCardPosition.Last
-                        else -> RethinkEventCardPosition.Middle
-                    },
+                    position = cardPositionFor(index, visibleEvents.lastIndex),
                     copyDescription = "Copy",
                     userActionLabel = "User",
                     onCopy = {},

@@ -3,7 +3,6 @@
 package com.bernaferrari.bravedns.ui.compose.rpn
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,8 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,6 +36,8 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSearchField
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkOverflowMenu
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkOverflowItem
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
@@ -96,7 +95,6 @@ fun RethinkRpnCountriesScreen(
     var query by remember { mutableStateOf("") }
     var favouritesOnly by remember { mutableStateOf(false) }
     var showResetConfirm by remember { mutableStateOf(false) }
-    var menuExpanded by remember { mutableStateOf(false) }
     val visible = countries.filter { country ->
         val queryMatches = query.isBlank() || listOf(country.name, country.countryCode, country.location)
             .any { it.contains(query, ignoreCase = true) }
@@ -123,25 +121,23 @@ fun RethinkRpnCountriesScreen(
                     }
                     // Refresh and Reset act on the whole configuration, not on the list filter,
                     // so they live in the overflow rather than next to the filter chips.
-                    Box {
-                        IconButton(onClick = { menuExpanded = true }) {
-                            Icon(MaterialSymbols.Filled.MoreVert, strings.moreOptions)
-                        }
-                        DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
-                            DropdownMenuItem(
-                                text = { Text(if (busyKey == "refresh") strings.refreshing else strings.refresh) },
-                                leadingIcon = { Icon(MaterialSymbols.Filled.Refresh, null) },
+                    RethinkOverflowMenu(
+                        moreDescription = strings.moreOptions,
+                        items = listOf(
+                            RethinkOverflowItem(
+                                label = if (busyKey == "refresh") strings.refreshing else strings.refresh,
+                                icon = MaterialSymbols.Filled.Refresh,
                                 enabled = actionsEnabled,
-                                onClick = { menuExpanded = false; onRefresh() },
-                            )
-                            DropdownMenuItem(
-                                text = { Text(if (busyKey == "reset") strings.resetting else strings.reset) },
-                                leadingIcon = { Icon(MaterialSymbols.Filled.RestartAlt, null) },
+                                onClick = onRefresh,
+                            ),
+                            RethinkOverflowItem(
+                                label = if (busyKey == "reset") strings.resetting else strings.reset,
+                                icon = MaterialSymbols.Filled.RestartAlt,
                                 enabled = actionsEnabled,
-                                onClick = { menuExpanded = false; showResetConfirm = true },
-                            )
-                        }
-                    }
+                                onClick = { showResetConfirm = true },
+                            ),
+                        ),
+                    )
                 },
             )
         },

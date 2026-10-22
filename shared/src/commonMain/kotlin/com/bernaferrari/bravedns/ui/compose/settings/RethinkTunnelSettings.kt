@@ -1,35 +1,28 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.settings
 
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkSwitchListItem
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBarLazyColumnScreen
 import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
@@ -75,80 +68,62 @@ fun RethinkTunnelSettingsScreen(
     onDialTimeoutChange: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    androidx.compose.material3.Scaffold(
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            RethinkLargeTopBar(
-                title = strings.title,
-                subtitle = strings.subtitle,
-                onBackClick = onBackClick,
-                scrollBehavior = scrollBehavior,
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.surface,
-    ) { padding ->
-        LazyColumn(
-            state = listState,
-            modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(
-                start = SharedDimensions.screenPaddingHorizontal,
-                end = SharedDimensions.screenPaddingHorizontal,
-                top = SharedDimensions.spacingMd,
-                bottom = SharedDimensions.spacing3xl,
-            ),
-            verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
-        ) {
-            if (showLockdown) {
-                item {
-                    RethinkListGroup {
-                        RethinkListItem(
-                            headline = strings.lockdownDescription,
-                            leadingIcon = MaterialSymbols.Filled.Security,
-                            position = CardPosition.Single,
-                            onClick = onLockdownClick,
-                        )
-                    }
+    RethinkTopBarLazyColumnScreen(
+        title = strings.title,
+        subtitle = strings.subtitle,
+        onBackClick = onBackClick,
+        modifier = modifier,
+        listState = listState,
+    ) {
+        if (showLockdown) {
+            item {
+                RethinkListGroup {
+                    RethinkListItem(
+                        headline = strings.lockdownDescription,
+                        leadingIcon = MaterialSymbols.Filled.Security,
+                        position = CardPosition.Single,
+                        onClick = onLockdownClick,
+                    )
                 }
             }
-            item { RethinkTunnelSettingGroup(coreRows, focusedRowId, onActionClick, onToggleChange) }
-            item {
-                Column {
-                    SectionHeader(strings.advanced)
-                    RethinkTunnelSettingGroup(
-                        rows = advancedRows,
-                        focusedRowId = focusedRowId,
-                        onActionClick = onActionClick,
-                        onToggleChange = onToggleChange,
-                        lastIndexOverride = advancedRows.lastIndex + 1,
+        }
+        item { RethinkTunnelSettingGroup(coreRows, focusedRowId, onActionClick, onToggleChange) }
+        item {
+            Column {
+                SectionHeader(strings.advanced)
+                RethinkTunnelSettingGroup(
+                    rows = advancedRows,
+                    focusedRowId = focusedRowId,
+                    onActionClick = onActionClick,
+                    onToggleChange = onToggleChange,
+                    lastIndexOverride = advancedRows.lastIndex + 1,
+                ) {
+                    val timeoutPosition = cardPositionFor(advancedRows.lastIndex + 1, advancedRows.lastIndex + 1)
+                    val timeoutHighlighted = focusedRowId == "network_dial_timeout"
+                    Surface(
+                        modifier = Modifier.fillMaxWidth().padding(top = SharedDimensions.spacingGridTile),
+                        color = if (timeoutHighlighted) {
+                            // Same tonal highlight as RethinkListItem's focus state.
+                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.56f)
+                        } else {
+                            MaterialTheme.colorScheme.surfaceContainerLow
+                        },
+                        shape = rethinkGroupedListShape(timeoutPosition),
                     ) {
-                        val timeoutPosition = cardPositionFor(advancedRows.lastIndex + 1, advancedRows.lastIndex + 1)
-                        val timeoutHighlighted = focusedRowId == "network_dial_timeout"
-                        Surface(
-                            modifier = Modifier.fillMaxWidth().padding(top = SharedDimensions.spacingGridTile),
-                            color = if (timeoutHighlighted) {
-                                // Same tonal highlight as RethinkListItem's focus state.
-                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.56f)
-                            } else {
-                                MaterialTheme.colorScheme.surfaceContainerLow
-                            },
-                            shape = rethinkGroupedListShape(timeoutPosition),
-                        ) {
-                            Column(Modifier.fillMaxWidth().padding(SharedDimensions.cardPadding)) {
-                                Text(strings.dialTimeout, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
-                                Text(dialTimeoutDescription, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                Spacer(Modifier.height(SharedDimensions.spacingSm))
-                                Slider(
-                                    value = dialTimeoutMinutes.toFloat(),
-                                    onValueChange = { onDialTimeoutChange(it.toInt()) },
-                                    valueRange = 0f..60f,
-                                    colors = SliderDefaults.colors(
-                                        thumbColor = MaterialTheme.colorScheme.primary,
-                                        activeTrackColor = MaterialTheme.colorScheme.primary,
-                                        inactiveTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                                    ),
-                                )
-                            }
+                        Column(Modifier.fillMaxWidth().padding(SharedDimensions.cardPadding)) {
+                            Text(strings.dialTimeout, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+                            Text(dialTimeoutDescription, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Spacer(Modifier.height(SharedDimensions.spacingSm))
+                            Slider(
+                                value = dialTimeoutMinutes.toFloat(),
+                                onValueChange = { onDialTimeoutChange(it.toInt()) },
+                                valueRange = 0f..60f,
+                                colors = SliderDefaults.colors(
+                                    thumbColor = MaterialTheme.colorScheme.primary,
+                                    activeTrackColor = MaterialTheme.colorScheme.primary,
+                                    inactiveTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                ),
+                            )
                         }
                     }
                 }
@@ -176,14 +151,14 @@ private fun RethinkTunnelSettingGroup(
         rows.forEachIndexed { index, row ->
             val position = cardPositionFor(index, lastIndexOverride ?: rows.lastIndex)
             if (row.kind == RethinkTunnelSettingKind.Toggle) {
-                RethinkListItem(
+                RethinkSwitchListItem(
                     headline = row.title,
+                    checked = row.checked,
+                    onCheckedChange = { onToggleChange(row.id, it) },
                     supporting = row.description,
                     position = position,
                     highlighted = focusedRowId == row.id,
                     enabled = row.enabled,
-                    trailing = { Switch(checked = row.checked, onCheckedChange = null, enabled = row.enabled) },
-                    selection = RethinkListSelection(checked = row.checked) { onToggleChange(row.id, it) },
                 )
             } else {
                 RethinkListItem(

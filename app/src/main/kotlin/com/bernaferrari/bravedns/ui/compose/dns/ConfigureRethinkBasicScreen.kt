@@ -58,7 +58,7 @@ import com.bernaferrari.bravedns.viewmodel.RemoteBlocklistPacksMapViewModel
 import com.bernaferrari.bravedns.viewmodel.RethinkEndpointViewModel
 import com.bernaferrari.bravedns.viewmodel.RethinkLocalFileTagViewModel
 import com.bernaferrari.bravedns.viewmodel.RethinkRemoteFileTagViewModel
-import com.bernaferrari.bravedns.ui.compose.theme.Dimensions
+import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import Logger
 import Logger.LOG_TAG_UI
@@ -445,7 +445,7 @@ fun ConfigureRethinkBasicScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
-            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
+            verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)
         ) {
             when (screenType) {
                 ConfigureRethinkScreenType.DB_LIST -> {

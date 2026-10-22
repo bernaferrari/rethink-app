@@ -39,7 +39,7 @@ fun RethinkWireguardDialog(
             val wideWindow = maxWidth >= RethinkWindowBreakpoints.CompactMax
             val contentModifier = if (wideWindow) {
                 Modifier
-                    .widthIn(max = 640.dp)
+                    .widthIn(max = RethinkWindowBreakpoints.ContentMax)
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(SharedDimensions.groupCornerRadius))
             } else {

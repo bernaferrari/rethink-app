@@ -7,13 +7,9 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkSplitSwitch
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LoadingIndicator
@@ -22,15 +18,14 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.semantics.contentDescription
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWellDefaults
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBarLazyColumnScreen
 import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusColors
@@ -95,94 +90,76 @@ fun RethinkProxySettingsScreen(
     onOrbotInfo: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    androidx.compose.material3.Scaffold(
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            RethinkLargeTopBar(
-                title = strings.title,
-                onBackClick = onBackClick,
-                scrollBehavior = scrollBehavior,
-                actions = {
-                    if (state.canEnableProxy) {
-                        IconButton(onClick = onRefresh, enabled = !state.isRefreshing) {
-                            if (state.isRefreshing) LoadingIndicator(Modifier.size(SharedDimensions.iconSizeMd))
-                            else Icon(MaterialSymbols.Filled.Refresh, strings.refresh)
-                        }
-                    }
-                },
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.surface,
-    ) { padding ->
-        LazyColumn(
-            state = listState,
-            modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(
-                start = SharedDimensions.screenPaddingHorizontal,
-                end = SharedDimensions.screenPaddingHorizontal,
-                top = SharedDimensions.spacingMd,
-                bottom = SharedDimensions.spacing3xl,
-            ),
-            verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
-        ) {
-            if (!state.canEnableProxy) item { RethinkProxyWarning(strings.warning, activeFocusKey == "proxy_warning") }
-            item {
-                Column {
-                    SectionHeader(strings.serversSection)
-                    RethinkListGroup {
-                        val rowCount = if (state.wireguardAvailable) 3 else 2
-                        var row = 0
-                        if (state.wireguardAvailable) {
-                            RethinkListItem(
-                                headline = strings.wireguard,
-                                supporting = state.wireguardDescription,
-                                leadingIcon = MaterialSymbols.Filled.VpnKey,
-                                position = cardPositionFor(row++, rowCount - 1),
-                                highlighted = activeFocusKey == "proxy_wireguard",
-                                showTrailingChevron = true,
-                                onClick = onWireguardClick,
-                            )
-                        }
-                        RethinkProxyToggleRow(
-                            title = strings.socks5,
-                            description = state.socks5Description,
-                            checked = state.socks5Enabled,
-                            enabled = state.canEnableProxy || !state.socks5Enabled,
-                            highlighted = activeFocusKey == "proxy_socks",
-                            icon = MaterialSymbols.Filled.Security,
-                            position = cardPositionFor(row++, rowCount - 1),
-                            onRowClick = onSocksRowClick,
-                            onCheckedChange = onSocksChange,
-                        )
-                        RethinkProxyToggleRow(
-                            title = strings.http,
-                            description = state.httpDescription,
-                            checked = state.httpEnabled,
-                            enabled = state.canEnableProxy || !state.httpEnabled,
-                            highlighted = activeFocusKey == "proxy_http",
-                            icon = MaterialSymbols.Filled.Http,
-                            position = cardPositionFor(row, rowCount - 1),
-                            onRowClick = onHttpRowClick,
-                            onCheckedChange = onHttpChange,
-                        )
-                    }
+    RethinkTopBarLazyColumnScreen(
+        title = strings.title,
+        onBackClick = onBackClick,
+        modifier = modifier,
+        listState = listState,
+        topBarActions = {
+            if (state.canEnableProxy) {
+                IconButton(onClick = onRefresh, enabled = !state.isRefreshing) {
+                    if (state.isRefreshing) LoadingIndicator(Modifier.size(SharedDimensions.iconSizeMd))
+                    else Icon(MaterialSymbols.Filled.Refresh, strings.refresh)
                 }
             }
-            item {
-                Column {
-                    SectionHeader(strings.torSection)
-                    RethinkOrbotPanel(
-                        state = state,
-                        strings = strings,
-                        highlightedKey = activeFocusKey,
-                        onMainClick = onOrbotClick,
-                        onCheckedChange = onOrbotChange,
-                        onAppsClick = onOrbotAppsClick,
-                        onOpenAppClick = onOpenOrbotApp,
-                        onInfoClick = onOrbotInfo,
+        },
+    ) {
+        if (!state.canEnableProxy) item { RethinkProxyWarning(strings.warning, activeFocusKey == "proxy_warning") }
+        item {
+            Column {
+                SectionHeader(strings.serversSection)
+                RethinkListGroup {
+                    val rowCount = if (state.wireguardAvailable) 3 else 2
+                    var row = 0
+                    if (state.wireguardAvailable) {
+                        RethinkListItem(
+                            headline = strings.wireguard,
+                            supporting = state.wireguardDescription,
+                            leadingIcon = MaterialSymbols.Filled.VpnKey,
+                            position = cardPositionFor(row++, rowCount - 1),
+                            highlighted = activeFocusKey == "proxy_wireguard",
+                            showTrailingChevron = true,
+                            onClick = onWireguardClick,
+                        )
+                    }
+                    RethinkProxyToggleRow(
+                        title = strings.socks5,
+                        description = state.socks5Description,
+                        checked = state.socks5Enabled,
+                        enabled = state.canEnableProxy || !state.socks5Enabled,
+                        highlighted = activeFocusKey == "proxy_socks",
+                        icon = MaterialSymbols.Filled.Security,
+                        position = cardPositionFor(row++, rowCount - 1),
+                        onRowClick = onSocksRowClick,
+                        onCheckedChange = onSocksChange,
+                    )
+                    RethinkProxyToggleRow(
+                        title = strings.http,
+                        description = state.httpDescription,
+                        checked = state.httpEnabled,
+                        enabled = state.canEnableProxy || !state.httpEnabled,
+                        highlighted = activeFocusKey == "proxy_http",
+                        icon = MaterialSymbols.Filled.Http,
+                        position = cardPositionFor(row, rowCount - 1),
+                        onRowClick = onHttpRowClick,
+                        onCheckedChange = onHttpChange,
                     )
                 }
+            }
+        }
+        item {
+            Column {
+                SectionHeader(strings.torSection)
+                RethinkOrbotPanel(
+                    state = state,
+                    strings = strings,
+                    highlightedKey = activeFocusKey,
+                    onMainClick = onOrbotClick,
+                    onCheckedChange = onOrbotChange,
+                    onAppsClick = onOrbotAppsClick,
+                    onOpenAppClick = onOpenOrbotApp,
+                    onInfoClick = onOrbotInfo,
+                )
             }
         }
     }
@@ -256,7 +233,7 @@ private fun RethinkOrbotPanel(
             supporting = "${status.first} · ${state.orbotDescription}",
             leadingIcon = MaterialSymbols.Filled.Security,
             leadingIconTint = status.second,
-            leadingIconContainerColor = status.second.copy(alpha = 0.14f),
+            leadingIconContainerColor = RethinkIconWellDefaults.tinted(status.second),
             position = cardPositionFor(0, actionCount - 1),
             highlighted = highlighted,
             enabled = enabled,

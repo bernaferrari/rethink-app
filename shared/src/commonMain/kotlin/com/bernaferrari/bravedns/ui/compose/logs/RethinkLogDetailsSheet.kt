@@ -3,10 +3,10 @@
 
 package com.bernaferrari.bravedns.ui.compose.logs
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkSheetHeader
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkKeyValueRow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -43,18 +43,7 @@ fun RethinkLogDetailsSheet(
             modifier = modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
-            ) {
-                appIcon?.invoke()
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.SemiBold,
-                )
-            }
+            RethinkSheetHeader(title = title, leading = appIcon)
             details.forEach { entry ->
                 RethinkKeyValueRow(
                     label = entry.label,

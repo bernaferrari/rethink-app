@@ -125,7 +125,7 @@ import com.bernaferrari.bravedns.ui.compose.navigation.wireGuardEditorRoute
 import com.bernaferrari.bravedns.ui.compose.wireguard.WgType
 import com.bernaferrari.bravedns.ui.compose.navigation.HomeScreenRoot
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
-import com.bernaferrari.bravedns.ui.compose.theme.Dimensions
+import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormActionRow
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkModalBottomSheet
@@ -1233,15 +1233,15 @@ class HomeScreenActivity : FragmentActivity() {
 
         RethinkModalBottomSheet(
             onDismissRequest = onDismiss,
-            contentPadding = PaddingValues(Dimensions.spacingNone),
-            verticalSpacing = Dimensions.spacingNone,
+            contentPadding = PaddingValues(SharedDimensions.spacingNone),
+            verticalSpacing = SharedDimensions.spacingNone,
             includeBottomSpacer = false
         ) {
-            Column(modifier = Modifier.padding(Dimensions.spacingLg)) {
+            Column(modifier = Modifier.padding(SharedDimensions.spacingLg)) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = Dimensions.spacingMd),
+                        .padding(bottom = SharedDimensions.spacingMd),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
@@ -1308,17 +1308,17 @@ class HomeScreenActivity : FragmentActivity() {
                     }
                 }
 
-                Spacer(modifier = Modifier.height(Dimensions.spacingMd))
+                Spacer(modifier = Modifier.height(SharedDimensions.spacingMd))
 
                 if (isSending) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(bottom = Dimensions.spacingSm),
+                            .padding(bottom = SharedDimensions.spacingSm),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        CircularProgressIndicator(modifier = Modifier.size(Dimensions.iconSizeSm))
-                        Spacer(modifier = Modifier.width(Dimensions.spacingSm))
+                        CircularProgressIndicator(modifier = Modifier.size(SharedDimensions.iconSizeSm))
+                        Spacer(modifier = Modifier.width(SharedDimensions.spacingSm))
                         Text(
                             text = progressText,
                             style = MaterialTheme.typography.bodyMedium,

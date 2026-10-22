@@ -1,29 +1,23 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.settings
 
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkLazyColumnScreenScaffold
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkSwitchListItem
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBarLazyColumnScreen
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWellDefaults
 import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
-import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 
@@ -79,19 +73,11 @@ fun RethinkMiscSettingsScreen(
             if (motion.reducedMotion) listState.scrollToItem(it) else listState.animateScrollToItem(it)
         }
     }
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    RethinkLazyColumnScreenScaffold(
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = MaterialTheme.colorScheme.surface,
-        topBar = { RethinkLargeTopBar(strings.title, onBackClick = onBackClick, scrollBehavior = scrollBehavior) },
+    RethinkTopBarLazyColumnScreen(
+        title = strings.title,
+        onBackClick = onBackClick,
+        modifier = modifier,
         listState = listState,
-        contentPadding = PaddingValues(
-            start = SharedDimensions.screenPaddingHorizontal,
-            end = SharedDimensions.screenPaddingHorizontal,
-            top = SharedDimensions.spacingMd,
-            bottom = SharedDimensions.spacing3xl,
-        ),
-        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
     ) {
             item {
                 Column {
@@ -102,7 +88,7 @@ fun RethinkMiscSettingsScreen(
                             supporting = strings.backupDescription,
                             leadingIcon = MaterialSymbols.Filled.Backup,
                             leadingIconTint = MaterialTheme.colorScheme.secondary,
-                            leadingIconContainerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = .7f),
+                            leadingIconContainerColor = RethinkIconWellDefaults.tinted(MaterialTheme.colorScheme.secondary),
                             position = CardPosition.Single,
                             highlighted = focusedSettingId == "general_backup" || focusedSettingId == "general_backup_restore",
                             // Opens a sheet in place; chevrons are reserved for navigation.
@@ -135,7 +121,7 @@ fun RethinkMiscSettingsScreen(
                             supporting = strings.websiteDescription,
                             leadingIcon = MaterialSymbols.Filled.Public,
                             leadingIconTint = MaterialTheme.colorScheme.tertiary,
-                            leadingIconContainerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = .7f),
+                            leadingIconContainerColor = RethinkIconWellDefaults.tinted(MaterialTheme.colorScheme.tertiary),
                             position = CardPosition.First,
                             highlighted = focusedSettingId == "general_website",
                             onClick = onOpenWebsite,
@@ -145,7 +131,7 @@ fun RethinkMiscSettingsScreen(
                             supporting = strings.aboutDescription,
                             leadingIcon = MaterialSymbols.Filled.Info,
                             leadingIconTint = MaterialTheme.colorScheme.tertiary,
-                            leadingIconContainerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = .7f),
+                            leadingIconContainerColor = RethinkIconWellDefaults.tinted(MaterialTheme.colorScheme.tertiary),
                             position = CardPosition.Last,
                             highlighted = focusedSettingId == "general_about",
                             showTrailingChevron = true,
@@ -164,16 +150,14 @@ private fun RethinkMiscToggleRow(
     highlighted: Boolean,
     onCheckedChange: (Boolean) -> Unit,
 ) {
-    RethinkListItem(
+    RethinkSwitchListItem(
         headline = toggle.title,
+        checked = toggle.checked,
+        onCheckedChange = onCheckedChange,
         supporting = toggle.description,
         leadingIcon = toggle.icon.imageVector(),
-        leadingIconTint = MaterialTheme.colorScheme.primary,
-        leadingIconContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = .7f),
         position = position,
         highlighted = highlighted,
-        trailing = { Switch(checked = toggle.checked, onCheckedChange = null) },
-        selection = RethinkListSelection(checked = toggle.checked, onCheckedChange = onCheckedChange),
     )
 }
 

@@ -3,6 +3,8 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.firewall
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWell
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillDefaults
@@ -35,8 +37,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -49,11 +49,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -87,6 +85,9 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusColors
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkOverflowMenu
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkSheetHeader
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkOverflowItem
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListShape
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
@@ -314,23 +315,10 @@ private fun RethinkFirewallTopBarActions(
             Icon(MaterialSymbols.Filled.Refresh, strings.refresh)
         }
     }
-    // DropdownMenu anchors to its layout parent; keep trigger and popup in one Box.
-    Box {
-        var showOverflow by remember { mutableStateOf(false) }
-        IconButton(onClick = { showOverflow = true }) {
-            Icon(MaterialSymbols.Filled.MoreVert, strings.moreOptions)
-        }
-        DropdownMenu(expanded = showOverflow, onDismissRequest = { showOverflow = false }) {
-            DropdownMenuItem(
-                text = { Text(strings.rules) },
-                leadingIcon = { Icon(MaterialSymbols.Filled.Gavel, null) },
-                onClick = {
-                    showOverflow = false
-                    onOpenRules()
-                },
-            )
-        }
-    }
+    RethinkOverflowMenu(
+        moreDescription = strings.moreOptions,
+        items = listOf(RethinkOverflowItem(strings.rules, MaterialSymbols.Filled.Gavel, onClick = onOpenRules)),
+    )
 }
 
 @Composable
@@ -437,7 +425,7 @@ private fun RethinkFirewallAppRows(
             start = SharedDimensions.screenPaddingHorizontal,
             end = SharedDimensions.screenPaddingHorizontal + endGutter,
             top = SharedDimensions.spacingXs,
-            bottom = SharedDimensions.spacingXl,
+            bottom = SharedDimensions.spacing3xl,
         ),
     ) {
         apps.forEachIndexed { index, app ->
@@ -781,21 +769,23 @@ private fun RethinkFirewallFilterDialog(
         expandOnShow = true,
     ) { dismissSheet ->
         Column(
-            Modifier.fillMaxWidth().heightIn(max = 560.dp).verticalScroll(rememberScrollState()),
+            Modifier.fillMaxWidth().heightIn(max = SharedDimensions.sheetContentMaxHeight).verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
         ) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text(strings.filter, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-                    TextButton(
-                        onClick = {
-                            topLevel = RethinkFirewallTopLevelFilter.Installed
-                            status = RethinkFirewallFilter.All
-                            selectedCategories.clear()
-                            publish()
-                        },
-                        enabled = !defaults,
-                    ) { Text(strings.clear) }
-                }
+                RethinkSheetHeader(
+                    title = strings.filter,
+                    trailing = {
+                        TextButton(
+                            onClick = {
+                                topLevel = RethinkFirewallTopLevelFilter.Installed
+                                status = RethinkFirewallFilter.All
+                                selectedCategories.clear()
+                                publish()
+                            },
+                            enabled = !defaults,
+                        ) { Text(strings.clear) }
+                    },
+                )
                 RethinkFirewallFilterSection(strings.view) {
                     RethinkFirewallFilterOptions(
                         options = listOf(RethinkFirewallTopLevelFilter.Installed, RethinkFirewallTopLevelFilter.System, RethinkFirewallTopLevelFilter.All),
@@ -901,10 +891,10 @@ private fun RethinkFirewallRulesDialog(
         expandOnShow = true,
     ) { dismissSheet ->
         Column(
-            modifier = Modifier.fillMaxWidth().heightIn(max = 480.dp).verticalScroll(rememberScrollState()),
+            modifier = Modifier.fillMaxWidth().heightIn(max = SharedDimensions.sheetContentMaxHeight).verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
         ) {
-            Text(strings.rules, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+            RethinkSheetHeader(strings.rules)
             Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
                 Text(strings.selectedApps(appsCount), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
                 Text(strings.bulkDescription, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)

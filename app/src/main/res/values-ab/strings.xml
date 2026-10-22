@@ -3,24 +3,17 @@
     <string name="title_about" translatable="true">Азы informasi</string>
     <string name="title_settings" translatable="true">Ашәахәқәрақәа</string>
     <string name="title_statistics" translatable="true">Астатистика</string>
-    <string name="pause_title_desc" translatable="true">Сабжьыбарак аҟәынтәим, ахәылбыжьит…</string>
-    <string name="settings_title_desc" translatable="true">Алашара зыдзырдзыло DNS насҧо Firewall</string>
-    <string name="about_title_desc" translatable="true">Ашәышьхытгақәа рҿы акриминализми рыршәажәақәа рышәдырбалаз</string>
     <string name="txt_home" translatable="true">Абаза\"}</string>
     <string name="accessibility_service_description" translatable="true">Rethink adgla a-хәажәлар a-хықәкы ахыҧхәра ашьаҭаҟаҵоит а background a a-қәыларақәа рыԥикразы. Rethink а информация аахәымлаӡакәым, аԥыхылааым.</string>
-    <string name="next" translatable="true">Ҿахып</string>
-    <string name="skip" translatable="true">Аидыжь</string>
     <string name="finish" translatable="true">Аламрыш йахъхъахъащ</string>
     <string name="lbl_cancel" translatable="true">АҞәырԥ</string>
     <string name="lbl_apply" translatable="true">Аҭапылара</string>
     <string name="lbl_dismiss" translatable="true">Ианымхыр</string>
     <string name="lbl_all" translatable="true">Амш</string>
     <string name="lbl_allowed" translatable="true">Арымԥш</string>
-    <string name="lbl_maybe_blocked" translatable="true">Азгәаҟахалоит</string>
     <string name="lbl_blocked" translatable="true">Ҳахәҭыхныуп</string>
     <string name="lbl_disabled" translatable="true">Абгоиууит</string>
     <string name="lbl_domain" translatable="true">Домен</string>
-    <string name="lbl_wildcard" translatable="true">Ахьы moda</string>
     <string name="lbl_action_required" translatable="true">Алара адҵәылара</string>
     <string name="lbl_rules" translatable="true">Ашәақәа</string>
     <string name="lbl_configure" translatable="true">Алымшәырлалар</string>
@@ -28,10 +21,7 @@
     <string name="lbl_network" translatable="true">жәлар</string>
     <string name="lbl_ip_rules" translatable="true">IP А kebijakanқəа</string>
     <string name="lbl_domain_rules" translatable="true">Адомеинқәа рԥынаҵқәқәа</string>
-    <string name="slide_2_title" translatable="true">Салам</string>
     <string name="slide_2_desc" translatable="true">Rethink ащхъа цәааракны иҟоуп аnetwork activity ашәашәаларц, Internet censorship агьежьцәаларц, насгьы аphone\'s applications ашәашәаларц.</string>
-    <string name="slide_1_title" translatable="true">Мчалаз абухыргвыжьра азнапхырала</string>
-    <string name="slide_1_desc" translatable="true">Rethink - адырг \'-аау программна азым , ацəаҳəылара амоу Mozilla Builders MVP program , FOSS United Foundation .</string>
     <string name="allow" translatable="true">Аишьамшьа</string>
     <string name="block" translatable="true">Алакьаҧшра</string>
     <string name="bypass_universal" translatable="true">Универсалтәи ашәашәынтәҵәаҟынтәи ацәынтәалара</string>
@@ -47,25 +37,10 @@
     <string name="pause_mode_notification_title" translatable="true">Ацамышь! Ашәым-адәықәҵәаларақәа реимҵәахыра иахыҟаҵәахын.</string>
     <string name="status_waiting" description="This text appears during the connection process if Rethink needs user permission or the phone is offline." translatable="true">Ашәашьҟаҵәа</string>
     <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">Ашәашәра</string>
-    <string name="status_protected" description="This is a large message in a reassuring color. It indicates that DNS queries can't be surveilled or modified in transit." translatable="true"><string name="protected">А proteção</string></string>
-    <string name="status_app_error" translatable="true">Апликациа ашьашәыра</string>
     <string name="status_dns_error" translatable="true">DNS æнхъицI</string>
     <string name="status_dns_server_down" translatable="true">DNS а сервер ашьапылам амч зымауа</string>
     <string name="status_no_internet" translatable="true">Амшын адцәаҵаны</string>
-    <string name="status_protected_with_tor" translatable="true">Тыркъым ацыхъхъагныргьы дырҟәылаахъахъахъа\"}</string>
-    <string name="status_protected_with_private_dns" translatable="true">Ишьәнырнышәит приват DNS аҟынтә</string>
-    <string name="status_protected_with_tor_private_dns" translatable="true">Tor na private DNS-лак амчъыӄра</string>
-    <string name="status_protected_with_proxy_private_dns" translatable="true">АнцәахъадкылхазProxy &amp; Private DNS аҟны</string>
-    <string name="status_protected_with_socks5_private_dns" translatable="true">soksi5 &amp; azhvyzh\'a dns-лакьала ишашльыш</string>
-    <string name="status_protected_with_http_private_dns" translatable="true">httpProxy-лак апаҿы ишьҭамкьыланы &amp; private DNS</string>
-    <string name="status_protected_with_socks5" translatable="true">soks proxyлак еицызжьыны\"\"\"</string>
-    <string name="status_protected_with_http" translatable="true">http аҧхьаҧнрала ишьҭахыуп</string>
-    <string name="status_protected_with_proxy" translatable="true">Proxy-лак шҳәахәҭаханы иҟоуп</string>
-    <string name="status_strict" description="This is similar to dns_on, but the protection is being provided by the operating system, not by Rethink.  It is not color-highlighted." translatable="true">А приватт DNS аҿуп</string>
     <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit." translatable="true">маҿыцхьауам</string>
-    <string name="dns_explanation_dns_connected" translatable="true">RethinkDNS-иҧшәаҳәара</string>
-    <string name="dns_explanation_firewall_connected" translatable="true">Аҿыцлара ашәахтәҿы</string>
-    <string name="dns_explanation_connected" description="The message will be shown when the DNS is connected" translatable="true">RethinkDNS &amp; Firewall-ик еиццыжьуп</string>
     <string name="universal_firewall_explanation" translatable="true">Ашәымҭақәа зегьы ашәымҭа шьҟаҵар, ацынхарҭа амҩаду аҟәыҟәырҵа, мамзаракь ацынхарҭала аҟәыҟәырҵа, абжьы зхыуа аҟәыҟәырҵа, мамзаракь аҟәыҟәырҵа аҟәыҟәырҵа аҟәыҟәырҵа аҟәыҟәырҵа аҟәыҟәырҵа абжьы зхыу аҟәыҟәырҵа аҟәыҟәырҵа аҟәыҟәырҵа аҟәыҟәырҵа аҟәыҟәырҵа аҟәыҟәырҵа апрвило</string>
     <string name="notification_action_resume_vpn" translatable="true">ААДЫЗРА</string>
     <string name="notification_action_pause_vpn" translatable="true">Аҧхыжьра</string>
@@ -73,32 +48,16 @@
     <string name="notification_action_dns_mode" translatable="true">DNS</string>
     <string name="notification_action_dns_firewall_mode" translatable="true">DNS + Цәышәахтәҵәҟәа</string>
     <string name="dns_mode_info_title" translatable="true">DNS</string>
-    <string name="firewall_rules" translatable="true">Ашәахьала ашәахтәқәа</string>
     <string name="firewall_mode_info_title" translatable="true">Шьыхьужь</string>
-    <string name="firewall_mode_info_explanation_new" translatable="true">Network ашәахәаҧшрала иҟоу аԥсылԥшнышәырҩы ашәахәҧшрала иҟоу аԥсылԥшнышәырҩы, неҭ ашәыцларала иҟоу дырхымҩаԥшрала амҩаԥгара.</string>
     <string name="apps_info_title" translatable="true">Апликациақәа</string>
-    <string name="hybrid_mode_info_title" translatable="true">DNS + Шьармч</string>
-    <string name="dns_mode_info_explanation_new" translatable="true">Мдырхәа, ашьапылымҧш, насгьы аенкрипт арҿыра DNS.</string>
-    <string name="dns_firewall_mode_info_explanation_new" translatable="true">Аламыс ариҳо + Интернет ацикловир аҿыцра.</string>
     <string name="alert_permission_accessibility" translatable="true">Ашәахәышә «Аҧышәшьәра»</string>
-    <string name="alert_firewall_accessibility_exception" translatable="true">Ашәахәалара шьаҭахым Ашьаҿык аиҿкаара. Мамзаргьы еиҭашәахәышә!</string>
-    <string name="brave_dns_connect_mode_change_firewall" translatable="true">Ашәахәашәала Ашәыуа</string>
-    <string name="brave_dns_connect_mode_change_dns" translatable="true">Ашәахәалара ашәыхуа.</string>
     <string name="default_dns_name" translatable="true">РДНС иуаа рыцъкIа</string>
     <string name="custom_url_error_invalid_url" translatable="true">\"}}&gt; Ауаршәазалаҟәы заҧшәахәым</string>
     <string name="conn_track_clear_logs_title" translatable="true">Ашәахәылақәа зегьы рыцәҟлымшра?</string>
     <string name="conn_track_clear_logs_message" translatable="true">Иара уapsа шьаҟа инхеижьуеит амҩақәа рлогқәа, ауаса афаиуоли рполитикақәа ус шакәым. Ари аусура ачара аҭахӡам. Уи аамҭазы шырҭышәаауарак иҟам. Шәара шәаахҭашәаарак?</string>
-    <string name="dns_query_clear_logs_title" translatable="true">DNS аҧсуақәа зегьы ахәыҷрақәа?»</string>
-    <string name="dns_query_clear_logs_message" translatable="true">Афыжьра акәым агәы иану DNS-ақьэупшьқәа. Урҿи акәым аҩыжьра. Уара уабжьыра шәыу?</string>
     <string name="bsct_app_info" translatable="true">Адыргала информация</string>
     <string name="bsct_block_ip" translatable="true">Ашәахә, адгәаҭа <u>ацымԥс</u> <u>ацымԥс</u> азы</string>
     <string name="bsct_block_domain" translatable="true">Иашьа, адгылара <u>адоменқәа</u> <u>ашәахәыҟәаҵәа</u> ишаҟоу</string>
-    <string name="bsct_block" translatable="true">Аҿых, акәымкәа, ахазцалара, аҿыхлара <u>ашәымҭа ари</u></string>
-    <string name="bsct_conn_block_desc" translatable="true">Ашәахьа 27, 2023\n аусбымҭа %1$s ашәахьа %2$s ашәахьа</string>
-    <string name="bsct_conn_block_desc_device" translatable="true">%1$s аdevice аҿы еицҟаамхьеит</string>
-    <string name="bsct_conn_desc_allowed" translatable="true">Ашәахәышра азиа %1$s %2$s</string>
-    <string name="bsct_conn_desc_blocked" translatable="true">ебашьра \'%1$s\' аҿы \'%2$s\'</string>
-    <string name="bsct_conn_rule_explanation" translatable="true"><u>#1</u>: Апсихак агәышькьы абӠрала иацәымхәа.\n<u>#2</u>: Апсихак агәышькьы ауадаҩык иадхәалатәу IP аҟны иацәымхәа.\n<u>#3</u>: Ауадаҩы хәылҩык ахәышәтәын (Абжьыжьтәым ӡымырхәа).\n<u>#4</u>: Апсихак агәышькьы ахәылҩык ахәышәтәын (Абжьыжьтәым ӡымырхәа).\n<u>#5</u>: Апсихак агәышькьы ахәышәтәын ашьапыла аплан шаауа ауадаҩы (Абжьыжьтәым ӡымырхәа).\n<u>#6</u>: Апсихак агәышькьы UDP ахәылҩык ахәышәтәын DNS (Абжьыжьтәым ӡымырхәа).\n<u>#7</u>: Апсихак агәышькьы DNS ахәылҩык ахәышәтәын (Абжьыжьтәым ӡымырхәа).</string>
     <string name="always_on_dialog_heading" translatable="true">VPN агәыпҟрала аанхәаратә мч ахыхьӡеит</string>
     <string name="always_on_dialog" translatable="true">Ацы документ аҿы «Агәны-иасыз VPN» ашәҟәы иашьҭоуп. Rethink аиҭамҵарц азы, Settings ашәҟәы аҿы аҭаацәара, уаҟа «Агәны-иасыз VPN» аанкылара иаҿцәашәҟәылаа.</string>
     <string name="always_on_dialog_positive_btn" translatable="true">Ашәахәахәтәқәа рахь дaa\"}</string>
@@ -111,9 +70,6 @@
     <string name="private_dns_dialog_positive" translatable="true">Ашәахәылаҟаҵәаҟӡ</string>
     <string name="firewall_act_universal_tab" translatable="true">Универсалтә</string>
     <string name="firewall_act_network_monitor_tab" translatable="true">Амшын</string>
-    <string name="dns_act_configure_tab" translatable="true">Шәихилгәаҭ</string>
-    <string name="univ_firewall_dialog_title" translatable="true">IP ашәахәырҟәаныра бжьыжьуазар?</string>
-    <string name="univ_firewall_dialog_message" translatable="true">Ари ауадара адҳәа иунаргозар, аусуратә програм аҿы имҩыргоз аIP аҿы акьыҧшыра иаауеит. Уаҧхәы иаанарԥшу ли?</string>
     <string name="doh_custom_url_remove_dialog_title" translatable="true">DoH ашьапынҵәа ашәымҵахышь ли?</string>
     <string name="doh_custom_url_remove_dialog_message" translatable="true">HTTPS за-ҿыцра анаҩс DNK adgьла жәҧшра аконфигурациаҿы иацәыхаз аиҭакра ашәәла.</string>
     <string name="doh_custom_url_remove_success" translatable="true">Ашәахьыҧшра ахырҧшхеит.</string>
@@ -131,13 +87,6 @@
     <string name="blocklist_update_check_failure" translatable="true">Ашәахьа хынтә иашам. Амаҵ аунҵа!</string>
     <string name="blocklist_update_check_not_required" translatable="true">Аблоклауқәа амчқәа рҿы иҟоуп.</string>
     <string name="refresh_complete" translatable="true"><!-- use dc_refresh_toast --> Ашәахәақәа реишәахәра агьежьра ахыркәшоуп.</string>
-    <string name="show_logs_disabled_network_message" translatable="true">Ауиааитәишьҟаа усмҩашәымҭа Ацамҩашьра ашьапымҭа ануҵәит. Адҵәыжьразы, <i>Аредактра mre</i> аҟныӡа еилырхәаны, <i>Аамҭалалазы Ацамҩашьра ашьапымҭа ануҵәит.</i></string>
-    <string name="show_logs_disabled_dns_message" translatable="true">Амшынчəажəлара ақəаԥшьа ҟаԥшьаӡоуп. Уи ашьапынӡа аарахəразы, <i>Аԥшьаҟа</i> ахьӡуа аҟәылаҟа ԥшәы, <i>Аамҭала аԥшьаҟа аамҭала амҩаԥгара</i> амҩаԥгара.</string>
-    <string name="configure_dns_connected_doh_status" translatable="true">DNS-акьрыхьчара HTTPS-ла</string>
-    <string name="configure_dns_connected_dns_crypt_status" translatable="true">DNSCrypt</string>
-    <string name="configure_dns_connected_dns_proxy_status" translatable="true">DNSProxy</string>
-    <string name="configure_dns_connection_name" translatable="true">%1$s-рак иашьыналаку</string>
-    <string name="configure_dns_crypt" translatable="true">DNSCrypt: %1$s ауацәажәаҩцәа</string>
     <string name="http_proxy_dialog_heading" translatable="true">HTTP(S) CONNECT Ашәахәырақәа Адаҟәаныршәлара</string>
     <string name="http_proxy_dialog_desc" translatable="true">URL аҧшаауа аформа, &lt;protocol&gt;://&lt;username&gt;:&lt;password&gt;@&lt;domain-or-ip&gt;:&lt;port&gt;&lt;path&gt;. Амиҩы: http://proxy.example.com:8080/</string>
     <string name="download_update_dialog_title" translatable="true">Ҭыжьра!</string>
@@ -149,51 +98,30 @@
     <string name="download_update_dialog_failure_message" translatable="true">Або ауга сэуакуа зыхьыуа ауасара, мамзацәа акьырызхуаз акьыра. Азыҳәа, ашьҭахь иагьырхәа.</string>
     <string name="download_update_dialog_trylater_title" translatable="true">Алашьахау иашвҭалымшны</string>
     <string name="download_update_dialog_trylater_message" translatable="true">Ашәахьа ауи иалацәажәаşan, аха акралра ашәаҳә уахтәатәыҟа.</string>
-    <string name="search_firewall_network_log" translatable="true"><font size="12">Аԥшаԥша аԥшьа, IP-шәҟәы, адоменқәа</font></string>
-    <string name="search_firewall_all_apps" translatable="true"><font size="12">Амҵәатәқәа рыԥшаара uid, адҳәалала</font></string>
-    <string name="search_dns_logs" translatable="true"><font size="12">Аҧсуа жәакқәа ёмыршәала ёмышәымҧаё ёмыршәала ёмышәымҧаё</font></string>
     <string name="search_universal_ips" translatable="true"><font size="12">IP-қәа ашәахә</font></string>
     <string name="search_custom_domains" translatable="true"><font size="12">Аҧсуа абиԥшқәа</font></string>
-    <string name="search_rethinkplus_file_tag" translatable="true"><font size="12">АҧсуаBLOCKLISTKHҧSQK</font></string>
-    <string name="app_mode_dns_low_battery" translatable="true">DNS (ашәышьамҭа ахраҧшҩык)</string>
-    <string name="app_mode_dns" translatable="true">DNS</string>
-    <string name="app_mode_firewall" translatable="true">АшвулӀ</string>
-    <string name="app_mode_dns_firewall" translatable="true">DNS &amp; Firewall (ашәашәада)</string>
-    <string name="app_mode_wireguard" translatable="true">VPN</string>
-    <string name="settings_vpn_heading" translatable="true">VPN</string>
     <string name="info_dialog_copy_toast_msg" translatable="true">IP адрес аҭаххьит.</string>
     <string name="info_dialog_url_copy_toast_msg" translatable="true">АURL ахцәахәыхьлеит</string>
     <string name="info_dialog_rethink_toast_msg" translatable="true">RDNS+ DNS-asala-HTTPS URL ra-ihəyətsiz</string>
     <string name="settings_enable_logs_desc" translatable="true">ДНС-и аиҭамлара ваиҭамлара еиҭамлара аҩныҵҟа, аусбарҭа аҿы.</string>
     <string name="settings_enable_logs" translatable="true">Аҿыцлантәи ацхыцқәа рҟаҵара ашьақәыргылара</string>
-    <string name="app_mode_choose" translatable="true">Ашәахәаԥш ашәышыкәаԥш</string>
     <string name="connection_http3" translatable="true">HTTP3</string>
-    <string name="relative_time_today" translatable="true">Амш</string>
-    <string name="relative_time_yesterday" translatable="true">Ашьамтәи</string>
-    <string name="settings_ip_network_heading" translatable="true">IP версиа даҧхьеит</string>
-    <string name="settings_ip_network_desc" translatable="true">ИП-версиеи рҿынтә еизгоит.</string>
-    <string name="settings_ptrans_heading" translatable="true">IPv4-а иҟalan ахыҵхә | IPv4-а иҟала ахыҵхә</string>
-    <string name="settings_ptrans_desc" translatable="true">Ашәахьчара IPv6 аушьҟынтәи IPv4 ашәахьчара амҵшәаҟны. Аиҭатәуп, арҵәымҭа IPv4-тәымҵәҟәа аицклаҧшәҟәы шьҭырҵоуп.</string>
     <string name="settings_allow_lan_desc" translatable="true">Rethink\'s VPN tunnel-иҟнынтә иахкныжь АЛАН, loopback, multicast, link-local маршрутқәа.</string>
     <string name="settings_allow_bypass_heading" translatable="true">Аҿыцәқәа ргәаҭа арацәшәажь аиҭнархәа</string>
     <string name="settings_allow_bypass_desc" translatable="true">Азшәахра аԥҟыдақәлақә рзы аус алгӡара иадҵоит зегьы иазку аус рыбжьгара. Уи азшәахрақәа ириашаны имҩаԥыргоим а VPN ашәахәҭақәа. Аудио/видео аиԥыларақәа ирзынаԥшуа Microsoft Teams Microsoft Teams and Google Meet аҟны ишаҭахыу аҟынтә, урҭ а аушьҭыра аҟынтә имҩаԥыргоим.</string>
     <string name="settings_lock_down_mode_desc" translatable="true">VPN-им рыхәтныла урхәҵаит ахыҵхәақәа рымчалара. <u>VPN ашәҟәы азыр</u>.</string>
     <string name="settings_proxy_header" translatable="true">proxy</string>
     <string name="settings_socks5_heading" translatable="true">SOCKS5 прокси аишьəашьашьашьашьашьашьашьашьашьара</string>
-    <string name="settings_socks5_desc" translatable="true">Аҧсуа бызшәала:\nАҞӘАҞӘАҚӘҴҞА SOCKS5 ашәаҧшәоу анҭаҵаҵәоит.</string>
     <string name="settings_https_heading" translatable="true">HTTP(S) CONNECT Proxy аԥыжәажьра</string>
     <string name="settings_https_desc" translatable="true">HTTP(S) CONNECT  ашьырҳәанышқәа рышьҭаҟәацәра.</string>
     <string name="orbot" translatable="true">Орбот</string>
     <string name="orbot_socks5" translatable="true">TCP-аҿык шьаҭаратә</string>
     <string name="orbot_http" translatable="true">HTTP Апроксимиа</string>
-    <string name="orbot_http_desc" translatable="true">Orbot-шәынтә HTTP CONNECT туннель шхыжьырхәалоит.</string>
     <string name="orbot_both" translatable="true">TCP + HTTP Қәаҧш</string>
-    <string name="orbot_both_desc" translatable="true">Усе еиҧшу.</string>
     <string name="orbot_none" translatable="true">Апсуа (ашәашәа)</string>
-    <string name="orbot_none_desc" translatable="true">Зыхынтәы егьнапшым.</string>
     <string name="orbot_bs_status_1" translatable="true">%1$s аҿиаахәқәа ршьыжьра Orbot аҿы иахәыхәҭоит.</string>
     <string name="orbot_bs_status_2" translatable="true">HTTP апроксимациа ануп.</string>
-    <string name="orbot_bs_status_3" translatable="true"><string name="orbot_explanation">Orbot-и рахь \"%1$s\" адраш аиуны, HTTP Proxy адгьы иахаҟаҵоуп.</string></string>
+    <string name="orbot_bs_status_3" translatable="true">Orbot-и рахь \"%1$s\" адраш аиуны, HTTP Proxy адгьы иахаҟаҵоуп.</string>
     <string name="orbot_bs_status_4" translatable="true">Аҭакрала а-Tor-аԥсабаԥш-аԥсаса (Orbot) ашәахәҭашәара.</string>
     <string name="orbot_status_arg_2" translatable="true">TCP</string>
     <string name="orbot_status_arg_3" translatable="true">DNS аегIвт TCP</string>
@@ -210,10 +138,6 @@
     <string name="orbot_install_dialog_message" translatable="true">Аорбо́т а́нцәа́жьы́оит Tor амч́ы́раа́ ры́шәа-ха́клых́ы́раа́ а́нҷа́а́ра а́ндо́и́д а́ҟа́.</string>
     <string name="orbot_install_dialog_positive" translatable="true">Шәынтәиала</string>
     <string name="orbot_install_dialog_neutral" translatable="true">асасаат</string>
-    <string name="settings_orbot_heading" translatable="true">Orbot аҟаҵа</string>
-    <string name="settings_orbot_header" translatable="true">Орбот ❯</string>
-    <string name="settings_orbot_desc" translatable="true">Орбот а VPN-имҩнакуа аҿы HTTPs/SOCKS5 аҟны.</string>
-    <string name="settings_orbot_install_desc" translatable="true">Алаӷьынтә аалыҟәырҵыр ашәымор Orbot</string>
     <string name="settings_socks5_disabled_error" translatable="true">%1$s-нтәи аихәаԥш аамҭақәа рҿы иааиларц азы, уи аловонт.</string>
     <string name="settings_socks5_vpn_disabled_error" translatable="true">Rethink дрыжьраа шəаа, аҧхьаӡа ашьаҧыжьыр.</string>
     <string name="settings_orbot_disabled_error" translatable="true">HTTP(S) anS SOCKS5 proxy-қәа анцәаитәит Tor-as-a-proxy-и амҵәышәшьаразы.</string>
@@ -229,41 +153,22 @@
     <string name="settings_check_update_desc" translatable="true">Ауп naҧ шəахәмала аҧшәамҭақәа рҧхьаҧшра.</string>
     <string name="settings_custom_downloader_heading" translatable="true">Ашәахәаҧшра ашьҭышьҭыҟә</string>
     <string name="settings_custom_downloader_desc" translatable="true">Ако иҧыжьымкәа, иуадаҩым акәымкәам Андроит ихаҭыррала иузаауа «Download Manager»</string>
-    <string name="settings_import_export_heading" translatable="true">Ацәыхра &amp; Ажьырæхә</string>
     <string name="settings_import_export_desc" translatable="true">Апп и data-ақәа, settings-еи рхыхра адгылара ашәашәра.</string>
-    <string name="settings_app_notification_a13_heading" translatable="true">Апликациа рыуха | Апликациа рыуха</string>
-    <string name="settings_app_notification_a13_desc" translatable="true">Ашәахәахәҵәаҟәатәи азин ашәҭразы ашәҟәыҟаҵәашәҭратә жәаҿа enable</string>
     <string name="settings_theme_heading" translatable="true">Ашҭашәа</string>
-    <string name="settings_theme_desc" translatable="true">Амшын/Аҵәыжь цבע</string>
-    <string name="settings_go_log_heading" translatable="true">Лог амҩы\"&gt;Log level</string>
-    <string name="settings_go_log_desc" translatable="true">Шгәашәахәаразы</string>
     <string name="settings_http_proxy_desc" translatable="true">Ашәахәақәарак апланшәарак ахь <tt>%1$s</tt></string>
-    <string name="settings_http_proxy_dialog_title" translatable="true">Аҿыцшьамҭаз асервер URL</string>
     <string name="settings_http_proxy_error_text1" translatable="true">Амшынқуа 1024–65535 шраgeqslant</string>
     <string name="settings_http_proxy_error_text2" translatable="true">Амцәа ашьыжьым</string>
     <string name="settings_http_proxy_error_text3" translatable="true">Ахатәи аҭыԥ еиҭахымлоуп</string>
-    <string name="settings_http_proxy_error_text4" translatable="true">Ацәаахәахәаҩи амҩаԥгара далцаамыз. Аԥышәқәра шәыхашәашә.</string>
     <string name="settings_http_proxy_toast_success" translatable="true">HTTP апроксиа ш шəахəахəахəоуп</string>
     <string name="settings_dns_proxy_dialog_header" translatable="true">SOCKS5 прокси аиҭашәашәа!</string>
     <string name="settings_dns_proxy_dialog_app" translatable="true">Апликациа</string>
-    <string name="settings_dns_proxy_dialog_hostname" translatable="true">Адҭыжьшәа</string>
-    <string name="settings_dns_proxy_dialog_port_number" translatable="true">Ашәахәра амҩаԥгара</string>
-    <string name="settings_dns_proxy_dialog_username" translatable="true">Апаҧыни&lt;/name&gt;</string>
-    <string name="settings_dns_proxy_dialog_password" translatable="true">Апассwорд</string>
-    <string name="settings_dns_proxy_dialog_positive_btn" translatable="true">иану\"}}&gt; set</string>
     <string name="settings_app_list_default_app" translatable="true">Ҭабасшьаҟны иҟоуп</string>
     <string name="settings_socks_forwarding_desc" translatable="true">%1$s:%2$s-ҟәа, %3$s-ҟәа ашьапылымра</string>
     <string name="settings_socks_forwarding_desc_no_app" translatable="true">Ашәаҳәар парала %1$s:%2$s</string>
     <string name="settings_socks_forwarding_default_desc" translatable="true">АҞӘЫ «SOCKS5» адырра амҩақәҵәҟьа.</string>
-    <string name="settings_socks5_dialog_hint_ip" translatable="true">IP Адреса</string>
-    <string name="settings_socks5_dialog_hint_port" translatable="true">Порт</string>
-    <string name="settings_socks5_dialog_hint_username" translatable="true">Аба́жьра (егьы́рхъа)</string>
-    <string name="settings_socks5_dialog_hint_password" translatable="true">Ашәашәашә (амаҭәымҵәыг)</string>
-    <string name="settings_theme_dialog_title" translatable="true">Ашәыпш</string>
     <string name="settings_theme_dialog_themes_1" translatable="true">Шәҟәатәи а sistem</string>
     <string name="settings_theme_dialog_themes_2" translatable="true">Амшын</string>
     <string name="settings_theme_dialog_themes_3" translatable="true">Амш / Ашәа</string>
-    <string name="settings_theme_dialog_themes_4" translatable="true">Ақәылашьшь</string>
     <string name="settings_ip_dialog_title" translatable="true">IP адоубара дыхэуа</string>
     <string name="settings_ip_dialog_ipv4" translatable="true">IPv4 (ашәаахәылак)</string>
     <string name="settings_ip_dialog_ipv6" translatable="true">IPv6 (ашәашәарҧшәа аус аурала)</string>
@@ -271,74 +176,20 @@
     <string name="settings_ip_text_ipv4" translatable="true">IPv4</string>
     <string name="settings_ip_text_ipv6" translatable="true">IPv6</string>
     <string name="settings_ip_text_ipv46" translatable="true">Автомат</string>
-    <string name="settings_notification_heading" translatable="true">Аибазаахәыра аԥкра ашәахәаҧш</string>
-    <string name="settings_notification_desc" translatable="true">Аҿыхра аҿы иаазырхалара зҭаху аҿыхрақәа: %1$s</string>
-    <string name="settings_notification_desc1" translatable="true">Ашьашәа / Ашьашәаҟьаҵә (аҿаԥш)</string>
-    <string name="settings_notification_desc2" translatable="true">DNS / DNS + Firewall</string>
-    <string name="settings_notification_desc3" translatable="true">Апсуа</string>
-    <string name="settings_notification_dialog_title" translatable="true">Ашәахәақәа ралахәра аимҵәахәит</string>
-    <string name="settings_notification_dialog_option_1" translatable="true">\nАмцәажәара / Аиҭашәашьаҟа (аиуашьашьаҟа):\nАҩныҵҟәылак иаанарԥшуеит, Ретхинк амцәажәарала аиҭашәашәаҟа ианырҵарц.</string>
-    <string name="settings_notification_dialog_option_3" translatable="true">\nМшԥа:\nАмшԥа иаанымԥшуам.\n</string>
-    <string name="settings_locale_heading" translatable="true">Шәәлым Ашәалым</string>
-    <string name="settings_locale_desc" translatable="true">Ашәахәашәа уаҧхьа адгьылбנתҟырҭ</string>
-    <string name="settings_locale_dialog_title" translatable="true">Ҳәы иқәшәо ашәылара</string>
-    <string name="settings_locale_dialog_neutral" translatable="true">Асисҭааит аиҭагаразы</string>
-    <string name="settings_biometeric_heading" translatable="true">Аппликациа ашәахәахәҭра аиҭамх</string>
-    <string name="settings_biometric_desc" translatable="true">Ихьчаҧш ашәахәырҧш адҵа аусдҭышәҟәылала</string>
-    <string name="settings_selected_theme" translatable="true">Ҭэуц «%1$s»</string>
     <string name="settings_protocol_translation_dns_inactive" translatable="true">Алахаракыра / Алахаракыра+Ащхынтә режим ахь иахыжьыр шәыакуп ари адоужьыбара аахыц ашәҵәаларазы</string>
     <string name="settings_default_dns_heading" translatable="true">Ашәахәышәашәашәашьқәа DNS</string>
     <string name="settings_default_dns_desc" translatable="true">Амчҳәаԥшрақәа рахьынтә, аусуҩы иԥсҭаалара амчҳәаԥшра аԥырԥшра ашьҭымхакәа, адгылара амчҳәаԥшра ахыҵхәаԥшра шрымоу.</string>
-    <string name="settings_pcap_heading" translatable="true">Аҧсуа бызшәала: Апакет аҧсыжьра</string>
-    <string name="settings_pcap_dialog_title" translatable="true">PCAP</string>
-    <string name="settings_pcap_dialog_option_1" translatable="true">ШьҦоит (з metode)</string>
-    <string name="settings_pcap_dialog_option_2" translatable="true">Ацҳацҳәарахәаҿы иаагоуп</string>
-    <string name="settings_pcap_dialog_option_3" translatable="true">Ашәахьахара зымҵәым апап аҿы</string>
-    <string name="pcap_failure_toast" translatable="true">Ашәахәа, адҟьеиҭра ашәахәа, ашәахәаҿы!</string>
-    <string name="apps_icon_content_desc" translatable="true">Апликациа Амҿкаԥш</string>
-    <string name="firewall_status_allow" translatable="true">Арымҵахьоу</string>
     <string name="firewall_status_excluded" translatable="true">DNS-им аҿы, Firewall-им аҿы илымҵәахьоу</string>
     <string name="firewall_status_isolate" translatable="true">ихаԥсазтәу</string>
     <string name="firewall_status_whitelisted" translatable="true">ауниверсалтә ҳәалтрақәа рыхы данахьлеит</string>
     <string name="firewall_status_bypass_dns_firewall" translatable="true">dns-иркабала, firewall-иркабала аҟынтә иналацәахоит</string>
-    <string name="firewall_status_block_unmetered" translatable="true">еиухәахтхеит аиуашьралатә аNetworkқәа рҿы (wifi)</string>
-    <string name="firewall_status_block_metered" translatable="true">Ашәахккуаз а 네트워크қәа рҿы (амобилтә) шанхарак</string>
-    <string name="firewall_status_blocked" translatable="true">Ашьаҧшьны</string>
     <string name="firewall_status_unknown" translatable="true">addling</string>
-    <string name="ct_bs_app_info_error" translatable="true">А 정보 аҧыҟам</string>
     <string name="hs_biometeric_title" translatable="true">Rethink аишьҭахылар</string>
     <string name="hs_biometeric_desc" translatable="true">Rethink аишьшәаашәоит абиометриатә ашьаҭҝырала</string>
-    <string name="hs_biometeric_failed" translatable="true">Биометриеи рылажьара уадахуаит</string>
     <string name="hs_biometeric_error" translatable="true">Биомеиутрик ауадацахьхəарак</string>
-    <string name="firewall_card_status_active" translatable="true">%1$s Апхъақәа</string>
-    <string name="firewall_card_text_active" translatable="true">%1$s ашьапыхтны\n%2$s аҿыххом\n%3$s ашьапылымху\n%4$s аҿыцххом</string>
-    <string name="firewall_card_text_inactive" translatable="true">Ашәахәшәаршәыр шьақәиҵа.</string>
-    <string name="dns_card_latency_active" translatable="true">%1$s абжьых</string>
-    <string name="dns_card_latency_inactive" translatable="true">DNS шьаҭымҵрала иалагаа.</string>
-    <string name="firewall_card_universal_rules" translatable="true">%1$s универсaлтә ақәымԥақәа</string>
-    <string name="rules_card_domain_count" translatable="true">%1$s адомен ақәышаиқәырԥшқәа</string>
-    <string name="apps_card_ips_count" translatable="true">%1$s IP &amp; Port ашәахәықәҵақәа</string>
-    <string name="logs_card_network_count" translatable="true">%1$s ашәыҧшнызгақәа</string>
-    <string name="logs_card_dns_count" translatable="true">%1$s ашәахәқәа</string>
-    <string name="hsf_start_btn_state" translatable="true">Алагара</string>
-    <string name="hsf_stop_btn_state" translatable="true">Аимҩыжьыр</string>
-    <string name="hsf_downtime" translatable="true">(иуахымıtщэу еымщхьэ %1$s а Baal)</string>
     <string name="hsf_vpn_dialog_header" translatable="true">Ашәахьа!</string>
     <string name="hsf_vpn_prepare_failure" translatable="true">VPN анбоу идаҿуп, мамза сценари, даҽа программа «Абжьыжьатә VPN» ашәҟәышәҟәы акьыҟәаны.</string>
     <string name="hsf_notification_permission_failure" translatable="true">Ашәаҳәара шрылазгараз «Ашәаҳәара» адәаҿ</string>
-    <string name="hsf_start_dialog_header" translatable="true">Алагаӡаа %1$s</string>
-    <string name="hsf_start_dialog_positive" translatable="true">Иалхəара</string>
-    <string name="hsf_whats_new_chip_text" translatable="true">Сырҧшәрала анов</string>
-    <string name="hsf_proxy_chip_text" translatable="true">Прокси адҵәых</string>
-    <string name="hsf_packet_capture_chip_text" translatable="true">Апаҧақәа ахоцәажәашьа</string>
-    <string name="hsf_blocklist_chip_text_no_data" translatable="true">RDNS+ аиаануршәала</string>
-    <string name="hsf_exclude_error" translatable="true">VPN-акәыжә аусура ашьҭамла аҿы ашьҭаамбжьылара азымхыҵырҩуа</string>
-    <string name="hsf_proxy_chip_removed_toast" translatable="true">Анцәахәы иахккаауа</string>
-    <string name="hsf_proxy_chip_remove_text" translatable="true">Иаххәышьәахәахәа…</string>
-    <string name="hsf_packet_capture_chip_disabled_toast" translatable="true">Апаҟа ашьапынтәи еизырхымх шəыцəыцəахара</string>
-    <string name="hsf_whats_new_remove_text" translatable="true">Аҟәалоит…</string>
-    <string name="hsf_blocklist_updating_text" translatable="true">Активрара…</string>
-    <string name="hsf_chip_appearance" translatable="true">Ашәахә: %1$s</string>
     <string name="hsf_pause_vpn_failure" translatable="true">Cannot pause: Rethink not active</string>
     <string name="dc_block_heading" translatable="true">Ашәақәа</string>
     <string name="dc_other_dns_heading" translatable="true">Ашҟа</string>
@@ -347,16 +198,11 @@
     <string name="dc_entries" translatable="true">%1$s аҧызар »</string>
     <string name="dc_local_block_heading" translatable="true">АBYҧaa ҿаҧхьа амҩынтәи адҵақәа</string>
     <string name="dc_local_block_desc_1" translatable="true">195+ азблоклистқәа рахь дзырхыжә. Абри анаҳатәуп ауалахәера еиуоу аслотқәеи рыцҳазгаразы.</string>
-    <string name="dc_custom_block_heading" translatable="true">Домен ашәахәқәа</string>
     <string name="dc_dns_website_heading" translatable="true">Аархәоит аwebsite аиашьатә еиқәыршара DNS ақәышарақәа рҿы (адәаҿы иҟоуп)</string>
     <string name="dc_dns_website_desc" translatable="true">Аҧсуа бызшәаҿ ииажьуеит а веб-саитқәа ргәаҿыреиқәҵәрақәа <i>nextdns.io</i>, <i>duckduckgo.com</i>. Адиск аҿы иццоит 350 МБ аҟынӡа</string>
     <string name="dc_dns_leaks_heading" translatable="true">DNS маицәаажьра ҳәа иахәаԥшлам</string>
     <string name="dc_dns_leaks_desc" translatable="true">УПС! Иашьаҭырҵәара адырра аиура иахәҭоуп.\nАжәабжьҳәаҩ:\nЕрыцәҟәоуп, Rethink иаанахәоит 53-тәи амҩаҿы зегьы реисмозгьы, насгьы ақәырҧшра абеиаҩцәа ирынаҵы шьҭыхаауеит.</string>
     <string name="dc_check_update_heading" translatable="true">Аблок хьыжьра амшәала</string>
-    <string name="dc_check_update_desc" translatable="true">Амсыр адкылара аура <i>хԥыжәа амш</i> рышьҭалатәуп</string>
-    <string name="about_bravedns_explantion" translatable="true">Rutoҷра — Уаера иҷазлам аиуааракьа, изадырхын ad-ad-z-r-h-ye, амчлажьаркра аԥсшьа, аԥсшьа амчлажьаркра адгьыл, аԥсшьа аԥсшьа амчлажьаркра аԥсшьа адгьыл, амчлажьаркра аԥсшьа адгьыл, амчлажьаркра адгьыл, адгьыл.</string>
-    <string name="about_bravedns_whoarewe" translatable="true">Rethink амшынла, уышьҭәылаз иусуамҭа, Amazon, IBM, Scientific Games агәызуаа рышшьыҧ аҿы иҟоуп.</string>
-    <string name="about_bravedns_toreport_text" translatable="true">Ашәахәаратә усура &amp; амҵәаҧшра</string>
     <string name="about_bug_report_desc" translatable="true">e-mail-тәи амшьахәқәа рыхәшәтәра</string>
     <string name="about_join_telegram" translatable="true">Telegram</string>
     <string name="about_bug_report" translatable="true">Ашәахәтәы адырра</string>
@@ -369,10 +215,8 @@
     <string name="about_docs" translatable="true">Аҵыхәтәқәа Рыԥшра</string>
     <string name="about_privacy_policy" translatable="true">Апсихуақьтәи аполитика аԥхьа</string>
     <string name="about_connect" translatable="true">Аҧしшәлашь</string>
-    <string name="about_sponsor_link_text" translatable="true">Абжьыра</string>
     <string name="about_app" translatable="true">Апп</string>
     <string name="about_email" translatable="true">Е-маил ашәашәалоит</string>
-    <string name="about_settings" translatable="true">Sistema</string>
     <string name="about_settings_app_info" translatable="true">Апликациазын адылхъва</string>
     <string name="about_settings_vpn_profile" translatable="true">VPN Ашьапынеибамра</string>
     <string name="about_settings_notification" translatable="true">А kebijakan ашәахәаҧшқәа</string>
@@ -380,107 +224,29 @@
     <string name="about_twitter" translatable="true">Ҳазшәыхттҳәаа Twitter аҿы</string>
     <string name="about_mozilla" translatable="true">Rethink-и Mozilla Builders, FOSS United Foundation ашьҭраҿы ишьҭаҵоуп.</string>
     <string name="about_app_update_check" translatable="true">Ацәҳәырра ашәы ҟаҵатәуп ақәырҧшрақәа рызцәажәаразы</string>
-    <string name="about_app_contributors" translatable="true">Аавторцәа</string>
-    <string name="about_app_translate" translatable="true">Ашәықәсқәра</string>
     <string name="about_dialog_positive_button" translatable="true">Аишь, аишь!</string>
     <string name="about_mail_to" translatable="true">hello@celzero.com</string>
     <string name="about_mail_to_string" translatable="true">mailto:</string>
     <string name="about_mail_subject" translatable="true">[Аԥхьа]:</string>
     <string name="about_mail_bugreport_subject" translatable="true">[Rethink]: Абазатәи ақәыԥш ашәҟәы</string>
-    <string name="about_mail_bugreport_text" translatable="true">Ари е-почта аашьҭахырҩыла ишьҭаалырҵа: hello@celzero.com</string>
     <string name="about_mail_bugreport_share_title" translatable="true">Аԥшьра email-аԥшаԥшԥшаԥшԥшаԥшԥшаԥшԥшаԥшԥшаԥшԥшаԥшԥшаԥшԥшаԥшԥшаԥшԥша</string>
     <string name="about_dialog_neutral_button" translatable="true">А funções ашәаҳәала</string>
-    <string name="app_info_error" translatable="true">Ап имаҵлара дырцәамызт.</string>
     <string name="vpn_profile_error" translatable="true">VPN ашәахәаҭра рызмуа.</string>
-    <string name="private_dns_error" translatable="true">Ашәахьаӡам приват а DNS акьыжьра.</string>
     <string name="notification_screen_error" translatable="true">Ашәаахәаҧшра адыррақәеи ацәатә хәышәра анцәынтәаауамызт.</string>
     <string name="intent_launch_error" translatable="true">%1$s арымчъауа</string>
     <string name="no_browser_error" translatable="true">Асакралаҵәа абраузрҭалаҿ инапы злахуам.</string>
-    <string name="log_file_not_available" translatable="true">Ашәашәырҟәра адыррақәа раамҭала ашьапыхьамла адаҟәынаҟәра аамҭала</string>
     <string name="error_loading_log_file" translatable="true">Ашәахәаҩа афаила аиҭашәахә еимырхәа</string>
     <string name="collecting_logs_progress_text" translatable="true">Ицырхәахьо…</string>
-    <string name="contributors_dialog_title" translatable="true">Аавторцәа</string>
-    <string name="contributors_list" translatable="true"><![CDATA[Аризы «Rethink Open Source Project» ахьҟа изызаауа акьыҧхыларала иҟоу аволонтеируа ауаа, урҭа рхатәы амш ҳәынҭыҧла ирзыруоит.<br/>
-                                              <br/>🛡️ Android апп <br/>
-                                              <a href="https://github.com/anthonyryan1">Anthony Ryan</a> /
-                                              <a href="https://github.com/BayLee4">BayLee4</a> /
-                                              <a href="https://github.com/Ch4t4r">Ch4t4r</a> /
-                                              <a href="https://github.com/samthesamman">CodingAttack</a> /
-                                              <a href="https://github.com/HrBDev">HrBDev</a> /
-                                              <a href="https://github.com/hussainmohd-a">hussainmohd-a</a> /
-                                              <a href="https://github.com/ignoramous">ignoramous</a> /
-                                              <a href="https://github.com/ironveil">ironveil</a> /
-                                              <a href="https://github.com/markwmuller">markwmuller</a> /
-                                              <a href="https://github.com/mohammaduvez">Mohammaduvez</a> /
-                                              <a href="https://github.com/Mygod">Mygod</a> /
-                                              <a href="https://github.com/Poussinou">Poussinou</a> /
-                                              <a href="https://github.com/pjosingh">pjosingh</a> /
-                                              <a href="https://github.com/RohitSurwase">RohitSurwase</a> /
-                                              <a href="https://github.com/ShantanuVichare">Shantanu</a> /
-                                              <a href="https://github.com/Uldiniad">Uldiniad</a><br/> /
-                                              <a href="https://github.com/yurtpage">yurtpage</a><br/>
-                                              <br/>🚂 Network engine <br/>
-                                              <a href="https://github.com/alalamav">alalamav</a> /
-                                              <a href="https://github.com/bemasc">bemasc</a> /
-                                              <a href="https://github.com/dmcardle">dmcardle</a> /
-                                              <a href="https://github.com/fortuna">fortuna</a> /
-                                              <a href="https://github.com/ignoramous">ignoramous</a> /
-                                              <a href="https://github.com/PeterDaveHello">PeterDaveHello</a> /
-                                              <a href="https://github.com/santhosh-ponnusamy">santhosh-ponnusamy</a> /
-                                              <a href="https://github.com/SeanBurford">SeanBurford</a><br/>
-                                              <br/>📚 Resolver <br/>
-                                              <a href="https://github.com/ahmed-tasaly">ahmed-tasaly</a> /
-                                              <a href="https://github.com/amithm7">amithm7</a> /
-                                              <a href="https://github.com/arfshl">arfshl</a> /
-                                              <a href="https://github.com/badmojr">badmojr</a> /
-                                              <a href="https://github.com/bongochong">bongochong</a> /
-                                              <a href="https://github.com/elliotwutingfeng">elliotwutingfeng</a> /
-                                              <a href="https://github.com/georgyo">georgyo</a> /
-                                              <a href="https://github.com/GiddyGoatGaming">GiddyGoatGaming</a> /
-                                              <a href="https://github.com/Harish-Narayan">Harish-Narayan</a> /
-                                              <a href="https://github.com/ignoramous">ignoramous</a> /
-                                              <a href="https://github.com/JakeChampion">JakeChampion</a> /
-                                              <a href="https://github.com/MasterKia">MasterKia</a> /
-                                              <a href="https://github.com/mtxadmin">mtxadmin</a> /
-                                              <a href="https://github.com/neneeen">neneeen</a> /
-                                              <a href="https://github.com/PeterDaveHello">PeterDaveHello</a> /
-                                              <a href="https://github.com/santhosh-ponnusamy">santhosh-ponnusamy</a> /
-                                              <a href="https://github.com/shruuub">shruuub</a> /
-                                              <a href="https://github.com/shuvashish76">shuvashish76</a><br/>
-                                              <br/>⚜ Community mods <br/>
-                                              <a href="https://t.me/amithm7">amithm7</a> /
-                                              <a href="https://t.me/TronSlayer">Andersen</a> /
-                                              <a href="https://t.me/ppatra">ppatra</a> /
-                                               <a href="https://t.me/InFamous23">InFamous23</a> /
-                                              <a href="https://t.me/TheTr1ckst3r">TheTr1ckst3r</a> /
-                                              <a href="https://t.me/Ch4t4r">Ch4t4r</a> /
-                                              <a href="https://t.me/Billi_ance">Billi_ance</a> /
-                                              <a href="https://t.me/kaliangel">kaliangel</a> /
-                                              <a href="https://github.com/PoneyClairDeLune">PoneyClairDeLune</a><br/>
-                                              <br/>📌 Geo-IP <br/>
-                                              <a href="https://db-ip.com">db-ip.com</a> / <a href="https://ipinfo.io/lite">IPinfo Lite</a><br/>
-                                              <br/>❇ Translations <br/>
-                                              <a href="https://weblate.org/en/">Weblate</a><br/>
-                                              <br/>🦆 Icons <br/>
-                                              <a href="https://github.com/celzero/rethink-app/issues/346">Icons</a><br/>
-                                              <br/>📦 Build servers <br/>
-                                              <a href="https://jitpack.io/">JitPack</a> /
-                                              <a href="https://github.com/">GitHub</a> /
-                                              <a href="https://central.sonatype.com/">Sonatype</a><br/>
-                                              ]]></string>
     <string name="cd_dns_crypt_title" translatable="true">Абасаҧшәыҟаҵаҩцәа</string>
-    <string name="cd_custom_doh_dialog_title" translatable="true">Ашәахәылатәи Асервер URL</string>
     <string name="cd_custom_doh_url_name_default" translatable="true">DoH</string>
     <string name="cd_custom_doh_url_name" translatable="true">DoH %1$s</string>
-    <string name="cd_custom_dns_proxy_title" translatable="true">Ашәахьахауа DNS Уахътәаԥс</string>
     <string name="cd_custom_dns_proxy_name_default" translatable="true">Прокси</string>
     <string name="cd_custom_dns_proxy_name" translatable="true">Прокси %1$s</string>
-    <string name="cd_custom_dns_proxy_default_app" translatable="true"><string name="none">Уарым</string></string>
+    <string name="cd_custom_dns_proxy_default_app" translatable="true">Уарым</string>
     <string name="cd_dns_proxy_mode_external" translatable="true">Аҧсынтә</string>
     <string name="cd_dns_proxy_error_text_1" translatable="true">Агәаҟәаҟәа IP адәҟны</string>
     <string name="cd_dns_proxy_error_text_2" translatable="true">Ашәахәқәа 1024–65535 иалацқәа</string>
     <string name="cd_dns_proxy_error_text_3" translatable="true">Ашәадатәи амҩаԥгара 1098</string>
-    <string name="cd_dns_crypt_dialog_title" translatable="true">DNSCrypt резолвер амIацIалра мапIаш</string>
     <string name="cd_dns_crypt_name_default" translatable="true">DNSCrypt</string>
     <string name="cd_dns_crypt_name" translatable="true">DNSCrypt %1$s</string>
     <string name="cd_dns_crypt_relay_name" translatable="true">DNSRelay %1$s</string>
@@ -490,7 +256,6 @@
     <string name="cd_dns_crypt_dialog_name" translatable="true">Ахьӡ</string>
     <string name="cd_dns_crypt_dialog_stamp" translatable="true">Аштамп</string>
     <string name="cd_dns_crypt_dialog_desc" translatable="true">Ажәахәаҧш (ахәыҷыҧш)</string>
-    <string name="cd_dns_crypt_error_text_1" translatable="true">Ашпыжь аҧцәахаӡом</string>
     <string name="cd_doh_dialog_heading" translatable="true">DNS over HTTPS хаҵа</string>
     <string name="cd_doh_dialog_resolver_name" translatable="true">А Resolver А цIар</string>
     <string name="cd_doh_dialog_resolver_url" translatable="true">УУИ-адреса реистраш</string>
@@ -501,18 +266,7 @@
     <string name="ctbs_app_other_apps" translatable="true">%1$s + %2$s егьых апхьадара</string>
     <string name="ctbs_block_other_apps" translatable="true">%1$s-зы ҳасабтларалара ацәажәалара %2$s адгьылбӏасқәа егьырԥшлар</string>
     <string name="ctbs_dialog_negative_btn" translatable="true">Ҭахыжь</string>
-    <string name="dns_log_dialog_positive" translatable="true">Ашәақәа ашәымҳәала</string>
-    <string name="dns_btm_sheet_dialog_message" translatable="true"><Data><![CDATA[ <h3><u><font size="8">%1$s</font></u>: %2$s ашәахәылақәа рыла ишьҟамкәа</h3>%3$s.<br/><br/>]]></Data></string>
-    <string name="dns_btm_sheet_dialog_ips" translatable="true"><Data><![CDATA[ %1$s %2$s <br/>]]></Data></string>
-    <string name="dns_btm_sheet_chip" translatable="true">+%1$s Мбазала IPқәа</string>
-    <string name="dns_btm_sheet_chip_no_answer" translatable="true">Аммыргьхыуаӡам</string>
-    <string name="dns_btm_resolved_crypt" translatable="true">ауахәалатәи ашьапыламҭа %1$s ашәахәы ахыҧхәышра %2$s аҟынтә %3$s аҟынтә</string>
-    <string name="dns_btm_resolved_doh" translatable="true">%2$s аҿы %1$s аиххратәуп</string>
-    <string name="dns_btm_resolved_doh_no_server" translatable="true">%1$s аиҭазгалаз</string>
-    <string name="dns_btm_latency_ms" translatable="true">%1$ss</string>
-    <string name="dns_btm_record_type" translatable="true">Ашәаҳәара аҟәыш: %1$s</string>
     <string name="hs_download_positive_default" translatable="true">Ассаламу гIалайкум</string>
-    <string name="hs_download_positive_play_store" translatable="true">Анаарат Аҿацәажәала</string>
     <string name="hs_download_positive_website" translatable="true">")|)|  |"</string>
     <string name="hs_download_negative_default" translatable="true">Ҭахыжьыуала</string>
     <string name="univ_firewall_rule_1" translatable="true">Амшәашәытәҵәҟьоуп жәҩнқә зегьы, амобил амоскышәҟны ианҵоуа</string>
@@ -521,35 +275,25 @@
     <string name="univ_firewall_rule_4" translatable="true">UDP ашәахәҧш, DNS насҧы nw-ns1.ap-southeast-1.compute.amazonaws.com.ns0, xnc-ns2.ap-southeast-1.compute.amazonaws.com.ns2.</string>
     <string name="univ_firewall_rule_5" translatable="true">Аблок ашәшьырҭра ашәҟәаԥш ашәҟәаԥш аԥсадгьыл ашәҟәаԥш</string>
     <string name="univ_firewall_rule_6" translatable="true">Ашәахәрала иалагалаз апоиқәа рыӡбахә амцшәымҵәашәра</string>
-    <string name="univ_firewall_rule_7" translatable="true">IPv4 ақәымҵра IPv6 аҟны (ашәахәымҭоуп)</string>
     <string name="univ_firewall_rule_8" translatable="true">Ымбацәашәа аушьҭра 80 (ашәымҭалатәи HTTP) амҩақәа</string>
     <string name="univ_firewall_rule_9" translatable="true">Аиаахәа xаахә аметр аҟны (мобильтә) аикәлараҟны</string>
     <string name="univ_firewall_rule_10" translatable="true">Урмыхьыла адгьыцц «Адгьыцц адгьыцц ҳәа еицҧшны иахрыжьуа» иаҿы иаанкьаҧхьу амҩдуқәа, IP-адретиқәа рыла.</string>
     <string name="univ_view_blocked_ip" translatable="true">IP &amp;Port ашәахәқәа</string>
     <string name="univ_view_blocked_ip_desc" translatable="true">Акьынхьчоу ахаҭыр ауада, IP / Порт ашьапыжьқәа реиҭакра.</string>
-    <string name="univ_ip_delete_individual_toast" translatable="true">%1$s еиҭоуп.</string>
-    <string name="univ_ip_delete_dialog_positive" translatable="true">Ҳамлак ашәахәқәа ршәыжә</string>
-    <string name="univ_ip_delete_toast_success" translatable="true">IP-шәаԥшьқәа зегьы ҿыц ажьыршыл ҟаҵахеит.</string>
-    <string name="univ_delete_firewall_dialog_title" translatable="true">IP ашәахәқәтәқәа зегь рахәшьәаны иахжәаларларərbaycan?</string>
-    <string name="univ_delete_firewall_dialog_message" translatable="true">Ахадара аҷылахныла, апликациақәа епинкра шалымҳау ИПқәа рахь еиларҳәоит.</string>
     <string name="univ_accessibility_crash_dialog_positive" translatable="true">Settings-иҟаӡа аарт</string>
     <string name="univ_accessibility_dialog_positive" translatable="true">Ылцәажәаҩ</string>
     <string name="univ_accessibility_dialog_negative" translatable="true">Иуадажь</string>
     <string name="dns_connected_rethink_plus" translatable="true">Аҿыхуеит. %1$s ашҭрамҩдуқәа рылаҟәаны</string>
-    <string name="dns_connected_no_count" translatable="true">Адаҟьаҵәаххауп</string>
     <string name="dns_connected" translatable="true">Аилантаҟаау</string>
     <string name="dns_info_positive" translatable="true">Нарты</string>
     <string name="dns_info_neutral" translatable="true">Ашәахәала&lt;/h4&gt;</string>
-    <string name="dns_crypt_relay_error_toast" translatable="true">Ауравлар ахәыххамызт</string>
     <string name="dns_proxy_dialog_message" translatable="true">Алаҿа ахьӡ: %1$s\n\nIP-адрес: %2$s\n\nПорт ашәыӡ: %3$s</string>
     <string name="dns_proxy_dialog_message_no_app" translatable="true">IP-адрес: %1$sn\nАҧшәалатәи амҩы: %2$sn</string>
     <string name="dns_query_latency" translatable="true">%1$sms</string>
     <string name="dns_proxy_dialog_header_dns" translatable="true">DNSProxy Ƴацəатəə</string>
     <string name="dns_proxy_name" translatable="true">Апрокси Џьгәы</string>
-    <string name="dns_proxy_app" translatable="true">Апликациа</string>
     <string name="dns_proxy_ip_address" translatable="true">IP Адрес</string>
     <string name="dns_proxy_port" translatable="true">Аҳәынҭкарра амҩду</string>
-    <string name="fapps_filter_filter_heading" translatable="true">Ашәҭра</string>
     <string name="fapps_filter_categories_heading" translatable="true">А категорияқәа</string>
     <string name="fapps_filter_clear_btn" translatable="true">Ашнамшәа</string>
     <string name="fapps_filter_parent_installed" translatable="true">Ашымшәахтәуп</string>
@@ -581,9 +325,6 @@
     <string name="fapps_exclude_block_dialog_message" translatable="true">Апсуаққәа <i>иаанарҧшны иҟоу</i> DNS ашәҟәыжәҟәа ашәҟәыжәҟәа анҵамларшәҟәа акәымкәа еишьҭахәышәҟәышәҟәа?</string>
     <string name="fapps_isolate_block_dialog_title" translatable="true">Аҧсуа ақьаҭқәа рышьҭаҵәажь</string>
     <string name="fapps_isolate_block_dialog_message" translatable="true">Ахәылажәлара <i>иаԥхьазшәоу</i> ақьышәқәрақәқә?</string>
-    <string name="fapps_firewall_filter_hint" translatable="true">Аппаратқәа зегьы аҧы фарашәа</string>
-    <string name="fapps_firewall_filter_desc" translatable="true">&lt;![CDATA[Аҧы &lt;u&gt;%1$s&lt;/u&gt; %2$s аппақәа шьаҭаху&lt;/caption&gt;</string>
-    <string name="fapps_firewall_filter_desc_category" translatable="true"><![CDATA[Иуക്കുറിച്ച <b>%1$s</b> %2$s абжьыуада а категориақәаҟны: %3$s]]></string>
     <string name="rules_load_failure_heading" translatable="true">Азгәаҭа</string>
     <string name="rules_load_failure_desc" translatable="true">Ашәахәыла арбагарақәа рашәахам</string>
     <string name="rules_load_failure_reload" translatable="true">иахъцхъала</string>
@@ -591,10 +332,6 @@
     <string name="network_log_app_name_unnamed" translatable="true">Зынӡаӡам (%1$s)</string>
     <string name="dns_crypt_connection_failure" translatable="true">DNSCrypt акоуыр зцәацәакра ашәахә.</string>
     <string name="dns_proxy_connection_failure" translatable="true">Ашәахәҭрақәқәлара АДНС Прокси ашәҟәы иаԥшырцәразы.</string>
-    <string name="dns_proxy_connection_failure_lockdown" translatable="true">Локрапт ауада %1$s иҧилеит %2$s ашәахәҭра ашәахәтәы акорон.</string>
-    <string name="dns_proxy_toast_parameter" translatable="true">DNSProxy</string>
-    <string name="socks5_proxy_toast_parameter" translatable="true">SOCKS5 Апроксиматор</string>
-    <string name="orbot_toast_parameter" translatable="true">Тор-а-ҧшәаҧш</string>
     <string name="system_dns_connection_failure" translatable="true">Амшын ашәахәаҧшра ашәымҭашәаз</string>
     <string name="copy_clipboard_label" translatable="true">URL</string>
     <string name="update_complete_snack_message" translatable="true">Арыц ҳарҵәааит.</string>
@@ -602,14 +339,10 @@
     <string name="settings_local_blocklist_in_use" translatable="true">%1$s ашәыхьақәҵәақәа рыхәмарра</string>
     <string name="settings_local_blocklist_dialog_positive" translatable="true">Ашәахәатәи</string>
     <string name="settings_local_blocklist_version" translatable="true">Агәамҭа: v%1$s</string>
-    <string name="accessibility_failure_toast" translatable="true">Rethink азгәаҭаратә еиҳабыра ашьапынҵәы ҟаҵәаны ирлас, еицәхаа иалааит. Амҩашьа ҿыс иахыҵәыуа апликациақәа рыскьаҭымҵәараз данымаз.</string>
-    <string name="coming_soon_toast" translatable="true">Лашьа, иахьазымхәасуа</string>
     <string name="pause_text" translatable="true">цәыжьымкәа</string>
     <string name="pause_desc" translatable="true">Ашәахә: %1$s ашәымҵәахә ақәылаз адҵәысқәа рҿы алацәажәашьа ҳаракны иҟалоит.</string>
     <string name="other_dns_list_tab1" translatable="true">DoH</string>
-    <string name="other_dns_list_tab2" translatable="true">Днскрипт</string>
     <string name="other_dns_list_tab3" translatable="true">Днс прокси</string>
-    <string name="hs_btm_sheet_lock_down" translatable="true">VPN аҟны \"ашәахьаз\" иахцәажәамызтәу ашәҟәы иадҵәахымкәа, ашәҟәы аԥсахра азин мыцхәым. VPN ашәҟәы аԥсахразы ашәҟәы ашәҟәы ашәҟәы ахцәажәа.</string>
     <string name="firewall_rule_no_rule" translatable="true">&gt; Амзымбара дызрымшәааит</string>
     <string name="firewall_rule_block_app" translatable="true">А políticas ашацәашәахәашәашәахәам</string>
     <string name="firewall_rule_block_unmetered" translatable="true">Ашәахаралаим (WiFi)</string>
@@ -667,11 +400,8 @@
     <string name="new_app_notification_action_deny" translatable="true">Ашәахьыхылара иацӡат</string>
     <string name="new_app_notification_action_toast_allow" translatable="true">Аусурыла аусура лхъазла апсуара</string>
     <string name="new_app_notification_action_toast_deny" translatable="true">Аупхыралара ахыҧшәыхра аахыҧхьит аусура амҩаԥгаразы</string>
-    <string name="notif_dialog_pause_dialog_title" translatable="true">А kebijakan ахахыуит!</string>
-    <string name="notif_dialog_pause_dialog_message" translatable="true">Апликациа ашәахь иаркуп, ашьапырҵәра аиҭашәашәаразы</string>
     <string name="notif_dialog_pause_dialog_positive" translatable="true">Адажьра</string>
     <string name="notif_dialog_pause_dialog_negative" translatable="true">Имҩашьҭхала</string>
-    <string name="notif_dialog_pause_dialog_neutral" translatable="true">Иарҳәа</string>
     <string name="notif_channel_vpn_notification" translatable="true">Актив VPN</string>
     <string name="notif_channel_vpn_failure" translatable="true">Вип_н_Ҭамшаашаа</string>
     <string name="notif_channel_firewall_alerts" translatable="true">Ашәақәшьрақәа</string>
@@ -690,41 +420,14 @@
     <string name="build__flavor_website" translatable="true">асасаа</string>
     <string name="build__flavor_play_store" translatable="true">апхыжь</string>
     <string name="build__flavor_fdroid" translatable="true">FDroid</string>
-    <string name="cd_toast_deleted" translatable="true">Адомен акракьышра ашәылантә еиқәыршәалахеит</string>
-    <string name="cd_toast_added" translatable="true">Адомен ҟаҧшьнырҭоуп</string>
-    <string name="cd_remove_dialog_title" translatable="true">Аҿыцра адомен?</string>
-    <string name="cd_remove_dialog_message" translatable="true">Адомен аишьашьахаҵа аиԥшра аҟнытә ишьуит.</string>
     <string name="cd_no_rules_text" translatable="true">Адомен ашәахәқрақәқәым.</string>
-    <string name="cd_dialog_desc" translatable="true">URL иамҧш ахьчкоу, аамҧш аҧыморҵшьаа иашьҭахуп: *.test.com, test.com/test</string>
-    <string name="cd_dialog_edittext_hint" translatable="true">ᴹеиурыты %1$s</string>
-    <string name="cd_dialog_error_invalid_domain" translatable="true">wristwatch алам, адомен ашәҟәыҟәа</string>
-    <string name="cd_dialog_error_invalid_wildcard" translatable="true">Ауарра ахатәи а URL еиԥш аԥхьыжьа/еиԥш адомен 127.0.0.1&lt;/string&gt;</string>
-    <string name="cd_blocked_initial" translatable="true">Б</string>
-    <string name="cd_no_rule_initial" translatable="true">Н</string>
-    <string name="cd_no_rule_txt" translatable="true">Ашәахьыҟам</string>
-    <string name="ci_dialog_title" translatable="true">IP /PORT зыхьэщӀэныр</string>
-    <string name="ci_dialog_desc" translatable="true">Ашәахәала (анеимыжьуала) ёуиҧшу аIP ад адрес, IP ад адресқәа рсубнет (ршьынкы, ихымҵахәы), Порт. З exemples: 10.10.10.10, 10.1.1.*, 10.2.2/24, ffff::/104, [::]:80, [10.1.0.0/16]:80, *.*:80</string>
     <string name="ci_dialog_error_invalid_ip" translatable="true">Ахәымԥа, амҩаԥгақәа адоу еиԥшҟам, ё-адрес еиԥшҟам ма ё- aadress еиԥшҟам.</string>
-    <string name="ci_dialog_added_success" translatable="true">IP-шәыла адгьылбӏыкIа шьыжьыуаит</string>
-    <string name="ci_no_rules_text" translatable="true">IP-ами Port-ами ашәахәыларақәым.</string>
-    <string name="ci_bypass_universal_initial" translatable="true">АБ</string>
-    <string name="ci_bypass_universal_txt" translatable="true">Апсныз бжьыжьышьҭра</string>
-    <string name="ci_trust_initial" translatable="true">Ашәҟәы</string>
-    <string name="ci_trust_txt" translatable="true">Ашәахьашәа</string>
-    <string name="ci_blocked_initial" translatable="true">А</string>
-    <string name="ci_no_rule_initial" translatable="true">Н</string>
-    <string name="ci_no_rule_txt" translatable="true">АЛАМШӘЫМРА ЗАҟӘЫМҴААМ</string>
     <string name="ci_no_rule" translatable="true">Ари Ашәаҳәара УБжьгәаҭам</string>
     <string name="ci_block" translatable="true">Аҿаҟаҵара</string>
-    <string name="ci_bypass_universal" translatable="true">Ауниверсалтәи ашьапынҵәырала аиҭакра</string>
     <string name="ci_trust_rule" translatable="true">Аишьамҭа</string>
-    <string name="ci_delete" translatable="true">Аигара</string>
     <string name="ada_noapp_dialog_title" translatable="true">Аппарат аҟаҵам</string>
     <string name="ada_noapp_dialog_message" translatable="true">Алажьәырԥш адыррақәа рыцәкмыр, еиҧш дызшьамгьы ауаҩы ишьам?</string>
     <string name="ada_noapp_dialog_positive" translatable="true">Аиаахыҧш</string>
-    <string name="ada_firewall_status" translatable="true"><![CDATA[Ацы иуда <b><i>%1$s</i></b>.]]></string>
-    <string name="ada_ip_connection_count" translatable="true">%1$s IP адҧыкш рҿы ианаахьоуп</string>
-    <string name="ada_ip_connection_count_zero" translatable="true">0 IP адәҿы</string>
     <string name="ada_ip_no_connection" translatable="true">А 네트워크 агәыналара ашәаша а category аҿы иауадаҩым.</string>
     <string name="ada_app_status_allow" translatable="true">иашьаҧсалар шаҭахыу</string>
     <string name="ada_app_status_block" translatable="true">Аишьəшəахəуп</string>
@@ -735,22 +438,15 @@
     <string name="ada_app_status_isolate" translatable="true">еизкварлаау; ашәашәахара зну адгьылбӠақәа рҿиоит</string>
     <string name="ada_app_status_bypass_dns_firewall" translatable="true">Налцәатәи АДНС / Ашәахәышьҭадаҩ далагаауа</string>
     <string name="ada_app_status_unknown" translatable="true">Абыжьәаамыцла</string>
-    <string name="ada_firewall_title" translatable="true">Ашәахәақәа иахьаҧшу рзы ашәахәақәа</string>
-    <string name="ada_network_log_title" translatable="true">А 네트워크 журнал ацыгәаҟны</string>
-    <string name="ada_app_firewall" translatable="true">Ашәахәаҧшныҟаҧшь</string>
     <string name="ada_app_metered" translatable="true">Метровать</string>
     <string name="ada_app_unmetered" translatable="true">Адаҿамҧшраламыз</string>
     <string name="ada_app_bypass_univ" translatable="true">Универсалтә ашьапыжьра</string>
     <string name="ada_app_bypass_dns_firewall" translatable="true">DNS &amp; Firewall аҟны иааныржьара</string>
     <string name="ada_app_exclude" translatable="true">Ахаиҵәахәара</string>
     <string name="ada_app_isolate" translatable="true">Наиҿкааит</string>
-    <string name="ada_app_dns_settings" translatable="true">DNS Амҳәахәҭырақәқәа</string>
     <string name="ada_delete_logs_dialog_title" description="Appears as dialog title to clear the logs in app specific screen" translatable="true">Ажәақəеи ҟаҵатәуп</string>
     <string name="ada_delete_logs_dialog_desc" description="Appears as dialog description to clear the logs in app specific screen" translatable="true">Ашәашәқәа зегьы ашәымызцәырцала ашәашәқәа рхаангьы.</string>
-    <string name="bypass_dns_firewall_tooltip">%1$s Апсуа dnsskt ransit Rеthinksnt.</string>
     <string name="bsac_title_desc" translatable="true">Ақәылақәа ари апрограм аҟны акәымкәа.</string>
-    <string name="bsdl_block_desc" translatable="true">Абаба, адгьылбӏы <u>ацырҩыла</u></string>
-    <string name="bsdl_blocked_desc" translatable="true">ҧлокупт %1$с %2$с рылаҧшәрала</string>
     <string name="network_dns" translatable="true">Network DNS</string>
     <string name="notif_download_content_title" translatable="true">Ажәылаҟны адгылаз ашәылаҟны аӡәымҵра</string>
     <string name="notif_download_failure_content" translatable="true">Ашәаҳәара ашьаурмыз. Уи атәы иацклаԥшт.</string>
@@ -766,7 +462,6 @@
     <string name="rt_dialog_message" translatable="true">Шәҭамылак ашьҭахь ашьапынҵәаз ашьыжьқәа рышьҭахара?</string>
     <string name="rt_dialog_neutral" translatable="true">Шәахәажәала</string>
     <string name="rt_edit_dialog_positive" translatable="true">Шәижьәахәа</string>
-    <string name="rt_download_start" translatable="true">Ашәахәларқәа рыхәшәашәашьҭра…</string>
     <string name="rt_download" translatable="true">Аболокировкақәа рышьҭыжьра</string>
     <string name="rt_chip_update_available" translatable="true">Ҭаар ашьашәахәаҩра ҟалоуп</string>
     <string name="rt_chip_check_update" translatable="true">Ашәахәаҧш ашәахәҧш</string>
@@ -781,8 +476,6 @@
     <string name="rt_filter_desc_subgroups" translatable="true"><![CDATA[Аҵиҵәахьа <u>%1$s</u> ашьапынҵақәа аиҿцәажәараҿы: %2$s еиҿцәажәараҿы: %3$s]]></string>
     <string name="rethink_sky_desc" translatable="true">280+ аҭыжьра; анагӡара аҧхьаҧсара; stub resolver iхеиуа cloudflare.com-аҟны</string>
     <string name="rethink_max_desc" translatable="true">50+ аҭыжқәа; зхәыҷрала иахьыҧшым; recursion resolver fly.io аҿы иауҭаахьоу</string>
-    <string name="bsrf_sub_group_heading" translatable="true">Аҧсибжьы</string>
-    <string name="bsrf_clear_filter" translatable="true">Иахьыҟәыршә</string>
     <string name="dc_local_block_enabled" translatable="true">Ажәахантә</string>
     <string name="dc_setting_dns_cache_heading" translatable="true">DNS уацклараҩ</string>
     <string name="dc_setting_dns_cache_desc" translatable="true">Ашәа иацәыбжьыжьырцә, аусура ашәаҳәара, агәра амчра рынашьҭрақәа</string>
@@ -792,8 +485,6 @@
     <string name="lbbs_copy" translatable="true">RDNS+ URL-лак иашәахәыхә | Copy as RDNS+ URL</string>
     <string name="lbbs_search" translatable="true">Адоуларақ ашәахәқтәқәа рҿыҭҵаа</string>
     <string name="lbbs_update_check" translatable="true">Адаҧшәалагоит аProjectGuid</string>
-    <string name="lbbs_redownload" translatable="true">Ашәахьышәажәатәи ақәымҵәажьқәа</string>
-    <string name="lbbs_download" translatable="true">Аҳәоуааира бзкаларақəə</string>
     <string name="lbbs_heading" translatable="true">195+ адрынажқəа рконфигурациа анамхəа</string>
     <string name="brbs_title" translatable="true">Ашьаҧшьыжь, ажьыхыжь</string>
     <string name="brbs_backup_title" translatable="true">Ашьахыҵәахтә</string>
@@ -827,21 +518,16 @@
     <string name="ssv_see_more" translatable="true">Иҭабужь Аҭабужь</string>
     <string name="lbl_create" translatable="true">Аишьҭра</string>
     <string name="lbl_qr_code" translatable="true">QR код</string>
-    <string name="lbl_import" translatable="true">Акьрауа</string>
     <string name="lbl_wireguard" translatable="true">WireGuard</string>
     <string name="lbl_public_key" translatable="true">Ауаажәларратә Амшын</string>
     <string name="lbl_addresses" translatable="true">Ахьӡ-]]))</string>
     <string name="lbl_dns_servers" translatable="true">DNS Ашәахәылақәа</string>
-    <string name="lbl_applications" translatable="true">Апликациақәа</string>
     <string name="lbl_delete" translatable="true">Анцәахәра</string>
     <string name="lbl_proceed" translatable="true">Ихәынтә</string>
     <string name="lbl_private_key" translatable="true">Ашәахәарҭа ашәы }</string>
-    <string name="lbl_generated" translatable="true">(агьалтара-)</string>
-    <string name="lbl_random" translatable="true">(адыхашьашәа)</string>
     <string name="lbl_listen_port" translatable="true">Ашәаҳәарҭа апорт</string>
     <string name="lbl_mtu" translatable="true">MTU</string>
     <string name="lbl_auto" translatable="true">(ауто)</string>
-    <string name="lbl_include" translatable="true">Иалкаау</string>
     <string name="lbl_select_all" translatable="true">selekt akhala</string>
     <string name="lbl_active" translatable="true">Актив</string>
     <string name="lbl_inactive" translatable="true">Аҿыц амҩанахымш</string>
@@ -850,7 +536,6 @@
     <string name="lbl_http_socks5" translatable="true">HTTPS &amp; amp; SOCKS5</string>
     <string name="lbl_fast" translatable="true">ЛАНҴАРА easily</string>
     <string name="lbl_slow" translatable="true">Ашәахәаҩ змоу</string>
-    <string name="lbl_very" translatable="true">иатәы</string>
     <string name="lbl_add" translatable="true">Аддон</string>
     <string name="lbl_app_wise" translatable="true">Аҧсуа</string>
     <string name="lbl_sec" translatable="true">ишәышәхарат</string>
@@ -863,20 +548,15 @@
     <string name="lbl_persistent_keepalive" translatable="true">Ашәышықәсракыла ашәышықәсракыла</string>
     <string name="lbl_allowed_ips" translatable="true">Аланкыларала IPқəа</string>
     <string name="lbl_save" translatable="true">Иахьынтəə \\\\</string>
-    <string name="status_protected_with_wg" translatable="true">WireGuard-ла ихоиуит</string>
-    <string name="status_protected_with_wg_private_dns" translatable="true">WireGuard® &amp; Private DNS аҧхьаҧқәҵа еишьҭаҵоит</string>
     <string name="search_proxy_add_apps" translatable="true">А программаяш адгьылала адәыхәтәыша</string>
     <string name="public_key_copy_toast_msg" translatable="true">Апубликатл ауахəахəа еижьын.</string>
-    <string name="logs_disclaimer" translatable="true">Ажәшьалақәрақәла Аҧшыра 20 000</string>
     <string name="univ_firewall_heading" translatable="true">Аду Mалақьтәи ашәахәқәа</string>
     <string name="app_ip_domain_rules_desc" translatable="true">Аҧсуа бызшәала:\nАшәҟәа / IP жәҟәа аиҭакра агәыӷра.</string>
     <string name="fapps_info_bypass_dns_firewall_msg" translatable="true">DNS &amp; āpsҟa aшaшa aқәбжьижьымларақәа рыла ауал абжьагара.</string>
     <string name="firewall_rule_proxied" translatable="true">Аҧсоуп</string>
     <string name="firewall_rule_proxied_desc" translatable="true"><![CDATA[Абаҟәыбла иазку аҧшьына иахәаҧшуеит анаҩс иашьҭаз апрокси. <br/><br/> Анаҩс еильнеиҵала, "Аконфигурациа" амҩаду аҟынтә "Апрокси" амҩаду аҟынтә.]]></string>
-    <string name="cd_deleted_toast" translatable="true">Адоменқәа зегьы адинра рышьҭыжьит</string>
     <string name="lbl_advanced" translatable="true">Аҧыҟаҵәа</string>
     <string name="ssv_most_contacted_countries_heading" description="This label will appear on the stats screen as a header for most visited domains by country" translatable="true">Ҭоукаақәа рацәаны иацәаауа</string>
-    <string name="ssv_most_blocked_countries_heading" description="This label will appear on the stats screen as a header for most blocked domains by country" translatable="true">Ашәахәаҧшра ашәҭахым адуней аҭауадқәа</string>
     <string name="bad_config_reason_invalid_key" translatable="true">Агәаҧшрада акарыг</string>
     <string name="bad_config_reason_invalid_number" translatable="true">Иулым адәымҧс</string>
     <string name="bad_config_reason_invalid_value" translatable="true">Шәахәалатәым ашәахә</string>
@@ -886,10 +566,7 @@
     <string name="bad_config_reason_unknown_attribute" translatable="true">Адыгьчэла ухуадаҟәа</string>
     <string name="bad_config_reason_unknown_section" translatable="true">Ашәы лымхалатә жəынтə</string>
     <string name="key_length_explanation_base64" translatable="true">WireGuard-и и базиран на base64 аҧсуа-цәа 44 пасҭа (32 байт) алхны иҟалар акәхоит</string>
-    <string name="key_length_explanation_binary" translatable="true">Апсуа WireGuard ақьлшәақьқәа 32 байтк ҳәаԥшын</string>
-    <string name="key_length_explanation_hex" translatable="true">WireGuard-и амчқәа 64-ра акъитуааракны, 32-ынтәи абжьиракны иҟалароуп</string>
     <string name="key_contents_error" translatable="true">Ахаџьытәы ахыцхъақәа ашәҟәыла</string>
-    <string name="key_length_error" translatable="true">Агәаҟәаҟәа шьҭаҟәауам</string>
     <string name="parse_error_inet_address" translatable="true">IP адресс</string>
     <string name="parse_error_inet_endpoint" translatable="true">Ашәаҧш адаҟьа</string>
     <string name="parse_error_inet_network" translatable="true">IP адгьыршәа</string>
@@ -910,17 +587,11 @@
     <string name="bad_extension_error" translatable="true">Афа&lt;bos&gt;унуп .conf еи сертификат .zip</string>
     <string name="setup_wireguard" translatable="true">WireGuard ақәылаҵәаҟәыҟ</string>
     <string name="wireguard_description" translatable="true">WireGuard-и proxy-лаҿы</string>
-    <string name="new_warp_config_desc" translatable="true">АУ архәыла иалхәны араҧшны урҭәыла raршәыла</string>
-    <string name="new_warp_error_toast" translatable="true">WARP amis rdzanrha adag\'azhraa imcchua</string>
-    <string name="new_warp_invalid_config_toast" translatable="true">Амҳасқьана УАРП-а ишилымпеиуа</string>
     <string name="add_remove_apps" translatable="true">Иацкуад / Иакьацмра (%1$s ап ақәа)</string>
     <string name="add_peer" translatable="true">Адда Пир</string>
     <string name="config_delete_dialog_desc" translatable="true">Adyg aʻaaʻalaʻa WireGuard VPN aʻanashʻa?</string>
     <string name="config_delete_dialog_title" translatable="true">Дрыхь</string>
     <string name="config_add_success_toast" translatable="true">Азжьәахаз</string>
-    <string name="include_all_app_wg_dialog_title" translatable="true">Уиҭам адгьылбӠфыла аус еиҭахылааит</string>
-    <string name="exclude_all_app_wg_dialog_title" translatable="true">Зымҵәагьы адҵәыкны иҟаҵә&lt;/caption&gt;\n&lt;/table&gt;</string>
-    <string name="exclude_all_app_wg_dialog_desc" translatable="true">Амшынқәа зегьы ахыҵхәаа ракетыла WireGuard VPN аҟынтә?</string>
     <string name="wireguard_enabled_failure" translatable="true">WireGuard аиҭарак азин ишаҭозар, адгалара аанкыларазы иҟоу апроксиқәа зегьы аанкылар.</string>
     <string name="wireguard_no_config_msg" translatable="true">Амчҳәалар Шьамтәи VPN аамҭакы. Анрыжьыр ашәахә</string>
     <string name="wireguard_connection_error" translatable="true">WireGuard VPN ашәашәатәуп</string>
@@ -938,8 +609,6 @@
     <string name="crypt_relay_us" translatable="true">Анонимлара зкIэлъэIу DNS апныжьышьҭа иҟоу Урыстәыла-Америкатәи Ашьапыкь, Лос-Анджелес, Калифорниа, cryptostrom.is ишацәынгылоу.</string>
     <string name="crypt_relay_singapore" translatable="true">Анонимларала иналам Аԥсуа DNS жәақәшәыла инхоит Сингапур.</string>
     <string name="logs_card_duration" translatable="true">%1$s аҟынтә</string>
-    <string name="settings_app_notification_persistent_heading" translatable="true">Ашәахьылара змам ашәахәтәра</string>
-    <string name="lbl_cache" translatable="true">Акапшоу</string>
     <string name="lbl_status" translatable="true">Астатус</string>
     <string name="lbl_remove" translatable="true">Иалымҟьаҵа</string>
     <string name="lbl_last" translatable="true">Аҧхьа</string>
@@ -949,21 +618,12 @@
     <string name="dot_custom_url_remove_dialog_title" translatable="true">DoT ашьапынҵәа акырцшьаларц?</string>
     <string name="dot_custom_url_remove_dialog_message" translatable="true">Аҿадаҩра иахьцоу DNS over TLS агәаҟәылара аԥыхын.</string>
     <string name="orbot_no_app_toast" translatable="true">Адырaaпaa иaхaзaлa aппликaциa aлaгaлa aшaaнaлa Orbot aлaгaлa aмaшa зaaуaaaa izak.</string>
-    <string name="settings_rinr_heading" translatable="true">Аҧсуа-аҧсуа (ашәахәы ҳәа еилахәысуа)</string>
-    <string name="settings_rinr_desc_enabled" translatable="true">Rethink\'s аҧсуа иҧшьаҭақәа амҩа анелхәахтә амоуп. Уи уара уахәа лымумзаргьы, уи аукҵәа ауеит.</string>
-    <string name="settings_rinr_desc_disabled" translatable="true">Ашәахара Ашәырпыла ақәымтә, аурыжьшәашьҭақәа шьақәыргылара, анаԥшьашьҭақәа адгылара, DNS анаԥшьашьҭақәа ашәырпыла ашҟа ашәырпыла ашәырпыла ашәырпыла ашәырпыла ашәырпыла ашәырпыла ашәырпыла ашәырпыла ашәырпыла ашәырпыла</string>
-    <string name="settings_rinr_dialog_title" translatable="true">Алагьба (ашәашәаҿы акәымкәа)</string>
-    <string name="settings_rinr_dialog_desc" translatable="true">Апаҟа шасырхәоит<!--settings_network_all_networks--> %1$s ашәахә. Уи аусура шәаԥхьоума?</string>
-    <string name="cd_dialog_edit_title" translatable="true">Алишьадара даҟәылара аҿыцреи arra</string>
     <string name="cd_toast_edit" translatable="true">Адаптиракьыра</string>
     <string name="one_wg_apps_added" translatable="true">Апхылаққәа зегьы р маршрутизациа</string>
-    <string name="one_wg_dialog_desc" translatable="true">Амшынлара зегь, зегьыла апликациақәа рҟынтә, DNS егьалҟьаз, еиртаҟәааны иҟоу еицырҧшәаны WireGuard VPN-и иаишьҭырҧшәаны. Егьырҧшәаны иҟоу WireGuard VPN-қәа, егьырҧшәаны иҟам-иҟома, ашьҭыжьра аҿаҧра аҭышәы ҟаҵалоит.</string>
     <string name="catch_all_wg_dialog_title" translatable="true">Аҧшәыла-имҩасуа</string>
     <string name="catch_all_wg_dialog_desc" translatable="true">АлаӠкыларақәа рымҩаԥгара, егьырҭоуп WireGuard VPN-қәа рымҩаԥгарала ишызмырҩасуа апрограммақәеи рнапылақәеи, ашәырҟәышә ашәырҟәышә ацынхәалагала аҟаҵаҟа.</string>
-    <string name="one_wg_error_toast" translatable="true">Ашәахь «Ашәынтә» иреиразы, «Аҟәы» ашәынтә аҟны Аиаира Ашәынтә аалыҵ</string>
     <string name="wireguard_disable_failure" translatable="true">WireGuard аҧшәра иацклаԥшыр алҭырцәом</string>
     <string name="wireguard_apps_proxy_map_desc" translatable="true">%1$s амҿа</string>
-    <string name="wg_apps_dialog_title_include" translatable="true">%1$s аппақәа рышьҭрала</string>
     <string name="wireguard_disable_title" translatable="true">Ашьхалатэи WireGuard</string>
     <string name="wireguard_disable_message" translatable="true">WireGuard VPN-қәа рышәара ҳаракытәла иахӡеижьырхуа?</string>
     <string name="lbl_private" translatable="true">Приват</string>
@@ -972,47 +632,24 @@
     <string name="lbl_peer" translatable="true">Аҧхьа</string>
     <string name="failed_using_default" translatable="true">Мшä: ахарҭаа ашьцыраамҭала аицлак</string>
     <string name="routing_remaining_apps" translatable="true">Аҧсшьа ақәымчқәа рызцәажәаратә</string>
-    <string name="lbl_remaining_apps" translatable="true">Ашәахәқәрақәла еи оста</string>
-    <string name="remaining_apps_dialog_title" translatable="true">Ацәырҵәра зцу ақәымтәқәа зегьы еилаг&lt;ctrl63&gt;</string>
-    <string name="remaining_apps_dialog_desc" translatable="true">Ашәахәыла иҟоу зегьы, урҭ иа цоу ауеиҧшцәыла ирзымхәасуа апрокси иацлоуп</string>
     <string name="lbl_idle" translatable="true">Ацарчəа</string>
     <string name="lbl_split" translatable="true">Ҷыжьыхат</string>
-    <string name="lbl_on_device" translatable="true">аҧсуаҟа</string>
     <string name="hybrid_mode_with_proxy_notification_title" translatable="true">Адахьыҧшны! АДНС + Афирвол + Апрокси иацҵоуп.</string>
     <string name="settings_connectivity_checks" translatable="true">Аихәаԥшра аԥыжьжьәалақәа рымҩаԥгаара</string>
     <string name="dc_proxy_dns_heading" translatable="true">DNS маиҧшәаԥшьразы иумҵаны иаахәаҧшуам</string>
     <string name="toast_allow_bypass_disabled" translatable="true">%1$s аҿацәажәаҩцәа реиҧшра шрыму азы ашьҭаҟаҵоуп</string>
     <string name="lbl_unselected" translatable="true">Ахацәажәам</string>
-    <string name="lbl_battery_optimization" translatable="true">Ахаушьира амцәакра</string>
-    <string name="battery_optimization_dialog_heading" translatable="true">%1$s алцәажәа-ҟаҵамыз</string>
     <string name="settings_exclude_proxy_apps_heading" translatable="true">Аҧсуа бызшәала Loopback proxy forwarder apps</string>
     <string name="settings_exclude_proxy_apps_desc" translatable="true">Амшәыхча усураамҭа иаҵанакуа, адгьылҵысра (SOCKS5, HTTP, DNS) аҵыхратә программақәа Rethink-и амҩаду ажәларқәа рахь мап анацәыхә.</string>
     <string name="exclude_apps_from_proxy">Ашәахәыла адҵәыуааит апроксиқәк зегьы инаркны</string>
     <string name="exclude_apps_from_proxy_failure_toast">Ари апшьыжьшьәқәра проксиқәа ашьапынтә алаҟәит</string>
-    <string name="lbl_notification" translatable="true">ашәаҳәара</string>
     <string name="memory_notification_text">Rethink- implementação ашәашәрала ацәымҵыра амҩаԥгара. Асистема аҟны амҩаԥгарақәа ры mulighed ашәашәрала иаҳа иаазбан.</string>
     <string name="lbl_test" translatable="true">тест</string>
-    <string name="lbl_protos" translatable="true">Протоколқəа</string>
     <string name="lbl_experimental" translatable="true">(аҧсуа)</string>
     <string name="lbl_service_providers" translatable="true">А služибаҳәатқәа</string>
-    <string name="lbl_hop" translatable="true">Ашәахкқәа</string>
     <string name="lbl_manual" translatable="true">Аурок</string>
-    <string name="wireguard_title" translatable="true">Ашәахьчара Аинтернет WireGuard иахьаҧшуп</string>
-    <string name="wireguard_desc" translatable="true">Амшыншьыквар еицыршьырлыхылап WireGuard ашәашәа. Аҧсуа ҳәынҭақәра ашәашәа рдыршәамзы ашәадара рынҵәа.</string>
-    <string name="firewall_title" translatable="true">Android aźar jəšəxləza Firewall</string>
-    <string name="firewall_desc" translatable="true">Апликациақәа рынформациа аиҭашәахәаҩы;- апликациа инаркны, мамзацә еибыҭаацәа адеиҧшәра, ашәымҭа аиҧшәра ахархәааҩ».</string>
     <string name="dns_desc" translatable="true">190+ жәабаққәк иаҟоу ашәымақәа рахьтә дырхәа, ацыҧҧцәа, аус баҟа аҟаҵәцәа рыцәыуааит.</string>
     <string name="status_no_network" translatable="true">Аныҿакым</string>
-    <string name="settings_mobile_metered_heading" translatable="true">Ашәашақәа рзы агәаҭа</string>
-    <string name="settings_mobile_metered_desc" translatable="true">Абажьәаҟны аишь «metered» рхаҵаны, адгьыл аҿы — «unmetered».</string>
-    <string name="settings_theme_dialog_themes_5" translatable="true">Амшэ Ҟъаба</string>
-    <string name="settings_theme_dialog_themes_6" translatable="true">Амшын Еисуа</string>
-    <string name="settings_biometric_dialog_heading" translatable="true">Биометрик ашәахәҭырақәра</string>
-    <string name="settings_biometric_dialog_option_0" translatable="true">None</string>
-    <string name="settings_biometric_dialog_option_1" translatable="true">Аламыс</string>
-    <string name="settings_biometric_dialog_option_2" translatable="true">5 шықәса рышьҟарa</string>
-    <string name="settings_biometric_dialog_option_3" translatable="true">15minute ҿаҧа</string>
-    <string name="sponser_dialog_usage_msg" translatable="true">Уры уиэит «Rethink» <b>%1$s амш</b>, урҭыр аусура аԥазалара <b>$%2$s</b>. Аразвилаз ашәшьары змоу аспонсорра узышьҭалаша ушьҭыршьымшәа?</string>
     <string name="dc_use_sys_dns_undelegated_heading" translatable="true">Ашәаҧшра ашәарҭадара аҿы дахьыжьымкәа адоменқәа рахь System DNS ахыҵхәаҧш</string>
     <string name="dc_use_sys_dns_undelegated_desc" translatable="true">Асистем DNS аиахъазлар ауеит адоменқәа рзы, еицҧаауамызқәа, мамзаргьы <i>.lan</i>, <i>.internal</i>, еиԥш.</string>
     <string name="dc_filtering_heading" translatable="true">Фильтрациа</string>
@@ -1020,7 +657,6 @@
     <string name="cd_split_dns_desc" translatable="true">Аԥсшәа:\nАԥсоуп DNS ашәҟәы иахәаԥкны анхацәа рҟны ианызсыжьуа апрокси арҿы апрокси а DNS хылаԥшҩцәа рҟны.</string>
     <string name="cd_treat_dns_rules_firewall_heading" translatable="true">DNS рашқәа ашәахтә рашәақәа еиԥш ишьақәымзар (аҿыц аԥышәа)</string>
     <string name="cd_treat_dns_rules_firewall_desc" translatable="true">А DNS-шьыжьхаракы адҵәыклыхлара аихгара аамҭазы аиххалап; аҟәыжәра ашәахәы аамҭазы адҵәыклыхлара нагӡаҭахоит.</string>
-    <string name="univ_firewall_rule_11" translatable="true">Уабыжьым иҟны аҧҵәаны аҿацәқәрақә зегьы рыцхраамла</string>
     <string name="firewall_rule_private_dns" translatable="true">Апачәы DNS</string>
     <string name="firewall_rule_bypass_proxy" translatable="true">ПшьэрыгъэмылIэ Апхъыжь</string>
     <string name="firewall_rule_paused_app" translatable="true">Аҧсуа А kebijakan ҧсы</string>
@@ -1031,17 +667,8 @@
     <string name="wireguard_disable_failure_relay" translatable="true">\"Ауило WireGuard\" аиах иааиымшәа шьаҟоуп</string>
     <string name="config_invalid_desc" translatable="true">Агәамхыраз Азымхыраз Агәамхыраз Апсуа Азымхыраз</string>
     <string name="console_log_title" translatable="true">"Апқәақәа  \"}}&gt;"</string>
-    <string name="console_log_desc" translatable="true">Асабжь «қәырҧш» рҿы иҟалар алҟоит ихадоу адыррақәа.</string>
-    <string name="do_not_randomize_listen_port_title" translatable="true">WireGuard иубитәра шанчъа армыршәахәырца</string>
-    <string name="do_not_randomize_listen_port_desc" translatable="true">Агәаҭадаратә режим аҟны WireGuard аиқәыршааз апортқәа аих ашәахәамызтәиит (аих ашәахьамҧшаамызтәиит).</string>
-    <string name="endpoint_independent_mapping_title" translatable="true">Аҧсуа бызшәала: Адҵысцәа шрак иахьӡаауаҭахарҭа</string>
-    <string name="endpoint_independent_mapping_desc" translatable="true">UDP шаблаққәа аишьҭаҵра аан, еиҧш, аадгоуп аус ауеит амҩадулара ваnte.</string>
     <string name="anti_censorship_title" translatable="true">Амцәаабеира шьаҟамлара</string>
     <string name="anti_censorship_desc" translatable="true">Ҳашәарнык ацәымпарашәалара акцәыхәқәа рызнархәа.</string>
-    <string name="tcp_keep_alive_title" translatable="true">Мыжәаҭрала TCP us-ажәахә</string>
-    <string name="tcp_keep_alive_desc" translatable="true">Аҭаацәаратә TCP ахыбрақәа, алагалара аан аусура аҟамлара иахәыԥшын.</string>
-    <string name="ac_title" translatable="true">аишьҟьашьаҿаашьҭыхра</string>
-    <string name="ac_desc" translatable="true">Антицензура ақәымчқәа аинтернет арежим аиҭынразы иухысуахоит, аха еиуиамлак аҿы аус аубжьуам. Апрокси зымҵкәа аилкаарақәа раҿы имҩаԥысуаит.</string>
     <string name="ac_never_split_desc" translatable="true">Апацқьар рымцара амам.</string>
     <string name="ac_split_auto_desc" translatable="true">Апаққәа ашәашәаҧш.</string>
     <string name="ac_split_tcp" translatable="true">TCP</string>
@@ -1057,14 +684,9 @@
     <string name="ac_retry_options_after_split_desc" translatable="true">Анти-цензура атехникақәа зегь рышьҭала.</string>
     <string name="ac_toast_retry_disabled" translatable="true">Уахэщэныгъэжьым и цIыкIукъымщIоу хъэщыгъупIэр фыщыхъуфыныр къэмыхьысыныр щыхъущт.</string>
     <string name="exclude_no_package_err_toast" translatable="true">Амҳәақәқәра ажьырныруа амҩақәҵәа апакет азымхымҭа аҭахуп.</string>
-    <string name="hop_error_toast_msg_1" translatable="true">Уадаҩыла аднапылара, уахьаҭыршәлан %1$s</string>
     <string name="hop_error_toast_msg_2" translatable="true">WireGuard аламҧшра азы аах чар; еиҳарак ацым \"}</string>
-    <string name="mode_change_error_proxy_enabled" translatable="true">Аублажь ашьапылара шхыхьашәоит, ауаса сахьшәа иалацәажәоуп. Асахьшәа адәаҟәыҵәра ацәаанкылара ашәаҧшәа.</string>
     <string name="blocklist_not_available_toast" translatable="true">Блок-аа рацәахаларц, ашәахәала амцәажьыр аахыҵхәа</string>
     <string name="lbl_ultra_secure" translatable="true">иугъащэу ина prinsip</string>
-    <string name="adv_set_dial_timeout_title" translatable="true">Ажәа мхажәра</string>
-    <string name="adv_set_dial_timeout_desc" translatable="true">Хьакыркьамкьылых а TCP-и UDP-и цкьыц рацәа ашьҟа акәымжәақәа ашьҟа ашьҟа ашьҟа амҭа.</string>
-    <string name="no_stats_available" translatable="true">Ашәаҳәақәа рақәым</string>
     <string name="hop_failure_toast" translatable="true">AррэчващIэ гъэкъэIуапIэ: %1$s -&gt; %2$s</string>
     <string name="wg_setting_use_on_mobile" translatable="true">А onBackPressed, Abkhazian</string>
     <string name="wg_setting_use_on_mobile_desc" translatable="true">Ако́ќа́р Ҟ́ап́а́ра аб́а́с́ы́ А́а́рќас́ам́ ако́у́п́ит́.</string>
@@ -1073,29 +695,18 @@
     <string name="bypasses_network_restrictions" translatable="true">Аҿышәара азыртәқәа зегьы амҩақәа рҿы ашьапынҵәра шрызхымкьацәаны иҟаиҵоит. Ахатәモード аҿы, Rethink акасоура шьаҭаху ажьылацәа змам а IP-қәа рыцәҟәыратә мҩала акрааҩыра аӡәыуааҵәа, мамзацә аҿы аԥыла аусшәа, унҵәа аԥыла аусшәа, унҵәа рҿы аус ауеит.</string>
     <string name="most_contacted_asn" translatable="true">Еиҧшумзааиу амҵәышьҭахаҩцәа</string>
     <string name="most_blocked_asn" translatable="true">Уадыла еикулра ауытлацәа</string>
-    <string name="adv_tasker_dialog_msg" translatable="true">Аҧсуа бызшәала иазку аҧҟәақәа (ашәахқәа рыла иахьчааны) ашрыхәазыҟaххaa ашәea aшәa ахыршаaa.</string>
-    <string name="adv_tasker_dialog_instructions" translatable="true">Аусуараҿ иаҭахы аусушқәа:\n • Актәы: sender\n • Ақәцә: адгылала а программы акыр\n Анцәгьы: актәы:sender акәцә:com.termux\n\n Иацәхәахахаз аусушқәа:\n • VPN алагалара – com.bernaferrari.bravedns.intent.action.VPN_START\n • VPN ашьҭыра – com.bernaferrari.bravedns.intent.action.VPN_STOP</string>
-    <string name="adv_tasker_dialog_edit_hint" translatable="true">Пакет аӡбара (иҟоуп: net.dinglisch.android.taskerm)</string>
     <string name="download_ip_info_title" translatable="true">Аҿыхгаҩ идыртәқәа ирбоит</string>
     <string name="download_ip_info_desc" translatable="true">Иуаахык информация аиуаахык аҵыхәтқәа а веб-саитқәа рзы <i>rethinkdns.com</i> иҟоу, %1$s аҟынтә иаахәҟьоуп</string>
-    <string name="adv_taster_title" translatable="true">Ауиашьаҧшра</string>
     <string name="top_active_conns" translatable="true">Аҧшныла амҩыларақәа рхыԥш</string>
-    <string name="load_more" translatable="true">Аҧшра Сы́чк&lt;/h2&gt;</string>
     <string name="close_conns_dialog_title" translatable="true">Еицаталарақәа аахәымҧш</string>
     <string name="local_blocklist_delete_desc" translatable="true">Аҧсуажәырла аҵыхлақәа даацәымшра?</string>
     <string name="fail_open_network_title" translatable="true">Амшынра аҵыхәтәи аиҩымҵмра</string>
     <string name="fail_open_network_desc" translatable="true">Уаахыжьуа, Риthink аушьааит жьынчъеижьыр адгьыл ауахьтәи, иахьатәи ауахьтәи ауахьтәи ауахь ауахь ауахь ауахь ауахь ахь анхыжьуа, еиԥш <i>Авиаҩылатә режим</i> аҟны.</string>
     <string name="about_license" translatable="true">Апача-2.0 аишьҭаҭырала</string>
-    <string name="close_all" translatable="true">Уахмра Амлара</string>
     <string name="smart_dns" translatable="true">Smart DNS</string>
-    <string name="processing_dialog_title" translatable="true">Иахьазыжьуа</string>
-    <string name="processing_dialog_desc" translatable="true">Иҟасҳәаа, аҧҧшра азинтә жәаҧшра аанурҵәа.</string>
     <string name="smart_dns_desc" translatable="true"><i>Smart DNS</i> адырланыра дырхәылаауа ашәышаз дырхәымҵәаауа а DNS резолверқәа:</string>
     <string name="hop_error_toast_msg_3" translatable="true">Адаҟьа амо ҟаҵа, аицклаҩқәа хәыҬны иалагаларазы</string>
-    <string name="wg_mobile_only_hop_err" translatable="true">Аупшәа-плшьымбара уалынала Ашәахьчаразы адгылара раамҭакала ауни</string>
     <string name="lbl_fallback" translatable="true">Ацәырԥшра</string>
-    <string name="univ_delete_domain_dialog_title" translatable="true">Адомэинқәепхақәрақәа зегьы анушьалаа?</string>
-    <string name="univ_delete_domain_dialog_message" translatable="true">Ари ҳәын-ҳәатәқәа шьҧк ахәҭыхлара ирызвоит зегьы акьыр𝗌 «адәиҭыхны иаарҧшны» аҵыхәтә хаҭарак аҿы аҧсҭазаара.</string>
     <string name="vpn_policy_auto_desc" translatable="true">Ашәашәоит а 네트워크 аҿы ауал аҟаҵа аҿыц аҭакрақәа рзы.</string>
     <string name="vpn_policy_sensitive" translatable="true">Ашәахәашә</string>
     <string name="vpn_policy_relaxed" translatable="true">Ашәашәа</string>
@@ -1105,7 +716,5 @@
     <string name="use_fallback_dns_to_bypass_desc" translatable="true">Амшәашәижьра иадаҟьаны, ашәашәымҵәахәқәра ишазырхәоз аԥшьышьқәа, амҩақәа, мамзаракә еиҭалажьымҩақәа рзы ауадаҩыра ашьҭахь а DNS ахы «ашьҭа», амцәгьрцәа рхашҭра.</string>
     <string name="title_database_dump" translatable="true">Абазалак ашҟаҧ</string>
     <string name="copied_clipboard" translatable="true">Аиахәаҩра мҩаԥысуасуа</string>
-    <string name="conn_track_clear_rule_logs_title" translatable="true">Ашәахәаратәқәа рылҵшра ацы иахьашәашәома?</string>
-    <string name="conn_track_clear_rule_logs_message" translatable="true">Ари иҟалап архитектура аҿы иҟоу афаиеруолл аҿы иҟоу аnetwork logs ирцәамҭаны. Ари аусура ахаҭырхыра змам. Шәара ицоуп шәахәахәаша?</string>
     <string name="settings_allow_lan_heading" translatable="true">Ашәахьыхьаамҧшны (аԥшь аҿы иҟоу) рыцхәажәа аԥсышәҟа.</string>
 </resources>

@@ -15,23 +15,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -42,6 +36,8 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkSearchField
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkOverflowMenu
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkOverflowItem
 
 enum class RethinkIncludeAppsFilter { All, Selected }
 
@@ -117,7 +113,7 @@ fun RethinkIncludeAppsPicker(
                 modifier = Modifier.fillMaxSize().padding(horizontal = SharedDimensions.screenPaddingHorizontal),
                 contentPadding = PaddingValues(
                     end = if (showFastScroller) SharedDimensions.spacing2xl else SharedDimensions.spacingNone,
-                    bottom = SharedDimensions.buttonHeightLg + SharedDimensions.spacing3xl,
+                    bottom = SharedDimensions.fabClearance,
                 ),
             ) {
                 item {
@@ -192,23 +188,22 @@ private fun RethinkIncludeAppsOverflow(
     onRefresh: () -> Unit,
     onToggleAll: () -> Unit,
 ) {
-    var expanded by remember { mutableStateOf(false) }
-    Box {
-        IconButton(onClick = { expanded = true }) { Icon(MaterialSymbols.Filled.MoreVert, strings.more) }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            DropdownMenuItem(
-                leadingIcon = { Icon(MaterialSymbols.Filled.Refresh, null) },
-                text = { Text(if (isRefreshing) strings.loading else strings.refresh) },
+    RethinkOverflowMenu(
+        moreDescription = strings.more,
+        items = listOf(
+            RethinkOverflowItem(
+                label = if (isRefreshing) strings.loading else strings.refresh,
+                icon = MaterialSymbols.Filled.Refresh,
                 enabled = !isRefreshing,
-                onClick = { expanded = false; onRefresh() },
-            )
-            DropdownMenuItem(
-                leadingIcon = { Icon(if (allItemsSelected) MaterialSymbols.Filled.Clear else MaterialSymbols.Filled.Check, null) },
-                text = { Text(if (allItemsSelected) strings.unselectAll else strings.selectAll) },
-                onClick = { expanded = false; onToggleAll() },
-            )
-        }
-    }
+                onClick = onRefresh,
+            ),
+            RethinkOverflowItem(
+                label = if (allItemsSelected) strings.unselectAll else strings.selectAll,
+                icon = if (allItemsSelected) MaterialSymbols.Filled.Clear else MaterialSymbols.Filled.Check,
+                onClick = onToggleAll,
+            ),
+        ),
+    )
 }
 
 internal fun rethinkIncludeAppsScrollerMarks(

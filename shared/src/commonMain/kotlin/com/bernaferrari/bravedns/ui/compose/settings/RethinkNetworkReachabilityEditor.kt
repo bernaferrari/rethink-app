@@ -31,7 +31,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusColors
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusIndicator
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusLabel
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkContainedCard
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormTextField
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceOption
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConnectedChoiceGroup
@@ -84,7 +87,7 @@ fun RethinkNetworkReachabilityEditor(
     val scope = rememberCoroutineScope()
     val automatic = configuration.automatic
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd)) {
-        RethinkReachabilityCard {
+        RethinkContainedCard {
             RethinkConnectedChoiceGroup(
                 options = listOf(
                     RethinkChoiceOption(true, strings.automatic),
@@ -103,7 +106,7 @@ fun RethinkNetworkReachabilityEditor(
             )
             Text(strings.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        RethinkReachabilityCard {
+        RethinkContainedCard {
             RethinkReachabilityHeader(strings.ipv4, ipv4Supported) {
                 if (!automatic) TextButton(onClick = { configuration = defaultConfiguration.copy(automatic = false); probeResults = emptyMap() }) { Text(strings.restoreDefaults) }
             }
@@ -130,7 +133,7 @@ fun RethinkNetworkReachabilityEditor(
                 }
             }
         }
-        RethinkReachabilityCard {
+        RethinkContainedCard {
             RethinkReachabilityHeader(strings.ipv6, ipv6Supported)
             RethinkReachabilityField(
                 value = if (automatic) strings.automaticIpv6Probe else configuration.ipv6Ips.valueAt(0),
@@ -183,27 +186,14 @@ fun RethinkNetworkReachabilityEditor(
 }
 
 @Composable
-private fun RethinkReachabilityCard(content: @Composable () -> Unit) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        // Hosted in a surfaceContainerLow sheet: one tone up separates the cards without outlines.
-        shape = RoundedCornerShape(SharedDimensions.groupCornerRadius),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-    ) {
-        Column(Modifier.padding(SharedDimensions.cardPadding), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) { content() }
-    }
-}
-
-@Composable
 private fun RethinkReachabilityHeader(title: String, supported: Boolean, trailing: @Composable (() -> Unit)? = null) {
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Icon(
-            imageVector = if (supported) MaterialSymbols.Filled.Check else MaterialSymbols.Filled.Close,
-            contentDescription = null,
-            tint = if (supported) RethinkStatusColors.allowed else RethinkStatusColors.blocked,
-            modifier = Modifier.size(SharedDimensions.iconSizeSm),
+        RethinkStatusLabel(
+            label = title,
+            color = if (supported) RethinkStatusColors.allowed else RethinkStatusColors.blocked,
+            indicator = RethinkStatusIndicator.Icon(if (supported) MaterialSymbols.Filled.Check else MaterialSymbols.Filled.Close),
+            style = MaterialTheme.typography.titleSmall,
         )
-        Text(title, Modifier.padding(start = SharedDimensions.spacingSm), style = MaterialTheme.typography.titleSmall)
         androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
         trailing?.invoke()
     }

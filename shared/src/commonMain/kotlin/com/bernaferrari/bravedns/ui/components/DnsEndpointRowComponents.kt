@@ -42,7 +42,7 @@ fun DnsEndpointRow(
     modifier: Modifier = Modifier,
     trailing: (@Composable () -> Unit)? = null,
 ) {
-    val shape = RoundedCornerShape(SharedDimensions.cardCornerRadius)
+    val shape = RoundedCornerShape(SharedDimensions.cornerRadiusXl)
     Surface(
         onClick = { onSelectionChange(if (selection == DnsRowSelection.Radio) true else !selected) },
         modifier = modifier.fillMaxWidth().padding(vertical = 4.dp).clip(shape),

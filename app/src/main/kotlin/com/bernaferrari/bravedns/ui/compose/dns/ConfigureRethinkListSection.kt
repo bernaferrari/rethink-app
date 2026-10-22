@@ -53,7 +53,7 @@ import com.bernaferrari.bravedns.util.Constants
 import com.bernaferrari.bravedns.util.Utilities
 import com.bernaferrari.bravedns.util.workInfosByTagFlow
 import com.bernaferrari.bravedns.viewmodel.RethinkEndpointViewModel
-import com.bernaferrari.bravedns.ui.compose.theme.Dimensions
+import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import Logger
 import Logger.LOG_TAG_UI
 import kotlinx.coroutines.Dispatchers
@@ -98,8 +98,8 @@ internal fun RethinkListContent(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = Dimensions.screenPaddingHorizontal),
-        verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
+            .padding(horizontal = SharedDimensions.screenPaddingHorizontal),
+        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd)
     ) {
         RethinkListUpdateCard(
             persistentState = persistentState,
@@ -115,8 +115,8 @@ internal fun RethinkListContent(
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = Dimensions.spacing2xl),
-            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = SharedDimensions.spacing2xl),
+            verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)
         ) {
             items(count = pagingItems.itemCount) { index ->
                 val item = pagingItems[index] ?: return@items
@@ -284,10 +284,10 @@ private fun RethinkListUpdateActionButton(
     ) {
         if (actionInProgress) {
             CircularProgressIndicator(
-                modifier = Modifier.size(Dimensions.iconSizeSm),
+                modifier = Modifier.size(SharedDimensions.iconSizeSm),
                 strokeWidth = 2.dp
             )
-            Spacer(modifier = Modifier.width(Dimensions.spacingSm))
+            Spacer(modifier = Modifier.width(SharedDimensions.spacingSm))
         }
         Text(text = actionText)
     }

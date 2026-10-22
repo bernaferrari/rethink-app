@@ -6,6 +6,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillDefaults
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillSize
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWell
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWellDefaults
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
@@ -207,7 +208,7 @@ private fun DnsProtocolCard(
                 RethinkIconWell(
                     icon = protocol.icon,
                     tint = titleColor,
-                    containerColor = titleColor.copy(alpha = 0.12f),
+                    containerColor = RethinkIconWellDefaults.tinted(titleColor),
                     size = SharedDimensions.iconContainerSm,
                 )
                 Spacer(Modifier.weight(1f))

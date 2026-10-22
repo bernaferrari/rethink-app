@@ -8,7 +8,6 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillDefaults
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -19,7 +18,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -31,6 +29,8 @@ import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusColors
 import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkScreenDefaults
+import com.bernaferrari.bravedns.ui.compose.common.RethinkErrorState
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
@@ -73,12 +73,7 @@ fun RethinkBubbleScreen(
     val showAllowed = vpnOn && allowedItems.isNotEmpty()
     LazyColumn(
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(
-            start = SharedDimensions.screenPaddingHorizontal,
-            end = SharedDimensions.screenPaddingHorizontal,
-            top = SharedDimensions.spacingMd,
-            bottom = SharedDimensions.spacingXl,
-        ),
+        contentPadding = RethinkScreenDefaults.contentPadding,
     ) {
         item(key = "bubble_header") {
             RethinkListItem(
@@ -101,13 +96,7 @@ fun RethinkBubbleScreen(
             }
             blockedLoading -> item { RethinkLoadingState(label = strings.loading) }
             blockedError -> item {
-                RethinkEmptyState(
-                    icon = MaterialSymbols.Filled.WarningAmber,
-                    title = strings.errorTitle,
-                    message = strings.errorDescription,
-                    ctaLabel = strings.retry,
-                    onCtaClick = onRetry,
-                )
+                RethinkErrorState(title = strings.errorTitle, message = strings.errorDescription, retryLabel = strings.retry, onRetry = onRetry)
             }
             blockedItems.isEmpty() -> item {
                 RethinkEmptyState(icon = MaterialSymbols.Filled.Security, title = strings.emptyTitle, message = strings.emptyDescription)
@@ -121,10 +110,7 @@ fun RethinkBubbleScreen(
 
 @Composable
 private fun BubbleSectionHeader(title: String, count: Int) {
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        SectionHeader(title, modifier = Modifier.weight(1f))
-        RethinkPill(count.toString(), colors = RethinkPillDefaults.secondary())
-    }
+    SectionHeader(title, trailing = { RethinkPill(count.toString(), colors = RethinkPillDefaults.secondary()) })
 }
 
 @Composable

@@ -41,31 +41,12 @@ import com.bernaferrari.bravedns.service.DnsLogTracker
 import com.celzero.firestack.backend.Backend
 import com.celzero.firestack.backend.NetStat
 import java.util.Locale
-import java.util.Calendar
-import java.util.Date
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
 object UIUtils {
 
-    fun formatBytes(bytes: Long): String {
-        if (bytes <= 0) return "0 B"
-        val units = arrayOf("B", "KB", "MB", "GB", "TB")
-        var value = bytes.toDouble()
-        var unitIndex = 0
-
-        while (value >= 1024 && unitIndex < units.size - 1) {
-            value /= 1024
-            unitIndex++
-        }
-
-        return if (value == value.toLong().toDouble()) {
-            "${value.toLong()} ${units[unitIndex]}"
-        } else {
-            String.format(Locale.US, "%.1f %s", value, units[unitIndex])
-        }
-    }
-
+    fun formatBytes(bytes: Long): String = formatByteCount(bytes)
 
     fun getDnsStatusStringRes(status: Int?): Int {
         if (status == null) return R.string.failed_using_default
@@ -140,33 +121,27 @@ object UIUtils {
         END(Backend.END)
     }
 
-    fun formatToRelativeTime(context: Context, timestamp: Long): String {
-        val now = System.currentTimeMillis()
-        return if (DateUtils.isToday(timestamp)) {
-            context.getString(R.string.relative_time_today)
-        } else if (isYesterday(Date(timestamp))) {
-            context.getString(R.string.relative_time_yesterday)
-        } else {
-            val d =
-                DateUtils.getRelativeTimeSpanString(
-                    timestamp,
-                    now,
-                    DateUtils.MINUTE_IN_MILLIS,
-                    DateUtils.FORMAT_ABBREV_RELATIVE
-                )
-            d.toString()
-        }
+    /**
+     * The single relative-time path for UI text, e.g. "5 min. ago" (abbreviated, locale-aware).
+     * Returns an empty string for unset (<= 0) timestamps.
+     */
+    fun formatToRelativeTime(
+        timestamp: Long,
+        now: Long = System.currentTimeMillis(),
+        minResolution: Long = DateUtils.MINUTE_IN_MILLIS
+    ): String {
+        if (timestamp <= 0L) return ""
+        return DateUtils.getRelativeTimeSpanString(
+            timestamp,
+            now,
+            minResolution,
+            DateUtils.FORMAT_ABBREV_RELATIVE
+        ).toString()
     }
 
-    // ref: https://stackoverflow.com/a/3006423
-    private fun isYesterday(day: Date): Boolean {
-        val c1 = Calendar.getInstance()
-        c1.add(Calendar.DAY_OF_YEAR, -1)
-        val c2 = Calendar.getInstance()
-        c2.time = day
-        return c1.get(Calendar.YEAR) == c2.get(Calendar.YEAR) &&
-            c1.get(Calendar.DAY_OF_YEAR) == c2.get(Calendar.DAY_OF_YEAR)
-    }
+    /** Applies printf-style [args] to a resource template using the default locale. */
+    fun formatTemplate(template: String, vararg args: Any?): String =
+        String.format(Locale.getDefault(), template, *args)
 
     fun openVpnProfile(context: Context) {
         try {
@@ -208,23 +183,6 @@ object UIUtils {
             Utilities.showToastUiCentered(context, msg, Toast.LENGTH_SHORT)
             Logger.w(Logger.LOG_TAG_VPN, "err opening android setting: ${e.message}", e)
             false
-        }
-    }
-
-    fun openAppInfo(context: Context) {
-        val packageName = context.packageName
-        try {
-            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-            intent.data = Uri.fromParts("package", packageName, null)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            context.startActivity(intent)
-        } catch (e: ActivityNotFoundException) {
-            Utilities.showToastUiCentered(
-                context,
-                context.getString(R.string.app_info_error),
-                Toast.LENGTH_SHORT
-            )
-            Logger.w(LOG_TAG_UI, "activity not found ${e.message}", e)
         }
     }
 

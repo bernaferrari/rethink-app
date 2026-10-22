@@ -5,14 +5,12 @@ package com.bernaferrari.bravedns.ui.compose.proxy
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkSwitchListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBarLazyColumnScreen
 import com.bernaferrari.bravedns.ui.compose.theme.SectionHeaderWithSubtitle
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
@@ -54,32 +52,25 @@ fun RethinkTcpProxyScreen(
         subtitle = if (tcpProxyEnabled) strings.active else strings.inactive,
         onBackClick = onBackClick,
         modifier = modifier,
-        containerColor = MaterialTheme.colorScheme.surface,
-        contentPadding = PaddingValues(
-            start = SharedDimensions.screenPaddingHorizontal,
-            end = SharedDimensions.screenPaddingHorizontal,
-            top = SharedDimensions.spacingMd,
-            bottom = SharedDimensions.spacing3xl,
-        ),
     ) {
         item {
             SectionHeaderWithSubtitle(title = strings.rethinkProxyTitle, subtitle = strings.rethinkProxyDescription)
             Column {
-                RethinkListItem(
+                RethinkSwitchListItem(
                     headline = strings.rethinkProxyTitle,
+                    checked = tcpProxyEnabled,
+                    onCheckedChange = onTcpProxyEnabledChange,
                     supporting = tcpError ?: tcpProxyDescription,
                     leadingIcon = MaterialSymbols.Filled.VpnKey,
                     position = cardPositionFor(0, 2),
-                    onClick = { onTcpProxyEnabledChange(!tcpProxyEnabled) },
-                    trailing = { Switch(tcpProxyEnabled, onCheckedChange = null) },
                 )
-                RethinkListItem(
+                RethinkSwitchListItem(
                     headline = strings.udpRelayTitle,
+                    checked = udpRelayEnabled,
+                    onCheckedChange = onUdpRelayEnabledChange,
                     supporting = strings.udpRelayDescription,
                     leadingIcon = MaterialSymbols.Filled.Settings,
                     position = cardPositionFor(1, 2),
-                    onClick = { onUdpRelayEnabledChange(!udpRelayEnabled) },
-                    trailing = { Switch(udpRelayEnabled, onCheckedChange = null) },
                 )
                 RethinkListItem(
                     headline = strings.appsTitle,
@@ -92,13 +83,13 @@ fun RethinkTcpProxyScreen(
         }
         item {
             SectionHeaderWithSubtitle(title = strings.warpTitle, subtitle = strings.warpDescription)
-            RethinkListItem(
+            RethinkSwitchListItem(
                 headline = strings.warpTitle,
+                checked = warpEnabled,
+                onCheckedChange = onWarpEnabledChange,
                 supporting = strings.warpDescription,
                 leadingIcon = MaterialSymbols.Filled.VpnKey,
                 position = cardPositionFor(0, 0),
-                onClick = { onWarpEnabledChange(!warpEnabled) },
-                trailing = { Switch(warpEnabled, onCheckedChange = null) },
             )
         }
         item { Spacer(Modifier.height(SharedDimensions.spacingSm)) }

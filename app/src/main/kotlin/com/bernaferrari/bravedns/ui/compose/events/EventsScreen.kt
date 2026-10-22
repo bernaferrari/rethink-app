@@ -26,6 +26,7 @@ import com.bernaferrari.bravedns.database.EventSource
 import com.bernaferrari.bravedns.database.Severity
 import com.bernaferrari.bravedns.ui.compose.events.copyEventToClipboard
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 import com.bernaferrari.bravedns.viewmodel.EventsViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -140,7 +141,7 @@ private fun AndroidEventsList(
             RethinkEventCard(
                 event = event.toSharedRow(severityLabel(event.severity)),
                 query = query,
-                position = eventPosition(index, items.itemCount),
+                position = cardPositionFor(index, items.itemCount - 1),
                 copyDescription = copyDescription,
                 userActionLabel = userActionLabel,
                 onCopy = onCopy,
@@ -224,10 +225,3 @@ private fun EventSource.displayLabel() = name.displayLabel()
 private fun String.displayLabel() = lowercase(Locale.getDefault())
     .replace('_', ' ')
     .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
-
-private fun eventPosition(index: Int, itemCount: Int) = when {
-    itemCount <= 1 -> RethinkEventCardPosition.Single
-    index == 0 -> RethinkEventCardPosition.First
-    index == itemCount - 1 -> RethinkEventCardPosition.Last
-    else -> RethinkEventCardPosition.Middle
-}

@@ -29,7 +29,7 @@ private val RethinkSharedShapes = Shapes(
     small = RoundedCornerShape(SharedDimensions.cornerRadiusSm),
     medium = RoundedCornerShape(SharedDimensions.cornerRadiusLg),
     large = RoundedCornerShape(SharedDimensions.cornerRadiusXl),
-    extraLarge = RoundedCornerShape(SharedDimensions.cardCornerRadiusLarge),
+    extraLarge = RoundedCornerShape(SharedDimensions.cornerRadius2xl),
 )
 
 val RethinkTypography = Typography(

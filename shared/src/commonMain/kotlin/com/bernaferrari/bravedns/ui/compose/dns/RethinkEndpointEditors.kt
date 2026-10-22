@@ -3,8 +3,11 @@
 
 package com.bernaferrari.bravedns.ui.compose.dns
 
-import androidx.compose.ui.semantics.Role
-import androidx.compose.foundation.selection.toggleable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkCheckboxListItem
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkSheetHeader
+import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceOption
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConnectedChoiceGroup
 import androidx.compose.foundation.layout.Arrangement
@@ -21,21 +24,17 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkModalBottomSheet
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormActionRow
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormTextField
@@ -101,11 +100,11 @@ private fun RethinkEndpointEditorForm(
         Modifier.fillMaxWidth().padding(SharedDimensions.screenPaddingHorizontal),
         verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSmMd),
     ) {
-        Text(title, style = MaterialTheme.typography.titleLarge)
+        RethinkSheetHeader(title)
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(max = 520.dp)
+                .heightIn(max = SharedDimensions.sheetContentMaxHeight)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSmMd),
             content = content,
@@ -141,14 +140,12 @@ fun RethinkUrlEndpointEditor(
     ) {
         RethinkFormTextField(name, onValueChange = { name = it }, label = nameLabel)
         RethinkFormTextField(endpoint, onValueChange = { endpoint = it }, label = endpointLabel, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri))
-        Row(
-            Modifier.toggleable(value = insecure, role = Role.Checkbox, onValueChange = { insecure = it }),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Checkbox(insecure, onCheckedChange = null)
-            Spacer(Modifier.width(SharedDimensions.spacingSm))
-            Text(insecureLabel)
-        }
+        RethinkCheckboxListItem(
+            headline = insecureLabel,
+            checked = insecure,
+            onCheckedChange = { insecure = it },
+            position = CardPosition.Single,
+        )
     }
 }
 
@@ -235,14 +232,13 @@ fun RethinkDnsProxyEndpointEditor(
         RethinkFormTextField(name, onValueChange = { name = it }, label = strings.name)
         RethinkFormTextField(ipAddress, onValueChange = { ipAddress = it }, label = strings.ipAddress)
         RethinkFormTextField(port, onValueChange = { port = it }, label = strings.port, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
-        Row(
-            Modifier.fillMaxWidth().toggleable(value = excludeApps, enabled = !isLockdown, role = Role.Checkbox, onValueChange = { excludeApps = it }),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Text(strings.excludeApps)
-            Checkbox(excludeApps, onCheckedChange = null, enabled = !isLockdown)
-        }
+        RethinkCheckboxListItem(
+            headline = strings.excludeApps,
+            checked = excludeApps,
+            onCheckedChange = { excludeApps = it },
+            position = CardPosition.Single,
+            enabled = !isLockdown,
+        )
     }
 }
 

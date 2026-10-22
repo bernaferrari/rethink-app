@@ -53,7 +53,7 @@ import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleSectionTitle
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleSupportingText
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleTrustBlockRow
 import com.bernaferrari.bravedns.ui.compose.rememberDrawablePainter
-import com.bernaferrari.bravedns.ui.compose.theme.Dimensions
+import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -121,7 +121,7 @@ fun AppIpRulesSheet(
                 appIcon = {
                     appIcon?.let { icon ->
                         rememberDrawablePainter(icon)?.let { painter ->
-                            Image(painter = painter, contentDescription = null, modifier = Modifier.size(Dimensions.iconSizeSm))
+                            Image(painter = painter, contentDescription = null, modifier = Modifier.size(SharedDimensions.iconSizeSm))
                         }
                     }
                 },
@@ -148,7 +148,7 @@ fun AppIpRulesSheet(
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = Dimensions.screenPaddingHorizontal),
+                        .padding(horizontal = SharedDimensions.screenPaddingHorizontal),
                 )
             }
 
@@ -157,7 +157,7 @@ fun AppIpRulesSheet(
                     text = stringResource(R.string.bsct_block_domain),
                 )
                 LazyColumn(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.screenPaddingHorizontal)
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = SharedDimensions.screenPaddingHorizontal)
                 ) {
                     items(domainList, key = { it }) { domain ->
                         val status = selectedDomainRules[domain] ?: DomainRulesManager.Status.NONE

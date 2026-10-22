@@ -76,7 +76,7 @@ import com.bernaferrari.bravedns.service.EventLogger
 import com.bernaferrari.bravedns.service.PersistentState
 import com.bernaferrari.bravedns.service.VpnController
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
-import com.bernaferrari.bravedns.ui.compose.theme.Dimensions
+import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar

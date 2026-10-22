@@ -1,79 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Standard M3 attributes for legacy support mapping -->
-    <attr name="colorOnSurface" format="reference" />
-    <attr name="colorOnSurfaceVariant" format="reference" />
-    <attr name="colorSurfaceVariant" format="reference" />
-    <attr name="colorSecondaryContainer" format="reference" />
-    <attr name="colorOnSecondaryContainer" format="reference" />
-    <attr name="colorTertiaryContainer" format="reference" />
-    <attr name="colorOnTertiaryContainer" format="reference" />
-    <attr name="colorErrorContainer" format="reference" />
-    <attr name="colorOnErrorContainer" format="reference" />
-    <attr name="colorSurfaceContainer" format="reference" />
-    <attr name="colorSurfaceContainerLow" format="reference" />
-    <attr name="colorSurfaceContainerHigh" format="reference" />
-    <attr name="colorSurfaceContainerHighest" format="reference" />
-    <attr name="colorSurfaceContainerLowest" format="reference" />
-    <attr name="colorOutline" format="reference" />
-    <attr name="divider" format="reference" />
-    <attr name="primaryColor" format="reference" />
-    <attr name="primaryDarkColor" format="reference" />
-    <attr name="primaryColorAccent" format="reference" />
-    <attr name="primaryTextColor" format="reference" />
-    <attr name="secondaryTextColor" format="reference" />
-    <attr name="primaryLightColorText" format="reference" />
-    <attr name="chipTextColor" format="reference" />
-    <attr name="invertedPrimaryTextColor" format="reference" />
-    <attr name="textColorAccentBad" format="reference" />
-    <attr name="fabBackgroundColor" format="reference" />
-    <attr name="homeScreenHeaderTextColor" format="reference" />
-    <attr name="homeScreenBtnBackground" format="reference" />
+    <!-- Theme attrs still referenced as ?attr/... by vector drawables (resolved via AppThemeInitial). -->
     <attr name="svgStrokeColor" format="reference" />
     <attr name="svgFillColor" format="reference" />
+    <attr name="primaryTextColor" format="reference" />
+    <attr name="background" format="reference" />
     <attr name="accentGood" format="reference" />
-    <attr name="accentBad" format="reference" />
-    <attr name="accentWarning" format="reference" />
-    <attr name="border" format="reference" />
-    <attr name="navBarColor" format="reference" />
-    <attr name="buttonBackground" format="reference" />
-    <attr name="textViewBackground" format="reference" />
-    <attr name="tabIndicator" format="reference" />
-    <attr name="chipBgColorPositive" format="reference" />
     <attr name="chipTextPositive" format="reference" />
-    <attr name="chipBgColorNegative" format="reference" />
-    <attr name="chipTextNegative" format="reference" />
-    <attr name="chipTextNeutral" format="reference" />
-    <attr name="chipBgColorNeutral" format="reference" />
-    <attr name="chipColorBgNormal" format="reference" />
-    <attr name="chipColorBgHighlight" format="reference" />
-    <attr name="controlActivated" format="reference" />
-    <attr name="controlActivatedBad" format="reference" />
-    <attr name="switchNormal" format="reference" />
     <attr name="firewallNoRuleToggleBtnTxt" format="reference" />
-    <attr name="firewallNoRuleToggleBtnBg" format="reference" />
     <attr name="firewallBlockToggleBtnTxt" format="reference" />
     <attr name="firewallBlockToggleBtnBg" format="reference" />
     <attr name="firewallWhiteListToggleBtnTxt" format="reference" />
     <attr name="firewallWhiteListToggleBtnBg" format="reference" />
-    <attr name="firewallExcludeToggleBtnTxt" format="reference" />
-    <attr name="firewallExcludeToggleBtnBg" format="reference" />
-    <attr name="defaultToggleBtnTxt" format="reference" />
-    <attr name="defaultToggleBtnBg" format="reference" />
-    <attr name="selectedCardBg" format="reference" />
-    <attr name="background" format="reference" />
-    <attr name="homeScreenBtnGradientStart" format="reference" />
-    <attr name="homeScreenBtnGradientEnd" format="reference" />
-    <attr name="bottomSheetBackground" format="reference" />
-    <attr name="vpnHeaderGradientStart" format="reference" />
-    <attr name="vpnHeaderGradientCenter" format="reference" />
-    <attr name="vpnHeaderGradientEnd" format="reference" />
-    <attr name="colorGolden" format="reference" />
-
-    <!-- Guided Tour overlay / tooltip theming -->
-    <attr name="tourOverlayColor" format="color" />
-    <attr name="tourTooltipBackground" format="reference" />
-    <attr name="tourStrokeColor" format="color" />
-    <attr name="tourButtonBackground" format="reference" />
-    <attr name="tourButtonTextColor" format="reference" />
 </resources>

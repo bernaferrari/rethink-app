@@ -15,19 +15,10 @@
  */
 package com.bernaferrari.bravedns.ui.compose.statistics
 
-import android.content.pm.PackageManager
-import android.graphics.drawable.Drawable
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.platform.LocalContext
 import com.bernaferrari.bravedns.data.SummaryStatisticsType
-import com.bernaferrari.bravedns.service.FirewallManager
-import com.bernaferrari.bravedns.ui.compose.rememberDrawablePainter
-import com.bernaferrari.bravedns.util.Utilities
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import com.bernaferrari.bravedns.ui.compose.common.rememberAppIconPainter
 
 internal fun SummaryStatisticsType.supportsAppIcon(): Boolean {
     return this == SummaryStatisticsType.MOST_CONNECTED_APPS ||
@@ -35,34 +26,4 @@ internal fun SummaryStatisticsType.supportsAppIcon(): Boolean {
 }
 
 @Composable
-internal fun rememberStatisticsAppIconPainter(uid: Int): Painter? {
-    val context = LocalContext.current
-    val drawable by produceState<Drawable?>(initialValue = null, uid) {
-        value =
-            withContext(Dispatchers.IO) {
-                val normalizedUid = FirewallManager.appId(uid, mainUserOnly = true)
-                val candidateUids = listOf(uid, normalizedUid).distinct()
-
-                val packageName =
-                    candidateUids.firstNotNullOfOrNull { candidate ->
-                        FirewallManager.getPackageNameByUid(candidate)
-                    } ?: candidateUids.firstNotNullOfOrNull { candidate ->
-                        Utilities.getPackageInfoForUid(context, candidate)?.firstOrNull()
-                    }
-
-                if (packageName.isNullOrBlank()) {
-                    null
-                } else {
-                    try {
-                        context.packageManager.getApplicationIcon(packageName)
-                    } catch (_: PackageManager.NameNotFoundException) {
-                        null
-                    } catch (_: SecurityException) {
-                        null
-                    }
-                }
-            }
-    }
-
-    return rememberDrawablePainter(drawable)
-}
+internal fun rememberStatisticsAppIconPainter(uid: Int): Painter? = rememberAppIconPainter(uid)

@@ -98,7 +98,7 @@ fun <T> RethinkEndpointListWithAdd(
                 // Clear the extended FAB so the last endpoint is never hidden under it.
                 contentPadding = PaddingValues(
                     top = SharedDimensions.spacingXs,
-                    bottom = SharedDimensions.buttonHeightLg + SharedDimensions.spacing2xl,
+                    bottom = SharedDimensions.fabClearance,
                 ),
                 verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
             ) {

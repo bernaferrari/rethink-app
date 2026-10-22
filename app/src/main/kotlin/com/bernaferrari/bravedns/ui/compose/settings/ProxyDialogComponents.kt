@@ -15,8 +15,6 @@
  */
 package com.bernaferrari.bravedns.ui.compose.settings
 
-import android.graphics.drawable.Drawable
-import android.util.LruCache
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.size
@@ -24,22 +22,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.service.FirewallManager
-import com.bernaferrari.bravedns.ui.compose.rememberDrawablePainter
-import com.bernaferrari.bravedns.util.Utilities.getIcon
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import com.bernaferrari.bravedns.ui.compose.common.rememberAppIconPainter
 
 internal data class ProxyDialogAppOption(
     val packageName: String,
@@ -68,18 +57,6 @@ internal data class HttpDialogState(
     val lockdown: Boolean,
     val error: String? = null
 )
-
-internal object ProxyDialogAppIconCache {
-    private const val CACHE_SIZE = 192
-    private val cache = LruCache<String, Drawable>(CACHE_SIZE)
-
-    fun get(key: String): Drawable? = cache.get(key)
-
-    fun put(key: String, icon: Drawable?) {
-        if (key.isBlank() || icon == null) return
-        cache.put(key, icon)
-    }
-}
 
 @Composable
 internal fun proxyConfigurationStrings(
@@ -117,30 +94,7 @@ internal fun ProxyDialogAppIcon(
         return
     }
 
-    val context = LocalContext.current
-    val cacheKey = option.packageName.ifBlank { option.iconLookupName }
-    var iconDrawable by
-        remember(cacheKey) {
-            mutableStateOf(
-                if (cacheKey.isBlank()) {
-                    null
-                } else {
-                    ProxyDialogAppIconCache.get(cacheKey)
-                }
-            )
-        }
-
-    LaunchedEffect(cacheKey, option.packageName, option.iconLookupName) {
-        if (iconDrawable != null || option.packageName.isBlank()) return@LaunchedEffect
-        val icon =
-            withContext(Dispatchers.IO) {
-                getIcon(context, option.packageName, option.iconLookupName)
-            }
-        iconDrawable = icon
-        ProxyDialogAppIconCache.put(cacheKey, icon)
-    }
-
-    val painter = rememberDrawablePainter(iconDrawable)
+    val painter = rememberAppIconPainter(option.packageName, option.iconLookupName)
     if (painter != null) {
         Image(
             painter = painter,

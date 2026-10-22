@@ -38,14 +38,8 @@ object RethinkBlocklistState {
         var subGroups: MutableSet<String> = mutableSetOf()
     }
 
-    enum class BlocklistView(val tag: String) {
-        PACKS("1"),
-        ADVANCED("2");
-
-        fun isSimple() = this == PACKS
-
-        companion object {
-            fun getTag(tag: String): BlocklistView = if (tag == PACKS.tag) PACKS else ADVANCED
-        }
+    enum class BlocklistView {
+        PACKS,
+        ADVANCED,
     }
 }

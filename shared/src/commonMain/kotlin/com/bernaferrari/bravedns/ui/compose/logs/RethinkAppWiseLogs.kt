@@ -3,6 +3,7 @@
 
 package com.bernaferrari.bravedns.ui.compose.logs
 
+import androidx.compose.runtime.saveable.rememberSaveable
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWell
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSearchField
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkOverflowMenu
@@ -61,10 +62,17 @@ fun RethinkAppWiseLogsScaffold(
     title: String,
     onBackClick: (() -> Unit)? = null,
     strings: RethinkAppWiseLogsStrings? = null,
-    /** Clearing this app's logs lives in the overflow, like every other log screen. */
-    onDeleteClick: (() -> Unit)? = null,
+    /**
+     * Clearing this app's logs lives in the overflow, like every other log screen. Invoked only
+     * after the destructive confirmation, which this scaffold owns.
+     */
+    onDelete: (() -> Unit)? = null,
     content: @Composable (PaddingValues) -> Unit,
 ) {
+    var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
+    if (showDeleteDialog && strings != null && onDelete != null) {
+        RethinkAppWiseLogsDeleteDialog(strings, onDismiss = { showDeleteDialog = false }, onConfirm = onDelete)
+    }
     val scroll = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     Scaffold(
         modifier = Modifier.nestedScroll(scroll.nestedScrollConnection),
@@ -74,10 +82,10 @@ fun RethinkAppWiseLogsScaffold(
                 onBackClick = onBackClick,
                 scrollBehavior = scroll,
                 actions = {
-                    if (strings != null && onDeleteClick != null) {
+                    if (strings != null && onDelete != null) {
                         RethinkOverflowMenu(
                             moreDescription = strings.moreActions,
-                            items = listOf(RethinkOverflowItem(strings.delete, MaterialSymbols.Filled.DeleteOutline, onDeleteClick)),
+                            items = listOf(RethinkOverflowItem(strings.delete, MaterialSymbols.Filled.DeleteOutline) { showDeleteDialog = true }),
                         )
                     }
                 },
@@ -89,7 +97,7 @@ fun RethinkAppWiseLogsScaffold(
 }
 
 @Composable
-fun RethinkAppWiseLogsDeleteDialog(strings: RethinkAppWiseLogsStrings, onDismiss: () -> Unit, onConfirm: () -> Unit) {
+private fun RethinkAppWiseLogsDeleteDialog(strings: RethinkAppWiseLogsStrings, onDismiss: () -> Unit, onConfirm: () -> Unit) {
     RethinkConfirmDialog(
         onDismissRequest = onDismiss,
         title = strings.deleteTitle,

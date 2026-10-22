@@ -244,7 +244,7 @@ fun RethinkIndexedFastScroller(
                                 y = bubbleYPx.roundToInt(),
                             )
                         },
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(SharedDimensions.cornerRadiusLg),
                 color = MaterialTheme.colorScheme.primaryContainer,
                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 shadowElevation = 6.dp,

@@ -1,15 +1,15 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.logs
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWellDefaults
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWell
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -88,20 +88,15 @@ fun RethinkConsoleLogRow(
             horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSmMd),
             verticalAlignment = Alignment.Top,
         ) {
-            Surface(
-                modifier = Modifier.size(SharedDimensions.iconSizeMd),
+            RethinkIconWell(
+                icon = severity.icon,
+                contentDescription = severityDescription,
+                tint = tint,
+                containerColor = RethinkIconWellDefaults.tinted(tint),
+                size = SharedDimensions.iconSizeMd,
+                iconSize = SharedDimensions.iconSizeXs,
                 shape = RoundedCornerShape(SharedDimensions.cornerRadiusSm),
-                color = tint.copy(alpha = 0.14f),
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = severity.icon,
-                        contentDescription = severityDescription,
-                        tint = tint,
-                        modifier = Modifier.size(SharedDimensions.iconSizeXs),
-                    )
-                }
-            }
+            )
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
                 Text(item.timestamp, style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text(

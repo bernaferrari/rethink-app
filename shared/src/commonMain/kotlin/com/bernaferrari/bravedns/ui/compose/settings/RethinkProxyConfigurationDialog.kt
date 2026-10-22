@@ -3,7 +3,6 @@
 
 package com.bernaferrari.bravedns.ui.compose.settings
 
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,7 +19,6 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,12 +29,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.Dp
-import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormActionRow
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormTextField
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkSheetHeader
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkSwitchListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkModalBottomSheet
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkRadioChoiceList
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
@@ -93,12 +91,11 @@ fun RethinkProxyConfigurationDialog(
         verticalSpacing = SharedDimensions.spacingLg,
         expandOnShow = true,
     ) { dismissSheet ->
-        Text(strings.title, style = MaterialTheme.typography.headlineSmall)
+        RethinkSheetHeader(title = strings.title, subtitle = strings.description)
         Column(
             modifier = Modifier.verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
         ) {
-            strings.description?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
             RethinkProxyTextField(state.host, strings.host) { onStateChange(state.copy(host = it, error = null)) }
             if (kind == RethinkProxyConfigurationKind.Socks5) {
                 RethinkProxyTextField(state.port, strings.port) { onStateChange(state.copy(port = it, error = null)) }
@@ -115,15 +112,15 @@ fun RethinkProxyConfigurationDialog(
             val toggleCount = if (kind == RethinkProxyConfigurationKind.Socks5) 2 else 1
             RethinkListGroup {
                 if (kind == RethinkProxyConfigurationKind.Socks5) {
-                    RethinkProxyToggleRow(
-                        label = strings.udpBlocked,
+                    RethinkSwitchListItem(
+                        headline = strings.udpBlocked,
                         checked = state.udpBlocked,
                         position = cardPositionFor(0, toggleCount - 1),
                         onCheckedChange = { onStateChange(state.copy(udpBlocked = it, error = null)) },
                     )
                 }
-                RethinkProxyToggleRow(
-                    label = strings.includeProxyApps,
+                RethinkSwitchListItem(
+                    headline = strings.includeProxyApps,
                     checked = state.includeProxyApps,
                     enabled = !state.lockdown,
                     position = cardPositionFor(toggleCount - 1, toggleCount - 1),
@@ -201,24 +198,6 @@ private fun RethinkProxyPasswordField(value: String, label: String, onValueChang
         visualTransformation = PasswordVisualTransformation(),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
         shape = RoundedCornerShape(SharedDimensions.cornerRadiusLg),
-    )
-}
-
-@Composable
-private fun RethinkProxyToggleRow(
-    label: String,
-    checked: Boolean,
-    position: CardPosition,
-    enabled: Boolean = true,
-    onCheckedChange: (Boolean) -> Unit,
-) {
-    RethinkListItem(
-        headline = label,
-        position = position,
-        enabled = enabled,
-        // Rendered inside a surfaceContainerLow sheet: step up one tone so the group reads.
-        trailing = { Switch(checked = checked, enabled = enabled, onCheckedChange = null) },
-        selection = RethinkListSelection(checked = checked, onCheckedChange = onCheckedChange),
     )
 }
 

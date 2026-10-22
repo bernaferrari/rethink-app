@@ -62,6 +62,7 @@ fun WgHopDialog(
                     amnezia = stringResource(R.string.lbl_amnezia),
                     hopSource = stringResource(R.string.lbl_hopping),
                     alreadyHop = stringResource(R.string.cd_dns_crypt_relay_heading),
+                    empty = stringResource(R.string.hop_error_toast_msg_2),
                 ),
                 onToggle = { item, checked ->
                     val config = hopables.firstOrNull { it.getId().toString() == item.id }

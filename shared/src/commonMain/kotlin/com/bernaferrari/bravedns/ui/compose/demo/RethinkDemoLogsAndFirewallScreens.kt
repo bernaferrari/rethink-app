@@ -249,7 +249,6 @@ internal fun DemoUniversalFirewallScreen(modifier: Modifier, onBack: () -> Unit)
             explanation = "Rules that apply before app-specific decisions.",
             blocked = { "Blocked: $it" },
             loading = "Loading…",
-            logs = "Logs",
             accessibilityTitle = "Accessibility permission",
             accessibilityDescription = "Enable accessibility to block apps while they are in the background.",
             accessibilityConfirm = "Open settings",
@@ -445,8 +444,8 @@ internal fun DemoAppInfoScreen(modifier: Modifier, app: RethinkFirewallApp?, onB
             ipLogs = RethinkAppInfoLogSection("Most contacted IPs", 2, loading = false, empty = false, entries = rows),
         ),
         strings = RethinkAppInfoStrings(
-            unavailable = "This app is no longer available.", back = "Back", status = "Status", temporaryAllow = "Temporarily allowed",
-            firewall = "Firewall", wifi = "Wi‑Fi", wifiDescription = "Block connections on unmetered networks.", mobile = "Mobile data", mobileDescription = "Block connections on metered networks.",
+            unavailable = "This app is no longer available.", status = "Status", temporaryAllow = "Temporarily allowed",
+            firewall = "Firewall", wifi = "Wi‑Fi", mobile = "Mobile data",
             allowed = "Allowed", blocked = "Blocked",
             isolate = "Isolate", isolateDescription = "Block all app traffic.", bypassDns = "Bypass DNS firewall", bypassDnsDescription = "Allow DNS traffic outside DNS rules.",
             bypassUniversal = "Bypass universal firewall", bypassUniversalDescription = "Ignore the universal firewall rule.", exclude = "Exclude", excludeDescription = "Keep this app outside VPN filtering.",

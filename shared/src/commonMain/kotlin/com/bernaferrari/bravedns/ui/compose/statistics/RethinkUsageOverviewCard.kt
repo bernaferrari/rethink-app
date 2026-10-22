@@ -1,5 +1,6 @@
 package com.bernaferrari.bravedns.ui.compose.statistics
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkMetric
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,15 +10,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 
@@ -71,25 +68,11 @@ private fun usageTileShape(position: UsageTilePosition): RoundedCornerShape {
 @Composable
 private fun UsageTile(label: String, value: String, valueColor: Color, position: UsageTilePosition, modifier: Modifier) {
     Surface(modifier = modifier, shape = usageTileShape(position), color = MaterialTheme.colorScheme.surfaceContainerLow) {
-        // The number is the hero; the label is a quiet caption beneath it. Tabular numerals keep
-        // the three values visually aligned as they tick between windows.
-        Column(
-            Modifier.padding(horizontal = SharedDimensions.cardPaddingSm, vertical = SharedDimensions.cardPadding),
-            verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
-        ) {
-            Text(
-                value,
-                style = MaterialTheme.typography.titleLarge.copy(fontFeatureSettings = "tnum"),
-                fontWeight = FontWeight.SemiBold,
-                color = valueColor,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                autoSize = TextAutoSize.StepBased(
-                    minFontSize = MaterialTheme.typography.titleSmall.fontSize,
-                    maxFontSize = MaterialTheme.typography.titleLarge.fontSize,
-                ),
-            )
-            Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2)
-        }
+        RethinkMetric(
+            value = value,
+            label = label,
+            valueColor = valueColor,
+            modifier = Modifier.padding(horizontal = SharedDimensions.cardPaddingSm, vertical = SharedDimensions.cardPadding),
+        )
     }
 }

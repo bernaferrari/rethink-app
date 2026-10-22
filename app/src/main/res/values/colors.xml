@@ -1,63 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <color name="primaryLightColorText">#CAC4D0</color>
-
     <!-- Launch / window surface used by AppThemeInitial (RethinkTheme coral seed). -->
     <color name="rethinkLaunchSurface">#1A1110</color>
     <color name="rethinkLaunchAccent">#FF5D73</color>
 
-    <!-- app theme (Default Dark) -->
-    <color name="colorPrimary">#2D2F33</color>
-    <color name="colorPrimaryDark">#3F4145</color>
-
+    <!-- Notification accent (UIUtils.getAccentColor) + ?attr/accentGood drawables. -->
     <color name="accentGood">#18ffff</color>
-    <color name="accentBad">#ff4081</color>
+    <color name="accentGoodLight">#005cb2</color>
+    <color name="accentGoodBlack">#4fc3f7</color>
 
+    <!-- Backing colors for the ?attr bridge in styles.xml. Day values here; night in values-night. -->
     <color name="background">#1A1B1E</color>
-    <color name="border">#3F4145</color>
-    <color name="homeScreenBtnBackground">#2D2F33</color>
-    <color name="textViewBackground">#1A000000</color>
-    <color name="buttonBackground">#006f67</color>
-    <color name="btmSheetBgColor">#2D2F33</color>
-
-    <color name="tabIndicator">#18ffff</color>
-    <color name="colorControlActivated">#FF18ffff</color>
-    <color name="colorControlActivatedBad">#DF3520</color>
-    <color name="switchNormal">#959595</color>
-
-    <color name="chipBgPositive">#3380CBC4</color>
-    <color name="chipTextPositive">#18ffff</color>
-    <color name="chipBgNegative">#11F48FB1</color>
-    <color name="chipTextNegative">#FF1744</color>
-    <color name="chipBgNeutral">#33c17900</color>
-    <color name="chipTextNeutral">#ffd149</color>
-    <color name="chipColorBgNormal">#90444444</color>
-    <color name="chipColorBgHighlight">#9005dfd7</color>
-
-    <color name="stroke">#FFFFFF</color>
+    <color name="stroke">#1D1B20</color>
     <color name="fill">#00000000</color>
-
-    <color name="primaryText">#FDFDFD</color>
-    <color name="chipTextColor">#FDFDFD</color>
-    <color name="invertedPrimaryText">#18ffff</color>
-    <color name="textColorAccentBad">#CCC51162</color>
-    <color name="homeScreenHeaderTextColor">#FDFDFD</color>
-
-    <color name="selectedCardBg">#636363</color>
+    <color name="primaryText">#1D1B20</color>
+    <color name="chipTextPositive">#18ffff</color>
 
     <color name="firewallNoRuleToggleBtnTxt">#00796B</color>
-    <color name="firewallNoRuleToggleBtnBg">#80CBC4</color>
     <color name="firewallBlockToggleBtnTxt">#C51162</color>
     <color name="firewallBlockToggleBtnBg">#F48FB1</color>
     <color name="firewallWhiteListToggleBtnTxt">#c67100</color>
     <color name="firewallWhiteListToggleBtnBg">#ffd149</color>
-    <color name="firewallExcludeToggleBtnTxt">#7b2549</color>
-    <color name="firewallExcludeToggleBtnBg">#ffbcd7</color>
-    <color name="defaultToggleBtnTxt">#FDFDFD</color>
-    <color name="defaultToggleBtnBg">#393939</color>
-
-    <color name="accentGoodLight">#005cb2</color>
-    <color name="accentGoodBlack">#4fc3f7</color>
 
 </resources>

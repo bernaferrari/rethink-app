@@ -74,9 +74,6 @@ fun highlightConfigureQuery(text: String, query: String, matchStyle: SpanStyle):
     }
 }
 
-fun configureQueryHighlightIndices(text: String, query: String): Set<Int> =
-    configureQueryHighlightRanges(text, query).flatMapTo(linkedSetOf()) { it }
-
 /** Same spans as [matchesQuery]: every case-insensitive substring occurrence of the query. */
 fun configureQueryHighlightRanges(text: String, query: String): List<IntRange> {
     val needle = query.normalizeConfigureQuery()

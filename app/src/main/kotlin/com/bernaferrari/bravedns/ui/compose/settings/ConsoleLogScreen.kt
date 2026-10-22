@@ -45,7 +45,6 @@ fun ConsoleLogScreen(
             title = stringResource(R.string.console_log_title),
             searchHint = stringResource(R.string.lbl_search),
             filterDescription = stringResource(R.string.cd_filter),
-            shareDescription = stringResource(R.string.about_bug_report_desc),
             clearDescription = stringResource(R.string.console_log_delete_all_cd),
             moreDescription = stringResource(R.string.cd_more),
             clearSearchDescription = stringResource(R.string.cd_clear_search),
@@ -53,7 +52,6 @@ fun ConsoleLogScreen(
             deleteDialogMessage = stringResource(R.string.console_log_delete_dialog_desc),
             deleteLabel = stringResource(R.string.lbl_delete),
             reportLabel = stringResource(R.string.about_bug_report_desc),
-            confirmLabel = stringResource(R.string.fapps_info_dialog_positive_btn),
             cancelLabel = stringResource(R.string.lbl_cancel),
             filterOptions = listOf(
                 stringResource(R.string.settings_gologger_dialog_option_0),

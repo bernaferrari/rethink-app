@@ -16,14 +16,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -104,8 +102,14 @@ fun RethinkDetailedStatisticsScreen(
                 contentAlignment = Alignment.TopCenter,
             ) {
                 when {
-                    isRefreshing -> StatisticsLoading(strings.loading, Modifier.align(Alignment.Center))
-                    itemCount == 0 -> StatisticsEmpty(strings.empty, Modifier.align(Alignment.Center))
+                    isRefreshing -> RethinkLoadingState(label = strings.loading, modifier = Modifier.align(Alignment.Center))
+                    itemCount == 0 -> RethinkEmptyState(
+                        icon = MaterialSymbols.Filled.Info,
+                        title = strings.empty,
+                        message = "",
+                        contained = true,
+                        modifier = Modifier.align(Alignment.Center).padding(horizontal = SharedDimensions.screenPaddingHorizontal),
+                    )
                     else -> LazyColumn(
                         modifier = Modifier
                             .fillMaxHeight()
@@ -139,26 +143,6 @@ fun RethinkDetailedStatisticsScreen(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun StatisticsLoading(label: String, modifier: Modifier) {
-    RethinkLoadingState(label = label, modifier = modifier)
-}
-
-@Composable
-private fun StatisticsEmpty(label: String, modifier: Modifier) {
-    Surface(
-        modifier = modifier.padding(horizontal = SharedDimensions.screenPaddingHorizontal),
-        shape = RoundedCornerShape(SharedDimensions.groupCornerRadius),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-    ) {
-        RethinkEmptyState(
-            icon = MaterialSymbols.Filled.Info,
-            title = label,
-            message = "",
-        )
     }
 }
 

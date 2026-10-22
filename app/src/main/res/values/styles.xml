@@ -12,52 +12,19 @@
         <item name="android:navigationBarColor">@color/rethinkLaunchSurface</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
 
-        <!-- Legacy attr bridge for XML drawables still using ?attr/... -->
-        <item name="accentGood">@color/accentGood</item>
-        <item name="accentBad">@color/accentBad</item>
-        <item name="background">@color/background</item>
-        <item name="border">@color/border</item>
-        <item name="buttonBackground">@color/buttonBackground</item>
-        <item name="bottomSheetBackground">@color/btmSheetBgColor</item>
-        <item name="primaryTextColor">@color/primaryText</item>
-        <item name="primaryLightColorText">@color/primaryLightColorText</item>
-        <item name="textColorAccentBad">@color/textColorAccentBad</item>
+        <!-- Attr bridge for vector drawables still using ?attr/... (see attrs.xml).
+             stroke/primaryText flip in values-night so untinted Images stay legible. -->
         <item name="svgStrokeColor">@color/stroke</item>
         <item name="svgFillColor">@color/fill</item>
-        <item name="chipTextColor">@color/chipTextColor</item>
+        <item name="primaryTextColor">@color/primaryText</item>
+        <item name="background">@color/background</item>
+        <item name="accentGood">@color/accentGood</item>
         <item name="chipTextPositive">@color/chipTextPositive</item>
-        <item name="chipTextNegative">@color/chipTextNegative</item>
-        <item name="chipTextNeutral">@color/chipTextNeutral</item>
-        <item name="chipColorBgNormal">@color/chipColorBgNormal</item>
-        <item name="chipColorBgHighlight">@color/chipColorBgHighlight</item>
-        <item name="homeScreenBtnBackground">@color/homeScreenBtnBackground</item>
-        <item name="homeScreenBtnGradientStart">@color/colorPrimary</item>
-        <item name="homeScreenBtnGradientEnd">@color/colorPrimaryDark</item>
         <item name="firewallNoRuleToggleBtnTxt">@color/firewallNoRuleToggleBtnTxt</item>
-        <item name="firewallNoRuleToggleBtnBg">@color/firewallNoRuleToggleBtnBg</item>
         <item name="firewallBlockToggleBtnTxt">@color/firewallBlockToggleBtnTxt</item>
         <item name="firewallBlockToggleBtnBg">@color/firewallBlockToggleBtnBg</item>
         <item name="firewallWhiteListToggleBtnTxt">@color/firewallWhiteListToggleBtnTxt</item>
         <item name="firewallWhiteListToggleBtnBg">@color/firewallWhiteListToggleBtnBg</item>
-        <item name="firewallExcludeToggleBtnTxt">@color/firewallExcludeToggleBtnTxt</item>
-        <item name="firewallExcludeToggleBtnBg">@color/firewallExcludeToggleBtnBg</item>
-        <item name="defaultToggleBtnTxt">@color/defaultToggleBtnTxt</item>
-        <item name="defaultToggleBtnBg">@color/defaultToggleBtnBg</item>
-        <item name="selectedCardBg">@color/selectedCardBg</item>
-        <item name="invertedPrimaryTextColor">@color/invertedPrimaryText</item>
-        <item name="homeScreenHeaderTextColor">@color/homeScreenHeaderTextColor</item>
-        <item name="switchNormal">@color/switchNormal</item>
-        <item name="tabIndicator">@color/tabIndicator</item>
-        <item name="navBarColor">@android:color/transparent</item>
-        <item name="textViewBackground">@color/textViewBackground</item>
-        <item name="chipBgColorPositive">@color/chipBgPositive</item>
-        <item name="chipBgColorNegative">@color/chipBgNegative</item>
-        <item name="chipBgColorNeutral">@color/chipBgNeutral</item>
-        <item name="controlActivated">@color/colorControlActivated</item>
-        <item name="controlActivatedBad">@color/colorControlActivatedBad</item>
-        <item name="primaryColor">@color/colorPrimary</item>
-        <item name="primaryDarkColor">@color/colorPrimaryDark</item>
-        <item name="primaryColorAccent">@color/rethinkLaunchAccent</item>
     </style>
 
     <style name="AppThemeInitial" parent="AppThemeInitialBase" />

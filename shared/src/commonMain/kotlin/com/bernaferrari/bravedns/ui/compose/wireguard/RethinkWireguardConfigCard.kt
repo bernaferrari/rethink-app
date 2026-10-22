@@ -4,16 +4,12 @@ package com.bernaferrari.bravedns.ui.compose.wireguard
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillDefaults
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillSize
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -30,6 +26,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusLabel
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusIndicator
 
 enum class RethinkWireguardConfigControl { Switch, Checkbox }
 
@@ -119,24 +117,13 @@ fun RethinkWireguardConfigCard(
                     )
                 }
             }
-            // Status sits flush with the title's leading edge; the dot is centered on the text's
-            // x-height via CenterVertically on a single-line label.
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
+            // Status sits flush with the title's leading edge; the dot only appears with a status accent.
+            RethinkStatusLabel(
+                label = state.statusText,
+                color = accent ?: MaterialTheme.colorScheme.onSurfaceVariant,
+                indicator = if (accent != null) RethinkStatusIndicator.Dot() else RethinkStatusIndicator.None,
                 modifier = Modifier.padding(top = SharedDimensions.spacingXs),
-            ) {
-                if (accent != null) {
-                    Box(Modifier.size(SharedDimensions.spacingSm).background(accent, CircleShape))
-                }
-                Text(
-                    state.statusText,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = accent ?: MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
+            )
             state.appsText?.takeIf { it.isNotBlank() }?.let {
                 Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }

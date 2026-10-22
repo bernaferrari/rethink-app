@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="next">അടുത്തത്</string>
     <string name="finish">തീര്ക്കുക</string>
-    <string name="slide_2_title">സ്വാഗതം</string>
-    <string name="slide_1_title">സ്വതന്ത്രവും കാണാൻ കഴിയുന്നതുമായ ഉറവിടം</string>
     <string name="always_on_dialog_neutral">ക്രമീകരണങ്ങള്‍</string>
     <string name="settings_theme_heading">രൂപം</string>
     <string name="title_settings">ക്രമീകരണങ്ങൾ</string>
@@ -11,8 +8,6 @@
     <string name="block" translatable="true">തടയുക</string>
     <string name="exclude" translatable="true">ഒഴിവാക്കുക</string>
     <string name="lbl_rules" translatable="true">നിയമങ്ങൾ</string>
-    <string name="pause_title_desc" translatable="true">ഉറങ്ങുന്നു…</string>
-    <string name="skip" translatable="true">ഒഴിവാക്കുക</string>
     <string name="allow" translatable="true">അനുവദിക്കുക</string>
     <string name="isolate" translatable="true">ഒറ്റപ്പെടുത്തുക</string>
     <string name="title_about" translatable="true">കുറിച്ച്</string>
@@ -31,7 +26,6 @@
     <string name="brbs_restore_dialog_failure_message" translatable="true">പുനഃസ്ഥാപിക്കാനായില്ല. വീണ്ടും ശ്രമിക്കണോ\?</string>
     <string name="brbs_restore_title" translatable="true">പുനഃസ്ഥാപിക്കുക</string>
     <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline." translatable="true">കാത്തിരിക്കുന്നു</string>
-    <string name="status_protected" description="This is a large message in a reassuring color.  It indicates that DNS queries can't be surveilled or modified in transit." translatable="true">സുരക്ഷിതമാക്കപ്പെട്ട</string>
     <string name="dc_local_block_enabled" translatable="true">പ്രവർത്തനക്ഷമമാക്കി</string>
     <string name="notification_action_resume_vpn" translatable="true">പുനരാരംഭിക്കുക</string>
     <string name="brbs_restore_dialog_failure_title" translatable="true">പുനഃസ്ഥാപിക്കാനായില്ല</string>
@@ -42,12 +36,9 @@
     <string name="rt_edit_dialog_positive" translatable="true">തിരുത്തുക</string>
     <string name="rt_filter_parent_selected" translatable="true">തിരഞ്ഞെടുത്തത്</string>
     <string name="ssv_see_more" translatable="true">എല്ലാം കാണിക്കുക</string>
-    <string name="lbl_maybe_blocked" translatable="true">ഒരുപക്ഷേ തടഞ്ഞിരിക്കാം</string>
     <string name="lbl_network" translatable="true">ശൃംഖല</string>
     <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">പരാജയപ്പെടുകയാണ്</string>
     <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit." translatable="true">സംരക്ഷിച്ചിട്ടില്ല</string>
     <string name="brbs_restore_dialog_failure_positive" translatable="true">പുനഃസ്ഥാപിക്കാൻ വീണ്ടും ശ്രമിക്കുക</string>
     <string name="private_dns_dialog_positive" translatable="true">ക്രമീകരണങ്ങളിലേക്ക് പോകുക</string>
-    <string name="config_delete_all_dialog_desc">ഈ നിയമനം എല്ലാ വയർഗാര്ഡ്‌ വി.പി.എൻ. ക്രമീകരണങ്ങളേയും മായിച്ച് ഇല്ലാതാക്കും. ഇത് പിൻവലിക്കാൻ കഴിയാത്ത ഏർപ്പാടാണ്.</string>
-    <string name="config_delete_all_dialog_title">എല്ലാം മായിക്കുക</string>
 </resources>

@@ -1,6 +1,7 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.theme
 
+import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,6 +21,9 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+
+/** One-line list-row height (Material 56dp). */
+private val KeyValueRowMinHeight = 56.dp
 
 /** [Inline]: label leading, value trailing (end-aligned). [Stacked]: label above value. */
 enum class RethinkKeyValueLayout { Inline, Stacked }
@@ -105,7 +109,7 @@ fun RethinkKeyValueListItem(
     ) {
         Row(
             Modifier
-                .heightIn(min = SharedDimensions.listItemHeightSm)
+                .heightIn(min = KeyValueRowMinHeight)
                 .padding(horizontal = SharedDimensions.cardPadding, vertical = SharedDimensions.spacingMd),
             verticalAlignment = Alignment.CenterVertically,
         ) {

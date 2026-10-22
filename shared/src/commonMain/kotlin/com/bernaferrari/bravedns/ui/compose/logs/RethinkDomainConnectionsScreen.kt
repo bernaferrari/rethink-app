@@ -2,30 +2,21 @@
 
 package com.bernaferrari.bravedns.ui.compose.logs
 
+import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
+import com.bernaferrari.bravedns.ui.compose.common.RethinkLoadingState
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
-import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 
 /** Portable identity for the value used to scope a domain-connections query. */
 enum class DomainConnectionsInputType(val type: Int) {
@@ -67,43 +58,15 @@ fun RethinkDomainConnectionsScreen(
     ) { paddingValues ->
         Box(Modifier.fillMaxSize().padding(paddingValues)) {
             when {
-                isLoading -> Box(Modifier.fillMaxSize().padding(horizontal = SharedDimensions.screenPaddingHorizontal), contentAlignment = Alignment.Center) {
-                    RethinkLogLoadingState(loadingMessage)
-                }
-                isEmpty -> RethinkDomainConnectionsEmptyState(emptyMessage)
+                isLoading -> RethinkLoadingState(loadingMessage, Modifier.align(Alignment.Center))
+                isEmpty -> RethinkEmptyState(
+                    title = emptyMessage,
+                    message = "",
+                    icon = MaterialSymbols.Filled.Public,
+                    modifier = Modifier.align(Alignment.Center),
+                )
                 else -> connectionsContent()
             }
         }
-    }
-}
-
-@Composable
-private fun RethinkDomainConnectionsEmptyState(message: String) {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(SharedDimensions.spacingXl),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Surface(
-            shape = CircleShape,
-            color = MaterialTheme.colorScheme.primaryContainer,
-            modifier = Modifier.size(88.dp),
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(
-                    MaterialSymbols.Filled.Public,
-                    contentDescription = null,
-                    modifier = Modifier.size(36.dp),
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
-            }
-        }
-        Text(
-            text = message,
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurface,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = SharedDimensions.spacingLg),
-        )
     }
 }

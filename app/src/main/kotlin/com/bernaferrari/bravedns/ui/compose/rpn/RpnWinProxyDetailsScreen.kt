@@ -59,7 +59,7 @@ import com.bernaferrari.bravedns.service.IpRulesManager
 import com.bernaferrari.bravedns.service.ProxyManager
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormTextField
-import com.bernaferrari.bravedns.ui.compose.theme.Dimensions
+import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.util.Utilities
 import Logger

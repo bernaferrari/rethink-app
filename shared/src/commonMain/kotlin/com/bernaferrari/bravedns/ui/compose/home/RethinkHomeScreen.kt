@@ -77,6 +77,8 @@ import com.bernaferrari.bravedns.ui.compose.common.isExpanded
 import com.bernaferrari.bravedns.ui.compose.common.rethinkContentWidth
 import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkMetric
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkMetricSize
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 import kotlin.math.roundToInt
 
@@ -603,10 +605,12 @@ private fun HomeActivityContent(
             }
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
-            ActivityMetric(
+            RethinkMetric(
                 value = formatCompactCount(connections),
                 label = connectionsLabel,
                 modifier = Modifier.weight(1f),
+                size = RethinkMetricSize.Large,
+                labelMaxLines = 1,
             )
             VerticalDivider(
                 modifier = Modifier
@@ -614,31 +618,14 @@ private fun HomeActivityContent(
                     .padding(horizontal = SharedDimensions.spacingLg),
                 color = MaterialTheme.colorScheme.outlineVariant,
             )
-            ActivityMetric(
+            RethinkMetric(
                 value = formatCompactCount(dnsQueries),
                 label = dnsQueriesLabel,
                 modifier = Modifier.weight(1f),
+                size = RethinkMetricSize.Large,
+                labelMaxLines = 1,
             )
         }
-    }
-}
-
-@Composable
-private fun ActivityMetric(value: String, label: String, modifier: Modifier = Modifier) {
-    Column(modifier = modifier.semantics(mergeDescendants = true) {}) {
-        Text(
-            text = value,
-            style = MaterialTheme.typography.headlineSmall.copy(fontFeatureSettings = "tnum"),
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface,
-            maxLines = 1,
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1,
-        )
     }
 }
 

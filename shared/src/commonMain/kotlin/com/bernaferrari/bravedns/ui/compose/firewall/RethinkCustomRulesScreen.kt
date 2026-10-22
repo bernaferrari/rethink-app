@@ -3,6 +3,9 @@
 
 package com.bernaferrari.bravedns.ui.compose.firewall
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkSheetHeader
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillDefaults
 import androidx.compose.material3.SwipeToDismissBoxValue
@@ -39,11 +42,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -433,7 +434,7 @@ private fun RethinkRulesContent(
                 start = SharedDimensions.screenPaddingHorizontal,
                 end = SharedDimensions.screenPaddingHorizontal,
                 top = SharedDimensions.spacingSm,
-                bottom = if (selectedMode == RethinkRulesMode.SELECTED_UID) 112.dp else SharedDimensions.spacing3xl,
+                bottom = if (selectedMode == RethinkRulesMode.SELECTED_UID) SharedDimensions.fabClearance else SharedDimensions.spacing3xl,
             ),
         ) {
             items(rules.itemCount, key = { index -> rules[index]?.id ?: "rule-$index" }) { index ->
@@ -643,8 +644,7 @@ private fun RethinkRuleActionsSheet(
             RethinkListItem(
                 headline = strings.deleteRule,
                 leadingIcon = MaterialSymbols.Filled.DeleteOutline,
-                leadingIconTint = MaterialTheme.colorScheme.onErrorContainer,
-                leadingIconContainerColor = MaterialTheme.colorScheme.errorContainer,
+                destructive = true,
                 position = CardPosition.Last,
                 onClick = { onDelete(); dismiss() },
             )
@@ -667,7 +667,7 @@ private fun RethinkAddFirewallRuleDialog(
         expandOnShow = true,
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd)) {
-            Text(title, style = MaterialTheme.typography.titleLarge)
+            RethinkSheetHeader(title)
             RethinkFormTextField(
                 value = value,
                 onValueChange = { value = it; error = null },

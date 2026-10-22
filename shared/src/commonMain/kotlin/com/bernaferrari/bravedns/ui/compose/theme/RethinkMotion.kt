@@ -1,7 +1,6 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.theme
 
-import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 
@@ -11,19 +10,6 @@ data class RethinkMotion(
     val reducedMotion: Boolean = false,
     val durationFast: Int = if (reducedMotion) 0 else 140,
     val durationMedium: Int = if (reducedMotion) 0 else 220,
-    val durationExit: Int = if (reducedMotion) 0 else 180,
-    val durationSlow: Int = if (reducedMotion) 0 else 400,
-    val durationWipe: Int = if (reducedMotion) 0 else durationSlow + durationFast,
-    val durationWipeExit: Int = if (reducedMotion) 0 else durationSlow + durationMedium,
-    val easingStandard: CubicBezierEasing = CubicBezierEasing(0.2f, 0f, 0f, 1f),
-    val easingDecelerate: CubicBezierEasing = CubicBezierEasing(0f, 0f, 0f, 1f),
-    val easingAccelerate: CubicBezierEasing = CubicBezierEasing(0.3f, 0f, 1f, 1f),
 )
 
 val LocalRethinkMotion = staticCompositionLocalOf { RethinkMotion() }
-
-/**
- * Localized label for every top-bar back arrow. Android provides it from resources at the theme
- * root, so shared screens never ship the English fallback to TalkBack.
- */
-val LocalRethinkBackDescription = staticCompositionLocalOf { "Navigate back" }

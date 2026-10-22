@@ -1,55 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="next">Selanjutnya</string>
     <string name="always_on_dialog">\"VPN Selalu-Menyala\" telah dinyalakan di perangkat ini. Untuk menjalankan Rethink, silakan masuk ke Pengaturan dan matikan \"VPN Selalu-Menyala\".</string>
     <string name="always_on_dialog_neutral">Pengaturan</string>
     <string name="blocklist_update_check_failure">Terjadi kesalahan. Coba beberapa saat lagi!</string>
-    <string name="configure_dns_connected_dns_crypt_status">DNSCrypt</string>
-    <string name="configure_dns_connection_name">Terhubung dengan %1$s</string>
     <string name="info_dialog_copy_toast_msg">Alamat IP telah disalin.</string>
-    <string name="app_mode_wireguard">VPN</string>
     <string name="settings_enable_logs_desc">Menyimpan riwayat DNS dan Firewall secara lokal pada perangkat.</string>
     <string name="orbot">Orbot</string>
-    <string name="settings_orbot_heading">Setel Orbot</string>
     <string name="always_on_dialog_positive">Berhenti</string>
-    <string name="search_firewall_all_apps"><font size="12">Cari aplikasi berdasarkan uid, nama</font></string>
-    <string name="settings_vpn_heading">VPN</string>
     <string name="orbot_stop_dialog_negative">Hentikan Orbot</string>
-    <string name="settings_orbot_header">Orbot\t❯</string>
-    <string name="status_strict" description="This is similar to dns_on, but the protection is being provided by the operating system, not by Rethink.  It is not color-highlighted.">dns pribadi telah aktif</string>
     <string name="orbot_status_arg_3">DNS dan TCP</string>
     <string name="orbot_bs_status_trying_connect">Menyiapkan Orbot…</string>
     <string name="orbot_stop_dialog_neutral">Ubah DNS</string>
-    <string name="skip">Lewati</string>
     <string name="finish">Selesai</string>
-    <string name="app_mode_dns">DNS</string>
     <string name="orbot_stop_dialog_message">Rethink telah berhenti meneruskan koneksi ke Orbot, tapi mungkin Orbot masih berjalan di latar belakang.</string>
-    <string name="settings_orbot_install_desc">Ketuk di sini untuk memasang Orbot</string>
     <string name="download_update_dialog_trylater_title">Tidak dapat memperbaharui saat ini</string>
-    <string name="settings_ip_network_heading">Pilih versi IP</string>
     <string name="orbot_install_dialog_title">Pasang Orbot\?</string>
-    <string name="app_mode_firewall">Firewall</string>
     <string name="always_on_dialog_heading">Matikan VPN Selalu-Menyala</string>
-    <string name="configure_dns_connected_doh_status">DNS melalui HTTPS (DoH)</string>
     <string name="orbot_download_link_website">https://github.com/guardianproject/orbot/releases</string>
-    <string name="settings_orbot_desc">Orbot menggunakan HTTPS/SOCKS5 dalam mode non-VPN.</string>
     <string name="always_on_dialog_stop_heading">VPN Selalu-Menyala</string>
-    <string name="univ_firewall_dialog_title">Hapus aturan IP\?</string>
     <string name="connection_http3">HTTP3</string>
-    <string name="app_name_small_case">rethink</string>
     <string name="rdns_plus">RDNS Plus</string>
     <string name="always_on_dialog_positive_btn">Masuk ke Pengaturan</string>
     <string name="settings_enable_logs">Aktifkan pencatatan riwayat di perangkat</string>
-    <string name="app_mode_choose">Pilih mode</string>
-    <string name="orbot_both_desc">Semua di atas.</string>
     <string name="download_update_dialog_message_ok">Anda sudah menggunakan versi terbaru.</string>
     <string name="info_dialog_url_copy_toast_msg">URL telah disalin</string>
     <string name="orbot_status_arg_2">TCP</string>
     <string name="orbot_install_activity_error">Terjadi kesalahan. Coba beberapa saat lagi</string>
-    <string name="slide_2_title">Selamat datang</string>
     <string name="download_update_dialog_trylater_message">Tidak dapat memperbarui sekarang, harap tunggu beberapa saat dan coba lagi nanti.</string>
     <string name="orbot_app_issue">Tidak dapat menjalankan Orbot. Apakah Orbot sudah terinstal\?</string>
-    <string name="app_mode_dns_low_battery">DNS (penghemat baterai)</string>
     <string name="firewall_act_network_monitor_tab">Jaringan</string>
     <string name="orbot_stop_dialog_message_combo">%1$s
 \n
@@ -58,10 +36,8 @@
     <string name="settings_socks5_disabled_error">Terhubung ke %1$s. Silahkan tutup dulu.</string>
     <string name="download_update_dialog_failure_title">Terjadi kesalahan!</string>
     <string name="always_on_dialog_stop_message">Rethink diatur sebagai VPN Selalu-Menyala. Apakah Anda yakin untuk menghentikan Rethink\?</string>
-    <string name="univ_firewall_dialog_message">Menghapus aturan ini akan memungkinkan aplikasi apa pun terhubung ke alamat IP ini. Apakah Anda ingin melanjutkan\?</string>
     <string name="download_update_dialog_message">Versi baru tersedia untuk diunduh dari situs web. Apakah Anda ingin melanjutkan\?</string>
     <string name="search_universal_ips"><font size="12">Cari IP</font></string>
-    <string name="settings_ip_network_desc">Pilih versi Protokol Jaringan.</string>
     <string name="orbot_stop_dialog_dns_message">Rethink disiapkan untuk meneruskan permintaan DNS ke Orbot. Silahkan ubah sesuai kebutuhan.</string>
     <string name="orbot_bs_status_1">Meneruskan koneksi %1$s ke Orbot.</string>
     <string name="orbot_website_link">https://guardianproject.info/apps/org.torproject.android/</string>
@@ -70,58 +46,35 @@
     <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">gagal</string>
     <string name="conn_track_clear_logs_title">Hapus semua riwayat catatan jaringan\?</string>
     <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">menunggu</string>
-    <string name="status_protected_with_private_dns">terlindungi dengan dns pribadi</string>
-    <string name="dns_query_clear_logs_title">Hapus semua riwayat catatan DNS\?</string>
     <string name="exclude">kecualikan</string>
-    <string name="status_protected" description="This is a large message in a reassuring color.  It indicates that DNS queries can't be surveilled or modified in transit.">terlindungi</string>
-    <string name="status_protected_with_socks5_private_dns">terlindungi dengan socks5 &amp; dns pribadi</string>
-    <string name="status_protected_with_tor">terlindungi dengan tor</string>
-    <string name="brave_dns_connect_mode_change_firewall">Pilih Mode.</string>
-    <string name="settings_title_desc">DNS dan Firewall yang sangat mudah disesuaikan</string>
-    <string name="status_protected_with_tor_private_dns">terlindungi dengan tor &amp; dns pribadi</string>
     <string name="block">blokir</string>
     <string name="title_settings">Pengaturan</string>
     <string name="status_dns_error">dns mengalami gangguan</string>
     <string name="title_about">Tentang</string>
-    <string name="about_title_desc">Mendeteksi dan menangkal ancaman-ancaman keamanan jaringan</string>
     <string name="allow">izinkan</string>
     <string name="dns_mode_notification_title">Terlindungi! Terhubung dengan DNS Cepat dan Aman.</string>
     <string name="firewall_mode_notification_title">Terlindungi! Terhubung dengan Firewall.</string>
     <string name="warning_title" description="Status indicator text shown in a warning notification.">Peringatan: Rethink telah dihentikan</string>
     <string name="notification_content" description="Indicates what will happen if the user taps the notification.">Sentuh untuk merubah pengaturan keamanan</string>
     <string name="status_no_internet">tidak ada jaringan</string>
-    <string name="dns_mode_info_explanation_new">Mengawasi, memblokir, dan mengenkripsi permintaan DNS.</string>
-    <string name="brave_dns_connect_mode_change_dns">Pilih Mode.</string>
     <string name="txt_home">Halaman muka</string>
     <string name="status_dns_server_down">server dns tidak berfungsi</string>
-    <string name="status_app_error">kesalahan aplikasi</string>
-    <string name="dns_firewall_mode_info_explanation_new">Semua di pilihan atas + lewati sensor internet.</string>
     <string name="conn_track_clear_logs_message">Hanya menghapus riwayat catatan jaringan, tidak dengan aturan-aturan firewall. Tindakan ini tidak dapat dibatalkan. Apakah Anda ingin melanjutkan\?</string>
     <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit.">tidak terlindungi</string>
     <string name="about_website">Kunjungi rethinkdns.com</string>
     <string name="lbl_add">tambah</string>
     <string name="settings_local_blocklist_version">Versi: v%1$s</string>
     <string name="firewall_rule_no_rule">Tanpa Aturan</string>
-    <string name="hsf_chip_appearance">Tema %1$s</string>
     <string name="about_bug_no_log_dialog_positive_btn">Kirim email</string>
     <string name="about_telegram_link">https://telegram.me/rethinkdns</string>
-    <string name="about_version">v%1$s</string>
     <string name="cd_custom_doh_url_name">DoH %1$s</string>
-    <string name="settings_selected_theme">Tema saat ini: %1$s</string>
     <string name="about_faq_link">https://www.rethinkdns.com/faq</string>
-    <string name="about_mozilla_alumni_link">https://builders.mozilla.community/alumni.html</string>
     <string name="cd_dns_crypt_dialog_name">Nama</string>
-    <string name="settings_notification_desc2">DNS / DNS + Firewall</string>
-    <string name="hsf_start_dialog_positive">Mulai</string>
-    <string name="ct_bs_app_info_error">Informasi Aplikasi tidak ditemukan</string>
     <string name="rules_load_failure_desc">Aturan firewall tidak ditemukan</string>
     <string name="other_dns_list_tab1">DoH</string>
     <string name="firewall_rule_block_app_new_install">Aplikasi Baru</string>
-    <string name="about_sponsor_link_text">Sponsor</string>
     <string name="about_settings_app_info">Informasi Aplikasi</string>
-    <string name="hsf_stop_btn_state">berhenti</string>
     <string name="firewall_status_unknown">tidak diketahui</string>
-    <string name="other_dns_list_tab2">Dnscrypt</string>
     <string name="notif_channel_vpn_notification">VPN aktif</string>
     <string name="category_name_sys_apps">Aplikasi Sistem</string>
     <string name="cd_dns_crypt_dialog_desc">Deskripsi (opsional)</string>
@@ -136,10 +89,7 @@
     <string name="firewall_mode_info_title">Firewall</string>
     <string name="rules_load_failure_reload">Muat ulang</string>
     <string name="pause_desc">Catatan: %1$s aplikasi yang diblokir akan terus diblokir.</string>
-    <string name="hsf_whats_new_remove_text">Menutup…</string>
     <string name="cd_dns_crypt_name">DNSCrypt %1$s</string>
-    <string name="hsf_start_dialog_header">Mulai %1$s</string>
-    <string name="firewall_rules">Aturan-aturan Jaringan</string>
     <string name="notif_channel_firewall_alerts">Peringatan Firewall</string>
     <string name="about_twitter">Ikuti kami di Twitter</string>
     <string name="about_mail_subject">[Rethink]:</string>
@@ -151,23 +101,15 @@
     <string name="firewall_rule_block_app">Aplikasi Diblokir</string>
     <string name="firewall_rule_block_udp_ntp">UDP Diblokir</string>
     <string name="firewall_rule_exempt_orbot_setup">Pengaturan Orbot</string>
-    <string name="notif_dialog_pause_dialog_neutral">Tampilkan</string>
     <string name="dc_dns_website_desc">Mengambil ikon situs web dari <i>nextdns.io</i> dan <i>duckduckgo.com</i>. Mengonsumsi ruang penyimpanan hingga 350 mb</string>
     <string name="firewall_status_excluded">dikecualikan dari dns dan firewall</string>
-    <string name="hsf_proxy_chip_remove_text">Menghentikan…</string>
     <string name="bsct_app_info">Info Aplikasi</string>
-    <string name="bsct_conn_block_desc_device">%1$s diblokir oleh perangkat</string>
     <string name="network_log_app_name_unknown">Tidak diketahui</string>
-    <string name="coming_soon_toast">segera</string>
     <string name="category_name_non_app_sys">Layanan Sistem</string>
     <string name="dc_rethink_dns_radio">Rethink DNS</string>
     <string name="about_bug_report_dialog_positive_btn">Kirim email</string>
     <string name="about_settings_notification">Pengaturan Notifikasi</string>
-    <string name="settings_notification_dialog_title">Pilih tindakan atas notifikasi</string>
-    <string name="hsf_downtime">(nonaktif sejak %1$s)</string>
-    <string name="hsf_whats_new_chip_text">Apa yang baru</string>
     <string name="notification_action_dns_firewall_mode">DNS + Firewall</string>
-    <string name="dns_act_configure_tab">Atur</string>
     <string name="update_complete_snack_message">Versi baru telah terunduh.</string>
     <string name="firewall_rule_device_lock">Perangkat Terkunci</string>
     <string name="firewall_rule_no_rule_desc">Tidak ada aturan firewall sesuai koneksi ini.</string>
@@ -176,50 +118,38 @@
     <string name="about_whats_new">Yang baru di versi %1$s</string>
     <string name="app_name" translatable="false">Re-Rethink</string>
     <string name="unicode_question_sign">❔</string>
-    <string name="fav_icon">ikon_fav</string>
     <string name="firewall_rule_unknown">Sumber Tidak Diketahui</string>
     <string name="category_name_installed">Aplikasi yang Terpasang</string>
     <string name="about_app">Aplikasi</string>
     <string name="about_mail_to">hello@celzero.com</string>
     <string name="about_version_install_source">v%1$s (%2$s)</string>
-    <string name="apps_icon_content_desc">Ikon Aplikasi</string>
     <string name="new_app_notification_action_toast_allow">Aplikasi diizinkan untuk terhubung ke jaringan</string>
     <string name="notif_channel_download">Peringatan Unduhan</string>
     <string name="about_faq">Lihat FAQ</string>
-    <string name="hsf_start_btn_state">mulai</string>
     <string name="settings_local_blocklist_dialog_positive">Unduh</string>
     <string name="category_name_others">Lainnya</string>
     <string name="dc_custom_dns_radio">DNS lain</string>
     <string name="about_twitter_handle">https://twitter.com/rethinkdns</string>
     <string name="about_dialog_neutral_button">Sarankan fitur</string>
     <string name="notification_action_dns_mode">DNS</string>
-    <string name="hybrid_mode_info_title">DNS + Firewall</string>
     <string name="build__flavor_fdroid">fdroid</string>
     <string name="new_app_notification_action_toast_deny">Koneksi jaringan app diabaikan</string>
     <string name="dc_other_dns_heading">Tipe</string>
-    <string name="about_mail_bugreport_text">Kirimkan email ke : hello@celzero.com</string>
     <string name="cd_custom_doh_url_name_default">DoH</string>
     <string name="unicode_warning_sign">⚠</string>
     <string name="new_app_bulk_notification_title">Perhatian</string>
-    <string name="about_settings">Sistem</string>
     <string name="about_github_link">https://github.com/celzero/rethink-app</string>
     <string name="about_website_link">https://www.rethinkdns.com/</string>
     <string name="settings_protocol_translation_dns_inactive">Beralih ke mode DNS/DNS+Firewall untuk mengaktifkan pengaturan ini</string>
     <string name="about_docs_link">https://docs.rethinkdns.com/</string>
-    <string name="dns_explanation_connected" description="The message will be shown when the DNS is connected">Terhubung dengan RethinkDNS dan Firewall</string>
-    <string name="dns_explanation_dns_connected">Terhubung dengan Re-RethinkDNS</string>
-    <string name="dns_explanation_firewall_connected">Terhubung dengan Firewall</string>
     <string name="new_app_bulk_notification_content">Rethink memblokir %1$s aplikasi baru. Ketuk untuk melihat atau mengubah.</string>
-    <string name="ci_dialog_desc">Izinkan (pintas/bypass) atau blokir alamat IP, subnet IP (dalam rentang tertentu), Port. Contoh: 10.10.10.10, 10.1.1.*, 10.2.2/24, ffff::/104, [::]:80, [10.1.0.0/16]:80, *.*:80</string>
     <string name="firewall_rule_block_app_desc"><![CDATA[Aturan firewall yang ditetapkan pengguna memblokir <i>aplikasi</i> ini.<br/><br/> Untuk mengubah, buka tab <i>Semua Aplikasi</i>.]]></string>
     <string name="dc_dns_leaks_desc">Saat diaktifkan, Rethink menangkap semua paket pada port 53 dan meneruskannya ke titik akhir DNS yang ditetapkan pengguna</string>
     <string name="firewall_rule_block_ip_univ_desc"><![CDATA[Aturan firewall yang ditetapkan pengguna telah memblokir <i>IP / Port tujuan</i>.<br/><br/> Untuk mengubahnya, buka tab <i>Universal</i>.]]></string>
-    <string name="dns_btm_sheet_dialog_message"><Data><![CDATA[ <h3><u><font size="8">%1$s</font></u>: %2$s daftar blokir</h3>%3$s.<br/><br/>]]></Data></string>
     <string name="dns_info_neutral">Salin</string>
     <string name="dns_proxy_desc">%1$s:%2$s, %3$s</string>
     <string name="hs_download_positive_website">Kunjungi situs web</string>
     <string name="rt_dialog_neutral">Lanjut</string>
-    <string name="cd_remove_dialog_message">Menghapus domain dari konfigurasi tersimpan.</string>
     <string name="dns_proxy_dialog_header_dns">Tambahkan Proksi DNS</string>
     <string name="rt_download">Unduh daftar-daftar blokir</string>
     <string name="lbbs_heading">Atur lebih dari 195 daftar blokir</string>
@@ -227,73 +157,45 @@
     <string name="about_github">Berkontribusi di GitHub</string>
     <string name="alert_permission_accessibility">Perijinan - Aksesibilitas</string>
     <string name="settings_http_proxy_error_text2">Port tidak sah</string>
-    <string name="firewall_card_status_active">%1$s aplikasi</string>
-    <string name="settings_socks5_dialog_hint_ip">Alamat IP</string>
     <string name="univ_firewall_rule_1">Blokir semua aplikasi saat perangkat terkunci</string>
     <string name="ada_app_exclude">Kecualikan</string>
     <string name="cd_custom_dns_proxy_name_default">Proksi</string>
     <string name="network_dns">DNS Sistem</string>
     <string name="lbbs_copy">Salin sebagai URL RDNS+</string>
-    <string name="ada_ip_connection_count">Terkoneksi dengan %1$s alamat IP</string>
     <string name="local_blocklist_download">Unduh Daftar Blokir</string>
     <string name="doh_custom_url_remove_dialog_title">Hapus titik-akhir DoH\?</string>
     <string name="orbot_none">Tidak ada (bawaan)</string>
-    <string name="settings_theme_desc">Tema gelap/terang</string>
     <string name="dns_crypt_relay_remove_success">Jembatan Penghubung (Relay) DNSCrypt telah terhapus.</string>
     <string name="cd_dns_proxy_error_text_1">Alamat IP tidak valid</string>
     <string name="cd_dns_crypt_relay_heading">Jembatan Penghubung</string>
-    <string name="univ_firewall_rule_7">Blokir IPv4 melalui IPv6 (eksperimental)</string>
-    <string name="settings_socks5_dialog_hint_port">Port</string>
     <string name="rt_list_simple_btn_txt">simpel</string>
     <string name="dns_proxy_desc_no_app">%1$s:%2$s</string>
     <string name="about_docs">Baca documentasi</string>
-    <string name="rt_download_start">Mengunduh daftar-daftar blokir…</string>
-    <string name="slide_1_title">Gratis dan Sumber Terbuka</string>
     <string name="doh_custom_url_remove_dialog_message">Menghapus titik-akhir DNS melalui Https dari konfigurasi yang tersimpan.</string>
     <string name="search_custom_domains"><font size="12">Mencari nama-nama domain</font></string>
-    <string name="settings_theme_dialog_title">Tampilan</string>
     <string name="cd_dns_proxy_error_text_2">Port harus dalam rentang 1024-65535</string>
     <string name="brbs_backup_title">Cadangkan</string>
     <string name="univ_view_blocked_ip">Aturan IP &amp; Port</string>
     <string name="univ_accessibility_dialog_negative">Tolak</string>
-    <string name="dns_proxy_toast_parameter">Proksi DNS</string>
     <string name="orbot_title">Orbot dan Proksi</string>
     <string name="settings_local_blocklist_in_use">%1$s daftar blokir yang digunakan</string>
-    <string name="dc_check_update_desc">Periksa pembaruan daftar blokir setiap <i>tiga</i> hari</string>
     <string name="rt_dialog_message">Apakah Anda ingin menerapkan daftar-daftar blokir yang baru saja diatur\?</string>
     <string name="settings_allow_bypass_heading">Aktifkan visibilitas jaringan</string>
-    <string name="firewall_status_blocked">terblokir</string>
-    <string name="univ_ip_delete_toast_success">Hapus semua aturan IP.</string>
     <string name="univ_accessibility_crash_dialog_positive">Masuk ke Pengaturan</string>
     <string name="fapps_firewall_filter_bypass_universal">Dipintaskan</string>
     <string name="dns_proxy_port">Nomor Port</string>
-    <string name="socks5_proxy_toast_parameter">Proksi SOCKS5</string>
-    <string name="status_protected_with_socks5">terproteksi dengan proksi socks</string>
     <string name="brbs_backup_complete_toast">Selesai mencadangkan</string>
     <string name="default_dns_name">Bawaan RDNS</string>
-    <string name="ci_dialog_added_success">IP telah ditambahkan ke daftar</string>
     <string name="ci_dialog_error_invalid_ip">Alamat IP, subnet atau port tidak sah.</string>
     <string name="local_blocklist_download_desc">Unduh daftar blokir (sekitar 60MB) untuk menggunakan fitur ini\?</string>
     <string name="dc_local_block_desc_1">Pilih dari 195+ daftar blokir. Klik di sini untuk mengunduh atau mengatur daftar blokir.</string>
     <string name="settings_general_header">umum</string>
-    <string name="settings_dns_proxy_dialog_password">Kata sandi</string>
-    <string name="hsf_blocklist_updating_text">Mengaktifkan…</string>
-    <string name="settings_socks5_desc">Meneruskan koneksi ke titik akhir SOCKS5.</string>
     <string name="cd_dns_proxy_error_text_3">Port tidak valid</string>
     <string name="lbbs_enabled">Aktif</string>
     <string name="univ_accessibility_dialog_positive">Beri Izin</string>
-    <string name="dns_connected_no_count">Terhubung</string>
     <string name="dns_proxy_remove_dialog_message">Menghapus Proksi DNS dari konfigurasi tersimpan.</string>
-    <string name="hsf_proxy_chip_text">Proksi aktif</string>
-    <string name="orbot_http_desc">Membuat terowongan KONEKSI HTTP ke Orbot.</string>
     <string name="dns_proxy_remove_success">Proksi DNS telah dihapus.</string>
-    <string name="settings_notification_desc3">Tidak ada</string>
-    <string name="ada_app_dns_settings">Pengaturan DNS</string>
-    <string name="dns_btm_sheet_dialog_ips"><Data><![CDATA[ %1$s %2$s <br/>]]></Data></string>
-    <string name="app_info_error">Tidak dapat membuka informasi Aplikasi.</string>
     <string name="ctbs_block_other_apps">Aturan yang diterapkan ke %1$s juga akan diterapkan ke %2$s aplikasi lainnya</string>
-    <string name="settings_notification_desc">Tombol tindakan untuk ditampilkan dengan pemberitahuan Rethink: %1$s</string>
-    <string name="cd_toast_added">Domain berhasil ditambahkan</string>
     <string name="settings_network_all_networks">Gunakan semua jaringan yang tersedia (eksperimental)</string>
     <string name="settings_socks_forwarding_default_desc">Meneruskan koneksi ke titik akhir SOCKS5.</string>
     <string name="settings_ip_dialog_ipv4">IPv4 (bawaan)</string>
@@ -301,65 +203,42 @@
     <string name="fapps_filter_parent_installed">Terpasang</string>
     <string name="rbl_privacy">Privasi</string>
     <string name="settings_socks5_heading">Atur Proksi SOCKS5</string>
-    <string name="status_protected_with_http_private_dns">terproteksi dengan proksi http &amp; dns pribadi</string>
     <string name="settings_socks_forwarding_desc_no_app">Meneruskan ke %1$s:%2$s</string>
-    <string name="ci_dialog_edittext_hint">Alamat IP, subnet atau port</string>
-    <string name="lbbs_redownload">Unduh ulang daftar blokir</string>
-    <string name="lbbs_download">Perbaharui daftar blokir</string>
-    <string name="search_rethinkplus_file_tag"><font size="12">Cari daftar blokir</font></string>
     <string name="about_mozilla">Rethink didukung oleh Mozilla Builders, FOSS United Foundation, dan FLOSS/fund.</string>
     <string name="apps_info_title">Aplikasi</string>
-    <string name="search_dns_logs"><font size="12">Mencari nama-nama domain atau IP</font></string>
     <string name="settings_https_disabled_error">Terhubung ke %1$s. Silahkan tutup dulu.</string>
     <string name="settings_theme_dialog_themes_2">Terang</string>
     <string name="about_app_update_check">Periksa pembaruan aplikasi</string>
-    <string name="univ_delete_firewall_dialog_title">Hapus semua aturan IP\?</string>
-    <string name="ct_ip_details">%1$s (%2$s)</string>
-    <string name="cd_no_rule_txt">Tanpa Aturan</string>
     <string name="system_dns_connection_failure">Tidak dapat menentukan server DNS saat ini</string>
     <string name="lbbs_search">Cari domain di dalam daftar blokir</string>
     <string name="notif_download_content_title">Mengunduh Daftar Blokir Lokal</string>
     <string name="slide_2_desc">Rethink adalah cara termudah untuk memantau aktivitas jaringan, melewati penyensoran jaringan, dan mem-firewall aplikasi di perangkat Anda.</string>
-    <string name="settings_dns_proxy_dialog_username">Nama pengguna</string>
     <string name="settings_ip_text_ipv46">Otomatis</string>
-    <string name="dns_btm_sheet_chip_no_answer">Tidak Ada Jawaban</string>
     <string name="hs_download_negative_default">Ingatkan saya nanti</string>
     <string name="univ_firewall_rule_10">Blokir semua kecuali aplikasi dan IP yang dipintaskan (di-bypass)</string>
     <string name="lbbs_configure">Atur</string>
     <string name="rt_edit_dialog_positive">Sunting</string>
     <string name="dns_proxy_remove_dialog_title">Hapus Proksi DNS\?</string>
     <string name="about_email">Email kami</string>
-    <string name="fapps_firewall_filter_desc"><![CDATA[Menampilkan <u>%1$s</u> %2$s aplikasi]]></string>
-    <string name="cd_dialog_title">Tambahkan aturan domain</string>
     <string name="category_name_sys_components">Komponen-komponen Sistem</string>
     <string name="firewall_rule_block_udp_ntp_desc"><![CDATA[Aturan firewall yang ditetapkan pengguna telah memblokir koneksi <i>UDP</i> ini.<br/><br/> Untuk mengubahnya, buka tab <i>Universal</i>.]]></string>
     <string name="rt_chip_check_update">Periksa pembaruan</string>
-    <string name="firewall_mode_info_explanation_new">Pantau aktivitas jaringan dan blokir aplikasi atau alamat IP apa pun.</string>
     <string name="settings_check_update_desc">Secara otomatis memeriksa pembaruan setiap minggu.</string>
     <string name="settings_ip_dialog_ipv46">Otomatis (eksperimental)</string>
-    <string name="bsct_conn_desc_allowed">diizinkan pada %1$s %2$s</string>
     <string name="univ_firewall_rule_5">Blokir lalu lintas yang melewati DNS</string>
     <string name="fapps_firewall_filter_excluded">Dikecualikan</string>
     <string name="cd_custom_dns_proxy_name">Proksi %1$s</string>
     <string name="dns_proxy_name">Nama Proksi</string>
     <string name="brbs_backup_dialog_failure_title">Gagal mencadangkan</string>
-    <string name="apps_card_ips_count">%1$s aturan IP &amp; Port</string>
     <string name="dns_connected_rethink_plus">Terhubung. %1$s daftar blokir yang digunakan</string>
-    <string name="fapps_firewall_filter_desc_category"><![CDATA[Menampilkan <u>%1$s</u> %2$s aplikasi dalam kategori: %3$s]]></string>
     <string name="alert_firewall_accessibility_regrant_explanation">Layanan aksesibilitas Rethink terhenti atau mengalami kegagalan. <i><b>Masuk ke Pengaturan dan Hentikan Paksa</b></i> dan mulai ulang untuk menggunakan fitur<i>Blokir aplikasi apapun yang tidak digunakan</i>.
 \n
 \nRethink menggunakan layanan aksesibilitas untuk mengawasi aplikasi yang sedang digunakan (latar depan) dan aplikasi yang tidak digunakan (latar belakang).</string>
     <string name="firewall_act_universal_tab">universal</string>
-    <string name="cd_dialog_error_invalid_domain">URL atau nama domain tidak valid</string>
-    <string name="settings_socks5_dialog_hint_username">Nama pengguna (tidak wajib)</string>
     <string name="settings_theme_dialog_themes_3">Gelap</string>
     <string name="lbl_proceed">Lanjutkan</string>
     <string name="bypass_universal">memintas (bypass) aturan secara universal</string>
     <string name="dns_crypt_relay_remove_dialog_title">Hapus Jembatan Penghubung (Relay) DNSCrypt\?</string>
-    <string name="univ_ip_delete_individual_toast">%1$s telah dihapus.</string>
-    <string name="univ_delete_firewall_dialog_message">Menghapus aturan ini akan memungkinkan aplikasi apa pun untuk terhubung ke IP yang saat ini diblokir ini.</string>
-    <string name="dns_proxy_app">Aplikasi</string>
-    <string name="fapps_filter_filter_heading">Tipe</string>
     <string name="firewall_rule_block_app_exception">Kesalahan</string>
     <string name="ada_app_status_allow">diperbolehkan</string>
     <string name="notif_download_success_content">Berhasil terunduh.</string>
@@ -367,18 +246,11 @@
     <string name="brbs_backup_dialog_failure_positive">Cadangkan Ulang</string>
     <string name="blocklist_update_check_not_required">Daftar-daftar blokir sudah dalam versi terbaru.</string>
     <string name="notif_download_content_text">Sedang mengunduh…</string>
-    <string name="settings_dns_proxy_dialog_port_number">Nomor Port</string>
     <string name="brbs_backup_dialog_positive">Cadangkan</string>
-    <string name="settings_dns_proxy_dialog_positive_btn">atur</string>
     <string name="settings_ip_text_ipv4">IPv4</string>
-    <string name="firewall_card_text_inactive">Aktifkan mode firewall.</string>
-    <string name="univ_ip_delete_dialog_positive">Hapus semua</string>
     <string name="cd_dns_proxy_mode_external">Eksternal</string>
-    <string name="ci_no_rule_txt">Tanpa Aturan</string>
     <string name="radio_sky_btn">⛅ Langit</string>
-    <string name="dns_btm_sheet_chip">+%1$s IP Lainnya</string>
     <string name="ada_app_status_exclude">dikecualikan dari dns dan firewall</string>
-    <string name="alert_firewall_accessibility_exception">Gagal membuka Pengaturan Aksesibilitas. Coba beberapa saat lagi!</string>
     <string name="settings_check_update_heading">Periksa pembaruan aplikasi</string>
     <string name="settings_http_proxy_error_text1">Port harus dalam rentang 1024–65535</string>
     <string name="collecting_logs_progress_text">Menangkap…</string>
@@ -386,7 +258,6 @@
     <string name="univ_firewall_rule_3">Blokir aplikasi yang tidak dikenal sumbernya</string>
     <string name="univ_firewall_rule_4">Blokir UDP kecuali DNS dan NTP</string>
     <string name="dns_connected">Terhubung</string>
-    <string name="bsrf_clear_filter">Kosongkan</string>
     <string name="http_proxy_dialog_heading">Atur KONEKSI Proksi HTTP(S)</string>
     <string name="orbot_http">Proksi HTTP</string>
     <string name="settings_dns_proxy_dialog_header">Atur Proksi SOCKS5</string>
@@ -395,13 +266,11 @@
 \n
 \nNomor port: %2$s</string>
     <string name="dc_block_heading">Aturan-aturan</string>
-    <string name="settings_http_proxy_error_text4">Koneksi ke host gagal. Coba lagi.</string>
     <string name="new_app_notification_content">Rethink memblokir aplikasi yang baru dipasang, %1$s.</string>
     <string name="firewall_status_whitelisted">Aturan firewall universal dilewati (di-bypass)</string>
     <string name="vpn_profile_error">Tidak dapat membuka konfigurasi profil VPN.</string>
     <string name="settings_socks_forwarding_desc">Meneruskan ke %1$s:%2$s, %3$s</string>
     <string name="refresh_complete"><!-- use dc_refresh_toast -->Sinkronisasi ulang daftar aplikasi selesai.</string>
-    <string name="app_mode_dns_firewall">DNS dan Firewall (bawaan)</string>
     <string name="settings_socks5_vpn_disabled_error">Mulai Rethink untuk melanjutkan.</string>
     <string name="settings_http_proxy_desc">Meneruskan ke %1$s</string>
     <string name="about_connect">Kontak</string>
@@ -414,39 +283,29 @@
     <string name="firewall_rule_block_http">HTTP tidak aman</string>
     <string name="firewall_rule_block_ip">IP / Port (Aplikasi)</string>
     <string name="ada_noapp_dialog_title">Tidak ada aplikasi yang dimaksud</string>
-    <string name="ci_dialog_title">Menambah Aturan IP / Port</string>
     <string name="local_blocklist_redownload_desc">Daftar blokir di perangkat sudah dalam versi terbaru v%1$s.</string>
     <string name="accessibility_service_description">Rethink menggunakan layanan aksesibilitas untuk mendeteksi dan melakukan firewall pada aplikasi latar belakang. Rethink tidak mengumpulkan atau menjual informasi apapun.</string>
     <string name="orbot_socks5">Proksi Khusus TCP</string>
     <string name="settings_theme_dialog_themes_1">Diatur Sistem</string>
-    <string name="settings_notification_heading">Pilih notifikasi</string>
     <string name="univ_firewall_rule_8">Blokir lalu lintas di port 80 (HTTP tidak aman)</string>
     <string name="rbl_security">Keamanan</string>
     <string name="dns_proxy_ip_address">Alamat IP</string>
     <string name="network_log_app_name_unnamed">Tanpa nama (%1$s)</string>
-    <string name="status_protected_with_proxy">terproteksi dengan proksi</string>
     <string name="dc_local_block_enabled">Aktif</string>
-    <string name="settings_dns_proxy_dialog_hostname">Nama host</string>
     <string name="firewall_rule_exempt_dns_proxied">DNS Terproksi</string>
     <string name="ci_no_rule">Tanpa Aturan</string>
     <string name="ada_app_status_block">diblokir</string>
     <string name="ada_app_status_unknown">tidak diketahui</string>
-    <string name="ada_ip_connection_count_zero">0 alamat IP</string>
     <string name="ctbs_app_other_apps">%1$s + %2$s aplikasi lainnya</string>
     <string name="dc_local_block_heading">Daftar blokir di perangkat</string>
     <string name="custom_url_error_invalid_url">URL tidak valid</string>
-    <string name="dc_custom_block_heading">Aturan Domain</string>
-    <string name="cd_remove_dialog_title">Hapus domain\?</string>
     <string name="settings_ip_dialog_ipv6">IPv6 (eksperimental)</string>
     <string name="settings_selected_ip_desc">%1$s</string>
-    <string name="dns_card_latency_inactive">Aktifkan mode DNS.</string>
     <string name="ctbs_dialog_negative_btn">Kembali</string>
     <string name="fapps_filter_parent_system">Sistem</string>
     <string name="rules_load_failure_heading">Catatan</string>
     <string name="orbot_bs_status_2">Proksi HTTP telah diatur.</string>
-    <string name="status_protected_with_proxy_private_dns">terproteksi dengan proksi &amp; dns pribadi</string>
     <string name="fapps_filter_clear_btn">Kosongkan</string>
-    <string name="dc_rethink_dns">DNS Rethink</string>
     <string name="brbs_backup_dialog_failure_message">Tidak dapat mencadangkan. Coba lagi\?</string>
     <string name="rt_re_download">Unduh ulang daftar-daftar blokir</string>
     <string name="download_update_dialog_message_success">Daftar blokir berhasil terunduh.</string>
@@ -455,14 +314,10 @@
 \nRethink tidak mengumpulkan data apa pun dan tidak memata-matai Anda dengan cara apa pun.</string>
     <string name="doh_custom_url_remove_success">Titik-akhir telah terhapus.</string>
     <string name="settings_orbot_notification_action">Buka Orbot</string>
-    <string name="settings_socks5_dialog_hint_password">Kata sandi (tidak wajib)</string>
     <string name="settings_ip_dialog_title">Pilih versi IP</string>
-    <string name="hsf_blocklist_chip_text_no_data">Aktifkan RDNS+</string>
     <string name="univ_firewall_rule_2">Blokir aplikasi apapun yang tidak digunakan</string>
     <string name="ci_block">Blokir</string>
-    <string name="ci_delete">hapus</string>
     <string name="orbot_bs_status_3">Meneruskan %1$s ke Orbot, Proksi HTTP telah diatur.</string>
-    <string name="status_protected_with_http">terproteksi dengan proksi http</string>
     <string name="settings_proxy_header">proksi</string>
     <string name="dns_proxy_dialog_message">Nama aplikasi: %1$s
 \n
@@ -470,41 +325,27 @@
 \n
 \nNomor port: %3$s</string>
     <string name="notif_download_failure_content">Gagal mengunduh. Coba lagi.</string>
-    <string name="about_bravedns_toreport_text">bantuan &amp; umpan balik</string>
-    <string name="search_firewall_network_log"><font size="12">Mencari aplikasi, IP, domain</font></string>
-    <string name="settings_ptrans_desc">Menerjemahkan lalu lintas yang keluar dari IPv6 menjadi lalu lintas IPv4. Digunakan ketika perangkat hanya tersambung ke jaringan IPv4.</string>
     <string name="settings_theme_heading">Tampilan</string>
     <string name="settings_ip_text_ipv6">IPv6</string>
-    <string name="firewall_status_allow">diizinkan</string>
     <string name="bsct_block_ip">Blokir, percayakan <u>IP ini</u> untuk <u>aplikasi ini</u></string>
-    <string name="bsct_conn_desc_blocked">diblokir di %1$s %2$s</string>
     <string name="dns_crypt_relay_remove_dialog_message">Menghapus jembatan penghubung (relay) dari konfigurasi yang tersimpan.</string>
-    <string name="orbot_socks5_desc">Meruskan semua koneksi TCP ke Orbot.</string>
     <string name="univ_view_blocked_ip_desc">Ubah aturan IP / Port, Domain yang diblokir atau dipercaya.</string>
     <string name="orbot_both">Proksi TCP + HTTP</string>
     <string name="lbbs_update_check">Periksa pembaruan</string>
-    <string name="bsct_conn_block_desc">%1$s telah terblokir %2$s</string>
     <string name="info_dialog_rethink_toast_msg">Disalin sebagai URL RDNS+ DNS-melalui-HTTPS</string>
-    <string name="configure_dns_connected_dns_proxy_status">Proksi DNS</string>
     <string name="dns_query_latency">%1$s mili-detik</string>
     <string name="settings_orbot_disabled_error">Matikan proksi HTTP(S) dan/atau proksi SOCKS5 untuk melanjutkan penyetelan Tor-sebagai-proksi.</string>
-    <string name="dns_btm_latency_ms">%1$sdetik</string>
     <string name="orbot_install_dialog_message">Orbot membawa fitur-fitur dan fungsionalitas Tor ke Android.</string>
     <string name="notif_channel_desc_vpn_notification">Informasikan ketika Rethink sedang aktif dan bekerja di latar belakang</string>
     <string name="settings_orbot_notification_content">Gagal menjalankan Tor-sebagai-Proksi. Buka aplikasi Orbot untuk menjalankannya secara manual.</string>
     <string name="ada_noapp_dialog_message">Informasi aplikasi tidak ada. Mungkin, aplikasi sudah di hapus \'uninstall\' \?</string>
-    <string name="ci_no_rules_text">Tidak ada aturan IP atau Port.</string>
     <string name="bsac_title_desc">Aturan hanya berlaku untuk aplikasi ini.</string>
-    <string name="dns_crypt_relay_error_toast">Tidak ada server penyelesai yang dipilih</string>
     <string name="ada_app_status_whitelist">akan mengabaikan (Bypass) aturan firewall universal</string>
     <string name="settings_http_proxy_error_text3">Nama host tidak terisi</string>
     <string name="notif_dialog_pause_dialog_negative">Singkirkan</string>
     <string name="ada_app_status_block_wifi">Diblokir pada jaringan yang tidak terukur (WiFi)</string>
-    <string name="notif_dialog_pause_dialog_title">Aplikasi Dijeda!</string>
     <string name="about_dialog_positive_button">Ayo Jalankan</string>
     <string name="fapps_metered_unblock_dialog_title">Izinkan koneksi pada jaringan yang terukur</string>
-    <string name="settings_notification_desc1">Jeda/Berhenti (bawaan)</string>
-    <string name="dns_btm_resolved_crypt">diselesaikan <u>secara anonim</u> %1$s oleh %2$s melalui %3$s</string>
     <string name="cd_doh_dialog_heading">Tambahkan DNS melalui HTTPS</string>
     <string name="cd_dns_crypt_relay_name">DNS Penghubung %1$s</string>
     <string name="dns_crypt_url_remove_dialog_message">Menghapus penyelesai (resolver) DNSCrypt dari konfigurasi yang tersimpan.</string>
@@ -512,41 +353,29 @@
     <string name="univ_firewall_rule_9">Blokir jaringan terukur (data selular)</string>
     <string name="hsf_pause_vpn_failure">Tidak dapat menjeda: Memikirkan kembali tidak aktif</string>
     <string name="pause_mode_notification_title">Dijeda! Aplikasi yang diblokir akan tetap di-firewall.</string>
-    <string name="dns_btm_record_type">Jenis permintaan: %1$s</string>
     <string name="dns_crypt_url_remove_success">penyelesai (resolver) DNSCrypt telah terhapus.</string>
     <string name="firewall_status_isolate">diisolasi</string>
     <string name="fapps_metered_block_dialog_title">Blokir jaringan yang terukur</string>
     <string name="ada_app_status_block_md">Diblokir pada jaringan yang terukur (Data Seluler)</string>
     <string name="cd_dns_crypt_dialog_heading">Tambahkan Penyelesai (Resolver) atau Jembatan-Penghubung (Relay) DNSCrypt</string>
-    <string name="ada_network_log_title">log jaringan untuk aplikasi ini</string>
     <string name="cd_doh_dialog_resolver_name">Nama Server Penyelesai</string>
     <string name="rt_chip_update_available">Pembaruan tersedia</string>
     <string name="ada_app_unmetered">Tidak Terukur</string>
     <string name="firewall_rule_block_unmetered">Tidak Terukur (WiFi)</string>
-    <string name="firewall_status_block_metered">Diblokir pada jaringan yang terukur (Data Seluler)</string>
     <string name="firewall_rule_trusted_ip">IP Tepercaya</string>
     <string name="brbs_backup_dialog_title">Buat cadangan</string>
     <string name="cd_dns_crypt_title">server penyelesai</string>
     <string name="firewall_rule_univ_block_metered">Terukur (Universal)</string>
     <string name="fapps_unmetered_block_dialog_title">Blokir jaringan yang tidak terukur</string>
     <string name="firewall_rule_block_metered">Terukur (Data Selular)</string>
-    <string name="settings_notification_dialog_option_1">\nJeda / Hentikan (bawaan):\nMenampilkan dua tombol, untuk menjeda dan menghentikan Rethink dengan cepat.</string>
-    <string name="hsf_proxy_chip_removed_toast">Proksi dihapus</string>
     <string name="firewall_rule_global_lockdown">Penguncian penuh</string>
-    <string name="cd_dns_crypt_dialog_title">Tambahkan Penyelesai (Resolver) atau Jembatan-Penghubung (Relay) DNSCrypt</string>
-    <string name="ada_firewall_status"><![CDATA[Aplikasi ini <b><i>%1$s</i></b>.]]></string>
     <string name="dns_crypt_connection_failure">Gagal terhubung ke server DNSCrypt.</string>
-    <string name="configure_dns_crypt">DNSCrypt: %1$s penyelesai</string>
     <string name="ada_app_metered">Terukur</string>
     <string name="settings_custom_downloader_heading">Gunakan pengunduh bawaan aplikasi</string>
-    <string name="bsdl_blocked_desc">%1$s telah terblokir %2$s</string>
     <string name="notification_action_stop_vpn">HENTIKAN</string>
-    <string name="firewall_status_block_unmetered">Diblokir pada jaringan yang tidak terukur (WiFi)</string>
     <string name="pause_text">terjeda</string>
     <string name="error_loading_log_file">Gagal memuat berkas catatan</string>
-    <string name="dns_btm_resolved_doh">%1$s diselesaikan oleh %2$s</string>
     <string name="cd_doh_dialog_resolver_url">URL Server Penyelesai</string>
-    <string name="dns_log_dialog_positive">Hapus log</string>
     <string name="dns_crypt_custom_url_remove_dialog_title">Hapus penyelesai (resolver) DNSCrypt\?</string>
     <string name="fapps_unmetered_unblock_dialog_title">Izinkan yang tidak terukur</string>
     <string name="notification_action_pause_vpn">JEDA</string>
@@ -554,17 +383,12 @@
     <string name="dc_doh">Dns melalui HTTPS</string>
     <string name="brbs_backup_desc">Cadangkan setelan aplikasi, riwayat jaringan dan DNS</string>
     <string name="firewall_rule_block_app_univ_mobile_desc"><![CDATA[Aturan firewall universal yang ditetapkan pengguna telah memblokir <i>app</i> ini saat mencoba terhubung ke jaringan <i>Metered</i> (Mobile).<br/><br/> Untuk mengubahnya, buka tab <i>Universal</i>.]]></string>
-    <string name="hsf_exclude_error">Tidak dapat dikecualikan dalam mode penguncian penuh VPN</string>
     <string name="firewall_rule_block_app_mobile_desc"><![CDATA[Aturan firewall yang ditetapkan pengguna telah memblokir <i>aplikasi</i> ini saat mencoba terhubung ke jaringan <i>Metered</i>.<br/><br/> Untuk mengubahnya, buka tab <i>Semua Aplikasi</i>.]]></string>
-    <string name="slide_1_desc">Rethink adalah perangkat lunak sumber terbuka yang didukung oleh program Mozilla Builders MVP, FOSS United Foundation.</string>
-    <string name="bsct_block">Blokir, pintaskan, kecualikan, isolasi <u>aplikasi ini</u></string>
     <string name="fapps_info_dialog_message">Blokir aplikasi agar tidak terhubung ke internet. Membatasi akses ke internet membantu menghindari penggunaan data yang tidak perlu dan juga membantu menghemat baterai.</string>
     <string name="firewall_rule_block_app_unmetered_desc"><![CDATA[Aturan firewall yang ditetapkan pengguna memblokir <i>aplikasi</i> ini saat mencoba terhubung pada jaringan <i>Tidak Terukur</i>.<br/><br/> Untuk mengubahnya, buka tab <i>Semua Aplikasi</i>.]]></string>
-    <string name="pause_title_desc">sedang rehat…</string>
     <string name="whats_new_version_update">&lt;b&gt;Jangan Panik 2&lt;/b&gt;&lt;br/&gt;&lt;br/&gt; 1. Baru: Tangkap kesalahan mesin jaringan dalam laporan bug pengguna.&lt;br/&gt; 2. Baru: gunakan DNS Sistem untuk nama domain yang tidak didelegasikan jika cegah kebocoran DNS aktif.&lt;br/&gt; 3. Peningkatan: Dual-stack (IPv4 + IPv6) konektifitas WireGuard.&lt;br/&gt; 4. Peningkatan: Hindari pemblokiran elemen UI saat mesin jaringan tidak responsif.&lt;br/&gt; 5. Perbaikan: Batas waktu koneksi habis dengan pemfilteran DNS tingkat lanjut aktif.&lt;br/&gt; 6. Perbaikan: Titik akhir peer WireGuard dengan nama domain hang saat perubahan jaringan.&lt;br/&gt;&lt;br/&gt; &lt;a href=https://svc.rethinkdns.com/r/translate&gt;Bantu terjemahkan aplikasi ini&lt;/a&gt;</string>
     <string name="brbs_restore_dialog_failure_positive">Ulangi Pemulihan</string>
     <string name="brbs_restore_complete_toast">Pemulihan selesai, memulai ulang aplikasi…</string>
-    <string name="settings_import_export_heading">Pencadangan &amp; Pemulihan</string>
     <string name="brbs_restore_dialog_message">Memulihkan pengaturan aplikasi, riwayat jaringan dan DNS dari berkas cadangan. Ini akan memulai ulang aplikasi.</string>
     <string name="brbs_restore_desc">Pulihkan dari file cadangan</string>
     <string name="brbs_backup_dialog_message">Mencadangkan pengaturan, riwayat jaringan dan dns ke sebuah berkas. Ini akan memulai ulang VPN.</string>
@@ -574,13 +398,8 @@
     <string name="brbs_restore_title">Pemulihan</string>
     <string name="notif_channel_proxy_failure">Peringatan Proksi</string>
     <string name="brbs_title">Pencadangan &amp; pemulihan</string>
-    <string name="firewall_card_text_active">%1$s diblokir
-\n%2$s dipintaskan
-\n%3$s dikecualikan
-\n%4$s diisolasi</string>
     <string name="firewall_rule_bypass_universal_ip">IP yang dipintaskan/di-bypass</string>
     <string name="local_blocklist_redownload">Terbaru!</string>
-    <string name="contributors_dialog_title">Pengarang</string>
     <string name="settings_import_export_desc">Mencadangkan atau memulihkan data dan pengaturan aplikasi secara manual.</string>
     <string name="brbs_restore_dialog_positive">Pulihkan</string>
     <string name="brbs_restore_dialog_title">Pulihkan cadangan</string>
@@ -594,31 +413,14 @@
     <string name="universal_firewall_explanation">Terapkan aturan firewall berdasarkan aktivitas perangkat, seperti pemblokiran saat perangkat terkunci atau aplikasi tertentu yang tidak digunakan.</string>
     <string name="notification_action_resume_vpn">LANJUTKAN</string>
     <string name="always_on_dialog_lockdown_stop_message">Rethink menjalankan VPN pada mode <i>Penguncian penuh</i>. Menghentikannya akan mengakibatkan hilangnya konektivitas Internet pada profil pengguna ini. Apakah anda masih ingin melanjutkan\?</string>
-    <string name="bsct_conn_rule_explanation"><u>#1</u>: Memblokir aplikasi agar tidak terhubung ke Internet. \n <u>#2</u>: Memblokir aplikasi apa pun agar tidak terhubung ke IP tertentu. \n <u>#3</u>: Memblokir semua sambungan ketika perangkat terkunci (Universal Firewall). \n <u>#4</u>: Memblokir aplikasi apa pun yang tidak digunakan (Universal Firewall). \n <u>#5</u>: Memblokir sambungan ketika sumber aplikasi tidak diketahui (Universal Firewall). \n <u>#6</u>: Memblokir semua lalu lintas UDP kecuali DNS (Universal Firewall). \n <u>#7</u>: Memblokir sambungan ketika DNS dilewati (Universal Firewall).</string>
-    <string name="dns_query_clear_logs_message">Ini menghapus log DNS di perangkat. Operasi ini tidak dapat dibatalkan. Apakah anda ingin melanjutkan\?</string>
-    <string name="about_app_translate">Terjemahkan</string>
-    <string name="cd_custom_dns_proxy_title">Proksi DNS Khusus</string>
-    <string name="cd_dns_crypt_error_text_1">Cap tidak boleh kosong</string>
     <string name="cd_dns_crypt_dialog_stamp">Cap</string>
     <string name="univ_firewall_rule_6">Blokir aplikasi yang baru saja diinstal secara default</string>
-    <string name="orbot_toast_parameter">Tor-sebagai-proksi</string>
-    <string name="notif_dialog_pause_dialog_message">Aplikasi dalam keadaan jeda, lanjut untuk meneruskan</string>
-    <string name="ci_bypass_universal_initial">BU</string>
     <string name="ada_ip_no_connection">Tidak ada log jaringan untuk kategori ini.</string>
-    <string name="about_translate_link">https://svc.rethinkdns.com/r/translate</string>
     <string name="about_privacy_policy_link">https://www.rethinkdns.com/privacy</string>
-    <string name="cd_toast_deleted">Domain yang dihapus dari daftar khusus</string>
     <string name="rbl_security_desc" description="The text appears as blocklists description in configure screen">Memblokir malware, ransomware, cryptoware, phisher, dan ancaman lainnya.</string>
     <string name="rbl_parental_control_desc" description="The text appears as blocklists description in configure screen">Blokir konten dewasa &amp; pembajakan, perjudian &amp; kencan online, dan media sosial.</string>
-    <string name="cd_no_rule_initial">N</string>
     <string name="download_update_dialog_title">Pembaruan Baru!</string>
-    <string name="relative_time_today">Hari ini</string>
-    <string name="relative_time_yesterday">Kemarin</string>
-    <string name="settings_app_notification_a13_heading">Pemberitahuan Aplikasi</string>
-    <string name="settings_app_notification_a13_desc">Mengaktifkan izin pemberitahuan untuk aplikasi</string>
-    <string name="settings_notification_dialog_option_3">\nTidak ada:\nTidak menampilkan tombol.\n</string>
     <string name="about_privacy_policy">Baca kebijakan privasi</string>
-    <string name="log_file_not_available">Tidak ditemukan laporan kecelakaan</string>
     <string name="cd_dns_crypt_resolver_heading">Server penyelesai</string>
     <string name="update_complete_action_snack">MULAI ULANG</string>
     <string name="dns_proxy_connection_failure">Gagal terhubung ke server Proksi DNS.</string>
@@ -639,17 +441,14 @@
     <string name="dns_info_positive">Oke</string>
     <string name="rethink_max_desc">50+ lokasi; lebih privat; penyelesai rekursif yang berjalan pada server fly.io</string>
     <string name="settings_dns_proxy_dialog_app">Aplikasi</string>
-    <string name="about_app_contributors">Para pengembang</string>
     <string name="download_update_dialog_failure_message">Entah server kami sedang down atau koneksi tidak dapat dibuat. Silakan coba lagi setelah beberapa saat.</string>
     <string name="settings_lock_down_mode_desc">Opsi tertentu dinonaktifkan saat VPN dalam mode kuncian. <u>Lihat setelan VPN</u>.</string>
     <string name="orbot_bs_status_4">Menyetel Tor-sebagai-Proksi (Orbot) sekali klik.</string>
-    <string name="settings_http_proxy_dialog_title">URL Server Khusus</string>
     <string name="settings_network_all_networks_desc">Bila diaktifkan, Rethink menggunakan semua jaringan yang tersedia untuk terhubung ke Internet. Jika tidak, aplikasi RethinkDNS akan menggunakan jaringan mana pun yang dianggap <i>aktif</i> oleh Android.</string>
     <string name="hsf_vpn_dialog_message">Rethink memerlukan izin untuk menyiapkan VPN lokal guna mengenkripsi permintaan DNS perangkat, mengimplementasikan monitor jaringan, dan menegakkan aturan firewall.
 \n
 \nRethink tidak mengumpulkan informasi apa pun atau memata-matai Anda dengan cara apa pun.</string>
     <string name="about_mail_bugreport_subject">[Rethink]: Laporan bug</string>
-    <string name="settings_ptrans_heading">Paksa keluar IPv4</string>
     <string name="fapps_info_dialog_positive_btn">Oke</string>
     <string name="orbot_explanation">Orbot adalah aplikasi proksi gratis yang memungkinkan sambungan internet pada aplikasi menjadi tempat yang<u>lebih aman</u>. \nOrbot menggunakan<u>Tor</u> untuk mengenkripsi lalu lintas internet anda, juga membantu <u>melewati penyensoran</u>dan sebagai bentuk pertahanan diri dari berbagai macam<u>pengawasan jaringan</u> yang bisa membahayakan kebebasan pribadi dan privasi. \n<u>Proksi TCP</u>: Rethink hanya meneruskan koneksi TCP untuk aplikasi <i>yang ada</i> menuju Orbot. \n<u>Proksi HTTP</u>: Rethink<i>membangun</i> terowongan HTTP CONNECT ke Orbot dan hanya meneruskan sambungan TCP untuk aplikasi <i>yang ada</i>.</string>
     <string name="settings_autostart_bootup_heading">Mulai otomatis saat device dinyalakan (eksperimental)</string>
@@ -657,48 +456,26 @@
     <string name="settings_autostart_bootup_desc">Pada saat perangkat dihidupkan, Rethink akan memulai sendiri jika aplikasi ini sebelumnya tidak dimatikan.</string>
     <string name="rbl_parental_control" description="The text appears as part of the blocklist setup screen as categories or headlines">Kontrol Orang Tua</string>
     <string name="hsf_vpn_prepare_failure">Antara perizinan VPN menghilang, atau aplikasi lain berjalan pada mode VPN yang Selalu-Menyala.</string>
-    <string name="settings_notification_dialog_option_2">\nDNS / DNS + Firewall:\nMenampilkan dua tombol untuk beralih secara cepat antara mode DNS hemat baterai dan mode DNS + Firewall biasa.</string>
     <string name="ada_noapp_dialog_positive">Oke</string>
     <string name="settings_allow_bypass_desc">Izinkan aplikasi yang meminta untuk mengakses semua jaringan yang tersedia. Aplikasi ini dapat mem-bypass terowongan VPN Rethink sesuai permintaan. Beberapa aplikasi konferensi audio/video seperti Zoom dan Meet mungkin memerlukan ini agar berfungsi dengan baik.</string>
     <string name="settings_https_desc">Meneruskan koneksi ke titik akhir KONEKSI HTTP(S) .</string>
-    <string name="orbot_none_desc">Tidak satu pun dari yang di atas.</string>
-    <string name="show_logs_disabled_dns_message">Pencatatan permintaan DNS telah dinonaktifkan. Untuk mengaktifkan kembali, pergi ke<i>Pengaturan</i> dan nyalakan <i>Aktifkan logging di perangkat.</i></string>
-    <string name="show_logs_disabled_network_message">Pencatatan koneksi telah dinonaktifkan. Untuk mengaktifkan kembali, pergi ke<i>Pengaturan</i> dan nyalakan <i>Aktifkan logging di perangkat.</i></string>
     <string name="settings_custom_downloader_desc">Jika dinonaktifkan, <i>Pengelola Unduhan</i> bawaan Android digunakan</string>
-    <string name="settings_theme_dialog_themes_4">Hitam Pekat</string>
-    <string name="dns_card_latency_active">%1$sms</string>
-    <string name="hsf_uptime">(aktif %1$s; protokol: %2$s; tipe: %3$s)</string>
     <string name="about_bug_report">Laporkan Bug</string>
     <string name="dc_entries">%1$s entri »</string>
     <string name="intent_launch_error">Tidak dapat memulai %1$s</string>
     <string name="notification_screen_error">Tidak dapat meluncurkan tampilan Notifikasi Aplikasi.</string>
-    <string name="cd_custom_doh_dialog_title">URL Server Khusus</string>
     <string name="ada_app_isolate">Isolasi</string>
     <string name="hsf_notification_permission_failure">Aktifkan izin pemberitahuan dari Layar Pengaturan</string>
     <string name="no_browser_error">Tidak dapat membuka halaman web dari browser.</string>
-    <string name="private_dns_error">Tidak dapat meluncurkan tampilan dns pribadi.</string>
-    <string name="hs_btm_sheet_lock_down">Tidak dapat mengubah mode saat VPN dalam keadaan <i>lockdown</i>. Ketuk untuk &lt;u&gt;mengedit pengaturan VPN&lt;/u&gt;.</string>
     <string name="firewall_rule_isolate">Isolasi (Aplikasi)</string>
     <string name="about_bug_report_desc">kirim log kesalahan melalui email</string>
     <string name="about_mail_to_string">mailto:</string>
     <string name="dc_check_update_heading">Ingatkan untuk memperbarui daftar blokir</string>
     <string name="cd_custom_dns_proxy_default_app">Tidak ada</string>
-    <string name="dns_proxy_connection_failure_lockdown">Mengecualikan %1$s dalam mode terkunci penuh untuk %2$s dapat menyebabkan jaringan.</string>
     <string name="about_bug_no_log_dialog_title">Laporan bug</string>
-    <string name="about_bravedns_whoarewe">Rethink adalah proyek sumber terbuka dan gratis, dipimpin oleh mantan insinyur dari Amazon, IBM, dan Permainan Ilmiah.</string>
-    <string name="fapps_firewall_filter_hint">Menampilkan semua aplikasi</string>
     <string name="accessibility_notification_content">layanan aksesibilitas Rethink telah berhenti atau macet. Tidak lagi memblokir aplikasi latar belakang. Ketuk untuk mengaktifkan kembali.</string>
     <string name="firewall_rule_block_dns_bypass_desc"><![CDATA[Koneksi ini diblokir karena <i>source app</i> melewati DNS yang dipilih pengguna.<br/><br/> Untuk mengubah perilaku ini, buka tab Universal.]]></string>
-    <string name="cd_dialog_desc">URL khusus atau sebuah nama domain dengan opsi wildcard. Misalnya, *.test.com, test.com/test</string>
-    <string name="cd_dialog_edittext_hint">Memasukkan %1$s</string>
-    <string name="cd_dialog_error_invalid_wildcard">URL Wildcard atau nama domain tidak valid</string>
-    <string name="ci_blocked_initial">B</string>
-    <string name="ci_no_rule_initial">N</string>
-    <string name="ada_firewall_title">aturan firewall untuk aplikasi ini</string>
-    <string name="hsf_start_dialog_message">Anda selangkah lagi menuju sistem Android yang aman dan terlindungi: Melihat aktivitas jaringan secara instan, memblokir situs web, IP, dan aplikasi yang tidak diinginkan.</string>
-    <string name="about_bravedns_explantion">Rethink memiliki cara termudah untuk memantau aktivitas aplikasi, menghindari sensor internet, dan aplikasi firewall di perangkat Android Anda.</string>
     <string name="hs_download_positive_default">oke</string>
-    <string name="hs_download_positive_play_store">Pembaruan Selesai</string>
     <string name="fapps_unmetered_block_dialog_message">Blokir koneksi pada jaringan yang tidak terukur (WiFi) untuk <i>aplikasi</i> yang terdaftar\?</string>
     <string name="fapps_unmetered_unblock_dialog_message">Izinkan koneksi pada jaringan tidak terukur (WiFi) untuk <i>aplikasi</i> yang terdaftar\?</string>
     <string name="fapps_metered_block_dialog_message">Blokir koneksi jaringan terukur (data seluler) pada aplikasi <i>yang dipilih</i>\?</string>
@@ -709,116 +486,33 @@
     <string name="firewall_rule_trusted_ip_desc"><![CDATA[Koneksi ini diizinkan karena alamat<i>IP tujuan</i> telah ditetapkan sebagai alamat IP tepercaya (Trusted IP).<br/><br/> Untuk mengubah pengaturan, buka layar <i>App-specific Firewall</i>.]]></string>
     <string name="firewall_rule_bypass_universal_ip_desc"><![CDATA[Koneksi ini diizinkan karena alamat <i>IP tujuan</i> diatur untuk melewati semua aturan firewall universal.<br/><br/> Untuk mengubahnya, buka <i>Aturan IP</i> di tab <i>Universal</i>.]]></string>
     <string name="firewall_rule_device_lock_desc"><![CDATA[Koneksi ini diblokir oleh firewall karena <i>perangkat terkunci</i> pada saat itu.<br/><br/> Untuk mengubah perilaku ini, buka tab <i>Universal</i>.]]></string>
-    <string name="ci_bypass_universal">Pintaskan (Bypass) secara Universal</string>
     <string name="ada_app_bypass_univ">Pintaskan (Bypass) secara Universal</string>
     <string name="ada_delete_logs_dialog_desc" description="Appears as dialog description to clear the logs in app specific screen">Hapus semua log yang terkait dengan aplikasi ini.</string>
     <string name="lbl_advanced">lanjutan</string>
     <string name="rt_filter_desc_subgroups"><![CDATA[Menampilkan daftar blokir <u>%1$s</u> dalam grup: %2$s dan subgrup: %3$s]]></string>
-    <string name="bsrf_sub_group_heading">Subgrup</string>
     <string name="settings_dns_proxy_dialog_app_desc">Aplikasi yang dipilih akan dikecualikan dari VPN untuk memungkinkannya membuat koneksi proksi atas nama Anda.</string>
     <string name="firewall_rule_unknown_desc"><![CDATA[Koneksi ini diblokir oleh firewall karena <i>source app</i> tidak dapat ditentukan.<br/><br/> Untuk mengubah perilaku ini, buka tab <i>Universal</i>.]]></string>
     <string name="firewall_rule_block_http_desc"><![CDATA[Koneksi ini diblokir karena kemungkinan menggunakan <i>HTTP yang tidak aman</i>.<br/><br/> Untuk mengubahnya, buka tab <i>Universal</i>.]]></string>
-    <string name="ci_bypass_universal_txt">Pintas (Bypass) secara Universal</string>
     <string name="firewall_rule_block_dns_bypass">DNS Dipintaskan/Di-Bypass</string>
     <string name="firewall_rule_exempt_app_bypass_univ">Aplikasi yang Dipintaskan/Di-Bypass</string>
     <string name="firewall_rule_new_app_desc"><![CDATA[Aplikasi ini terhubung untuk <i>pertama</i> kalinya.<br/><br/> Untuk mengubah pengaturan, buka tab <i>Universal</i>.]]></string>
     <string name="about_bug_no_log_dialog_message">Tidak bisa mendapatkan log kerusakan. Apakah Anda ingin melaporkan bug Anda secara manual\?</string>
-    <string name="dns_btm_resolved_doh_no_server">telah diselesaikan %1$s</string>
     <string name="firewall_rule_foreground">Aplikasi yang tidak digunakan</string>
     <string name="firewall_rule_exempt_app_bypass_univ_desc"><![CDATA[Koneksi ini diizinkan karena <i>aplikasi sumber</i> telah diatur untuk aturan firewall <i>bypass universal</i>.<br/><br/> Untuk mengubah pengaturan, buka layar <i>Firewall Khusus Aplikasi</i>.]]></string>
     <string name="firewall_rule_global_lockdown_desc"><![CDATA[Koneksi ini diblokir karena penguncian universal telah diaktifkan.<br/><br/> Untuk mengubahnya, buka tab <i>Universal</i>.]]></string>
-    <string name="accessibility_failure_toast">Layanan aksesibilitas Rethink telah berhenti atau crash. Tidak lagi memblokir aplikasi di latar belakang.</string>
     <string name="firewall_rule_foreground_desc"><![CDATA[Koneksi ini diblokir oleh firewall karena aplikasi sumber <i>tidak berada di latar depan</i>.<br/><br/> Untuk mengubah perilaku ini, buka tab <i>Universal</i>.]]></string>
     <string name="firewall_rule_exempt_dns_proxied_desc"><![CDATA[Koneksi DNS ini telah diproksi dan diteruskan ke titik akhir DNS yang dipilih pengguna.<br/><br/> Untuk mengubah atau menonaktifkan <i>Mencegah kebocoran DNS</i> dari layar <i>Konfigurasi</i> DNS.]]></string>
     <string name="firewall_rule_exempt_orbot_setup_desc"><![CDATA[Koneksi ini diizinkan karena pengaturan <i>one-click Tor-as-a-proxy</i> melalui Orbot sedang berlangsung.]]></string>
-    <string name="cd_blocked_initial">B</string>
-    <string name="contributors_list"><![CDATA[<i>Rethink Open Source Project</i> bergantung pada para sukarelawan yang menghabiskan waktu berjam-jam untuk pengembangan proyek ini.<br/>
-                                              <br/>🛡️ Aplikasi Android <br/>
-                                              <a href="https://github.com/anthonyryan1">Anthony Ryan</a> /
-                                              <a href="https://github.com/BayLee4">BayLee4</a> /
-                                              <a href="https://github.com/Ch4t4r">Ch4t4r</a> /
-                                              <a href="https://github.com/samthesamman">CodingAttack</a> /
-                                              <a href="https://github.com/HrBDev">HrBDev</a> /
-                                              <a href="https://github.com/hussainmohd-a">hussainmohd-a</a> /
-                                              <a href="https://github.com/ignoramous">ignoramous</a> /
-                                              <a href="https://github.com/ironveil">ironveil</a> /
-                                              <a href="https://github.com/markwmuller">markwmuller</a> /
-                                              <a href="https://github.com/mohammaduvez">Mohammaduvez</a> /
-                                              <a href="https://github.com/Mygod">Mygod</a> /
-                                              <a href="https://github.com/Poussinou">Poussinou</a> /
-                                              <a href="https://github.com/pjosingh">pjosingh</a> /
-                                              <a href="https://github.com/RohitSurwase">RohitSurwase</a> /
-                                              <a href="https://github.com/ShantanuVichare">Shantanu</a> /
-                                              <a href="https://github.com/Uldiniad">Uldiniad</a><br/> /
-                                              <a href="https://github.com/yurtpage">yurtpage</a><br/>
-                                              <br/>🚂 Network engine <br/>
-                                              <a href="https://github.com/alalamav">alalamav</a> /
-                                              <a href="https://github.com/bemasc">bemasc</a> /
-                                              <a href="https://github.com/dmcardle">dmcardle</a> /
-                                              <a href="https://github.com/fortuna">fortuna</a> /
-                                              <a href="https://github.com/ignoramous">ignoramous</a> /
-                                              <a href="https://github.com/PeterDaveHello">PeterDaveHello</a> /
-                                              <a href="https://github.com/santhosh-ponnusamy">santhosh-ponnusamy</a> /
-                                              <a href="https://github.com/SeanBurford">SeanBurford</a><br/>
-                                              <br/>📚 Resolver <br/>
-                                              <a href="https://github.com/ahmed-tasaly">ahmed-tasaly</a> /
-                                              <a href="https://github.com/amithm7">amithm7</a> /
-                                              <a href="https://github.com/arfshl">arfshl</a> /
-                                              <a href="https://github.com/badmojr">badmojr</a> /
-                                              <a href="https://github.com/bongochong">bongochong</a> /
-                                              <a href="https://github.com/elliotwutingfeng">elliotwutingfeng</a> /
-                                              <a href="https://github.com/georgyo">georgyo</a> /
-                                              <a href="https://github.com/GiddyGoatGaming">GiddyGoatGaming</a> /
-                                              <a href="https://github.com/Harish-Narayan">Harish-Narayan</a> /
-                                              <a href="https://github.com/ignoramous">ignoramous</a> /
-                                              <a href="https://github.com/JakeChampion">JakeChampion</a> /
-                                              <a href="https://github.com/MasterKia">MasterKia</a> /
-                                              <a href="https://github.com/mtxadmin">mtxadmin</a> /
-                                              <a href="https://github.com/neneeen">neneeen</a> /
-                                              <a href="https://github.com/PeterDaveHello">PeterDaveHello</a> /
-                                              <a href="https://github.com/santhosh-ponnusamy">santhosh-ponnusamy</a> /
-                                              <a href="https://github.com/shruuub">shruuub</a> /
-                                              <a href="https://github.com/shuvashish76">shuvashish76</a><br/>
-                                              <br/>⚜ Komunitas mods <br/>
-                                              <a href="https://t.me/amithm7">amithm7</a> /
-                                              <a href="https://t.me/TronSlayer">Andersen</a> /
-                                              <a href="https://t.me/ppatra">ppatra</a> /
-                                               <a href="https://t.me/InFamous23">InFamous23</a> /
-                                              <a href="https://t.me/TheTr1ckst3r">TheTr1ckst3r</a> /
-                                              <a href="https://t.me/Ch4t4r">Ch4t4r</a> /
-                                              <a href="https://t.me/Billi_ance">Billi_ance</a> /
-                                              <a href="https://t.me/kaliangel">kaliangel</a> /
-                                              <a href="https://github.com/PoneyClairDeLune">PoneyClairDeLune</a><br/>
-                                              <br/>📌 Geo-IP <br/>
-                                              <a href="https://db-ip.com">db-ip.com</a> / <a href="https://ipinfo.io/lite">IPinfo Lite</a><br/>
-                                              <br/>❇ Penerjemahan <br/>
-                                              <a href="https://weblate.org/en/">Weblate</a><br/>
-                                              <br/>🦆 Icons <br/>
-                                              <a href="https://github.com/celzero/rethink-app/issues/346">Icons</a><br/>
-                                              <br/>📦 Build servers <br/>
-                                              <a href="https://jitpack.io/">JitPack</a> /
-                                              <a href="https://github.com/">GitHub</a> /
-                                              <a href="https://central.sonatype.com/">Sonatype</a><br/>
-                                              ]]></string>
     <string name="title_statistics">Statistik</string>
-    <string name="settings_biometeric_heading">Aktifkan penguncian aplikasi</string>
-    <string name="hs_biometeric_failed">Otentikasi biometrik gagal</string>
     <string name="hs_biometeric_error">Kesalahan otentikasi biometrik</string>
     <string name="hs_biometeric_title">Buka Rethink</string>
     <string name="fapps_info_unmetered_msg">Izinkan / Blokir pada jaringan yang tidak terukur (WiFi).</string>
     <string name="fapps_isolate_block_dialog_title">Mengisolasi aplikasi</string>
-    <string name="ci_trust_initial">T</string>
     <string name="ssv_most_contacted_ips_heading" description="This label will appear on the stats screen as a header for most visited ips" translatable="true">IP yang paling banyak terhubung</string>
     <string name="ssv_most_contacted_domain_heading" description="This label will appear on the stats screen as a header for most visited domains" translatable="true">Domain yang paling banyak terhubung</string>
-    <string name="settings_locale_heading">Ganti Bahasa</string>
-    <string name="settings_biometric_desc">Amankan aplikasi ini menggunakan kunci layar Anda</string>
-    <string name="settings_locale_desc">Pilih bahasa pilihan Anda</string>
     <string name="fapps_info_bypass_msg">Mengabaikan (Bypass) aturan firewall universal.</string>
     <string name="fapps_firewall_filter_isolate">Diisolasi</string>
     <string name="ada_app_status_isolate">sudah diisolasi; hanya IP terpercaya yang diizinkan</string>
-    <string name="settings_locale_dialog_title">Pilih bahasa pilihan Anda</string>
-    <string name="settings_locale_dialog_neutral">Bantu kami terjemahkan aplikasi ini</string>
-    <string name="hs_biometeric_feature_not_supported">Otentikasi biometrik tidak didukung atau dinonaktifkan pada perangkat ini</string>
     <string name="hs_biometeric_desc">Gunakan otentikasi biometrik untuk membuka kunci Rethink</string>
     <string name="fapps_info_metered_msg">Izinkan / Blokir pada jaringan terukur (Data Seluler).</string>
     <string name="fapps_bypass_block_dialog_message">Lewati (Bypass) aturan firewall universal untuk aplikasi yang <i>terdaftar</i> \?</string>
@@ -836,7 +530,6 @@
     <string name="ssv_see_more">Tampilkan Semua</string>
     <string name="fapps_exclude_block_dialog_title">Aplikasi yang dikecualikan</string>
     <string name="fapps_bypass_block_dialog_title">Lewati aplikasi</string>
-    <string name="ci_trust_txt">Dipercaya</string>
     <string name="ci_trust_rule">Dipercaya</string>
     <string name="lbl_apply" translatable="true">Terapkan</string>
     <string name="lbl_cancel" translatable="true">Batal</string>
@@ -851,35 +544,21 @@
     <string name="firewall_rule_trusted_domain" translatable="true">Domain Tepercaya (Aplikasi)</string>
     <string name="firewall_rule_trusted_domain_desc" translatable="true"><![CDATA[Koneksi ini diizinkan karena <i>domain</i> telah ditetapkan sebagai domain tepercaya.<br/><br/> Untuk mengubah pengaturan, buka layar <i>App-specific Firewall</i>.]]></string>
     <string name="cd_no_rules_text" translatable="true">Tidak ada aturan domain.</string>
-    <string name="lbl_wildcard" translatable="true">Wildcard</string>
     <string name="lbl_action_required" translatable="true">Diperlukan Tindakan</string>
     <string name="lbl_ip_rules" translatable="true">Aturan IP</string>
     <string name="lbl_domain_rules" translatable="true">Aturan Domain</string>
-    <string name="bsdl_block_desc" translatable="true">Blokir, percayai <u>domain ini</u></string>
     <string name="lbl_rules" translatable="true">Aturan</string>
     <string name="lbl_configure" translatable="true">Konfigurasikan</string>
     <string name="lbl_logs" translatable="true">catatan</string>
     <string name="bypass_dns_firewall" translatable="true">lewati (bypass) dns &amp; firewall</string>
     <string name="settings_lock_down_proxy_desc" translatable="true">Tidak dapat menyiapkan proksi ketika VPN berjalan dalam mode hanya DNS.</string>
     <string name="settings_general_customize" translatable="true">sesuaikan</string>
-    <string name="settings_pcap_dialog_option_2" translatable="true">Keluaran ke Logcat</string>
-    <string name="settings_pcap_dialog_option_3" translatable="true">Keluaran ke folder Unduhan</string>
-    <string name="settings_pcap_heading" translatable="true">Penangkapan paket</string>
-    <string name="settings_pcap_dialog_title" translatable="true">PCAP</string>
-    <string name="settings_pcap_dialog_option_1" translatable="true">Mati (bawaan)</string>
-    <string name="pcap_failure_toast" translatable="true">Gagal membuat berkas pcap, Coba lagi!</string>
     <string name="firewall_status_bypass_dns_firewall" translatable="true">melewati aturan dns &amp; firewall</string>
-    <string name="logs_card_network_count" translatable="true">%1$s koneksi</string>
-    <string name="logs_card_dns_count" translatable="true">%1$s permintaan</string>
-    <string name="hsf_packet_capture_chip_text" translatable="true">Penangkapan paket aktif</string>
     <string name="settings_default_dns_heading" translatable="true">Pilih DNS cadangan</string>
     <string name="settings_default_dns_desc" translatable="true">Dalam kasus yang jarang terjadi ketika DNS pilihan pengguna tidak dapat dipastikan, DNS fallback akan digunakan.</string>
-    <string name="firewall_card_universal_rules" translatable="true">%1$s aturan universal</string>
-    <string name="rules_card_domain_count" translatable="true">%1$s aturan domain</string>
     <string name="bsct_block_domain" translatable="true">Blokir, percayakan <u>domain</u> untuk <u>aplikasi ini</u></string>
     <string name="cd_dns_alg_heading" translatable="true">Pemfilteran DNS lanjutan (eksperimental)</string>
     <string name="cd_dns_alg_desc" translatable="true">Tetapkan IP unik di setiap permintaan DNS.</string>
-    <string name="hsf_packet_capture_chip_disabled_toast" translatable="true">Penangkapan paket dinonaktifkan</string>
     <string name="fapps_bypass_dns_firewall_dialog_title" translatable="true">Pintaskan (Bypass) Aplikasi</string>
     <string name="firewall_rule_domain_trusted_univ" translatable="true">Domain Tepercaya (Universal)</string>
     <string name="ada_app_status_bypass_dns_firewall" translatable="true">akan mengabaikan aturan dns &amp; firewall universal</string>
@@ -888,32 +567,24 @@
     <string name="dc_setting_dns_cache_heading" translatable="true">Penguat DNS</string>
     <string name="dc_setting_dns_cache_desc" translatable="true">Menggabungkan permintaan, menyimpan tembolok (cache), menanggapi kesalahan dengan tangguh</string>
     <string name="brbs_backup_restore_desc" translatable="true">Tidak berfungsi di semua versi aplikasi</string>
-    <string name="ada_app_firewall" translatable="true">Firewall</string>
     <string name="firewall_rule_bypass_dns_firewall" translatable="true">Aplikasi yang Dipintaskan/Di-Bypass</string>
     <string name="firewall_rule_dns_blocked" translatable="true">DNS Diblokir</string>
     <string name="firewall_rule_domain_blocked_univ" translatable="true">Domain (Universal)</string>
     <string name="firewall_rule_dns_blocked_desc" translatable="true"><![CDATA[Koneksi ini diblokir karena <i>domain</i> diblokir oleh DNS yang dipilih pengguna.<br/><br/> Untuk mengubah perilaku ini, buka tab <i>Konfigurasi DNS</i>.]]></string>
-    <string name="lbl_maybe_blocked" translatable="true">Mungkin Diblokir</string>
     <string name="lbl_network" translatable="true">jaringan</string>
     <string name="settings_allow_lan_heading" translatable="true">Jangan merutekan IP Pribadi (eksperimental)</string>
     <string name="settings_allow_lan_desc" translatable="true">Kecualikan rute LAN, loopback, multicast, dan link-lokal dari terowongan VPN Rethink.</string>
     <string name="fapps_bypass_dns_firewall_dialog_message" translatable="true">Abaikan DNS &amp; aturan firewall untuk aplikasi <i>tercantum</i>\?</string>
-    <string name="bypass_dns_firewall_tooltip">%1$s bekerja dengan DNS Rethink saja</string>
     <string name="firewall_rule_bypass_dns_firewall_desc" translatable="true"><![CDATA[Koneksi ini diizinkan karena <i>source app</i> telah diatur untuk <i>melewati DNS dan firewall</i>.<br/><br/> Untuk mengubah pengaturan, buka layar <i>App-specific Firewall</i>.]]></string>
     <string name="firewall_rule_domain_trusted_univ_desc" translatable="true"><![CDATA[Koneksi ini diizinkan karena <i>domain</i> ditetapkan sebagai tepercaya dalam aturan domain Universal.<br/><br/> Untuk mengubah perilaku ini, buka tab <i>Konfigurasi DNS</i>.]]></string>
     <string name="firewall_rule_domain_blocked_univ_desc" translatable="true"><![CDATA[Koneksi ini diblokir karena <i>domain</i> ditetapkan sebagai diblokir dalam aturan domain Universal.<br/><br/> Untuk mengubah perilaku ini, buka tab <i>Konfigurasi DNS</i>.]]></string>
     <string name="lbl_addresses" translatable="true">Alamat</string>
     <string name="lbl_dns_servers" translatable="true">Server DNS</string>
-    <string name="lbl_applications" translatable="true">Aplikasi</string>
     <string name="lbl_delete" translatable="true">Hapus</string>
     <string name="lbl_private_key" translatable="true">Kunci Pribadi</string>
-    <string name="lbl_generated" translatable="true">(dihasilkan)</string>
-    <string name="lbl_random" translatable="true">(acak)</string>
     <string name="lbl_mtu" translatable="true">MTU</string>
     <string name="lbl_auto" translatable="true">(otomatis)</string>
-    <string name="lbl_include" translatable="true">Termasuk</string>
     <string name="lbl_select_all" translatable="true">Pilih semua</string>
-    <string name="lbl_very" translatable="true">sangat</string>
     <string name="lbl_day" translatable="true">hari</string>
     <string name="lbl_sec" translatable="true">dtk</string>
     <string name="lbl_min" translatable="true">menit</string>
@@ -924,10 +595,8 @@
     <string name="lbl_optional" translatable="true">(opsional)</string>
     <string name="lbl_allowed_ips" translatable="true">IP yang diizinkan</string>
     <string name="lbl_save" translatable="true">simpan</string>
-    <string name="status_protected_with_wg_private_dns" translatable="true">Dilindungi oleh WireGuard &amp; DNS Privat</string>
     <string name="lbl_http_socks5" translatable="true">HTTPS &amp; SOCKS5</string>
     <string name="lbl_qr_code" translatable="true">Kode QR</string>
-    <string name="lbl_import" translatable="true">Impor</string>
     <string name="lbl_wireguard" translatable="true">WireGuard</string>
     <string name="lbl_public_key" translatable="true">Kunci Publik</string>
     <string name="lbl_active" translatable="true">Aktif</string>
@@ -935,17 +604,13 @@
     <string name="lbl_socks5" translatable="true">SOCKS5</string>
     <string name="lbl_http" translatable="true">HTTP</string>
     <string name="lbl_fast" translatable="true">cepat</string>
-    <string name="status_protected_with_wg" translatable="true">Dilindungi oleh WireGuard</string>
     <string name="search_proxy_add_apps" translatable="true">Cari aplikasi berdasarkan nama</string>
     <string name="public_key_copy_toast_msg" translatable="true">Kunci publik telah disalin.</string>
     <string name="http_proxy_dialog_desc" translatable="true">Atur URL dalam format berikut, &lt;protocol&gt;://&lt;username&gt;:&lt;password&gt;@&lt;nama-domain-atau-IP&gt;:&lt;port&gt;&lt;path&gt;. Misalnya: http://proxy.example.com:8080/</string>
     <string name="lbl_slow" translatable="true">lambat</string>
     <string name="wireguard_description" translatable="true">WireGuard sebagai proxy.</string>
-    <string name="new_warp_config_desc" translatable="true">Dapatkan konfigurasi WARP dari server</string>
     <string name="bad_extension_error" translatable="true">File harus .conf atau .zip</string>
     <string name="setup_wireguard" translatable="true">Pengaturan WireGuard</string>
-    <string name="new_warp_error_toast" translatable="true">Tidak dapat memperoleh konfigurasi WARP</string>
-    <string name="new_warp_invalid_config_toast" translatable="true">Konfigurasi WARP tidak valid</string>
     <string name="add_remove_apps" translatable="true">Tambah / Hapus (aplikasi %1$s )</string>
     <string name="bad_config_explanation_pka" translatable="true">: Harus berupa bilangan bulat positif tidak melebihi 65535</string>
     <string name="cd_doh_dialog_checkbox_desc" translatable="true">Jangan memvalidasi sertifikat TLS server (dimungkinkan hanya jika Anda tahu apa yang Anda lakukan)</string>
@@ -960,18 +625,13 @@
     <string name="bad_config_reason_invalid_number" translatable="true">Nomor tidak valid</string>
     <string name="parse_error_integer" translatable="true">nomor</string>
     <string name="fapps_info_bypass_dns_firewall_msg" translatable="true">Lewati aturan DNS &amp; Firewall.</string>
-    <string name="key_length_explanation_binary" translatable="true">: Kunci WireGuard harus 32 byte</string>
-    <string name="key_length_explanation_hex" translatable="true">: Kunci hex WireGuard harus 64 karakter (32 byte)</string>
     <string name="crypt_relay_singapore" translatable="true">Penghubung DNS anonim yang dihosting di Singapura.</string>
     <string name="lbl_persistent_keepalive" translatable="true">Pertahankan tetap-hidup</string>
     <string name="wireguard_enabled_failure">Hentikan proksi aktif lainnya untuk menyalakan WireGuard</string>
     <string name="add_peer" translatable="true">Tambahkan Peer</string>
     <string name="cloudflare_family_dns_desc" translatable="true">Memblokir malware dan konten dewasa. Menggunakan titik akhir DNS Cloudflare 1.1.1.3.</string>
     <string name="crypt_quad9_security_desc" translatable="true">Quad9 (seluruh dunia) dnssec/tanpa-riwayat/filter 9.9.9.9 – 149.112.112.9 – 149.112.112.112</string>
-    <string name="cd_deleted_toast" translatable="true">Hapus semua aturan domain</string>
-    <string name="settings_go_log_desc" translatable="true">Untuk tujuan debugging</string>
     <string name="cleanbrowsing_family_dns_desc" translatable="true">Filter keluarga memblokir akses ke semua situs dewasa, pornografi, dan situs seksual eksplisit. Ini juga akan memblokir domain proksi dan VPN yang dapat digunakan untuk melewati filter kita. Situs yang berisi konten campuran (seperti Reddit) juga diblokir. Google, Bing, dan YouTube disetel ke Mode Aman.</string>
-    <string name="logs_disclaimer" translatable="true">Menunjukkan karakter 20,000 pertama</string>
     <string name="import_error" translatable="true">Gagal mengimpor tunnel: %s</string>
     <string name="bad_config_reason_unknown_attribute" translatable="true">Atribut tidak dikenal</string>
     <string name="app_ip_domain_rules_desc" translatable="true">Modifikasi tiap IP aplikasi / Aturan domain.</string>
@@ -982,16 +642,13 @@
     <string name="bad_config_reason_missing_section" translatable="true">Bagian yang hilang</string>
     <string name="wireguard_no_config_msg">Tidak ada VPN WireGuard. Tambahkan beberapa konfigurasi untuk mulai menghubungkan.</string>
     <string name="bad_config_context" translatable="true">%1$s\'s %2$s</string>
-    <string name="settings_go_log_heading" translatable="true">Tingkat log</string>
     <string name="bad_config_explanation_udp_port" translatable="true">: Harus berupa port UDP yang valid</string>
     <string name="google_dns_desc" translatable="true">Tidak memblokir permintaan DNS apa pun. Menggunakan titik akhir DNS Google.</string>
     <string name="bad_config_reason_invalid_value" translatable="true">Nilai tidak valid</string>
     <string name="unknown_error" translatable="true">Kesalahan tidak diketahui</string>
     <string name="crypt_relay_sweden" translatable="true">Relay DNS anonim yang dihosting di Swedia disediakan oleh https://cryptostrom.is/.</string>
-    <string name="include_all_app_wg_dialog_title">Sertakan semua aplikasi</string>
     <string name="ssv_most_contacted_countries_heading" description="This label will appear on the stats screen as a header for most visited domains by country" translatable="true">Negara yang paling banyak dihubungi</string>
     <string name="cloudflare_dns_desc" translatable="true">Tidak memblokir permintaan DNS apapun. Menggunakan titik akhir DNS Cloudflare 1.1.1.1.</string>
-    <string name="ssv_most_blocked_countries_heading" description="This label will appear on the stats screen as a header for most blocked domains by country" translatable="true">Negara yang paling banyak diblokir</string>
     <string name="config_add_success_toast">Selesai</string>
     <string name="key_contents_error" translatable="true">Karakter buruk dalam kunci</string>
     <string name="crypt_relay_us" translatable="true">Relay DNS anonim yang dihosting di AS - Los Angeles, CA disediakan oleh https://cryptostrom.is/.</string>
@@ -999,8 +656,6 @@
     <string name="bad_config_reason_unknown_section" translatable="true">Bagian yang tidak diketahui</string>
     <string name="crypt_relay_netherlands" translatable="true">Relay DNS anonim yang dihosting di Belanda</string>
     <string name="invalid_file_error" translatable="true">File tidak valid</string>
-    <string name="include_all_app_wg_dialog_desc">Gunakan VPN WireGuard ini untuk semua aplikasi?</string>
-    <string name="key_length_error" translatable="true">Panjang kunci salah</string>
     <string name="config_delete_dialog_title">Hapus Konfigurasi</string>
     <string name="logs_card_duration" translatable="true">sejak %1$s</string>
     <string name="cleanbrowsing_adult_dns_desc" translatable="true">Filter dewasa memblokir akses ke semua situs dewasa, pornografi, dan situs seksual eksplisit. Itu tidak memblokir proksi atau VPN, juga tidak memblokir situs web konten campuran. Situs seperti Reddit diizinkan. Google dan Bing akan disetel ke Mode Aman.</string>
@@ -1012,8 +667,6 @@
     <string name="bad_config_error" translatable="true">%1$s dalam %2$s</string>
     <string name="lbl_create" translatable="true">Buat</string>
     <string name="parse_error_inet_endpoint" translatable="true">Titik akhir</string>
-    <string name="exclude_all_app_wg_dialog_title">Kecualikan semua aplikasi</string>
-    <string name="exclude_all_app_wg_dialog_desc">Kecualikan semua aplikasi dari WireGuard VPN ini?</string>
     <string name="no_configs_error" translatable="true">Tidak ada konfigurasi yang ditemukan</string>
     <string name="firewall_rule_proxied" translatable="true">Terproksi</string>
     <string name="crypt_adguard_family_desc" translatable="true">Adguard DNS dengan pencarian aman dan pemblokiran konten dewasa.</string>
@@ -1023,9 +676,6 @@
     <string name="wireguard_connection_error">VPN WireGuard gagal tersambung</string>
     <string name="illegal_filename_error" translatable="true">Nama berkas ilegal \"%s\"</string>
     <string name="crypt_quad9_desc" translatable="true">Quad9 (seluruh dunia) dnssec/tanpa-riwayat/tanpa–filter/ecs 9.9.9.12 – 149.112.112.12</string>
-    <string name="settings_app_notification_persistent_desc" translatable="true">Membuat notifikasi tetap</string>
-    <string name="settings_app_notification_persistent_heading" translatable="true">Pemberitahuan Terus-menerus</string>
-    <string name="lbl_cache" translatable="true">Cache</string>
     <string name="lbl_remove" translatable="true">Hapus</string>
     <string name="lbl_last" translatable="true">Terakhir</string>
     <string name="lbl_overall" translatable="true">Keseluruhan</string>
@@ -1036,74 +686,39 @@
     <string name="lbl_peer" translatable="true">Peer</string>
     <string name="failed_using_default" translatable="true">Gagal: menggunakan DNS cadangan</string>
     <string name="orbot_no_app_toast" translatable="true">Tambahkan setidaknya satu aplikasi untuk mengaktifkan Orbot</string>
-    <string name="settings_rinr_heading" translatable="true">Putar Balik (eksperimental)</string>
-    <string name="settings_rinr_desc_disabled" translatable="true">Rutekan Lalu lintas Rethink sendiri, seperti unduhan daftar blokir, pemeriksaan konektivitas, koneksi DNS, kembali ke tunnel.</string>
-    <string name="settings_rinr_dialog_title" translatable="true">Putar Balik (eksperimental)</string>
-    <string name="settings_rinr_dialog_desc" translatable="true">Ini juga akan mengaktifkan pengaturan<!--settings_network_all_networks--> %1$s. Apakah Anda ingin melanjutkan?</string>
-    <string name="cd_dialog_edit_title" translatable="true">Edit aturan domain</string>
     <string name="cd_toast_edit" translatable="true">Disunting</string>
-    <string name="settings_rinr_desc_enabled" translatable="true">Rutekan lalu lintas mandiri dari rethink melalui terowongan. Kecuali Anda tahu apa yang Anda lakukan, matikan.</string>
     <string name="dot_custom_url_remove_dialog_title" translatable="true">Hapus titik akhir DoT?</string>
     <string name="dot_custom_url_remove_dialog_message" translatable="true">Menghapus DNS melalui titik-akhir TLS dari konfigurasi yang tersimpan.</string>
     <string name="one_wg_apps_added" translatable="true">Merutekan semua aplikasi</string>
     <string name="lbl_status" translatable="true">Status</string>
     <string name="lbl_starting" translatable="true">Memulai</string>
     <string name="routing_remaining_apps" translatable="true">Rutekan aplikasi yang tersisa</string>
-    <string name="remaining_apps_dialog_title" translatable="true">Sertakan aplikasi yang tersisa</string>
-    <string name="remaining_apps_dialog_desc" translatable="true">Sertakan semua aplikasi yang tersisa yang tidak dirutekan oleh Proxy lain</string>
-    <string name="lbl_remaining_apps" translatable="true">Aplikasi yang tersisa</string>
-    <string name="one_wg_dialog_desc" translatable="true">Seluruh sambungan dari semua aplikasi, termasuk DNS, akan dirutekan dengan lajur tunggal, yaitu VPN WireGuard yang aktif. WireGuard VPN lain yang aktif, jika ada, akan dihentikan.</string>
     <string name="catch_all_wg_dialog_desc" translatable="true">Semua sambungan dan aplikasi yang tidak dirutekan oleh VPN WireGuard lain akan dirutekan oleh VPN ini.</string>
     <string name="catch_all_wg_dialog_title" translatable="true">Selalu-Menyala</string>
-    <string name="one_wg_error_toast" translatable="true">Untuk beralih ke mode Lanjutan, hentikan WireGuard dalam mode Sederhana</string>
     <string name="wireguard_disable_failure" translatable="true">\"WireGuard Selalu-Menyala\" tidak dapat dimatikan</string>
-    <string name="wg_apps_dialog_title_exclude" translatable="true">Kecualikan aplikasi %1$s</string>
     <string name="wireguard_disable_message" translatable="true">Hentikan semua VPN WireGuard yang aktif?</string>
     <string name="wireguard_disable_title" translatable="true">Hentikan WireGuard</string>
     <string name="wireguard_apps_proxy_map_desc" translatable="true">bagian %1$s</string>
-    <string name="wg_apps_dialog_title_include" translatable="true">Sertakan aplikasi %1$s</string>
     <string name="hybrid_mode_with_proxy_notification_title" translatable="true">Terlindungi! Terhubung dengan DNS + Firewall + Proksi.</string>
     <string name="dc_proxy_dns_desc" translatable="true">Jangan lakukan proksi DNS melalui Always-on WireGuard, SOCKS5, dan proksi HTTP.</string>
     <string name="toast_allow_bypass_disabled" translatable="true">%1$s dimatikan dikarenakan proksi aktif</string>
     <string name="lbl_idle" translatable="true">Siaga</string>
     <string name="lbl_split" translatable="true">Pisah</string>
-    <string name="lbl_on_device" translatable="true">pada perangkat</string>
     <string name="settings_connectivity_checks" translatable="true">Melakukan pemeriksaan konektivitas</string>
     <string name="settings_connectivity_checks_desc" translatable="true">Pemeriksaan sambungan dikirim untuk memastikan jangkauan.</string>
     <string name="dc_proxy_dns_heading" translatable="true">Jangan pernah melakukan proksi DNS</string>
-    <string name="battery_optimization_dialog_heading" translatable="true">Matikan %1$s</string>
     <string name="lbl_unselected" translatable="true">Tidak dipilih</string>
-    <string name="lbl_battery_optimization" translatable="true">Optimalisasi baterai</string>
-    <string name="restrict_dialog_message" translatable="true"><i>%1$s</i> dapat mengakibatkan hilangnya sambungan. Ubah pengaturan untuk membiarkan Rethink menggunakan data dan sumber daya lain saat berada di latar belakang.</string>
     <string name="settings_exclude_proxy_apps_heading" translatable="true">Aplikasi penerus putar-balik proksi</string>
     <string name="settings_exclude_proxy_apps_desc" translatable="true">Ketika dimatikan, kecualikan aplikasi penerus proksi (SOCKS5, HTTP, DNS) dari terowongan VPN Rethink.</string>
     <string name="exclude_apps_from_proxy">Lewati aplikasi dari semua proksi</string>
     <string name="exclude_apps_from_proxy_failure_toast">Aplikasi ini melewati proksi</string>
-    <string name="lbl_notification" translatable="true">pemberitahuan</string>
     <string name="memory_notification_text">Rethink mengalami memori rendah. Tindakan sistem mungkin terbatas.</string>
     <string name="lbl_test" translatable="true">uji coba</string>
-    <string name="lbl_protos" translatable="true">proto</string>
     <string name="lbl_experimental" translatable="true">(pengujian)</string>
     <string name="lbl_service_providers" translatable="true">Penyedia Layanan</string>
-    <string name="lbl_hop" translatable="true">Relay</string>
     <string name="lbl_manual" translatable="true">Manual</string>
-    <string name="wireguard_title" translatable="true">Amankan Internet dengan WireGuard</string>
-    <string name="wireguard_desc" translatable="true">Enkripsi lalu lintas internet Anda dengan WireGuard. Pilih rute yang berbeda untuk aplikasi yang berbeda.</string>
-    <string name="firewall_title" translatable="true">Lindungi Android Anda dengan Firewall</string>
-    <string name="firewall_desc" translatable="true">Kendalikan penggunaan internet melalui aplikasi; batasi sambungan berdasarkan aktivitas aplikasi atau jaringan.</string>
-    <string name="dns_title" translatable="true">Blokir Iklan &amp; Malware dengan DNS</string>
     <string name="dns_desc" translatable="true">Pilih dari 190+ daftar untuk memblokir iklan, pelacak, dan malware.</string>
     <string name="status_no_network" translatable="true">tidak ada jaringan</string>
-    <string name="settings_mobile_metered_heading" translatable="true">Meter jaringan seluler</string>
-    <string name="settings_mobile_metered_desc" translatable="true">Hanya anggap jaringan seluler sebagai jaringan yang dikenakan biaya, sisanya sebagai jaringan yang tidak dikenakan biaya.</string>
-    <string name="settings_theme_dialog_themes_5" translatable="true">Terang Plus</string>
-    <string name="settings_theme_dialog_themes_6" translatable="true">Gelap Plus</string>
-    <string name="settings_biometric_dialog_heading" translatable="true">Otentikasi Biometrik</string>
-    <string name="settings_biometric_dialog_option_0" translatable="true">Tidak ada</string>
-    <string name="settings_biometric_dialog_option_1" translatable="true">Segera</string>
-    <string name="settings_biometric_dialog_option_2" translatable="true">Setelah 5 menit</string>
-    <string name="settings_biometric_dialog_option_3" translatable="true">Setelah 15 menit</string>
-    <string name="sponser_dialog_usage_msg" translatable="true">Anda telah menggunakan Rethink selama <b>%1$s hari</b>, yang berarti Anda harus mengeluarkan biaya penggunaan sebesar <b>$%2$s</b>. Apakah Anda akan mempertimbangkan untuk mensponsori untuk mempertahankan pengembangannya?</string>
     <string name="dc_use_sys_dns_undelegated_heading" translatable="true">Gunakan DNS Sistem untuk domain yang tidak didelegasikan</string>
     <string name="dc_use_sys_dns_undelegated_desc" translatable="true">Gunakan DNS Sistem untuk domain yang tidak didelegasikan seperti <i>.lan</i>, <i>.internal</i>, dll.</string>
     <string name="dc_filtering_heading" translatable="true">Penyaringan</string>
@@ -1111,7 +726,6 @@
     <string name="cd_split_dns_desc" translatable="true">Meneruskan kueri DNS dari aplikasi yang diproksi ke server DNS proxy.</string>
     <string name="cd_treat_dns_rules_firewall_heading" translatable="true">Perlakukan aturan DNS sebagai aturan firewall (pengujian)</string>
     <string name="cd_treat_dns_rules_firewall_desc" translatable="true">Pemblokiran DNS akan dilewati selama resolusi; keputusan akan dibuat pada saat penyambungan.</string>
-    <string name="univ_firewall_rule_11" translatable="true">Blokir semua sambungan host lokal</string>
     <string name="firewall_rule_private_dns" translatable="true">DNS Pribadi</string>
     <string name="firewall_rule_bypass_proxy" translatable="true">Proksi Bypass</string>
     <string name="firewall_rule_paused_app" translatable="true">Aplikasi Dijeda</string>
@@ -1123,19 +737,8 @@
     <string name="wireguard_disable_failure_relay" translatable="true">\"Relay WireGuard\" tidak dapat dimatikan</string>
     <string name="config_invalid_desc" translatable="true">Konfigurasi WireGuard tidak valid</string>
     <string name="console_log_title" translatable="true">Catatan Aplikasi</string>
-    <string name="console_log_desc" translatable="true">Catatan mungkin berisi informasi sensitif.</string>
-    <string name="do_not_randomize_listen_port_title" translatable="true">Jangan mengacak port listen WireGuard</string>
-    <string name="do_not_randomize_listen_port_desc" translatable="true">Pertahankan port listen tetap WireGuard (tidak ada pengacakan) dalam mode Lanjutan.</string>
-    <string name="endpoint_independent_mapping_title" translatable="true">Pemetaan Titik Akhir-Independen</string>
-    <string name="endpoint_independent_mapping_desc" translatable="true">Apabila diaktifkan, soket UDP akan mempertahankan alamat dan port yang tetap untuk semua tujuan.</string>
     <string name="anti_censorship_title" translatable="true">Anti-sensor</string>
     <string name="anti_censorship_desc" translatable="true">Pilih dari berbagai teknik Anti-sensor.</string>
-    <string name="tcp_keep_alive_title" translatable="true">TCP yang lebih pendek tetap hidup</string>
-    <string name="tcp_keep_alive_desc" translatable="true">Tutup soket TCP tanpa aktivitas terbaru dengan cepat.</string>
-    <string name="ac_title" translatable="true">anti-sensor</string>
-    <string name="conn_track_clear_rule_logs_message" translatable="true">Tindakan ini hanya akan menghapus log jaringan untuk aturan firewall yang sedang dilihat. Operasi ini tidak dapat dibatalkan. Apakah Anda ingin melanjutkan?</string>
-    <string name="univ_delete_domain_dialog_message" translatable="true">Menghapus aturan ini akan memungkinkan aplikasi apa pun untuk terhubung ke Domain yang saat ini diblokir.</string>
-    <string name="ac_desc" translatable="true">Anti-sensor dapat memberikan kebebasan internet, tetapi mungkin tidak berfungsi di semua tempat. Hanya berlaku pada koneksi tanpa proxy.</string>
     <string name="ac_split_tcp" translatable="true">TCP</string>
     <string name="ac_retry_options_desc" translatable="true">Mengatur cara kerja percobaan ulang untuk koneksi yang disensor.</string>
     <string name="ac_retry_options_never_desc" translatable="true">Jika gagal, jangan ulangi teknik anti-sensor.</string>
@@ -1144,26 +747,15 @@
     <string name="ac_retry_options_after_split_desc" translatable="true">Selalu terapkan teknik anti-sensor.</string>
     <string name="ac_toast_retry_disabled" translatable="true">Pilih opsi anti-sensor untuk memilih strategi.</string>
     <string name="exclude_no_package_err_toast" translatable="true">Mengecualikan aplikasi memerlukan nama paket.</string>
-    <string name="mode_change_error_proxy_enabled" translatable="true">Tidak dapat mengubah mode saat proxy sedang digunakan. Ketuk untuk <u>mengedit pengaturan proxy</u>.</string>
     <string name="blocklist_not_available_toast" translatable="true">Untuk memperbarui daftar blokir, unduh versi aplikasi terbaru.</string>
-    <string name="adv_set_dial_timeout_desc" translatable="true">Tutup soket TCP dan UDP yang tidak aktif setelah durasi ini.</string>
     <string name="about_terms_of_service" translatable="true">Ketentuan Layanan</string>
     <string name="bypasses_network_restrictions" translatable="true">Pemeriksaan jangkauan melewati semua batasan jaringan. Dalam mode <i>Otomatis</i>, Rethink secara acak menggunakan IP dan nama host yang terhubung sebelumnya.</string>
     <string name="most_contacted_asn" translatable="true">Penyedia yang paling banyak dihubungi</string>
-    <string name="adv_tasker_dialog_msg" translatable="true">Masukkan nama paket (dipisahkan koma) yang diizinkan untuk memulai atau menghentikan Rethink.</string>
-    <string name="adv_tasker_dialog_instructions" translatable="true">Instruksi:\nTambahan yang diperlukan dalam siaran:\n• Kunci: pengirim\n• Nilai: Nama paket aplikasi pemanggil\n\nContoh: kunci:pengirim nilai:com.termux\n\nTindakan yang didukung:\n• Mulai VPN – com.bernaferrari.bravedns.intent.action.VPN_START\n• Hentikan VPN – com.bernaferrari.bravedns.intent.action.VPN_STOP</string>
-    <string name="adv_tasker_dialog_edit_hint" translatable="true">Masukkan nama paket (contoh: net.dinglisch.android.taskerm)</string>
     <string name="download_ip_info_desc" translatable="true">Mengambil detail penyedia layanan untuk situs web dari <i>rethinkdns.com</i>, didukung oleh <i>%1$s</i></string>
-    <string name="adv_taster_title" translatable="true">Otomatisasi</string>
-    <string name="adv_taster_desc" translatable="true">Konfigurasikan aplikasi yang dapat memulai atau menghentikan Rethink.</string>
-    <string name="load_more" translatable="true">Muat semua</string>
     <string name="close_conns_dialog_desc" translatable="true">Tutup semua koneksi untuk %1$s?</string>
     <string name="local_blocklist_delete_desc" translatable="true">Hapus daftar blokir pada perangkat?</string>
     <string name="fail_open_network_desc" translatable="true">Ketika diaktifkan, Rethink akan menghentikan semua data saat tidak ada konektivitas yang tersedia, seperti pada <i>Mode Pesawat</i>.</string>
-    <string name="close_all" translatable="true">Tutup semua</string>
     <string name="smart_dns" translatable="true">DNS Pintar</string>
-    <string name="processing_dialog_title" translatable="true">Memproses</string>
-    <string name="processing_dialog_desc" translatable="true">Harap tunggu sementara kami memproses permintaan Anda.</string>
     <string name="smart_dns_desc" translatable="true"><i>Smart DNS</i> secara acak menggunakan salah satu di antara resolver DNS berikut:</string>
     <string name="vpn_policy_auto_desc" translatable="true">Bereaksi terhadap perubahan jaringan dan konektivitas yang penting.</string>
     <string name="vpn_policy_sensitive" translatable="true">Sensitif</string>
@@ -1173,8 +765,6 @@
     <string name="title_database_dump" translatable="true">Basis data</string>
     <string name="copied_clipboard" translatable="true">Disalin</string>
     <string name="lbl_fallback" translatable="true">Cadangan</string>
-    <string name="conn_track_clear_rule_logs_title" translatable="true">Hapus log untuk aturan ini?</string>
-    <string name="univ_delete_domain_dialog_title" translatable="true">Hapus semua Aturan Domain?</string>
     <string name="use_fallback_dns_to_bypass_desc" translatable="true">Bila diaktifkan, selalu menggunakan DNS cadangan untuk aplikasi, domain, dan IP yang dilewati.</string>
     <string name="ac_never_split_desc" translatable="true">Jangan mengubah paket.</string>
     <string name="ac_split_auto_desc" translatable="true">Ubah paket seperlunya.</string>
@@ -1189,25 +779,19 @@
     <string name="hop_error_toast_msg_2" translatable="true">Tidak ada WireGuard yang tersedia untuk relay; silakan tambahkan lebih banyak.</string>
     <string name="hop_error_toast_msg_3" translatable="true">Nonaktifkan mode Mobile saja atau SSID untuk menggunakan Relays</string>
     <string name="lbl_ultra_secure" translatable="true">sangat aman</string>
-    <string name="adv_set_dial_timeout_title" translatable="true">Waktu habis saat menganggur</string>
-    <string name="no_stats_available" translatable="true">Tidak ada statistik</string>
     <string name="wg_setting_use_on_mobile" translatable="true">Hanya seluler</string>
     <string name="wg_setting_use_on_mobile_desc" translatable="true">Gunakan VPN WireGuard ini melalui data seluler.</string>
     <string name="hop_add_remove_title" translatable="true">Tambahkan / Hapus Relay</string>
     <string name="most_blocked_asn" translatable="true">Penyedia yang paling banyak diblokir</string>
     <string name="download_ip_info_title" translatable="true">Tampilkan informasi penyedia</string>
     <string name="top_active_conns" translatable="true">Koneksi aktif teratas</string>
-    <string name="wg_mobile_only_hop_err" translatable="true">Mode khusus seluler tidak didukung untuk Relay</string>
-    <string name="hop_error_toast_msg_1" translatable="true">Tidak bisa relay, sudah %1$s</string>
     <string name="hop_failure_toast" translatable="true">Kesalahan relay: %1$s -&gt; %2$s</string>
     <string name="close_conns_dialog_title" translatable="true">Tutup Koneksi</string>
     <string name="fail_open_network_title" translatable="true">Terhenti saat jaringan hilang</string>
     <string name="about_license" translatable="true">Dilindungi lisensi Apache-2.0</string>
-    <string name="lbl_default" translatable="true">Default</string>
     <string name="lbl_action" translatable="true">Tindakan</string>
     <string name="lbl_connect" translatable="true">Hubungkan</string>
     <string name="lbl_criteria" translatable="true">Kriteria</string>
-    <string name="settings_theme_dialog_themes_7" translatable="true">Salju</string>
     <string name="firewall_rule_proxy_error" translatable="true">Kesalahan Proxy</string>
     <string name="firewall_rule_proxy_error_desc" translatable="true"><![CDATA[Koneksi ini diblokir karena proxy yang dipilih untuk aplikasi tidak dipilih.<br/><br/> Untuk mengubahnya, pergi ke <i>Proxy</i> dari layar <i>Konfigurasi</i>.]]></string>
     <string name="vpn_policy_fixed" translatable="true">Konservatif</string>
@@ -1216,28 +800,19 @@
     <string name="wg_setting_ssid_desc" translatable="true">Aktifkan VPN WireGuard ini hanya saat terhubung ke Wi-Fi atau identifikasi Wi-Fi yang ditentukan (%1$s).</string>
     <string name="ssid_permission_explanation" translatable="true">Rethink memerlukan izin lokasi untuk mengakses identifikasi Wi-Fi (%1$s).</string>
     <string name="location_enable_explanation" translatable="true">Untuk mengakses identifikasi Wi-Fi (%1$s), aktifkan Layanan Lokasi.</string>
-    <string name="ssid_location_error" translatable="true">Aktifkan Layanan Lokasi</string>
-    <string name="ssid_permission_error_action" translatable="true">Berikan izin</string>
-    <string name="ssid_location_error_action" translatable="true">Aktifkan lokasi</string>
-    <string name="wg_ssid_and_mobile_err" translatable="true">Tidak dapat menggunakan keduanya, %1$s dan %2$s</string>
     <string name="wg_ssid_dialog_description" translatable="true">%1$s VPN WireGuard ini saat <i>aktif</i> Identifikasi Wi-Fi (%2$s) %3$s.</string>
-    <string name="wg_ssid_input_hint" translatable="true">Masukkan identifikasi Wi-Fi (%1$s)</string>
     <string name="wg_ssid_type_exact" translatable="true">Tepat</string>
     <string name="wg_ssid_type_wildcard" translatable="true">Sebagian</string>
     <string name="wg_ssid_invalid_error" translatable="true">Identifier Wi-Fi (%1$s) harus terdiri dari 32 karakter atau kurang.</string>
-    <string name="wg_ssid_delete_confirmation" translatable="true">Hapus %1$s?</string>
     <string name="settings_firebase_error_reporting_heading" translatable="true">Program Stabilitas</string>
     <string name="settings_firebase_error_reporting_desc" translatable="true">Catat log kesalahan untuk membantu meningkatkan stabilitas.</string>
     <string name="tombstone_app_title" translatable="true">Ingat aplikasi yang telah dihapus</string>
     <string name="tombstone_app_desc" translatable="true">Saat diaktifkan, simpan aturan aplikasi selama 7 hari.</string>
-    <string name="settings_locale_dialog_default" translatable="true">Default sistem</string>
     <string name="settings_allow_incoming_wg_packets" translatable="true">WireGuard P2P</string>
     <string name="settings_allow_incoming_wg_packets_desc" translatable="true">Saat diaktifkan, izinkan koneksi masuk yang diinisialisasi oleh mitra WireGuard.</string>
     <string name="lockdown_download_message" translatable="true"><i>&gt;Manajer Unduhan</i> bawaan Android mungkin gagal karena VPN berada dalam mode <i>Lockdown</i>. Apakah Anda ingin mengaktifkan pengunduh Rethink sebagai gantinya?</string>
     <string name="lockdown_download_enable_inapp" translatable="true">Aktifkan Pengunduh</string>
     <string name="settings_jumbo_packets" translatable="true">Peningkat bandwidth</string>
     <string name="settings_jumbo_packets_desc" translatable="true">Menggunakan <i>paket jumbo</i> dalam terowongan VPN Rethink.</string>
-    <string name="settings_tunnel_metered" translatable="true">Selalu diukur</string>
-    <string name="settings_tunnel_metered_desc" translatable="true">Atur tunnel VPN Mark Rethink sebagai tunnel bermeteran untuk menginstruksikan aplikasi agar menggunakan data lebih sedikit. Perhatian: Hal ini dapat menyebabkan aplikasi menghentikan sementara unggahan dan unduhan besar, seperti cadangan data.</string>
     <string name="stability_program_toast" translatable="true">Daftar ke <i>program stabilitas</i> untuk <i>fitur eksperimental</i>.</string>
 </resources>

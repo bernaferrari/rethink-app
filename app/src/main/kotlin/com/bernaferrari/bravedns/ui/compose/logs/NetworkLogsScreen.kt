@@ -61,7 +61,6 @@ import com.bernaferrari.bravedns.database.DnsLogRepository
 import com.bernaferrari.bravedns.database.LogAppCount
 import com.bernaferrari.bravedns.service.FirewallRuleset
 import com.bernaferrari.bravedns.service.PersistentState
-import com.bernaferrari.bravedns.ui.compose.theme.Dimensions
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.ui.compose.rememberDrawablePainter
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
@@ -226,7 +225,7 @@ private fun ConnectionLogsContent(
                 RethinkToolbarRow {
                     RethinkLogFilterRow(
                         selected = parentFilter.toRethinkLogFilter(),
-                        strings = logFilterStrings(),
+                        strings = logListStrings(),
                         onSelected = { filterType ->
                             parentFilter = filterType.toConnectionFilter()
                             childFilters = emptySet()
@@ -399,7 +398,7 @@ private fun DnsLogsContent(
             RethinkToolbarRow {
                 RethinkLogFilterRow(
                     selected = filterType.toRethinkLogFilter(),
-                    strings = logFilterStrings(),
+                    strings = logListStrings(),
                     onSelected = { selectedFilter ->
                         filterType = selectedFilter.toDnsLogFilter()
                     },
@@ -482,32 +481,22 @@ private fun <T : Any> LogsPagedListContent(
     RethinkPagedLogList(
         itemCount = itemCount,
         state = listContentState,
-        strings = logPagingStrings(),
+        strings = logListStrings(),
         listState = listState,
         modifier = modifier,
-        bottomPadding = Dimensions.screenPaddingHorizontal + navBarBottomInset,
+        bottomPadding = SharedDimensions.screenPaddingHorizontal + navBarBottomInset,
     ) { index, total ->
         val item = items[index] ?: return@RethinkPagedLogList
         rowContent(item, index, total)
     }
 }
 
+/** The one log-list string set: filter chips and paging states, shared by every log screen. */
 @Composable
-private fun logFilterStrings() = RethinkLogListStrings(
+internal fun logListStrings() = RethinkLogListStrings(
     all = stringResource(R.string.lbl_all),
     allowed = stringResource(R.string.lbl_allowed),
     blocked = stringResource(R.string.lbl_blocked),
-    loading = "",
-    empty = "",
-    error = "",
-    retry = "",
-)
-
-@Composable
-private fun logPagingStrings() = RethinkLogListStrings(
-    all = "",
-    allowed = "",
-    blocked = "",
     loading = stringResource(R.string.lbl_loading),
     empty = stringResource(R.string.lbl_no_logs),
     error = stringResource(R.string.error_loading_log_file),

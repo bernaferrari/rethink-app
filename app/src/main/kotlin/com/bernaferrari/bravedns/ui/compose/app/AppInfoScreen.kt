@@ -93,7 +93,7 @@ import com.bernaferrari.bravedns.ui.compose.apps.DiagonalWipeIcon
 import com.bernaferrari.bravedns.ui.compose.rememberDrawablePainter
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.CompactEmptyState
-import com.bernaferrari.bravedns.ui.compose.theme.Dimensions
+import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
@@ -420,14 +420,11 @@ fun AppInfoScreen(
         ),
         strings = RethinkAppInfoStrings(
             unavailable = stringResource(R.string.ada_noapp_dialog_message),
-            back = stringResource(R.string.ada_noapp_dialog_positive),
             status = stringResource(R.string.lbl_status),
             temporaryAllow = stringResource(R.string.temp_allow_label),
             firewall = stringResource(R.string.lbl_firewall),
             wifi = stringResource(R.string.ada_app_unmetered),
-            wifiDescription = stringResource(R.string.firewall_status_block_unmetered),
             mobile = stringResource(R.string.lbl_mobile_data),
-            mobileDescription = stringResource(R.string.firewall_status_block_metered),
             allowed = stringResource(R.string.lbl_allowed),
             blocked = stringResource(R.string.lbl_blocked),
             isolate = stringResource(R.string.ada_app_isolate),
@@ -492,7 +489,7 @@ fun AppInfoScreen(
         titleLeading = {
             val iconPainter = rememberDrawablePainter(appIcon ?: Utilities.getDefaultIcon(context))
             iconPainter?.let { painter ->
-                Image(painter, null, Modifier.size(Dimensions.iconSizeXl).clip(RoundedCornerShape(Dimensions.cornerRadiusMd)))
+                Image(painter, null, Modifier.size(SharedDimensions.iconSizeXl).clip(RoundedCornerShape(SharedDimensions.cornerRadiusMd)))
             }
         },
     )

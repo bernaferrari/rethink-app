@@ -9,9 +9,14 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkCheckboxListItem
+import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.ui.Alignment
 import com.bernaferrari.bravedns.ui.compose.theme.SectionHeaderWithSubtitle
 
 data class RethinkBlocklistGroup(
@@ -46,6 +51,8 @@ data class RethinkBlocklistFileTag(
 data class RethinkBlocklistRowStrings(
     val blocklistCount: (Int) -> String,
     val entries: (Int) -> String,
+    /** Content description of the trailing "open source list" action. */
+    val openSource: String,
 )
 
 /** Target-neutral simple pack row, including group chrome and selection behavior. */
@@ -60,13 +67,14 @@ fun RethinkBlocklistPackRow(
 ) {
     Column(modifier.fillMaxWidth()) {
         if (showGroupHeader) RethinkBlocklistGroupHeader(pack.group)
-        RethinkListItem(
+        RethinkCheckboxListItem(
             headline = pack.name.replaceFirstChar(Char::titlecase),
+            checked = pack.selected,
+            onCheckedChange = onToggle,
             supporting = strings.blocklistCount(pack.blocklistCount),
             position = position,
-            defaultContainerColor = blocklistRowContainer(pack.selected),
-            selection = RethinkListSelection(checked = pack.selected, role = Role.Checkbox, onCheckedChange = onToggle),
-            trailing = { Checkbox(pack.selected, onCheckedChange = null) },
+            highlighted = pack.selected,
+            highlightContainerColor = MaterialTheme.colorScheme.secondaryContainer,
         )
     }
 }
@@ -90,9 +98,20 @@ fun RethinkBlocklistFileTagRow(
             headline = tag.name,
             supporting = "$subgroup · $entries",
             position = position,
-            defaultContainerColor = blocklistRowContainer(tag.selected),
+            highlighted = tag.selected,
+            highlightContainerColor = MaterialTheme.colorScheme.secondaryContainer,
             selection = RethinkListSelection(checked = tag.selected, role = Role.Checkbox, onCheckedChange = onToggle),
-            trailing = { Checkbox(tag.selected, onCheckedChange = null) },
+            trailing = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    val url = tag.url
+                    if (!url.isNullOrBlank()) {
+                        IconButton(onClick = { onOpenUrl(url) }) {
+                            Icon(MaterialSymbols.Filled.Public, contentDescription = strings.openSource)
+                        }
+                    }
+                    Checkbox(tag.selected, onCheckedChange = null)
+                }
+            },
         )
     }
 }
@@ -101,11 +120,6 @@ fun RethinkBlocklistFileTagRow(
 private fun RethinkBlocklistGroupHeader(group: RethinkBlocklistGroup) {
     SectionHeaderWithSubtitle(title = group.title, subtitle = group.description.takeIf { it.isNotBlank() })
 }
-
-/** Selection reads through container tone inside the grouped list, never through a border. */
-@Composable
-private fun blocklistRowContainer(selected: Boolean): Color =
-    if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerLow
 
 /** Grouped-list position of row [index] in a feed whose rows are grouped by [groupIdAt]. */
 fun rethinkBlocklistPosition(index: Int, count: Int, groupIdAt: (Int) -> String?): CardPosition {

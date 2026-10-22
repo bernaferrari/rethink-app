@@ -64,8 +64,8 @@ import com.bernaferrari.bravedns.ui.compose.apps.AppListScreen
 import com.bernaferrari.bravedns.ui.compose.firewall.CustomRulesScreen
 import com.bernaferrari.bravedns.ui.compose.home.WelcomeScreen
 import com.bernaferrari.bravedns.ui.compose.home.HomeScreenUiState
-import com.bernaferrari.bravedns.ui.compose.firewall.RulesMode
-import com.bernaferrari.bravedns.ui.compose.firewall.RulesTab
+import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRulesMode
+import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRulesTab
 import com.bernaferrari.bravedns.ui.compose.wireguard.WgConfigDetailScreen
 import com.bernaferrari.bravedns.ui.compose.wireguard.WgConfigEditorScreen
 import kotlinx.serialization.Serializable
@@ -526,8 +526,8 @@ fun HomeScreenRoot(
             entry<RethinkRoute.CustomRules> { args ->
                 CustomRulesScreen(
                     uid = args.uid,
-                    initialTab = RulesTab.fromValue(args.tab),
-                    initialMode = RulesMode.fromValue(args.mode),
+                    initialTab = RethinkRulesTab.fromValue(args.tab),
+                    initialMode = RethinkRulesMode.fromValue(args.mode),
                     domainViewModel = appInfoDomainRulesViewModel,
                     ipViewModel = appInfoIpRulesViewModel,
                     eventLogger = appInfoEventLogger,

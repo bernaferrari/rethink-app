@@ -18,16 +18,12 @@ package com.bernaferrari.bravedns.util
 import android.app.ActivityManager
 import android.content.Context
 import android.os.Debug
-import java.text.DecimalFormat
-import kotlin.math.log10
-import kotlin.math.pow
 
 object MemoryUtils {
 
     // Constants for memory calculations
     private const val BYTES_TO_KB = 1024L
     private const val PERCENTAGE_MULTIPLIER = 100.0
-    private const val MEMORY_UNIT_BASE = 1024.0
 
     data class MemoryStats(
         val availMem: String, // Available memory in the system
@@ -115,33 +111,33 @@ object MemoryUtils {
         val cores = runtime.availableProcessors()
 
         return MemoryStats(
-            availMem = formatBytes(availMemBytes),
-            threshold = formatBytes(thresholdBytes),
+            availMem = formatByteCount(availMemBytes),
+            threshold = formatByteCount(thresholdBytes),
             usedMemPercent = usedMemPercent,
             thresholdPercent = thresholdPercent,
             largeMemoryClassMB = largeMemoryClassMB,
             memoryClassMB = memoryClassMB,
 
             // --- App Java Heap (Virtual Memory) ---
-            appHeapUsed = formatBytes(heapUsed),
-            appHeapAllocated = formatBytes(heapTotal),
-            appHeapMax = formatBytes(heapMax),
+            appHeapUsed = formatByteCount(heapUsed),
+            appHeapAllocated = formatByteCount(heapTotal),
+            appHeapMax = formatByteCount(heapMax),
 
-            appTotalPss = formatBytes(totalPssBytes),
-            appNativeRamUsed = formatBytes(nativePssBytes),
-            appDalvikPss = formatBytes(dalvikPssBytes),
-            appOtherPss = formatBytes(otherPssBytes),
-            appGraphicsRamUsed = formatBytes(graphicsPssBytes),
-            appCodeRamUsed = formatBytes(codePssBytes),
-            appStackRamUsed = formatBytes(stackPssBytes),
-            appUnknownRamUsed = formatBytes(unknownPssBytes),
-            appNativePrivateDirty = formatBytes(nativePrivateDirtyBytes),
-            appNativeSharedDirty = formatBytes(nativeSharedDirtyBytes),
-            appNativeSharedClean = formatBytes(nativeSharedCleanBytes),
-            appNativeHeapTotal = formatBytes(nativeHeapTotalBytes),
+            appTotalPss = formatByteCount(totalPssBytes),
+            appNativeRamUsed = formatByteCount(nativePssBytes),
+            appDalvikPss = formatByteCount(dalvikPssBytes),
+            appOtherPss = formatByteCount(otherPssBytes),
+            appGraphicsRamUsed = formatByteCount(graphicsPssBytes),
+            appCodeRamUsed = formatByteCount(codePssBytes),
+            appStackRamUsed = formatByteCount(stackPssBytes),
+            appUnknownRamUsed = formatByteCount(unknownPssBytes),
+            appNativePrivateDirty = formatByteCount(nativePrivateDirtyBytes),
+            appNativeSharedDirty = formatByteCount(nativeSharedDirtyBytes),
+            appNativeSharedClean = formatByteCount(nativeSharedCleanBytes),
+            appNativeHeapTotal = formatByteCount(nativeHeapTotalBytes),
 
-            systemTotalRam = formatBytes(systemMemInfo.totalMem),
-            systemAvailableRam = formatBytes(systemMemInfo.availMem),
+            systemTotalRam = formatByteCount(systemMemInfo.totalMem),
+            systemAvailableRam = formatByteCount(systemMemInfo.availMem),
             isLowMemory = systemMemInfo.lowMemory,
             coreCount = cores
         )
@@ -178,12 +174,5 @@ object MemoryUtils {
         sb.appendLine("   Is Low Memory: ${stats.isLowMemory}")
         sb.appendLine("   CPU Cores: ${stats.coreCount}\n")
         return sb.toString()
-    }
-
-    private fun formatBytes(bytes: Long): String {
-        if (bytes <= 0) return "0 B"
-        val units = arrayOf("B", "KB", "MB", "GB", "TB")
-        val digitGroups = kotlin.math.min((log10(bytes.toDouble()) / log10(MEMORY_UNIT_BASE)).toInt(), units.size - 1)
-        return DecimalFormat("#,##0.#").format(bytes / MEMORY_UNIT_BASE.pow(digitGroups.toDouble())) + " " + units[digitGroups]
     }
 }

@@ -8,6 +8,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.material3.Switch
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.Arrangement
@@ -24,7 +25,6 @@ import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Column
@@ -48,7 +48,6 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -139,9 +138,13 @@ fun RethinkListItem(
     supportingAnnotated: AnnotatedString? = null,
     contentOffset: Modifier = Modifier,
     leadingIcon: ImageVector? = null,
-    leadingIconPainter: Painter? = null,
-    leadingIconTint: Color = MaterialTheme.colorScheme.primary,
-    leadingIconContainerColor: Color = RethinkIconWellContainerColor,
+    /**
+     * Destructive action row (delete, reset, sign out): error-toned icon well and headline.
+     * Overrides [leadingIconTint]/[leadingIconContainerColor].
+     */
+    destructive: Boolean = false,
+    leadingIconTint: Color = if (destructive) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.primary,
+    leadingIconContainerColor: Color = if (destructive) MaterialTheme.colorScheme.errorContainer else RethinkIconWellContainerColor,
     leadingIconContainerShape: Shape = RoundedCornerShape(SharedDimensions.iconContainerRadius),
     leadingContent: (@Composable () -> Unit)? = null,
     trailing: (@Composable () -> Unit)? = null,
@@ -178,6 +181,7 @@ fun RethinkListItem(
     val shape = rethinkGroupedListShape(position)
     val alpha = if (enabled) 1f else DISABLED_CONTENT_ALPHA
     val containerColor = lerp(defaultContainerColor, highlightContainerColor, highlightAlpha)
+    val headlineColor = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
 
     val surfaceModifier = Modifier
         .fillMaxWidth()
@@ -195,9 +199,9 @@ fun RethinkListItem(
                         text = headlineAnnotated ?: AnnotatedString(headline),
                         style = MaterialTheme.typography.bodyLarge.copy(
                             fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha),
+                            color = headlineColor.copy(alpha = alpha),
                         ),
-                        color = if (headlineAnnotated != null) Color.Unspecified else MaterialTheme.colorScheme.onSurface.copy(alpha = alpha),
+                        color = if (headlineAnnotated != null) Color.Unspecified else headlineColor.copy(alpha = alpha),
                         maxLines = if (singleLineHeadline) 1 else Int.MAX_VALUE,
                         overflow = if (singleLineHeadline) TextOverflow.MiddleEllipsis else TextOverflow.Clip,
                         modifier = contentOffset,
@@ -218,22 +222,17 @@ fun RethinkListItem(
                 // Material's ListItem reserves a leading column whenever it receives a
                 // lambda, even when that lambda emits nothing. Keep it null for text-only
                 // rows so their content aligns with the card inset instead of a phantom icon.
-                leadingContent = if (leadingContent != null || leadingIcon != null || leadingIconPainter != null) {
-                    {
-                        when {
-                            leadingContent != null -> leadingContent()
-                            leadingIcon != null || leadingIconPainter != null -> {
-                                RethinkIconWell(containerColor = leadingIconContainerColor, contentColor = leadingIconTint, shape = leadingIconContainerShape) {
-                                    when {
-                                        leadingIcon != null -> androidx.compose.material3.Icon(leadingIcon, null, tint = leadingIconTint.copy(alpha = alpha), modifier = Modifier.size(SharedDimensions.iconSizeSm))
-                                        leadingIconPainter != null && leadingIconTint == Color.Unspecified -> Image(leadingIconPainter, null, modifier = Modifier.size(SharedDimensions.iconSizeSm))
-                                        leadingIconPainter != null -> androidx.compose.material3.Icon(leadingIconPainter, null, tint = leadingIconTint.copy(alpha = alpha), modifier = Modifier.size(SharedDimensions.iconSizeSm))
-                                    }
-                                }
+                leadingContent = when {
+                    leadingContent != null -> leadingContent
+                    leadingIcon != null -> {
+                        {
+                            RethinkIconWell(containerColor = leadingIconContainerColor, contentColor = leadingIconTint, shape = leadingIconContainerShape) {
+                                androidx.compose.material3.Icon(leadingIcon, null, tint = leadingIconTint.copy(alpha = alpha), modifier = Modifier.size(SharedDimensions.iconSizeSm))
                             }
                         }
                     }
-                } else null,
+                    else -> null
+                },
                 trailingContent = when {
                     trailing != null -> trailing
                     showTrailingChevron && onClick != null && enabled -> {
@@ -310,6 +309,81 @@ fun RethinkListItem(
         }
     }
 }
+
+/**
+ * A row whose whole surface is one switch: tapping anywhere toggles, TalkBack announces
+ * "Switch, on". The trailing [Switch] is display-only so it never becomes a second target.
+ */
+@Composable
+fun RethinkSwitchListItem(
+    headline: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+    supporting: String? = null,
+    supportingAnnotated: AnnotatedString? = null,
+    leadingIcon: ImageVector? = null,
+    leadingIconTint: Color = MaterialTheme.colorScheme.primary,
+    leadingIconContainerColor: Color = RethinkIconWellContainerColor,
+    leadingContent: (@Composable () -> Unit)? = null,
+    position: CardPosition = CardPosition.Middle,
+    enabled: Boolean = true,
+    highlighted: Boolean = false,
+    highlightContainerColor: Color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.56f),
+    singleLineHeadline: Boolean = false,
+) = RethinkListItem(
+    modifier = modifier,
+    headline = headline,
+    supporting = supporting,
+    supportingAnnotated = supportingAnnotated,
+    leadingIcon = leadingIcon,
+    leadingIconTint = leadingIconTint,
+    leadingIconContainerColor = leadingIconContainerColor,
+    leadingContent = leadingContent,
+    position = position,
+    enabled = enabled,
+    highlighted = highlighted,
+    highlightContainerColor = highlightContainerColor,
+    singleLineHeadline = singleLineHeadline,
+    selection = RethinkListSelection(checked = checked, role = Role.Switch, onCheckedChange = onCheckedChange),
+    trailing = { Switch(checked = checked, onCheckedChange = null, enabled = enabled) },
+)
+
+/** [RethinkSwitchListItem] counterpart for multi-select lists: the whole row is one checkbox. */
+@Composable
+fun RethinkCheckboxListItem(
+    headline: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+    supporting: String? = null,
+    supportingAnnotated: AnnotatedString? = null,
+    leadingIcon: ImageVector? = null,
+    leadingIconTint: Color = MaterialTheme.colorScheme.primary,
+    leadingIconContainerColor: Color = RethinkIconWellContainerColor,
+    leadingContent: (@Composable () -> Unit)? = null,
+    position: CardPosition = CardPosition.Middle,
+    enabled: Boolean = true,
+    highlighted: Boolean = false,
+    highlightContainerColor: Color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.56f),
+    singleLineHeadline: Boolean = false,
+) = RethinkListItem(
+    modifier = modifier,
+    headline = headline,
+    supporting = supporting,
+    supportingAnnotated = supportingAnnotated,
+    leadingIcon = leadingIcon,
+    leadingIconTint = leadingIconTint,
+    leadingIconContainerColor = leadingIconContainerColor,
+    leadingContent = leadingContent,
+    position = position,
+    enabled = enabled,
+    highlighted = highlighted,
+    highlightContainerColor = highlightContainerColor,
+    singleLineHeadline = singleLineHeadline,
+    selection = RethinkListSelection(checked = checked, role = Role.Checkbox, onCheckedChange = onCheckedChange),
+    trailing = { Checkbox(checked = checked, onCheckedChange = null, enabled = enabled) },
+)
 
 /**
  * Trailing control for a split row: the row itself navigates (opens details/logs) and this

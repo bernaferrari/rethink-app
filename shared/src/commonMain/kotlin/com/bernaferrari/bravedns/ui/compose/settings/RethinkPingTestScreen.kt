@@ -9,13 +9,9 @@ import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -24,15 +20,12 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
@@ -41,9 +34,11 @@ import androidx.compose.ui.text.font.FontFamily
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.ui.compose.theme.PrimaryButton
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormTextField
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusIndicator
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusLabel
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBarLazyColumnScreen
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusColors
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
@@ -95,55 +90,37 @@ fun RethinkPingTestScreen(
     modifier: Modifier = Modifier,
 ) {
     var showVpnRequiredDialog by remember(vpnActive) { mutableStateOf(!vpnActive) }
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    androidx.compose.material3.Scaffold(
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = MaterialTheme.colorScheme.surface,
-        topBar = {
-            RethinkLargeTopBar(
-                title = strings.title,
-                subtitle = strings.subtitle,
-                onBackClick = onBackClick,
-                scrollBehavior = scrollBehavior,
-            )
-        },
-    ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(paddingValues),
-            contentPadding = PaddingValues(
-                start = SharedDimensions.screenPaddingHorizontal,
-                end = SharedDimensions.screenPaddingHorizontal,
-                top = SharedDimensions.spacingMd,
-                bottom = SharedDimensions.spacing3xl,
-            ),
-            verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
-        ) {
-            item { PingCheckSection(strings.ipSection, ipChecks, strings, onValueChange) }
-            item { PingCheckSection(strings.hostSection, hostChecks, strings, onValueChange) }
+    RethinkTopBarLazyColumnScreen(
+        title = strings.title,
+        subtitle = strings.subtitle,
+        onBackClick = onBackClick,
+        modifier = modifier,
+    ) {
+        item { PingCheckSection(strings.ipSection, ipChecks, strings, onValueChange) }
+        item { PingCheckSection(strings.hostSection, hostChecks, strings, onValueChange) }
+        item {
+            PrimaryButton(text = strings.test, onClick = onTest, modifier = Modifier.fillMaxWidth())
+        }
+        strength?.let { value ->
             item {
-                PrimaryButton(text = strings.test, onClick = onTest, modifier = Modifier.fillMaxWidth())
-            }
-            strength?.let { value ->
-                item {
-                    SectionHeader(strings.strength)
-                    PingCheckCard {
-                        Column(
-                            modifier = Modifier.padding(
-                                horizontal = SharedDimensions.cardPadding,
-                                vertical = SharedDimensions.spacingLg,
-                            ),
-                            verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
-                        ) {
-                            Text(
-                                strings.strengthValue(value, maxStrength),
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                            LinearProgressIndicator(
-                                progress = { value.toFloat() / maxStrength.toFloat() },
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-                        }
+                SectionHeader(strings.strength)
+                PingCheckCard {
+                    Column(
+                        modifier = Modifier.padding(
+                            horizontal = SharedDimensions.cardPadding,
+                            vertical = SharedDimensions.spacingLg,
+                        ),
+                        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
+                    ) {
+                        Text(
+                            strings.strengthValue(value, maxStrength),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        LinearProgressIndicator(
+                            progress = { value.toFloat() / maxStrength.toFloat() },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
                     }
                 }
             }
@@ -224,17 +201,16 @@ private fun PingStatusIndicator(status: RethinkPingStatus, strings: RethinkPingT
         is RethinkPingStatus.Result -> {
             val color = if (status.success) RethinkStatusColors.allowed else RethinkStatusColors.blocked
             val label = if (status.success) strings.reachable else strings.unreachable
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
-            ) {
-                Icon(
-                    if (status.success) MaterialSymbols.Filled.CheckCircle else MaterialSymbols.Filled.Cancel,
-                    contentDescription = if (showLabel) null else label,
-                    modifier = Modifier.size(SharedDimensions.iconSizeSm),
-                    tint = color,
+            val icon = if (status.success) MaterialSymbols.Filled.CheckCircle else MaterialSymbols.Filled.Cancel
+            if (showLabel) {
+                RethinkStatusLabel(
+                    label = label,
+                    color = color,
+                    indicator = RethinkStatusIndicator.Icon(icon),
+                    style = MaterialTheme.typography.labelMedium,
                 )
-                if (showLabel) Text(label, style = MaterialTheme.typography.labelMedium, color = color)
+            } else {
+                Icon(icon, contentDescription = label, modifier = Modifier.size(SharedDimensions.iconSizeSm), tint = color)
             }
         }
     }

@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkContainedCard
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormSection
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormTextField
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceOption
@@ -70,7 +71,7 @@ fun RethinkCustomLanIpEditor(
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val manual = configuration.manual
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd)) {
-        RethinkLanEditorCard {
+        RethinkContainedCard {
             RethinkConnectedChoiceGroup(
                 options = listOf(
                     RethinkChoiceOption(false, strings.automatic),
@@ -138,21 +139,6 @@ fun RethinkCustomLanIpEditor(
         errorMessage?.takeIf { it.isNotBlank() }?.let {
             Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
         }
-    }
-}
-
-@Composable
-private fun RethinkLanEditorCard(content: @Composable () -> Unit) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        // Hosted in a surfaceContainerLow sheet: one tone up separates the cards without outlines.
-        shape = RoundedCornerShape(SharedDimensions.groupCornerRadius),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-    ) {
-        Column(
-            modifier = Modifier.padding(SharedDimensions.cardPadding),
-            verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
-        ) { content() }
     }
 }
 

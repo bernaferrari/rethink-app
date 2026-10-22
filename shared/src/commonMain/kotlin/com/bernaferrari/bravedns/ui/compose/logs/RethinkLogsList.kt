@@ -3,6 +3,10 @@
 
 package com.bernaferrari.bravedns.ui.compose.logs
 
+import androidx.compose.foundation.layout.padding
+import com.bernaferrari.bravedns.ui.compose.common.RethinkErrorState
+import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
+import com.bernaferrari.bravedns.ui.compose.common.RethinkLoadingState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -86,9 +90,9 @@ fun RethinkLogList(
         verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile),
     ) {
         when (state) {
-            RethinkLogListState.Loading -> item { RethinkLogLoadingState(strings.loading) }
-            RethinkLogListState.Empty -> item { RethinkLogEmptyState(strings.empty) }
-            is RethinkLogListState.Error -> item { RethinkLogErrorState(strings.error, strings.retry, state.onRetry) }
+            RethinkLogListState.Loading -> item { RethinkLoadingState(strings.loading, LogStateModifier, contained = true) }
+            RethinkLogListState.Empty -> item { RethinkLogEmpty(strings.empty) }
+            is RethinkLogListState.Error -> item { RethinkErrorState(strings.error, LogStateModifier, retryLabel = strings.retry, onRetry = state.onRetry, contained = true) }
             is RethinkLogListState.Content -> itemsIndexed(state.rows, key = { _, row -> row.id }) { index, row ->
                 RethinkLogRow(row, index, state.rows.size)
             }
@@ -119,12 +123,19 @@ fun RethinkPagedLogList(
         verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile),
     ) {
         when (state) {
-            RethinkPagedLogListState.Loading -> item("logs_loading") { RethinkLogLoadingState(strings.loading) }
-            RethinkPagedLogListState.Empty -> item("logs_empty") { RethinkLogEmptyState(strings.empty) }
+            RethinkPagedLogListState.Loading -> item("logs_loading") { RethinkLoadingState(strings.loading, LogStateModifier, contained = true) }
+            RethinkPagedLogListState.Empty -> item("logs_empty") { RethinkLogEmpty(strings.empty) }
             is RethinkPagedLogListState.Error -> item("logs_load_error") {
-                RethinkLogErrorState(strings.error, strings.retry, state.onRetry)
+                RethinkErrorState(strings.error, LogStateModifier, retryLabel = strings.retry, onRetry = state.onRetry, contained = true)
             }
             RethinkPagedLogListState.Content -> items(itemCount) { index -> itemContent(index, itemCount) }
         }
     }
 }
+
+/** In-list states sit one small gap below the filter row, in the grouped-list container. */
+private val LogStateModifier = Modifier.padding(top = SharedDimensions.spacingSm)
+
+@Composable
+private fun RethinkLogEmpty(label: String) =
+    RethinkEmptyState(title = label, message = "", modifier = LogStateModifier, icon = MaterialSymbols.Filled.Info, contained = true)

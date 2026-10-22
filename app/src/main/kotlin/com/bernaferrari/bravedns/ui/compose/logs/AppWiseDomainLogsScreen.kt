@@ -59,7 +59,6 @@ fun AppWiseDomainLogsScreen(
     var searchHint by remember { mutableStateOf("") }
     var appIcon by remember { mutableStateOf<Drawable?>(null) }
     var selectedCategory by remember { mutableStateOf(AppConnectionsViewModel.TimeCategory.SEVEN_DAYS) }
-    var showDeleteDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(uid) {
         if (uid == INVALID_UID) {
@@ -101,16 +100,8 @@ fun AppWiseDomainLogsScreen(
         title = appName.ifBlank { stringResource(R.string.lbl_logs) },
         onBackClick = onBackClick,
         strings = appWiseLogsStrings(),
-        onDeleteClick = { showDeleteDialog = true },
+        onDelete = { viewModel.deleteLogs(uid) },
     ) { paddingValues ->
-        if (showDeleteDialog) {
-            RethinkAppWiseLogsDeleteDialog(
-                strings = appWiseLogsStrings(),
-                onDismiss = { showDeleteDialog = false },
-                onConfirm = { viewModel.deleteLogs(uid) }
-            )
-        }
-
         RethinkAppWiseLogsContent(
             searchHint = searchHint,
             fallbackSearchHint = stringResource(R.string.search_custom_domains),

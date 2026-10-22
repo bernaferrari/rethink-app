@@ -1,10 +1,11 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.logs
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWellDefaults
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWell
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillDefaults
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -73,14 +74,13 @@ fun RethinkAppConnectionRow(
                 verticalAlignment = Alignment.Top,
             ) {
                 if (item.flag.isNotBlank()) {
-                    Surface(
-                        modifier = Modifier.size(SharedDimensions.iconSizeMd),
+                    RethinkIconWell(
+                        containerColor = RethinkIconWellDefaults.tinted(accent),
+                        contentColor = accent,
+                        size = SharedDimensions.iconSizeMd,
                         shape = CircleShape,
-                        color = accent.copy(alpha = 0.12f),
                     ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Text(item.flag, style = MaterialTheme.typography.labelMedium)
-                        }
+                        Text(item.flag, style = MaterialTheme.typography.labelMedium)
                     }
                 }
                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {

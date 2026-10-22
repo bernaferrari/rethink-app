@@ -3,6 +3,7 @@
 
 package com.bernaferrari.bravedns.ui.compose.rpn
 
+import androidx.compose.ui.unit.dp
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.foundation.layout.Box
@@ -12,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -25,7 +25,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
@@ -33,7 +32,13 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusColors
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusLabel
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusIndicator
+import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
+import com.bernaferrari.bravedns.ui.compose.common.RethinkErrorState
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
+
+private val AvailabilityRingSize = 120.dp
 
 enum class RethinkRpnAvailabilityStatus { Loading, Active, Inactive, Unavailable }
 
@@ -99,40 +104,27 @@ fun RethinkRpnAvailabilityScreen(
                     modifier = Modifier.fillMaxWidth().padding(vertical = SharedDimensions.spacingXl),
                     contentAlignment = Alignment.Center,
                 ) {
-                    CircularProgressIndicator(progress = { progress }, modifier = Modifier.size(SharedDimensions.brandMarkSize), strokeWidth = SharedDimensions.spacingSm)
+                    CircularProgressIndicator(progress = { progress }, modifier = Modifier.size(AvailabilityRingSize), strokeWidth = SharedDimensions.spacingSm)
                     Text(
                         "$activeCount/${items.size}",
                         style = MaterialTheme.typography.headlineSmall.copy(fontFeatureSettings = "tnum"),
                         fontWeight = FontWeight.SemiBold,
                     )
                 }
-                if (items.isEmpty()) {
-                    EmptyAvailabilityMessage(if (loadFailed) strings.loadFailed else strings.noSelected)
-                } else {
-                    AvailabilityList(items, strings)
+                val failedEmpty = items.isEmpty() && loadFailed
+                when {
+                    failedEmpty -> RethinkErrorState(strings.loadFailed, retryLabel = strings.retry, onRetry = onRetry, contained = true)
+                    items.isEmpty() -> RethinkEmptyState(title = strings.noSelected, message = "", contained = true)
+                    else -> AvailabilityList(items, strings)
                 }
-                TextButton(
-                    onClick = onRetry,
-                    modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = SharedDimensions.spacingSm),
-                ) { Text(strings.retry) }
+                if (!failedEmpty) {
+                    TextButton(
+                        onClick = onRetry,
+                        modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = SharedDimensions.spacingSm),
+                    ) { Text(strings.retry) }
+                }
             }
         }
-    }
-}
-
-@Composable
-private fun EmptyAvailabilityMessage(message: String) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(SharedDimensions.groupCornerRadius),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-    ) {
-        Text(
-            message,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(SharedDimensions.spacingXl),
-        )
     }
 }
 
@@ -153,13 +145,8 @@ private fun AvailabilityList(items: List<RethinkRpnAvailabilityItem>, strings: R
 private fun AvailabilityStatus(status: RethinkRpnAvailabilityStatus, strings: RethinkRpnAvailabilityStrings) {
     when (status) {
         RethinkRpnAvailabilityStatus.Loading -> LoadingIndicator(Modifier.size(SharedDimensions.iconSizeMd))
-        RethinkRpnAvailabilityStatus.Active -> AvailabilityStatusText(strings.active, RethinkStatusColors.allowed)
-        RethinkRpnAvailabilityStatus.Inactive -> AvailabilityStatusText(strings.inactive, RethinkStatusColors.blocked)
-        RethinkRpnAvailabilityStatus.Unavailable -> AvailabilityStatusText(strings.unavailable, RethinkStatusColors.idle)
+        RethinkRpnAvailabilityStatus.Active -> RethinkStatusLabel(strings.active, RethinkStatusColors.allowed, indicator = RethinkStatusIndicator.None)
+        RethinkRpnAvailabilityStatus.Inactive -> RethinkStatusLabel(strings.inactive, RethinkStatusColors.blocked, indicator = RethinkStatusIndicator.None)
+        RethinkRpnAvailabilityStatus.Unavailable -> RethinkStatusLabel(strings.unavailable, RethinkStatusColors.idle, indicator = RethinkStatusIndicator.None)
     }
-}
-
-@Composable
-private fun AvailabilityStatusText(label: String, color: Color) {
-    Text(label, color = color, style = MaterialTheme.typography.labelLarge, maxLines = 1)
 }

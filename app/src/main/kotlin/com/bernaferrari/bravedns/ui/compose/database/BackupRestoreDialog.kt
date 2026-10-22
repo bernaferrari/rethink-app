@@ -60,7 +60,7 @@ import com.bernaferrari.bravedns.backup.BackupHelper.Companion.INTENT_TYPE_OCTET
 import com.bernaferrari.bravedns.backup.BackupHelper.Companion.INTENT_TYPE_XZIP
 import com.bernaferrari.bravedns.backup.RestoreAgent
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
-import com.bernaferrari.bravedns.ui.compose.theme.Dimensions
+import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
@@ -223,7 +223,7 @@ fun BackupRestoreSheet(
                 }
             },
             onFailureDismiss = { failure = null },
-            modifier = Modifier.padding(vertical = Dimensions.spacingLg),
+            modifier = Modifier.padding(vertical = SharedDimensions.spacingLg),
         )
     }
 }

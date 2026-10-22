@@ -5,6 +5,8 @@
  */
 package com.bernaferrari.bravedns.ui.compose.about
 
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.foundation.Image
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
@@ -84,8 +86,6 @@ fun AboutScreen(
             reddit = stringResource(R.string.lbl_reddit),
             element = stringResource(R.string.lbl_matrix),
             mastodon = stringResource(R.string.lbl_mastodon),
-            settings = stringResource(R.string.about_settings),
-            generalSettings = stringResource(R.string.settings_general_header),
             appInfo = stringResource(R.string.about_settings_app_info),
             vpnProfile = stringResource(R.string.about_settings_vpn_profile),
             notifications = stringResource(R.string.about_settings_notification),
@@ -139,8 +139,10 @@ fun AboutScreen(
             element = { tint -> Icon(painterResource(R.drawable.ic_element), null, tint = tint) },
             mastodon = { tint -> Icon(painterResource(R.drawable.ic_mastodon), null, tint = tint) },
             mozillaLogo = { modifier -> Image(painterResource(R.drawable.mozilla), null, modifier = modifier, contentScale = ContentScale.FillWidth) },
-            fossLogo = { modifier -> Image(painterResource(R.drawable.foss_logo), null, modifier = modifier, contentScale = ContentScale.Fit) },
-            flossFundsLogo = { modifier -> Image(painterResource(R.drawable.ic_floss_fund_badge), null, modifier = modifier, contentScale = ContentScale.Fit) },
+            // Single-colour marks: tint with the content color so they follow the in-app theme,
+            // not the system day/night resources.
+            fossLogo = { modifier -> Image(painterResource(R.drawable.foss_logo), null, modifier = modifier, contentScale = ContentScale.Fit, colorFilter = ColorFilter.tint(LocalContentColor.current)) },
+            flossFundsLogo = { modifier -> Image(painterResource(R.drawable.ic_floss_fund_badge), null, modifier = modifier, contentScale = ContentScale.Fit, colorFilter = ColorFilter.tint(LocalContentColor.current)) },
         ),
     )
 }

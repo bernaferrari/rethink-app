@@ -1,21 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name" translatable="false">Re-Rethink</string>
-    <string name="app_name_small_case">रीथिंक</string>
     <string name="title_about">हमारे बारे में</string>
     <string name="title_settings">सेटिंग्स</string>
-    <string name="pause_title_desc">एक झपकी लेते हुए…</string>
-    <string name="settings_title_desc">एक उच्च अनुकूलनीय डीएनएस और फ़ायरवॉल</string>
-    <string name="about_title_desc">नेटवर्क सुरक्षा खतरों का पता लगाएं और उन्हें ब्लॉक करें</string>
     <string name="txt_home">घर</string>
     <string name="accessibility_service_description">रीथिंक बैकग्राउंड एप्लीकेशन का पता लगाने और फ़ायरवॉल करने के लिए एक्सेसिबिलिटी सेवा का उपयोग करता है। रीथिंक कोई भी जानकारी एकत्र या बेचता नहीं है।</string>
-    <string name="next">अगला</string>
-    <string name="skip">छोड़ें</string>
     <string name="finish">सम्पन्न</string>
-    <string name="slide_2_title">स्वागतम्</string>
     <string name="slide_2_desc">रीथिंक नेटवर्क गतिविधि की निगरानी करने, इंटरनेट सेंसरशिप को बायपास करने, और आपके एंड्रॉइड डिवाइस पर ऐप्स फ़ायरवॉल करने का सबसे आसान तरीका है।</string>
-    <string name="slide_1_title">नि: शुल्क और ओपन सोर्स</string>
-    <string name="slide_1_desc">रीथिंक एक ओपन सोर्स सॉफ्टवेयर है जो मोज़िला बिल्डर्स एमवीपी प्रोग्राम द्वारा समर्थित है।</string>
     <string name="rdns_plus">आरडीएनएस प्लस</string>
     <string name="allow">अनुमति दें</string>
     <string name="block">ब्लॉक करें</string>
@@ -30,23 +21,13 @@
     <string name="pause_mode_notification_title">रोका गया! ब्लॉक किए गए ऐप्स फ़ायरवॉल किए जाते रहेंगे।</string>
     <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">प्रतीक्षा</string>
     <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">असफल</string>
-    <string name="status_protected" description="This is a large message in a reassuring color.  It indicates that DNS queries can't be surveilled or modified in transit.">सुरक्षित</string>
-    <string name="status_app_error">ऐप त्रुटि</string>
     <string name="status_dns_error">डीएनएस त्रुटि</string>
     <string name="status_dns_server_down">डीएनएस सर्वर डाउन</string>
     <string name="status_no_internet">इंटरनेट उपलब्ध नहीं</string>
-    <string name="status_protected_with_tor">टॉर से सुरक्षित</string>
-    <string name="status_protected_with_private_dns">निजी डीएनएस के साथ सुरक्षित</string>
-    <string name="status_protected_with_tor_private_dns" translatable="true">टॉर और निजी डीएनएस के साथ सुरक्षित</string>
-    <string name="status_protected_with_proxy_private_dns" translatable="true">प्रॉक्सी और निजी डीएनएस के साथ सुरक्षित</string>
-    <string name="dns_explanation_dns_connected" translatable="true">रीथिंकडीएनएस से जुड़ा</string>
     <string name="notification_action_dns_mode" translatable="true">डीएनएस</string>
     <string name="notification_action_dns_firewall_mode" translatable="true">डीएनएस + फ़ायरवॉल</string>
     <string name="dns_mode_info_title" translatable="true">डीएनएस</string>
-    <string name="firewall_rules" translatable="true">नेटवर्क नियम</string>
     <string name="firewall_mode_info_title" translatable="true">फ़ायरवॉल</string>
-    <string name="firewall_mode_info_explanation_new" translatable="true">नेटवर्क गतिविधि की निगरानी करें और किसी भी ऐप या आईपी पते को फ़ायरवॉल करें।</string>
-    <string name="alert_firewall_accessibility_exception" translatable="true">सुलभता सेटिंग खोलने में असफलता।बाद में पुन: प्रयास करें!</string>
     <string name="always_on_dialog_positive" translatable="true">बंद करे</string>
     <string name="always_on_dialog_stop_heading" translatable="true">हमेशा-ऑन वीपीएन</string>
     <string name="always_on_dialog_neutral" translatable="true">सेटिंग्स</string>
@@ -59,44 +40,26 @@
     <string name="local_blocklist_download_desc" translatable="true">इस सुविधा का उपयोग करने के लिए ब्लॉकलिस्ट (लगभग 60 एमबी) डाउनलोड करें\?</string>
     <string name="http_proxy_dialog_heading" translatable="true">एचटीटीपी(एस) कनेक्ट प्रॉक्सी सेट करें</string>
     <string name="dns_proxy_remove_success" translatable="true">डीएनएस प्रॉक्सी हटा दिया गया।</string>
-    <string name="configure_dns_connected_dns_proxy_status" translatable="true">डीएनएस प्रॉक्सी</string>
-    <string name="configure_dns_connected_dns_crypt_status" translatable="true">डीएनएसक्रिप्ट</string>
-    <string name="configure_dns_connection_name" translatable="true">%1$s से जुड़ा</string>
-    <string name="configure_dns_crypt" translatable="true">डीएनएसक्रिप्ट: %1$s रिज़ॉल्वर</string>
     <string name="download_update_dialog_message_ok" translatable="true">आप पहले से ही नवीनतम संस्करण पर हैं।</string>
     <string name="download_update_dialog_message_success" translatable="true">ब्लॉकलिस्ट डाउनलोड सफल।</string>
     <string name="download_update_dialog_trylater_message" translatable="true">अपडेट अभी नही किया जा सकता है, कृपया बाद में पुन: प्रयास करें।</string>
-    <string name="search_firewall_network_log" translatable="true"><font size="12"> ऐप्स, आईपी, डोमेन खोजें </font></string>
-    <string name="search_dns_logs" translatable="true"><font size="12"> डोमेन नाम या आईपी खोजें </font></string>
     <string name="search_universal_ips" translatable="true"><font size="12"> आईपी खोजें </font></string>
     <string name="search_custom_domains" translatable="true"><font size="12"> डोमेन नाम खोजें </font></string>
-    <string name="search_rethinkplus_file_tag" translatable="true"><font size="12"> ब्लॉकलिस्ट खोजें </font></string>
-    <string name="app_mode_dns_low_battery" translatable="true">डीएनएस (बैटरी सेवर)</string>
-    <string name="univ_firewall_dialog_title" translatable="true">आईपी नियम हटाएं\?</string>
     <string name="title_statistics" translatable="true">आँकड़े</string>
     <string name="lbl_cancel" translatable="true">रद्द करे</string>
     <string name="notification_action_resume_vpn" translatable="true">जारी रखे</string>
-    <string name="bsct_conn_block_desc" translatable="true">%2$s द्वारा %1$s अवरुद्ध किया</string>
-    <string name="bsct_conn_desc_allowed" translatable="true">%1$s %2$s पर अनुमति है</string>
-    <string name="bsct_conn_desc_blocked" translatable="true">%1$s %2$s पर अवरुद्ध</string>
-    <string name="bsct_conn_rule_explanation" translatable="true"><u>#1</u>: किसी ऐप को इंटरनेट से जुड़ने से रोकता है। \n<u>#2</u>: किसी भी ऐप को किसी खास आईपी से जुड़ने से रोकता है। \n<u>#3</u>: डिवाइस लॉक होने पर सभी कनेक्शन ब्लॉक कर देता है (यूनिवर्सल फ़ायरवॉल)। \n<u>#4</u>: उपयोग में नहीं आने वाले किसी भी ऐप को ब्लॉक कर देता है (यूनिवर्सल फ़ायरवॉल)। \n<u>#5</u>: जब स्रोत ऐप अज्ञात हो तो कनेक्शन को ब्लॉक कर देता है (यूनिवर्सल फ़ायरवॉल)। \n<u>#6</u>: डीएनएस को छोड़कर सभी यूडीपी ट्रैफ़िक को ब्लॉक करता है (यूनिवर्सल फ़ायरवॉल)I \n<u>#7</u>: डीएनएस को बायपास करने पर कनेक्शन ब्लॉक करें (यूनिवर्सल फ़ायरवॉल)।</string>
     <string name="always_on_dialog" translatable="true">इस डिवाइस पर \"ऑलवेज-ऑन वीपीएन\" सक्षम है। रीथिंक शुरू करने के लिए, कृपया सेटिंग ऐप पर जाएं और \"ऑलवेज-ऑन वीपीएन\" को अक्षम करें।</string>
     <string name="always_on_dialog_stop_message" translatable="true">रीथिंक के लिए हमेशा ऑन-वीपीएन सक्षम है। क्या आप वाकई रीथिंक को फिर भी रोकना चाहते हैं\?</string>
     <string name="always_on_dialog_lockdown_stop_message" translatable="true">रीथिंक <i>लॉकडाउन</i> मोड में वीपीएन चला रहा है। इसे रोकने से इस उपयोगकर्ता प्रोफ़ाइल पर इंटरनेट बंद हो जाएगा। क्या आप फिर भी जारी रखना चाहते हैं\?</string>
-    <string name="dns_act_configure_tab" translatable="true">कॉन्फ़िगर</string>
     <string name="dns_proxy_remove_dialog_message" translatable="true">सहेजे गए कॉन्फ़िगरेशन से डीएनएस प्रॉक्सी हटाएं।</string>
-    <string name="show_logs_disabled_dns_message" translatable="true">डीएनएस अनुरोध लॉगिंग अक्षम कर दी गई है। पुनः सक्षम करने के लिए, <i>सेटिंग्स</i> पर जाएं और चालू करें <i>ऑन-डिवाइस लॉगिंग।</i></string>
     <string name="download_update_dialog_trylater_title" translatable="true">अभी अपडेट नहीं हो सकता</string>
     <string name="lbl_allowed" translatable="true">अनुमति प्राप्त</string>
-    <string name="status_protected_with_http_private_dns" translatable="true">एचटीटीपी प्रॉक्सी और निजी डीएनएस के साथ सुरक्षित</string>
-    <string name="status_protected_with_socks5" translatable="true">सॉक्स प्रॉक्सी के साथ सुरक्षित</string>
     <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">रीथिंक सुलभता सेवा ठप या क्रेश हो गई है। रीथिंक को <i><b>सेटिंग में जाकर फोर्स स्टॉप करे</b></i> और उसे वापस चालू करे <i>इस्तेमाल ना हो रहे किसी ऐप को ब्लॉक करें</i> फीचर का इस्तेमाल करने के लिए।
 \n
 \nरीथिंक सुलभता सेवा का इस्तेमाल करता है ये देखने के लिए की कौन सा ऐप इस्तेमाल किया जा रहा है और कौन सा नही।</string>
     <string name="lbl_apply" translatable="true">लागू करे</string>
     <string name="lbl_dismiss" translatable="true">हटाये</string>
     <string name="lbl_all" translatable="true">सभी</string>
-    <string name="lbl_wildcard" translatable="true">वाइल्डकार्ड</string>
     <string name="lbl_disabled" translatable="true">बंद</string>
     <string name="lbl_domain" translatable="true">डोमेन</string>
     <string name="lbl_action_required" translatable="true">कार्रवाई आवश्यक है</string>
@@ -104,35 +67,20 @@
     <string name="lbl_domain_rules" translatable="true">डोमेन नियम</string>
     <string name="exclude" translatable="true">निकाले</string>
     <string name="lbl_blocked" translatable="true">अवरोधित</string>
-    <string name="status_protected_with_socks5_private_dns" translatable="true">सॉक्स5 और निजी डीएनएस के साथ सुरक्षित</string>
-    <string name="status_protected_with_http" translatable="true">एचटीटीपी प्रॉक्सी के साथ सुरक्षित</string>
-    <string name="status_strict" description="This is similar to dns_on, but the protection is being provided by the operating system, not by Rethink.  It is not color-highlighted." translatable="true">निजी डीएनएस सक्षम है</string>
-    <string name="dns_explanation_firewall_connected" translatable="true">फ़ायरवॉल से जुड़ा</string>
-    <string name="dns_explanation_connected" description="The message will be shown when the DNS is connected" translatable="true">रीथिंकडीएनएस और फ़ायरवॉल से जुड़ा</string>
     <string name="universal_firewall_explanation" translatable="true">डिवाइस घटनाओं के आधार पर फायरवॉल नियम लागू करे जैसे जब, उदाहरण के लिए, डिवाइस लॉक हो या कोई विशेष ऐप उपयोग में न हो।</string>
     <string name="notification_action_pause_vpn" translatable="true">रोके</string>
     <string name="notification_action_stop_vpn" translatable="true">बंद करे</string>
     <string name="apps_info_title" translatable="true">ऍप</string>
-    <string name="hybrid_mode_info_title" translatable="true">डीएनएस + फ़ायरवॉल</string>
-    <string name="dns_mode_info_explanation_new" translatable="true">डीएनएस अनुरोधों को मॉनिटर, ब्लॉक और एन्क्रिप्ट करें।</string>
-    <string name="dns_firewall_mode_info_explanation_new" translatable="true">उपरोक्त सभी + इंटरनेट सेंसरशिप को बायपास करें।</string>
     <string name="alert_permission_accessibility" translatable="true">अनुमति - सुलभता</string>
     <string name="alert_firewall_accessibility_explanation" translatable="true">रीथिंक सुलभता सेवा का इस्तेमाल करता है ये देखने के लिए की कौन सा ऐप इस्तेमाल किया जा रहा है और कौन सा नही।
 \n
 \nरीथिंक कोई जानकारी इकट्ठा नही करता और ना आपकी जासूसी करता है।</string>
-    <string name="brave_dns_connect_mode_change_dns" translatable="true">मोड चुनें।</string>
-    <string name="brave_dns_connect_mode_change_firewall" translatable="true">मोड चुनें।</string>
     <string name="default_dns_name" translatable="true">आरडीएनएस डिफ़ॉल्ट</string>
     <string name="custom_url_error_invalid_url" translatable="true">अमान्य यूआरएल</string>
-    <string name="status_protected_with_proxy" translatable="true">प्रॉक्सी के साथ सुरक्षित</string>
     <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit." translatable="true">सुरक्षित नहीं</string>
     <string name="conn_track_clear_logs_title" translatable="true">सारा नेटवर्क लॉग मिटाए\?</string>
     <string name="conn_track_clear_logs_message" translatable="true">ये नेटवर्क लॉग मिटाता है लेकिन फ़ायरवॉल नियम नहीं। यह ऑपरेशन प्रतिवर्ती नहीं है। क्या आप आगे बढ़ना चाहते हैं\?</string>
-    <string name="dns_query_clear_logs_title" translatable="true">सारा डीएनएस लॉग मिटाएं\?</string>
-    <string name="dns_query_clear_logs_message" translatable="true">ये डिवाइस के डीएनएस लॉग मिटाता है।यह ऑपरेशन प्रतिवर्ती नहीं है। क्या आप आगे बढ़ना चाहते हैं\?</string>
     <string name="bsct_app_info" translatable="true">ऐप जानकारी</string>
-    <string name="bsct_block" translatable="true">ब्लॉक, बायपास, निकाले, अलग करे <u>इस ऐप को</u></string>
-    <string name="bsct_conn_block_desc_device" translatable="true">डिवाइस पर %1$s ब्लॉक किया गया</string>
     <string name="always_on_dialog_heading" translatable="true">हमेशा-ऑन वीपीएन अक्षम करे</string>
     <string name="always_on_dialog_positive_btn" translatable="true">सेटिंग्स में जाए</string>
     <string name="private_dns_dialog_desc" translatable="true">रीथिंक की डीएनएस सेटिंग्स एंड्रॉइड के प्राइवेट डीएनएस द्वारा ओवरराइड की गई हैं।
@@ -140,7 +88,6 @@
 \nरीथिंक के डीएनएस का उपयोग करने के लिए एंड्रॉइड सेटिंग्स पर जाएं और \"निजी डीएनएस\" को बंद करें।</string>
     <string name="private_dns_dialog_positive" translatable="true">सेटिंग्स में जाए</string>
     <string name="firewall_act_network_monitor_tab" translatable="true">नेटवर्क</string>
-    <string name="univ_firewall_dialog_message" translatable="true">इस नियम को हटाने से कोई भी ऐप इस आईपी से जुड़ सकेगा। क्या आप आगे बढ़ना चाहते हैं\?</string>
     <string name="private_dns_dialog_heading" translatable="true">निजी डीएनएस बंद करे</string>
     <string name="dns_crypt_url_remove_dialog_message" translatable="true">डीएनएसक्रिप्ट रिज़ॉल्वर को सहेजे गए कॉन्फ़िगरेशन से हटाएं।</string>
     <string name="dns_crypt_url_remove_success" translatable="true">डीएनएसक्रिप्ट रिज़ॉल्वर हटा दिया गया।</string>
@@ -153,17 +100,13 @@
     <string name="blocklist_update_check_failure" translatable="true">कुछ गलत हो गया। बाद में पुन: प्रयास करे!</string>
     <string name="blocklist_update_check_not_required" translatable="true">ब्लॉकलिस्ट पहले से ही नवीनतम संस्करण पे हैं।</string>
     <string name="refresh_complete" translatable="true"><!-- use dc_refresh_toast -->ऐप सूची पुन: समन्वयन खत्म।</string>
-    <string name="show_logs_disabled_network_message" translatable="true">कनेक्शन लॉगिंग अक्षम कर दी गई है। पुन: सक्षम करने के लिए, <i>सेटिंग्स</i> पर जाएं और चालू करें <i>ऑन-डिवाइस लॉगिंग।</i></string>
-    <string name="configure_dns_connected_doh_status" translatable="true">डीएनएस ओवर एचटीटीपीएस</string>
     <string name="download_update_dialog_title" translatable="true">नई अपडेट!</string>
     <string name="download_update_dialog_message" translatable="true">ऐप का एक नया संस्करण वेबसाइट से डाउनलोड के लिए उपलब्ध है। क्या आप आगे बढ़ना चाहते हैं\?</string>
     <string name="download_update_dialog_message_ok_title" translatable="true">आधुनिक!</string>
     <string name="download_update_dialog_failure_title" translatable="true">कुछ गलत हो गया!</string>
     <string name="download_update_dialog_failure_message" translatable="true">या तो हमारे सर्वर डाउन हैं या कनेक्शन स्थापित नहीं किया जा सका। कृपया कुछ समय बाद पुन: प्रयास करें।</string>
-    <string name="search_firewall_all_apps" translatable="true"><font size="12"> ऐप्स खोजें </font></string>
     <string name="connection_http3" translatable="true">एचटीटीपी3</string>
     <string name="orbot" translatable="true">ऑर्बोट</string>
-    <string name="orbot_http_desc" translatable="true">ऑर्बोट के लिए HTTP CONNECT सुरंग स्थापित करता है।</string>
     <string name="orbot_status_arg_3" translatable="true">डीएनएस और टीसीपी</string>
     <string name="orbot_status_arg_2" translatable="true">टीसीपी</string>
     <string name="orbot_stop_dialog_message_combo" translatable="true">%1$s
@@ -174,31 +117,19 @@
     <string name="orbot_title" translatable="true">ऑर्बोट और प्रॉक्सी</string>
     <string name="orbot_install_dialog_title" translatable="true">ऑर्बोट इंस्टॉल करे\?</string>
     <string name="orbot_install_dialog_neutral" translatable="true">वेबसाइट</string>
-    <string name="settings_orbot_desc" translatable="true">एचटीटीपीएस/ सॉक्स5 के साथ गैर-वीपीएन मोड में ऑर्बोट।</string>
-    <string name="settings_orbot_install_desc" translatable="true">ऑर्बोट इंस्टॉल करने के लिए यहां टैप करें</string>
     <string name="settings_orbot_disabled_error" translatable="true">टॉर-एक-प्रॉक्सी-के-रूप-में सेटअप के साथ जारी रखने के लिए एचटीटीपी(एस) और/या सॉक्स5 प्रॉक्सी को बंद करें।</string>
     <string name="settings_https_disabled_error" translatable="true">%1$s से जुड़ा है। जारी रखने के लिए इसे बंद करें।</string>
     <string name="settings_socks5_vpn_disabled_error" translatable="true">आगे बढ़ने के लिए रीथिंक शुरू करें।</string>
     <string name="settings_orbot_notification_action" translatable="true">ऑर्बोट खोले</string>
     <string name="settings_check_update_heading" translatable="true">ऐप अपडेट के लिए जाँच करें</string>
-    <string name="settings_theme_desc" translatable="true">डार्क/लाइट थीम</string>
     <string name="settings_theme_heading" translatable="true">दिखावट</string>
-    <string name="settings_http_proxy_dialog_title" translatable="true">कस्टम सर्वर यूआरएल</string>
-    <string name="settings_http_proxy_error_text4" translatable="true">होस्ट कनेक्शन विफल रहा। पुनः प्रयास करें।</string>
     <string name="settings_http_proxy_toast_success" translatable="true">एचटीटीपी प्रॉक्सी सेट है</string>
-    <string name="settings_dns_proxy_dialog_password" translatable="true">पासवर्ड</string>
     <string name="settings_app_list_default_app" translatable="true">कोई नहीं</string>
     <string name="settings_dns_proxy_dialog_app_desc" translatable="true">चयनित ऐप को आपकी ओर से प्रॉक्सी कनेक्शन देने के लिए वीपीएन से बाहर रखा जाएगा।</string>
     <string name="settings_socks_forwarding_desc" translatable="true">%1$s को फोरवर्ड करना: %2$s, %3$s</string>
     <string name="settings_socks_forwarding_desc_no_app" translatable="true">%1$s को फोरवर्ड करना: %2$s</string>
     <string name="settings_socks_forwarding_default_desc" translatable="true">सॉक्स5 समापन-बिंदु को कनेक्शन फोरवर्ड करें।</string>
-    <string name="settings_socks5_dialog_hint_username" translatable="true">उपयोगकर्तानाम (वैकल्पिक)</string>
-    <string name="settings_socks5_dialog_hint_ip" translatable="true">आईपी पता</string>
-    <string name="settings_socks5_dialog_hint_port" translatable="true">पोर्ट</string>
-    <string name="settings_socks5_dialog_hint_password" translatable="true">पासवर्ड (वैकल्पिक)</string>
-    <string name="settings_theme_dialog_title" translatable="true">दिखावट</string>
     <string name="settings_theme_dialog_themes_1" translatable="true">सिस्टम द्वारा सेट करें</string>
-    <string name="settings_theme_dialog_themes_4" translatable="true">गहरा काला</string>
     <string name="settings_theme_dialog_themes_3" translatable="true">काला</string>
     <string name="settings_theme_dialog_themes_2" translatable="true">सफेद</string>
     <string name="settings_ip_dialog_title" translatable="true">आईपी संस्करण चुनें</string>
@@ -208,37 +139,16 @@
     <string name="settings_ip_text_ipv4" translatable="true">आईपीवी4</string>
     <string name="settings_ip_text_ipv6" translatable="true">आईपीवी6</string>
     <string name="settings_ip_text_ipv46" translatable="true">ऑटो</string>
-    <string name="settings_notification_desc1" translatable="true">रोकें / बंद करे (डिफ़ॉल्ट)</string>
-    <string name="settings_notification_heading" translatable="true">अधिसूचना कार्रवाई चुनें</string>
-    <string name="settings_notification_desc2" translatable="true">डीएनएस / डीएनएस + फ़ायरवॉल</string>
-    <string name="settings_notification_desc3" translatable="true">कोई नहीं</string>
-    <string name="settings_notification_dialog_title" translatable="true">अधिसूचना कार्रवाई चुनें</string>
-    <string name="settings_selected_theme" translatable="true">वर्तमान थीम: %1$s</string>
-    <string name="settings_notification_dialog_option_3" translatable="true">\nकोई नहीं:\nकोई बटन नहीं दिखाता है।\n</string>
-    <string name="apps_icon_content_desc" translatable="true">ऐप चिन्ह</string>
-    <string name="firewall_status_allow" translatable="true">अनुमती प्राप्त</string>
     <string name="firewall_status_excluded" translatable="true">डीएनएस और फ़ायरवॉल से निकाला गया</string>
     <string name="firewall_status_whitelisted" translatable="true">यूनिवर्सल फ़ायरवॉल नियमों को बायपास करता है</string>
-    <string name="firewall_status_block_metered" translatable="true">मीटर्ड (मोबाइल) नेटवर्क पर ब्लॉक किया गया</string>
-    <string name="firewall_card_status_active" translatable="true">%1$s ऐप्स</string>
-    <string name="firewall_card_text_active" translatable="true">%1$s अवरुद्ध\n%2$s बायपास किये गए\n%3$s निकाले गए\n %4$s अलग रखे ग‌ए</string>
     <string name="hsf_vpn_dialog_message" translatable="true">रीथिंक डिवाइस के डीएनएस अनुरोधों को एन्क्रिप्ट करने, नेटवर्क मॉनिटर को लागू करने, और फ़ायरवॉल नियमों को लागू करने के लिए एक स्थानीय वीपीएन सेट करने की अनुमति की आवश्यकता होती है।
 \n
 \nरीथिंक किसी भी तरह से आपकी कोई जानकारी इकट्ठा या जासूसी नहीं करता है।</string>
-    <string name="hsf_start_dialog_message" translatable="true">आप एक सुरक्षित एंड्रॉइड से एक कदम दूर हैं: तुरंत नेटवर्क गतिविधि देखें और वेबसाइट, आईपी, और खराब व्यवहार करने वाले ऐप्स को बलाॅक करे।</string>
-    <string name="hsf_exclude_error" translatable="true">वीपीएन लॉकडाउन मोड में निकालना संभव नहीं है</string>
-    <string name="hsf_proxy_chip_removed_toast" translatable="true">प्रॉक्सी हटा दिया गया</string>
-    <string name="hsf_blocklist_chip_text_no_data" translatable="true">आरडीएनएस+ सक्षम करें</string>
-    <string name="hsf_whats_new_remove_text" translatable="true">समापन…</string>
-    <string name="hsf_blocklist_updating_text" translatable="true">सक्षम किया जा रहा है…</string>
-    <string name="hsf_chip_appearance" translatable="true">थीम: %1$s</string>
     <string name="hsf_pause_vpn_failure" translatable="true">रोक नहीं सकते: रीथिंक सक्रिय नहीं है</string>
     <string name="dc_custom_dns_radio" translatable="true">अन्य डीएनएस</string>
     <string name="dc_entries" translatable="true">%1$s एंट्री</string>
     <string name="dc_rethink_dns_radio" translatable="true">रीथिंक डीएनएस</string>
-    <string name="dc_custom_block_heading" translatable="true">डोमेन नियम</string>
     <string name="dc_dns_leaks_heading" translatable="true">डीएनएस लीक को रोकें</string>
-    <string name="dc_check_update_desc" translatable="true">प्रत्येक <i>तीन</i> दिन में एक बार ब्लॉकलिस्ट अपडेट की जांच करें</string>
     <string name="about_bug_report_desc" translatable="true">क्रैश लॉग ईमेल करे</string>
     <string name="about_web" translatable="true">लिंक</string>
     <string name="about_bug_no_log_dialog_positive_btn" translatable="true">ईमेल भेजें</string>
@@ -246,7 +156,6 @@
     <string name="about_github" translatable="true">गिटहब पर योगदान दें</string>
     <string name="about_mozilla" translatable="true">रीथिंक को मोज़िला बिल्डर्स, FOSS यूनाइटेड फाउंडेशन, OSOM प्रोडक्ट्स इंक. का समर्थन प्राप्त है।</string>
     <string name="about_app_update_check" translatable="true">ऐप अपडेट की जांच करें</string>
-    <string name="about_app_contributors" translatable="true">लेखक</string>
     <string name="vpn_profile_error" translatable="true">वीपीएन प्रोफ़ाइल लॉन्च नहीं की जा सकी।</string>
     <string name="cd_custom_dns_proxy_name" translatable="true">प्रॉक्सी %1$s</string>
     <string name="cd_dns_proxy_mode_internal" translatable="true">आंतरिक</string>
@@ -254,28 +163,18 @@
     <string name="cd_dns_proxy_error_text_1" translatable="true">अमान्य आईपी पता</string>
     <string name="cd_dns_crypt_relay_heading" translatable="true">रीले</string>
     <string name="cd_dns_crypt_dialog_name" translatable="true">नाम</string>
-    <string name="cd_dns_crypt_error_text_1" translatable="true">स्टाम्प खाली नहीं हो सकता</string>
     <string name="cd_doh_dialog_heading" translatable="true">डीएनएस ओवर एचटीटीपीएस जोड़े</string>
     <string name="ctbs_app_other_apps" translatable="true">%1$s + %2$s अन्य ऐप</string>
     <string name="ctbs_app_info_not_available_toast" translatable="true">ऐप सेटिंग पेज नहीं मिला</string>
     <string name="ctbs_dialog_negative_btn" translatable="true">पीछे जाएँ</string>
-    <string name="dns_log_dialog_positive" translatable="true">लॉग हटाएं</string>
-    <string name="dns_btm_sheet_chip" translatable="true">+%1$s अन्य आईपी</string>
-    <string name="dns_btm_resolved_crypt" translatable="true">%1$s को %2$s द्वारा %3$s के माध्यम से <u>अज्ञात रूप से</u> हल किया गया</string>
-    <string name="dns_btm_resolved_doh" translatable="true">%2$s द्वारा हल किया गया %1$s</string>
-    <string name="hs_download_positive_play_store" translatable="true">अपडेट पूर्ण करे</string>
     <string name="hs_download_positive_default" translatable="true">ठीक है</string>
     <string name="univ_firewall_rule_4" translatable="true">डीएनएस और एनटीपी को छोड़कर यूडीपी को ब्लॉक करें</string>
     <string name="univ_firewall_rule_3" translatable="true">जब स्रोत ऐप अज्ञात हो तो ब्लॉक करें</string>
     <string name="univ_firewall_rule_8" translatable="true">पोर्ट 80 (असुरक्षित एचटीटीपी) ट्रैफिक ब्लाॅक करे</string>
     <string name="univ_firewall_rule_9" translatable="true">मीटर्ड (मोबाइल) नेटवर्क पर ब्लॉक करें</string>
     <string name="univ_firewall_rule_10" translatable="true">बाईपास किए गए ऐप्स और आईपी को छोड़कर सभी को ब्लॉक करें</string>
-    <string name="univ_ip_delete_individual_toast" translatable="true">%1$s हटा दिया गया।</string>
-    <string name="univ_ip_delete_dialog_positive" translatable="true">सब हटाएँ</string>
     <string name="univ_view_blocked_ip_desc" translatable="true">अवरुद्ध या बाईपास किए गए डोमेन, आईपी / पोर्ट नियमों को संशोधित करें।</string>
-    <string name="univ_delete_firewall_dialog_message" translatable="true">इन नियमों को हटाने से कोई भी एप्लिकेशन वर्तमान में अवरुद्ध आईपी से कनेक्ट हो सकेगा।</string>
     <string name="univ_accessibility_crash_dialog_positive" translatable="true">सेटिंग्स में जाओ</string>
-    <string name="univ_delete_firewall_dialog_title" translatable="true">सभी आईपी नियम हटाएं\?</string>
     <string name="univ_accessibility_dialog_negative" translatable="true">मना करे</string>
     <string name="dns_info_positive" translatable="true">ठीक है</string>
     <string name="dns_query_latency" translatable="true">%1$sमीली</string>
@@ -294,14 +193,11 @@
     <string name="fapps_metered_block_dialog_title" translatable="true">मीटर पर ब्लॉक</string>
     <string name="fapps_metered_block_dialog_message" translatable="true"><i>सूचीबद्ध</i> ऐप्स के लिए मीटर्ड (मोबाइल) नेटवर्क पर कनेक्शन ब्लॉक करें\?</string>
     <string name="fapps_metered_unblock_dialog_message" translatable="true"><i>सूचीबद्ध</i> ऐप्स के लिए मीटर्ड (मोबाइल) नेटवर्क पर कनेक्शन की अनुमति दें\?</string>
-    <string name="fapps_firewall_filter_desc_category" translatable="true">श्रेणियों में <u>%1$s</u> %2$s ऐप दिखा रहा है: %3$s</string>
     <string name="rules_load_failure_desc" translatable="true">कोई फ़ायरवॉल नियम नहीं मिला</string>
-    <string name="dns_proxy_connection_failure_lockdown" translatable="true">%1$s के लिए %2$s को लॉकडाउन मोड में छोड़ने से इंटरनेट कनेक्टिविटी की समस्या हो सकती है।</string>
     <string name="copy_clipboard_label" translatable="true">यूआरएल</string>
     <string name="update_complete_snack_message" translatable="true">नया संस्करण डाउनलोड किया गया।</string>
     <string name="system_dns_connection_failure" translatable="true">वर्तमान डीएनएस सर्वर का पता नहीं कर सका</string>
     <string name="update_complete_action_snack" translatable="true">पुनर्प्रारंभ करें</string>
-    <string name="accessibility_failure_toast" translatable="true">रीथिंक सुलभता सेवा बंद या क्रैश हो गई है। अब बैकग्राउंड वाले ऐप्स को ब्लॉक नहीं किया जा रहा है।</string>
     <string name="firewall_rule_univ_block_metered" translatable="true">मीटर (यूनीवर्सल)</string>
     <string name="firewall_rule_block_app_new_install" translatable="true">नया ऐप</string>
     <string name="firewall_rule_block_metered" translatable="true">मीटर (मोबाइल)</string>
@@ -313,73 +209,39 @@
     <string name="new_app_bulk_notification_content" translatable="true">रीथिंक ने %1$s नए ऐप्स को ब्लॉक कर दिया। देखने या संशोधित करने के लिए टैप करें।</string>
     <string name="new_app_notification_action_deny" translatable="true">अवरुद्ध रखें</string>
     <string name="notif_dialog_pause_dialog_negative" translatable="true">रद्द करें</string>
-    <string name="notif_dialog_pause_dialog_neutral" translatable="true">दिखाए</string>
     <string name="notif_channed_desc_download" translatable="true">ऑन-डिवाइस ब्लॉकलिस्ट के डाउनलोड प्रगति पर अलर्ट</string>
     <string name="category_name_sys_components" translatable="true">सिस्टम कॉम्पोनेन्ट</string>
     <string name="category_name_sys_apps" translatable="true">सिस्टम ऐप्स</string>
     <string name="category_name_others" translatable="true">अन्य</string>
     <string name="category_name_non_app_sys" translatable="true">सिस्टम सेवाएं</string>
     <string name="category_name_installed" translatable="true">इंस्टॉल किए गए ऐप्स</string>
-    <string name="cd_dialog_title" translatable="true">डोमेन नियम जोड़ें</string>
-    <string name="cd_dialog_edittext_hint" translatable="true">%1$s दर्ज करें</string>
-    <string name="cd_dialog_error_invalid_wildcard" translatable="true">अमान्य वाइल्डकार्ड URL या डोमेन</string>
-    <string name="cd_dialog_error_invalid_domain" translatable="true">अमान्य URL या डोमेन नाम</string>
-    <string name="cd_blocked_initial" translatable="true">बी</string>
-    <string name="ci_dialog_desc" translatable="true">अनुमति दें (बाईपास की) या आईपी एड्रेस, आईपी सबनेट (रेंज), पोर्ट को ब्लॉक करें। उदाहरण: 10.10.10.10, 10.1.1.*, 10.2.2/24, ffff::/104, [::]:80, *.*:80</string>
-    <string name="ci_dialog_edittext_hint" translatable="true">आईपी पता, सबनेट, या पोर्ट</string>
     <string name="ci_no_rule" translatable="true">कोई नियम नहीं</string>
-    <string name="ci_no_rule_txt" translatable="true">कोई नियम नहीं</string>
-    <string name="ada_firewall_status" translatable="true">यह ऐप <b><i>%1$s</i></b>।</string>
-    <string name="ada_ip_connection_count_zero" translatable="true">0 आईपी पता</string>
-    <string name="ada_ip_connection_count" translatable="true">%1$s आईपी पते से जुड़ा है</string>
     <string name="ada_app_status_exclude" translatable="true">डीएनएस और फ़ायरवॉल से निकाल रखा गया है</string>
     <string name="ada_app_status_unknown" translatable="true">अनजान है</string>
     <string name="ada_app_exclude" translatable="true">निकाले</string>
-    <string name="ada_app_dns_settings" translatable="true">डीएनएस सेटिंग्स</string>
     <string name="notif_download_success_content" translatable="true">डाउनलोड सफल रहा।</string>
     <string name="brbs_backup_dialog_positive" translatable="true">बैकअप</string>
-    <string name="app_mode_dns" translatable="true">डीएनएस</string>
-    <string name="app_mode_firewall" translatable="true">फ़ायरवॉल</string>
-    <string name="app_mode_dns_firewall" translatable="true">डीएनएस और फ़ायरवॉल (डिफ़ॉल्ट)</string>
-    <string name="app_mode_wireguard" translatable="true">वीपीएन</string>
-    <string name="settings_vpn_heading" translatable="true">वीपीएन</string>
     <string name="info_dialog_copy_toast_msg" translatable="true">आईपी पता कॉपी किया गया।</string>
     <string name="info_dialog_url_copy_toast_msg" translatable="true">यूआरएल कॉपी किया गया</string>
     <string name="info_dialog_rethink_toast_msg" translatable="true">आरडीएनएस+ डीएनएस-ओवर-एचटीटीपीएस यूआरएल के रूप में कॉपी किया गया</string>
     <string name="settings_enable_logs" translatable="true">ऑन-डिवाइस लॉगिंग सक्षम करें</string>
-    <string name="app_mode_choose" translatable="true">मोड चुनें</string>
-    <string name="relative_time_yesterday" translatable="true">कल</string>
-    <string name="relative_time_today" translatable="true">आज</string>
-    <string name="settings_app_notification_a13_heading" translatable="true">ऐप अधिसूचना</string>
     <string name="settings_http_proxy_error_text1" translatable="true">पोर्ट रेंज 1024-65535 में होनी चाहिए</string>
     <string name="settings_http_proxy_error_text2" translatable="true">अमान्य पोर्ट</string>
     <string name="settings_http_proxy_error_text3" translatable="true">होस्टनाम खाली है</string>
-    <string name="firewall_status_block_unmetered" translatable="true">बिना मीटर वाले (वाईफ़ाई) नेटवर्क पर ब्लॉक किया गया</string>
     <string name="lbl_proceed" translatable="true">जारी रखें</string>
     <string name="hsf_vpn_prepare_failure" translatable="true">या तो वीपीएन अनुमति गायब है, या कोई अन्य ऐप हमेशा-ऑन वीपीएन मोड में है।</string>
-    <string name="hsf_start_dialog_header" translatable="true">%1$s प्रारंभ करें</string>
     <string name="dc_local_block_heading" translatable="true">ऑन-डिवाइस ब्लॉकलिस्ट</string>
     <string name="about_privacy_policy" translatable="true">गोपनीयता नीति पढ़े</string>
     <string name="about_settings_app_info" translatable="true">ऐप जानकारी</string>
-    <string name="about_app_translate" translatable="true">अनुवाद करे</string>
     <string name="about_twitter" translatable="true">ट्वीटर पर हमें फोलो करे</string>
-    <string name="about_mail_bugreport_text" translatable="true">इस ईमेल को यहां भेजें: hello@celzero.com</string>
     <string name="intent_launch_error" translatable="true">%1$s लॉन्च नहीं हुए</string>
-    <string name="dns_btm_sheet_chip_no_answer" translatable="true">कोई जवाब नहीं</string>
     <string name="dns_proxy_ip_address" translatable="true">आइपी पता</string>
-    <string name="ci_no_rules_text" translatable="true">कोई आईपी या पोर्ट नियम नहीं।</string>
-    <string name="ci_bypass_universal_initial" translatable="true">बीयू</string>
-    <string name="ci_bypass_universal_txt" translatable="true">यूनिवर्सल बाईपास</string>
-    <string name="ci_no_rule_initial" translatable="true">एन</string>
     <string name="ada_noapp_dialog_positive" translatable="true">ठीक है</string>
     <string name="notif_download_cancel_content" translatable="true">डाउनलोड रद्द किया गया।</string>
-    <string name="ada_firewall_title" translatable="true">इस ऐप के लिए फ़ायरवॉल नियम</string>
     <string name="rt_edit_dialog_positive" translatable="true">संपादित करें</string>
     <string name="rt_chip_update_available" translatable="true">अपडेट उपलब्ध है</string>
     <string name="rt_filter_parent_selected" translatable="true">चुना हुआ</string>
     <string name="rt_filter_hint" translatable="true"><u>सभी</u> ब्लॉकलिस्ट दिखा रहा है</string>
-    <string name="bsrf_sub_group_heading" translatable="true">उपसमूह</string>
-    <string name="bsrf_clear_filter" translatable="true">साफ करे</string>
     <string name="dc_dns_crypt" translatable="true">डीएनएसक्रिप्ट</string>
     <string name="dc_dns_proxy" translatable="true">डीएनएस प्रॉक्सी</string>
     <string name="lbbs_search" translatable="true">ब्लॉकलिस्ट में डोमेन खोजें</string>
@@ -390,34 +252,21 @@
     <string name="brbs_restore_dialog_failure_title" translatable="true">पुनर्स्थापना विफल</string>
     <string name="brbs_restore_dialog_failure_message" translatable="true">रीस्टोर नहीं हो सका। पुनः प्रयास करें\?</string>
     <string name="brbs_restore_dialog_failure_positive" translatable="true">रीस्टोर प्रयास वापिस करे</string>
-    <string name="settings_locale_heading" translatable="true">भाषा बदलें</string>
-    <string name="settings_locale_desc" translatable="true">अपनी पसंदीदा भाषा चुनें</string>
-    <string name="settings_locale_dialog_title" translatable="true">अपनी पसंदीदा भाषा चुनें</string>
-    <string name="settings_locale_dialog_neutral" translatable="true">इस ऐप का अनुवाद करने में सहायता करें</string>
-    <string name="settings_biometeric_heading" translatable="true">ऐप लॉक सक्षम करें</string>
-    <string name="settings_biometric_desc" translatable="true">अपने स्क्रीन लॉक का उपयोग करके इस ऐप को सुरक्षित करें</string>
     <string name="settings_protocol_translation_dns_inactive" translatable="true">इस सेटिंग को सक्षम करने के लिए डीएनएस/डीएनएस+फ़ायरवॉल मोड पर स्विच करें</string>
     <string name="firewall_status_isolate" translatable="true">अलग रखा</string>
-    <string name="firewall_status_blocked" translatable="true">अवरोधित</string>
     <string name="firewall_status_unknown" translatable="true">अज्ञात स्थिति</string>
-    <string name="ct_bs_app_info_error" translatable="true">ऐप जानकारी नहीं मिली</string>
     <string name="hs_biometeric_title" translatable="true">रीथिंक अनलॉक करें</string>
     <string name="hs_biometeric_desc" translatable="true">रीथिंक अनलॉक करने के लिए बायोमेट्रिक सत्यापन इस्तेमाल करें</string>
-    <string name="hs_biometeric_failed" translatable="true">बायोमेट्रिक प्रमाणीकरण विफल</string>
     <string name="hs_biometeric_error" translatable="true">बायोमेट्रिक प्रमाणीकरण त्रुटि</string>
-    <string name="hsf_uptime" translatable="true">(सक्रिय: %1$s; प्रोटोस्: %2$s; टाइप: %3$s)</string>
     <string name="dc_dns_website_desc" translatable="true"><i>duckduckgo.com</i> और <i>nextdns.io</i> से वेबसाइट आइकन प्राप्त करता है। डिस्क स्थान में 350 एमबी तक की खपत करता है</string>
     <string name="dc_dns_leaks_desc" translatable="true">सक्षम होने पर, रीथिंक पोर्ट 53 पर सभी पैकेटों को पकड़ता है और इसे उपयोगकर्ता-सेट डीएनएस एंडपॉइंट पर फोरवर्ड करता है</string>
     <string name="dc_check_update_heading" translatable="true">ब्लॉकलिस्ट अपडेट पर संकेत दे</string>
     <string name="about_mail_to" translatable="true">hello@celzero.com</string>
     <string name="about_mail_to_string" translatable="true">मेलटो:</string>
     <string name="about_mail_subject" translatable="true">[रीथिंक]:</string>
-    <string name="about_version" translatable="true">वर्जन%1$s</string>
     <string name="about_version_install_source" translatable="true">वर्जन%1$s (%2$s)</string>
     <string name="about_dialog_neutral_button" translatable="true">सुविधाओं का सुझाव दें</string>
     <string name="cd_dns_crypt_title" translatable="true">रिजॉलवर</string>
-    <string name="cd_custom_doh_dialog_title" translatable="true">कस्टम सर्वर यूआरएल</string>
-    <string name="cd_custom_dns_proxy_title" translatable="true">कस्टम डीएनएस प्रॉक्सी</string>
     <string name="cd_custom_dns_proxy_name_default" translatable="true">प्राक्सी नाम</string>
     <string name="cd_dns_crypt_dialog_stamp" translatable="true">स्टेम्प</string>
     <string name="cd_dns_crypt_dialog_desc" translatable="true">विवरण (वैकल्पिक)</string>
@@ -427,7 +276,6 @@
     <string name="lbl_add" translatable="true">जोड़ें</string>
     <string name="univ_firewall_rule_5" translatable="true">डीएनएस को बायपास करने पर ब्लॉक करें</string>
     <string name="univ_firewall_rule_6" translatable="true">नए इंस्टॉल किए गए ऐप्स को ब्लॉक करें डिफ़ॉल्ट रूप से</string>
-    <string name="univ_firewall_rule_7" translatable="true">आईपीवी6 में आईपीवी4 को ब्लॉक करें (प्रयोगात्मक)</string>
     <string name="hs_download_negative_default" translatable="true">मुझे बाद में याद दिलाना</string>
     <string name="univ_firewall_rule_1" translatable="true">डिवाइस लॉक होने पर सभी ऐप्स को ब्लॉक करें</string>
     <string name="univ_firewall_rule_2" translatable="true">उपयोग में नहीं आने वाले किसी भी ऐप को ब्लॉक करें</string>
@@ -436,8 +284,6 @@
 \nआईपी पता: %2$s
 \n
 \nपोर्ट नंबर: %3$s</string>
-    <string name="dns_proxy_app" translatable="true">ऐप</string>
-    <string name="fapps_filter_filter_heading" translatable="true">प्रकार</string>
     <string name="fapps_info_isolate_msg" translatable="true">विश्वसनीय आईपी को छोड़कर सभी को अवरोधित करें।</string>
     <string name="fapps_unmetered_block_dialog_title" translatable="true">बिनमीटर को ब्लॉक करें</string>
     <string name="fapps_unmetered_block_dialog_message" translatable="true"><i>सूचीबद्ध</i> ऐप्स के लिए अनमीटर्ड (वाईफाई) नेटवर्क पर कनेक्शन ब्लॉक करें\?</string>
@@ -450,14 +296,11 @@
     <string name="network_log_app_name_unnamed" translatable="true">बेनाम (%1$s)</string>
     <string name="dns_crypt_connection_failure" translatable="true">डीएनएसक्रिप्ट सर्वर से कनेक्ट करने में त्रुटि।</string>
     <string name="dns_proxy_connection_failure" translatable="true">डीएनएस प्रॉक्सी सर्वर से कनेक्ट करने में त्रुटि।</string>
-    <string name="dns_proxy_toast_parameter" translatable="true">डीएनएस प्रॉक्सी</string>
-    <string name="socks5_proxy_toast_parameter" translatable="true">सॉक्स5 प्रॉक्सी</string>
     <string name="rules_load_failure_heading" translatable="true">नोट</string>
     <string name="rules_load_failure_reload" translatable="true">पुनः लोड करें</string>
     <string name="firewall_rule_device_lock" translatable="true">डिवाइस लॉक किया गया</string>
     <string name="firewall_rule_block_http" translatable="true">असुरक्षित एचटीटीपी</string>
     <string name="firewall_rule_block_univ_ip" translatable="true">आईपी / पोर्ट (यूनीवर्सल)</string>
-    <string name="other_dns_list_tab2" translatable="true">डीएनएसक्रिप्ट</string>
     <string name="other_dns_list_tab3" translatable="true">डीएनएस प्रॉक्सी</string>
     <string name="firewall_rule_isolate" translatable="true">अलग रखे</string>
     <string name="firewall_rule_block_app_exception" translatable="true">त्रुटि</string>
@@ -470,16 +313,10 @@
     <string name="build__flavor_website" translatable="true">वेबसाइट</string>
     <string name="build__flavor_play_store" translatable="true">चलाए</string>
     <string name="build__flavor_fdroid" translatable="true">एफड्राइड</string>
-    <string name="notif_dialog_pause_dialog_message" translatable="true">रोके गए स्थिती में आवेदन, जारी रखने के लिए फिर से शुरू करें</string>
-    <string name="ci_trust_initial" translatable="true">टी</string>
-    <string name="ada_network_log_title" translatable="true">इस ऐप के लिए नेटवर्क लॉग</string>
     <string name="ci_dialog_error_invalid_ip" translatable="true">अमान्य आईपी पता, सबनेट, या पोर्ट।</string>
-    <string name="ci_dialog_added_success" translatable="true">सूची में आईपी जोड़ा गया</string>
-    <string name="ci_trust_txt" translatable="true">विश्वस्त</string>
     <string name="ci_trust_rule" translatable="true">विश्वास</string>
     <string name="rt_dialog_title" translatable="true">बदलाव सेव कीजिये</string>
     <string name="rt_dialog_message" translatable="true">क्या आप नई कॉन्फ़िगर की गई ब्लॉकलिस्ट लागू करना चाहते हैं\?</string>
-    <string name="bsdl_blocked_desc" translatable="true">%2$s द्वारा अवरुद्ध %1$s</string>
     <string name="network_dns" translatable="true">सिस्टम डीएनएस</string>
     <string name="notif_download_content_title" translatable="true">ऑन-डिवाइस ब्लॉकलिस्ट डाउनलोड</string>
     <string name="notif_download_content_text" translatable="true">डाउनलोड चल रहा है…</string>
@@ -488,7 +325,6 @@
     <string name="rbl_security" description="The text appears as part of the blocklist setup screen as categories or headlines" translatable="true">सुरक्षा</string>
     <string name="rbl_security_desc" description="The text appears as blocklists description in configure screen" translatable="true">मैलवेयर, रैंसमवेयर, क्रिप्टोवेयर, फिशर और अन्य खतरों को ब्लॉक करें।</string>
     <string name="rt_dialog_neutral" translatable="true">जारी रखे</string>
-    <string name="rt_download_start" translatable="true">ब्लॉकसूचियां डाउनलोड की जा रही हैं…</string>
     <string name="rt_download" translatable="true">ब्लॉकलिस्ट डाउनलोड करें</string>
     <string name="rt_chip_check_update" translatable="true">अपडेट के लिए जाँच करे</string>
     <string name="rt_list_simple_btn_txt" translatable="true">सरल</string>
@@ -501,30 +337,21 @@
     <string name="lbbs_enabled" translatable="true">सक्षम है</string>
     <string name="lbbs_configure" translatable="true">कॉन्फ़िगर करें</string>
     <string name="lbbs_copy" translatable="true">आरडीएनएस+ यूआरएल के रूप में कॉपी करें</string>
-    <string name="lbbs_redownload" translatable="true">ब्लॉकलिस्ट को फिर से डाउनलोड करें</string>
     <string name="brbs_backup_title" translatable="true">बैकअप</string>
     <string name="brbs_backup_dialog_title" translatable="true">बैकअप लें</string>
     <string name="ssv_most_contacted_ips_heading" description="This label will appear on the stats screen as a header for most visited ips" translatable="true">सबसे अधिक संपर्क किए गए आईपी</string>
     <string name="ssv_most_blocked_ips_heading" description="This label will appear on the stats screen as a header for most blocked ips" translatable="true">सबसे ज्यादा अवरुद्ध आईपी</string>
-    <string name="settings_ip_network_heading" translatable="true">आईपी संस्करण चुनें</string>
-    <string name="settings_ptrans_desc" translatable="true">आउटबाउंड आईपीवी6 ट्रैफ़िक का आईपीवी4 ऑन-डिवाइस में अनुवाद करे। सक्षम करें यदि आप केवल आईपीवी4 नेटवर्क से जुड़े हैं।</string>
     <string name="settings_https_desc" translatable="true">कनेक्शन को HTTP(S) CONNECT समापन बिंदु पर भेजें।</string>
-    <string name="orbot_none_desc" translatable="true">इनमे से कोई भी नहीं।</string>
     <string name="orbot_bs_status_2" translatable="true">HTTP प्रॉक्सी सेट है।</string>
     <string name="orbot_app_issue" translatable="true">ऑर्बोट को लॉन्च नहीं किया जा सकाI क्या वह स्थापित है\?</string>
     <string name="orbot_bs_status_3" translatable="true">%1$s को ऑर्बोट पे फोरवर्ड कर रहे है, एचटीटीपी प्रॉक्सी भी सेट है।</string>
     <string name="orbot_stop_dialog_message" translatable="true">रीथिंक ने ऑर्बोट को कनेक्शन फॉरवर्ड करना बंद कर दिया है, लेकिन ऑर्बोट शायद बैकग्राउंड में चल रहा है।</string>
     <string name="orbot_stop_dialog_negative" translatable="true">ऑर्बोट बंद करे</string>
     <string name="orbot_explanation" translatable="true">Orbot एक निःशुल्क प्रॉक्सी ऐप है जो अन्य ऐप्स को इंटरनेट का अधिक <u>सुरक्षित</u> उपयोग करने में सक्षम बनाता है।\nOrbot आपके इंटरनेट ट्रैफ़िक को एन्क्रिप्ट करने के लिए <u>Tor</u> का उपयोग करता है जो आपको <u>सेंसरशिप को बायपास</u> करने और <u>नेटवर्क निगरानी</u> के उन रूपों से बचाव करने में मदद करता है जो व्यक्तिगत स्वतंत्रता और गोपनीयता को ख़तरे में डालते हैं।\n<u>TCP प्रॉक्सी</u>: Rethink Orbot को केवल <i>शामिल</i> ऐप्स के TCP कनेक्शन को अग्रेषित करता है।\n<u>HTTP प्रॉक्सी</u>: Rethink Orbot को HTTP CONNECT सुरंग <i>स्थापित</i> करता है और <i>शामिल</i> ऐप्स के केवल TCP कनेक्शन को अग्रेषित करता है।</string>
-    <string name="settings_orbot_heading" translatable="true">ऑर्बोट सेटअप करे</string>
     <string name="orbot_install_dialog_positive" translatable="true">स्थापित करें</string>
-    <string name="settings_app_notification_a13_desc" translatable="true">ऐप के लिए अधिसूचना अनुमति सक्षम करें</string>
     <string name="settings_dns_proxy_dialog_header" translatable="true">सॉक्स5 प्रॉक्सी सेट करें</string>
-    <string name="dns_btm_latency_ms" translatable="true">%1$sमीली</string>
     <string name="cd_doh_dialog_resolver_url" translatable="true">रिजॉल्वर यूआरएल</string>
     <string name="cd_dnscrypt_relay_heading" translatable="true">रीले</string>
-    <string name="dns_btm_resolved_doh_no_server" translatable="true">हल किया गया %1$s</string>
-    <string name="dns_btm_record_type" translatable="true">प्रश्न प्रकार: %1$s</string>
     <string name="settings_local_blocklist_in_use" translatable="true">%1$s उपयोग में आने वाली ब्लॉकसूची</string>
     <string name="other_dns_list_tab1" translatable="true">डीओएच</string>
     <string name="firewall_rule_no_rule" translatable="true">कोई नियम नहीं</string>
@@ -532,7 +359,6 @@
     <string name="firewall_rule_block_unmetered" translatable="true">बिना मीटर वाला (वाईफ़ाई)</string>
     <string name="new_app_bulk_notification_title" translatable="true">सावधान</string>
     <string name="notif_channel_desc_proxy_failure" translatable="true">प्रॉक्सी त्रुटियों और विसंगतियों पर अलर्ट</string>
-    <string name="ci_blocked_initial" translatable="true">बी</string>
     <string name="notif_channel_desc_vpn_notification" translatable="true">सूचित करें कि रीथिंक कब सक्रिय है और बैकग्राउंड में चल रहा है</string>
     <string name="ada_app_status_whitelist" translatable="true">यूनिवर्सल फ़ायरवॉल नियमों को बायपास करेगा</string>
     <string name="notif_channel_desc_vpn_failure" translatable="true">जब एंड्रॉइड या किसी अन्य वीपीएन ऐप द्वारा रीथिंक को बंद कर दिया जाए तो सूचित करें</string>
@@ -544,8 +370,6 @@
     <string name="brbs_restore_dialog_positive" translatable="true">रीस्टोर</string>
     <string name="brbs_backup_dialog_failure_title" translatable="true">बैकअप असफल</string>
     <string name="settings_enable_logs_desc" translatable="true">डिवाइस पर डीएनएस और फ़ायरवॉल लॉग स्टोर करें।</string>
-    <string name="settings_ip_network_desc" translatable="true">इंटरनेट प्रोटोकॉल संस्करणों में से चुनें।</string>
-    <string name="settings_ptrans_heading" translatable="true">बल आईपीवी4 निकास</string>
     <string name="settings_allow_bypass_heading" translatable="true">नेटवर्क देखना चालू करें</string>
     <string name="settings_allow_bypass_desc" translatable="true">अनुरोध करने वाले ऐप्स को सारे मौजूद नेटवर्क लेने दे। ये ऐप ऑन-डिमांड रीथिंक वीपीएन टनल को बायपास कर सकते है। कुछ ऑडियो/वीडियो कॉन्फ़्रेंस ऐप्स जैसे ज़ूम और मीट को ठीक से काम करने के लिए इसकी ज़रूरत हो सकती है।</string>
     <string name="settings_proxy_header" translatable="true">प्राक्सी</string>
@@ -554,16 +378,12 @@
     <string name="orbot_socks5" translatable="true">सिर्फ-टीसीपी प्रॉक्सी</string>
     <string name="orbot_http" translatable="true">एचटीटीपी प्रॉक्सी</string>
     <string name="orbot_both" translatable="true">टीसीपी + एचटीटीपी प्रॉक्सी</string>
-    <string name="orbot_both_desc" translatable="true">ऊपर के सभी।</string>
     <string name="orbot_none" translatable="true">कोई नहीं (डिफ़ॉल्ट)</string>
-    <string name="orbot_socks5_desc" translatable="true">सभी टीसीपी कनेक्शन को ऑर्बोट को फोरवर्ड करें।</string>
     <string name="orbot_bs_status_1" translatable="true">ऑर्बोट को %1$s कनेक्शन फोरवर्ड करना।</string>
-    <string name="settings_socks5_desc" translatable="true">सॉक्स5 समापन-बिंदु से कनेक्शन फोरवर्ड करें।</string>
     <string name="orbot_bs_status_4" translatable="true">एक-क्लिक टोर-एक-प्रॉक्सी-के-रूप-में (ऑर्बोट) सेटअप।</string>
     <string name="orbot_bs_status_trying_connect" translatable="true">ऑर्बोट सेट किया जा रहा है…</string>
     <string name="orbot_stop_dialog_neutral" translatable="true">डीएनएस बदलें</string>
     <string name="orbot_install_dialog_message" translatable="true">ऑर्बोट टॉर की सुविधाओं और कार्यक्षमता को एंड्रॉइड पर लाता है।</string>
-    <string name="settings_orbot_header" translatable="true">ऑर्बोट</string>
     <string name="settings_socks5_disabled_error" translatable="true">%1$s से जुड़ा है। जारी रखने के लिए इसे बंद करें।</string>
     <string name="settings_orbot_notification_content" translatable="true">टॉर-एक-प्रॉक्सी-के-रूप-में प्रारंभ करने में विफलता। इसे मैन्युअल रूप से प्रारंभ करने के लिए ऑर्बोट ऐप खोलें।</string>
     <string name="settings_general_header" translatable="true">आम</string>
@@ -574,33 +394,15 @@
     <string name="settings_check_update_desc" translatable="true">सप्ताह में एक बार ऐप अपडेट के लिए स्वचालित रूप से जांचें।</string>
     <string name="settings_custom_downloader_heading" translatable="true">इन-ऐप डाउनलोडर का उपयोग करें</string>
     <string name="settings_custom_downloader_desc" translatable="true">अक्षम होने पर, एंड्रॉइड के अंतर्निर्मित <i>डाउनलोड प्रबंधक</i> का उपयोग किया जाता है</string>
-    <string name="settings_import_export_heading" translatable="true">बैकअप और रीस्टोर</string>
     <string name="settings_import_export_desc" translatable="true">ऐप डेटा और सेटिंग्स का मैन्युअल रूप से बैकअप लें या पुनर्स्थापित करें।</string>
     <string name="settings_dns_proxy_dialog_app" translatable="true">ऐप</string>
-    <string name="settings_dns_proxy_dialog_hostname" translatable="true">होस्टनाम</string>
-    <string name="settings_dns_proxy_dialog_port_number" translatable="true">पोर्ट संख्या</string>
-    <string name="settings_dns_proxy_dialog_username" translatable="true">यूज़रनेम</string>
-    <string name="settings_dns_proxy_dialog_positive_btn" translatable="true">रखे</string>
-    <string name="firewall_card_text_inactive" translatable="true">फ़ायरवॉल मोड सक्षम करें।</string>
-    <string name="dns_card_latency_inactive" translatable="true">डीएनएस मोड सक्षम करें।</string>
-    <string name="apps_card_ips_count" translatable="true">%1$s आईपी और पोर्ट नियम</string>
-    <string name="hsf_start_btn_state" translatable="true">प्रारंभ</string>
-    <string name="hsf_stop_btn_state" translatable="true">बंद करे</string>
-    <string name="hsf_downtime" translatable="true">(%1$s के बाद से निष्क्रिय)</string>
     <string name="hsf_vpn_dialog_header" translatable="true">सावधान!</string>
     <string name="hsf_notification_permission_failure" translatable="true">सेटिंग स्क्रीन से अधिसूचना अनुमति सक्षम करें</string>
-    <string name="hsf_start_dialog_positive" translatable="true">शुरु करे</string>
-    <string name="hsf_whats_new_chip_text" translatable="true">क्या नया है</string>
-    <string name="hsf_proxy_chip_text" translatable="true">प्रॉक्सी सक्रिय</string>
-    <string name="hsf_proxy_chip_remove_text" translatable="true">बंद किया जा रहा है…</string>
     <string name="settings_http_proxy_desc" translatable="true">%1$s को फोरवर्ड करना</string>
     <string name="dc_block_heading" translatable="true">नियम</string>
     <string name="dc_other_dns_heading" translatable="true">प्रकार</string>
     <string name="dc_local_block_desc_1" translatable="true">195+ ब्लॉकलिस्ट में से चुनें। ब्लॉकलिस्ट को डाउनलोड या कॉन्फ़िगर करने के लिए यहां क्लिक करें।</string>
     <string name="dc_dns_website_heading" translatable="true">डीएनएस लॉग में वेबसाइट आइकन दिखाएं (प्रयोगात्मक)</string>
-    <string name="about_bravedns_explantion" translatable="true">रीथिंक आपके एंड्रॉइड डिवाइस पर ऐप गतिविधि पर नज़र रखने, इंटरनेट सेंसरशिप से बचने, और ऐप्स फ़ायरवॉल करने का सबसे आसान तरीका है।</string>
-    <string name="about_bravedns_whoarewe" translatable="true">रीथिंक एक मुफ्त और ओपन-सोर्स प्रोजेक्ट है, जिसका नेतृत्व एमेजोन, आइबीएम और साइंटिफिक गेम्स के पूर्व इंजीनियरों ने किया है।</string>
-    <string name="about_bravedns_toreport_text" translatable="true">सहायता और सुझाव</string>
     <string name="about_join_telegram" translatable="true">टेलीग्राम</string>
     <string name="about_bug_report" translatable="true">बग रिपोर्ट</string>
     <string name="about_bug_report_dialog_positive_btn" translatable="true">ईमेल भेजें</string>
@@ -609,37 +411,26 @@
     <string name="about_faq" translatable="true">अक्सर पूछे जाने वाले प्रश्न देखें</string>
     <string name="about_docs" translatable="true">दस्तावेज़ पढ़ें</string>
     <string name="about_connect" translatable="true">संपर्क करे</string>
-    <string name="about_sponsor_link_text" translatable="true">स्पोन्सर</string>
     <string name="about_app" translatable="true">ऐप</string>
     <string name="about_email" translatable="true">हमे ईमेल करे</string>
-    <string name="about_settings" translatable="true">सिस्टम</string>
     <string name="about_settings_vpn_profile" translatable="true">वीपीएन प्रोफाइल</string>
     <string name="about_dialog_positive_button" translatable="true">चलो चलते हैं</string>
     <string name="about_mail_bugreport_subject" translatable="true">[रीथिंक]: बग रिपोर्ट</string>
     <string name="about_mail_bugreport_share_title" translatable="true">ईमेल प्रदाता चुनें</string>
-    <string name="app_info_error" translatable="true">ऐप्लिकेशन की जानकारी लॉन्च नहीं की जा सकी।</string>
-    <string name="private_dns_error" translatable="true">निजी डीएनएस स्क्रीन लॉन्च नहीं की जा सकी।</string>
     <string name="notification_screen_error" translatable="true">ऐप अधिसूचना स्क्रीन लॉन्च नहीं कर सका।</string>
-    <string name="log_file_not_available" translatable="true">कोई क्रैश रिपोर्ट नहीं मिली</string>
     <string name="error_loading_log_file" translatable="true">लॉग फ़ाइल लोड करने में त्रुटि</string>
     <string name="collecting_logs_progress_text" translatable="true">कैप्चर कर रहे है…</string>
-    <string name="contributors_dialog_title" translatable="true">लेखक</string>
     <string name="cd_custom_doh_url_name_default" translatable="true">डीओएच</string>
     <string name="cd_custom_doh_url_name" translatable="true">डीओएच %1$s</string>
     <string name="cd_custom_dns_proxy_default_app" translatable="true">कोई नहीं</string>
     <string name="cd_dns_proxy_error_text_2" translatable="true">पोर्ट रेंज 1024-65535 में होनी चाहिए</string>
     <string name="cd_dns_proxy_error_text_3" translatable="true">अमान्य पोर्ट</string>
-    <string name="cd_dns_crypt_dialog_title" translatable="true">डीएनएसक्रिप्ट रिज़ॉल्वर या रीले जोड़ें</string>
     <string name="cd_dns_crypt_name_default" translatable="true">डीएनएसक्रिप्ट</string>
     <string name="cd_dns_crypt_name" translatable="true">डीएनएसक्रिप्ट %1$s</string>
     <string name="cd_dns_crypt_relay_name" translatable="true">डीएनएसरीले %1$s</string>
-    <string name="dns_btm_sheet_dialog_message" translatable="true"> \u0020<Data><![CDATA[ <h3><u><font size="8">%1$s</font></u>: %2$s blocklist(s)</h3>%3$s.<br/><br/>]]></Data> \u0020</string>
-    <string name="dns_btm_sheet_dialog_ips" translatable="true"> \u0020<Data><![CDATA[ %1$s %2$s <br/>]]></Data> \u0020</string>
     <string name="hs_download_positive_website" translatable="true">बेवसाइट देखे</string>
     <string name="univ_view_blocked_ip" translatable="true">आईपी और पोर्ट नियम</string>
-    <string name="univ_ip_delete_toast_success" translatable="true">सभी आईपी नियम हटा दिए गए।</string>
     <string name="dns_connected_rethink_plus" translatable="true">जुड़े हुए। %1$s ब्लॉकलिस्ट चल रही</string>
-    <string name="dns_connected_no_count" translatable="true">जुड़े हुए</string>
     <string name="dns_connected" translatable="true">जुड़े हुए</string>
     <string name="fapps_filter_categories_heading" translatable="true">श्रेणियाँ</string>
     <string name="fapps_filter_parent_installed" translatable="true">स्थापित</string>
@@ -648,11 +439,7 @@
     <string name="univ_accessibility_dialog_positive" translatable="true">दे</string>
     <string name="cd_dns_crypt_dialog_heading" translatable="true">डीएनएसक्रिप्ट रिज़ॉल्वर या रीले जोड़ें</string>
     <string name="fapps_isolate_block_dialog_title" translatable="true">ऐप्स को अलग करें</string>
-    <string name="fapps_firewall_filter_hint" translatable="true">सारे ऐप्स दिखा रहे है</string>
-    <string name="fapps_firewall_filter_desc" translatable="true"><u>%1$s</u> %2$s ऐप्स दिखा रहा है</string>
-    <string name="orbot_toast_parameter" translatable="true">टॉर-एक-प्रॉक्सी-के-रूप-में</string>
     <string name="settings_local_blocklist_dialog_positive" translatable="true">डाउनलोड</string>
-    <string name="coming_soon_toast" translatable="true">जल्द आ रहा है</string>
     <string name="pause_text" translatable="true">रोका हुआ</string>
     <string name="pause_desc" translatable="true">नोट: %1$s ब्लॉक किए गए ऐप्स फायरवॉल होते रहेंगे।</string>
     <string name="firewall_rule_foreground" translatable="true">ऐप उपयोग में नहीं है</string>
@@ -669,23 +456,15 @@
     <string name="fapps_info_bypass_msg" translatable="true">यूनीवर्सल फ़ायरवॉल नियमों को बायपास करें।</string>
     <string name="new_app_notification_action_toast_allow" translatable="true">ऐप के लिए नेटवर्क कनेक्शन की अनुमति है</string>
     <string name="new_app_notification_action_toast_deny" translatable="true">ऐप के लिए नेटवर्क कनेक्शन अस्वीकृत</string>
-    <string name="notif_dialog_pause_dialog_title" translatable="true">ऐप रोक दिया गया!</string>
     <string name="notif_channel_vpn_notification" translatable="true">सक्रिय वीपीएन</string>
     <string name="notif_channel_vpn_failure" translatable="true">निष्क्रिय वीपीएन</string>
     <string name="notif_channel_firewall_alerts" translatable="true">फ़ायरवॉल अलर्ट</string>
     <string name="notif_channel_proxy_failure" translatable="true">प्रॉक्सी अलर्ट</string>
     <string name="notif_channel_download" translatable="true">डाउनलोड अलर्ट</string>
-    <string name="cd_toast_deleted" translatable="true">कस्टम सूची से डोमेन हटा दिया गया</string>
     <string name="firewall_rule_block_udp_ntp_desc" translatable="true">एक उपयोगकर्ता-सेट फ़ायरवॉल नियम ने इस <i>यूडीपी</i> कनेक्शन को ब्लॉक कर दिया है।<br/><br/> बदलने के लिए <i>यूनीवर्सल</i> टैब पर जाएं।</string>
     <string name="firewall_rule_global_lockdown_desc" translatable="true">यूनीवर्सल लॉकडाउन सेट होने के कारण इस कनेक्शन को ब्लॉक कर दिया गया था।<br/><br/> बदलने के लिए <i>यूनीवर्सल</i> टैब पर जाएं।</string>
     <string name="firewall_rule_block_app_unmetered_desc" translatable="true"><i>अनमीटर्ड</i> नेटवर्क पर कनेक्ट करने का प्रयास करते समय एक उपयोगकर्ता-सेट फ़ायरवॉल नियम ने इस <i>ऐप</i> को अवरुद्ध कर दिया। <br/> <br/> बदलने के लिए <i>सभी ऐप्स</i> टैब पर जाएं।</string>
-    <string name="cd_remove_dialog_title" translatable="true">डोमेन हटाएं\?</string>
-    <string name="cd_no_rule_initial" translatable="true">एन</string>
-    <string name="cd_no_rule_txt" translatable="true">कोई नियम नहीं</string>
-    <string name="ci_dialog_title" translatable="true">आईपी / पोर्ट नियम जोड़ें</string>
     <string name="ci_block" translatable="true">ब्लॉक</string>
-    <string name="ci_bypass_universal" translatable="true">यूनिवर्सल बाईपास</string>
-    <string name="ci_delete" translatable="true">मिटाए</string>
     <string name="ada_ip_no_connection" translatable="true">इस ऐप के लिए कोई नेटवर्क लॉग नहीं है।</string>
     <string name="ada_app_status_allow" translatable="true">को अनुमति है</string>
     <string name="ada_app_status_block" translatable="true">को अनुमति नही है</string>
@@ -700,20 +479,13 @@
     <string name="rethink_sky_desc" translatable="true">280+ स्थान; उच्च अपटाइम; cloudflare.com पर चल रहा स्टब रिज़ॉल्वर</string>
     <string name="rethink_max_desc" translatable="true">50+ स्थान; अधिक निजी; रिकर्सिव रिज़ॉल्वर Fly.io पर चल रहा है</string>
     <string name="dc_local_block_enabled" translatable="true">सक्षम है</string>
-    <string name="dc_rethink_dns" translatable="true">रीथिंक डीएनएस</string>
     <string name="brbs_restore_no_uri_toast" translatable="true">पुनर्स्थापना विफल; पुनः प्रयास करें</string>
     <string name="ssv_app_blocked_heading" description="This label will appear on the stats screen as a header for blocked applications." translatable="true">सबसे ज्यादा ब्लॉक किए गए ऐप्स</string>
     <string name="ssv_most_contacted_domain_heading" description="This label will appear on the stats screen as a header for most visited domains" translatable="true">सबसे अधिक संपर्क किए गए डोमेन</string>
     <string name="ssv_see_more" translatable="true">सब दिखाएं</string>
-    <string name="settings_notification_desc" translatable="true">रीथिंक सूचना के साथ दिखाने के लिए एक्शन बटन: %1$s</string>
-    <string name="settings_notification_dialog_option_1" translatable="true">\nरोकें / बंद करे (डिफ़ॉल्ट):\nरीथिंक तुरंत रोकने और बंद करने के लिए दो बटन दिखाता है।</string>
-    <string name="settings_notification_dialog_option_2" translatable="true">\nडीएनएस / डीएनएस + फ़ायरवॉल:\nबैटरी-सेवर डीएनएस मोड और नियमित डीएनएस + फ़ायरवॉल मोड के बीच शीघ्रता से स्विच करने के लिए दो बटन दिखाता है।</string>
-    <string name="hs_biometeric_feature_not_supported" translatable="true">बायोमेट्रिक प्रमाणीकरण इस डिवाइस पर समर्थित नहीं या अक्षम है</string>
-    <string name="dns_card_latency_active" translatable="true">%1$sms</string>
     <string name="about_settings_notification" translatable="true">अधिसूचना सेटिंग्स</string>
     <string name="about_whats_new" translatable="true">%1$s में क्या नया है</string>
     <string name="no_browser_error" translatable="true">ब्राउज़र से वेबपेज नहीं खोल सका।</string>
-    <string name="dns_crypt_relay_error_toast" translatable="true">कोई रिज़ॉल्वर नहीं चुना गया</string>
     <string name="dns_info_neutral" translatable="true">कॉपी</string>
     <string name="fapps_info_dialog_message" translatable="true">ऐप्स को इंटरनेट से कनेक्ट होने से रोकें। इंटरनेट तक पहुंच सीमित करने से अवांछित डेटा उपयोग को रोकने में मदद मिलती है, साथ ही बैटरी की बचत भी होती है।</string>
     <string name="fapps_info_unmetered_msg" translatable="true">अनमीटर्ड (वाईफाई) नेटवर्क पर अनुमति दें / ब्लॉक करें।</string>
@@ -721,7 +493,6 @@
     <string name="fapps_bypass_block_dialog_message" translatable="true"><i>सूचीबद्ध</i> ऐप्स के लिए यूनीवर्सल फ़ायरवॉल नियमों को बायपास करें\?</string>
     <string name="settings_local_blocklist_version" translatable="true">संस्करण: %1$s</string>
     <string name="accessibility_notification_content" translatable="true">रीथिंक सुलभता सेवा बंद या क्रैश हो गई है। अब बैकग्राउंड वाले ऐप्स को ब्लॉक नहीं किया जा रहा है। पुन: सक्षम करने के लिए टैप करें।</string>
-    <string name="hs_btm_sheet_lock_down" translatable="true">वीपीएन के <i>लॉकडाउन</i> होने पर मोड नहीं बदल सकते। <u>वीपीएन सेटिंग संपादित करने</u> के लिए टैप करें।</string>
     <string name="firewall_rule_device_lock_desc" translatable="true">इस कनेक्शन को फ़ायरवॉल किया गया था क्योंकि <i>डिवाइस लॉक था</i> उस समय।<br/><br/> इस व्यवहार को बदलने के लिए <i>यूनीवर्सल</i> टैब पर जाएं।</string>
     <string name="firewall_rule_foreground_desc" translatable="true">यह कनेक्शन फ़ायरवॉल किया गया था क्योंकि स्रोत ऐप <i>फोरग्राउंड में नहीं था</i>। <br/> <br/> इस व्यवहार को बदलने के लिए <i>यूनीवर्सल</i> टैब पर जाएं।</string>
     <string name="fapps_unblock_dialog_message" translatable="true"><i>सूचीबद्ध</i> ऐप्स के लिए कनेक्शन की अनुमति दें\?</string>
@@ -731,17 +502,12 @@
     <string name="settings_lock_down_mode_desc" translatable="true">जब वीपीएन लॉकडाउन में हो तो कुछ चीज़ो अक्षम हो जाते है। <u>वीपीएन सेटिंग देखें</u>।</string>
     <string name="firewall_rule_exempt_app_bypass_univ_desc" translatable="true">इस कनेक्शन की अनुमति दी गई थी क्योंकि <i>स्रोत ऐप</i> <i>फ़ायरवॉल नियमों को बायपास करने के लिए</i> सेट है। <br/> <br/> बदलने के लिए <i>ऐप-विशिष्ट फ़ायरवॉल</i> स्क्रीन पर जाएं।</string>
     <string name="firewall_rule_exempt_dns_proxied_desc" translatable="true">यह डीएनएस कनेक्शन प्रॉक्सी किया गया था और उपयोगकर्ता-पसंदीदा डीएनएस एंडपॉइंट पर फोरवर्ड किया गया था। <br/> <br/> अक्षम करने के लिए <i>डीएनएस लीक को रोकें</i> डीएनएस <i>कॉन्फ़िगर करें</i> स्क्रीन से।</string>
-    <string name="contributors_list" translatable="true">&lt;i&gt;रीथिंक ओपन सोर्स प्रोजेक्ट&lt;/i&gt; अपने अस्तित्व का श्रेय इन स्वयंसेवकों को देता है जो इसके विकास पर अनगिनत घंटे समर्पित करते हैं।&lt;br/&gt; &lt;br/&gt;🛡️ Android ऐप &lt;br/&gt; &lt;a href=https://github.com/BayLee4&gt;BayLee4&lt;/a&gt;&lt;br/&gt; &lt;a href=https://github.com/Ch4t4r&gt;Ch4t4r&lt;/a&gt;&lt;br/&gt; &lt;a href=https://github.com/HrBDev&gt;HrBDev&lt;/a&gt;&lt;br/&gt; &lt;a href=https://github.com/hussainmohd-a&gt;hussainmohd-a&lt;/a&gt;&lt;br/&gt; &lt;a href=https://github.com/ignoramous&gt;ignoramous&lt;/a&gt;&lt;br/&gt; &lt;a href=https://github.com/markwmuller&gt;markwmuller&lt;/a&gt;&lt;br/&gt; &lt;a href=https://github.com/Mygod&gt;Mygod&lt;/a&gt;&lt;br/&gt; &lt;a href=https://github.com/Uldiniad&gt;Uldiniad&lt;/a&gt;&lt;br/&gt; &lt;a href=https://github.com/Poussinou&gt;Poussinou&lt;/a&gt;&lt;br/&gt; &lt;a href=https://github.com/pjosingh&gt;pjosingh&lt;/a&gt;&lt;br/&gt; &lt;br/&gt;🚂 नेटवर्क इंजन &lt;br/&gt; &lt;a href=https://github.com/alalamav&gt;alalamav&lt;/a&gt;&lt;br/&gt; &lt;a href=https://github.com/bemasc&gt;bemasc&lt;/a&gt;&lt;br/&gt; &lt;a href=https://github.com/dmcardle&gt;dmcardle&lt;/a&gt;&lt;br/&gt; &lt;a href=https://github.com/fortuna&gt;fortuna&lt;/a&gt;&lt;br/&gt; &lt;a href=https://github.com/ignoramous&gt;ignoramous&lt;/a&gt;&lt;br/&gt; &lt;a href=https://github.com/Lanius-collaris&gt;Lanius-collaris&lt;/a&gt;&lt;br/&gt; &lt;a href=https://github.com/PeterDaveHello&gt;PeterDaveHello&lt;/a&gt;&lt;br/&gt; &lt;a href=https://github.com/santhosh-ponnusamy&gt;santhosh-ponnusamy&lt;/a&gt;&lt;br/&gt; &lt;a href=https://github.com/SeanBurford&gt;SeanBurford&lt;/a&gt;&lt;br/&gt; &lt;br/&gt;📚 रिज़ॉल्वर &lt;br/&gt; &lt;a href=https://github.com/ahmed-tasaly&gt;ahmed-tasaly&lt;/a&gt;&lt;br/&gt; &lt;a href=https://github.com/amithm7&gt;amithm7&lt;/a&gt;&lt;br/&gt; &lt;a href=https://github.com/arfshl&gt;arfshl&lt;/a&gt;&lt;br/&gt; &lt;a href=https://github.com/badmojr&gt;badmojr&lt;/a&gt;&lt;br/&gt; &lt;a href=https://github.com/bongochong&gt;bongochong&lt;/a&gt;&lt;br/&gt; &lt;a href=https://github.com/elliotwutingfeng&gt;elliotwutingfeng&lt;/a&gt;&lt;br/&gt; &lt;a href=https://github.com/georgyo&gt;georgyo&lt;/a&gt;&lt;br/&gt; &lt;a href=https://github.com/GiddyGoatGaming&gt;GiddyGoatGaming&lt;/a&gt;&lt;br/&gt; &lt;a href=https://github.com/Harish-Narayan&gt;Harish-Narayan&lt;/a&gt;&lt;br/&gt; &lt;a href=https://github.com/ignoramous&gt;ignoramous&lt;/a&gt;&lt;br/&gt; &lt;a href=https://github.com/JakeChampion&gt;JakeChampion&lt;/a&gt;&lt;br/&gt; &lt;a href=https://github.com/MasterKia&gt;MasterKia&lt;/a&gt;&lt;br/&gt; &lt;a href=https://github.com/mtxadmin&gt;mtxadmin&lt;/a&gt;&lt;br/&gt; &lt;a href=https://github.com/neneeen&gt;neneeen&lt;/a&gt;&lt;br/&gt; &lt;a href=https://github.com/PeterDaveHello&gt;PeterDaveHello&lt;/a&gt;&lt;br/&gt; &lt;a href=https://github.com/santhosh-ponnusamy&gt;santhosh-ponnusamy&lt;/a&gt;&lt;br/&gt; &lt;a href=https://github.com/shruuub&gt;shruuub&lt;/a&gt;&lt;br/&gt; &lt;a href=https://github.com/shuvashish76&gt;shuvashish76&lt;/a&gt;&lt;br/&gt; &lt;br/&gt;⚜ समुदाय मॉड्स &lt;br/&gt; &lt;a href=https://t.me/amithm7&gt;amithm7&lt;/a&gt;&lt;br/&gt; &lt;a href=https://t.me/TronSlayer&gt;एंडरसन&lt;/a&gt;&lt;br/&gt; &lt;a href=https://t.me/ppatra&gt;ppatra&lt;/a&gt;&lt;br/&gt; &lt;a href=https://t.me/InFamous23&gt;InFamous23&lt;/a&gt;&lt;br/&gt; &lt;a href=https://t.me/TheTr1ckst3r&gt;TheTr1ckst3r&lt;/a&gt;&lt;br/&gt; &lt;a href=https://t.me/Ch4t4r&gt;Ch4t4r&lt;/a&gt;&lt;br/&gt; &lt;a href=https://t.me/Billi_ance&gt;Billi_ance&lt;/a&gt;&lt;br/&gt; &lt;a href=https://t.me/kaliangel&gt;kaliangel&lt;/a&gt;&lt;br/&gt; &lt;a href=https://github.com/PoneyClairDeLune&gt;PoneyClairDeLune&lt;/a&gt;&lt;br/&gt; &lt;br/&gt;📌 जियो-आईपी &lt;br/&gt; &lt;a href=https://db-ip.com&gt;db-ip.com&lt;/a&gt;&lt;br/&gt; &lt;br/&gt;❇ अनुवाद &lt;br/&gt; &lt;a href=https://weblate.org/en/&gt;Weblate&lt;/a&gt;&lt;br/&gt; &lt;br/&gt;🦆 चिह्न &lt;br/&gt; &lt;a href=https://github.com/celzero/rethink-app/issues/346&gt;चिह्न&lt;/a&gt;&lt;br/&gt; &lt;br/&gt;📦 सर्वर बनाएँ &lt;br/&gt; &lt;a href=https://jitpack.io/&gt;JitPack&lt;/a&gt;&lt;br/&gt; &lt;a href=https://github.com/&gt;GitHub&lt;/a&gt;&lt;br/&gt;</string>
-    <string name="cd_dialog_desc" translatable="true">वैकल्पिक वाइल्डकार्ड वाला URL या डोमेन नाम: *.test.com, test.com/test</string>
     <string name="firewall_rule_block_ip_desc" translatable="true">एक उपयोगकर्ता-सेट फ़ायरवॉल नियम ने <i>गंतव्य आईपी</i> को अवरुद्ध कर दिया। <br/> <br/> बदलने के लिए <i>ऐप-विशिष्ट फ़ायरवॉल</i> स्क्रीन पर जाएं।</string>
-    <string name="cd_toast_added" translatable="true">डोमेन सफलतापूर्वक जोड़ा गया</string>
-    <string name="cd_remove_dialog_message" translatable="true">सहेजे गए कॉन्फ़िगरेशन से डोमेन हटाएं।</string>
     <string name="cd_no_rules_text" translatable="true">कोई डोमेन नियम नहीं।</string>
     <string name="firewall_rule_exempt_orbot_setup_desc" translatable="true">इस कनेक्शन की अनुमति दी गई थी क्योंकि <i>ऑर्बोट के माध्यम से एक-क्लिक टॉर-एज-ए-प्रॉक्सी</i> सेटअप प्रगति पर था।</string>
     <string name="ada_noapp_dialog_title" translatable="true">ऐसा कोई ऐप नही</string>
     <string name="ada_noapp_dialog_message" translatable="true">ऐप जानकारी लापता। शायद इसे अनइंस्टाल कर दिया गया\?</string>
     <string name="ada_app_status_block_md" translatable="true">को मीटर्ड (मोबाइल) नेटवर्क पर अवरुद्ध किया है</string>
-    <string name="bsdl_block_desc" translatable="true">अवरोधित करें, विश्वास करे <u>इस डोमेन पर </u></string>
     <string name="firewall_rule_bypass_universal_ip_desc" translatable="true">इस कनेक्शन की अनुमति दी गई थी क्योंकि <i>गंतव्य आईपी</i> सभी यूनीवर्सल फ़ायरवॉल नियमों को बायपास करने के लिए सेट है।<br/><br/> बदलने के लिए <i>आईपी नियम</i> में जाए जो <i>यूनीवर्सल</i> टैब में है।</string>
     <string name="firewall_rule_block_app_mobile_desc" translatable="true"><i>अनमीटर्ड</i> नेटवर्क पर कनेक्ट करने का प्रयास करते समय एक उपयोगकर्ता-सेट फ़ायरवॉल नियम ने इस <i>ऐप</i> को अवरुद्ध कर दिया। <br/> <br/> बदलने के लिए <i>सभी ऐप्स</i> टैब पर जाएं।</string>
     <string name="ada_delete_logs_dialog_desc" description="Appears as dialog description to clear the logs in app specific screen" translatable="true">इस एप्लिकेशन से संबंधित सभी लॉग साफ़ करें।</string>
@@ -756,7 +522,6 @@
     <string name="ssv_toast_start_rethink" description="This label will appear on the stats screen as toast to start Rethink app" translatable="true">आगे बढ़ने के लिए रीथिंक प्रारंभ करें</string>
     <string name="brbs_title" translatable="true">बैकअप और रीस्टोर</string>
     <string name="brbs_backup_dialog_failure_message" translatable="true">बैकअप नहीं हो सका। पुनः प्रयास करें\?</string>
-    <string name="lbbs_download" translatable="true">ब्लॉकलिस्ट अपडेट करें</string>
     <string name="rsv_blocklist_count_text" description="This label will appear in rethink configure simple view screen which shows number of blocklists for each category" translatable="true">%1$s ब्लॉकलिस्ट</string>
     <string name="brbs_restore_complete_toast" translatable="true">पुनर्स्थापना पूर्ण, ऐप पुनः आरंभ हो रहा है…</string>
     <string name="brbs_backup_dialog_failure_positive" translatable="true">बैकअप रीट्राए करें</string>
@@ -769,9 +534,6 @@
     <string name="lbl_configure" translatable="true">कॉन्फ़िगर</string>
     <string name="lbl_logs" translatable="true">लॉग</string>
     <string name="settings_general_customize" translatable="true">अनुकूलित</string>
-    <string name="settings_pcap_dialog_option_1" translatable="true">बंद (डिफॉल्ट)</string>
-    <string name="firewall_card_universal_rules" translatable="true">%1$s यूनीवर्सल नियम</string>
-    <string name="hsf_packet_capture_chip_text" translatable="true">पैकेट कैप्चर सक्रिय</string>
     <string name="cd_dns_alg_heading" translatable="true">एडवांस डीएनएस फिल्टर (प्रायोगिक)</string>
     <string name="fapps_bypass_dns_firewall_dialog_title" translatable="true">बायपास करें ऐप्स</string>
     <string name="firewall_rule_domain_blocked_univ" translatable="true">डोमेन (यूनिव)</string>
@@ -782,22 +544,12 @@
     <string name="dc_setting_dns_cache_desc" translatable="true">रिक्वेस्ट को साथ में रखे, रिस्पोन्स को कैशे करे, त्रुटि को बढ़िया संभाले</string>
     <string name="dc_refresh_toast" translatable="true">पुनश्चर्या सम्पन्न</string>
     <string name="bsct_block_ip" translatable="true">ब्लॉक, विश्वास करें <u>इस आईपी</u> पे <u>इस ऐप</u> के लिए</string>
-    <string name="ada_app_firewall" translatable="true">फायरवॉल</string>
     <string name="bypass_dns_firewall" translatable="true">डीएनएस और फ़ायरवॉल को बायपास करें</string>
     <string name="bsct_block_domain" translatable="true">ब्लॉक, विश्वास करें <u>इस डोमेन</u> पे <u>इस ऐप</u> के लिए</string>
     <string name="settings_lock_down_proxy_desc" translatable="true">जब VPN केवल DNS मोड में चल रहा हो तो प्रॉक्सी सेट नहीं किया जा सकता।</string>
     <string name="settings_default_dns_heading" translatable="true">फॉलबैक डीएनएस चुनें</string>
     <string name="settings_default_dns_desc" translatable="true">कुछ दुर्लभ केस में जब यूज़र का पसंदीदा डीएनएस नहीं पता चलता, तब फॉलबैक डीएनएस का इस्तेमाल होता है।</string>
-    <string name="settings_pcap_heading" translatable="true">पैकेट कैप्चर</string>
-    <string name="settings_pcap_dialog_title" translatable="true">पीकैप</string>
-    <string name="logs_card_dns_count" translatable="true">%1$s सवाल</string>
-    <string name="settings_pcap_dialog_option_2" translatable="true">लॉगकैट को आउटपुट</string>
     <string name="firewall_status_bypass_dns_firewall" translatable="true">डीएनएस और फायरवॉल नियम को बायपास करें</string>
-    <string name="hsf_packet_capture_chip_disabled_toast" translatable="true">पैकेट कैप्चर अक्षम</string>
-    <string name="pcap_failure_toast" translatable="true">पीकैप फाइल बनाने में त्रुटि, वापिस कोशिश करे!</string>
-    <string name="rules_card_domain_count" translatable="true">%1$s डोमेन नियम</string>
-    <string name="settings_pcap_dialog_option_3" translatable="true">डाउनलोड फोल्डर को आउटपुट</string>
-    <string name="logs_card_network_count" translatable="true">%1$s कनेक्शन</string>
     <string name="fapps_bypass_dns_firewall_dialog_message" translatable="true">यूनीवर्सल डीएनएस और फायरवॉल नियमों को बायपास करे <i>सूचीबद्ध</i> ऐप्स के लिए\?</string>
     <string name="cd_dns_alg_desc" translatable="true">हर डीएनएस मांग पे खास आइपी असाइन करे</string>
     <string name="firewall_rule_bypass_dns_firewall" translatable="true">बायपास किए ऐप्स</string>
@@ -807,12 +559,9 @@
     <string name="firewall_rule_domain_trusted_univ_desc" translatable="true">ये कनेक्शन अनुमति प्राप्त किया क्योकिं <i>डोमेन</i> विश्वसनिय है यूनीवर्सल डोमेन नियमों में। <br/><br/> बदलने के लिए जाए <i>डीएनएस कन्फिगर</i> टैब पे।</string>
     <string name="ada_app_status_bypass_dns_firewall" translatable="true">यूनीवर्सल डीएनएस और फायरवॉल नियमों को बायपास करेगा</string>
     <string name="brbs_backup_restore_desc" translatable="true">सभी ऐप संस्करणों पर काम नहीं करता</string>
-    <string name="lbl_maybe_blocked" translatable="true">शायद ब्लॉक किया</string>
     <string name="settings_allow_lan_heading" translatable="true">निजी आइपी रूट ना करे (प्रयोग)</string>
     <string name="settings_allow_lan_desc" translatable="true">रीथिंक के VPN टनल से LAN, लूपबैक, मल्टीकास्ट, लिंक-लोकल रूट को बाहर रखें।</string>
     <string name="lbl_network" translatable="true">नेटवर्क</string>
-    <string name="bypass_dns_firewall_tooltip">%1$s सिर्फ रीथिंक के डीएनएस के साथ काम करता है</string>
-    <string name="lbl_import" translatable="true">आयात (इंपोर्ट) करें</string>
     <string name="lbl_allowed_ips" translatable="true">अलाउड आईपी</string>
     <string name="lbl_socks5" translatable="true">सॉक्स5</string>
     <string name="lbl_http" translatable="true">एचटीटीपी</string>
@@ -827,7 +576,6 @@
     <string name="lbl_delete" translatable="true">हटाएं</string>
     <string name="lbl_qr_code" translatable="true">क्यूआर (QR) कोड</string>
     <string name="lbl_http_socks5" translatable="true">एचटीटीपीएस और सॉक्स5</string>
-    <string name="lbl_generated" translatable="true">(बनाया गया)</string>
     <string name="lbl_auto" translatable="true">(अपनेआप)</string>
     <string name="lbl_slow" translatable="true">स्लो</string>
     <string name="lbl_day" translatable="true">दिन</string>
@@ -838,27 +586,20 @@
     <string name="lbl_active" translatable="true">चल रहा</string>
     <string name="lbl_dns_servers" translatable="true">डीएनएस सर्वर</string>
     <string name="lbl_app_wise" translatable="true">ऐप के हिसाब से</string>
-    <string name="status_protected_with_wg" translatable="true">वायरगार्ड से सेक्योर</string>
     <string name="lbl_public_key" translatable="true">सार्वजनिक कुंजी</string>
     <string name="lbl_insecure" translatable="true">(महफूज़ नहीं)</string>
     <string name="lbl_min" translatable="true">मिनट</string>
     <string name="lbl_private_key" translatable="true">निजी कुंजी</string>
     <string name="lbl_preshared_key" translatable="true">प्रीशेयर चाबी</string>
-    <string name="lbl_applications" translatable="true">एप्स</string>
-    <string name="lbl_include" translatable="true">शामिल करें</string>
-    <string name="lbl_very" translatable="true">बहुत ज़्यादा</string>
     <string name="lbl_select_all" translatable="true">सब चुनें</string>
     <string name="lbl_create" translatable="true">बनाएं</string>
     <string name="http_proxy_dialog_desc" translatable="true">इस तरह का यूआरएल सेट करें, &lt;प्रोटोकॉल&gt;://&lt;यूज़रनेम&gt;:&lt;पासवर्ड&gt;@&lt;डोमेन-या-आईपी&gt;:&lt;पोर्ट&gt;&lt;पाथ&gt;। नमूना: http://proxy.example.com:8080/</string>
-    <string name="status_protected_with_wg_private_dns" translatable="true">वायरगार्ड और प्राइवेट डीएनएस से सेक्योर</string>
     <string name="lbl_listen_port" translatable="true">लिसन पोर्ट</string>
-    <string name="lbl_random" translatable="true">(बिना सोचे समझे)</string>
     <string name="dot_custom_url_remove_dialog_title" translatable="true">डियोटी एंडपॉइंट हटाएं?</string>
     <string name="dot_custom_url_remove_dialog_message" translatable="true">सहेजे गए कॉन्फ़िगरेशन से टीएलएस एंडपॉइंट पर डीएनएस हटाएं।</string>
     <string name="lbl_status" translatable="true">स्थिति</string>
     <string name="lbl_private" translatable="true">निजी</string>
     <string name="lbl_remove" translatable="true">हटाएँ</string>
-    <string name="lbl_cache" translatable="true">कैशे</string>
     <string name="lbl_last" translatable="true">अंतिम</string>
     <string name="lbl_starting" translatable="true">शुरुआत</string>
     <string name="lbl_overall" translatable="true">समस्त/कुल मिलाकर</string>
@@ -866,8 +607,6 @@
     <string name="lbl_secure" translatable="true">सुरक्षित करें</string>
     <string name="lbl_anonymous" translatable="true">अज्ञातकृत</string>
     <string name="failed_using_default" translatable="true">विफल: फ़ॉलबैक DNS का उपयोग</string>
-    <string name="logs_disclaimer" translatable="true">पहले 20,000 अक्षर दिखाए जा रहे हैं</string>
-    <string name="cd_dialog_edit_title" translatable="true">डोमेन नियम संपादित करें</string>
     <string name="bad_config_explanation_positive_number" translatable="true">: सकारात्मक होना चाहिए</string>
     <string name="bad_config_context" translatable="true">%1$s का %2$s</string>
     <string name="generic_error" translatable="true">अज्ञात \"%s\" त्रुटि</string>
@@ -877,30 +616,21 @@
     <string name="setup_wireguard" translatable="true">वायरगार्ड सेटअप करें</string>
     <string name="catch_all_wg_dialog_title" translatable="true">हमेशा चालू</string>
     <string name="routing_remaining_apps" translatable="true">शेष ऐप्स को मार्गनिर्देशित करना</string>
-    <string name="wg_apps_dialog_title_exclude" translatable="true">%1$s ऐप्स को बाहर करें</string>
     <string name="wireguard_connection_error" translatable="true">वायरगार्ड वीपीएन कनेक्ट करने में विफल</string>
     <string name="hybrid_mode_with_proxy_notification_title" translatable="true">सुरक्षित! DNS + फ़ायरवॉल + प्रॉक्सी से कनेक्टेड।</string>
     <string name="logs_card_duration" translatable="true">%1$s से</string>
-    <string name="lbl_battery_optimization" translatable="true">बैटरी अनुकूलन</string>
-    <string name="restrict_dialog_message" translatable="true"><i>%1$s</i> के कारण कनेक्टिविटी में कमी आ सकती है। सेटिंग बदलें ताकि बैकग्राउंड में होने पर Rethink डेटा और अन्य संसाधनों का उपयोग कर सके।</string>
     <string name="bad_config_reason_invalid_value" translatable="true">अमान्य मान</string>
     <string name="crypt_quad9_security_desc" translatable="true">क्वाड9 (एनीकास्ट) dnssec/no–log/filter 9.9.9.9 – 149.112.112.9 – 149.112.112.112</string>
-    <string name="lbl_notification" translatable="true">अधिसूचना</string>
     <string name="memory_notification_text">Rethink में मेमोरी कम हो रही है। सिस्टम क्रियाएँ सीमित हो सकती हैं।</string>
     <string name="settings_exclude_proxy_apps_heading" translatable="true">लूपबैक प्रॉक्सी फ़ॉरवर्डर ऐप्स</string>
     <string name="settings_exclude_proxy_apps_desc" translatable="true">अक्षम होने पर, यह प्रॉक्सी (SOCKS5, HTTP, DNS) फॉरवर्डर ऐप्स को Rethink के VPN टनल से बाहर कर देता है।</string>
     <string name="orbot_no_app_toast" translatable="true">Orbot को सक्षम करने के लिए कम से कम एक ऐप जोड़ें</string>
-    <string name="settings_rinr_heading" translatable="true">लूपबैक (प्रायोगिक)</string>
-    <string name="settings_rinr_desc_disabled" translatable="true">रीथिंक के अपने ट्रैफ़िक को, जैसे ब्लॉकलिस्ट डाउनलोड, कनेक्टिविटी जांच, डीएनएस कनेक्शन, वापस सुरंग में रूट करें।</string>
-    <string name="settings_rinr_dialog_title" translatable="true">लूपबैक (प्रयोगात्मक)</string>
-    <string name="battery_optimization_dialog_heading" translatable="true">%1$sबंद करें</string>
     <string name="dc_proxy_dns_heading" translatable="true">कभी भी DNS प्रॉक्सी न करें</string>
     <string name="cd_doh_dialog_checkbox_desc" translatable="true">सर्वर TLS प्रमाणपत्रों को मान्य न करें (केवल तभी सक्षम करें जब आपको पता हो कि आप क्या कर रहे हैं)</string>
     <string name="univ_firewall_heading" translatable="true">सर्वव्यापक फ़ायरवॉल नियम</string>
     <string name="app_ip_domain_rules" translatable="true">प्रति ऐप IP / डोमेन नियम</string>
     <string name="app_ip_domain_rules_desc" translatable="true">प्रति ऐप IP / डोमेन नियम संशोधित करें।</string>
     <string name="firewall_rule_proxied" translatable="true">प्रॉक्सीड</string>
-    <string name="cd_deleted_toast" translatable="true">सभी डोमेन नियम हटा दिए गए</string>
     <string name="exclude_apps_from_proxy">सभी प्रॉक्सी से ऐप को बायपास करें</string>
     <string name="exclude_apps_from_proxy_failure_toast">यह ऐप प्रॉक्सी को बायपास करता है</string>
     <string name="bad_config_reason_invalid_key" translatable="true">अमान्य कुंजी</string>
@@ -910,7 +640,6 @@
     <string name="bad_config_reason_syntax_error" translatable="true">वक्य रचना त्रुटि</string>
     <string name="bad_config_reason_unknown_attribute" translatable="true">अज्ञात विशेषता</string>
     <string name="key_contents_error" translatable="true">कुंजी में अमान्य अक्षर</string>
-    <string name="key_length_error" translatable="true">गलत कुंजी लंबाई</string>
     <string name="parse_error_inet_address" translatable="true">आईपी पता</string>
     <string name="parse_error_inet_endpoint" translatable="true">अंतबिंदु</string>
     <string name="parse_error_inet_network" translatable="true">आईपी नेटवर्क</string>
@@ -920,7 +649,6 @@
     <string name="parse_error_reason" translatable="true">%1$s “%2$s” को पार्स नहीं किया जा सकता</string>
     <string name="invalid_file_error" translatable="true">अवैध फ़ाइल</string>
     <string name="illegal_filename_error" translatable="true">अवैध फ़ाइल नाम “%s”</string>
-    <string name="new_warp_invalid_config_toast" translatable="true">अमान्य WARP कॉन्फ़िगरेशन</string>
     <string name="catch_all_wg_dialog_desc" translatable="true">अन्य वायरगार्ड वीपीएन द्वारा मार्गनिर्देशित न किए गए सभी कनेक्शन और ऐप्स इस वीपीएन द्वारा मार्गनिर्देशित किए जाएंगे।</string>
     <string name="add_peer" translatable="true">पीयर जोड़े</string>
     <string name="config_delete_dialog_desc" translatable="true">क्या आप वाकई इस WireGuard VPN कॉन्फ़िगरेशन को हटाना चाहते हैं?</string>
@@ -928,9 +656,6 @@
     <string name="wireguard_disclaimer" translatable="true">DNS को %1$s पर भेजा जाता है, ICMP (उदाहरण : पिंग) को अंतर्निहित नेटवर्क पर भेजा जाता है।</string>
     <string name="wireguard_disable_title" translatable="true">वायरगार्ड बंद करें</string>
     <string name="wireguard_disable_message" translatable="true">सभी सक्रिय WireGuard VPN बंद करें?</string>
-    <string name="lbl_remaining_apps" translatable="true">बचे हुए ऐप्स</string>
-    <string name="remaining_apps_dialog_title" translatable="true">बचे हुए ऐप्स शामिल करें</string>
-    <string name="remaining_apps_dialog_desc" translatable="true">किसी अन्य प्रॉक्सी द्वारा मार्गनिर्देशित न किए गए सभी बचे हुए ऐप्स को शामिल करें</string>
     <string name="cloudflare_dns_desc" translatable="true">किसी भी DNS अनुरोध को ब्लॉक नहीं करता है। Cloudflare के 1.1.1.1 DNS एंडपॉइंट का उपयोग करता है।</string>
     <string name="cloudflare_family_dns_desc" translatable="true">मैलवेयर और वयस्क सामग्री को ब्लॉक करता है। क्लाउडफ्लेयर के 1.1.1.3 DNS एंडपॉइंट का उपयोग करता है।</string>
     <string name="cloudflare_security_dns_desc" translatable="true">दुर्भावनापूर्ण सामग्री को ब्लॉक करता है। Cloudflare के 1.1.1.2 DNS एंडपॉइंट का उपयोग करता है।</string>
@@ -943,23 +668,13 @@
     <string name="crypt_relay_france" translatable="true">पेरिस, फ्रांस में होस्ट किया गया अनाम DNS रिले https://cryptostrom.is/ द्वारा प्रदान किया गया है।</string>
     <string name="crypt_relay_us" translatable="true">https://cryptostrom.is/ स्वीडन द्वारा प्रदान किया गया अनाम डीएनएस रिले।</string>
     <string name="crypt_relay_singapore" translatable="true">सिंगापुर में होस्ट किया गया अनाम DNS रिले।</string>
-    <string name="ssv_most_blocked_countries_heading" description="This label will appear on the stats screen as a header for most blocked domains by country" translatable="true">सर्वाधिक अवरुद्ध देश</string>
     <string name="firewall_rule_proxied_desc" translatable="true">यह कनेक्शन उपयोगकर्ता-पसंदीदा प्रॉक्सी को अग्रेषित किया गया था।<br/><br/> परिवर्तन करने के लिए <i>कॉन्फ़िगर</i> स्क्रीन से <i>प्रॉक्सी</i> पर जाएं।</string>
     <string name="cd_toast_edit" translatable="true">संपादित</string>
     <string name="lbl_unselected" translatable="true">अचयनित किया गया</string>
-    <string name="key_length_explanation_binary" translatable="true">वायरगार्ड कुंजी 32 बाइट्स होना चाहिए</string>
-    <string name="settings_go_log_desc" translatable="true">डीबगिंग प्रयोजनों के लिए</string>
-    <string name="settings_app_notification_persistent_desc" translatable="true">अधिसूचना को स्थायी बनाएं</string>
-    <string name="settings_rinr_desc_enabled" translatable="true">सुरंग के माध्यम से रीथिंक के अपने ट्रैफ़िक को रूट करना। जब तक आपको पता न हो कि आप क्या कर रहे हैं, इसे बंद कर दें।</string>
     <string name="bad_config_explanation_pka" translatable="true">: सकारात्मक होना चाहिए और 65535 से अधिक नहीं होना चाहिए</string>
-    <string name="include_all_app_wg_dialog_desc" translatable="true">क्या आप सभी ऐप्स के लिए WireGuard VPN का उपयोग करते हैं?</string>
-    <string name="new_warp_error_toast" translatable="true">WARP कॉन्फ़िगरेशन प्राप्त करने में असमर्थ</string>
     <string name="add_remove_apps" translatable="true">(%1$s ऐप्स) जोड़ें / हटाएं</string>
-    <string name="settings_go_log_heading" translatable="true">लॉग स्तर</string>
     <string name="wireguard_enabled_failure" translatable="true">WireGuard को चालू करने के लिए अन्य सक्रिय प्रॉक्सी रोकें</string>
-    <string name="new_warp_config_desc" translatable="true">सर्वर से WARP कॉन्फ़िगरेशन प्राप्त करें</string>
     <string name="unknown_error" translatable="true">अज्ञात त्रुटि हुई</string>
-    <string name="key_length_explanation_hex" translatable="true">वायरगार्ड हेक्स कुंजी 64 अक्षर (32 बाइट्स) होना चाहिए</string>
     <string name="cleanbrowsing_family_dns_desc" translatable="true">फैमिली फ़िल्टर सभी वयस्क, अश्लील और अश्लील साइटों तक पहुँच को अवरुद्ध करता है। यह प्रॉक्सी और VPN डोमेन को भी ब्लॉक करता है जिनका उपयोग हमारे फ़िल्टर को बायपास करने के लिए किया जा सकता है। मिश्रित सामग्री वाली साइटें (जैसे Reddit) भी ब्लॉक की जाती हैं। Google, Bing और Youtube को सुरक्षित मोड पर सेट किया गया है।</string>
     <string name="fapps_info_bypass_dns_firewall_msg" translatable="true">DNS और फ़ायरवॉल नियमों को बायपास करें।</string>
     <string name="lbl_peer" translatable="true">पियर</string>
@@ -972,23 +687,14 @@
     <string name="dc_proxy_dns_desc" translatable="true">DNS को हमेशा चालू रहने वाले WireGuard, SOCKS5, HTTP प्रॉक्सी पर प्रॉक्सी न करें।</string>
     <string name="ssv_most_contacted_countries_heading" description="This label will appear on the stats screen as a header for most visited domains by country" translatable="true">सर्वाधिक संपर्क वाले देश</string>
     <string name="no_configs_error" translatable="true">कोई कॉन्फ़िगरेशन नहीं मिला</string>
-    <string name="settings_app_notification_persistent_heading" translatable="true">लगातार अधिसूचना</string>
-    <string name="settings_rinr_dialog_desc" translatable="true"><!--settings_network_all_networks-->%1$s सेटिंग भी सक्षम करता है। क्या आप आगे बढ़ना चाहते हैं?</string>
     <string name="bad_config_reason_unknown_section" translatable="true">अज्ञात अनुभाग</string>
     <string name="config_add_success_toast" translatable="true">संपन्न</string>
     <string name="one_wg_apps_added" translatable="true">सभी ऐप्स को मार्गनिर्देशित करना</string>
-    <string name="one_wg_dialog_desc" translatable="true">DNS सहित सभी ऐप्स से सभी कनेक्शन एक ही सक्रिय WireGuard VPN पर मार्गनिर्देशित किए जाएँगे। अन्य सक्रिय WireGuard VPN, यदि कोई हों, तो उन्हें रोक दिया जाएगा।</string>
-    <string name="one_wg_error_toast" translatable="true">उन्नत मोड पर स्विच करने के लिए, WireGuard को सरल मोड में बंद करें</string>
-    <string name="include_all_app_wg_dialog_title" translatable="true">सभी एप्लिकेशन शामिल करें</string>
     <string name="key_length_explanation_base64" translatable="true">: WireGuard base64 कुंजी 44 अक्षर (32 बाइट्स) होना चाहिए</string>
-    <string name="exclude_all_app_wg_dialog_title" translatable="true">सभी ऐप्स बहिष्कृत करें</string>
-    <string name="exclude_all_app_wg_dialog_desc" translatable="true">इस WireGuard VPN से सभी ऐप्स को बाहर करें?</string>
     <string name="wireguard_no_config_msg" translatable="true">कोई वायरगार्ड VPN नहीं। आरंभ करने के लिए कुछ जोड़ें।</string>
     <string name="cleanbrowsing_adult_dns_desc" translatable="true">एडल्ट फ़िल्टर सभी वयस्क, अश्लील और अश्लील साइटों तक पहुँच को ब्लॉक करता है। यह प्रॉक्सी या VPN या मिश्रित सामग्री वाली साइटों को ब्लॉक नहीं करता है। Reddit जैसी साइटों को अनुमति है। Google और Bing को सुरक्षित मोड पर सेट किया गया है।</string>
     <string name="crypt_cleanbrowsing_family_desc" translatable="true">सभी वयस्क, अश्लील और अश्लील साइटों तक पहुँच को ब्लॉक करता है। यह प्रॉक्सी और VPN डोमेन को भी ब्लॉक करता है जिनका उपयोग फ़िल्टर को बायपास करने के लिए किया जाता है। मिश्रित सामग्री वाली साइटें (जैसे Reddit) भी ब्लॉक की जाती हैं। Google, Bing और Youtube को सुरक्षित मोड पर सेट किया गया है।</string>
     <string name="crypt_relay_sweden" translatable="true">https://cryptostrom.is/ द्वारा प्रदान किया गया स्वीडन में होस्ट किया गया अनाम DNS रिले।</string>
-    <string name="wg_apps_dialog_title_include" translatable="true">%1$s ऐप्स शामिल करें</string>
     <string name="wireguard_disable_failure" translatable="true">\"Always-on WireGuard\" को बंद नहीं किया जा सकता</string>
     <string name="wireguard_apps_proxy_map_desc" translatable="true">%1$s का हिस्सा</string>
-    <string name="lbl_on_device" translatable="true">ऑन-डिवाइस</string>
 </resources>

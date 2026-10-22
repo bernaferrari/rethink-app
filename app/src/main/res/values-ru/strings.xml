@@ -5,115 +5,69 @@
     <string name="about_web">Ссылки</string>
     <string name="apps_info_title">Приложения</string>
     <string name="always_on_dialog_neutral">Настройки</string>
-    <string name="status_protected_with_tor_private_dns">защищено с помощью tor и персонального DNS</string>
     <string name="firewall_mode_info_title">Брандмауэр</string>
-    <string name="settings_socks5_dialog_hint_port">Порт</string>
     <string name="orbot">Orbot</string>
-    <string name="status_strict" description="This is similar to dns_on, but the protection is being provided by the operating system, not by Rethink.  It is not color-highlighted.">частные днс включены</string>
     <string name="notification_action_pause_vpn">ПАУЗА</string>
     <string name="firewall_act_universal_tab">Универсальные правила</string>
     <string name="settings_dns_proxy_dialog_app">Приложение</string>
-    <string name="settings_dns_proxy_dialog_positive_btn">установить</string>
-    <string name="status_protected_with_private_dns">защищено с помощью персонального DNS</string>
-    <string name="app_mode_dns">DNS</string>
     <string name="orbot_website_link">https://guardianproject.info/apps/org.torproject.android/</string>
-    <string name="slide_2_title">Добро пожаловать</string>
     <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">неудача</string>
     <string name="about_mail_to">hello@celzero.com</string>
-    <string name="settings_title_desc">Легко настраиваемый DNS и брандмауэр</string>
     <string name="exclude">исключить</string>
     <string name="notification_action_stop_vpn">СТОП</string>
     <string name="about_app">Приложение</string>
-    <string name="dns_act_configure_tab">Настройка</string>
     <string name="orbot_status_arg_2">TCP</string>
-    <string name="settings_theme_dialog_title">Внешний вид</string>
     <string name="notification_action_dns_mode">DNS</string>
     <string name="about_twitter_handle">https://twitter.com/rethinkdns</string>
     <string name="settings_general_header">Общее</string>
     <string name="txt_home">Главная</string>
     <string name="block">блокировать</string>
-    <string name="status_protected_with_proxy_private_dns">защищено с помощью прокси и персонального dns</string>
     <string name="dns_mode_info_title">DNS</string>
     <string name="about_docs_link">https://docs.rethinkdns.com/</string>
-    <string name="settings_dns_proxy_dialog_hostname">Имя хоста</string>
-    <string name="status_protected_with_http_private_dns">защищено http-прокси и персональным DNS</string>
     <string name="notification_action_resume_vpn">ПРОДОЛЖИТЬ</string>
     <string name="dc_block_heading">Правила</string>
     <string name="always_on_dialog_positive">Остановить</string>
     <string name="orbot_install_dialog_positive">Установить</string>
     <string name="rdns_plus">RDNS Plus</string>
-    <string name="dns_explanation_dns_connected">Подключен к Re-RethinkDNS</string>
-    <string name="about_settings">Система</string>
     <string name="isolate">изолировать</string>
     <string name="warning_title" description="Status indicator text shown in a warning notification.">Предупреждение: Rethink был деактивирован</string>
     <string name="notification_action_dns_firewall_mode">DNS + Брандмауэр</string>
     <string name="settings_theme_heading">Внешний вид</string>
     <string name="dc_other_dns_heading">Используемый DNS</string>
     <string name="settings_app_list_default_app">Ничего</string>
-    <string name="skip">Пропустить</string>
     <string name="untracked">неотслеживаемый</string>
-    <string name="settings_vpn_heading">VPN</string>
-    <string name="status_protected_with_tor">защищено с помощью tor</string>
-    <string name="status_protected_with_http">защищено http-прокси</string>
-    <string name="about_app_contributors">Авторы</string>
     <string name="local_blocklist_redownload">Актуально!</string>
     <string name="accessibility_service_description">Rethink использует службу специальных возможностей для обнаружения и блокирования фоновых приложений. Rethink не собирает и не продает какую-либо информацию.</string>
     <string name="slide_2_desc">RethinkDNS — это самый простой способ обходить интернет-цензуру, отслеживать и блокировать сетевую активность приложений на вашем Android устройстве.</string>
     <string name="title_about">О приложении</string>
-    <string name="next">Следующий</string>
-    <string name="slide_1_title">Свободный и с открытым исходным кодом</string>
     <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">ожидание</string>
     <string name="status_dns_server_down">dns-сервер не работает</string>
-    <string name="status_protected_with_proxy">защищено прокси</string>
     <string name="app_name" translatable="false">Re-Rethink</string>
-    <string name="app_name_small_case">rethink</string>
     <string name="title_settings">Настройки</string>
-    <string name="about_title_desc">Обнаружение и блокировка угроз сетевой безопасности</string>
     <string name="finish">Закончить</string>
-    <string name="slide_1_desc">Rethink — это программное обеспечение с открытым исходным кодом, поддерживаемое программой MVP Mozilla Builders, FOSS United Foundation.</string>
     <string name="hybrid_mode_notification_title">Защищен! Подключен к DNS + брандмауэр.</string>
-    <string name="pause_title_desc">сплю…</string>
     <string name="bypass_universal">обход универсальный</string>
     <string name="notification_content" description="Indicates what will happen if the user taps the notification.">Нажмите, чтобы изменить настройки защиты</string>
     <string name="dns_mode_notification_title">Защищено! Подключен к быстрому и безопасному DNS.</string>
     <string name="firewall_mode_notification_title">Защищено! Подключен к брандмауэру.</string>
     <string name="pause_mode_notification_title">Приостановлен! Заблокированные приложения по-прежнему защищены брандмауэром.</string>
-    <string name="status_protected_with_socks5_private_dns">защищено с помощью socks5 и персонального DNS</string>
-    <string name="status_protected" description="This is a large message in a reassuring color.  It indicates that DNS queries can't be surveilled or modified in transit.">защищено</string>
-    <string name="status_app_error">ошибка приложения</string>
     <string name="status_dns_error">ошибка dns</string>
     <string name="status_no_internet">нет интернета</string>
-    <string name="status_protected_with_socks5">защищено socks-прокси</string>
     <string name="about_website_link">https://www.rethinkdns.com/</string>
-    <string name="about_mozilla_alumni_link">https://builders.mozilla.community/alumni.html</string>
-    <string name="dns_explanation_firewall_connected">Подключен к брандмауэру</string>
-    <string name="hsf_whats_new_remove_text">Закрытие…</string>
     <string name="about_github_link">https://github.com/celzero/rethink-app</string>
-    <string name="app_mode_firewall">Брандмауэр</string>
     <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit.">не защищенно</string>
-    <string name="dns_explanation_connected" description="The message will be shown when the DNS is connected">Подключен к RethinkDNS и брандмауэру</string>
     <string name="universal_firewall_explanation">Применяйте правила брандмауэра для всех приложений на основе событий устройства, например, применяйте брандмауэр, когда устройство заблокировано или когда определенное приложение не используется.</string>
     <string name="about_faq_link">https://www.rethinkdns.com/faq</string>
-    <string name="app_mode_wireguard">VPN</string>
-    <string name="about_version">v%1$s</string>
-    <string name="configure_dns_connected_dns_crypt_status">DNSCrypt</string>
     <string name="download_update_dialog_message_ok_title">Актуально!</string>
     <string name="orbot_download_link_website">https://github.com/guardianproject/orbot/releases</string>
     <string name="connection_http3">Протокол HTTP3</string>
     <string name="settings_proxy_header">прокси</string>
-    <string name="settings_dns_proxy_dialog_username">Имя пользователя</string>
-    <string name="settings_dns_proxy_dialog_password">Пароль</string>
     <string name="always_on_dialog">На этом устройстве включен \"Постоянный VPN\". Чтобы запустить Rethink, перейдите в настройки устройства и отключите \"Постоянный VPN\".</string>
-    <string name="fapps_filter_filter_heading">Тип</string>
-    <string name="firewall_mode_info_explanation_new">Мониторинг сетевой активности и брандмауэр для любого приложения или IP-адреса.</string>
     <string name="alert_firewall_accessibility_regrant_explanation">Служба доступности Rethink остановилась или произошел сбой. <i><b>Перейдите Настройки и принудительно остановите</b></i> Rethink и запустите его снова, чтобы использовать функцию <i>Блокировки любого неиспользуемого приложения</i>.
 \n
 \nRethink использует службу доступности для отслеживания того, какие приложения используются (открыты), а какие не используются (в фоне).</string>
     <string name="bsct_block_ip">Блокировать, доверять <u>этому IP</u> для <u>этого приложения</u></string>
-    <string name="bsct_conn_block_desc">заблокирован %1$s по %2$s</string>
-    <string name="bsct_conn_rule_explanation"><u>#1</u>: Блокирует приложение от подключения к интернету. \n <u>#2</u>: Блокирует любое приложение от подключения к определенному IP-адресу. \n <u>#3</u>: Блокирует все соединения, когда устройство заблокировано (Универсальный брандмауэр). \n <u>#4</u>: Блокирует любое неиспользуемое приложение (Универсальный брандмауэр). \n <u>#5</u>: Блокирует соединения, когда источник приложения неизвестен (Универсальный брандмауэр). \n <u>#6</u>: Блокирует весь UDP-трафик, кроме DNS (Универсальный брандмауэр). \n <u>#7</u>: Блокирует соединения, при обходе DNS(Универсальный брандмауэр).</string>
     <string name="always_on_dialog_stop_message">Для Rethink включен постоянный VPN. Вы уверены, что хотите остановить Rethink в любом случае\?</string>
-    <string name="univ_firewall_dialog_message">Удаление этого правила позволит любому приложению подключаться к этому IP. Вы хотите продолжить\?</string>
     <string name="doh_custom_url_remove_success">Конечная точка удалена.</string>
     <string name="dc_rethink_dns_radio">Rethink DNS</string>
     <string name="doh_custom_url_remove_dialog_message">Удалите конечную точку DNS через Https из сохраненной конфигурации.</string>
@@ -122,142 +76,50 @@
     <string name="local_blocklist_download_desc">Скачать списки блокировки (около 60 МБ) для использования этой возможности\?</string>
     <string name="about_connect">Связь с нами</string>
     <string name="settings_ip_text_ipv4">IPv4</string>
-    <string name="firewall_status_blocked">заблокирован</string>
     <string name="settings_ip_text_ipv6">IPv6</string>
     <string name="firewall_status_isolate">изолированный</string>
     <string name="settings_selected_ip_desc">%1$s</string>
     <string name="settings_network_all_networks_desc">Если функция включена, Rethink использует все доступные сети для подключения к интернету. Если нет, то используется та сеть, которая считается <i>активной</i> в Android.</string>
-    <string name="hsf_stop_btn_state">стоп</string>
     <string name="hsf_vpn_dialog_header">Внимание!</string>
-    <string name="hsf_start_dialog_positive">Начать</string>
     <string name="about_mail_to_string">почта:</string>
     <string name="cd_dns_crypt_name_default">DNSCrypt</string>
     <string name="cd_dns_crypt_dialog_name">Имя</string>
-    <string name="dns_btm_latency_ms">%1$ss</string>
     <string name="hs_download_positive_default">ok</string>
     <string name="settings_allow_bypass_desc">Разрешить запрашивающим приложениям доступ ко всем доступным сетям. Эти приложения смогут обходить VPN-туннель Rethink по требованию. Некоторым приложениям для аудио/видеоконференций, таким как Zoom и Meet, это может потребоваться для правильной работы.</string>
-    <string name="dns_proxy_app">Приложение</string>
-    <string name="notif_dialog_pause_dialog_neutral">Показать</string>
     <string name="build__flavor_fdroid">fdroid</string>
-    <string name="ci_delete">удалить</string>
     <string name="ada_noapp_dialog_positive">ОК</string>
     <string name="rt_edit_dialog_positive">Изменить</string>
     <string name="dc_dns_crypt">DNSCrypt</string>
     <string name="collecting_logs_progress_text">Захват…</string>
-    <string name="settings_notification_dialog_option_2">\nDNS / DNS + Файрвол:\nПоказывает две кнопки для быстрого переключения между экономящим заряд батареи режимом DNS и обычным режимом DNS + Брандмауэр.</string>
-    <string name="contributors_list"><![CDATA[The <i>Rethink Проект с открытым исходным кодом</i> обязан своим существованием этим добровольцам, которые посвящают бесчисленные часы его разработке.<br/>
-                                              <br/>🛡️ Приложение для Android <br/>
-                                              <a href="https://github.com/BayLee4">BayLee4</a> /
-                                              <a href="https://github.com/Ch4t4r">Ch4t4r</a> /
-                                              <a href="https://github.com/samthesamman">CodingAttack</a> /
-                                              <a href="https://github.com/HrBDev">HrBDev</a> /
-                                              <a href="https://github.com/hussainmohd-a">hussainmohd-a</a> /
-                                              <a href="https://github.com/ignoramous">ignoramous</a> /
-                                              <a href="https://github.com/ironveil">ironveil</a> /
-                                              <a href="https://github.com/markwmuller">markwmuller</a> /
-                                              <a href="https://github.com/mohammaduvez">Mohammaduvez</a> /
-                                              <a href="https://github.com/Mygod">Mygod</a> /
-                                              <a href="https://github.com/Poussinou">Poussinou</a> /
-                                              <a href="https://github.com/pjosingh">pjosingh</a> /
-                                              <a href="https://github.com/RohitSurwase">RohitSurwase</a> /
-                                              <a href="https://github.com/ShantanuVichare">Shantanu</a> /
-                                              <a href="https://github.com/Uldiniad">Uldiniad</a><br/> /
-                                              <a href="https://github.com/yurtpage">yurtpage</a><br/>
-                                              <br/>🚂 Сетевой двигатель <br/>
-                                              <a href="https://github.com/alalamav">alalamav</a> /
-                                              <a href="https://github.com/bemasc">bemasc</a> /
-                                              <a href="https://github.com/dmcardle">dmcardle</a> /
-                                              <a href="https://github.com/fortuna">fortuna</a> /
-                                              <a href="https://github.com/ignoramous">ignoramous</a> /
-                                              <a href="https://github.com/PeterDaveHello">PeterDaveHello</a> /
-                                              <a href="https://github.com/santhosh-ponnusamy">santhosh-ponnusamy</a> /
-                                              <a href="https://github.com/SeanBurford">SeanBurford</a><br/>
-                                              <br/>📚 Резольвер<br/>
-                                              <a href="https://github.com/ahmed-tasaly">ahmed-tasaly</a> /
-                                              <a href="https://github.com/amithm7">amithm7</a> /
-                                              <a href="https://github.com/arfshl">arfshl</a> /
-                                              <a href="https://github.com/badmojr">badmojr</a> /
-                                              <a href="https://github.com/bongochong">bongochong</a> /
-                                              <a href="https://github.com/elliotwutingfeng">elliotwutingfeng</a> /
-                                              <a href="https://github.com/georgyo">georgyo</a> /
-                                              <a href="https://github.com/GiddyGoatGaming">GiddyGoatGaming</a> /
-                                              <a href="https://github.com/Harish-Narayan">Harish-Narayan</a> /
-                                              <a href="https://github.com/ignoramous">ignoramous</a> /
-                                              <a href="https://github.com/JakeChampion">JakeChampion</a> /
-                                              <a href="https://github.com/MasterKia">MasterKia</a> /
-                                              <a href="https://github.com/mtxadmin">mtxadmin</a> /
-                                              <a href="https://github.com/neneeen">neneeen</a> /
-                                              <a href="https://github.com/PeterDaveHello">PeterDaveHello</a> /
-                                              <a href="https://github.com/santhosh-ponnusamy">santhosh-ponnusamy</a> /
-                                              <a href="https://github.com/shruuub">shruuub</a> /
-                                              <a href="https://github.com/shuvashish76">shuvashish76</a><br/>
-                                              <br/>⚜ Моды сообщества <br/>
-                                              <a href="https://t.me/amithm7">amithm7</a> /
-                                              <a href="https://t.me/TronSlayer">Andersen</a> /
-                                              <a href="https://t.me/ppatra">ppatra</a> /
-                                               <a href="https://t.me/InFamous23">InFamous23</a> /
-                                              <a href="https://t.me/TheTr1ckst3r">TheTr1ckst3r</a> /
-                                              <a href="https://t.me/Ch4t4r">Ch4t4r</a> /
-                                              <a href="https://t.me/Billi_ance">Billi_ance</a> /
-                                              <a href="https://t.me/kaliangel">kaliangel</a> /
-                                              <a href="https://github.com/PoneyClairDeLune">PoneyClairDeLune</a><br/>
-                                              <br/>📌 Geo-IP <br/>
-                                              <a href="https://db-ip.com">db-ip.com</a> / <a href="https://ipinfo.io/lite">IPinfo Lite</a><br/>
-                                              <br/>❇ Переводы<br/>
-                                              <a href="https://weblate.org/en/">Weblate</a><br/>
-                                              <br/>🦆 Icons <br/>
-                                              <a href="https://github.com/celzero/rethink-app/issues/346">Icons</a><br/>
-                                              <br/>📦 Создание серверов <br/>
-                                              <a href="https://jitpack.io/">JitPack</a><br/>
-                                              <a href="https://github.com/">GitHub</a><br/>
-                                              <a href="https://central.sonatype.com/">Sonatype</a><br/>
-                                              ]]></string>
     <string name="orbot_explanation">Orbot - это бесплатное прокси-приложение, которое позволяет другим приложениям использовать интернет более <u>безопасно</u>. \nOrbot использует <u>Tor</u> для шифрования вашего интернет-трафика, что помогает вам <u>обойти цензуру</u> и защититься от форм <u>сетевого наблюдения</u>, которые угрожают личной свободе и конфиденциальности. \n<u>TCP Proxy</u>: Rethink перенаправляет в Orbot только TCP-соединения <i>включенных</i> приложений. \n<u>HTTP-прокси</u>: Rethink <i>создает</i> HTTP CONNECT туннель в Orbot и перенаправляет только TCP-соединения <i>включенных</i> приложений.</string>
     <string name="hsf_vpn_dialog_message">Rethink требуется разрешение на настройку локальной VPN для шифрования DNS-запросов устройства, внедрение сетевого монитора и применение правил брандмауэра.
 \n
 \nRethink не собирает никакой информации и не шпионит за вами каким-либо образом.</string>
     <string name="conn_track_clear_logs_message">Это приведет к удалению только сетевых журналов, но не правил брандмауэра. Эта операция является необратимой. Хотите продолжить\?</string>
     <string name="other_dns_list_tab1">DoH</string>
-    <string name="hybrid_mode_info_title">DNS + Брандмауэр</string>
-    <string name="dns_query_clear_logs_title">Удалить все журналы DNS\?</string>
     <string name="settings_theme_dialog_themes_3">Темная</string>
-    <string name="settings_notification_desc3">Нет</string>
     <string name="cd_dns_proxy_mode_internal">Внутренний</string>
-    <string name="brave_dns_connect_mode_change_dns">Выберите Режим.</string>
-    <string name="bsct_block">Блокировать, обходить, исключать, изолировать <u>это приложение</u></string>
     <string name="dns_proxy_remove_success">DNS-прокси удален.</string>
     <string name="cd_custom_doh_url_name_default">DoH</string>
-    <string name="other_dns_list_tab2">Dnscrypt</string>
-    <string name="bsct_conn_desc_allowed">разрешено на %1$s %2$s</string>
-    <string name="univ_firewall_dialog_title">Удалить правило IP\?</string>
     <string name="fapps_filter_clear_btn">Очистить</string>
     <string name="rt_dialog_neutral">Продолжить</string>
     <string name="blocklist_update_check_failure">Что-то пошло не так. Повторите попытку позже!</string>
-    <string name="hsf_blocklist_updating_text">Включение…</string>
     <string name="copy_clipboard_label">URL</string>
-    <string name="bsrf_clear_filter">Очистить</string>
-    <string name="alert_firewall_accessibility_exception">Сбой при открытии параметров специальных возможностей. Повторите попытку позже!</string>
-    <string name="bsct_conn_block_desc_device">заблокирован %1$s на устройстве</string>
     <string name="doh_custom_url_remove_dialog_title">Удалить конечную точку DoH\?</string>
     <string name="network_log_app_name_unknown">Неизвестно</string>
     <string name="cd_dns_crypt_dialog_stamp">Штамп</string>
     <string name="always_on_dialog_heading">Отключить постоянно включенную VPN</string>
     <string name="local_blocklist_redownload_desc">Списки блокировки на устройстве уже обновлены до последней версии v%1$s.</string>
     <string name="lbl_add">добавить</string>
-    <string name="fav_icon">fav_icon</string>
     <string name="conn_track_clear_logs_title">Удалить все сетевые журналы\?</string>
-    <string name="hsf_proxy_chip_remove_text">Остановка…</string>
-    <string name="contributors_dialog_title">Авторы</string>
     <string name="dns_crypt_custom_url_remove_dialog_title">Удалить резолвер DNSCrypt\?</string>
     <string name="dns_proxy_remove_dialog_message">Удалить DNS-прокси из сохраненной конфигурации.</string>
     <string name="fapps_filter_parent_system">Системные</string>
     <string name="fapps_info_dialog_positive_btn">ОК</string>
     <string name="cd_dns_crypt_title">Резолверы</string>
-    <string name="brave_dns_connect_mode_change_firewall">Выберите режим.</string>
     <string name="default_dns_name">RDNS По умолчанию</string>
     <string name="cd_custom_dns_proxy_default_ip">127.0.0.1</string>
     <string name="settings_local_blocklist_dialog_positive">Установить</string>
-    <string name="dns_mode_info_explanation_new">Отслеживайте, блокируйте и шифруйте DNS-запросы.</string>
     <string name="dns_crypt_url_remove_success">Резолвер DNSCrypt удален.</string>
     <string name="firewall_status_unknown">неизвестно</string>
     <string name="lbl_proceed">Продолжить</string>
@@ -268,22 +130,17 @@
     <string name="dns_crypt_relay_remove_dialog_title">Удалить ретранслятор DNSCrypt\?</string>
     <string name="dns_crypt_relay_remove_success">Ретранслятор DNSCrypt удален.</string>
     <string name="local_blocklist_download">Скачать списки блокировки</string>
-    <string name="hsf_start_btn_state">старт</string>
     <string name="firewall_rule_block_app_exception">Ошибка</string>
     <string name="alert_permission_accessibility">Разрешение - Универсальный доступ</string>
     <string name="custom_url_error_invalid_url">Неверный URL</string>
     <string name="always_on_dialog_lockdown_stop_message">Rethink запускает VPN в режиме <i>Изоляция</i>. Его остановка приведет к потере подключения к интернету для этого профиля пользователя. Продолжить в любом случае\?</string>
     <string name="settings_ip_text_ipv46">Авто</string>
-    <string name="dns_firewall_mode_info_explanation_new">Все вышеперечисленное + обход интернет-цензуры.</string>
     <string name="bsct_app_info">Информация о приложении</string>
     <string name="always_on_dialog_stop_heading">Постоянный VPN</string>
-    <string name="firewall_status_allow">разрешено</string>
     <string name="about_mail_subject">[Rethink]:</string>
     <string name="dns_info_neutral">Копировать ссылку</string>
     <string name="always_on_dialog_positive_btn">Перейдите в настройки</string>
-    <string name="about_sponsor_link_text">Спонсировать</string>
     <string name="unicode_question_sign">❔</string>
-    <string name="dns_query_clear_logs_message">Это приведет к удалению журналов DNS на устройстве. Операция является необратимой. Хотите продолжить\?</string>
     <string name="dns_proxy_remove_dialog_title">Удалить DNS-прокси\?</string>
     <string name="cd_custom_dns_proxy_name_default">Прокси</string>
     <string name="unicode_warning_sign">⚠</string>
@@ -293,69 +150,41 @@
     <string name="settings_theme_dialog_themes_2">Светлая</string>
     <string name="about_telegram_link">https://telegram.me/rethinkdns</string>
     <string name="fapps_filter_categories_heading">Категории</string>
-    <string name="unicode_x_sign">❌</string>
-    <string name="firewall_rules">Сетевые правила</string>
-    <string name="bsct_conn_desc_blocked">заблокирован %1$s %2$s</string>
     <string name="firewall_act_network_monitor_tab">Сеть</string>
     <string name="about_join_telegram">Telegram</string>
     <string name="cd_custom_dns_proxy_default_app">Ничего</string>
     <string name="dns_info_positive">Ok</string>
-    <string name="configure_dns_crypt">DNSCrypt: %1$s резолверы</string>
     <string name="download_update_dialog_title">Новое обновление!</string>
-    <string name="search_firewall_network_log"><font size="12">Поиск приложений, IP, доменов</font></string>
-    <string name="search_dns_logs"><font size="12">Поиск доменных имен или IP</font></string>
     <string name="download_update_dialog_trylater_title">Не могу обновить сейчас</string>
     <string name="download_update_dialog_trylater_message">Обновление не может быть выполнено прямо сейчас, повторите попытку позже.</string>
-    <string name="search_rethinkplus_file_tag"><font size="12">Поиск списков блокировки</font></string>
-    <string name="app_mode_dns_firewall">DNS и брандмауэр (по умолчанию)</string>
     <string name="download_update_dialog_message_success">Список блокировки успешно загружен.</string>
     <string name="info_dialog_copy_toast_msg">IP-адрес скопирован.</string>
     <string name="info_dialog_url_copy_toast_msg">URL скопирован</string>
     <string name="download_update_dialog_failure_message">Либо наши серверы не работают, либо не удалось установить соединение. Пожалуйста, повторите попытку через некоторое время.</string>
-    <string name="configure_dns_connection_name">Подключений к %1$s</string>
     <string name="download_update_dialog_failure_title">Что-то пошло не так!</string>
     <string name="search_universal_ips"><font size="12">Поиск IP</font></string>
     <string name="download_update_dialog_message">Новая версия приложения доступна для загрузки с сайта. Вы хотите продолжить\?</string>
     <string name="search_custom_domains"><font size="12">Поиск доменных имен</font></string>
-    <string name="show_logs_disabled_dns_message">Ведение журнала DNS-запросов отключено. Для повторного включения перейдите в <i>Настройки</i> и активируйте <i>Включить ведение журнала на устройстве.</i></string>
-    <string name="configure_dns_connected_doh_status">DNS через HTTPS</string>
-    <string name="configure_dns_connected_dns_proxy_status">DNS-прокси</string>
     <string name="download_update_dialog_message_ok">Вы уже используете последнюю версию.</string>
-    <string name="show_logs_disabled_network_message">Ведение журнала подключений отключено. Для повторного включения перейдите в <i>Настройки</i> и активируйте <i>Включить ведение журнала на устройстве</i></string>
     <string name="http_proxy_dialog_heading">Установить HTTP(S) CONNECT прокси</string>
-    <string name="app_mode_dns_low_battery">DNS (экономия заряда батареи)</string>
-    <string name="search_firewall_all_apps"><font size="12">Поиск приложений по uid, имени</font></string>
     <string name="info_dialog_rethink_toast_msg">Скопировано как URL RDNS+ DNS-over-HTTPS</string>
     <string name="settings_enable_logs_desc">Сохранять журналы DNS и брандмауэра локально на устройстве.</string>
     <string name="settings_enable_logs">Включить ведение журнала на устройстве</string>
-    <string name="relative_time_today">Сегодня</string>
-    <string name="relative_time_yesterday">Вчера</string>
-    <string name="app_mode_choose">Выбор режима</string>
-    <string name="settings_ptrans_heading">Принудительная отправка IPv4</string>
-    <string name="settings_ip_network_heading">Выберите версию IP</string>
-    <string name="settings_ptrans_desc">Перевод исходящего трафика IPv6 в IPv4 на устройстве. Включите, если вы подключены к сети только IPv4.</string>
     <string name="settings_lock_down_mode_desc">Некоторые опции отключены, когда VPN находится в режиме блокировки. <u>Смотрите настройки VPN</u>.</string>
     <string name="settings_allow_bypass_heading">Включить видимость сети</string>
-    <string name="settings_ip_network_desc">Выбор между версиями протокола интернета.</string>
     <string name="settings_socks5_heading">Настройка прокси-сервера SOCKS5</string>
     <string name="whats_new_version_update">&lt;b&gt;Не паникуй 2&lt;/b&gt;&lt;br/&gt;&lt;br/&gt; 1. Новое: захват сетевых ошибок для отчётов пользователей.&lt;br/&gt; 2. Новое: используется системный DNS для неделегированных доменных имён если настройка Предотвращать утечки DNS включена.&lt;br/&gt; 3. Улучшение: подключение к WireGuard теперь использует двойной стек (IPv4 + IPv6).&lt;br/&gt; 4. Улучшение: избежание блокирования элементов пользовательского интерфейса когда сетевой движок не отвечает.&lt;br/&gt; 5. Исправлено: тайм-ауты подключения когда Расширенная DNS фильтрация включена.&lt;br/&gt; 6. Исправлено: эндпоинты узлов WireGuard с доменными именами виснут при сетевых изменениях.&lt;br/&gt;&lt;br/&gt; &lt;a href=https://svc.rethinkdns.com/r/translate&gt;Помогите перевести это приложение&lt;/a&gt;</string>
     <string name="fapps_info_dialog_message">Блокируйте подключение приложений к интернету. Ограничение доступа к интернету помогает предотвратить необоснованное использование данных, а также экономить заряд батареи.</string>
     <string name="fapps_unmetered_unblock_dialog_title">Разрешить на бездоговорной основе</string>
     <string name="fapps_unmetered_block_dialog_message">Блокировать соединения в сети без учета тарифов (WiFi) для приложений <i>, перечисленных в списке</i>\?</string>
-    <string name="fapps_firewall_filter_desc"><![CDATA[Показывается <u>%1$s</u> %2$s приложений]]></string>
     <string name="fapps_metered_unblock_dialog_title">Разрешение на дозирование</string>
-    <string name="fapps_firewall_filter_desc_category"><![CDATA[Показаны <u>%1$s</u> %2$s приложений в категориях: %3$s]]></string>
     <string name="dns_proxy_connection_failure">Ошибка подключения к DNS Proxy серверу.</string>
-    <string name="dns_proxy_toast_parameter">DNS-прокси</string>
-    <string name="socks5_proxy_toast_parameter">SOCKS5 прокси</string>
     <string name="system_dns_connection_failure">Невозможно определить текущий DNS-сервер</string>
     <string name="update_complete_snack_message">Загружена новая версия.</string>
     <string name="settings_local_blocklist_version">Версия: %1$s</string>
-    <string name="accessibility_failure_toast">Служба доступности Rethink остановилась или завершилась сбоем. Блокировка фоновых приложений больше не выполняется.</string>
     <string name="pause_text">пауза</string>
     <string name="update_complete_action_snack">ПЕРЕЗАПУСТИТЬ</string>
     <string name="accessibility_notification_content">Служба доступности Rethink остановилась или завершилась сбоем. Блокировка фоновых приложений больше не выполняется. Нажмите для повторного включения.</string>
-    <string name="coming_soon_toast">в ближайшее время</string>
     <string name="pause_desc">Примечание: %1$s заблокированные приложения будут продолжать блокироваться.</string>
     <string name="firewall_rule_block_ip">IP / Порт</string>
     <string name="firewall_rule_block_app_new_install">Новое приложение</string>
@@ -364,7 +193,6 @@
     <string name="firewall_rule_no_rule_desc">Никакие правила брандмауэра не соответствуют этому соединению.</string>
     <string name="firewall_rule_block_app_mobile_desc"><![CDATA[Установленное пользователем правило брандмауэра блокировало это <i>приложение</i> при попытке подключения в сети <i>Metered</i>.<br/><br/> Для изменения перейдите на вкладку <i>Все приложения</i>.]]></string>
     <string name="firewall_rule_block_app_univ_mobile_desc"><![CDATA[Установленное пользователем правило универсального брандмауэра блокировало это <i>приложение</i> при попытке подключения в сети <i>Metered</i> (Mobile).<br/><br/> Для изменения перейдите на вкладку <i>Universal</i>.]]></string>
-    <string name="hs_btm_sheet_lock_down">Невозможно изменить режим когда VPN <i>заблокирован</i>. Нажмите для&lt;u&gt;изменения настроек VPN&lt;/u&gt;.</string>
     <string name="firewall_rule_univ_block_metered">Дозированная (универсальная)</string>
     <string name="firewall_rule_isolate">Изолировать</string>
     <string name="firewall_rule_trusted_ip">Доверенный IP</string>
@@ -402,20 +230,12 @@
     <string name="notif_channed_desc_download">Оповещение о ходе загрузки списков блокировки</string>
     <string name="new_app_notification_action_deny">Продолжайте блокировать</string>
     <string name="new_app_notification_action_toast_allow">Разрешенное сетевое подключение для приложения</string>
-    <string name="notif_dialog_pause_dialog_message">Приложение в состоянии паузы, возобновление для продолжения работы</string>
     <string name="notif_dialog_pause_dialog_negative">Сбросить</string>
     <string name="category_name_sys_apps">Системные приложения</string>
     <string name="category_name_others">Другие</string>
     <string name="category_name_non_app_sys">Системные сервисы</string>
     <string name="new_app_notification_action_toast_deny">Для приложения запрещено сетевое подключение</string>
-    <string name="cd_toast_added">Домен успешно добавлен</string>
-    <string name="cd_remove_dialog_title">Удалить домен\?</string>
-    <string name="cd_no_rule_txt">Нет правил</string>
-    <string name="ci_bypass_universal_initial">BU</string>
-    <string name="cd_dialog_desc">URL адрес или доменное имя с необязательной подстановкой: *.test.com, test.com/test</string>
-    <string name="ci_dialog_desc">Разрешить (обход) или заблокировать IP-адрес, IP-подсеть (диапазон), порт. Пример: 10.10.10.10, 10.1.1.*, 10.2.2/24, ffff::/104, [::]:80, [10.1.0.0/16]:80, *.*:80</string>
     <string name="ci_no_rule">Нет правил</string>
-    <string name="ci_no_rule_initial">N</string>
     <string name="ada_app_status_allow">разрешено</string>
     <string name="ada_app_status_whitelist">будет обходить универсальные правила брандмауэра</string>
     <string name="ada_noapp_dialog_title">Нет такого приложения</string>
@@ -429,17 +249,13 @@
     <string name="notif_download_content_title">Загрузка списка блокировки</string>
     <string name="notif_download_content_text">Загрузка продолжается…</string>
     <string name="notif_download_cancel_content">Загрузка отменена.</string>
-    <string name="bsdl_blocked_desc">заблокирован %1$s по %2$s</string>
     <string name="rbl_parental_control">Родительский контроль</string>
     <string name="radio_sky_btn">⛅ Быстрый сервер</string>
     <string name="brbs_title">Резервное копирование и восстановление</string>
     <string name="rt_dialog_title">Сохранить изменения</string>
     <string name="radio_max_btn">🪂 Приватный сервер</string>
     <string name="rt_dialog_message">Вы хотите применить новые настроенные списки блокировки\?</string>
-    <string name="rt_download_start">Загрузка списков блокировки…</string>
     <string name="rt_chip_check_update">Проверить обновления</string>
-    <string name="dc_rethink_dns">Переосмыслить DNS</string>
-    <string name="lbbs_redownload">Повторная загрузка списков блокировки</string>
     <string name="brbs_backup_dialog_message">Резервное копирование настроек приложения, сети и логов DNS в файл. Это перезапустит VPN.</string>
     <string name="brbs_restore_dialog_message">Восстановить настройки приложения, сети и логи DNS из файла резервной копии. Это перезапустит приложение.</string>
     <string name="brbs_restore_dialog_failure_title">Восстановление не удалось</string>
@@ -451,44 +267,27 @@
     <string name="brbs_backup_dialog_positive">Резервное копирование</string>
     <string name="brbs_backup_dialog_failure_title">Не удалось создать резервную копию</string>
     <string name="brbs_restore_no_uri_toast">Восстановление не удалось; попробуйте еще раз</string>
-    <string name="lbbs_download">Обновление списков блокировки</string>
     <string name="brbs_backup_desc">Резервное копирование настроек приложения, сети и логов DNS</string>
     <string name="brbs_backup_dialog_title">Создайте резервную копию</string>
     <string name="brbs_restore_complete_toast">Восстановление завершено, перезапускаю приложение…</string>
     <string name="brbs_backup_complete_toast">Резервное копирование завершено</string>
     <string name="rt_download_desc">Скачать списки блокировки (около 60 МБ) для использования этой возможности.</string>
     <string name="rt_filter_hint">Показывать <u>все</u> блоклисты</string>
-    <string name="settings_http_proxy_dialog_title">URL пользовательского сервера</string>
     <string name="settings_dns_proxy_dialog_header">Установка прокси-сервера SOCKS5</string>
-    <string name="settings_socks5_dialog_hint_password">Пароль (необязательно)</string>
-    <string name="settings_notification_desc">Кнопки действий, которые будут отображаться вместе с уведомлением Rethink: %1$s</string>
     <string name="settings_http_proxy_desc">Переадресация на %1$s</string>
     <string name="settings_http_proxy_error_text3">Имя хоста пустое</string>
     <string name="settings_http_proxy_error_text2">Некорректный порт</string>
     <string name="settings_dns_proxy_dialog_app_desc">Выбранное приложение будет исключено из VPN, чтобы позволить ему проксировать соединения от вашего имени.</string>
     <string name="settings_ip_dialog_ipv46">Авто (экспериментально)</string>
-    <string name="settings_socks5_dialog_hint_username">Имя пользователя (опционально)</string>
     <string name="settings_protocol_translation_dns_inactive">Переключитесь в режим DNS/DNS+Firewall, чтобы включить эту настройку</string>
-    <string name="settings_notification_desc1">Пауза / Стоп (по умолчанию)</string>
-    <string name="firewall_status_block_metered">блокируется в сетях с тарификацией (мобильная связь)</string>
-    <string name="settings_notification_dialog_option_3">\nНет:\nНе показывает кнопку.\n</string>
     <string name="firewall_status_whitelisted">обходит универсальные правила брандмауэра</string>
-    <string name="firewall_card_text_inactive">Включить режим брандмауэра.</string>
     <string name="about_docs">Читать документацию</string>
     <string name="about_twitter">Посетите нашу страницу в Twitter</string>
-    <string name="firewall_status_block_unmetered">блокируется в сетях без тарификации (wifi)</string>
-    <string name="ct_bs_app_info_error">Информация о приложении не найдена</string>
     <string name="hsf_notification_permission_failure">Включить разрешение на уведомления на экране Настройки</string>
-    <string name="hsf_whats_new_chip_text">Что нового</string>
-    <string name="hsf_start_dialog_header">Начать %1$s</string>
-    <string name="hsf_chip_appearance">Тема: %1$s</string>
-    <string name="dc_custom_block_heading">Правила домена</string>
     <string name="dc_check_update_heading">Уведомление об обновлении списка блокировки</string>
-    <string name="dc_check_update_desc">Проверять обновления списков блокировки каждые <i>три</i> дня</string>
     <string name="dc_dns_website_desc">Получает иконки сайтов с <i>nextdns.io</i> и <i>duckduckgo.com</i>. Потребляет до 350 мб дискового пространства</string>
     <string name="dc_local_block_heading">Списки блокировки на устройстве</string>
     <string name="dc_dns_leaks_heading">Предотвращение утечек DNS</string>
-    <string name="about_bravedns_explantion">Rethink — это самый простой способ обходить интернет-цензуру, отслеживать и блокировать сетевую активность приложений на вашем Android устройстве.</string>
     <string name="about_bug_no_log_dialog_positive_btn">Отправить письмо</string>
     <string name="dc_dns_leaks_desc">При включении этой функции, Rethink перехватывает все пакеты на 53-м порту и перенаправляет их на заданную пользователем конечную точку DNS</string>
     <string name="about_website">Посетите rethinkdns.com</string>
@@ -502,27 +301,17 @@
     <string name="about_privacy_policy_link">https://www.rethinkdns.com/privacy</string>
     <string name="notification_screen_error">Не удалось запустить экран уведомлений приложения.</string>
     <string name="no_browser_error">Невозможно открыть веб-страницу из браузера.</string>
-    <string name="log_file_not_available">Отчет о сбое не обнаружен</string>
-    <string name="about_mail_bugreport_text">Отправить это письмо по адресу: hello@celzero.com</string>
-    <string name="about_translate_link">https://svc.rethinkdns.com/r/translate</string>
-    <string name="cd_custom_doh_dialog_title">URL пользовательского сервера</string>
-    <string name="dns_btm_sheet_dialog_message"><Data><![CDATA[ <h3><u><font size="8">%1$s</font></u>: %2$s спис(ок/ка/ков) блокировки</h3>%3$s.<br/><br/>]]></Data></string>
     <string name="univ_view_blocked_ip">Правила для IP и портов</string>
-    <string name="univ_delete_firewall_dialog_message">Удаление этих правил позволит любому приложению подключаться к заблокированным IP-адресам.</string>
     <string name="dns_connected_rethink_plus">Подключено. Используется списков блокировки: %1$s</string>
     <string name="dns_proxy_dialog_message_no_app">IP-адрес: %1$s
 \n
 \nНомер порта: %2$s</string>
-    <string name="dns_btm_sheet_dialog_ips"><Data><![CDATA[ %1$s %2$s <br/>]]></Data></string>
     <string name="univ_firewall_rule_3">Блокировать, когда исходное приложение неизвестно</string>
     <string name="dns_proxy_name">Имя доверенного лица</string>
     <string name="fapps_filter_parent_installed">Установленные</string>
     <string name="fapps_firewall_filter_excluded">Исключено</string>
-    <string name="ci_dialog_edittext_hint">IP-адрес, подсеть или порт</string>
     <string name="ci_block">Блокировать</string>
     <string name="univ_firewall_rule_2">Блокировать все неиспользуемые приложения</string>
-    <string name="dns_proxy_connection_failure_lockdown">Исключение %1$s для %2$s в режиме блокировки может вызвать проблемы с подключением к интернету.</string>
-    <string name="univ_ip_delete_dialog_positive">Удалить все</string>
     <string name="univ_accessibility_dialog_positive">Разрешить</string>
     <string name="dns_proxy_ip_address">IP-адрес</string>
     <string name="fapps_firewall_filter_isolate">Изолировано</string>
@@ -530,39 +319,17 @@
     <string name="fapps_unmetered_unblock_dialog_message">Разрешить подключения в сети без учета тарифов (WiFi) для приложений <i>перечисленных в списке</i>\?</string>
     <string name="fapps_metered_block_dialog_title">Блок на дозированном</string>
     <string name="fapps_metered_block_dialog_message">Блокировать соединения в (мобильной) тарифицируемой сети для приложений <i>перечисленных в списке</i>\?</string>
-    <string name="fapps_firewall_filter_hint">Показаны все приложения</string>
     <string name="rules_load_failure_desc">Правила брандмауэра не найдены</string>
     <string name="network_log_app_name_unnamed">Неназванный (%1$s)</string>
-    <string name="cd_toast_deleted">Домен удален из пользовательского списка</string>
-    <string name="cd_remove_dialog_message">Удалить домен из сохраненной конфигурации.</string>
-    <string name="cd_dialog_title">Добавить правило домена</string>
-    <string name="cd_dialog_edittext_hint">Войти %1$s</string>
-    <string name="cd_dialog_error_invalid_domain">Неверный URL или домен</string>
-    <string name="cd_dialog_error_invalid_wildcard">Неверный подстановочный URL или домен</string>
-    <string name="cd_blocked_initial">B</string>
-    <string name="cd_no_rule_initial">N</string>
-    <string name="ci_dialog_title">Добавить правило IP / порта</string>
     <string name="ci_dialog_error_invalid_ip">Неверный IP-адрес, подсеть или порт.</string>
-    <string name="ci_dialog_added_success">IP добавлен в список</string>
-    <string name="ci_no_rules_text">Нет правил IP или порта.</string>
-    <string name="ci_bypass_universal_txt">Универсальный обход</string>
-    <string name="ci_blocked_initial">B</string>
-    <string name="ci_no_rule_txt">Нет правил</string>
-    <string name="ci_bypass_universal">Обход универсальный</string>
     <string name="ada_noapp_dialog_message">Информация о приложении отсутствует. Возможно, это приложение было удалено\?</string>
-    <string name="ada_firewall_status"><![CDATA[Это приложение <b><i>%1$s</i> </b>.]]></string>
-    <string name="ada_ip_connection_count">Подключено к %1$s IP</string>
-    <string name="ada_ip_connection_count_zero">0 IP-адрес</string>
     <string name="ada_app_status_block_wifi">блокируется в сетях без учета тарифов (wifi)</string>
     <string name="ada_app_status_unknown">неизвестно</string>
-    <string name="ada_firewall_title">правила брандмауэра для этого приложения</string>
-    <string name="ada_network_log_title">Журнал подключений приложения</string>
     <string name="ada_app_metered">Моб.сеть</string>
     <string name="ada_app_unmetered">WiFi</string>
     <string name="ada_app_bypass_univ">Обход универсальный</string>
     <string name="ada_app_exclude">Убрать</string>
     <string name="ada_app_isolate">Изолировать</string>
-    <string name="ada_app_dns_settings">Настройки DNS</string>
     <string name="notif_download_success_content">Скачать успешно.</string>
     <string name="rbl_privacy">Приватность</string>
     <string name="rbl_security">Безопасность</string>
@@ -572,7 +339,6 @@
     <string name="rt_filter_parent_selected">Выбранные</string>
     <string name="rt_filter_desc"><![CDATA[Показывать <u>%1$s</u> списков блокировки]]></string>
     <string name="rethink_max_desc">Свыше 50-ти местоположений; более приватный; рекурсивный резолвер работающий на fly.io</string>
-    <string name="bsrf_sub_group_heading">Подгруппа</string>
     <string name="dc_local_block_enabled">Включено</string>
     <string name="dc_doh">Dns через HTTPS</string>
     <string name="dc_dns_proxy">DNS-прокси</string>
@@ -590,50 +356,22 @@
     <string name="brbs_backup_dialog_failure_positive">Повторное резервное копирование</string>
     <string name="brbs_restore_dialog_failure_message">Не удалось восстановить. Попробовать еще раз\?</string>
     <string name="brbs_restore_dialog_failure_positive">Повторное восстановление</string>
-    <string name="settings_app_notification_a13_heading">Уведомление приложения</string>
-    <string name="settings_app_notification_a13_desc">Включить разрешение на уведомления для приложения</string>
-    <string name="settings_theme_desc">Темная/светлая тема</string>
     <string name="settings_http_proxy_error_text1">Диапазон портов должен быть в пределах 1024-65535</string>
-    <string name="settings_http_proxy_error_text4">Не удалось установить соединение с хостом. Попробуйте еще раз.</string>
     <string name="settings_http_proxy_toast_success">HTTP-прокси установлен</string>
-    <string name="settings_dns_proxy_dialog_port_number">Номер порта</string>
     <string name="settings_socks_forwarding_desc">Переадресация на %1$s:%2$s, %3$s</string>
     <string name="settings_socks_forwarding_desc_no_app">Переадресация на %1$s:%2$s</string>
     <string name="settings_socks_forwarding_default_desc">Перенаправление соединений на конечную точку SOCKS5.</string>
-    <string name="settings_socks5_dialog_hint_ip">IP-адрес</string>
     <string name="settings_theme_dialog_themes_1">Системная</string>
     <string name="settings_ip_dialog_title">Выберите версию IP</string>
     <string name="settings_ip_dialog_ipv4">IPv4 (по умолчанию)</string>
     <string name="settings_ip_dialog_ipv6">IPv6 (экспериментально)</string>
-    <string name="settings_notification_heading">Выберите действие уведомления</string>
-    <string name="settings_notification_desc2">DNS / DNS + брандмауэр</string>
-    <string name="settings_notification_dialog_title">Выберите действие уведомления</string>
-    <string name="settings_notification_dialog_option_1">\nПауза / Стоп (по умолчанию):\nПоказывает две кнопки для быстрой паузы и остановки Rethink.</string>
-    <string name="settings_selected_theme">Текущая тема: %1$s</string>
-    <string name="apps_icon_content_desc">Иконка приложения</string>
     <string name="firewall_status_excluded">исключен из dns и брандмауэра</string>
-    <string name="firewall_card_status_active">%1$s приложений</string>
-    <string name="firewall_card_text_active">%1$s заблокировано
-\n%2$s обойдено
-\n%3$s исключено
-\n%4$s изолировано</string>
-    <string name="dns_card_latency_active">%1$sмс</string>
-    <string name="dns_card_latency_inactive">Включить режим DNS.</string>
-    <string name="apps_card_ips_count">%1$s Правил(а) IP и портов</string>
-    <string name="hsf_uptime">(активный %1$s; протос: %2$s; тип: %3$s)</string>
-    <string name="hsf_downtime">(неактивен с %1$s)</string>
     <string name="hsf_vpn_prepare_failure">Либо отсутствует разрешение VPN, либо другое приложение находится в режиме постоянного VPN.</string>
-    <string name="hsf_start_dialog_message">Вы в одном шаге от безопасного и надежного Android: мгновенно просматривайте сетевую активность, блокируйте веб-сайты, IP-адреса и приложения с некорректным поведением.</string>
-    <string name="hsf_proxy_chip_text">Прокси активен</string>
-    <string name="hsf_blocklist_chip_text_no_data">Включить RethinkDNS+</string>
-    <string name="hsf_exclude_error">Исключение невозможно в режиме блокировки VPN</string>
-    <string name="hsf_proxy_chip_removed_toast">Прокси удален</string>
     <string name="hsf_pause_vpn_failure">Невозможно сделать паузу: Rethink не активен</string>
     <string name="dc_custom_dns_radio">Другие DNS</string>
     <string name="dc_entries">%1$s строк »</string>
     <string name="dc_local_block_desc_1">Выбирайте из 195+ списков блокировок. Нажмите здесь, чтобы загрузить их или настроить.</string>
     <string name="dc_dns_website_heading">Показывать значок веб-сайта в журналах DNS (экспериментально)</string>
-    <string name="about_bravedns_toreport_text">Помощь и отзывы</string>
     <string name="about_bug_report_desc">Отправить журнал ошибок по email</string>
     <string name="about_bug_report">Сообщить об ошибке</string>
     <string name="about_bug_report_dialog_positive_btn">Отправить письмо</string>
@@ -644,39 +382,24 @@
     <string name="about_settings_app_info">О приложении</string>
     <string name="about_settings_vpn_profile">Профиль VPN</string>
     <string name="about_whats_new">Что нового в %1$s</string>
-    <string name="about_app_translate">Перевести</string>
     <string name="about_mail_bugreport_share_title">Выберите поставщика услуг электронной почты</string>
     <string name="about_version_install_source">%1$s (%2$s)</string>
     <string name="about_dialog_neutral_button">Предложите функции</string>
-    <string name="app_info_error">Не удалось запустить приложение Информация.</string>
     <string name="vpn_profile_error">Не удалось запустить профиль VPN.</string>
     <string name="intent_launch_error">Граф не запускается %1$s</string>
     <string name="error_loading_log_file">Ошибка загрузки файла журнала</string>
-    <string name="dns_btm_sheet_chip">+%1$s IP</string>
-    <string name="dns_btm_sheet_chip_no_answer">Нет ответа</string>
-    <string name="dns_btm_resolved_crypt">разрешено <u>анонимно</u> %1$s по %2$s через %3$s</string>
-    <string name="dns_btm_resolved_doh">разрешено %1$s через %2$s</string>
-    <string name="dns_btm_resolved_doh_no_server">разрешено %1$s</string>
-    <string name="dns_btm_record_type">Тип запроса: %1$s</string>
-    <string name="hs_download_positive_play_store">Полное обновление</string>
     <string name="hs_download_positive_website">Посетить веб-сайт</string>
     <string name="hs_download_negative_default">Напомнить позже</string>
     <string name="univ_firewall_rule_1">Блокировка всех приложений при блокировке устройства</string>
     <string name="univ_firewall_rule_4">Блокировать UDP, кроме DNS и NTP</string>
     <string name="univ_firewall_rule_5">Блокировать при обходе DNS</string>
     <string name="univ_firewall_rule_6">Блокировать недавно установленные приложения по умолчанию</string>
-    <string name="univ_firewall_rule_7">Блокировать IPv4 в IPv6 (экспериментально)</string>
     <string name="univ_firewall_rule_8">Блокировать порт 80 (небезопасный трафик HTTP)</string>
     <string name="univ_firewall_rule_9">Блокировать в сети с тарификацией (мобильной)</string>
     <string name="univ_firewall_rule_10">Блокировать все, кроме обойденных приложений и IP</string>
     <string name="univ_view_blocked_ip_desc">Изменить правила заблокированного или доверенного домена, IP/портов.</string>
-    <string name="univ_ip_delete_toast_success">Удалены все правила IP.</string>
-    <string name="univ_delete_firewall_dialog_title">Удалить все правила IP\?</string>
-    <string name="univ_ip_delete_individual_toast">Удалено: %1$s.</string>
     <string name="univ_accessibility_crash_dialog_positive">Перейдите в Настройки</string>
-    <string name="dns_connected_no_count">Подключено</string>
     <string name="dns_connected">Подключено</string>
-    <string name="dns_crypt_relay_error_toast">Резолвер не выбран</string>
     <string name="dns_proxy_desc">%1$s:%2$s, %3$s</string>
     <string name="dns_proxy_desc_no_app">%1$s:%2$s</string>
     <string name="dns_proxy_dialog_message">Название приложения: %1$s
@@ -703,7 +426,6 @@
     <string name="firewall_rule_unknown">Источник неизвестен</string>
     <string name="firewall_rule_global_lockdown">Блокировка</string>
     <string name="new_app_bulk_notification_title">Внимание</string>
-    <string name="notif_dialog_pause_dialog_title">Приложение приостановлено!</string>
     <string name="notif_dialog_pause_dialog_positive">Продолжить</string>
     <string name="notif_channel_vpn_failure">Неактивный VPN</string>
     <string name="notif_channel_firewall_alerts">Предупреждения брандмауэра</string>
@@ -712,19 +434,14 @@
     <string name="notif_channel_desc_firewall_alerts">Оповещение об ошибках и аномалиях брандмауэра</string>
     <string name="notif_channel_desc_proxy_failure">Оповещение об ошибках и аномалиях в прокси-серверах</string>
     <string name="category_name_installed">Установленные приложения</string>
-    <string name="settings_orbot_install_desc">Нажмите здесь, чтобы установить Orbot</string>
-    <string name="orbot_toast_parameter">Tor-as-a-proxy</string>
     <string name="orbot_socks5">Прокси-сервер только для TCP</string>
     <string name="univ_accessibility_dialog_negative">Отклонить</string>
-    <string name="about_bravedns_whoarewe">Rethink - это свободный проект с открытым исходным кодом, возглавляемый бывшими инженерами из Amazon, IBM и Scientific Games.</string>
     <string name="orbot_app_issue">Не удалось запустить Orbot. Он установлен\?</string>
     <string name="orbot_stop_dialog_dns_message">Rethink настроен на пересылку DNS-запросов в Orbot. Измените по мере необходимости.</string>
     <string name="settings_https_disabled_error">Подключен к %1$s. Выключите его, чтобы продолжить.</string>
     <string name="settings_orbot_notification_action">Открыть Orbot</string>
     <string name="settings_autostart_bootup_desc">Запустить Rethink при включении устройства, если он был запущен до выключения.</string>
     <string name="orbot_title">Orbot и прокси</string>
-    <string name="settings_import_export_heading">Резервное копирование и восстановление</string>
-    <string name="orbot_both_desc">Все вышеперечисленное.</string>
     <string name="orbot_stop_dialog_neutral">Изменить DNS</string>
     <string name="settings_https_desc">Направлять соединения на конечную точку HTTP(S) CONNECT.</string>
     <string name="orbot_status_arg_3">DNS и TCP</string>
@@ -734,24 +451,17 @@
     <string name="orbot_bs_status_trying_connect">Настройка Orbot…</string>
     <string name="settings_socks5_disabled_error">Подключен к %1$s. Выключите его, чтобы продолжить.</string>
     <string name="settings_check_update_desc">Автоматически проверять наличие обновлений приложения раз в неделю.</string>
-    <string name="settings_orbot_heading">Настройка Orbot</string>
     <string name="settings_autostart_bootup_heading">Автозапуск приложения при включении устройства (экспериментально)</string>
-    <string name="orbot_none_desc">Ничего из вышеперечисленного.</string>
     <string name="orbot_install_activity_error">Что-то пошло не так, попробуйте через некоторое время</string>
-    <string name="settings_orbot_header">Orbot\t❯</string>
-    <string name="settings_socks5_desc">Перенаправление соединений на конечную точку SOCKS5.</string>
     <string name="orbot_bs_status_3">Переадресация %1$s на Orbot, HTTP-прокси также установлен.</string>
-    <string name="settings_orbot_desc">Orbot в режиме без vpn с HTTPS/SOCKS5.</string>
     <string name="orbot_stop_dialog_message">Rethink прекратил перенаправлять соединения в Orbot, но Orbot может работать в фоновом режиме.</string>
     <string name="settings_network_all_networks">Использовать все доступные сети (экспериментально)</string>
-    <string name="orbot_http_desc">Создает туннель HTTP CONNECT в Orbot.</string>
     <string name="orbot_none">Нет (по умолчанию)</string>
     <string name="orbot_bs_status_1">Переадресация соединений %1$s на Orbot.</string>
     <string name="orbot_bs_status_2">HTTP-прокси установлен.</string>
     <string name="orbot_stop_dialog_negative">Остановить Orbot</string>
     <string name="settings_custom_downloader_heading">Использовать встроенный загрузчик</string>
     <string name="settings_custom_downloader_desc">Если отключено, используется встроенный в Android <i>Менеджер загрузок</i></string>
-    <string name="orbot_socks5_desc">Перенаправляет все TCP-соединения в Orbot.</string>
     <string name="orbot_both">TCP + HTTP Proxy</string>
     <string name="orbot_bs_status_4">Настройка Tor-as-a-Proxy (Orbot) в одно нажатие.</string>
     <string name="settings_orbot_disabled_error">Отключите HTTP(S) и/или SOCKS5 прокси, чтобы продолжить настройку Tor-as-a-proxy.</string>
@@ -764,32 +474,25 @@
     <string name="orbot_install_dialog_title">Установить Orbot\?</string>
     <string name="settings_socks5_vpn_disabled_error">Запустите Rethink, чтобы продолжить работу.</string>
     <string name="settings_orbot_notification_content">Сбой при запуске Tor-as-a-Proxy. Откройте приложение Orbot, чтобы запустить его вручную.</string>
-    <string name="settings_theme_dialog_themes_4">Настоящий черный</string>
     <string name="cd_custom_doh_url_name">DoH %1$s</string>
-    <string name="cd_custom_dns_proxy_title">Пользовательский DNS-прокси</string>
     <string name="cd_custom_dns_proxy_name">Прокси %1$s</string>
     <string name="cd_dns_proxy_mode_external">Внешний</string>
     <string name="cd_dns_proxy_error_text_1">Недействительный IP-адрес</string>
     <string name="cd_dns_proxy_error_text_2">Диапазон портов должен быть в пределах 1024-65535</string>
     <string name="cd_dns_proxy_error_text_3">Некорректный порт</string>
-    <string name="cd_dns_crypt_dialog_title">Добавление резолвера или ретранслятора DNSCrypt</string>
     <string name="cd_dns_crypt_name">DNSCrypt %1$s</string>
     <string name="cd_dns_crypt_relay_name">DNSRelay %1$s</string>
     <string name="cd_dns_crypt_dialog_heading">Добавление резолвера или ретранслятора DNSCrypt</string>
     <string name="cd_dns_crypt_resolver_heading">Резолвер</string>
     <string name="cd_dns_crypt_relay_heading">Ретранслятор</string>
     <string name="cd_dns_crypt_dialog_desc">Описание (необязательно)</string>
-    <string name="cd_dns_crypt_error_text_1">Штамп не может быть пустым</string>
     <string name="cd_doh_dialog_heading">Добавить DNS через HTTPS</string>
     <string name="cd_doh_dialog_resolver_name">Имя резолвера</string>
     <string name="cd_doh_dialog_resolver_url">URL-адрес резолвера</string>
     <string name="cd_dnscrypt_relay_heading">Ретрансляторы</string>
-    <string name="ct_ip_details">%1$s (%2$s)</string>
-    <string name="ct_ip_port">%1$s:%2$s</string>
     <string name="ctbs_app_info_not_available_toast">Страница настроек приложения не найдена</string>
     <string name="ctbs_app_other_apps">%1$s + %2$s другое приложение (приложения)</string>
     <string name="ctbs_dialog_negative_btn">Вернуться</string>
-    <string name="dns_log_dialog_positive">Удаление журналов</string>
     <string name="ctbs_block_other_apps">Правила, применяемые для %1$s, будут применимы и для %2$s других приложений</string>
     <string name="private_dns_dialog_positive">Перейти в настройки</string>
     <string name="private_dns_dialog_heading">Отключить приватный DNS</string>
@@ -801,17 +504,10 @@
     <string name="rbl_security_desc" description="The text appears as blocklists description in configure screen">Блокировка вредоносного ПО, фишинга, программ-вымогателей, криптософта и прочих угроз.</string>
     <string name="rbl_privacy_desc" description="The text appears as blocklists description in configure screen">Блокировка вредоносного ПО, привлекающего внимание, программ шпионов и программ-страшилок.</string>
     <string name="rsv_blocklist_count_text" description="This label will appear in rethink configure simple view screen which shows number of blocklists for each category">Списков блокировок: %1$s</string>
-    <string name="private_dns_error">Не удалось отправить настройки персонального DNS.</string>
     <string name="ada_delete_logs_dialog_title" description="Appears as dialog title to clear the logs in app specific screen">Очистить журналы</string>
     <string name="title_statistics">Статистика</string>
-    <string name="settings_locale_heading">Изменить язык</string>
-    <string name="settings_locale_desc">Выберите предпочтительный язык</string>
-    <string name="settings_biometeric_heading">Включить блокировку приложения</string>
-    <string name="settings_biometric_desc">Защитить это приложение с помощью блокировки экрана</string>
     <string name="hs_biometeric_title">Разблокировать Rethink</string>
     <string name="hs_biometeric_desc">Используйте биометрическую аутентификацию для разблокировки Rethink</string>
-    <string name="hs_biometeric_feature_not_supported">Биометрическая аутентификация не поддерживается или отключена на этом устройстве</string>
-    <string name="hs_biometeric_failed">Биометрическая аутентификация не прошла</string>
     <string name="hs_biometeric_error">Ошибка биометрической аутентификации</string>
     <string name="fapps_info_unmetered_msg">Разрешить / заблокировать работу через сети (Wi-Fi).</string>
     <string name="fapps_info_metered_msg">Разрешить/ запретить работу через мобильную сеть.</string>
@@ -826,7 +522,6 @@
     <string name="fapps_exclude_block_dialog_message">Исключить приложения из списка <i/> из DNS и брандмауэра\?</string>
     <string name="fapps_isolate_block_dialog_title">Изолировать приложения</string>
     <string name="fapps_isolate_block_dialog_message">Изолировать <i>перечисленные</i> приложения\?</string>
-    <string name="ci_trust_initial">T</string>
     <string name="ci_trust_rule">Доверять</string>
     <string name="ssv_app_network_activity_heading" description="This label will appear on the stats screen as a header for allowed apps." translatable="true">Самые разрешаемые приложения</string>
     <string name="ssv_app_blocked_heading" description="This label will appear on the stats screen as a header for blocked applications." translatable="true">Самые блокируемые приложения</string>
@@ -834,10 +529,7 @@
     <string name="ssv_most_blocked_domain_heading" description="This label will appear on the stats screen as a header for most blocked domains" translatable="true">Самые блокируемые домены</string>
     <string name="ssv_toast_start_rethink" description="This label will appear on the stats screen as toast to start Rethink app">Запустите Rethink, чтобы продолжить</string>
     <string name="ssv_see_more">Показать все</string>
-    <string name="settings_locale_dialog_title">Выберите предпочтительный язык</string>
-    <string name="settings_locale_dialog_neutral">Помогите перевести это приложение</string>
     <string name="ssv_most_blocked_ips_heading" description="This label will appear on the stats screen as a header for most blocked ips" translatable="true">Самые блокируемые IP</string>
-    <string name="ci_trust_txt">Доверенный</string>
     <string name="ssv_most_contacted_ips_heading" description="This label will appear on the stats screen as a header for most visited ips" translatable="true">Самые встречающиеся IP</string>
     <string name="firewall_rule_block_domain" translatable="true">Домен (приложение)</string>
     <string name="lbl_cancel" translatable="true">Отмена</string>
@@ -853,39 +545,25 @@
     <string name="lbl_domain" translatable="true">Домен</string>
     <string name="lbl_action_required" translatable="true">Требуется действие</string>
     <string name="lbl_ip_rules" translatable="true">IP-правила</string>
-    <string name="lbl_wildcard" translatable="true">Подстановочный знак</string>
     <string name="lbl_domain_rules" translatable="true">Правила домена</string>
     <string name="cd_no_rules_text" translatable="true">Нет правил домена.</string>
-    <string name="bsdl_block_desc" translatable="true">Блокировка, доверие к <u>этому домену</u></string>
     <string name="lbl_rules" translatable="true">Правила</string>
     <string name="lbl_configure" translatable="true">Настроить</string>
     <string name="lbl_logs" translatable="true">Журнал активности</string>
     <string name="bypass_dns_firewall" translatable="true">обход DNS и брандмауэра</string>
     <string name="bsct_block_domain" translatable="true">Блокировка, доверие <u>домену(ам)</u> для <u>этого приложения</u></string>
-    <string name="settings_pcap_dialog_option_1" translatable="true">Выкл. (по умолчанию)</string>
-    <string name="settings_pcap_dialog_option_2" translatable="true">Вывод в Logcat</string>
-    <string name="settings_pcap_dialog_option_3" translatable="true">Вывод в папку загрузок</string>
     <string name="firewall_status_bypass_dns_firewall" translatable="true">обходит правила DNS и брандмауэра</string>
-    <string name="firewall_card_universal_rules" translatable="true">%1$s универсальное(ых) правил(а)</string>
-    <string name="rules_card_domain_count" translatable="true">%1$s правил(а) домена</string>
-    <string name="logs_card_network_count" translatable="true">%1$s подключения(й)</string>
-    <string name="logs_card_dns_count" translatable="true">%1$s запроса(ов)</string>
-    <string name="hsf_packet_capture_chip_text" translatable="true">Захват пакетов включен</string>
-    <string name="hsf_packet_capture_chip_disabled_toast" translatable="true">Захват пакетов отключен</string>
     <string name="cd_dns_alg_heading" translatable="true">Расширенная фильтрация DNS (экспериментально)</string>
     <string name="firewall_rule_bypass_dns_firewall" translatable="true">Обходимое приложение</string>
     <string name="firewall_rule_domain_trusted_univ" translatable="true">Доверенный домен (Univ)</string>
     <string name="firewall_rule_dns_blocked_desc" translatable="true"><![CDATA[Это соединение было заблокировано, поскольку <i>домен</i> заблокирован предпочитаемым DNS.<br/><br/> Чтобы изменить это поведение, перейдите на вкладку <i>Настройка DNS</i>.]]></string>
     <string name="dc_setting_dns_cache_heading" translatable="true">Ускоритель DNS</string>
     <string name="dc_refresh_toast" translatable="true">Обновление завершено</string>
-    <string name="settings_pcap_heading" translatable="true">Захват пакетов</string>
     <string name="settings_general_customize" translatable="true">Персонализация</string>
     <string name="settings_lock_down_proxy_desc" translatable="true">Невозможно настроить прокси, когда VPN работает в режиме Только DNS.</string>
     <string name="settings_default_dns_heading" translatable="true">Выберите резервный DNS</string>
     <string name="fapps_bypass_dns_firewall_dialog_title" translatable="true">Обходить приложения</string>
     <string name="settings_default_dns_desc" translatable="true">В редких случаях, когда не удается определить предпочтительный DNS пользователя, используется резервный DNS.</string>
-    <string name="settings_pcap_dialog_title" translatable="true">PCAP</string>
-    <string name="pcap_failure_toast" translatable="true">Ошибка создания файла pcap, Попробуйте снова!</string>
     <string name="cd_dns_alg_desc" translatable="true">Назначение уникального IP-адреса на каждый DNS-запрос.</string>
     <string name="fapps_bypass_dns_firewall_dialog_message" translatable="true">Обходить универсальные правила DNS &amp; брандмауэра для <i>перечисленных</i> приложений\?</string>
     <string name="firewall_rule_dns_blocked" translatable="true">DNS заблокирован</string>
@@ -896,12 +574,9 @@
     <string name="firewall_rule_domain_blocked_univ_desc" translatable="true"><![CDATA[Это подключение было заблокировано, так как <i>домен</i> заблокирован в правилах универсального домена.<br/><br/> Чтобы изменить это поведение, перейдите на вкладку <i>Настройка DNS</i>.]]></string>
     <string name="ada_app_status_bypass_dns_firewall" translatable="true">будет обходить универсальные правила DNS и брандмауэра</string>
     <string name="ada_app_bypass_dns_firewall" translatable="true">Обход DNS и брандмауэра</string>
-    <string name="ada_app_firewall" translatable="true">Брандмауэр</string>
     <string name="brbs_backup_restore_desc" translatable="true">Не работает в разных версиях приложения</string>
-    <string name="lbl_maybe_blocked" translatable="true">Может быть заблокирован</string>
     <string name="lbl_network" translatable="true">Cеть</string>
     <string name="settings_allow_lan_heading" translatable="true">Не маршрутизировать частные IP-адреса (экспериментально)</string>
-    <string name="bypass_dns_firewall_tooltip">%1$s работает только с Rethink DNS</string>
     <string name="settings_allow_lan_desc" translatable="true">Исключить маршруты LAN, loopback, multicast, link-local из VPN-туннеля Rethink.</string>
     <string name="crypt_relay_france" translatable="true">Анонимный ретранслятор DNS от https://cryptostrom.is/, размещенный в Париже, Франция.</string>
     <string name="crypt_relay_sweden" translatable="true">Анонимный ретранслятор DNS от https://cryptostrom.is/, размещенный в Швеции.</string>
@@ -911,9 +586,7 @@
     <string name="lbl_wireguard" translatable="true">WireGuard</string>
     <string name="lbl_create" translatable="true">Создать</string>
     <string name="lbl_private_key" translatable="true">Приватный ключ</string>
-    <string name="lbl_include" translatable="true">Включить</string>
     <string name="lbl_day" translatable="true">день</string>
-    <string name="lbl_very" translatable="true">очень</string>
     <string name="lbl_hour" translatable="true">ч</string>
     <string name="lbl_preshared_key" translatable="true">Общий ключ</string>
     <string name="lbl_insecure" translatable="true">(ненадежно)</string>
@@ -929,7 +602,6 @@
     <string name="bad_config_reason_unknown_section" translatable="true">Неизвестная секция</string>
     <string name="bad_config_reason_syntax_error" translatable="true">Ошибка синтаксиса</string>
     <string name="bad_config_reason_unknown_attribute" translatable="true">Неизвестный атрибут</string>
-    <string name="key_length_error" translatable="true">Неправильная длина ключа</string>
     <string name="parse_error_inet_address" translatable="true">IP адрес</string>
     <string name="parse_error_inet_endpoint" translatable="true">Конечная точка</string>
     <string name="bad_config_explanation_udp_port" translatable="true">: Должен быть действительный номер порта UDP</string>
@@ -938,7 +610,6 @@
     <string name="parse_error_generic" translatable="true">строка</string>
     <string name="parse_error_reason" translatable="true">Невозможно разобрать %1$s “%2$s”</string>
     <string name="unknown_error" translatable="true">Неизвестная ошибка</string>
-    <string name="new_warp_invalid_config_toast" translatable="true">Некорректная конфигурация WARP</string>
     <string name="add_remove_apps" translatable="true">Добавить / Удалить приложения (%1$s)</string>
     <string name="add_peer" translatable="true">Добавить пир</string>
     <string name="config_delete_dialog_desc">Вы уверены, что хотите удалить данную конфигурацию\?</string>
@@ -955,13 +626,9 @@
     <string name="crypt_cleanbrowsing_family_desc" translatable="true">Блокирует доступ ко всем взрослым, порнографическим и откровенным сайтам. Он также блокирует домены VPN и прокси, которые используются для обхода этих фильтров. Сайты со смешанным контентом (такие как Reddit) также заблокированы. Google, Bing и Youtube настроены на безопасный режим.</string>
     <string name="crypt_adguard_desc" translatable="true">Защищает ваше устройство от вредоносного ПО и прочего.</string>
     <string name="lbl_qr_code" translatable="true">QR-код</string>
-    <string name="lbl_import" translatable="true">Импортировать</string>
     <string name="lbl_addresses" translatable="true">Адреса</string>
     <string name="lbl_dns_servers" translatable="true">DNS-серверы</string>
-    <string name="lbl_applications" translatable="true">Приложения</string>
     <string name="lbl_delete" translatable="true">Удалить</string>
-    <string name="lbl_generated" translatable="true">(сгенерирован)</string>
-    <string name="lbl_random" translatable="true">(случайно)</string>
     <string name="lbl_mtu" translatable="true">MTU</string>
     <string name="lbl_auto" translatable="true">(авто)</string>
     <string name="lbl_listen_port" translatable="true">Слушать порт</string>
@@ -977,23 +644,16 @@
     <string name="lbl_sec" translatable="true">сек</string>
     <string name="lbl_min" translatable="true">мин</string>
     <string name="lbl_persistent_keepalive" translatable="true">Постоянно активированный</string>
-    <string name="status_protected_with_wg" translatable="true">Защищено с помощью Wireguard</string>
-    <string name="status_protected_with_wg_private_dns" translatable="true">защищено wireguard &amp; частный dns</string>
     <string name="search_proxy_add_apps" translatable="true">Поиск приложений по названию</string>
     <string name="public_key_copy_toast_msg" translatable="true">Публичный ключ скопирован.</string>
-    <string name="logs_disclaimer" translatable="true">Показать первые 20,000 символов</string>
     <string name="cd_doh_dialog_checkbox_desc" translatable="true">Не проверять TLS-сертификаты сервера (включайте только если знаете, что делаете)</string>
     <string name="app_ip_domain_rules" translatable="true">IP на каждое приложение / Правила домена</string>
     <string name="univ_firewall_heading" translatable="true">Универсальные правила брандмауэра</string>
     <string name="app_ip_domain_rules_desc" translatable="true">Изменение IP для каждого приложения / Правил домена.</string>
     <string name="firewall_rule_proxied" translatable="true">Проксировано</string>
     <string name="firewall_rule_proxied_desc" translatable="true"><![CDATA[Это соединение было перенаправлено на выбранный пользователем Proxy.<br/><br/> Чтобы изменить зайдите в <i>Proxy</i> из меню <i>Настроить</i>.]]></string>
-    <string name="cd_deleted_toast" translatable="true">Все правила домена были удалены</string>
     <string name="ssv_most_contacted_countries_heading" description="This label will appear on the stats screen as a header for most visited domains by country" translatable="true">Большинство связываемых стран</string>
-    <string name="ssv_most_blocked_countries_heading" description="This label will appear on the stats screen as a header for most blocked domains by country" translatable="true">Большинство заблокированных стран</string>
     <string name="key_length_explanation_base64" translatable="true">: Ключи WireGuard в base64 должны иметь 44 символа (32 байта)</string>
-    <string name="key_length_explanation_binary" translatable="true">: Ключи WireGuard должны занимать 32 байта</string>
-    <string name="key_length_explanation_hex" translatable="true">: Ключи WireGuard в hex должны иметь 64 символа (32 байта)</string>
     <string name="key_contents_error" translatable="true">Неподдерживаемые символы в ключе</string>
     <string name="parse_error_inet_network" translatable="true">Сеть IP</string>
     <string name="parse_error_integer" translatable="true">номер</string>
@@ -1007,13 +667,7 @@
     <string name="setup_wireguard" translatable="true">Настройка WireGuard</string>
     <string name="bad_config_context" translatable="true">%1$s: %2$s</string>
     <string name="wireguard_description" translatable="true">WireGuard как прокси.</string>
-    <string name="new_warp_config_desc" translatable="true">Получить конфигурацию WARP от сервера</string>
-    <string name="new_warp_error_toast" translatable="true">Получить конфигурацию WARP не удалось</string>
-    <string name="include_all_app_wg_dialog_desc">Проводить все приложения через этот туннель\?</string>
     <string name="config_add_success_toast">Конфигурация добавлена</string>
-    <string name="include_all_app_wg_dialog_title">Включить все приложения</string>
-    <string name="exclude_all_app_wg_dialog_title">Исключить все приложения</string>
-    <string name="exclude_all_app_wg_dialog_desc">Исключить все приложения из этого туннеля\?</string>
     <string name="cloudflare_security_dns_desc" translatable="true">Блокирует вредоносный контент. В конечной точке используется DNS 1.1.1.2 от Cloudflare.</string>
     <string name="google_dns_desc" translatable="true">Не блокирует никакие DNS-запросы. В конечной точке используется DNS от Google.</string>
     <string name="crypt_adguard_family_desc" translatable="true">Adguard DNS с безопасным поиском и блокировкой взрослого контента.</string>
@@ -1021,14 +675,9 @@
     <string name="crypt_quad9_desc" translatable="true">Quad9 (произвольная передача) без–dnssec/без–журналов/без–фильтров/ecs 9.9.9.12 – 149.112.112.12</string>
     <string name="crypt_relay_netherlands" translatable="true">Анонимный ретранслятор DNS, размещенный в Нидерландах</string>
     <string name="http_proxy_dialog_desc" translatable="true">Настройка URL формы, &lt;протокол&gt;://&lt;логин&gt;:&lt;пароль&gt;@&lt;домен-или-ip&gt;:&lt;порт&gt;&lt;путь&gt;. Пример: http://proxy.example.com:8080/</string>
-    <string name="settings_go_log_desc" translatable="true">Для целей отладки</string>
-    <string name="settings_go_log_heading" translatable="true">Уровень журнала активности</string>
     <string name="logs_card_duration" translatable="true">с %1$s</string>
-    <string name="settings_app_notification_persistent_desc" translatable="true">Сделать уведомление постоянным</string>
-    <string name="settings_app_notification_persistent_heading" translatable="true">Постоянное уведомление</string>
     <string name="dot_custom_url_remove_dialog_title" translatable="true">Удалить конечную точку DoT?</string>
     <string name="dot_custom_url_remove_dialog_message" translatable="true">Удалить DNS через конечную точку TLS из сохраненной конфигурации.</string>
-    <string name="lbl_cache" translatable="true">Кеш</string>
     <string name="lbl_status" translatable="true">Статус</string>
     <string name="lbl_remove" translatable="true">Удалить</string>
     <string name="lbl_last" translatable="true">Последний</string>
@@ -1045,65 +694,30 @@
     <string name="lbl_idle" translatable="true">Холостой ход</string>
     <string name="lbl_peer" translatable="true">Участник</string>
     <string name="lbl_split" translatable="true">Раздельно</string>
-    <string name="lbl_on_device" translatable="true">на-устройстве</string>
     <string name="settings_connectivity_checks" translatable="true">Сделать проверку соединения</string>
-    <string name="settings_rinr_desc_disabled" translatable="true">Маршрутизировать собственный трифик Rethink, такой как скачивание списков блокировки, проверки соединения, DNS подключения, обратно в тунель.</string>
-    <string name="settings_rinr_heading" translatable="true">Loopback (экспериментальный)</string>
     <string name="settings_connectivity_checks_desc" translatable="true">Проверки подключений отправляются для определения достижимости.</string>
-    <string name="settings_rinr_desc_enabled" translatable="true">Маршрутизация собственного трафика через туннель. Если вы не знаете что делаете, выключите его.</string>
-    <string name="settings_rinr_dialog_desc" translatable="true">Также включает настройку <!--settings_network_all_networks--> %1$s Вы хотите продолжить?</string>
-    <string name="settings_rinr_dialog_title" translatable="true">Loopback (экспериментальный)</string>
-    <string name="cd_dialog_edit_title" translatable="true">Изменить правило домена</string>
     <string name="one_wg_apps_added" translatable="true">Маршрутизация всех приложений</string>
     <string name="cd_toast_edit" translatable="true">Отредактировано</string>
     <string name="dc_proxy_dns_desc" translatable="true">Не проксировать DNS поверх Всегда-Включённый WireGuard, SOCKS5, HTTP прокси.</string>
     <string name="dc_proxy_dns_heading" translatable="true">Новее прокси DNS</string>
-    <string name="one_wg_dialog_desc" translatable="true">Все соединения из всех приложений, включая DNS, будут направлены на единственный, активный WireGuard VPN. Другие активные WireGuard VPN, если таковые имеются, будут остановлены.</string>
     <string name="catch_all_wg_dialog_title" translatable="true">Всегда-Включено</string>
     <string name="catch_all_wg_dialog_desc" translatable="true">Все соединения и приложения, не маршрутизируемые другими WireGuard VPN будут маршрутизированы этим.</string>
-    <string name="one_wg_error_toast" translatable="true">Чтобы переключится в Расширенный, остановите WireGuard в Простом режиме</string>
     <string name="routing_remaining_apps" translatable="true">Маршрутизация оставшихся приложений</string>
     <string name="wireguard_disable_failure" translatable="true">«Всегда-Включённый WireGuard» нельзя отключить</string>
-    <string name="wg_apps_dialog_title_include" translatable="true">Включая приложения %1$s</string>
     <string name="wireguard_apps_proxy_map_desc" translatable="true">часть %1$s</string>
-    <string name="wg_apps_dialog_title_exclude" translatable="true">Исключить приложения %1$s</string>
     <string name="wireguard_disable_title" translatable="true">Остановить WireGuard</string>
-    <string name="remaining_apps_dialog_title" translatable="true">Включая остальные приложения</string>
-    <string name="lbl_remaining_apps" translatable="true">Оставшиеся приложения</string>
     <string name="wireguard_disable_message" translatable="true">Остановите все активные WireGuard VPN?</string>
-    <string name="remaining_apps_dialog_desc" translatable="true">Включите все остальные приложения не маршрутизируемые другим Прокси</string>
-    <string name="lbl_battery_optimization" translatable="true">Оптимизация батареи</string>
-    <string name="battery_optimization_dialog_heading" translatable="true">Отключить %1$s</string>
     <string name="settings_exclude_proxy_apps_heading" translatable="true">Приложения для переадресации прокси-серверов с обратной связью</string>
     <string name="settings_exclude_proxy_apps_desc" translatable="true">Когда этот параметр отключен, приложения для пересылки прокси-серверов (SOCKS5, HTTP, DNS) исключаются из VPN-туннеля Rethink.</string>
     <string name="exclude_apps_from_proxy">Обход приложения со всех прокси-серверов</string>
     <string name="exclude_apps_from_proxy_failure_toast">Это приложение обходит прокси-серверы</string>
-    <string name="lbl_notification" translatable="true">уведомление</string>
     <string name="memory_notification_text">Rethink испытывает нехватку памяти. Системные действия могут быть ограничены.</string>
-    <string name="restrict_dialog_message" translatable="true"><i>%1$s</i> может привести к потере подключения. Измените настройки, чтобы разрешить Rethink использовать данные и другие ресурсы в фоновом режиме.</string>
     <string name="lbl_unselected" translatable="true">Невыбранный</string>
     <string name="lbl_test" translatable="true">тест</string>
-    <string name="lbl_protos" translatable="true">протос</string>
     <string name="lbl_experimental" translatable="true">(эксперементально)</string>
-    <string name="lbl_hop" translatable="true">Релеи</string>
     <string name="lbl_manual" translatable="true">Вручную</string>
-    <string name="wireguard_title" translatable="true">Безопасный Интернет с WireGuard</string>
-    <string name="wireguard_desc" translatable="true">Зашифруйте свой интернет-трафик с WireGuard. Выберите различные маршруты для различных приложений.</string>
-    <string name="firewall_title" translatable="true">Защитите свой Android с помощью Firewall</string>
-    <string name="firewall_desc" translatable="true">Контролируйте использование интернета вашими приложениями; ограничивайте соединения по приложению или сетевой активности.</string>
-    <string name="dns_title" translatable="true">Блокируйте рекламу и вредоносы с помощью DNS</string>
     <string name="dns_desc" translatable="true">Выбирайте из 190+ списков, чтобы остановить рекламу, трекеры и вредоносное ПО.</string>
     <string name="status_no_network" translatable="true">нет подключения к сети</string>
-    <string name="settings_mobile_metered_heading" translatable="true">измерить мобильные сети</string>
-    <string name="settings_mobile_metered_desc" translatable="true">Рассматривайте мобильные сети только как платные, остальные - как не платные.</string>
-    <string name="settings_theme_dialog_themes_5" translatable="true">светлая plus</string>
-    <string name="settings_theme_dialog_themes_6" translatable="true">тёмная plus</string>
-    <string name="settings_biometric_dialog_heading" translatable="true">Биометрическая аутентификация</string>
-    <string name="settings_biometric_dialog_option_0" translatable="true">нет</string>
-    <string name="settings_biometric_dialog_option_1" translatable="true">Немедленно</string>
-    <string name="settings_biometric_dialog_option_2" translatable="true">через 5 минут</string>
-    <string name="settings_biometric_dialog_option_3" translatable="true">Через 15 минут</string>
-    <string name="sponser_dialog_usage_msg" translatable="true">Вы используете Rethink в течение <b>%1$s дней</b>, что означает затраты на использование <b>$%2$s</b>. Рассматриваете ли вы возможность спонсирования для поддержания его развития?</string>
     <string name="dc_use_sys_dns_undelegated_heading" translatable="true">Использовать системный DNS для неделегированных доменов</string>
     <string name="dc_use_sys_dns_undelegated_desc" translatable="true">Использовать системный DNS для неделегированных доменов, таких как <i>.lan</i>, <i>.internal</i> и т. д.</string>
     <string name="dc_filtering_heading" translatable="true">Фильтрация</string>
@@ -1111,7 +725,6 @@
     <string name="cd_split_dns_desc" translatable="true">Перенаправляйте DNS-запросы из прокси-приложений на DNS-серверы прокси-сервера.</string>
     <string name="cd_treat_dns_rules_firewall_heading" translatable="true">Относитесь к правилам DNS как к правилам брандмауэра (экспериментально)</string>
     <string name="cd_treat_dns_rules_firewall_desc" translatable="true">Блокировка DNS будет обойдена во время разрешения; решение будет принято во время подключения.</string>
-    <string name="univ_firewall_rule_11" translatable="true">Блокировка всех локальных подключений</string>
     <string name="firewall_rule_private_dns" translatable="true">приватный DNS</string>
     <string name="firewall_rule_bypass_proxy" translatable="true">Обход прокси</string>
     <string name="firewall_rule_paused_app" translatable="true">Приложение поставлено на паузу</string>
@@ -1123,17 +736,8 @@
     <string name="wireguard_disable_failure_relay" translatable="true">\"Relay WireGuard\" нельзя отключить</string>
     <string name="config_invalid_desc" translatable="true">Неверная конфигурация WireGuard</string>
     <string name="console_log_title" translatable="true">Журналы приложения</string>
-    <string name="console_log_desc" translatable="true">Журналы могут содержать конфиденциальную информацию.</string>
-    <string name="do_not_randomize_listen_port_title" translatable="true">Не рандомизируйте прослушиваемый порт WireGuard</string>
-    <string name="do_not_randomize_listen_port_desc" translatable="true">Держите порты прослушивания WireGuard фиксированными (без рандомизации) в расширенном режиме.</string>
-    <string name="endpoint_independent_mapping_title" translatable="true">Сопоставление, не зависящее от конечных точек</string>
-    <string name="endpoint_independent_mapping_desc" translatable="true">Когда включён, Сскеты UDP поддерживают фиксированный адрес и порт для всех пунктов назначения.</string>
     <string name="anti_censorship_title" translatable="true">Антицензура</string>
     <string name="anti_censorship_desc" translatable="true">Выбирайте из различных методов антицензуры.</string>
-    <string name="tcp_keep_alive_title" translatable="true">Более короткий TCP keep alive</string>
-    <string name="tcp_keep_alive_desc" translatable="true">Быстро закрывать TCP-сокеты без какой-либо активности в последнее время.</string>
-    <string name="ac_title" translatable="true">антицензура</string>
-    <string name="ac_desc" translatable="true">Инструменты антицензуры могут обеспечить свободу в интернете, но они могут работать не везде. Используется только при подключению не через прокси.</string>
     <string name="ac_never_split_desc" translatable="true">Не изменять пакеты.</string>
     <string name="ac_split_auto_desc" translatable="true">При необходимости изменять пакеты.</string>
     <string name="ac_split_tcp" translatable="true">TCP</string>
@@ -1150,14 +754,9 @@
     <string name="ac_retry_options_after_split_desc" translatable="true">Всегда применяйте методы антицензуры.</string>
     <string name="ac_toast_retry_disabled" translatable="true">Выберите любой вариант антицензуры, чтобы выбрать стратегию.</string>
     <string name="exclude_no_package_err_toast" translatable="true">Для исключения приложений требуется имя пакета.</string>
-    <string name="hop_error_toast_msg_1" translatable="true">Не удается ретранслировать, уже %1$s</string>
     <string name="hop_error_toast_msg_2" translatable="true">WireGuard не доступен для relay; пожалуйста добавьте больше.</string>
-    <string name="mode_change_error_proxy_enabled" translatable="true">Невозможно изменить режимы при использовании прокси. Нажмите, чтобы <u>изменить настройки прокси</u>.</string>
     <string name="blocklist_not_available_toast" translatable="true">Чтобы обновить черные списки, скачайте последнюю версию приложения.</string>
     <string name="lbl_ultra_secure" translatable="true">Ультра безопасный</string>
-    <string name="adv_set_dial_timeout_title" translatable="true">Тайм-аут простоя</string>
-    <string name="adv_set_dial_timeout_desc" translatable="true">Закройте простаивающие сокеты TCP и UDP по истечении этого времени.</string>
-    <string name="no_stats_available" translatable="true">Нет статистики</string>
     <string name="hop_failure_toast" translatable="true">ошибка relay: %1$s -&gt; %2$s</string>
     <string name="wg_setting_use_on_mobile" translatable="true">только мобильный</string>
     <string name="wg_setting_use_on_mobile_desc" translatable="true">Использовать этот VPN WireGuard только при передаче по мобильной связи.</string>
@@ -1166,31 +765,19 @@
     <string name="bypasses_network_restrictions" translatable="true">Проверки доступности обходят все сетевые ограничения. В режиме <i>Авто</i> Rethink случайным образом использует ранее подключенные IP-адреса и имена хостов.</string>
     <string name="most_contacted_asn" translatable="true">Самые соеденяемые провайдеры</string>
     <string name="most_blocked_asn" translatable="true">Самые блокируемые провайдеры</string>
-    <string name="adv_tasker_dialog_msg" translatable="true">Введите имена пакетов (через запятую), которым разрешено запускать или остановливать Rethink.</string>
-    <string name="adv_tasker_dialog_instructions" translatable="true">Инструкции:\n Обязательные дополнительные услуги в трансляции:\n • keK: sender\n • Value: имя пакета вызывающего приложения.\n\n Пример: key:sender value:com.termux\n\n Поддерживаемые действия:\n • Запустить VPN – com.bernaferrari.bravedns.intent.action.VPN_START\n • Остановить VPN – com.bernaferrari.bravedns.intent.action.VPN_STOP</string>
-    <string name="adv_tasker_dialog_edit_hint" translatable="true">Введите имя пакета (пример: net.dinglisch.android.taskerm)</string>
     <string name="download_ip_info_title" translatable="true">Показать информацию о провайдере</string>
     <string name="download_ip_info_desc" translatable="true">Получает данные провайдеров для веб-сайтов с сайта <i>rethinkdns.com</i>, работающего на <i>%1$s</i></string>
-    <string name="adv_taster_title" translatable="true">Автоматизация</string>
-    <string name="adv_taster_desc" translatable="true">Настройте приложения, которые могут запускать или останавливать Rethink.</string>
     <string name="top_active_conns" translatable="true">Самые активные соеденения</string>
-    <string name="load_more" translatable="true">Загрузить все</string>
     <string name="close_conns_dialog_title" translatable="true">закрыть соеденения</string>
     <string name="close_conns_dialog_desc" translatable="true">Закрыть все соединения за %1$s?</string>
     <string name="local_blocklist_delete_desc" translatable="true">Удалить черные списки на устройстве?</string>
     <string name="fail_open_network_title" translatable="true">Останавливать при потере сети</string>
     <string name="fail_open_network_desc" translatable="true">Когда включено, Rethink блокирует все данные при отсутствии подключения, как в режиме <i> В самолёте</i>.</string>
     <string name="about_license" translatable="true">Лицензировано под Apache-2.0</string>
-    <string name="close_all" translatable="true">Закрыть все</string>
     <string name="smart_dns" translatable="true">Умный DNS</string>
-    <string name="processing_dialog_title" translatable="true">Обработка</string>
-    <string name="processing_dialog_desc" translatable="true">Пожалуйста, подождите, пока мы обработаем ваш запрос.</string>
     <string name="smart_dns_desc" translatable="true"><i>Smart DNS</i> случайным образом использует любой из этих DNS-преобразователей:</string>
     <string name="lbl_service_providers" translatable="true">Поставщик услуг</string>
     <string name="hop_error_toast_msg_3" translatable="true">Отключить \"Только мобильный\" или SSID, чтобы использовать релеи</string>
-    <string name="wg_mobile_only_hop_err" translatable="true">Режим «Только мобильный» не поддерживается для релеев</string>
-    <string name="univ_delete_domain_dialog_title" translatable="true">Удалить все Правила домена?</string>
-    <string name="univ_delete_domain_dialog_message" translatable="true">Удаление этих правил позволит любому приложению подключиться к заблокированным доменам.</string>
     <string name="vpn_policy_auto_desc" translatable="true">Реагирует на важные изменения сети и подключения.</string>
     <string name="vpn_policy_sensitive" translatable="true">Чувствительно</string>
     <string name="vpn_policy_sensitive_desc" translatable="true">Реагирует на все изменения сети и подключения.</string>
@@ -1202,13 +789,9 @@
     <string name="vpn_policy_relaxed" translatable="true">Расслабленный</string>
     <string name="title_database_dump" translatable="true">База данных</string>
     <string name="copied_clipboard" translatable="true">Скопировано</string>
-    <string name="conn_track_clear_rule_logs_title" translatable="true">Удалить журнал для этого правила?</string>
-    <string name="conn_track_clear_rule_logs_message" translatable="true">Это приведет к удалению только сетевых журналов для текущего правила фаервола. Эта операция необратима. Продолжить?</string>
-    <string name="lbl_default" translatable="true">По умолчанию</string>
     <string name="lbl_action" translatable="true">Действие</string>
     <string name="lbl_connect" translatable="true">Подключить</string>
     <string name="lbl_criteria" translatable="true">Критерии</string>
-    <string name="settings_theme_dialog_themes_7" translatable="true">Холод</string>
     <string name="firewall_rule_proxy_error" translatable="true">Ошибка прокси</string>
     <string name="firewall_rule_proxy_error_desc" translatable="true"><![CDATA[Подключение былл заблокировано потому чтот <i>прокси</i> не выбрано для этого приложения.<br/><br/> Что-бы изменить идите в <i>Прокси</i> из экрана <i>Конфигурация</i> .]]></string>
     <string name="vpn_policy_fixed" translatable="true">Консервативное</string>
@@ -1217,28 +800,19 @@
     <string name="wg_setting_ssid_desc" translatable="true">Использовать этот VPN WireGuard только при подключении к Wi-Fi или указанным сетям Wi-Fi (%1$s).</string>
     <string name="ssid_permission_explanation" translatable="true">Для Rethink нужно разрешение местоположения чтобы видеть названия Wi-Fi сетей (%1$s).</string>
     <string name="location_enable_explanation" translatable="true">Чтобы узнать названия Wi-Fi сетей (%1$s), включите службу определения местоположения.</string>
-    <string name="ssid_location_error" translatable="true">Включить службу определения местоположения</string>
-    <string name="ssid_permission_error_action" translatable="true">Позволить</string>
-    <string name="ssid_location_error_action" translatable="true">Включить определение местоположения</string>
-    <string name="wg_ssid_and_mobile_err" translatable="true">Нельзя использовать сразу оба %1$s и %2$s</string>
     <string name="wg_ssid_dialog_description" translatable="true"><i>Включено</i> когда сеть Wi-Fi (%2$s) равен %3$s, тогда этот VPN WireGuard %1$s.</string>
-    <string name="wg_ssid_input_hint" translatable="true">Введите название сети Wi-Fi (%1$s)</string>
     <string name="wg_ssid_type_exact" translatable="true">Точно</string>
     <string name="wg_ssid_type_wildcard" translatable="true">Частично</string>
     <string name="wg_ssid_invalid_error" translatable="true">Идентификаторы Wi-Fi (%1$s) должны быть до 32 символов.</string>
-    <string name="wg_ssid_delete_confirmation" translatable="true">Удалить %1$s?</string>
     <string name="settings_firebase_error_reporting_heading" translatable="true">Программа стабилизации</string>
     <string name="settings_firebase_error_reporting_desc" translatable="true">Отправлять журнал ошибок чтобы помочь улучшить стабильность приложения.</string>
     <string name="tombstone_app_title" translatable="true">Запоминать удалённые программы</string>
     <string name="tombstone_app_desc" translatable="true">Если включено, сохраняет правила приложений ещё 7 дней.</string>
-    <string name="settings_locale_dialog_default" translatable="true">Как в системе</string>
     <string name="settings_allow_incoming_wg_packets" translatable="true">WireGuard P2P (напрямую между участниками)</string>
     <string name="settings_allow_incoming_wg_packets_desc" translatable="true">Если включено, пропускает входящие подключения от клиентов Wireguard.</string>
     <string name="lockdown_download_message" translatable="true">Встроенный в Android <i>Менеджер Загрузок</i> может не работать, если VPN настроен в режиме <i>Блокировки</i>. Использовать собственный менеджер загрузок Rethink?</string>
     <string name="lockdown_download_enable_inapp" translatable="true">Включить Менеджер Загрузок</string>
     <string name="settings_jumbo_packets" translatable="true">Расширение пропускной способности</string>
     <string name="settings_jumbo_packets_desc" translatable="true">Использовать <i>jumbo-фреймы</i> внутри VPN-туннеля Rethink.</string>
-    <string name="settings_tunnel_metered" translatable="true">Всегда лимитированное</string>
     <string name="stability_program_toast" translatable="true">Теперь вы участник <i>программы тестирования</i><i> экспериментальных функций</i>.</string>
-    <string name="settings_tunnel_metered_desc" translatable="true">Обозначать VPN-туннель Rethink как лимитированное подключение, чтобы сократить трафик от приложений. Внимание: может привести к проблемам с загрузкой больших файлов, таких как резервные копии.</string>
 </resources>

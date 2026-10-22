@@ -3,6 +3,10 @@
 
 package com.bernaferrari.bravedns.ui.compose.statistics
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import com.bernaferrari.bravedns.ui.compose.common.RethinkLoadingState
+import androidx.compose.ui.unit.dp
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.foundation.background
@@ -23,15 +27,12 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -53,6 +54,9 @@ import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
+
+private val ShareBarWidth = 48.dp
+private val ShareBarHeight = 4.dp
 
 enum class RethinkStatisticsWindow { OneHour, TwentyFourHours, SevenDays }
 
@@ -206,8 +210,8 @@ private fun RethinkSummaryStatisticsSectionCard(
     Column {
         SectionHeader(title = section.title, color = section.accentColor)
         when {
-            section.isLoading && section.rows.isEmpty() -> RethinkSummaryLoadingCard()
-            section.rows.isEmpty() -> RethinkSummaryEmptyCard(strings.noLogs)
+            section.isLoading && section.rows.isEmpty() -> RethinkLoadingState(label = "", contained = true)
+            section.rows.isEmpty() -> RethinkEmptyState(icon = MaterialSymbols.Filled.Info, title = strings.noLogs, message = "", contained = true)
             else -> RethinkListGroup {
                 displayedRows.forEachIndexed { index, row ->
                     val isExpanded = expandedCountryId == row.id
@@ -235,11 +239,6 @@ private fun RethinkSummaryStatisticsSectionCard(
                             }
                             else -> row.leadingContent
                         },
-                        leadingIconContainerColor = if (!row.countryFlag.isNullOrBlank()) {
-                            MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.32f)
-                        } else {
-                            section.accentColor.copy(alpha = 0.14f)
-                        },
                         position = cardPositionFor(index, displayedRows.lastIndex),
                         showTrailingChevron = false,
                         onClick = if (!row.countryFlag.isNullOrBlank()) {
@@ -251,12 +250,12 @@ private fun RethinkSummaryStatisticsSectionCard(
                                 if (!row.countryFlag.isNullOrBlank()) {
                                     Spacer(Modifier.size(SharedDimensions.spacingXs))
                                     val chevronRotation by animateFloatAsState(
-                                        targetValue = if (isExpanded) 90f else 0f,
+                                        targetValue = if (isExpanded) 180f else 0f,
                                         animationSpec = if (LocalRethinkMotion.current.reducedMotion) snap() else MaterialTheme.motionScheme.fastSpatialSpec(),
                                         label = "country_chevron",
                                     )
                                     Icon(
-                                        MaterialSymbols.AutoMirrored.Filled.KeyboardArrowRight,
+                                        MaterialSymbols.Filled.KeyboardArrowDown,
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                         modifier = Modifier.size(SharedDimensions.iconSizeSm).rotate(chevronRotation),
@@ -318,8 +317,8 @@ private fun RethinkStatisticsMetric(metric: String, share: Float?, accentColor: 
             Box(
                 Modifier
                     .padding(top = SharedDimensions.spacingXs)
-                    .width(SharedDimensions.iconContainerLg)
-                    .height(SharedDimensions.tabIndicatorHeight)
+                    .width(ShareBarWidth)
+                    .height(ShareBarHeight)
                     .clip(CircleShape)
                     .background(accentColor.copy(alpha = SHARE_TRACK_ALPHA)),
                 contentAlignment = Alignment.CenterEnd,
@@ -342,33 +341,6 @@ private const val SHARE_TRACK_ALPHA = 0.24f
 /** Keeps a tiny-but-nonzero share visible as a dot instead of vanishing. */
 private const val MIN_VISIBLE_SHARE = 0.08f
 
-@Composable
-private fun RethinkSummaryLoadingCard() {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.groupCornerRadius),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-    ) {
-        Box(Modifier.fillMaxWidth().padding(SharedDimensions.spacingLg), contentAlignment = Alignment.Center) {
-            LoadingIndicator()
-        }
-    }
-}
-
-@Composable
-private fun RethinkSummaryEmptyCard(message: String) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.groupCornerRadius),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-    ) {
-        RethinkEmptyState(
-            icon = MaterialSymbols.Filled.Info,
-            title = message,
-            message = "",
-        )
-    }
-}
 
 /** Shared expanded country detail. Hosts own the query and app artwork, not its visual hierarchy. */
 @Composable

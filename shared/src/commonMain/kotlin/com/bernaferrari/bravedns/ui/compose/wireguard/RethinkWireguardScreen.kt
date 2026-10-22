@@ -125,7 +125,7 @@ fun <T> RethinkWireguardScreen(
                             end = SharedDimensions.screenPaddingHorizontal,
                             top = SharedDimensions.spacingSm,
                             // Clear the docked FAB so the last card is never hidden under it.
-                            bottom = SharedDimensions.buttonHeightLg + SharedDimensions.spacing2xl + bottomInset,
+                            bottom = SharedDimensions.fabClearance + bottomInset,
                         ),
                     ) {
                         items(configs.itemCount) { index ->

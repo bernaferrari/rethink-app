@@ -43,25 +43,16 @@ fun SectionHeader(
     horizontalPadding: Dp = SharedDimensions.spacingNone,
     actionLabel: String? = null,
     onAction: (() -> Unit)? = null,
-) {
-    Row(
-        modifier = modifier.fillMaxWidth().padding(start = horizontalPadding, end = horizontalPadding, top = SharedDimensions.spacingMd, bottom = SharedDimensions.spacingSm),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            title,
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Medium,
-            color = color,
-        )
-        if (actionLabel != null && onAction != null) {
-            TextButton(onClick = onAction, contentPadding = PaddingValues(horizontal = SharedDimensions.spacingSm, vertical = 0.dp)) {
-                Text(actionLabel, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold, color = color, letterSpacing = 0.1.sp)
-            }
-        }
-    }
-}
+    trailing: (@Composable () -> Unit)? = null,
+) = SectionHeaderWithSubtitle(
+    modifier = modifier,
+    title = title,
+    color = color,
+    horizontalPadding = horizontalPadding,
+    actionLabel = actionLabel,
+    onAction = onAction,
+    trailing = trailing,
+)
 
 @Composable
 fun SectionHeaderWithSubtitle(
@@ -72,6 +63,8 @@ fun SectionHeaderWithSubtitle(
     horizontalPadding: Dp = SharedDimensions.spacingNone,
     actionLabel: String? = null,
     onAction: (() -> Unit)? = null,
+    /** Quiet trailing content (a count, a status) in place of or beside the action. */
+    trailing: (@Composable () -> Unit)? = null,
 ) {
     Column(modifier = modifier.fillMaxWidth().padding(start = horizontalPadding, end = horizontalPadding, top = SharedDimensions.spacingMd, bottom = SharedDimensions.spacingSm)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -80,7 +73,9 @@ fun SectionHeaderWithSubtitle(
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Medium,
                 color = color,
+                modifier = Modifier.weight(1f, fill = false),
             )
+            trailing?.invoke()
             if (actionLabel != null && onAction != null) {
                 TextButton(onClick = onAction, contentPadding = PaddingValues(horizontal = SharedDimensions.spacingSm, vertical = 0.dp)) {
                     Text(actionLabel, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold, color = color, letterSpacing = 0.1.sp)

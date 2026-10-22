@@ -53,7 +53,7 @@ data class RethinkWireguardHopPickerStrings(
     val amnezia: String,
     val hopSource: String,
     val alreadyHop: String,
-    val empty: String = "No hops available",
+    val empty: String,
 )
 
 /** Result of a platform-owned hop test and persistence operation. */

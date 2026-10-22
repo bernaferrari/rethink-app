@@ -3,35 +3,29 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.dns
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillDefaults
-import androidx.compose.ui.semantics.Role
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceOption
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConnectedChoiceGroup
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormSection
@@ -40,6 +34,11 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkModalBottomSheet
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkCheckboxListItem
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkSheetHeader
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 
 data class RethinkDnsRecordType(val id: String, val name: String, val description: String)
 
@@ -87,19 +86,14 @@ fun RethinkDnsRecordTypesSheet(
                 ) {
                     itemsIndexed(types, key = { _, type -> type.id }) { index, type ->
                         val checked = type.id in selectedIds
-                        // Sheets sit on surfaceContainerLow; rows step up one tone to stay visible.
-                        RethinkListItem(
+                        RethinkCheckboxListItem(
                             headline = type.name,
+                            checked = checked,
+                            onCheckedChange = { if (!autoMode) onToggle(type.id) },
                             supporting = type.description,
                             position = cardPositionFor(index, types.lastIndex),
                             enabled = !autoMode,
                             highlighted = checked && !autoMode,
-                            selection = RethinkListSelection(checked = checked, role = Role.Checkbox) { if (!autoMode) onToggle(type.id) },
-                            trailing = {
-                                Box(Modifier.width(SharedDimensions.touchTargetMin), contentAlignment = Alignment.CenterEnd) {
-                                    Checkbox(checked = checked, enabled = !autoMode, onCheckedChange = null)
-                                }
-                            },
                         )
                     }
                 }
@@ -137,6 +131,8 @@ data class RethinkLocalBlocklistStrings(
     val download: String,
     val redownload: String,
     val delete: String,
+    val deleteMessage: String,
+    val cancel: String,
 )
 
 /** Shared local-blocklist maintenance sheet; downloads, clipboard and browser actions remain host-owned. */
@@ -154,18 +150,30 @@ fun RethinkLocalBlocklistSheet(
     onRedownload: () -> Unit,
     onDelete: () -> Unit,
 ) {
+    var confirmDelete by remember { mutableStateOf(false) }
+    if (confirmDelete) {
+        RethinkConfirmDialog(
+            onDismissRequest = { confirmDelete = false },
+            title = strings.delete,
+            message = strings.deleteMessage,
+            confirmText = strings.delete,
+            dismissText = strings.cancel,
+            isConfirmDestructive = true,
+            onConfirm = {
+                confirmDelete = false
+                onDelete()
+            },
+        )
+    }
     RethinkModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(max = 560.dp)
+                .heightIn(max = SharedDimensions.sheetContentMaxHeight)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
-                Text(state.heading, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                if (state.version.isNotBlank()) Text(state.version, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+            RethinkSheetHeader(title = state.heading, subtitle = state.version)
             RethinkFormSection(strings.state) {
                 RethinkListGroup {
                     RethinkListItem(
@@ -190,13 +198,13 @@ fun RethinkLocalBlocklistSheet(
                         if (state.showCheckUpdate) add(RethinkLocalBlocklistAction(strings.checkUpdate, MaterialSymbols.Filled.Refresh, !state.checking, state.checking, onCheckUpdate))
                         if (state.showDownload) add(RethinkLocalBlocklistAction(strings.download, MaterialSymbols.Filled.Download, !state.downloading, state.downloading, onDownload))
                         if (state.showRedownload) add(RethinkLocalBlocklistAction(strings.redownload, MaterialSymbols.Filled.Download, !state.redownloading, state.redownloading, onRedownload))
-                        add(RethinkLocalBlocklistAction(strings.delete, MaterialSymbols.Filled.Delete, true, false, onDelete))
+                        add(RethinkLocalBlocklistAction(strings.delete, MaterialSymbols.Filled.Delete, true, false, { confirmDelete = true }, destructive = true))
                     }
                     maintenance.forEachIndexed { index, item ->
                         RethinkListItem(
                             headline = item.label,
                             leadingIcon = item.icon,
-                            leadingIconTint = if (item.label == strings.delete) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                            destructive = item.destructive,
                             position = cardPositionFor(index, maintenance.lastIndex),
                             enabled = item.enabled,
                             onClick = item.onClick,
@@ -215,4 +223,5 @@ private data class RethinkLocalBlocklistAction(
     val enabled: Boolean,
     val showProgress: Boolean,
     val onClick: () -> Unit,
+    val destructive: Boolean = false,
 )

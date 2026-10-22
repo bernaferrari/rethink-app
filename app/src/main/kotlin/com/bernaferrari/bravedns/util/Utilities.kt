@@ -51,7 +51,6 @@ import com.bernaferrari.bravedns.RethinkDnsApplication.Companion.DEBUG
 import com.bernaferrari.bravedns.database.AppInfoRepository.Companion.NO_PACKAGE_PREFIX
 import com.bernaferrari.bravedns.net.doh.CountryMap
 import com.bernaferrari.bravedns.service.BraveVPNService
-import com.bernaferrari.bravedns.service.DnsLogTracker
 import com.bernaferrari.bravedns.storage.appFileSystem
 import com.bernaferrari.bravedns.util.Constants.Companion.FLAVOR_FDROID
 import com.bernaferrari.bravedns.util.Constants.Companion.FLAVOR_PLAY
@@ -82,9 +81,6 @@ import java.security.SecureRandom
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import java.util.concurrent.TimeUnit
-import kotlin.math.ln
-import kotlin.math.pow
 
 @Suppress("TooManyFunctions", "LargeClass")
 object Utilities {
@@ -93,10 +89,7 @@ object Utilities {
     private const val ALPHA_BASE_CODE = 'A'.code
     private const val BUFFER_SIZE = 256
     private const val HEX_FORMAT = "%02x"
-    private const val BYTE_UNIT_THRESHOLD = 1000
-    private const val BYTE_UNIT_POWER = 1024
     private const val MINIMUM_OS_VERSION_PARTS = 2
-    private const val DECIMAL_FORMAT_PATTERN = "%.1f %sB"
 
     private var countryMap: CountryMap? = null
 
@@ -483,10 +476,6 @@ object Utilities {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
     }
 
-    fun isAtleastO_MR1(): Boolean {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1
-    }
-
     fun isAtleastP(): Boolean {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
     }
@@ -509,10 +498,6 @@ object Utilities {
 
     fun isAtleastU(): Boolean {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE
-    }
-
-    fun isAtleastV(): Boolean {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM
     }
 
     fun isFdroidFlavour(): Boolean {
@@ -547,15 +532,6 @@ object Utilities {
         return UNSPECIFIED_IP_IPV4 == serverIp || UNSPECIFIED_IP_IPV6 == serverIp
     }
 
-    fun calculateTtl(ttl: Long): Long {
-        val now = System.currentTimeMillis()
-
-        // on negative ttl, cache dns record for a day
-        if (ttl < 0) return now + TimeUnit.DAYS.toMillis(1L)
-
-        return now + TimeUnit.SECONDS.toMillis((ttl + DnsLogTracker.DNS_TTL_GRACE_SEC))
-    }
-
     fun deleteRecursive(fileOrDirectory: File): Boolean {
         val deleted = appFileSystem.deleteRecursively(fileOrDirectory.path)
         Logger.d(LOG_TAG_DOWNLOAD, "deleteRecursive File : ${fileOrDirectory.path}, $deleted")
@@ -566,10 +542,6 @@ object Utilities {
         return blocklistDownloadBasePath(ctx, LOCAL_BLOCKLIST_DOWNLOAD_FOLDER_NAME, timestamp) +
             File.separator +
             which
-    }
-
-    fun oldLocalBlocklistDownloadDir(ctx: Context, timestamp: Long): String {
-        return ctx.filesDir.canonicalPath + File.separator + timestamp + File.separator
     }
 
     fun hasLocalBlocklists(ctx: Context, timestamp: Long): Boolean {
@@ -638,24 +610,6 @@ object Utilities {
 
     fun isNonApp(p: String): Boolean {
         return p.startsWith(NO_PACKAGE_PREFIX)
-    }
-
-    fun removeLeadingAndTrailingDots(str: String?): String {
-        if (str.isNullOrBlank()) return ""
-
-        // remove leading and trailing dots(.) from the given string
-        // eg., (....adsd.asd.asa... will result in .adsd.asd.asa)
-        val trimmedTrailing = str.trimEnd('.')
-        val leadingDotMatch = Regex("^\\.*(?=\\w)").find(trimmedTrailing)
-
-        return when {
-            leadingDotMatch != null && leadingDotMatch.value.length > 1 -> {
-                // more than one leading dot, reduce to a single dot
-                "." + trimmedTrailing.drop(leadingDotMatch.value.length)
-            }
-
-            else -> trimmedTrailing
-        }
     }
 
     // https://medium.com/androiddevelopers/all-about-pendingintents-748c8eb8619
@@ -747,11 +701,6 @@ object Utilities {
         return value.removePrefix(",").dropLastWhile { it == ',' }
     }
 
-    fun getDnsPort(port: Int): Int {
-        if (port > 65535 || port <= 0) return 53
-        return port
-    }
-
     // generates a user-specified number of random bytes, converts it to hexadecimal, and then
     // provides the hexadecimal value as a string
     fun getRandomString(length: Int): String {
@@ -762,22 +711,9 @@ object Utilities {
         return random.joinToString("") { HEX_FORMAT.format(it) }
     }
 
-    @Suppress("ReturnCount")
-    fun humanReadableByteCount(bytes: Long, si: Boolean): String {
-        val unit = if (si) BYTE_UNIT_THRESHOLD else BYTE_UNIT_POWER
-        if (bytes < unit) return "$bytes B"
-        try {
-            val exp = (ln(bytes.toDouble()) / ln(unit.toDouble())).toInt()
-            val pre = ("KMGTPE")[exp - 1] + if (si) "" else "i"
-            val totalBytes = bytes / unit.toDouble().pow(exp.toDouble())
-            return String.format(Locale.ROOT, DECIMAL_FORMAT_PATTERN, totalBytes, pre)
-        } catch (e: NumberFormatException) {
-            Logger.e(LOG_TAG_DOWNLOAD, "err in humanReadableByteCount: ${e.message}", e)
-        } catch (e: IndexOutOfBoundsException) {
-            Logger.e(LOG_TAG_DOWNLOAD, "err in humanReadableByteCount: ${e.message}", e)
-        }
-        return ""
-    }
+    /** Legacy entry point; every size is SI-formatted by [formatByteCount]. */
+    @Suppress("UNUSED_PARAMETER")
+    fun humanReadableByteCount(bytes: Long, si: Boolean = true): String = formatByteCount(bytes)
 
     fun calculateMd5(filePath: String): String {
         return appFileSystem.md5Hex(filePath)
@@ -844,19 +780,6 @@ object Utilities {
         }
 
         return true // versions are equal
-    }
-
-    fun writeToFile(file: File, content: ByteArray): Boolean {
-        return try {
-            file.outputStream().use { output ->
-                output.write(content)
-                output.flush()
-            }
-            true
-        } catch (e: IOException) {
-            Logger.e(LOG_TAG_VPN, "err writing to file ${file.path}, ${e.message}", e)
-            false
-        }
     }
 
 

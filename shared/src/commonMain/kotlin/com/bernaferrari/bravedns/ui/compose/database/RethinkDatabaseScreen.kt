@@ -3,6 +3,9 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.database
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWellContainerColor
+import com.bernaferrari.bravedns.ui.compose.common.RethinkWindowBreakpoints
+import com.bernaferrari.bravedns.ui.compose.common.RethinkLoadingState
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -125,10 +128,10 @@ fun RethinkDatabaseScreen(
                 modifier = Modifier.fillMaxWidth(),
             )
             if (isLoadingTables) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { LoadingIndicator() }
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { RethinkLoadingState(label = "") }
             } else {
                 BoxWithConstraints(Modifier.fillMaxSize()) {
-                    val wide = maxWidth >= 860.dp
+                    val wide = maxWidth >= RethinkWindowBreakpoints.MediumMax
                     if (wide) {
                         Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd)) {
                             RethinkDatabaseTableList(
@@ -232,7 +235,7 @@ private fun RethinkDatabaseTableList(
                                 headline = table,
                                 leadingIcon = MaterialSymbols.Filled.Storage,
                                 leadingIconTint = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                leadingIconContainerColor = if (active) MaterialTheme.colorScheme.primaryContainer.copy(alpha = .6f) else MaterialTheme.colorScheme.surfaceContainerHighest,
+                                leadingIconContainerColor = if (active) RethinkIconWellContainerColor else MaterialTheme.colorScheme.surfaceContainerHighest,
                                 position = cardPositionFor(index, tables.lastIndex),
                                 highlighted = active,
                                 trailing = if (active) { { Icon(MaterialSymbols.Filled.CheckCircle, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(SharedDimensions.iconSizeSm)) } } else null,
@@ -308,7 +311,7 @@ private fun RethinkDatabaseDetail(
                 }
             }
             if (loadingPreview) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { LoadingIndicator() }
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { RethinkLoadingState(label = "") }
             } else if (preview != null) {
                 // The dump sits in its own inset well so the monospace text has a clear edge and
                 // comfortable margins instead of running into the card's chrome.

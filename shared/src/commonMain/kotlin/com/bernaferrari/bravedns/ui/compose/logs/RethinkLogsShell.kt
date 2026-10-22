@@ -125,8 +125,8 @@ private fun RethinkLogsOverflow(actions: RethinkLogToolbarActions, strings: Reth
     RethinkOverflowMenu(
         moreDescription = strings.moreActions,
         items = listOfNotNull(
-            actions.onRefresh?.let { RethinkOverflowItem(strings.refresh, MaterialSymbols.Filled.Refresh, it) },
-            actions.onClear?.let { RethinkOverflowItem(strings.clear, MaterialSymbols.Filled.DeleteOutline, it) },
+            actions.onRefresh?.let { RethinkOverflowItem(strings.refresh, MaterialSymbols.Filled.Refresh, onClick = it) },
+            actions.onClear?.let { RethinkOverflowItem(strings.clear, MaterialSymbols.Filled.DeleteOutline, onClick = it) },
         ),
     )
 }

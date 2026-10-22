@@ -1,6 +1,9 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.apps
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillDefaults
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillSize
@@ -40,11 +43,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
@@ -66,12 +67,15 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormSection
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkSwitchListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusColors
 import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListPairShape
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
+
+/** Two-line action row height (Material 72dp). */
+private val AppInfoActionMinHeight = 72.dp
 
 data class RethinkAppInfoLogItem(val id: String, val title: String, val subtitle: String? = null)
 
@@ -105,14 +109,11 @@ data class RethinkAppInfoState(
 
 data class RethinkAppInfoStrings(
     val unavailable: String,
-    val back: String,
     val status: String,
     val temporaryAllow: String,
     val firewall: String,
     val wifi: String,
-    val wifiDescription: String,
     val mobile: String,
-    val mobileDescription: String,
     val allowed: String,
     val blocked: String,
     val isolate: String,
@@ -338,12 +339,12 @@ private fun RethinkAppNetworkTile(
     val density = LocalDensity.current
     val motion = LocalRethinkMotion.current
     val colorSpec: AnimationSpec<Color> = tween(motion.durationMedium, easing = FastOutSlowInEasing)
-    val baseRounded = shape as? RoundedCornerShape ?: RoundedCornerShape(SharedDimensions.cardCornerRadius)
+    val baseRounded = shape as? RoundedCornerShape ?: RoundedCornerShape(SharedDimensions.cornerRadiusXl)
     val animatedShape = RoundedCornerShape(
-        topStart = animateCorner(baseRounded.topStart, SharedDimensions.cardCornerRadiusLarge, blocked, density),
-        topEnd = animateCorner(baseRounded.topEnd, SharedDimensions.cardCornerRadiusLarge, blocked, density),
-        bottomEnd = animateCorner(baseRounded.bottomEnd, SharedDimensions.cardCornerRadiusLarge, blocked, density),
-        bottomStart = animateCorner(baseRounded.bottomStart, SharedDimensions.cardCornerRadiusLarge, blocked, density),
+        topStart = animateCorner(baseRounded.topStart, SharedDimensions.cornerRadius2xl, blocked, density),
+        topEnd = animateCorner(baseRounded.topEnd, SharedDimensions.cornerRadius2xl, blocked, density),
+        bottomEnd = animateCorner(baseRounded.bottomEnd, SharedDimensions.cornerRadius2xl, blocked, density),
+        bottomStart = animateCorner(baseRounded.bottomStart, SharedDimensions.cornerRadius2xl, blocked, density),
     )
     val containerColor by animateColorAsState(
         targetValue = if (blocked) {
@@ -394,7 +395,7 @@ private fun RethinkAppNetworkTile(
 
     Surface(
         onClick = onClick,
-        modifier = modifier.heightIn(min = SharedDimensions.listItemHeightLg),
+        modifier = modifier.heightIn(min = AppInfoActionMinHeight),
         shape = animatedShape,
         color = containerColor,
     ) {
@@ -475,28 +476,20 @@ private fun animateCorner(
 private fun RethinkAppExclusiveRow(title: String, description: String, enabled: Boolean, icon: androidx.compose.ui.graphics.vector.ImageVector, tint: androidx.compose.ui.graphics.Color, position: CardPosition, onClick: () -> Unit) {
     // Mutually exclusive modes, but each can be switched back off (to "none"), so these are
     // switches rather than radio buttons: turning one on turns the others off.
-    RethinkListItem(
+    RethinkSwitchListItem(
         headline = title,
+        checked = enabled,
+        onCheckedChange = { onClick() },
         supporting = description,
         leadingIcon = icon,
         leadingIconTint = tint,
         position = position,
-        trailing = { Switch(checked = enabled, onCheckedChange = null) },
-        selection = RethinkListSelection(checked = enabled) { onClick() },
     )
 }
 
 @Composable
-private fun RethinkAppToggleRow(title: String, description: String, checked: Boolean, icon: androidx.compose.ui.graphics.vector.ImageVector, position: CardPosition, onChange: (Boolean) -> Unit) {
-    RethinkListItem(
-        headline = title,
-        supporting = description,
-        leadingIcon = icon,
-        position = position,
-        selection = RethinkListSelection(checked = checked, onCheckedChange = onChange),
-        trailing = { Switch(checked = checked, onCheckedChange = null) },
-    )
-}
+private fun RethinkAppToggleRow(title: String, description: String, checked: Boolean, icon: androidx.compose.ui.graphics.vector.ImageVector, position: CardPosition, onChange: (Boolean) -> Unit) =
+    RethinkSwitchListItem(headline = title, checked = checked, onCheckedChange = onChange, supporting = description, leadingIcon = icon, position = position)
 
 @Composable
 private fun RethinkAppNavigationRow(title: String, icon: androidx.compose.ui.graphics.vector.ImageVector, position: CardPosition, onClick: () -> Unit) {

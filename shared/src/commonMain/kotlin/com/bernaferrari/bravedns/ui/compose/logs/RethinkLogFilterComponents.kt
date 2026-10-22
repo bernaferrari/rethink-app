@@ -3,6 +3,8 @@
 
 package com.bernaferrari.bravedns.ui.compose.logs
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkSheetHeader
+import com.bernaferrari.bravedns.ui.compose.common.RethinkLoadingState
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWell
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWellContainerColor
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
@@ -119,7 +121,7 @@ fun RethinkLogAppFilterDialog(
         includeBottomSpacer = false,
     ) { dismissSheet ->
         Column(
-            modifier = Modifier.fillMaxWidth().heightIn(max = 560.dp),
+            modifier = Modifier.fillMaxWidth().heightIn(max = SharedDimensions.sheetContentMaxHeight),
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile),
         ) {
                 RethinkSearchField(
@@ -147,7 +149,7 @@ fun RethinkLogAppFilterDialog(
                 }
 
                 if (isLoading) {
-                    RethinkLogLoadingState(strings.loading)
+                    RethinkLoadingState(strings.loading, contained = true)
                 } else {
                     LazyColumn(
                         modifier = Modifier.fillMaxWidth().weight(1f, fill = false),
@@ -245,32 +247,33 @@ fun RethinkLogRulesDialog(
         verticalSpacing = SharedDimensions.spacingNone,
         includeBottomSpacer = false,
     ) { dismissSheet ->
-        Column(Modifier.fillMaxWidth().heightIn(max = 560.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(
+        Column(Modifier.fillMaxWidth().heightIn(max = SharedDimensions.sheetContentMaxHeight)) {
+                RethinkSheetHeader(
+                    title = strings.title,
+                    modifier = Modifier.padding(
                         start = SharedDimensions.screenPaddingHorizontal,
                         end = SharedDimensions.spacingXs,
                         top = SharedDimensions.spacingMd,
                         bottom = SharedDimensions.spacingSm,
                     ),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(MaterialSymbols.Filled.FilterList, null, modifier = Modifier.size(SharedDimensions.iconSizeSm), tint = MaterialTheme.colorScheme.primary)
-                    Spacer(Modifier.size(SharedDimensions.spacingSm))
-                    Text(strings.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                    if (selectedCount > 0) {
-                        Spacer(Modifier.size(SharedDimensions.spacingSm))
-                        RethinkPill(selectedCount.toString(), colors = RethinkPillDefaults.primary(), size = RethinkPillSize.Small, fontWeight = FontWeight.SemiBold)
-                    }
-                    Spacer(Modifier.weight(1f))
-                    if (selectedCount > 0) TextButton(onClick = onClear) { Text(strings.clear, fontWeight = FontWeight.SemiBold) }
-                    IconButton(
-                        onClick = dismissSheet,
-                        modifier = Modifier.size(SharedDimensions.touchTargetMin),
-                    ) {
-                        Icon(MaterialSymbols.Filled.Close, strings.dismissDescription, modifier = Modifier.size(SharedDimensions.iconSizeXs))
-                    }
-                }
+                    leading = {
+                        Icon(MaterialSymbols.Filled.FilterList, null, modifier = Modifier.size(SharedDimensions.iconSizeSm), tint = MaterialTheme.colorScheme.primary)
+                    },
+                    trailing = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (selectedCount > 0) {
+                                RethinkPill(selectedCount.toString(), colors = RethinkPillDefaults.primary(), size = RethinkPillSize.Small, fontWeight = FontWeight.SemiBold)
+                                TextButton(onClick = onClear) { Text(strings.clear, fontWeight = FontWeight.SemiBold) }
+                            }
+                            IconButton(
+                                onClick = dismissSheet,
+                                modifier = Modifier.size(SharedDimensions.touchTargetMin),
+                            ) {
+                                Icon(MaterialSymbols.Filled.Close, strings.dismissDescription, modifier = Modifier.size(SharedDimensions.iconSizeXs))
+                            }
+                        }
+                    },
+                )
                 LazyColumn(
                     modifier = Modifier.fillMaxWidth().weight(1f, fill = false),
                     contentPadding = PaddingValues(start = SharedDimensions.spacingSm, end = SharedDimensions.spacingSm, bottom = SharedDimensions.spacingSm),
@@ -283,7 +286,6 @@ fun RethinkLogRulesDialog(
                             leadingContent = { RethinkLogRuleIconSlot(rule.leadingIcon, selected) },
                             position = cardPositionFor(index, rules.lastIndex),
                             highlighted = selected,
-                            highlightContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.28f),
                             trailing = if (selected) {
                                 { Icon(MaterialSymbols.Filled.CheckCircle, null, modifier = Modifier.size(SharedDimensions.iconSizeSm), tint = MaterialTheme.colorScheme.primary) }
                             } else null,

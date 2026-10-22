@@ -81,7 +81,7 @@ import com.bernaferrari.bravedns.service.WireguardManager.INVALID_CONF_ID
 import com.bernaferrari.bravedns.service.WireguardManager.WG_UPTIME_THRESHOLD
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
-import com.bernaferrari.bravedns.ui.compose.theme.Dimensions
+import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.wireguard.WgAddPeerDialog
 import com.bernaferrari.bravedns.ui.compose.wireguard.WgHopDialog
@@ -130,7 +130,6 @@ fun WgConfigDetailScreen(
     var ssidEnabled by remember { mutableStateOf(false) }
     var ssids by remember { mutableStateOf<List<SsidItem>>(emptyList()) }
     var showInvalidConfigDialog by remember { mutableStateOf(false) }
-    var showDeleteInterfaceDialog by remember { mutableStateOf(false) }
     var showSsidPermissionDialog by remember { mutableStateOf(false) }
     var showAddPeerDialog by remember { mutableStateOf(false) }
     var showHopDialog by remember { mutableStateOf(false) }
@@ -360,41 +359,6 @@ fun WgConfigDetailScreen(
         )
     }
 
-    if (showDeleteInterfaceDialog) {
-        val delText = stringResource(
-            R.string.two_argument_space,
-            stringResource(R.string.config_delete_dialog_title),
-            stringResource(R.string.lbl_wireguard)
-        )
-        RethinkConfirmDialog(
-            onDismissRequest = { showDeleteInterfaceDialog = false },
-            title = delText,
-            message = stringResource(R.string.config_delete_dialog_desc),
-            confirmText = delText,
-            dismissText = stringResource(R.string.lbl_cancel),
-            onConfirm = {
-                showDeleteInterfaceDialog = false
-                scope.launch(Dispatchers.IO) {
-                    WireguardManager.deleteConfig(configId)
-                    withContext(Dispatchers.Main) {
-                        Utilities.showToastUiCentered(
-                            context,
-                            configAddSuccessToast,
-                            Toast.LENGTH_SHORT
-                        )
-                        onBackClick()
-                    }
-                    logEvent(
-                        "Delete WireGuard config",
-                        "User deleted WireGuard config with id $configId"
-                    )
-                }
-            },
-            onDismiss = { showDeleteInterfaceDialog = false },
-            isConfirmDestructive = true
-        )
-    }
-
     if (showSsidPermissionDialog) {
         RethinkConfirmDialog(
             onDismissRequest = { showSsidPermissionDialog = false },
@@ -474,6 +438,11 @@ fun WgConfigDetailScreen(
         append(stringResource(R.string.wg_setting_ssid_desc, lblSsidsText))
         if (ssids.isNotEmpty()) append("\n${ssids.joinToString { it.name }}")
     }
+    val deleteConfirmTitle = stringResource(
+        R.string.two_argument_space,
+        stringResource(R.string.config_delete_dialog_title),
+        stringResource(R.string.lbl_wireguard)
+    )
     RethinkWireguardDetail(
         state = RethinkWireguardDetailState(
             name = activeConfig.getName(),
@@ -495,6 +464,9 @@ fun WgConfigDetailScreen(
             edit = stringResource(R.string.rt_edit_dialog_positive),
             delete = stringResource(R.string.lbl_delete),
             deleteDescription = stringResource(R.string.config_delete_dialog_title),
+            deleteConfirmTitle = deleteConfirmTitle,
+            deleteConfirmMessage = stringResource(R.string.config_delete_dialog_desc),
+            cancel = stringResource(R.string.lbl_cancel),
             apps = stringResource(R.string.lbl_apps),
             manageApps = { count -> manageAppsTemplate.format(count.toString()) },
             manageHops = stringResource(R.string.hop_add_remove_title),
@@ -511,7 +483,23 @@ fun WgConfigDetailScreen(
         onBackClick = onBackClick,
         onAddPeer = { showAddPeerDialog = true },
         onEdit = { onEditConfig(configId, wgType) },
-        onDelete = { showDeleteInterfaceDialog = true },
+        onDelete = {
+            scope.launch(Dispatchers.IO) {
+                WireguardManager.deleteConfig(configId)
+                withContext(Dispatchers.Main) {
+                    Utilities.showToastUiCentered(
+                        context,
+                        configAddSuccessToast,
+                        Toast.LENGTH_SHORT
+                    )
+                    onBackClick()
+                }
+                logEvent(
+                    "Delete WireGuard config",
+                    "User deleted WireGuard config with id $configId"
+                )
+            }
+        },
         onManageApps = { openAppsDialog(activeConfig.getName()) },
         onManageHops = ::openHopDialog,
         onCatchAllChange = ::updateCatchAll,
@@ -519,7 +507,7 @@ fun WgConfigDetailScreen(
         onSsidChange = ::toggleSsid,
         onEditSsids = ::openSsidDialog,
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)) {
+        Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd)) {
             peers.forEach { peer ->
                 WgPeerRow(
                     context = context,

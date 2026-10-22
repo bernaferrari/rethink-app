@@ -62,7 +62,6 @@ fun AntiCensorshipScreen(
         selectedRetryId = retrySelection.name,
         strings = RethinkAntiCensorshipStrings(
             title = stringResource(R.string.anti_censorship_title),
-            split = stringResource(R.string.lbl_split),
             splitHeading = stringResource(R.string.ac_split_options_title),
             splitDescription = stringResource(R.string.ac_split_options_desc),
             retryHeading = stringResource(R.string.ac_retry_options_title),

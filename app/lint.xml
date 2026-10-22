@@ -1,13 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <lint>
-    <!-- Ignore ALL lint issues in any strings.xml under any values[-xx] folder, for any source set (main/debug/release/flavors) -->
-    <issue id="all">
-        <ignore regexp=".*/src/.*/res/values(?:-[^/]+)?/strings\.xml" />
+    <!--
+      Translations (values-xx/strings.xml) come from the community and lag the English source.
+      Only translation-quality checks are silenced there; the base values/strings.xml is fully
+      linted (UnusedResources, Typos, ...) so dead or broken English strings fail the build.
+    -->
+    <issue id="MissingTranslation" severity="ignore" />
+    <issue id="ExtraTranslation">
+        <ignore regexp=".*/src/.*/res/values-[^/]+/strings\.xml" />
     </issue>
-
-    <!-- Explicitly suppress StringFormatInvalid errors for translation files -->
+    <!-- Translators keep (or add) copies of translatable="false" strings. -->
+    <issue id="Untranslatable">
+        <ignore regexp=".*/src/.*/res/values-[^/]+/strings\.xml" />
+    </issue>
+    <!-- Lint's spell/typography checks are English-centric and misfire on other languages. -->
+    <issue id="Typos">
+        <ignore regexp=".*/src/.*/res/values-[^/]+/strings\.xml" />
+    </issue>
+    <issue id="TypographyDashes">
+        <ignore regexp=".*/src/.*/res/values-[^/]+/strings\.xml" />
+    </issue>
+    <issue id="TypographyEllipsis">
+        <ignore regexp=".*/src/.*/res/values-[^/]+/strings\.xml" />
+    </issue>
+    <!-- Translators often reorder/drop format args; runtime formatting tolerates it. -->
+    <issue id="StringFormatCount">
+        <ignore regexp=".*/src/.*/res/values-[^/]+/strings\.xml" />
+    </issue>
     <issue id="StringFormatInvalid" severity="ignore" />
-
-    <!-- Suppress StringFormatMatches errors for translation files (argument count mismatches) -->
     <issue id="StringFormatMatches" severity="ignore" />
 </lint>

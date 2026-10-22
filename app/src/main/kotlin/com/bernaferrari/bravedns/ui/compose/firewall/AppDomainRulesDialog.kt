@@ -43,7 +43,7 @@ import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleSectionTitle
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleSupportingText
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleTrustBlockRow
 import com.bernaferrari.bravedns.ui.compose.rememberDrawablePainter
-import com.bernaferrari.bravedns.ui.compose.theme.Dimensions
+import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.util.Constants.Companion.INVALID_UID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -96,7 +96,7 @@ fun AppDomainRulesSheet(
                 appIcon = {
                     appIcon?.let { icon ->
                         rememberDrawablePainter(icon)?.let { painter ->
-                            Image(painter = painter, contentDescription = null, modifier = Modifier.size(Dimensions.iconSizeSm))
+                            Image(painter = painter, contentDescription = null, modifier = Modifier.size(SharedDimensions.iconSizeSm))
                         }
                     }
                 },

@@ -196,24 +196,3 @@ fun RethinkModalBottomSheet(
         }
     }
 }
-
-@Composable
-fun RethinkBottomSheetCard(
-    modifier: Modifier = Modifier,
-    shape: RoundedCornerShape = RoundedCornerShape(SharedDimensions.cornerRadius3xl),
-    contentPadding: PaddingValues = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
-    content: @Composable ColumnScope.() -> Unit,
-) {
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = shape,
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        tonalElevation = SharedDimensions.spacingNone,
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(contentPadding),
-            verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
-            content = content,
-        )
-    }
-}

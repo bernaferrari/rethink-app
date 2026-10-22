@@ -2,7 +2,6 @@
 package com.bernaferrari.bravedns.ui.compose.rpn
 
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkKeyValueRow
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
@@ -20,7 +19,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -36,6 +34,9 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkMetric
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkMetricSize
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkSwitchListItem
 
 data class RethinkRpnWinProxyDetailsState(
     val countryCode: String,
@@ -154,12 +155,8 @@ private fun RethinkRpnWinStats(state: RethinkRpnWinProxyDetailsState, strings: R
 }
 
 @Composable
-private fun RethinkRpnWinStat(label: String, value: String, modifier: Modifier) {
-    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
-        Text(value, style = MaterialTheme.typography.headlineSmall.copy(fontFeatureSettings = "tnum"), fontWeight = FontWeight.SemiBold)
-        Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
-}
+private fun RethinkRpnWinStat(label: String, value: String, modifier: Modifier) =
+    RethinkMetric(value, label, modifier, size = RethinkMetricSize.Large, horizontalAlignment = Alignment.CenterHorizontally)
 
 @Composable
 private fun RethinkRpnWinDetails(state: RethinkRpnWinProxyDetailsState, strings: RethinkRpnWinProxyDetailsStrings) {
@@ -197,11 +194,11 @@ private fun RethinkRpnWinServerOptions(
     Column {
         SectionHeader(strings.serverOptions)
         RethinkListGroup {
-            RethinkRpnWinOption(strings.hop, options.hopEnabled, CardPosition.First, onHopChanged)
-            RethinkRpnWinOption(strings.catchAll, options.catchAll, CardPosition.Middle, onCatchAllChanged)
-            RethinkRpnWinOption(strings.lockdown, options.lockdown, CardPosition.Middle, onLockdownChanged)
-            RethinkRpnWinOption(strings.mobileOnly, options.mobileOnly, CardPosition.Middle, onMobileOnlyChanged)
-            RethinkRpnWinOption(strings.wifiOnly, options.ssidBased, CardPosition.Middle, onSsidChanged)
+            RethinkSwitchListItem(strings.hop, options.hopEnabled, onHopChanged, position = CardPosition.First)
+            RethinkSwitchListItem(strings.catchAll, options.catchAll, onCatchAllChanged, position = CardPosition.Middle)
+            RethinkSwitchListItem(strings.lockdown, options.lockdown, onLockdownChanged, position = CardPosition.Middle)
+            RethinkSwitchListItem(strings.mobileOnly, options.mobileOnly, onMobileOnlyChanged, position = CardPosition.Middle)
+            RethinkSwitchListItem(strings.wifiOnly, options.ssidBased, onSsidChanged, position = CardPosition.Middle)
             // A grouped navigation row instead of a detached text button under the list.
             RethinkListItem(
                 headline = strings.editWifi,
@@ -214,16 +211,3 @@ private fun RethinkRpnWinServerOptions(
         }
     }
 }
-
-@Composable
-private fun RethinkRpnWinOption(
-    label: String,
-    checked: Boolean,
-    position: CardPosition,
-    onCheckedChange: (Boolean) -> Unit,
-) = RethinkListItem(
-    headline = label,
-    position = position,
-    selection = RethinkListSelection(checked = checked, onCheckedChange = onCheckedChange),
-    trailing = { Switch(checked = checked, onCheckedChange = null) },
-)

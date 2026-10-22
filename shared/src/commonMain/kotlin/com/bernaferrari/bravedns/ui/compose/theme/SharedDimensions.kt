@@ -37,11 +37,11 @@ object SharedDimensions {
     /** Outer corners of an expressive grouped list (inner corners use [cornerRadiusSm]). */
     val groupCornerRadius = 24.dp
 
-    val cardCornerRadius = 20.dp
-    val cardCornerRadiusLarge = 28.dp
-    val heroCornerRadius = 32.dp
-    val beaconCornerRadius = 72.dp
-    val chipCornerRadius = 50.dp
+    /**
+     * Alias of [cornerRadius2xl]; its only remaining caller is the Android `Theme.kt` shape scale.
+     * New code uses [cornerRadius2xl].
+     */
+    val cardCornerRadiusLarge = cornerRadius2xl
     val iconContainerRadius = 12.dp
     val buttonCornerRadius = 50.dp
 
@@ -49,6 +49,15 @@ object SharedDimensions {
     val cardPaddingSm = 12.dp
     val screenPaddingHorizontal = 16.dp
     val screenPaddingVertical = 12.dp
+
+    /** Gap between a screen's top bar and its first content row (every list screen). */
+    val screenContentTop = spacingMd
+
+    /** Bottom content inset that keeps the last row scrollable clear of a floating action button. */
+    val fabClearance = 96.dp
+
+    /** Height cap for scrollable lists inside bottom sheets and editors. */
+    val sheetContentMaxHeight = 560.dp
 
     val iconSizeXs = 16.dp
     val iconSizeSm = 20.dp
@@ -63,13 +72,6 @@ object SharedDimensions {
     val brandMarkSize = 120.dp
     val buttonHeight = 56.dp
     val buttonHeightSm = 40.dp
-    val buttonHeightLg = 56.dp
-    val heroButtonHeight = 56.dp
-    val listItemHeight = 64.dp
-    val listItemHeightSm = 56.dp
-    val listItemHeightLg = 72.dp
-    val progressBarHeight = 10.dp
-    val tabIndicatorHeight = 4.dp
     val dividerThickness = 0.5.dp
     val dividerThicknessBold = 1.dp
 }

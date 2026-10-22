@@ -11,7 +11,6 @@ import com.bernaferrari.bravedns.ui.compose.common.WindowWidthClass
 import com.bernaferrari.bravedns.ui.compose.common.isExpanded
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -369,9 +368,8 @@ private fun ConfigureIconWell(colors: ConfigureTileColors, icon: @Composable () 
     shape = RoundedCornerShape(SharedDimensions.cornerRadiusMdLg),
     content = icon,
 )
-@Composable private fun NoResults(strings: RethinkConfigureStrings) = Surface(shape = RoundedCornerShape(SharedDimensions.cornerRadiusXl), color = MaterialTheme.colorScheme.surfaceContainerLow, border = BorderStroke(SharedDimensions.dividerThicknessBold, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))) {
-    RethinkEmptyState(icon = MaterialSymbols.Filled.Search, title = strings.noResultsTitle, message = strings.noResultsSubtitle)
-}
+@Composable private fun NoResults(strings: RethinkConfigureStrings) =
+    RethinkEmptyState(icon = MaterialSymbols.Filled.Search, title = strings.noResultsTitle, message = strings.noResultsSubtitle, contained = true)
 @Composable
 private fun SearchResults(results: List<RethinkConfigureSearchEntry>, query: String) {
     val matchStyle = SpanStyle(color = MaterialTheme.colorScheme.primary)

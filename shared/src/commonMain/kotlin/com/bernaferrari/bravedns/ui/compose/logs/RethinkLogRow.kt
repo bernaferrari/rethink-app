@@ -3,6 +3,8 @@
 
 package com.bernaferrari.bravedns.ui.compose.logs
 
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusIndicator
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusLabel
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWell
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillSize
@@ -26,7 +28,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
@@ -178,7 +179,14 @@ fun RethinkLogRow(
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
                             Text(model.destination, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge, color = scheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f).alignByBaseline())
-                            LogStatusLabel(if (model.isBlocked) model.blockedLabel else model.allowedLabel, statusColor, Modifier.alignByBaseline())
+                            RethinkStatusLabel(
+                                label = if (model.isBlocked) model.blockedLabel else model.allowedLabel,
+                                color = statusColor,
+                                modifier = Modifier.alignByBaseline(),
+                                indicator = RethinkStatusIndicator.Dot(size = SharedDimensions.spacingXs),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.SemiBold,
+                            )
                         }
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm), verticalAlignment = Alignment.CenterVertically) {
                             Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm), verticalAlignment = Alignment.CenterVertically) {
@@ -227,14 +235,6 @@ private fun LogIconSlot(statusContainer: Color, icon: (@Composable (Color) -> Un
 }
 
 @Composable
-private fun LogStatusLabel(label: String, color: Color, modifier: Modifier = Modifier) {
-    Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
-        Box(Modifier.size(SharedDimensions.spacingXs).clip(CircleShape).background(color))
-        Text(label, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold, color = color, maxLines = 1)
-    }
-}
-
-@Composable
 private fun LogDetailsPanel(model: RethinkLogRowModel, statusColor: Color) {
     val scheme = MaterialTheme.colorScheme
     Column(Modifier.fillMaxWidth()) {
@@ -255,7 +255,7 @@ private fun LogDetailsPanel(model: RethinkLogRowModel, statusColor: Color) {
                 )
             }
             model.blocklistsLabel?.takeIf { it.isNotBlank() }?.let { label ->
-                Spacer(Modifier.height(SharedLogDimensions.detailGap))
+                Spacer(Modifier.height(SharedDimensions.spacingXs))
                 val blocklistShape = RoundedCornerShape(SharedDimensions.cornerRadiusSmMd)
                 Surface(onClick = model.onBlocklistsClick ?: {}, enabled = model.onBlocklistsClick != null, shape = blocklistShape, color = scheme.errorContainer.copy(alpha = 0.38f), modifier = Modifier.fillMaxWidth().clip(blocklistShape)) {
                     Text(label, style = MaterialTheme.typography.labelMedium, color = statusColor, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(horizontal = SharedDimensions.spacingSmMd, vertical = SharedDimensions.spacingSm))
@@ -290,7 +290,6 @@ private fun LogLatency(latency: Long, strings: RethinkLogLatencyStrings?) {
     }
 }
 
-private object SharedLogDimensions { val detailGap = SharedDimensions.spacingXs }
 
 private fun Modifier.logAccordionReveal(progress: Float): Modifier {
     val normalized = progress.coerceIn(0f, 1f)

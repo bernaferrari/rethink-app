@@ -59,7 +59,6 @@ fun AppWiseIpLogsScreen(
     var searchHint by remember { mutableStateOf("") }
     var appIcon by remember { mutableStateOf<Drawable?>(null) }
     val showDeleteIcon = remember { !isAsn }
-    var showDeleteDialog by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf(AppConnectionsViewModel.TimeCategory.SEVEN_DAYS) }
     var isRethinkApp by remember(uid) { mutableStateOf(false) }
 
@@ -98,16 +97,8 @@ fun AppWiseIpLogsScreen(
         title = appName.ifBlank { stringResource(R.string.lbl_logs) },
         onBackClick = onBackClick,
         strings = appWiseLogsStrings(),
-        onDeleteClick = if (showDeleteIcon) ({ showDeleteDialog = true }) else null,
+        onDelete = if (showDeleteIcon) ({ viewModel.deleteLogs(uid) }) else null,
     ) { paddingValues ->
-        if (showDeleteDialog) {
-            RethinkAppWiseLogsDeleteDialog(
-                strings = appWiseLogsStrings(),
-                onDismiss = { showDeleteDialog = false },
-                onConfirm = { viewModel.deleteLogs(uid) }
-            )
-        }
-
         RethinkAppWiseLogsContent(
             searchHint = searchHint,
             fallbackSearchHint = stringResource(R.string.search_universal_ips),

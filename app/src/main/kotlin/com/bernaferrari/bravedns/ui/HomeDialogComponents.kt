@@ -45,7 +45,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.service.AppUpdater
-import com.bernaferrari.bravedns.ui.compose.theme.Dimensions
+import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkMultiActionDialog
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
@@ -118,7 +118,7 @@ internal fun HomeStatsDialog(
                     modifier =
                         Modifier.fillMaxWidth()
                             .verticalScroll(rememberScrollState())
-                            .padding(Dimensions.spacingSm)
+                            .padding(SharedDimensions.spacingSm)
                 ) {
                     Text(text = displayText, style = MaterialTheme.typography.bodySmall)
                 }
@@ -363,7 +363,7 @@ private fun WhatsNewDialogContent() {
         modifier =
             Modifier
                 .fillMaxWidth()
-                .padding(Dimensions.spacingLg)
+                .padding(SharedDimensions.spacingLg)
                 .verticalScroll(rememberScrollState())
     ) {
         HomeHtmlText(

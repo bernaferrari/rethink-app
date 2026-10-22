@@ -31,8 +31,30 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkListContainerColor
+import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Color
 
 private val EmptyStateIconWell = 72.dp
+
+/**
+ * In-section state container: the grouped-list radius and row tone, so empty/loading/error states
+ * that sit inside a section read as one more row group rather than a free-floating block.
+ */
+@Composable
+private fun StateContainer(contained: Boolean, modifier: Modifier, content: @Composable () -> Unit) {
+    if (!contained) {
+        Box(modifier) { content() }
+        return
+    }
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(SharedDimensions.groupCornerRadius),
+        color = LocalRethinkListContainerColor.current ?: MaterialTheme.colorScheme.surfaceContainerLow,
+        content = content,
+    )
+}
 
 @Composable
 fun RethinkEmptyState(
@@ -42,9 +64,12 @@ fun RethinkEmptyState(
     icon: ImageVector? = null,
     ctaLabel: String? = null,
     onCtaClick: (() -> Unit)? = null,
-) {
+    contained: Boolean = false,
+    iconContainerColor: Color = MaterialTheme.colorScheme.secondaryContainer,
+    iconTint: Color = MaterialTheme.colorScheme.onSecondaryContainer,
+) = StateContainer(contained, modifier) {
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
             .padding(
                 horizontal = SharedDimensions.spacingLg,
@@ -57,14 +82,14 @@ fun RethinkEmptyState(
             // Expressive shape echoes the Home beacon; sized as an illustration, not a list icon.
             Surface(
                 shape = MaterialShapes.Cookie6Sided.toShape(),
-                color = MaterialTheme.colorScheme.secondaryContainer,
+                color = iconContainerColor,
                 modifier = Modifier.size(EmptyStateIconWell),
             ) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                        tint = iconTint,
                         modifier = Modifier.size(SharedDimensions.iconSizeLg),
                     )
                 }
@@ -99,9 +124,10 @@ fun RethinkEmptyState(
 fun RethinkLoadingState(
     label: String,
     modifier: Modifier = Modifier,
-) {
+    contained: Boolean = false,
+) = StateContainer(contained, modifier) {
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
             .padding(
                 horizontal = SharedDimensions.spacingLg,
@@ -122,3 +148,24 @@ fun RethinkLoadingState(
         }
     }
 }
+
+/** A failed load: [RethinkEmptyState] styling with an error-toned icon and an optional retry. */
+@Composable
+fun RethinkErrorState(
+    message: String,
+    modifier: Modifier = Modifier,
+    title: String? = null,
+    retryLabel: String? = null,
+    onRetry: (() -> Unit)? = null,
+    contained: Boolean = false,
+) = RethinkEmptyState(
+    title = title ?: message,
+    message = if (title != null) message else "",
+    modifier = modifier,
+    icon = MaterialSymbols.Filled.WarningAmber,
+    ctaLabel = retryLabel,
+    onCtaClick = onRetry,
+    contained = contained,
+    iconContainerColor = MaterialTheme.colorScheme.errorContainer,
+    iconTint = MaterialTheme.colorScheme.onErrorContainer,
+)

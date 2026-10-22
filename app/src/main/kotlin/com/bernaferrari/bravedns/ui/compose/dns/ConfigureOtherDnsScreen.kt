@@ -196,6 +196,10 @@ private fun <T : Any> DnsEndpointListWithFab(
     )
 }
 
+@Composable
+private fun endpointEditorStrings() =
+    RethinkEndpointEditorStrings(stringResource(R.string.lbl_cancel), stringResource(R.string.lbl_add))
+
 private class AndroidEndpointFeed<T : Any>(private val items: LazyPagingItems<T>) : RethinkEndpointFeed<T> {
     override val itemCount: Int get() = items.itemCount
     override fun get(index: Int): T? = items[index]
@@ -241,7 +245,7 @@ private fun DohListContent(
                 defaultName = dialogName,
                 initialEndpoint = "https://",
                 insecureLabel = checkboxLabel,
-                strings = RethinkEndpointEditorStrings(stringResource(R.string.lbl_cancel), stringResource(R.string.lbl_add)),
+                strings = endpointEditorStrings(),
                 onSubmit = { name, url, isSecure ->
                     if (checkUrl(url)) {
                         scope.launch(Dispatchers.IO) {
@@ -334,7 +338,7 @@ private fun DotListContent(
                 defaultName = dialogName,
                 initialEndpoint = "",
                 insecureLabel = checkboxLabel,
-                strings = RethinkEndpointEditorStrings(stringResource(R.string.lbl_cancel), stringResource(R.string.lbl_add)),
+                strings = endpointEditorStrings(),
                 onSubmit = { name, url, isSecure ->
                     scope.launch(Dispatchers.IO) {
                         insertDotEndpoint(appConfig, name, url, isSecure)
@@ -552,7 +556,7 @@ private fun DnsCryptListContent(
                 resolverDefaultName = resolverDialogName,
                 relayDefaultName = relayDialogName,
                 invalidInputMessage = stringResource(R.string.custom_url_error_invalid_url),
-                strings = RethinkEndpointEditorStrings(stringResource(R.string.lbl_cancel), stringResource(R.string.lbl_add)),
+                strings = endpointEditorStrings(),
                 onSubmit = { kind, name, stamp, description ->
                     scope.launch(Dispatchers.IO) {
                         if (kind == RethinkDnsCryptEndpointKind.Resolver) insertDnsCrypt(appConfig, name, stamp, description) else insertDnsCryptRelay(appConfig, name, stamp, description)
@@ -653,7 +657,7 @@ private fun OdohListContent(
                 resolverLabel = resolverLabel,
                 defaultName = dialogName,
                 initialResolver = "https://",
-                strings = RethinkEndpointEditorStrings(stringResource(R.string.lbl_cancel), stringResource(R.string.lbl_add)),
+                strings = endpointEditorStrings(),
                 onSubmit = { name, proxy, resolver ->
                     if (checkUrl(resolver)) {
                         scope.launch(Dispatchers.IO) {

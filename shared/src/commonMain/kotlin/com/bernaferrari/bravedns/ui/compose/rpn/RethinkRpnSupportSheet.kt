@@ -5,7 +5,6 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWell
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
@@ -14,7 +13,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -24,18 +22,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.PrimaryButton
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFilterChip
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormTextField
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkModalBottomSheet
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkSheetHeader
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkSwitchListItem
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 data class RethinkRpnSupportStrings(
@@ -81,11 +77,24 @@ fun RethinkRpnSupportSheet(
         includeBottomSpacer = false,
         expandOnShow = true,
     ) { dismissSheet ->
-        SupportSheetHeader(strings.title, strings.description)
+        RethinkSheetHeader(
+            title = strings.title,
+            subtitle = strings.description,
+            leading = {
+                RethinkIconWell(
+                    icon = MaterialSymbols.Filled.Headset,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    size = SharedDimensions.iconContainerLg,
+                    iconSize = SharedDimensions.iconSizeMd,
+                    shape = CircleShape,
+                )
+            },
+        )
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(max = 520.dp)
+                .heightIn(max = SharedDimensions.sheetContentMaxHeight)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
         ) {
@@ -115,9 +124,9 @@ fun RethinkRpnSupportSheet(
                 enabled = !sending,
             )
             RethinkListGroup {
-                SupportDataToggle(strings.includeSubscription, MaterialSymbols.Filled.VpnKey, includeSubscription, !sending, CardPosition.First) { includeSubscription = it }
-                SupportDataToggle(strings.includeHistory, MaterialSymbols.Filled.EventNote, includeHistory, !sending, CardPosition.Middle) { includeHistory = it }
-                SupportDataToggle(strings.includeDiagnostics, MaterialSymbols.Filled.BugReport, includeDiagnostics, !sending, CardPosition.Last) { includeDiagnostics = it }
+                RethinkSwitchListItem(strings.includeSubscription, includeSubscription, { includeSubscription = it }, leadingIcon = MaterialSymbols.Filled.VpnKey, enabled = !sending, position = CardPosition.First)
+                RethinkSwitchListItem(strings.includeHistory, includeHistory, { includeHistory = it }, leadingIcon = MaterialSymbols.Filled.EventNote, enabled = !sending, position = CardPosition.Middle)
+                RethinkSwitchListItem(strings.includeDiagnostics, includeDiagnostics, { includeDiagnostics = it }, leadingIcon = MaterialSymbols.Filled.BugReport, enabled = !sending, position = CardPosition.Last)
             }
         }
         Column(
@@ -149,58 +158,4 @@ fun RethinkRpnSupportSheet(
             }
         }
     }
-}
-
-@Composable
-private fun SupportSheetHeader(title: String, description: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        RethinkIconWell(
-            icon = MaterialSymbols.Filled.Headset,
-            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            size = SharedDimensions.iconContainerLg,
-            iconSize = SharedDimensions.iconSizeMd,
-            shape = CircleShape,
-        )
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
-}
-
-/** Diagnostics opt-in as a grouped switch row, matching every other toggle list in the app. */
-@Composable
-private fun SupportDataToggle(
-    label: String,
-    icon: ImageVector,
-    checked: Boolean,
-    enabled: Boolean,
-    position: CardPosition,
-    onCheckedChange: (Boolean) -> Unit,
-) {
-    RethinkListItem(
-        headline = label,
-        leadingIcon = icon,
-        position = position,
-        enabled = enabled,
-        // The sheet itself is surfaceContainerLow; one step up keeps the grouped rows visible.
-        trailing = { Switch(checked = checked, enabled = enabled, onCheckedChange = null) },
-        selection = RethinkListSelection(checked = checked, onCheckedChange = onCheckedChange),
-    )
 }

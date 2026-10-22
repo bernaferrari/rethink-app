@@ -94,7 +94,6 @@ fun PauseScreen(onFinish: () -> Unit) {
         ),
         strings = RethinkPauseStrings(
             title = stringResource(R.string.pause_text),
-            pauseLabel = stringResource(R.string.pause_text),
             resume = stringResource(R.string.notif_dialog_pause_dialog_positive),
             decreaseDuration = stringResource(R.string.pause_decrease_duration),
             increaseDuration = stringResource(R.string.pause_increase_duration),

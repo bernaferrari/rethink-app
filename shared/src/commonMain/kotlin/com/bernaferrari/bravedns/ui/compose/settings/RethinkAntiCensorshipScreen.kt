@@ -25,7 +25,6 @@ data class RethinkAntiCensorshipOption(
 
 data class RethinkAntiCensorshipStrings(
     val title: String,
-    val split: String,
     val splitHeading: String,
     val splitDescription: String,
     val retryHeading: String,

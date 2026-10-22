@@ -3,26 +3,18 @@
 
 package com.bernaferrari.bravedns.ui.compose.settings
 
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.graphics.vector.ImageVector
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWellContainerColor
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
-import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkSwitchListItem
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBarLazyColumnScreen
 
 data class RethinkAdvancedSettingsStrings(
     val title: String,
@@ -47,62 +39,45 @@ fun RethinkAdvancedSettingsScreen(
     onBackClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    androidx.compose.material3.Scaffold(
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = MaterialTheme.colorScheme.surface,
-        topBar = {
-            RethinkLargeTopBar(
-                title = strings.title,
-                subtitle = strings.subtitle,
-                onBackClick = onBackClick,
-                scrollBehavior = scrollBehavior,
-            )
-        },
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(
-                start = SharedDimensions.screenPaddingHorizontal,
-                end = SharedDimensions.screenPaddingHorizontal,
-                top = SharedDimensions.spacingMd,
-                bottom = SharedDimensions.spacing3xl,
-            ),
-            verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
-        ) {
-            item {
-                RethinkListGroup {
-                    AdvancedToggleRow(strings.experimentalTitle, null, MaterialSymbols.Filled.Build, experimentalEnabled, CardPosition.First, onExperimentalChange)
-                    AdvancedToggleRow(strings.autoDialTitle, strings.autoDialDescription, MaterialSymbols.Filled.Tune, autoDialEnabled, CardPosition.Middle, onAutoDialChange)
-                    AdvancedToggleRow(strings.panicTitle, strings.panicDescription, MaterialSymbols.Filled.Warning, panicEnabled, CardPosition.Last, onPanicChange, destructive = true)
-                }
+    RethinkTopBarLazyColumnScreen(
+        title = strings.title,
+        subtitle = strings.subtitle,
+        onBackClick = onBackClick,
+        modifier = modifier,
+    ) {
+        item {
+            RethinkListGroup {
+                AdvancedToggleRow(strings.experimentalTitle, null, MaterialSymbols.Filled.Build, experimentalEnabled, CardPosition.First, onExperimentalChange)
+                AdvancedToggleRow(strings.autoDialTitle, strings.autoDialDescription, MaterialSymbols.Filled.Tune, autoDialEnabled, CardPosition.Middle, onAutoDialChange)
+                AdvancedToggleRow(strings.panicTitle, strings.panicDescription, MaterialSymbols.Filled.Warning, panicEnabled, CardPosition.Last, onPanicChange, warning = true)
             }
         }
     }
 }
 
+/** [warning] tints the icon error-red: the toggle itself is not destructive, only risky. */
 @Composable
 private fun AdvancedToggleRow(
     title: String,
     description: String?,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     checked: Boolean,
     position: CardPosition,
     onCheckedChange: (Boolean) -> Unit,
-    destructive: Boolean = false,
+    warning: Boolean = false,
 ) {
-    RethinkListItem(
+    RethinkSwitchListItem(
         headline = title,
+        checked = checked,
+        onCheckedChange = onCheckedChange,
         supporting = description,
         leadingIcon = icon,
-        leadingIconTint = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
-        leadingIconContainerColor = if (destructive) {
+        leadingIconTint = if (warning) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+        leadingIconContainerColor = if (warning) {
             MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.6f)
         } else {
-            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
+            RethinkIconWellContainerColor
         },
         position = position,
-        selection = RethinkListSelection(checked = checked, onCheckedChange = onCheckedChange),
-        trailing = { Switch(checked = checked, onCheckedChange = null) },
     )
 }

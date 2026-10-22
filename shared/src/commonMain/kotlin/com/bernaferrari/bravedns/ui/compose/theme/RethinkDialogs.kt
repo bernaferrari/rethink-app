@@ -34,7 +34,7 @@ fun RethinkDialogScaffold(
     AlertDialog(
         modifier = modifier,
         onDismissRequest = onDismissRequest,
-        shape = RoundedCornerShape(SharedDimensions.cardCornerRadiusLarge),
+        shape = RoundedCornerShape(SharedDimensions.cornerRadius2xl),
         icon = icon,
         title = title?.let { { Text(it, style = MaterialTheme.typography.headlineSmall) } },
         text = text ?: message?.let { { Text(it) } },

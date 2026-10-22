@@ -112,15 +112,7 @@ internal fun <T : Any> AppWiseLogsPagedList(
     RethinkPagedLogList(
         itemCount = itemCount,
         state = listContentState,
-        strings = RethinkLogListStrings(
-            all = "",
-            allowed = "",
-            blocked = "",
-            loading = stringResource(R.string.lbl_loading),
-            empty = stringResource(R.string.lbl_no_logs),
-            error = stringResource(R.string.error_loading_log_file),
-            retry = stringResource(R.string.cd_refresh),
-        ),
+        strings = logListStrings(),
         listState = rememberLazyListState(),
         modifier = modifier,
     ) { index, count ->

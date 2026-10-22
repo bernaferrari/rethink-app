@@ -56,7 +56,6 @@ data class RethinkPauseState(
 
 data class RethinkPauseStrings(
     val title: String,
-    val pauseLabel: String,
     val resume: String,
     val decreaseDuration: String,
     val increaseDuration: String,

@@ -31,6 +31,8 @@ object DiagonalWipeIconDefaults {
     val EnableEasing: Easing = CubicBezierEasing(0.22f, 1f, 0.36f, 1f)
     val DisableEasing: Easing = CubicBezierEasing(0.4f, 0f, 0.2f, 1f)
     const val SeamOverlapPx = 0.8f
+    const val EnableDurationMillis = 540
+    const val DisableDurationMillis = 620
 }
 
 /** Shared two-layer diagonal icon transition used by app and firewall rows. */
@@ -43,8 +45,8 @@ fun DiagonalWipeIcon(
     blockedTint: Color,
     contentDescription: String?,
     modifier: Modifier = Modifier,
-    enableDurationMillis: Int = LocalRethinkMotion.current.durationWipe,
-    disableDurationMillis: Int = LocalRethinkMotion.current.durationWipeExit,
+    enableDurationMillis: Int = DiagonalWipeIconDefaults.EnableDurationMillis,
+    disableDurationMillis: Int = DiagonalWipeIconDefaults.DisableDurationMillis,
     enableEasing: Easing = DiagonalWipeIconDefaults.EnableEasing,
     disableEasing: Easing = DiagonalWipeIconDefaults.DisableEasing,
     seamOverlapPx: Float = DiagonalWipeIconDefaults.SeamOverlapPx,

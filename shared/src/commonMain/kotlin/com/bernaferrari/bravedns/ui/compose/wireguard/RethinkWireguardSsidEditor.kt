@@ -108,7 +108,7 @@ fun RethinkWireguardSsidEditor(
         }
         if (rules.isNotEmpty()) {
             LazyColumn(
-                modifier = Modifier.fillMaxWidth().heightIn(max = SharedDimensions.heroCornerRadius * 10),
+                modifier = Modifier.fillMaxWidth().heightIn(max = SharedDimensions.sheetContentMaxHeight),
                 verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
             ) {
                 itemsIndexed(rules, key = { _, it -> "${it.name}_${it.type.name}" }) { index, rule ->

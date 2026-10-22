@@ -105,7 +105,7 @@ fun RethinkWelcomeScreen(
                     shapes = ButtonDefaults.shapes(),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(SharedDimensions.buttonHeightLg),
+                        .height(SharedDimensions.buttonHeight),
                 ) {
                     Text(ctaLabel, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                 }

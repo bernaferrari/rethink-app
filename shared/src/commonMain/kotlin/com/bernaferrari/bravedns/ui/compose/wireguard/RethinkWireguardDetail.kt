@@ -4,33 +4,33 @@ package com.bernaferrari.bravedns.ui.compose.wireguard
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWell
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillDefaults
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWellDefaults
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkSwitchListItem
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBarLazyColumnScreen
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 
 data class RethinkWireguardDetailState(
     val name: String,
@@ -53,6 +53,9 @@ data class RethinkWireguardDetailStrings(
     val edit: String,
     val delete: String,
     val deleteDescription: String,
+    val deleteConfirmTitle: String,
+    val deleteConfirmMessage: String,
+    val cancel: String,
     val apps: String,
     val manageApps: (Int) -> String,
     val manageHops: String,
@@ -85,20 +88,13 @@ fun RethinkWireguardDetail(
     modifier: Modifier = Modifier,
     peerContent: @Composable () -> Unit = {},
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    androidx.compose.material3.Scaffold(
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = { RethinkLargeTopBar(strings.title, onBackClick = onBackClick, scrollBehavior = scrollBehavior) },
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(
-                start = SharedDimensions.screenPaddingHorizontal,
-                end = SharedDimensions.screenPaddingHorizontal,
-                bottom = SharedDimensions.spacing3xl,
-            ),
-            verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
-        ) {
+    var confirmDelete by remember { mutableStateOf(false) }
+    RethinkTopBarLazyColumnScreen(
+        title = strings.title,
+        onBackClick = onBackClick,
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
+    ) {
             item { RethinkWireguardDetailOverview(state) }
             if (state.isOneWireguard) item { RethinkOneWireguardNotice(strings.oneWireguardNotice) }
             item {
@@ -107,7 +103,7 @@ fun RethinkWireguardDetail(
                     RethinkWireguardDetailAction(strings.addPeer, strings.peer, MaterialSymbols.Filled.Add, CardPosition.First, onAddPeer)
                     // Only Edit leaves the screen; the other rows open dialogs, so they get no chevron.
                     RethinkWireguardDetailAction(strings.edit, strings.title, MaterialSymbols.Filled.Edit, CardPosition.Middle, onEdit, navigates = true)
-                    RethinkWireguardDetailAction(strings.delete, strings.deleteDescription, MaterialSymbols.Filled.Delete, CardPosition.Last, onDelete, MaterialTheme.colorScheme.error)
+                    RethinkWireguardDetailAction(strings.delete, strings.deleteDescription, MaterialSymbols.Filled.Delete, CardPosition.Last, { confirmDelete = true }, destructive = true)
                 }
             }
             if (!state.isOneWireguard) {
@@ -139,14 +135,27 @@ fun RethinkWireguardDetail(
             }
             item { SectionHeader(strings.peers) }
             item { peerContent() }
-        }
+    }
+    if (confirmDelete) {
+        RethinkConfirmDialog(
+            onDismissRequest = { confirmDelete = false },
+            title = strings.deleteConfirmTitle,
+            message = strings.deleteConfirmMessage,
+            confirmText = strings.deleteConfirmTitle,
+            dismissText = strings.cancel,
+            isConfirmDestructive = true,
+            onConfirm = {
+                confirmDelete = false
+                onDelete()
+            },
+        )
     }
 }
 
 @Composable
 private fun RethinkWireguardDetailOverview(state: RethinkWireguardDetailState) {
     Surface(
-        modifier = Modifier.fillMaxWidth().padding(top = SharedDimensions.spacingSm),
+        modifier = Modifier.fillMaxWidth(),
         shape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.cornerRadius2xl),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
@@ -189,15 +198,20 @@ private fun RethinkWireguardDetailAction(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     position: CardPosition,
     onClick: () -> Unit,
-    accent: Color = MaterialTheme.colorScheme.primary,
     enabled: Boolean = true,
     navigates: Boolean = false,
+    destructive: Boolean = false,
 ) = RethinkListItem(
     headline = title,
     supporting = description,
     leadingIcon = icon,
-    leadingIconTint = accent,
-    leadingIconContainerColor = accent.copy(alpha = 0.14f),
+    destructive = destructive,
+    leadingIconTint = if (destructive) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.primary,
+    leadingIconContainerColor = if (destructive) {
+        MaterialTheme.colorScheme.errorContainer
+    } else {
+        RethinkIconWellDefaults.tinted(MaterialTheme.colorScheme.primary)
+    },
     position = position,
     enabled = enabled,
     showTrailingChevron = navigates,
@@ -212,11 +226,11 @@ private fun RethinkWireguardDetailToggle(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     position: CardPosition,
-) = RethinkListItem(
+) = RethinkSwitchListItem(
     headline = title,
+    checked = checked,
+    onCheckedChange = onCheckedChange,
     supporting = description,
     leadingIcon = icon,
     position = position,
-    trailing = { Switch(checked = checked, onCheckedChange = null) },
-    selection = RethinkListSelection(checked = checked, onCheckedChange = onCheckedChange),
 )

@@ -126,14 +126,13 @@ fun RethinkBackupRestoreSheet(
                     headline = strings.restoreTitle,
                     supporting = strings.restoreDescription,
                     leadingIcon = MaterialSymbols.Filled.Restore,
-                    leadingIconTint = MaterialTheme.colorScheme.error,
-                    leadingIconContainerColor = MaterialTheme.colorScheme.errorContainer,
+                    destructive = true,
                     position = CardPosition.Last,
                     onClick = { confirmation = RethinkBackupRestoreFailure.Restore },
                 )
             }
             Surface(
-                shape = RoundedCornerShape(SharedDimensions.cardCornerRadius),
+                shape = RoundedCornerShape(SharedDimensions.cornerRadiusXl),
                 color = MaterialTheme.colorScheme.surfaceContainerHigh,
             ) {
                 Text(

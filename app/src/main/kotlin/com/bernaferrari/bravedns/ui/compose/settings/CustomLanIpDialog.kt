@@ -29,7 +29,7 @@ import com.bernaferrari.bravedns.ui.compose.settings.RethinkCustomLanIpEditor
 import com.bernaferrari.bravedns.ui.compose.settings.RethinkCustomLanIpEditorStrings
 import com.bernaferrari.bravedns.ui.compose.settings.RethinkCustomLanIpConfiguration
 import com.bernaferrari.bravedns.ui.compose.settings.RethinkLanIpAddress
-import com.bernaferrari.bravedns.ui.compose.theme.Dimensions
+import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import inet.ipaddr.IPAddressString
 
 private const val GATEWAY_4_IP = "10.111.222.1"
@@ -56,7 +56,7 @@ fun CustomLanIpSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = Dimensions.screenPaddingHorizontal, vertical = Dimensions.spacingLg)
+                .padding(horizontal = SharedDimensions.screenPaddingHorizontal, vertical = SharedDimensions.spacingLg)
                 .verticalScroll(rememberScrollState()),
         ) {
             RethinkCustomLanIpEditor(
@@ -93,9 +93,9 @@ fun CustomLanIpSheet(
                         saveErrorText = saveErrorText,
                     )
                 },
-                onReset = {
-                    Toast.makeText(context, R.string.custom_lan_ip_saved_manual, Toast.LENGTH_SHORT).show()
-                },
+                // Reset only refills the form with defaults; nothing is persisted until Save, so
+                // there is no "saved" feedback (and no destructive confirm) here.
+                onReset = {},
             )
         }
     }

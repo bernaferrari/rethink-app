@@ -9,6 +9,7 @@
 package com.bernaferrari.bravedns.ui.compose.about
 
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWell
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWellDefaults
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillDefaults
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
@@ -90,8 +91,6 @@ data class RethinkAboutStrings(
     val reddit: String,
     val element: String,
     val mastodon: String,
-    val settings: String,
-    val generalSettings: String,
     val appInfo: String,
     val vpnProfile: String,
     val notifications: String,
@@ -218,7 +217,7 @@ private fun AboutIdentityHero(
     version: String?,
 ) {
     Surface(
-        shape = RoundedCornerShape(SharedDimensions.heroCornerRadius),
+        shape = RoundedCornerShape(SharedDimensions.cornerRadius3xl),
         color = MaterialTheme.colorScheme.primaryContainer,
         contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
         modifier = Modifier.fillMaxWidth(),
@@ -286,7 +285,8 @@ private fun AboutDiagnosticsSection(strings: RethinkAboutStrings, actions: Rethi
 @Composable
 private fun AboutSection(title: String, accent: Color, rows: List<AboutRow>) {
     Column {
-        AboutSectionHeader(title)
+        // Headers use the theme's primary section style; [accent] only tints each section's icons.
+        SectionHeader(title)
         RethinkListGroup {
             rows.forEachIndexed { index, row ->
                 AboutListRow(row, accent, cardPositionFor(index, rows.lastIndex))
@@ -295,22 +295,15 @@ private fun AboutSection(title: String, accent: Color, rows: List<AboutRow>) {
     }
 }
 
-/** Headers use the theme's primary section style; [accent] only tints each section's icons. */
-@Composable
-private fun AboutSectionHeader(title: String) {
-    SectionHeader(title)
-}
-
 @Composable
 private fun AboutListRow(row: AboutRow, accent: Color, position: CardPosition) {
     RethinkListItem(
         headline = row.headline,
         position = position,
-        highlightContainerColor = accent.copy(alpha = 0.22f),
         onClick = row.onClick,
         trailing = row.trailing,
         leadingContent = {
-            RethinkIconWell(containerColor = accent.copy(alpha = 0.16f), contentColor = accent) { row.icon(accent) }
+            RethinkIconWell(containerColor = RethinkIconWellDefaults.tinted(accent), contentColor = accent) { row.icon(accent) }
         },
     )
 }
@@ -324,7 +317,7 @@ private fun AboutCommunitySection(
 ) {
     val accent = MaterialTheme.colorScheme.tertiary
     Column {
-        AboutSectionHeader(strings.connect)
+        SectionHeader(strings.connect)
         RethinkListGroup {
             AboutListRow(
                 AboutRow(strings.joinTelegram, assets.telegram, actions.onTelegram),
@@ -369,7 +362,7 @@ private fun AboutSocialRow(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
         ) {
-            RethinkIconWell(MaterialSymbols.Filled.Share, tint = accent, containerColor = accent.copy(alpha = 0.16f), iconSize = SharedDimensions.iconSizeMd)
+            RethinkIconWell(MaterialSymbols.Filled.Share, tint = accent, containerColor = RethinkIconWellDefaults.tinted(accent), iconSize = SharedDimensions.iconSizeMd)
             Spacer(Modifier.weight(1f))
             AboutSocialIcon(strings.twitter, actions.onTwitter, assets.twitter, accent)
             AboutSocialIcon(strings.email, actions.onEmail, assets.email, accent)

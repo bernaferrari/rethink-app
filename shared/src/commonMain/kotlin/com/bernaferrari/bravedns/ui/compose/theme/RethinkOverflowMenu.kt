@@ -21,6 +21,7 @@ import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 data class RethinkOverflowItem(
     val label: String,
     val icon: ImageVector? = null,
+    val enabled: Boolean = true,
     val onClick: () -> Unit,
 )
 
@@ -44,6 +45,7 @@ fun RethinkOverflowMenu(moreDescription: String, items: List<RethinkOverflowItem
                 DropdownMenuItem(
                     text = { Text(item.label) },
                     leadingIcon = item.icon?.let { icon -> { Icon(icon, null) } },
+                    enabled = item.enabled,
                     onClick = {
                         expanded = false
                         item.onClick()

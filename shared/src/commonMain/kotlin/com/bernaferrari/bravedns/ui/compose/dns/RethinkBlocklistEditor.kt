@@ -66,6 +66,8 @@ data class RethinkBlocklistEditorStrings(
     val blocklistCount: (Int) -> String,
     val entries: (Int) -> String,
     val empty: String = "",
+    /** Content description for a blocklist's source-link action. */
+    val openSource: String,
 )
 
 /** Complete target-neutral packs/advanced blocklist editor body. */
@@ -205,7 +207,7 @@ private fun RethinkBlocklistPackList(feed: RethinkBlocklistFeed<RethinkBlocklist
         RethinkEmptyState(title = strings.empty.ifBlank { strings.filterHint }, message = "", modifier = modifier)
         return
     }
-    val rowStrings = RethinkBlocklistRowStrings(strings.blocklistCount, strings.entries)
+    val rowStrings = RethinkBlocklistRowStrings(strings.blocklistCount, strings.entries, strings.openSource)
     LazyColumn(modifier, contentPadding = PaddingValues(top = SharedDimensions.spacingXs, bottom = SharedDimensions.spacingLg)) {
         items(feed.itemCount) { index ->
             val pack = feed[index] ?: return@items
@@ -226,7 +228,7 @@ private fun RethinkBlocklistFileTagList(feed: RethinkBlocklistFeed<RethinkBlockl
         RethinkEmptyState(title = strings.empty.ifBlank { strings.filterHint }, message = "", modifier = modifier)
         return
     }
-    val rowStrings = RethinkBlocklistRowStrings(strings.blocklistCount, strings.entries)
+    val rowStrings = RethinkBlocklistRowStrings(strings.blocklistCount, strings.entries, strings.openSource)
     LazyColumn(modifier, contentPadding = PaddingValues(top = SharedDimensions.spacingXs, bottom = SharedDimensions.spacingLg)) {
         items(feed.itemCount) { index ->
             val tag = feed[index] ?: return@items

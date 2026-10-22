@@ -2,8 +2,6 @@
 package com.bernaferrari.bravedns.ui.compose.apps
 
 import android.content.Context
-import android.graphics.drawable.Drawable
-import android.util.LruCache
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -33,7 +31,7 @@ import com.bernaferrari.bravedns.database.hasInternetPermission
 import com.bernaferrari.bravedns.service.EventLogger
 import com.bernaferrari.bravedns.service.FirewallManager
 import com.bernaferrari.bravedns.service.ProxyManager
-import com.bernaferrari.bravedns.ui.compose.rememberDrawablePainter
+import com.bernaferrari.bravedns.ui.compose.common.rememberAppIconPainter
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkFirewallApp
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkFirewallAppListScreen
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkFirewallAppListStrings
@@ -46,7 +44,7 @@ import com.bernaferrari.bravedns.ui.compose.firewall.RethinkFirewallTopLevelFilt
 import com.bernaferrari.bravedns.ui.compose.firewall.rethinkUsageText
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.util.Utilities
-import com.bernaferrari.bravedns.util.Utilities.getIcon
+import com.bernaferrari.bravedns.util.formatByteCount
 import com.bernaferrari.bravedns.viewmodel.AppInfoViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -410,23 +408,14 @@ private fun AppInfo.toRethinkFirewallApp(
 private fun dataUsageText(app: AppInfo): String? {
     if (app.uploadBytes <= 0L && app.downloadBytes <= 0L) return null
     return rethinkUsageText(
-        download = Utilities.humanReadableByteCount(app.downloadBytes, true),
-        upload = Utilities.humanReadableByteCount(app.uploadBytes, true),
+        download = formatByteCount(app.downloadBytes),
+        upload = formatByteCount(app.uploadBytes),
     )
 }
 
 @Composable
 private fun AndroidFirewallAppIcon(app: RethinkFirewallApp) {
-    val context = LocalContext.current
-    var icon by remember(app.packageName) { mutableStateOf<Drawable?>(AndroidFirewallIconCache.get(app.packageName)) }
-    LaunchedEffect(app.packageName, app.appName) {
-        if (icon == null) {
-            val loaded = withContext(Dispatchers.IO) { getIcon(context, app.packageName, app.appName) }
-            icon = loaded
-            AndroidFirewallIconCache.put(app.packageName, loaded)
-        }
-    }
-    rememberDrawablePainter(icon ?: Utilities.getDefaultIcon(context))?.let { painter ->
+    rememberAppIconPainter(app.packageName, app.appName, fallbackToDefault = true)?.let { painter ->
         // The shared row clips the 40dp well; the icon fills it.
         Image(painter, null, Modifier.size(SharedDimensions.iconContainerMd))
     }
@@ -462,10 +451,4 @@ private suspend fun toggleFirewallConnection(eventLogger: EventLogger, app: Reth
             "UID: ${app.uid}, App: ${app.appName}, New FW status: $next",
         )
     }
-}
-
-private object AndroidFirewallIconCache {
-    private val cache = LruCache<String, Drawable>(256)
-    fun get(packageName: String): Drawable? = cache.get(packageName)
-    fun put(packageName: String, icon: Drawable?) { if (packageName.isNotBlank() && icon != null) cache.put(packageName, icon) }
 }

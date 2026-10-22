@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- DNS endpoint descriptions stored in the bundled DB as "R.string.<name>" and resolved at
+     runtime via getIdentifier (DnsEndpointShared.resolveDnsDescriptionText). Keep them from
+     UnusedResources and the release resource shrinker. -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@string/cloudflare_dns_desc,@string/cloudflare_family_dns_desc,@string/cloudflare_security_dns_desc,@string/google_dns_desc,@string/cleanbrowsing_family_dns_desc,@string/cleanbrowsing_adult_dns_desc,@string/quad9_dns_desc,@string/crypt_cleanbrowsing_family_desc,@string/crypt_adguard_desc,@string/crypt_adguard_family_desc,@string/crypt_quad9_security_desc,@string/crypt_quad9_desc,@string/crypt_relay_netherlands,@string/crypt_relay_france,@string/crypt_relay_sweden,@string/crypt_relay_us,@string/crypt_relay_singapore" />

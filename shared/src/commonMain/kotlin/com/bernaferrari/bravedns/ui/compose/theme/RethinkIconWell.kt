@@ -21,6 +21,14 @@ import androidx.compose.ui.unit.Dp
 val RethinkIconWellContainerColor: Color
     @Composable get() = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
 
+object RethinkIconWellDefaults {
+    /** Alpha of an accent-tinted wash ([tinted]). */
+    const val TintedContainerAlpha = 0.14f
+
+    /** Container for a well tinted by a data/status accent instead of the primary wash. */
+    fun tinted(accent: Color): Color = accent.copy(alpha = TintedContainerAlpha)
+}
+
 /**
  * The one leading-icon container: a tinted rounded well that centers its content. [contentColor]
  * is provided as [LocalContentColor] so plain `Icon(...)` content picks it up.

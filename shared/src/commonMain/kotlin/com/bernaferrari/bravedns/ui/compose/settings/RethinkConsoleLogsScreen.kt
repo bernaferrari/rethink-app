@@ -34,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkModalBottomSheet
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkSheetHeader
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkRadioChoiceList
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import kotlinx.coroutines.delay
@@ -43,7 +44,6 @@ data class RethinkConsoleLogStrings(
     val title: String,
     val searchHint: String,
     val filterDescription: String,
-    val shareDescription: String,
     /** Content description of the "delete all logs" action. */
     val clearDescription: String,
     /** Content description of the top-bar overflow ("More options"). */
@@ -54,7 +54,6 @@ data class RethinkConsoleLogStrings(
     val deleteDialogMessage: String,
     val deleteLabel: String,
     val reportLabel: String,
-    val confirmLabel: String,
     val cancelLabel: String,
     val filterOptions: List<String>,
 )
@@ -89,7 +88,7 @@ fun RethinkConsoleLogsScreen(
         RethinkModalBottomSheet(
             onDismissRequest = { filterVisible = false },
         ) {
-            Text(strings.filterDescription, style = MaterialTheme.typography.titleLarge)
+            RethinkSheetHeader(title = strings.filterDescription)
             RethinkRadioChoiceList(
                 options = strings.filterOptions.indices.toList(),
                 selected = { selectedLogLevel == it },

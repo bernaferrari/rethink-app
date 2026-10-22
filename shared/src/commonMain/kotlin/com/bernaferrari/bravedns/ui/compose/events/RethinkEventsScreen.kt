@@ -3,6 +3,9 @@
 
 package com.bernaferrari.bravedns.ui.compose.events
 
+import com.bernaferrari.bravedns.ui.compose.common.RethinkLoadingState
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWellDefaults
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWell
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillDefaults
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillSize
@@ -45,7 +48,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -109,9 +111,6 @@ data class RethinkEventRow(
     val severityLabel: String,
 )
 
-/** Kept as a source-compatible name while all grouped UI uses one shared shape policy. */
-typealias RethinkEventCardPosition = CardPosition
-
 data class RethinkEventsStrings(
     val title: String,
     val searchHint: String,
@@ -170,7 +169,7 @@ fun RethinkEventsScreen(
                     RethinkOverflowMenu(
                         moreDescription = strings.moreActions,
                         items = listOf(
-                            RethinkOverflowItem(strings.refresh, MaterialSymbols.Filled.Refresh, onRefresh),
+                            RethinkOverflowItem(strings.refresh, MaterialSymbols.Filled.Refresh, onClick = onRefresh),
                             RethinkOverflowItem(strings.delete, MaterialSymbols.Filled.DeleteOutline) { showDeleteDialog = true },
                         ),
                     )
@@ -378,7 +377,7 @@ private fun RethinkEventMenuChip(
 fun RethinkEventCard(
     event: RethinkEventRow,
     query: String,
-    position: RethinkEventCardPosition,
+    position: CardPosition,
     copyDescription: String,
     userActionLabel: String,
     onCopy: (String) -> Unit,
@@ -420,7 +419,7 @@ fun RethinkEventCard(
             verticalAlignment = Alignment.Top,
             horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
         ) {
-            EventSeverityIcon(event.severity, event.severityLabel, accent, Modifier.size(SharedDimensions.iconContainerMd))
+            EventSeverityIcon(event.severity, event.severityLabel, accent, Modifier)
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
                 // Timestamp sits on the message's first baseline, also when the message expands.
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
@@ -459,7 +458,7 @@ fun RethinkEventCard(
 
 @Composable
 private fun EventSeverityIcon(severity: RethinkEventSeverity, severityLabel: String, accent: Color, modifier: Modifier) {
-    Surface(shape = RoundedCornerShape(SharedDimensions.cornerRadiusMd), color = accent.copy(alpha = 0.12f), modifier = modifier) {
+    RethinkIconWell(modifier = modifier, containerColor = RethinkIconWellDefaults.tinted(accent), contentColor = accent) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             if (severity == RethinkEventSeverity.Low) {
                 // Low is routine: a neutral dot reads as "nothing to act on" without a glyph.
@@ -480,7 +479,7 @@ private fun EventSeverityIcon(severity: RethinkEventSeverity, severityLabel: Str
 @Composable
 private fun RethinkEventsLoadingState(modifier: Modifier) {
     Box(modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-        LoadingIndicator()
+        RethinkLoadingState(label = "")
     }
 }
 

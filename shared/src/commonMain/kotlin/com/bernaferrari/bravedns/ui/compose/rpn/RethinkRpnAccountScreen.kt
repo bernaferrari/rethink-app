@@ -9,7 +9,6 @@ import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -38,6 +37,8 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.SectionHeaderWithSubtitle
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkScreenDefaults
+import com.bernaferrari.bravedns.ui.compose.common.RethinkErrorState
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 
 data class RethinkRpnAccountEntry(val title: String, val supporting: String? = null)
@@ -164,11 +165,7 @@ private fun RethinkRpnManageTab(
     val noSubscription = !account.entitlementLoading && account.entitlementError == null && account.entitlement.isEmpty()
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(
-            start = SharedDimensions.screenPaddingHorizontal,
-            end = SharedDimensions.screenPaddingHorizontal,
-            bottom = SharedDimensions.spacing3xl,
-        ),
+        contentPadding = RethinkScreenDefaults.contentPadding,
         verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
     ) {
         item { SectionHeaderWithSubtitle(title = strings.manageHeading, subtitle = strings.manageDescription) }
@@ -212,8 +209,8 @@ private fun RethinkRpnManageTab(
             item { SectionHeaderWithSubtitle(title = strings.actionsHeading, subtitle = strings.actionsDescription) }
             item {
                 RethinkListGroup {
-                    RethinkListItem(headline = strings.cancel, supporting = strings.cancelDescription, leadingIcon = MaterialSymbols.Filled.Close, position = CardPosition.First, enabled = !state.busy, leadingIconTint = MaterialTheme.colorScheme.error, leadingIconContainerColor = MaterialTheme.colorScheme.errorContainer, onClick = { onAction(RethinkAccountAction.Cancel) })
-                    RethinkListItem(headline = strings.revoke, supporting = strings.revokeDescription, leadingIcon = MaterialSymbols.Filled.Block, position = CardPosition.Last, enabled = !state.busy, leadingIconTint = MaterialTheme.colorScheme.error, leadingIconContainerColor = MaterialTheme.colorScheme.errorContainer, onClick = { onAction(RethinkAccountAction.Revoke) })
+                    RethinkListItem(headline = strings.cancel, supporting = strings.cancelDescription, leadingIcon = MaterialSymbols.Filled.Close, position = CardPosition.First, enabled = !state.busy, destructive = true, onClick = { onAction(RethinkAccountAction.Cancel) })
+                    RethinkListItem(headline = strings.revoke, supporting = strings.revokeDescription, leadingIcon = MaterialSymbols.Filled.Block, position = CardPosition.Last, enabled = !state.busy, destructive = true, onClick = { onAction(RethinkAccountAction.Revoke) })
                 }
             }
         }
@@ -236,7 +233,7 @@ private fun RethinkRpnManageTab(
 @Composable
 private fun RethinkRpnHistoryTab(loading: Boolean, entries: List<RethinkRpnAccountEntry>, strings: RethinkRpnAccountStrings) {
     when {
-        loading -> RethinkRpnAccountLoading(strings.loading)
+        loading -> RethinkLoadingState(strings.loading)
         entries.isEmpty() -> RethinkEmptyState(strings.noHistory, "", Modifier.fillMaxWidth(), icon = MaterialSymbols.Filled.EventNote)
         else -> RethinkRpnAccountEntries(entries)
     }
@@ -245,8 +242,8 @@ private fun RethinkRpnHistoryTab(loading: Boolean, entries: List<RethinkRpnAccou
 @Composable
 private fun RethinkRpnOrdersTab(loading: Boolean, error: String?, entries: List<RethinkRpnAccountEntry>, strings: RethinkRpnAccountStrings, onRetry: () -> Unit) {
     when {
-        loading -> RethinkRpnAccountLoading(strings.loading)
-        error != null -> RethinkEmptyState(title = error, message = "", icon = MaterialSymbols.Filled.WarningAmber, ctaLabel = strings.retry, onCtaClick = onRetry)
+        loading -> RethinkLoadingState(strings.loading)
+        error != null -> RethinkErrorState(error, retryLabel = strings.retry, onRetry = onRetry)
         entries.isEmpty() -> RethinkEmptyState(strings.noOrders, "", Modifier.fillMaxWidth(), icon = MaterialSymbols.Filled.ShoppingCart)
         else -> RethinkRpnAccountEntries(entries)
     }
@@ -255,23 +252,18 @@ private fun RethinkRpnOrdersTab(loading: Boolean, error: String?, entries: List<
 @Composable
 private fun RethinkRpnEntitlementTab(loading: Boolean, error: String?, entries: List<RethinkRpnAccountEntry>, strings: RethinkRpnAccountStrings) {
     when {
-        loading -> RethinkRpnAccountLoading(strings.loading)
-        error != null -> RethinkEmptyState(error, "", Modifier.fillMaxWidth(), icon = MaterialSymbols.Filled.WarningAmber)
+        loading -> RethinkLoadingState(strings.loading)
+        error != null -> RethinkErrorState(error)
         entries.isEmpty() -> RethinkEmptyState(strings.noSubscriptionTitle, strings.noSubscriptionMessage, Modifier.fillMaxWidth(), icon = MaterialSymbols.Filled.Star)
         else -> RethinkRpnAccountEntries(entries, keyValue = true)
     }
 }
 
 @Composable
-private fun RethinkRpnAccountLoading(label: String) {
-    RethinkLoadingState(label)
-}
-
-@Composable
 private fun RethinkRpnAccountEntries(entries: List<RethinkRpnAccountEntry>, keyValue: Boolean = false) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(SharedDimensions.screenPaddingHorizontal),
+        contentPadding = RethinkScreenDefaults.contentPadding,
         verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile),
     ) {
         itemsIndexed(entries, key = { index, item -> "${item.title}_${item.supporting}_$index" }) { index, item ->

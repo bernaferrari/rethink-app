@@ -22,32 +22,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 
-/** Standard expressive card used by Android and portable Compose screens. */
-@Composable
-fun AppCard(
-    modifier: Modifier = Modifier,
-    onClick: (() -> Unit)? = null,
-    colors: CardColors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-    content: @Composable ColumnScope.() -> Unit,
-) {
-    if (onClick != null) {
-        Card(
-            modifier = modifier.fillMaxWidth(),
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.cardCornerRadius),
-            colors = colors,
-            onClick = onClick,
-            content = content,
-        )
-    } else {
-        Card(
-            modifier = modifier.fillMaxWidth(),
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.cardCornerRadius),
-            colors = colors,
-            content = content,
-        )
-    }
-}
-
 /** Compact inline empty state shared by list and detail surfaces. */
 @Composable
 fun CompactEmptyState(

@@ -19,8 +19,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 
 /**
- * Minimal test activity for dialog instrumentation tests.
- * This activity has no dependencies and provides a stable context for showing dialogs.
+ * Minimal host activity for Robolectric and instrumented UI tests. Debug-only (src/debug +
+ * its manifest), so it never ships in release builds.
  */
 class TestDialogActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

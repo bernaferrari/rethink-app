@@ -4,15 +4,19 @@
 
 package com.bernaferrari.bravedns.ui.compose.settings
 
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.font.FontWeight
+import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
+import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
+import com.bernaferrari.bravedns.ui.compose.common.RethinkErrorState
+import com.bernaferrari.bravedns.ui.compose.common.RethinkLoadingState
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.ui.semantics.Role
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,7 +26,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
@@ -34,11 +37,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
@@ -93,8 +93,8 @@ fun RethinkCheckoutScreen(
             when (paymentStatus) {
                 RethinkCheckoutPaymentStatus.NotPaid -> CheckoutPaymentContent(plans, selectedPlanId, strings, { selectedPlanId = it }, onStartPayment, onNavigateToProxy)
                 RethinkCheckoutPaymentStatus.Initiated -> CheckoutAwaiting(strings)
-                RethinkCheckoutPaymentStatus.Paid -> CheckoutStatus(strings.successTitle, strings.successMessage, strings.successButton, onNavigateToProxy)
-                RethinkCheckoutPaymentStatus.Failed -> CheckoutStatus(strings.failedTitle, strings.failedMessage, strings.failedButton, onNavigateToProxy)
+                RethinkCheckoutPaymentStatus.Paid -> CheckoutPaid(strings, onNavigateToProxy)
+                RethinkCheckoutPaymentStatus.Failed -> CheckoutFailed(strings, onNavigateToProxy)
             }
             if (paymentStatus == RethinkCheckoutPaymentStatus.Paid) {
                 TextButton(
@@ -166,37 +166,38 @@ private fun CheckoutPaymentContent(
 }
 
 @Composable
-private fun CheckoutAwaiting(strings: RethinkCheckoutStrings) = CheckoutStatusCard(strings.awaitingTitle, strings.awaitingMessage) {
-    LoadingIndicator()
+private fun CheckoutAwaiting(strings: RethinkCheckoutStrings) = CheckoutStateFrame {
+    SectionHeader(strings.awaitingTitle)
+    RethinkLoadingState(label = strings.awaitingMessage, contained = true)
 }
 
 @Composable
-private fun CheckoutStatus(title: String, message: String, button: String, onClick: () -> Unit) = CheckoutStatusCard(title, message) {
-    Button(
-        modifier = Modifier.fillMaxWidth().height(SharedDimensions.buttonHeight),
-        onClick = onClick,
-        shape = RoundedCornerShape(SharedDimensions.buttonCornerRadius),
-    ) { Text(button, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold) }
+private fun CheckoutPaid(strings: RethinkCheckoutStrings, onClick: () -> Unit) = CheckoutStateFrame {
+    RethinkEmptyState(
+        title = strings.successTitle,
+        message = strings.successMessage,
+        icon = MaterialSymbols.Filled.CheckCircle,
+        ctaLabel = strings.successButton,
+        onCtaClick = onClick,
+        contained = true,
+    )
 }
 
 @Composable
-private fun CheckoutStatusCard(title: String, message: String, content: @Composable ColumnScope.() -> Unit) {
-    Box(Modifier.fillMaxWidth().padding(horizontal = SharedDimensions.screenPaddingHorizontal, vertical = SharedDimensions.spacingXl)) {
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(SharedDimensions.groupCornerRadius),
-            color = MaterialTheme.colorScheme.surfaceContainerLow,
-        ) {
-            Column(
-                Modifier.fillMaxWidth().padding(horizontal = SharedDimensions.spacingXl, vertical = SharedDimensions.spacingXl),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
-            ) {
-                Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
-                Text(message, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
-                Spacer(Modifier.height(SharedDimensions.spacingXs))
-                content()
-            }
-        }
-    }
+private fun CheckoutFailed(strings: RethinkCheckoutStrings, onClick: () -> Unit) = CheckoutStateFrame {
+    RethinkErrorState(
+        title = strings.failedTitle,
+        message = strings.failedMessage,
+        retryLabel = strings.failedButton,
+        onRetry = onClick,
+        contained = true,
+    )
+}
+
+@Composable
+private fun CheckoutStateFrame(content: @Composable ColumnScope.() -> Unit) {
+    Column(
+        Modifier.fillMaxWidth().padding(horizontal = SharedDimensions.screenPaddingHorizontal, vertical = SharedDimensions.spacingXl),
+        content = content,
+    )
 }

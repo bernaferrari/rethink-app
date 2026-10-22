@@ -2,9 +2,9 @@
 
 package com.bernaferrari.bravedns.ui.compose.rpn
 
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWellContainerColor
-import androidx.compose.ui.semantics.Role
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkSwitchListItem
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkCheckboxListItem
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkSheetHeader
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
@@ -13,9 +13,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -91,14 +89,9 @@ fun RethinkRpnServerSettingsScreen(
     RethinkLazyColumnScreenScaffold(
         modifier = modifier,
         topBar = { RethinkTopBar(strings.title, onBackClick = onBackClick) },
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(
-            start = SharedDimensions.screenPaddingHorizontal,
-            end = SharedDimensions.screenPaddingHorizontal,
-            bottom = SharedDimensions.spacing3xl,
-        ),
         verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
     ) {
-            item { SettingsSectionHeader(strings.dnsFilteringTitle, strings.dnsFilteringDescription) }
+            item { SectionHeaderWithSubtitle(title = strings.dnsFilteringTitle, subtitle = strings.dnsFilteringDescription) }
             item {
                 RethinkRpnDnsMode.entries.forEachIndexed { index, mode ->
                     RpnToggleRow(
@@ -113,7 +106,7 @@ fun RethinkRpnServerSettingsScreen(
                     )
                 }
             }
-            item { SettingsSectionHeader(strings.configurationTitle, strings.configurationDescription) }
+            item { SectionHeaderWithSubtitle(title = strings.configurationTitle, subtitle = strings.configurationDescription) }
             item {
                 RpnToggleRow(strings.manualTitle, strings.manualDescription, MaterialSymbols.Filled.Tune, manualConfiguration, CardPosition.First, onManualConfigurationChange)
                 RpnToggleRow(strings.changeIdentityTitle, strings.changeIdentityDescription, MaterialSymbols.Filled.Security, alwaysChangeIdentity, CardPosition.Middle, onAlwaysChangeIdentityChange)
@@ -125,7 +118,7 @@ fun RethinkRpnServerSettingsScreen(
                     onClick = { showExclusions = true },
                 )
             }
-            item { SettingsSectionHeader(strings.maintenanceTitle, strings.maintenanceDescription) }
+            item { SectionHeaderWithSubtitle(title = strings.maintenanceTitle, subtitle = strings.maintenanceDescription) }
             item {
                 RpnActionRow(
                     title = strings.resetTitle,
@@ -167,20 +160,13 @@ private fun RethinkRpnServerSettingsStrings.dnsModeTitle(mode: RethinkRpnDnsMode
 }
 
 @Composable
-private fun SettingsSectionHeader(title: String, subtitle: String) {
-    SectionHeaderWithSubtitle(title = title, subtitle = subtitle)
-}
-
-@Composable
 private fun RpnToggleRow(
     title: String, description: String, icon: androidx.compose.ui.graphics.vector.ImageVector,
     checked: Boolean, position: CardPosition, onCheckedChange: (Boolean) -> Unit,
 ) {
-    RethinkListItem(
-        headline = title, supporting = description.takeIf(String::isNotBlank), position = position,
-        selection = RethinkListSelection(checked = checked, onCheckedChange = onCheckedChange),
-        leadingIcon = icon,
-        trailing = { Switch(checked = checked, onCheckedChange = null) },
+    RethinkSwitchListItem(
+        headline = title, checked = checked, onCheckedChange = onCheckedChange,
+        supporting = description.takeIf(String::isNotBlank), position = position, leadingIcon = icon,
     )
 }
 
@@ -189,12 +175,10 @@ private fun RpnActionRow(
     title: String, description: String, icon: androidx.compose.ui.graphics.vector.ImageVector,
     position: CardPosition, enabled: Boolean = true, destructive: Boolean = false, onClick: () -> Unit,
 ) {
-    val accent = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
     RethinkListItem(
         headline = title, supporting = description, position = position, enabled = enabled, onClick = onClick,
         leadingIcon = icon,
-        leadingIconTint = accent,
-        leadingIconContainerColor = if (destructive) accent.copy(alpha = 0.16f) else RethinkIconWellContainerColor,
+        destructive = destructive,
         // Navigation rows get the standard chevron; destructive actions open a confirmation instead.
         showTrailingChevron = !destructive,
     )
@@ -212,24 +196,24 @@ private fun RethinkCountryExclusionDialog(
         includeBottomSpacer = false,
         expandOnShow = true,
     ) { dismissSheet ->
-        Text(strings.excludeLocationsTitle, style = MaterialTheme.typography.headlineSmall)
+        RethinkSheetHeader(strings.excludeLocationsTitle)
         LazyColumn(
-            modifier = Modifier.fillMaxWidth().heightIn(min = 360.dp, max = 640.dp),
+            modifier = Modifier.fillMaxWidth().heightIn(min = 360.dp, max = SharedDimensions.sheetContentMaxHeight),
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile),
         ) {
             itemsIndexed(countries, key = { _, country -> country.code }) { index, country ->
                 val checked = country.code in selected
-                RethinkListItem(
+                RethinkCheckboxListItem(
                     headline = country.name,
-                    // One grouped list (not a stack of single cards), one tone above the sheet.
-                    position = cardPositionFor(index, countries.lastIndex),
-                    highlighted = checked,
-                    selection = RethinkListSelection(checked = checked, role = Role.Checkbox) { isChecked ->
+                    checked = checked,
+                    onCheckedChange = { isChecked ->
                         selected = selected.toMutableSet().apply {
                             if (isChecked) add(country.code) else remove(country.code)
                         }
                     },
-                    trailing = { Checkbox(checked = checked, onCheckedChange = null) },
+                    // One grouped list (not a stack of single cards), one tone above the sheet.
+                    position = cardPositionFor(index, countries.lastIndex),
+                    highlighted = checked,
                 )
             }
         }

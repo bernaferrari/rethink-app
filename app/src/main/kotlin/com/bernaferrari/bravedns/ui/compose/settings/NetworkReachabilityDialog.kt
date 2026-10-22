@@ -34,7 +34,7 @@ import com.bernaferrari.bravedns.ui.compose.settings.RethinkNetworkReachabilityE
 import com.bernaferrari.bravedns.ui.compose.settings.RethinkNetworkReachabilityEditorStrings
 import com.bernaferrari.bravedns.ui.compose.settings.RethinkReachabilityProbeField
 import com.bernaferrari.bravedns.ui.compose.settings.RethinkReachabilityProbeStatus
-import com.bernaferrari.bravedns.ui.compose.theme.Dimensions
+import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.util.Constants
 import inet.ipaddr.IPAddress.IPVersion
 import inet.ipaddr.IPAddressString
@@ -71,7 +71,7 @@ fun NetworkReachabilitySheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = Dimensions.screenPaddingHorizontal, vertical = Dimensions.spacingLg)
+                .padding(horizontal = SharedDimensions.screenPaddingHorizontal, vertical = SharedDimensions.spacingLg)
                 .verticalScroll(rememberScrollState()),
         ) {
             val protocols = VpnController.protocols()

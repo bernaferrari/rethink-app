@@ -77,7 +77,7 @@ fun RethinkWireguardPeerRow(
                 RethinkOverflowMenu(
                     moreDescription = strings.moreActions,
                     items = listOf(
-                        RethinkOverflowItem(strings.editDescription, MaterialSymbols.Filled.Edit, onEdit),
+                        RethinkOverflowItem(strings.editDescription, MaterialSymbols.Filled.Edit, onClick = onEdit),
                         RethinkOverflowItem(strings.deleteDescription, MaterialSymbols.Filled.DeleteOutline) { showDeleteDialog = true },
                     ),
                 )

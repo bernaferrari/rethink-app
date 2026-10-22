@@ -106,7 +106,6 @@ fun UniversalFirewallSettingsScreen(
             explanation = stringResource(R.string.universal_firewall_explanation),
             blocked = { count -> stringResource(R.string.two_argument_colon, stringResource(R.string.lbl_blocked), count.toString()) },
             loading = stringResource(R.string.lbl_loading),
-            logs = stringResource(R.string.lbl_logs),
             accessibilityTitle = stringResource(R.string.alert_permission_accessibility),
             accessibilityDescription = stringResource(R.string.alert_firewall_accessibility_explanation),
             accessibilityConfirm = stringResource(R.string.univ_accessibility_dialog_positive),

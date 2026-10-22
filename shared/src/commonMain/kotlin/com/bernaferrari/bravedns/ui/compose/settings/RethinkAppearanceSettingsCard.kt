@@ -90,9 +90,6 @@ val rethinkAppearancePresets = listOf(
     RethinkAppearancePreset(5, "Purple", Color(0xFFA855F7)),
 )
 
-fun rethinkSeedColorForPresetId(id: Int): Color? =
-    rethinkAppearancePresets.firstOrNull { it.id == id }?.color
-
 val rethinkAppearanceStrings = RethinkAppearanceStrings(
     heading = "Appearance",
     system = "System",
@@ -203,8 +200,8 @@ fun RethinkAppearanceSettingsCard(
     }
 }
 
-private val ColorTileHitSize = 48.dp
-private val ColorTileSize = 40.dp
+private val ColorTileHitSize = SharedDimensions.touchTargetMin
+private val ColorTileSize = SharedDimensions.iconContainerMd
 private val ColorTileRingWidth = 2.dp
 private val SwatchInk = Color(0xFF1C1B18)
 
@@ -242,12 +239,12 @@ private fun RethinkThemeColorSwatch(
     )
     val glowAlpha by animateFloatAsState(
         targetValue = if (selected) 1f else 0f,
-        animationSpec = tween(durationMillis = if (motion.reducedMotion) 0 else motion.durationMedium, easing = FastOutSlowInEasing),
+        animationSpec = tween(durationMillis = motion.durationMedium, easing = FastOutSlowInEasing),
         label = "swatchGlow_${preset.id}",
     )
     val iconAlpha by animateFloatAsState(
         targetValue = if (selected || preset.isDynamic) 1f else 0f,
-        animationSpec = tween(durationMillis = if (motion.reducedMotion) 0 else motion.durationFast, easing = FastOutSlowInEasing),
+        animationSpec = tween(durationMillis = motion.durationFast, easing = FastOutSlowInEasing),
         label = "swatchIcon_${preset.id}",
     )
     val interactionSource = remember { MutableInteractionSource() }

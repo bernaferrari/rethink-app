@@ -34,6 +34,13 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.runtime.staticCompositionLocalOf
+
+/**
+ * Localized label for every top-bar back arrow. Android provides it from resources at the theme
+ * root, so shared screens never ship the English fallback to TalkBack.
+ */
+val LocalRethinkBackDescription = staticCompositionLocalOf { "Navigate back" }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -118,6 +125,16 @@ fun RethinkTopBar(
     colors = TopAppBarDefaults.topAppBarColors(containerColor = containerColor, scrolledContainerColor = scrolledContainerColor, navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant, titleContentColor = MaterialTheme.colorScheme.onSurface, actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant),
 )
 
+object RethinkScreenDefaults {
+    /** The one list-screen inset: screen gutters, [SharedDimensions.screenContentTop], 3xl bottom. */
+    val contentPadding: PaddingValues = PaddingValues(
+        start = SharedDimensions.screenPaddingHorizontal,
+        end = SharedDimensions.screenPaddingHorizontal,
+        top = SharedDimensions.screenContentTop,
+        bottom = SharedDimensions.spacing3xl,
+    )
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RethinkLazyColumnScreenScaffold(
@@ -125,13 +142,10 @@ fun RethinkLazyColumnScreenScaffold(
     containerColor: Color = MaterialTheme.colorScheme.surface,
     topBar: @Composable () -> Unit,
     listState: LazyListState? = null,
-    contentPadding: PaddingValues = PaddingValues(
-        start = SharedDimensions.screenPaddingHorizontal,
-        end = SharedDimensions.screenPaddingHorizontal,
-        top = SharedDimensions.spacingSm,
-        bottom = SharedDimensions.spacing3xl,
-    ),
+    contentPadding: PaddingValues = RethinkScreenDefaults.contentPadding,
     verticalArrangement: Arrangement.Vertical = Arrangement.spacedBy(SharedDimensions.spacingLg),
+    floatingActionButton: @Composable () -> Unit = {},
+    snackbarHost: @Composable () -> Unit = {},
     content: LazyListScope.() -> Unit,
 ) {
     val state = listState ?: rememberLazyListState()
@@ -139,6 +153,8 @@ fun RethinkLazyColumnScreenScaffold(
         modifier = modifier,
         containerColor = containerColor,
         topBar = topBar,
+        floatingActionButton = floatingActionButton,
+        snackbarHost = snackbarHost,
     ) { padding ->
         LazyColumn(
             state = state,
@@ -162,14 +178,12 @@ fun RethinkTopBarLazyColumnScreen(
     topBarScrolledContainerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
     topBarTitleTextStyle: TextStyle? = null,
     listState: LazyListState? = null,
-    contentPadding: PaddingValues = PaddingValues(
-        start = SharedDimensions.screenPaddingHorizontal,
-        end = SharedDimensions.screenPaddingHorizontal,
-        top = SharedDimensions.spacingSm,
-        bottom = SharedDimensions.spacing3xl,
-    ),
+    contentPadding: PaddingValues = RethinkScreenDefaults.contentPadding,
     verticalArrangement: Arrangement.Vertical = Arrangement.spacedBy(SharedDimensions.spacingLg),
     topBarActions: @Composable RowScope.() -> Unit = {},
+    topBarTitleLeading: (@Composable () -> Unit)? = null,
+    floatingActionButton: @Composable () -> Unit = {},
+    snackbarHost: @Composable () -> Unit = {},
     content: LazyListScope.() -> Unit,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -185,12 +199,15 @@ fun RethinkTopBarLazyColumnScreen(
                 containerColor = topBarContainerColor,
                 scrolledContainerColor = topBarScrolledContainerColor,
                 titleTextStyle = topBarTitleTextStyle,
+                titleLeading = topBarTitleLeading,
                 actions = topBarActions,
             )
         },
         listState = listState,
         contentPadding = contentPadding,
         verticalArrangement = verticalArrangement,
+        floatingActionButton = floatingActionButton,
+        snackbarHost = snackbarHost,
         content = content,
     )
 }

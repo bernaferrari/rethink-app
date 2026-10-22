@@ -273,5 +273,6 @@ private fun rethinkBlocklistEditorStrings(filterLabelText: String): RethinkBlock
         blocklistCount = { blocklistCountTemplate.format(it.toString()) },
         entries = { entriesTemplate.format(it.toString()) },
         empty = stringResource(R.string.configure_search_empty_title),
+        openSource = stringResource(R.string.events_filter_source),
     )
 }
