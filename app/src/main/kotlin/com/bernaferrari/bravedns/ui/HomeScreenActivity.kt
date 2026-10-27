@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.bernaferrari.bravedns.ui
 
 
+import androidx.compose.material3.LoadingIndicator
 import Logger
 import Logger.LOG_TAG_APP_UPDATE
 import Logger.LOG_TAG_DOWNLOAD
@@ -59,7 +62,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -1321,7 +1323,7 @@ class HomeScreenActivity : FragmentActivity() {
                             .padding(bottom = SharedDimensions.spacingSm),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        CircularProgressIndicator(modifier = Modifier.size(SharedDimensions.iconSizeSm))
+                        LoadingIndicator(modifier = Modifier.size(SharedDimensions.iconSizeMd))
                         Spacer(modifier = Modifier.width(SharedDimensions.spacingSm))
                         Text(
                             text = progressText,

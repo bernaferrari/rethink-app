@@ -35,6 +35,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.unit.sp
 
 /**
  * Localized label for every top-bar back arrow. Android provides it from resources at the theme
@@ -64,11 +65,13 @@ fun RethinkLargeTopBar(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             titleLeading?.invoke()
+            // Emphasized: the large title is the screen's headline, so it carries bold weight
+            // and slightly tighter tracking at its expanded size.
             Text(
                 text = title,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                style = titleTextStyle ?: LocalTextStyle.current,
+                style = titleTextStyle ?: LocalTextStyle.current.merge(EmphasizedTitle),
             )
         }
     },
@@ -124,6 +127,8 @@ fun RethinkTopBar(
     scrollBehavior = scrollBehavior,
     colors = TopAppBarDefaults.topAppBarColors(containerColor = containerColor, scrolledContainerColor = scrolledContainerColor, navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant, titleContentColor = MaterialTheme.colorScheme.onSurface, actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant),
 )
+
+private val EmphasizedTitle = TextStyle(fontWeight = FontWeight.Bold, letterSpacing = (-0.2).sp)
 
 object RethinkScreenDefaults {
     /** The one list-screen inset: screen gutters, [SharedDimensions.screenContentTop], 3xl bottom. */

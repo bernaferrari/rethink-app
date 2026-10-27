@@ -4,6 +4,7 @@
 
 package com.bernaferrari.bravedns.ui.compose.settings
 
+import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
@@ -16,7 +17,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -117,7 +117,7 @@ fun RethinkPingTestScreen(
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                        LinearProgressIndicator(
+                        LinearWavyProgressIndicator(
                             progress = { value.toFloat() / maxStrength.toFloat() },
                             modifier = Modifier.fillMaxWidth(),
                         )

@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.bernaferrari.bravedns.ui.compose.dns
 
+import androidx.compose.material3.LoadingIndicator
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceOption
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConnectedChoiceGroup
 import android.content.Context
@@ -27,7 +30,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
@@ -283,10 +285,7 @@ private fun RethinkListUpdateActionButton(
         enabled = !actionInProgress
     ) {
         if (actionInProgress) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(SharedDimensions.iconSizeSm),
-                strokeWidth = 2.dp
-            )
+            LoadingIndicator(modifier = Modifier.size(SharedDimensions.iconSizeMd))
             Spacer(modifier = Modifier.width(SharedDimensions.spacingSm))
         }
         Text(text = actionText)

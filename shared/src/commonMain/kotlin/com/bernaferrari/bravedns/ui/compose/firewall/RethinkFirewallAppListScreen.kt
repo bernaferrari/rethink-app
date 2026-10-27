@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -554,9 +555,16 @@ private fun RethinkFirewallAppRow(
                 }
             }
             if (app.canToggleConnections) {
-                // The pair reads as one control: 48dp touch boxes overlap so the 30dp bubbles sit
-                // ~10dp apart instead of floating 22dp from each other.
-                Box(Modifier.width(NetworkTogglePairWidth)) {
+                // The pair reads as one connected control: both 48dp toggles sit on a shared
+                // tonal track, and a blocked network fills its half with the error container.
+                Box(Modifier.width(NetworkTogglePairWidth), contentAlignment = Alignment.Center) {
+                    Box(
+                        Modifier
+                            .width(NetworkTogglePairWidth - SharedDimensions.spacingXs)
+                            .height(NetworkToggleTrackHeight)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceContainerHighest),
+                    )
                     Box(Modifier.align(Alignment.CenterStart)) {
                         RethinkFirewallNetworkToggle(
                             blocked = app.wifiBlocked,
@@ -583,6 +591,7 @@ private fun RethinkFirewallAppRow(
 
 /** Two 48dp toggles whose bubbles are 40dp apart center-to-center (10dp visual gap). */
 private val NetworkTogglePairWidth = 88.dp
+private val NetworkToggleTrackHeight = 38.dp
 
 @Composable
 fun RethinkFirewallNetworkToggle(
@@ -687,7 +696,7 @@ fun RethinkFirewallNetworkToggle(
     } else {
         MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.9f)
     }
-    val blockedBackground = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.88f)
+    val blockedBackground = MaterialTheme.colorScheme.errorContainer
     Surface(
         onClick = onClick,
         modifier = Modifier
@@ -706,7 +715,7 @@ fun RethinkFirewallNetworkToggle(
         ) {
             Box(
                 modifier = Modifier
-                    .size(30.dp)
+                    .size(34.dp)
                     .graphicsLayer {
                         alpha = bubbleAlpha
                         scaleX = bubbleScale
