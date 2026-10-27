@@ -44,6 +44,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialShapes
+import androidx.compose.material3.toShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -56,6 +57,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Path
@@ -120,6 +122,10 @@ private const val PULSE_RINGS = 3
 /** The morphing shape's share of the mark; the remainder is the pulse field. */
 private const val MARK_SHAPE_RATIO = 0.62f
 private const val MARK_ICON_RATIO = 0.22f
+private const val HALO_RATIO = 0.84f
+
+/** The halo's resting tilt, so its lobes sit between the cookie's when nothing moves. */
+private const val HALO_REST_ANGLE = 15f
 private val MarkSizeCompact = 248.dp
 private val MarkSizeExpanded = 300.dp
 private val ActionMinWidth = 208.dp
@@ -415,28 +421,58 @@ private fun ProtectionMark(
     size: Dp,
 ) {
     val morph = remember { Morph(MaterialShapes.Circle, MaterialShapes.Cookie12Sided) }
+    val haloShape = MaterialShapes.SoftBurst.toShape()
     Box(contentAlignment = Alignment.Center, modifier = Modifier.size(size)) {
         Canvas(Modifier.matchParentSize()) {
             val outer = this.size.minDimension / 2f
             val inner = outer * MARK_SHAPE_RATIO
+            // A soft glow under the whole mark: the protected state reads as "lit" even when the
+            // clock is still (reduced motion, or a single captured frame).
+            if (activeProgress > 0f) {
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        0f to palette.accent.copy(alpha = 0.20f * activeProgress),
+                        0.62f to palette.accent.copy(alpha = 0.10f * activeProgress),
+                        1f to Color.Transparent,
+                        center = center,
+                        radius = outer,
+                    ),
+                    radius = outer,
+                )
+            }
             // A hairline boundary is always there, so "off" still has a defined object.
             drawCircle(
-                color = palette.accent.copy(alpha = 0.16f),
+                color = palette.accent.copy(alpha = 0.18f),
                 radius = outer - 1.dp.toPx(),
                 style = Stroke(width = 1.dp.toPx()),
             )
             if (activeProgress > 0f) {
+                // Pulses ride the clock; at rest they sit evenly spaced, like a frozen sonar.
                 val turn = phase() * PULSES_PER_TURN
                 repeat(PULSE_RINGS) { ring ->
-                    val progress = (turn + ring / PULSE_RINGS.toFloat()) % 1f
+                    val progress = (turn + (ring + 0.5f) / PULSE_RINGS.toFloat()) % 1f
                     drawCircle(
-                        color = palette.accent.copy(alpha = (1f - progress) * 0.32f * activeProgress),
+                        color = palette.accent.copy(alpha = (1f - progress) * 0.42f * activeProgress),
                         radius = inner + (outer - inner) * progress,
-                        style = Stroke(width = 1.5.dp.toPx()),
+                        style = Stroke(width = 2.dp.toPx()),
                     )
                 }
             }
         }
+        // The halo: a soft-burst in the container tone, counter-rotating behind the cookie, so the
+        // mark is a layered expressive object rather than a flat badge. It grows in with protection.
+        Box(
+            Modifier
+                .size(size * HALO_RATIO)
+                .graphicsLayer {
+                    val grow = 0.72f + 0.28f * activeProgress
+                    scaleX = grow
+                    scaleY = grow
+                    alpha = activeProgress
+                    rotationZ = HALO_REST_ANGLE - phase() * 180f * activeProgress
+                }
+                .background(palette.field.copy(alpha = 0.72f), haloShape),
+        )
         Box(
             Modifier
                 .size(size * MARK_SHAPE_RATIO)
