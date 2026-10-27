@@ -16,7 +16,7 @@ import kotlin.math.cos
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.sin
-import kotlin.math.sqrt
+import kotlin.math.hypot
 
 /**
  * Shared cipher-current renderer. A sparse, disordered packet field resolves into a woven tunnel
@@ -102,7 +102,9 @@ internal fun ProtectionFlowCanvas(
                         0.88f * smoothstep(
                             0.13f,
                             0.37f,
-                            sqrt(x * x * 0.64f + y * y),
+                            // Distance from centre on an oval (x squeezed by 0.8) keeps the
+                            // middle of the field quiet behind the hero mark.
+                            hypot(x * CENTER_OVAL_X, y),
                         )
                 val texture = 0.78f + 0.22f * (noise * 0.5f + 0.5f)
                 val alpha =
@@ -119,6 +121,9 @@ internal fun ProtectionFlowCanvas(
         }
     }
 }
+
+/** Horizontal squeeze of the quiet centre: 0.8 makes it an oval wider than tall. */
+private const val CENTER_OVAL_X = 0.8f
 
 private fun cipherNoise(x: Float, y: Float, theta: Float): Float =
     sin(x * 2.81f + cos(theta) * 0.52f) *
