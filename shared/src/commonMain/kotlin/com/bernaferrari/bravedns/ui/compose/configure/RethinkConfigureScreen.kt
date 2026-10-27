@@ -3,6 +3,7 @@ package com.bernaferrari.bravedns.ui.compose.configure
 
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSearchField
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWell
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import com.bernaferrari.bravedns.ui.compose.common.RethinkAdaptiveWidth
@@ -122,6 +123,8 @@ fun RethinkConfigureScreen(
     Scaffold(
         modifier = modifier
             .fillMaxSize()
+            // Paint the full window; only the column is width-limited.
+            .background(MaterialTheme.colorScheme.surface)
             .wrapContentWidth()
             .widthIn(max = ConfigureMaxWidth)
             .nestedScroll(scrollBehavior.nestedScrollConnection),
