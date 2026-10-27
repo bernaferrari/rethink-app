@@ -246,6 +246,12 @@ interface ConnectionTrackerDAO {
     )
     suspend fun getTotalUsages(to: Long, meteredTxt: String): DataUsageSummary
 
+    /** [getTotalUsages] that re-emits whenever connections are logged, so totals stay live. */
+    @Query(
+        "select sum(downloadBytes) as totalDownload, sum(uploadBytes) as totalUpload, count(id) as connectionsCount, (select sum(downloadBytes + uploadBytes) from ConnectionTracker where connType = :meteredTxt and timeStamp > :to) as meteredDataUsage from ConnectionTracker as ct where ct.timeStamp > :to"
+    )
+    fun observeTotalUsages(to: Long, meteredTxt: String): Flow<DataUsageSummary>
+
     @Query("select * from ConnectionTracker where blockedByRule in ('Rule #1B', 'Rule #1F', 'Rule #3', 'Rule #4', 'Rule #5', 'Rule #6', 'Rule #7', 'Http block', 'Universal Lockdown')")
     suspend fun getBlockedUniversalRulesCount(): List<ConnectionTracker>
 

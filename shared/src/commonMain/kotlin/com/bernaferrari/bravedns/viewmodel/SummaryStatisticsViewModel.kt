@@ -21,6 +21,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
@@ -64,14 +66,13 @@ class SummaryStatisticsViewModel(
     )
 
     init {
-        updateDataUsage()
+        observeDataUsage()
     }
 
     fun timeCategoryChanged(category: TimeCategory) {
         startTime.value = nowMillis() - category.durationMillis
         uiStateMutable.update { it.copy(timeCategory = category) }
         refreshTick.update { it + 1 }
-        updateDataUsage()
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -136,13 +137,20 @@ class SummaryStatisticsViewModel(
         if (flag.isBlank()) emptyList()
         else countryStatsDao.getFlagDetailsLimited(flag = flag, to = startTime.value, limit = limit)
 
-    private fun updateDataUsage() {
+    /**
+     * The "Overall" totals follow the log table (Room re-emits on every flushed batch) and the
+     * selected window, instead of being read once when the screen opens.
+     */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun observeDataUsage() {
         viewModelScope.launch {
-            val usage = connectionTrackerDAO.getTotalUsages(
-                startTime.value,
-                ConnectionTracker.ConnType.METERED.value
-            )
-            uiStateMutable.update { it.copy(dataUsage = usage) }
+            startTime
+                .flatMapLatest { start ->
+                    connectionTrackerDAO.observeTotalUsages(start, ConnectionTracker.ConnType.METERED.value)
+                }
+                .conflate()
+                .distinctUntilChanged()
+                .collect { usage -> uiStateMutable.update { it.copy(dataUsage = usage) } }
         }
     }
 
