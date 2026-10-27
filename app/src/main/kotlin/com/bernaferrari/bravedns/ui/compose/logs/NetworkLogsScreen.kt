@@ -62,6 +62,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkToolbarRow
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkToolbarIconToggle
 import com.bernaferrari.bravedns.ui.compose.dns.DnsLogRow
+import com.bernaferrari.bravedns.database.ConnectionTracker
 import com.bernaferrari.bravedns.database.ConnectionTrackerRepository
 import com.bernaferrari.bravedns.database.DnsLog
 import com.bernaferrari.bravedns.database.DnsLogRepository
@@ -279,19 +280,7 @@ private fun ConnectionLogsContent(
                 }
             },
             pane = { paneModifier ->
-                val selected = items.loadedOrFirst(selectedId) { it.id.toLong() }
-                var groups by remember { mutableStateOf<List<RethinkLogGroup>>(emptyList()) }
-                LaunchedEffect(selected?.uid) {
-                    val uid = selected?.uid ?: return@LaunchedEffect
-                    groups = withContext(Dispatchers.IO) { repository.getDestinationsForUid(uid) }
-                        .map { RethinkLogGroup(it.label, it.count, it.blocked, monospace = true) }
-                }
-                RethinkLogDetailPane(
-                    model = selected?.let { connectionLogModel(it) },
-                    groups = groups,
-                    strings = logPaneStrings(R.string.log_pane_network_hosts),
-                    modifier = paneModifier,
-                )
+                ConnectionLogPane(items.loadedOrFirst(selectedId) { it.id.toLong() }, repository, paneModifier)
             },
         )
 
@@ -410,14 +399,7 @@ private fun DnsLogsContent(
         if (!showAppFilterDialog || !logsEnabled) return@LaunchedEffect
         appFilterOptionsLoading = true
         appFilterOptions =
-            withContext(Dispatchers.IO) {
-                when (filterType) {
-                    DnsLogViewModel.DnsLogFilter.ALL -> repository.getAllLoggedAppsWithCount()
-                    DnsLogViewModel.DnsLogFilter.ALLOWED -> repository.getAllowedLoggedAppsWithCount()
-                    DnsLogViewModel.DnsLogFilter.BLOCKED -> repository.getBlockedLoggedAppsWithCount()
-                    else -> repository.getAllLoggedAppsWithCount()
-                }
-            }
+            withContext(Dispatchers.IO) { repository.loggedAppsFor(filterType) }
         appFilterOptionsLoading = false
     }
 
@@ -427,26 +409,12 @@ private fun DnsLogsContent(
 
     LogsAdaptiveLayout(
         controls = {
-            RethinkLogsControlsDeck {
-                RethinkToolbarRow {
-                    RethinkLogFilterRow(
-                        selected = filterType.toRethinkLogFilter(),
-                        strings = logListStrings(),
-                        onSelected = { selectedFilter ->
-                            filterType = selectedFilter.toDnsLogFilter()
-                        },
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    RethinkToolbarIconToggle(
-                        icon = MaterialSymbols.Filled.Apps,
-                        contentDescription = stringResource(R.string.lbl_apps),
-                        selected = selectedAppFilter != null,
-                        enabled = true,
-                        onClick = { showAppFilterDialog = true }
-                    )
-                }
-            }
+            DnsLogControls(
+                filter = filterType.toRethinkLogFilter(),
+                onFilter = { filterType = it.toDnsLogFilter() },
+                appFiltered = selectedAppFilter != null,
+                onApps = { showAppFilterDialog = true },
+            )
         },
         list = { listModifier, twoPane ->
             LogsPagedListContent(
@@ -467,19 +435,7 @@ private fun DnsLogsContent(
             }
         },
         pane = { paneModifier ->
-            val selected = items.loadedOrFirst(selectedId) { it.id.toLong() }
-            var groups by remember { mutableStateOf<List<RethinkLogGroup>>(emptyList()) }
-            LaunchedEffect(selected?.queryStr) {
-                val domain = selected?.queryStr ?: return@LaunchedEffect
-                groups = withContext(Dispatchers.IO) { repository.getAppsQueryingDomain(domain) }
-                    .map { group -> RethinkLogGroup(group.label, group.count, group.blocked, icon = { PackageIcon(group.packageName, group.label) }) }
-            }
-            RethinkLogDetailPane(
-                model = selected?.let { dnsLogModel(it, persistentState.fetchFavIcon, false, onShowDnsLog) },
-                groups = groups,
-                strings = logPaneStrings(R.string.log_pane_dns_apps),
-                modifier = paneModifier,
-            )
+            DnsLogPane(items.loadedOrFirst(selectedId) { it.id.toLong() }, repository, persistentState.fetchFavIcon, onShowDnsLog, paneModifier)
         },
     )
 
@@ -581,6 +537,74 @@ private fun LogsAdaptiveLayout(
 }
 
 private const val LIST_PANE_WEIGHT = 1.15f
+
+private suspend fun DnsLogRepository.loggedAppsFor(filter: DnsLogViewModel.DnsLogFilter): List<LogAppCount> =
+    when (filter) {
+        DnsLogViewModel.DnsLogFilter.ALLOWED -> getAllowedLoggedAppsWithCount()
+        DnsLogViewModel.DnsLogFilter.BLOCKED -> getBlockedLoggedAppsWithCount()
+        else -> getAllLoggedAppsWithCount()
+    }
+
+@Composable
+private fun DnsLogControls(filter: RethinkLogFilter, onFilter: (RethinkLogFilter) -> Unit, appFiltered: Boolean, onApps: () -> Unit) {
+    RethinkLogsControlsDeck {
+        RethinkToolbarRow {
+            RethinkLogFilterRow(
+                selected = filter,
+                strings = logListStrings(),
+                onSelected = onFilter,
+                modifier = Modifier.weight(1f)
+            )
+            RethinkToolbarIconToggle(
+                icon = MaterialSymbols.Filled.Apps,
+                contentDescription = stringResource(R.string.lbl_apps),
+                selected = appFiltered,
+                enabled = true,
+                onClick = onApps,
+            )
+        }
+    }
+}
+
+/** Wide layout: the selected connection, and where its app connects. */
+@Composable
+private fun ConnectionLogPane(selected: ConnectionTracker?, repository: ConnectionTrackerRepository, modifier: Modifier) {
+    var groups by remember { mutableStateOf<List<RethinkLogGroup>>(emptyList()) }
+    LaunchedEffect(selected?.uid) {
+        val uid = selected?.uid ?: return@LaunchedEffect
+        groups = withContext(Dispatchers.IO) { repository.getDestinationsForUid(uid) }
+            .map { RethinkLogGroup(it.label, it.count, it.blocked, monospace = true) }
+    }
+    RethinkLogDetailPane(
+        model = selected?.let { connectionLogModel(it) },
+        groups = groups,
+        strings = logPaneStrings(R.string.log_pane_network_hosts),
+        modifier = modifier,
+    )
+}
+
+/** Wide layout: the selected query, and the apps that looked its domain up. */
+@Composable
+private fun DnsLogPane(
+    selected: DnsLog?,
+    repository: DnsLogRepository,
+    loadFavIcon: Boolean,
+    onShowDnsLog: (DnsLog) -> Unit,
+    modifier: Modifier,
+) {
+    var groups by remember { mutableStateOf<List<RethinkLogGroup>>(emptyList()) }
+    LaunchedEffect(selected?.queryStr) {
+        val domain = selected?.queryStr ?: return@LaunchedEffect
+        groups = withContext(Dispatchers.IO) { repository.getAppsQueryingDomain(domain) }
+            .map { group -> RethinkLogGroup(group.label, group.count, group.blocked, icon = { PackageIcon(group.packageName, group.label) }) }
+    }
+    RethinkLogDetailPane(
+        model = selected?.let { dnsLogModel(it, loadFavIcon, false, onShowDnsLog) },
+        groups = groups,
+        strings = logPaneStrings(R.string.log_pane_dns_apps),
+        modifier = modifier,
+    )
+}
 
 /** The selected entry if it is loaded, else the newest one, so the pane is never empty by default. */
 private fun <T : Any, K> LazyPagingItems<T>.loadedOrFirst(selectedId: K?, id: (T) -> K): T? {

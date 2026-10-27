@@ -175,38 +175,8 @@ fun dnsLogModel(
         )
     }
 
-    val countryName = UIUtils.getCountryNameFromFlag(log.flag).trim()
-    val country = when {
-        countryName.isNotBlank() && countryName != "--" && log.flag.isNotBlank() -> "$countryName ${log.flag}"
-        countryName.isNotBlank() && countryName != "--" -> countryName
-        log.flag.isNotBlank() && log.flag != "--" -> log.flag
-        else -> stringResource(R.string.network_log_app_name_unknown)
-    }
     val blocklists = log.blockLists.split(",").map { it.trim() }.filter { it.isNotBlank() }
-    val details = buildList {
-        add(RethinkLogDetail(stringResource(R.string.log_detail_protocol), dnsType))
-        add(RethinkLogDetail(stringResource(R.string.log_detail_country), country))
-        if (log.responseIps.isNotBlank()) add(RethinkLogDetail(stringResource(R.string.log_detail_response), log.responseIps, monospace = true))
-        if (log.serverIP.isNotBlank()) add(RethinkLogDetail(stringResource(R.string.log_detail_resolver), log.serverIP, monospace = true))
-        if (blocklists.isNotEmpty()) add(RethinkLogDetail(stringResource(R.string.log_detail_blocklists), blocklists.joinToString(", "), isError = true))
-        if (log.dnssecOk || log.dnssecValid) {
-            add(
-                RethinkLogDetail(
-                    stringResource(R.string.log_detail_dnssec),
-                    stringResource(if (log.dnssecOk && log.dnssecValid) R.string.log_detail_dnssec_valid else R.string.log_detail_dnssec_unverified),
-                )
-            )
-        }
-        if (hint.isNotBlank()) add(RethinkLogDetail(stringResource(R.string.log_detail_flags), hint))
-    }
-    val reason = when {
-        blocklists.size > 2 -> "${blocklists.take(2).joinToString(", ")} +${blocklists.size - 2}"
-        blocklists.isNotEmpty() -> blocklists.joinToString(", ")
-        else -> null
-    }
-    val answer = log.responseIps.split(",").firstOrNull()?.trim()
-        ?.let { it.substringAfter('(', it).substringBefore(')') }
-        ?.takeIf { it.isNotBlank() && it != "--" }
+    val details = dnsLogDetails(log, dnsType, hint, blocklists)
     val favicon = favIcon.takeIf { showFav }
     return RethinkLogRowModel(
         id = log.id.toString(),
@@ -233,14 +203,58 @@ fun dnsLogModel(
         },
         onBlocklistsClick = if (blocklists.isNotEmpty()) ({ onShowBlocklist(log) }) else null,
         kind = RethinkLogKind.Dns,
-        reason = reason,
-        endpoint = answer,
+        reason = blocklistSummary(blocklists),
+        endpoint = firstAnswer(log.responseIps),
         facts = listOfNotNull(
             log.latency.takeIf { it > 0 }?.let { stringResource(R.string.log_latency_ms, it.toInt()) },
         ),
         appIcon = appIcon?.let { drawable -> { DrawableIcon(drawable) } },
     )
 }
+
+@Composable
+private fun dnsLogDetails(log: DnsLog, dnsType: String, hint: String, blocklists: List<String>): List<RethinkLogDetail> {
+    val unknown = stringResource(R.string.network_log_app_name_unknown)
+    val country = countryLabel(log.flag, unknown)
+    val dnssec = when {
+        !log.dnssecOk && !log.dnssecValid -> null
+        log.dnssecOk && log.dnssecValid -> stringResource(R.string.log_detail_dnssec_valid)
+        else -> stringResource(R.string.log_detail_dnssec_unverified)
+    }
+    return listOfNotNull(
+        RethinkLogDetail(stringResource(R.string.log_detail_protocol), dnsType),
+        RethinkLogDetail(stringResource(R.string.log_detail_country), country),
+        log.responseIps.takeIf { it.isNotBlank() }?.let { RethinkLogDetail(stringResource(R.string.log_detail_response), it, monospace = true) },
+        log.serverIP.takeIf { it.isNotBlank() }?.let { RethinkLogDetail(stringResource(R.string.log_detail_resolver), it, monospace = true) },
+        blocklists.takeIf { it.isNotEmpty() }?.let { RethinkLogDetail(stringResource(R.string.log_detail_blocklists), it.joinToString(", "), isError = true) },
+        dnssec?.let { RethinkLogDetail(stringResource(R.string.log_detail_dnssec), it) },
+        hint.takeIf { it.isNotBlank() }?.let { RethinkLogDetail(stringResource(R.string.log_detail_flags), it) },
+    )
+}
+
+private fun countryLabel(flag: String, unknown: String): String {
+    val countryName = UIUtils.getCountryNameFromFlag(flag).trim()
+    val hasName = countryName.isNotBlank() && countryName != "--"
+    return when {
+        hasName && flag.isNotBlank() -> "$countryName $flag"
+        hasName -> countryName
+        flag.isNotBlank() && flag != "--" -> flag
+        else -> unknown
+    }
+}
+
+/** The first two blocklists, then a count of the rest. */
+private fun blocklistSummary(blocklists: List<String>): String? = when {
+    blocklists.size > 2 -> "${blocklists.take(2).joinToString(", ")} +${blocklists.size - 2}"
+    blocklists.isNotEmpty() -> blocklists.joinToString(", ")
+    else -> null
+}
+
+/** The first address of an answer, without the "CC (address)" country wrapper. */
+private fun firstAnswer(responseIps: String): String? =
+    responseIps.split(",").firstOrNull()?.trim()
+        ?.let { it.substringAfter('(', it).substringBefore(')') }
+        ?.takeIf { it.isNotBlank() && it != "--" }
 
 @Composable
 private fun DrawableIcon(drawable: Drawable) {

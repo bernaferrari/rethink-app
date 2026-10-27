@@ -160,36 +160,10 @@ fun connectionLogModel(ct: ConnectionTracker): RethinkLogRowModel {
             else -> appDisplay
         }
 
-    val endpoint = buildString {
-        append(ct.ipAddress)
-        if (ct.port > 0) append(":${ct.port}")
-    }
     val rule = FirewallRuleset.getFirewallRule(ct.blockedByRule)
     val ruleTitle = rule?.let { stringResource(it.title) }
-    val details = buildList {
-        add(RethinkLogDetail(stringResource(R.string.log_detail_protocol), protocol))
-        add(RethinkLogDetail(stringResource(R.string.log_detail_country), countryDisplay(unknownApp, ct.flag)))
-        if (endpoint.isNotBlank()) add(RethinkLogDetail(stringResource(R.string.log_detail_address), endpoint, monospace = true))
-        if (!ct.dnsQuery.isNullOrBlank()) add(RethinkLogDetail(stringResource(R.string.log_detail_domain), ct.dnsQuery.orEmpty(), monospace = true))
-        if (ct.blockedByRule.isNotBlank()) add(RethinkLogDetail(stringResource(R.string.log_detail_rule), ruleTitle ?: ct.blockedByRule, isError = ct.isBlocked))
-        if (ct.proxyDetails.isNotBlank()) add(RethinkLogDetail(stringResource(R.string.log_detail_proxy), ct.proxyDetails, monospace = true))
-        if (summary.duration.isNotBlank()) add(RethinkLogDetail(stringResource(R.string.log_detail_duration), summary.duration))
-        if (summary.dataUsage.isNotBlank()) add(RethinkLogDetail(stringResource(R.string.log_detail_data), summary.dataUsage))
-        if (ct.synack > 0) add(RethinkLogDetail(stringResource(R.string.dns_detail_latency), stringResource(R.string.log_latency_ms, ct.synack.toInt())))
-        if (summary.delay.isNotBlank()) add(RethinkLogDetail(stringResource(R.string.log_detail_flags), summary.delay))
-        if (ct.message.isNotBlank()) add(RethinkLogDetail(stringResource(R.string.log_detail_message), ct.message, isError = ct.isBlocked))
-    }
-    val facts = buildList {
-        if (!ct.isBlocked && (ct.downloadBytes > 0 || ct.uploadBytes > 0)) {
-            add(
-                stringResource(
-                    R.string.log_data_down_up,
-                    Utilities.humanReadableByteCount(ct.downloadBytes, true),
-                    Utilities.humanReadableByteCount(ct.uploadBytes, true),
-                )
-            )
-        }
-    }
+    val details = connectionDetails(ct, protocol, ruleTitle, summary, unknownApp)
+    val facts = listOfNotNull(dataMoved(ct))
     return RethinkLogRowModel(
         id = ct.id.toString(),
         destination = destination,
@@ -203,8 +177,49 @@ fun connectionLogModel(ct: ConnectionTracker): RethinkLogRowModel {
         icon = { statusContainer -> AppIconSlot(appIcon, statusContainer) },
         kind = RethinkLogKind.Network,
         reason = ruleTitle.takeIf { ct.isBlocked },
-        endpoint = endpoint,
+        endpoint = endpointOf(ct),
         facts = facts,
+    )
+}
+
+private fun endpointOf(ct: ConnectionTracker): String = buildString {
+    append(ct.ipAddress)
+    if (ct.port > 0) append(":${ct.port}")
+}
+
+@Composable
+private fun connectionDetails(
+    ct: ConnectionTracker,
+    protocol: String,
+    ruleTitle: String?,
+    summary: Summary,
+    unknown: String,
+): List<RethinkLogDetail> {
+    val endpoint = endpointOf(ct)
+    val latency = stringResource(R.string.log_latency_ms, ct.synack.toInt())
+    return listOfNotNull(
+        RethinkLogDetail(stringResource(R.string.log_detail_protocol), protocol),
+        RethinkLogDetail(stringResource(R.string.log_detail_country), countryDisplay(unknown, ct.flag)),
+        endpoint.takeIf { it.isNotBlank() }?.let { RethinkLogDetail(stringResource(R.string.log_detail_address), it, monospace = true) },
+        ct.dnsQuery?.takeIf { it.isNotBlank() }?.let { RethinkLogDetail(stringResource(R.string.log_detail_domain), it, monospace = true) },
+        ct.blockedByRule.takeIf { it.isNotBlank() }?.let { RethinkLogDetail(stringResource(R.string.log_detail_rule), ruleTitle ?: it, isError = ct.isBlocked) },
+        ct.proxyDetails.takeIf { it.isNotBlank() }?.let { RethinkLogDetail(stringResource(R.string.log_detail_proxy), it, monospace = true) },
+        summary.duration.takeIf { it.isNotBlank() }?.let { RethinkLogDetail(stringResource(R.string.log_detail_duration), it) },
+        summary.dataUsage.takeIf { it.isNotBlank() }?.let { RethinkLogDetail(stringResource(R.string.log_detail_data), it) },
+        latency.takeIf { ct.synack > 0 }?.let { RethinkLogDetail(stringResource(R.string.dns_detail_latency), it) },
+        summary.delay.takeIf { it.isNotBlank() }?.let { RethinkLogDetail(stringResource(R.string.log_detail_flags), it) },
+        ct.message.takeIf { it.isNotBlank() }?.let { RethinkLogDetail(stringResource(R.string.log_detail_message), it, isError = ct.isBlocked) },
+    )
+}
+
+/** "↓ 1.2 MB · ↑ 12 KB" for allowed connections that moved data. */
+@Composable
+private fun dataMoved(ct: ConnectionTracker): String? {
+    if (ct.isBlocked || (ct.downloadBytes <= 0 && ct.uploadBytes <= 0)) return null
+    return stringResource(
+        R.string.log_data_down_up,
+        Utilities.humanReadableByteCount(ct.downloadBytes, true),
+        Utilities.humanReadableByteCount(ct.uploadBytes, true),
     )
 }
 
