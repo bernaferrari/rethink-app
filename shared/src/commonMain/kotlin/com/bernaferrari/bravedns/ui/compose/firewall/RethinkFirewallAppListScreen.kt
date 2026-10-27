@@ -111,6 +111,9 @@ data class RethinkFirewallApp(
 
 enum class RethinkFirewallAppStatus { Allowed, Blocked, Bypass, Excluded, Lockdown, Unknown }
 
+/** The app shown beside the list in a list–detail layout; its row is drawn selected. */
+val LocalSelectedFirewallAppUid = androidx.compose.runtime.compositionLocalOf<Int?> { null }
+
 enum class RethinkFirewallFilter { All, Allowed, Blocked, Bypass, Excluded, Lockdown, BlockedWifi, BlockedMobile }
 
 enum class RethinkFirewallTopLevelFilter { Installed, System, All }
@@ -505,7 +508,7 @@ private fun RethinkFirewallAppRow(
             .scale(scale)
             .clip(shape),
         shape = shape,
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        color = if (LocalSelectedFirewallAppUid.current == app.uid) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
         Row(
             Modifier.fillMaxWidth().padding(horizontal = SharedDimensions.spacingMd, vertical = SharedDimensions.spacingSm),

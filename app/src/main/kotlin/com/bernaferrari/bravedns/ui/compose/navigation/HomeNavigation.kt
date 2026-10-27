@@ -15,6 +15,16 @@
  */
 package com.bernaferrari.bravedns.ui.compose.navigation
 
+import com.bernaferrari.bravedns.ui.compose.firewall.LocalSelectedFirewallAppUid
+import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
+import com.bernaferrari.bravedns.ui.compose.common.isExpanded
+import com.bernaferrari.bravedns.ui.compose.common.RethinkAdaptiveWidth
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.key
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -405,6 +415,43 @@ fun HomeScreenRoot(
                 current = hostNav.current,
             )
 
+            val appInfoContent: @Composable (uid: Int, onBack: () -> Unit) -> Unit = { uid, onBack ->
+                key(uid) {
+                AppInfoScreen(
+                    uid = uid,
+                    eventLogger = appInfoEventLogger,
+                    ipRulesViewModel = appInfoIpRulesViewModel,
+                    domainRulesViewModel = appInfoDomainRulesViewModel,
+                    networkLogsViewModel = appInfoNetworkLogsViewModel,
+                    onBackClick = onBack,
+                    onAppWiseIpLogsClick = { u, isAsn ->
+                        nav.push(RethinkRoute.AppWiseIpLogs(u, isAsn))
+                    },
+                    onAppWiseDomainLogsClick = { u ->
+                        nav.push(RethinkRoute.AppWiseDomainLogs(u))
+                    },
+                    onCustomIpRulesClick = { u ->
+                        nav.push(
+                            RethinkRoute.CustomRules(
+                                uid = u,
+                                tab = CustomRulesTab.IP.value,
+                                mode = CustomRulesMode.APP_SPECIFIC.value
+                            )
+                        )
+                    },
+                    onCustomDomainRulesClick = { u ->
+                        nav.push(
+                            RethinkRoute.CustomRules(
+                                uid = u,
+                                tab = CustomRulesTab.DOMAIN.value,
+                                mode = CustomRulesMode.APP_SPECIFIC.value
+                            )
+                        )
+                    }
+                )
+                            }
+            }
+
             entry<RethinkRoute.Home> {
                 HomeScreen(
                     uiState = latestHomeUiState.value,
@@ -518,12 +565,18 @@ fun HomeScreenRoot(
             }
 
             entry<RethinkRoute.AppList> {
-                AppListScreen(
-                    viewModel = appInfoViewModel,
-                    eventLogger = appInfoEventLogger,
-                    refreshDatabase = refreshDatabase,
-                    onAppClick = { uid -> nav.push(RethinkRoute.AppInfo(uid)) },
-                    onBackClick = { nav.popBackStack() }
+                AppListWithDetail(
+                    appList = { onAppClick ->
+                        AppListScreen(
+                            viewModel = appInfoViewModel,
+                            eventLogger = appInfoEventLogger,
+                            refreshDatabase = refreshDatabase,
+                            onAppClick = onAppClick,
+                            onBackClick = { nav.popBackStack() }
+                        )
+                    },
+                    appInfo = appInfoContent,
+                    onOpenApp = { uid -> nav.push(RethinkRoute.AppInfo(uid)) },
                 )
             }
 
@@ -617,38 +670,7 @@ fun HomeScreenRoot(
                 BlockFreeDnsScreen(blockFreeDnsViewModel, persistentState) { nav.popBackStack() }
             }
             entry<RethinkRoute.AppInfo> { args ->
-                AppInfoScreen(
-                    uid = args.uid,
-                    eventLogger = appInfoEventLogger,
-                    ipRulesViewModel = appInfoIpRulesViewModel,
-                    domainRulesViewModel = appInfoDomainRulesViewModel,
-                    networkLogsViewModel = appInfoNetworkLogsViewModel,
-                    onBackClick = { nav.popBackStack() },
-                    onAppWiseIpLogsClick = { u, isAsn ->
-                        nav.push(RethinkRoute.AppWiseIpLogs(u, isAsn))
-                    },
-                    onAppWiseDomainLogsClick = { u ->
-                        nav.push(RethinkRoute.AppWiseDomainLogs(u))
-                    },
-                    onCustomIpRulesClick = { u ->
-                        nav.push(
-                            RethinkRoute.CustomRules(
-                                uid = u,
-                                tab = CustomRulesTab.IP.value,
-                                mode = CustomRulesMode.APP_SPECIFIC.value
-                            )
-                        )
-                    },
-                    onCustomDomainRulesClick = { u ->
-                        nav.push(
-                            RethinkRoute.CustomRules(
-                                uid = u,
-                                tab = CustomRulesTab.DOMAIN.value,
-                                mode = CustomRulesMode.APP_SPECIFIC.value
-                            )
-                        )
-                    }
-                )
+                appInfoContent(args.uid) { nav.popBackStack() }
             }
             entry<RethinkRoute.DnsList> {
                 DnsListScreen(
@@ -954,3 +976,41 @@ private fun viewPlansAction(canCheckout: Boolean, nav: RethinkNavOps): (() -> Un
     } else {
         null
     }
+
+/**
+ * Wide windows: the app list beside the selected app's rules (list–detail). Phones and 7-inch
+ * tablets push the rules as their own screen.
+ */
+@Composable
+private fun AppListWithDetail(
+    appList: @Composable (onAppClick: (Int) -> Unit) -> Unit,
+    appInfo: @Composable (uid: Int, onBack: () -> Unit) -> Unit,
+    onOpenApp: (Int) -> Unit,
+) {
+    var selectedUid by rememberSaveable { mutableStateOf<Int?>(null) }
+    RethinkAdaptiveWidth(Modifier.fillMaxSize()) { widthClass ->
+        val twoPane = widthClass.isExpanded
+        Row(Modifier.fillMaxSize()) {
+            Box(Modifier.weight(1f).fillMaxHeight()) {
+                CompositionLocalProvider(LocalSelectedFirewallAppUid provides selectedUid.takeIf { twoPane }) {
+                    appList { uid -> if (twoPane) selectedUid = uid else onOpenApp(uid) }
+                }
+            }
+            if (twoPane) {
+                Box(Modifier.weight(1.15f).fillMaxHeight()) {
+                    val uid = selectedUid
+                    if (uid == null) {
+                        RethinkEmptyState(
+                            icon = MaterialSymbols.Filled.Apps,
+                            title = stringResource(R.string.app_pane_empty_title),
+                            message = stringResource(R.string.app_pane_empty_message),
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    } else {
+                        appInfo(uid) { selectedUid = null }
+                    }
+                }
+            }
+        }
+    }
+}
