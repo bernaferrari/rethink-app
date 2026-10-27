@@ -174,7 +174,7 @@
 
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="com.bernaferrari.bravedns.provider;com.bernaferrari.bravedns.backup.BackupAgent"
+            android:authorities="${applicationId}.provider;${applicationId}.backup.BackupAgent"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
