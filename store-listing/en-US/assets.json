@@ -1,0 +1,223 @@
+{
+  "galleries": {
+    "phone": [
+      {
+        "file": "phone/phone-01-home.jpg",
+        "feature": "home",
+        "slide": 0,
+        "width": 1080,
+        "height": 1920,
+        "bytes": 243894,
+        "sources": [
+          "raw/phone/01-home.png"
+        ]
+      },
+      {
+        "file": "phone/phone-02-logs.jpg",
+        "feature": "logs",
+        "slide": 1,
+        "width": 1080,
+        "height": 1920,
+        "bytes": 272213,
+        "sources": [
+          "raw/phone/02-logs.png"
+        ]
+      },
+      {
+        "file": "phone/phone-03-apps.jpg",
+        "feature": "apps",
+        "slide": 2,
+        "width": 1080,
+        "height": 1920,
+        "bytes": 185790,
+        "sources": [
+          "raw/phone/03-apps.png"
+        ]
+      },
+      {
+        "file": "phone/phone-04-detail.jpg",
+        "feature": "detail",
+        "slide": 3,
+        "width": 1080,
+        "height": 1920,
+        "bytes": 214964,
+        "sources": [
+          "raw/phone/07-app-detail.png"
+        ]
+      },
+      {
+        "file": "phone/phone-05-trackers.jpg",
+        "feature": "trackers",
+        "slide": 4,
+        "width": 1080,
+        "height": 1920,
+        "bytes": 271375,
+        "sources": [
+          "raw/phone/04-dns-blocked.png"
+        ]
+      },
+      {
+        "file": "phone/phone-06-stats.jpg",
+        "feature": "stats",
+        "slide": 5,
+        "width": 1080,
+        "height": 1920,
+        "bytes": 207388,
+        "sources": [
+          "raw/phone/06-blocked-apps.png",
+          "raw/phone/05-stats.png"
+        ]
+      },
+      {
+        "file": "phone/phone-07-dns.jpg",
+        "feature": "dns",
+        "slide": 6,
+        "width": 1080,
+        "height": 1920,
+        "bytes": 219580,
+        "sources": [
+          "raw/phone/09-dns.png"
+        ]
+      },
+      {
+        "file": "phone/phone-08-dark.jpg",
+        "feature": "dark",
+        "slide": 7,
+        "width": 1080,
+        "height": 1920,
+        "bytes": 240124,
+        "sources": [
+          "raw/phone/11-home-dark.png",
+          "raw/phone/12-apps-dark.png"
+        ]
+      }
+    ],
+    "tablet7": [
+      {
+        "file": "tablet7/tablet7-01-home.jpg",
+        "feature": "home",
+        "slide": 0,
+        "width": 1200,
+        "height": 1920,
+        "bytes": 243193,
+        "sources": [
+          "raw/tablet7/01-home.png"
+        ]
+      },
+      {
+        "file": "tablet7/tablet7-02-logs.jpg",
+        "feature": "logs",
+        "slide": 1,
+        "width": 1200,
+        "height": 1920,
+        "bytes": 278401,
+        "sources": [
+          "raw/tablet7/02-logs.png"
+        ]
+      },
+      {
+        "file": "tablet7/tablet7-03-trackers.jpg",
+        "feature": "trackers",
+        "slide": 2,
+        "width": 1200,
+        "height": 1920,
+        "bytes": 277840,
+        "sources": [
+          "raw/tablet7/04-dns-blocked.png"
+        ]
+      },
+      {
+        "file": "tablet7/tablet7-04-detail.jpg",
+        "feature": "detail",
+        "slide": 3,
+        "width": 1200,
+        "height": 1920,
+        "bytes": 217012,
+        "sources": [
+          "raw/tablet7/07-app-detail.png"
+        ]
+      },
+      {
+        "file": "tablet7/tablet7-05-dark.jpg",
+        "feature": "dark",
+        "slide": 4,
+        "width": 1200,
+        "height": 1920,
+        "bytes": 253976,
+        "sources": [
+          "raw/tablet7/11-home-dark.png",
+          "raw/tablet7/12-apps-dark.png"
+        ]
+      }
+    ],
+    "tablet10": [
+      {
+        "file": "tablet10/tablet10-01-stats.jpg",
+        "feature": "stats",
+        "slide": 0,
+        "width": 1920,
+        "height": 1200,
+        "bytes": 200273,
+        "sources": [
+          "raw/tablet10/05-stats.png"
+        ]
+      },
+      {
+        "file": "tablet10/tablet10-02-home.jpg",
+        "feature": "home",
+        "slide": 1,
+        "width": 1920,
+        "height": 1200,
+        "bytes": 234295,
+        "sources": [
+          "raw/tablet10/01-home.png"
+        ]
+      },
+      {
+        "file": "tablet10/tablet10-03-logs.jpg",
+        "feature": "logs",
+        "slide": 2,
+        "width": 1920,
+        "height": 1200,
+        "bytes": 206506,
+        "sources": [
+          "raw/tablet10/02-logs.png"
+        ]
+      },
+      {
+        "file": "tablet10/tablet10-04-trackers.jpg",
+        "feature": "trackers",
+        "slide": 3,
+        "width": 1920,
+        "height": 1200,
+        "bytes": 204118,
+        "sources": [
+          "raw/tablet10/04-dns-blocked.png"
+        ]
+      },
+      {
+        "file": "tablet10/tablet10-05-detail.jpg",
+        "feature": "detail",
+        "slide": 4,
+        "width": 1920,
+        "height": 1200,
+        "bytes": 179381,
+        "sources": [
+          "raw/tablet10/07-app-detail.png"
+        ]
+      },
+      {
+        "file": "tablet10/tablet10-06-dark.jpg",
+        "feature": "dark",
+        "slide": 5,
+        "width": 1920,
+        "height": 1200,
+        "bytes": 239902,
+        "sources": [
+          "raw/tablet10/08-settings.png",
+          "raw/tablet10/11-home-dark.png"
+        ]
+      }
+    ]
+  }
+}

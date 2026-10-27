@@ -1,0 +1,55 @@
+/* Re-Rethink: a deep-wine night from the app's coral seed, packets falling into line across the strip,
+   coral for the one phrase that matters, and real screens held in blush frames. */
+@font-face{font-family:Rethink;src:url(fonts/GoogleSansFlex-Latin.woff2) format('woff2');font-weight:100 1000;font-style:normal;font-display:block}
+:root{--field:#2d0d18;--ink:#fff7f5;--coral:#ff9b8a;--muted:#e8c4c2;--frame-top:#fff0ec;--frame-bottom:#f2c4ba}
+body,.campaign{background:var(--field);color:var(--ink)}
+body{font-family:Rethink,var(--script-font),sans-serif}
+
+header{left:72px;right:72px;top:120px;text-align:center;z-index:5}
+h1{font-size:108px;line-height:1.02;letter-spacing:-.02em;font-weight:700;font-variation-settings:'opsz' 144,'ROND' 30}
+/* The highlighted phrase: coral, with a soft glow like the Home beacon. */
+h1 em{font-style:normal;color:var(--coral);text-shadow:0 0 44px #ff6a5a55}
+header p{margin:28px auto 0;font-size:40px;line-height:1.28;font-weight:420;color:var(--muted);max-width:900px;white-space:pre-line}
+
+.brand{position:absolute;z-index:6;left:0;right:0;top:92px;display:flex;justify-content:center;align-items:center;gap:16px;
+  font-size:36px;font-weight:600;letter-spacing:-.01em;color:#ffe9e4}
+.brand img{width:64px;height:64px;border-radius:50%;box-shadow:0 8px 24px #12030880}
+.campaign.first header{top:200px}
+
+/* Frames: blush glass, so every screen sits in the same warm light. */
+.device{--bezel:14px;--radius:78px;background:linear-gradient(170deg,var(--frame-top),var(--frame-bottom));
+  box-shadow:inset 0 0 0 2px #ffffffb0,inset 0 -3px 0 #d98f8044,0 60px 120px -24px #12030cdd,0 0 0 1px #12030840,0 0 140px -40px #ff7a6866}
+
+/* Phone: copy on top, the real screen large below it, running off the bottom edge. */
+.phone .big .primary{left:126px;top:560px;width:828px}
+.phone .first .primary{top:640px}
+
+/* Two screens, one hanging from the top and one rising from the bottom, the copy between them. */
+.phone .stack header{top:742px}
+.phone .stack .primary{left:220px;top:-800px;width:640px}
+.phone .stack .secondary{left:220px;top:1270px;width:640px}
+
+/* Light and dark, side by side and upright. */
+.phone .duo .primary{left:30px;top:600px;width:560px}
+.phone .duo .secondary{left:490px;top:800px;width:560px;z-index:3}
+
+/* 7-inch portrait: the same system, a little wider. */
+.tablet7 header{top:130px}
+.tablet7 h1{font-size:116px}
+.tablet7 header p{font-size:42px}
+.tablet7 .campaign.first header{top:220px}
+.tablet7 .big .primary{left:150px;top:640px;width:900px}
+.tablet7 .first .primary{top:720px}
+.tablet7 .duo .primary{left:40px;top:600px;width:640px}
+.tablet7 .duo .secondary{left:520px;top:780px;width:640px}
+
+/* 10-inch landscape: copy on the left, the whole tablet on the right. */
+.tablet10 header{left:110px;right:auto;top:0;bottom:0;width:560px;text-align:left;display:flex;flex-direction:column;justify-content:center}
+.tablet10 h1{font-size:92px}
+.tablet10 h1 .line{white-space:normal}
+.tablet10 header p{margin:26px 0 0;font-size:36px;max-width:540px;white-space:normal}
+.tablet10 .brand{left:110px;right:auto;top:84px;justify-content:flex-start}
+.tablet10 .campaign.first header{top:0}
+.tablet10 .big .primary{left:730px;top:240px;width:1110px}
+.tablet10 .duo .primary{left:720px;top:120px;width:840px}
+.tablet10 .duo .secondary{left:1010px;top:560px;width:840px}

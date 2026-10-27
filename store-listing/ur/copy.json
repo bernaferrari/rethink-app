@@ -1,0 +1,47 @@
+{
+  "home": {
+    "title": "",
+    "body": "",
+    "alt": ""
+  },
+  "logs": {
+    "title": "",
+    "body": "",
+    "alt": ""
+  },
+  "apps": {
+    "title": "",
+    "body": "",
+    "alt": ""
+  },
+  "trackers": {
+    "title": "",
+    "body": "",
+    "alt": ""
+  },
+  "detail": {
+    "title": "",
+    "body": "",
+    "alt": ""
+  },
+  "stats": {
+    "title": "",
+    "body": "",
+    "alt": ""
+  },
+  "dns": {
+    "title": "",
+    "body": "",
+    "alt": ""
+  },
+  "dark": {
+    "title": "",
+    "body": "",
+    "alt": ""
+  },
+  "tablet10/dark": {
+    "title": "",
+    "body": "",
+    "alt": ""
+  }
+}

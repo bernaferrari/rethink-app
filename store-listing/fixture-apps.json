@@ -1,0 +1,22 @@
+{
+  "about": "Fictional apps for the store captures, built by studio/fixture-apps.cjs and installed on the capture emulator. Packages match app/src/storeCapture/.../StoreFixtures.kt.",
+  "apps": [
+    {"package": "chat.harbor", "label": "Harbor Chat", "colors": ["#34d1a6", "#0e9a77"], "glyph": "message-circle", "category": "social"},
+    {"package": "app.fernway.maps", "label": "Fernway Maps", "colors": ["#5bc96b", "#1f8f4e"], "glyph": "map", "category": "maps"},
+    {"package": "weather.clearsky", "label": "Clearsky Weather", "colors": ["#62c6f7", "#2a86d6"], "glyph": "cloud-sun"},
+    {"package": "news.driftwood", "label": "Driftwood News", "colors": ["#f0a35a", "#c76d2a"], "glyph": "newspaper", "category": "news"},
+    {"package": "tv.reelhouse", "label": "Reelhouse", "colors": ["#f0505f", "#b41d33"], "glyph": "clapperboard", "category": "video"},
+    {"package": "fm.cadence", "label": "Cadence Music", "colors": ["#9a6bff", "#5b34d8"], "glyph": "music", "category": "audio"},
+    {"package": "bank.marlow", "label": "Marlow Bank", "colors": ["#2f63c0", "#173a7d"], "glyph": "landmark", "category": "productivity"},
+    {"package": "mail.kestrel", "label": "Kestrel Mail", "colors": ["#ff7a59", "#e04b2f"], "glyph": "mail", "category": "productivity"},
+    {"package": "shop.basketful", "label": "Basketful", "colors": ["#ffb547", "#ef8a17"], "glyph": "shopping-basket"},
+    {"package": "fit.stride", "label": "Stride Run", "colors": ["#1fb5b0", "#087f86"], "glyph": "footprints"},
+    {"package": "photo.shutterbox", "label": "Shutterbox", "colors": ["#5c6cf2", "#3742c4"], "glyph": "camera", "category": "image"},
+    {"package": "app.inkwell.notes", "label": "Inkwell Notes", "colors": ["#ffd25a", "#f1ad00"], "glyph": "notebook-pen", "tint": "#4a3300", "category": "productivity"},
+    {"package": "travel.wanderly", "label": "Wanderly", "colors": ["#4fb4ff", "#1f6fd1"], "glyph": "plane"},
+    {"package": "food.kettle", "label": "Kettle Recipes", "colors": ["#ff8a7a", "#df4f42"], "glyph": "chef-hat"},
+    {"package": "tools.torchlight", "label": "Torchlight", "colors": ["#3d4250", "#1d2028"], "glyph": "flashlight", "tint": "#ffd54f"},
+    {"package": "io.glyphkeys", "label": "Glyph Keyboard", "colors": ["#8f72f2", "#6043c8"], "glyph": "keyboard"},
+    {"package": "games.orbittiles", "label": "Orbit Tiles", "colors": ["#ff70a6", "#d63a77"], "glyph": "gamepad-2", "category": "game"}
+  ]
+}

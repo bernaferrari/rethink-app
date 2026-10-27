@@ -1,0 +1,158 @@
+{
+  "phone": [
+    {
+      "feature": "home",
+      "layout": "big",
+      "raw": "phone/01-home.png",
+      "file": "phone/phone-01-home.jpg"
+    },
+    {
+      "feature": "logs",
+      "layout": "big",
+      "raw": "phone/02-logs.png",
+      "file": "phone/phone-02-logs.jpg"
+    },
+    {
+      "feature": "apps",
+      "layout": "big",
+      "raw": "phone/03-apps.png",
+      "file": "phone/phone-03-apps.jpg"
+    },
+    {
+      "feature": "detail",
+      "layout": "big",
+      "raw": "phone/07-app-detail.png",
+      "file": "phone/phone-04-detail.jpg"
+    },
+    {
+      "feature": "trackers",
+      "layout": "big",
+      "raw": "phone/04-dns-blocked.png",
+      "file": "phone/phone-05-trackers.jpg"
+    },
+    {
+      "feature": "stats",
+      "layout": "stack",
+      "file": "phone/phone-06-stats.jpg",
+      "devices": [
+        {
+          "raw": "phone/06-blocked-apps.png",
+          "role": "primary"
+        },
+        {
+          "raw": "phone/05-stats.png",
+          "role": "secondary"
+        }
+      ]
+    },
+    {
+      "feature": "dns",
+      "layout": "big",
+      "raw": "phone/09-dns.png",
+      "file": "phone/phone-07-dns.jpg"
+    },
+    {
+      "feature": "dark",
+      "layout": "duo",
+      "file": "phone/phone-08-dark.jpg",
+      "devices": [
+        {
+          "raw": "phone/11-home-dark.png",
+          "role": "primary"
+        },
+        {
+          "raw": "phone/12-apps-dark.png",
+          "role": "secondary"
+        }
+      ]
+    }
+  ],
+  "tablet7": [
+    {
+      "feature": "home",
+      "layout": "big",
+      "raw": "tablet7/01-home.png",
+      "file": "tablet7/tablet7-01-home.jpg"
+    },
+    {
+      "feature": "logs",
+      "layout": "big",
+      "raw": "tablet7/02-logs.png",
+      "file": "tablet7/tablet7-02-logs.jpg"
+    },
+    {
+      "feature": "trackers",
+      "layout": "big",
+      "raw": "tablet7/04-dns-blocked.png",
+      "file": "tablet7/tablet7-03-trackers.jpg"
+    },
+    {
+      "feature": "detail",
+      "layout": "big",
+      "raw": "tablet7/07-app-detail.png",
+      "file": "tablet7/tablet7-04-detail.jpg"
+    },
+    {
+      "feature": "dark",
+      "layout": "duo",
+      "file": "tablet7/tablet7-05-dark.jpg",
+      "devices": [
+        {
+          "raw": "tablet7/11-home-dark.png",
+          "role": "primary"
+        },
+        {
+          "raw": "tablet7/12-apps-dark.png",
+          "role": "secondary"
+        }
+      ]
+    }
+  ],
+  "tablet10": [
+    {
+      "feature": "stats",
+      "layout": "big",
+      "raw": "tablet10/05-stats.png",
+      "file": "tablet10/tablet10-01-stats.jpg"
+    },
+    {
+      "feature": "home",
+      "layout": "big",
+      "raw": "tablet10/01-home.png",
+      "file": "tablet10/tablet10-02-home.jpg"
+    },
+    {
+      "feature": "logs",
+      "layout": "big",
+      "raw": "tablet10/02-logs.png",
+      "file": "tablet10/tablet10-03-logs.jpg"
+    },
+    {
+      "feature": "trackers",
+      "layout": "big",
+      "raw": "tablet10/04-dns-blocked.png",
+      "file": "tablet10/tablet10-04-trackers.jpg"
+    },
+    {
+      "feature": "detail",
+      "layout": "big",
+      "raw": "tablet10/07-app-detail.png",
+      "file": "tablet10/tablet10-05-detail.jpg"
+    },
+    {
+      "feature": "dark",
+      "layout": "duo",
+      "file": "tablet10/tablet10-06-dark.jpg",
+      "devices": [
+        {
+          "raw": "tablet10/08-settings.png",
+          "role": "primary"
+        },
+        {
+          "raw": "tablet10/11-home-dark.png",
+          "role": "secondary"
+        }
+      ]
+    }
+  ]
+}
