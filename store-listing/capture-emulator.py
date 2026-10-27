@@ -201,13 +201,6 @@ def status_bar():
         broadcast(*extra)
 
 
-def show_all_apps():
-    """Google's own apps are system apps; the Apps list starts on installed apps only."""
-    tap('Filter.*', 1.6)
-    tap('All', 1.6, text_only=True)
-    back(1.4) if 'Apply' not in (last_xml or '') else tap('Apply', 1.6)
-
-
 def night(on):
     adb('shell', 'cmd', 'uimode', 'night', 'yes' if on else 'no')
     time.sleep(2)
@@ -226,7 +219,7 @@ for stub in json.loads((listing / 'fixture-apps.json').read_text()).get('apps', 
         adb('uninstall', stub_package)
 
 profiles = {name: (p['captureWidth'], p['captureHeight'], p['captureDensity'])
-            for name, p in json.loads((listing / 'profiles.json').read_text()).items()}
+            for name, p in json.loads((listing / 'profiles.json').read_text()).items() if 'captureWidth' in p}
 original = shell('wm', 'size') + shell('wm', 'density')
 assert 'Override' not in original, 'Reset wm size/density first (an interrupted run leaves overrides).'
 heads_up = shell('settings', 'get', 'global', 'heads_up_notifications_enabled').strip()
@@ -271,9 +264,8 @@ try:
         back()
 
         settings('Apps')
-        show_all_apps()
         capture('03-apps')
-        tap('Clock', 3)
+        tap('Clock', 7)
         capture('07-app-detail')
         back()
         back()
@@ -289,8 +281,9 @@ try:
         launch()
         capture('11-home-dark', animated=True)
         settings('Apps')
-        show_all_apps()
         capture('12-apps-dark')
+        back()
+        capture('13-settings-dark')
         night(False)
 finally:
     navigator.save()

@@ -4,6 +4,7 @@ import android.content.pm.PackageManager
 import android.util.Log
 import androidx.work.WorkManager
 import com.bernaferrari.bravedns.RethinkDnsApplication
+import com.bernaferrari.bravedns.database.AppDatabase
 import com.bernaferrari.bravedns.database.ConnectionTracker
 import com.bernaferrari.bravedns.database.DnsLog
 import com.bernaferrari.bravedns.database.IpInfo
@@ -99,6 +100,15 @@ class StoreCaptureApplication : RethinkDnsApplication() {
         queries.chunked(500).forEach {
             db.dnsLogDAO().insertBatch(it)
             materializeStatsInserted(it)
+        }
+        // Google's apps ship as system apps; list them where a person's own apps live (the
+        // default "Installed" view) instead of among a few hundred system components.
+        val appInfoDao = get<AppDatabase>().appInfoDAO()
+        installed.forEach { app ->
+            appInfoDao.getAppInfoByUid(app.uid)?.let { info ->
+                info.isSystemApp = false
+                appInfoDao.update(info)
+            }
         }
         Log.i(TAG, "seeded ${installed.size} apps, ${connections.size} connections, ${queries.size} queries")
     }
