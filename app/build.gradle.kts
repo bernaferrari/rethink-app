@@ -178,6 +178,14 @@ android {
             initWith(getByName("debug"))
             matchingFallbacks += listOf("debug")
         }
+        // Store screenshots only: the real UI over fictional apps and traffic from src/storeCapture.
+        // No VPN, no INTERNET permission; installs beside the real app and is never released.
+        create("storeCapture") {
+            initWith(getByName("debug"))
+            applicationIdSuffix = ".storecapture"
+            versionNameSuffix = "-storecapture"
+            matchingFallbacks += listOf("debug")
+        }
         create("alpha") {
             applicationIdSuffix = ".alpha"
             isMinifyEnabled = true
@@ -419,6 +427,11 @@ dependencies {
 }
 
 androidComponents {
+    // Store captures use the de-Googled channel only: no Firebase, no billing, no Play variants.
+    beforeVariants(selector().withBuildType("storeCapture")) { variant ->
+        variant.enable = variant.productFlavors.any { it.second == "fdroid" }
+    }
+
     // Billing (Play Billing + backend client) is shared verbatim by the play and website
     // channels; each channel keeps only its thin wiring (BillingModule, Security, updater).
     // fdroid must never see Play Billing classes.

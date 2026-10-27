@@ -73,6 +73,13 @@ object VpnController : KoinComponent {
     // into VpnController's state(), isOn(), hasTunnel() etc.
     var connectionStatus: MutableStateFlow<BraveVPNService.State?> = MutableStateFlow(null)
 
+    /**
+     * Pins what [state] and [hasTunnel] report without a running tunnel. Only the store-capture
+     * build (src/storeCapture) sets it, so its screenshots show protection; null everywhere else.
+     */
+    @Volatile
+    var pinnedState: VpnState? = null
+
     @Throws(CloneNotSupportedException::class)
     fun clone(): Any? {
         throw CloneNotSupportedException()
@@ -196,6 +203,7 @@ object VpnController : KoinComponent {
 
     @Suppress("DEPRECATION")
     fun state(): VpnState {
+        pinnedState?.let { return it }
         val requested: Boolean = persistentState.getVpnEnabled()
         val on = isOn()
         return VpnState(requested, on, connectionState, lastConnectedServerName, isLastConnectionEch)
@@ -211,6 +219,7 @@ object VpnController : KoinComponent {
     }
 
     fun hasTunnel(): Boolean {
+        pinnedState?.let { return it.on }
         return braveVpnService?.hasTunnel() == true
     }
 

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Store screenshots show fictional apps and traffic; this build never needs the network. -->
+    <uses-permission
+        android:name="android.permission.INTERNET"
+        tools:node="remove" />
+
+    <application
+        android:name="com.bernaferrari.bravedns.storecapture.StoreCaptureApplication"
+        tools:replace="android:name">
+
+        <!-- No tunnel, tile, accessibility watcher, external control or boot start in the capture build. -->
+        <service android:name="com.bernaferrari.bravedns.service.BraveVPNService" tools:node="remove" />
+        <service android:name="com.bernaferrari.bravedns.service.BraveTileService" tools:node="remove" />
+        <service android:name="com.bernaferrari.bravedns.util.BackgroundAccessibilityService" tools:node="remove" />
+        <receiver android:name="com.bernaferrari.bravedns.receiver.BraveAutoStartReceiver" tools:node="remove" />
+        <receiver android:name="com.bernaferrari.bravedns.receiver.VpnControlReceiver" tools:node="remove" />
+    </application>
+</manifest>

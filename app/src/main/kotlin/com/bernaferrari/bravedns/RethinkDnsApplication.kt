@@ -36,7 +36,7 @@ import org.koin.core.annotation.KoinApplication
 import org.koin.plugin.module.dsl.startKoin
 
 @KoinApplication(modules = [RethinkFullModule::class])
-class RethinkDnsApplication : Application(), AppFunctionConfiguration.Provider {
+open class RethinkDnsApplication : Application(), AppFunctionConfiguration.Provider {
     companion object {
         var DEBUG: Boolean = false
     }
