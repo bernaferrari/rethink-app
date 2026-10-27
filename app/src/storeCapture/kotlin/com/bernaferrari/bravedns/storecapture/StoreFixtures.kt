@@ -4,14 +4,14 @@ import com.bernaferrari.bravedns.service.FirewallManager.ConnectionStatus
 import com.bernaferrari.bravedns.service.FirewallManager.FirewallStatus
 
 /**
- * Fictional apps and traffic for store screenshots. The apps themselves are code-free APKs that
- * store-listing/fixture-apps.json builds and the capture script installs, so names and icons reach
- * the app through the real PackageManager. Names, packages, domains and networks are invented;
- * addresses come from the documentation ranges (192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24).
+ * Store-screenshot traffic for the real Google apps that ship on the capture emulator's Play image
+ * (no APK is installed for the screenshots). Hosts are the domains these apps really use; the
+ * addresses and per-host networks are plausible stand-ins. Apps that are not installed are skipped.
  *
- * The story: messaging, maps and banking connect freely; video and music wait for Wi-Fi; a
- * flashlight, a keyboard and a puzzle game that only phone home are cut off; and the DNS
- * blocklists quietly drop the ad and tracking domains everyone else tries to reach.
+ * The story: Chrome, Gmail and Messages connect freely; YouTube, YouTube Music and Photos wait for
+ * Wi-Fi; Maps works on Wi-Fi only; the Clock, Calculator and Camera, which have no reason to go
+ * online, are cut off; and the DNS blocklists quietly drop the ad and analytics hosts that
+ * everything else tries to reach.
  */
 internal data class FixtureApp(
     val packageName: String,
@@ -33,151 +33,134 @@ internal data class FixtureDomain(
     val udp: Boolean = false,
 )
 
-private fun host(name: String, ip: String, country: String, network: String, port: Int = 443, udp: Boolean = false) =
+private const val GOOGLE = "Google LLC"
+
+private fun host(name: String, ip: String, port: Int = 443, udp: Boolean = false, country: String = "US", network: String = GOOGLE) =
     FixtureDomain(name, ip, country, network, port = port, udp = udp)
 
-private fun tracker(name: String, ip: String, country: String, network: String) =
-    FixtureDomain(name, ip, country, network, tracker = true)
+private fun tracker(name: String, ip: String) = FixtureDomain(name, ip, "US", GOOGLE, tracker = true)
 
-// Shared ad and analytics networks, so blocked domains repeat across apps the way they do in life.
-private val brightpixelAds = tracker("ads.brightpixel.net", "203.0.113.24", "US", "Brightpixel Media")
-private val playmetric = tracker("events.playmetric.io", "203.0.113.71", "US", "Playmetric Analytics")
-private val adorbit = tracker("sdk.adorbit.com", "203.0.113.55", "SG", "Adorbit Exchange")
-private val datafunnel = tracker("collector.datafunnel.io", "203.0.113.77", "IE", "Datafunnel")
-private val crashbeacon = tracker("beacon.crashloom.dev", "203.0.113.96", "DE", "Crashloom")
+// Ad and analytics hosts, shared across apps the way they are in life.
+private val appMeasurement = tracker("app-measurement.com", "142.250.80.46")
+private val firebaseLogging = tracker("firebaselogging-pa.googleapis.com", "142.250.65.106")
+private val crashlytics = tracker("crashlyticsreports-pa.googleapis.com", "142.250.64.74")
+private val doubleclick = tracker("googleads.g.doubleclick.net", "142.250.72.98")
+private val syndication = tracker("pagead2.googlesyndication.com", "142.250.81.226")
+private val analytics = tracker("www.google-analytics.com", "142.250.65.78")
 
 internal val fixtureApps: List<FixtureApp> =
     listOf(
         FixtureApp(
-            "chat.harbor", weight = 18,
+            "com.android.chrome", weight = 18,
             domains = listOf(
-                host("push.harbor.chat", "192.0.2.18", "NL", "Harbor Cloud"),
-                host("media.harbor.chat", "192.0.2.19", "NL", "Harbor Cloud"),
-                host("voice.harbor.chat", "192.0.2.20", "DE", "Harbor Cloud", port = 3478, udp = true),
+                host("www.google.com", "142.250.80.100"),
+                host("fonts.gstatic.com", "142.250.80.67"),
+                host("www.gstatic.com", "142.250.80.35", udp = true),
+                host("en.wikipedia.org", "208.80.154.224", country = "US", network = "Wikimedia Foundation"),
+                doubleclick,
+                syndication,
+                analytics,
             ),
         ),
         FixtureApp(
-            "app.fernway.maps", weight = 12,
+            "com.google.android.gm", weight = 12,
             domains = listOf(
-                host("tiles.fernway.app", "198.51.100.8", "US", "Fernway"),
-                host("route.fernway.app", "198.51.100.9", "US", "Fernway"),
-                playmetric,
+                host("mail.google.com", "142.250.80.37"),
+                host("gmail.googleapis.com", "142.250.64.106"),
+                host("lh3.googleusercontent.com", "142.250.65.97"),
+                firebaseLogging,
             ),
         ),
         FixtureApp(
-            "weather.clearsky", weight = 9,
+            "com.google.android.apps.messaging", weight = 9,
             domains = listOf(
-                host("api.clearsky.app", "198.51.100.30", "CA", "Maple Edge"),
-                brightpixelAds,
-                adorbit,
-                datafunnel,
+                host("instantmessaging-pa.googleapis.com", "142.250.64.138"),
+                host("messages.google.com", "142.250.80.110"),
+                firebaseLogging,
             ),
         ),
         FixtureApp(
-            "news.driftwood", weight = 10,
+            "com.google.android.youtube", connection = ConnectionStatus.METERED, weight = 16,
             domains = listOf(
-                host("feed.driftwood.news", "198.51.100.140", "GB", "Thameside Hosting"),
-                host("img.driftwood.news", "198.51.100.141", "GB", "Thameside Hosting"),
-                brightpixelAds,
-                tracker("pixel.readerstat.com", "203.0.113.120", "US", "Readerstat"),
-                adorbit,
+                host("youtubei.googleapis.com", "142.250.72.106"),
+                host("i.ytimg.com", "142.250.81.246"),
+                host("rr3---sn-q4fl6nsr.googlevideo.com", "173.194.160.104", udp = true),
+                doubleclick,
+                tracker("s.youtube.com", "142.250.65.110"),
             ),
         ),
         FixtureApp(
-            "tv.reelhouse", connection = ConnectionStatus.METERED, weight = 14,
+            "com.google.android.apps.youtube.music", connection = ConnectionStatus.METERED, weight = 10,
             domains = listOf(
-                host("cdn.reelhouse.tv", "198.51.100.12", "US", "Reelhouse Media"),
-                host("api.reelhouse.tv", "198.51.100.13", "US", "Reelhouse Media"),
-                tracker("ads.reelhouse.tv", "203.0.113.31", "US", "Reelhouse Media"),
+                host("music.youtube.com", "142.250.80.14"),
+                host("rr5---sn-q4flrnek.googlevideo.com", "173.194.161.42", udp = true),
+                appMeasurement,
             ),
         ),
         FixtureApp(
-            "fm.cadence", connection = ConnectionStatus.METERED, weight = 11,
+            "com.google.android.apps.photos", connection = ConnectionStatus.METERED, weight = 8,
             domains = listOf(
-                host("stream.cadence.fm", "198.51.100.64", "SE", "Nordlys Net"),
-                host("api.cadence.fm", "198.51.100.65", "SE", "Nordlys Net"),
-                datafunnel,
+                host("photos.googleapis.com", "142.250.65.74"),
+                host("lh3.googleusercontent.com", "142.250.65.97"),
+                crashlytics,
             ),
         ),
         FixtureApp(
-            "bank.marlow", firewall = FirewallStatus.BYPASS_UNIVERSAL, weight = 4,
+            "com.google.android.apps.maps", connection = ConnectionStatus.METERED, weight = 9,
             domains = listOf(
-                host("api.marlowbank.com", "192.0.2.45", "GB", "Marlow Bank"),
-                host("auth.marlowbank.com", "192.0.2.46", "GB", "Marlow Bank"),
+                host("maps.googleapis.com", "142.250.72.138"),
+                host("khms0.googleapis.com", "142.250.64.170"),
+                host("mobilemaps-pa-gz.googleapis.com", "142.250.80.42"),
+                appMeasurement,
             ),
         ),
         FixtureApp(
-            "mail.kestrel", weight = 7,
+            "com.google.android.apps.docs", weight = 5,
             domains = listOf(
-                host("imap.kestrelmail.com", "192.0.2.61", "CH", "Alpenhost", port = 993),
-                host("api.kestrelmail.com", "192.0.2.62", "CH", "Alpenhost"),
+                host("drive.googleapis.com", "142.250.65.42"),
+                host("docs.google.com", "142.250.80.78"),
+                crashlytics,
             ),
         ),
         FixtureApp(
-            "shop.basketful", weight = 8,
+            "com.google.android.calendar", weight = 4,
+            domains = listOf(host("calendarsync-pa.googleapis.com", "142.250.64.202"), firebaseLogging),
+        ),
+        FixtureApp(
+            "com.android.vending", weight = 7,
             domains = listOf(
-                host("api.basketful.shop", "192.0.2.99", "US", "Northwind Cloud"),
-                host("img.basketful.shop", "192.0.2.100", "US", "Northwind Cloud"),
-                brightpixelAds,
-                playmetric,
+                host("play.googleapis.com", "142.250.80.74"),
+                host("play-lh.googleusercontent.com", "142.250.65.65"),
+                host("android.clients.google.com", "142.250.64.78"),
             ),
         ),
         FixtureApp(
-            "fit.stride", weight = 5,
+            "com.google.android.googlequicksearchbox", weight = 8,
             domains = listOf(
-                host("sync.stride.fit", "192.0.2.201", "AU", "Southern Cross Data"),
-                crashbeacon,
+                host("www.google.com", "142.250.80.100"),
+                host("clients4.google.com", "142.250.65.110"),
+                appMeasurement,
+                firebaseLogging,
             ),
         ),
         FixtureApp(
-            "photo.shutterbox", connection = ConnectionStatus.METERED, weight = 6,
-            domains = listOf(
-                host("upload.shutterbox.app", "192.0.2.150", "JP", "Sakura Edge"),
-                host("api.shutterbox.app", "192.0.2.151", "JP", "Sakura Edge"),
-            ),
+            "com.google.android.dialer", firewall = FirewallStatus.BYPASS_UNIVERSAL, weight = 2,
+            domains = listOf(host("dialercallerid-pa.googleapis.com", "142.250.64.234")),
         ),
         FixtureApp(
-            "app.inkwell.notes", weight = 3,
-            domains = listOf(host("sync.inkwell.app", "198.51.100.90", "DE", "Rheinwerk Hosting")),
+            "com.google.android.deskclock", connection = ConnectionStatus.BOTH, weight = 4,
+            domains = listOf(firebaseLogging, appMeasurement, crashlytics, host("clients4.google.com", "142.250.65.110")),
         ),
         FixtureApp(
-            "travel.wanderly", weight = 4,
-            domains = listOf(
-                host("api.wanderly.travel", "198.51.100.110", "FR", "Seine Cloud"),
-                playmetric,
-                adorbit,
-            ),
+            "com.google.android.calculator", connection = ConnectionStatus.BOTH, weight = 2,
+            domains = listOf(firebaseLogging, appMeasurement),
         ),
         FixtureApp(
-            "food.kettle", weight = 3,
-            domains = listOf(
-                host("recipes.kettle.kitchen", "198.51.100.120", "IT", "Lago Net"),
-                brightpixelAds,
-            ),
+            "com.android.camera2", connection = ConnectionStatus.BOTH, weight = 3,
+            domains = listOf(firebaseLogging, crashlytics),
         ),
         FixtureApp(
-            "tools.torchlight", connection = ConnectionStatus.BOTH, weight = 6,
-            domains = listOf(
-                tracker("ads.torchlight.tools", "203.0.113.40", "PA", "Lantern Ads"),
-                adorbit,
-                datafunnel,
-                brightpixelAds,
-            ),
-        ),
-        FixtureApp(
-            "io.glyphkeys", connection = ConnectionStatus.BOTH, weight = 5,
-            domains = listOf(
-                tracker("telemetry.glyphkeys.io", "203.0.113.90", "EE", "Glyph Labs"),
-                tracker("sync.glyphkeys.io", "203.0.113.91", "EE", "Glyph Labs"),
-            ),
-        ),
-        FixtureApp(
-            "games.orbittiles", connection = ConnectionStatus.BOTH, weight = 9,
-            domains = listOf(
-                tracker("track.orbittiles.games", "203.0.113.140", "CY", "Orbit Play"),
-                playmetric,
-                adorbit,
-                crashbeacon,
-            ),
+            "com.google.android.GoogleCamera", connection = ConnectionStatus.BOTH, weight = 3,
+            domains = listOf(firebaseLogging, crashlytics),
         ),
     )

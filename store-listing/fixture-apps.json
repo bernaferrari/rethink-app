@@ -1,5 +1,5 @@
 {
-  "about": "Fictional apps for the store captures, built by studio/fixture-apps.cjs and installed on the capture emulator. Packages match app/src/storeCapture/.../StoreFixtures.kt.",
+  "about": "Retired stub apps from the first capture set. The captures now use the Google apps on the emulator's Play image; capture-emulator.py uninstalls these packages if an emulator still has them.",
   "apps": [
     {"package": "chat.harbor", "label": "Harbor Chat", "colors": ["#34d1a6", "#0e9a77"], "glyph": "message-circle", "category": "social"},
     {"package": "app.fernway.maps", "label": "Fernway Maps", "colors": ["#5bc96b", "#1f8f4e"], "glyph": "map", "category": "maps"},

@@ -1,14 +1,14 @@
 """Capture Re-Rethink's store screens on a dedicated emulator (needs adb, Node with Playwright, and Pillow).
 
-Install the capture build first. It shows the real UI over fictional apps and traffic, has no VPN
-service and no INTERNET permission, and never touches real data:
+Install the capture build first. It shows the real UI over the Google apps that ship on the
+emulator's Play image, with a seeded week of traffic; it has no VPN service and no INTERNET
+permission, and never touches real data:
 
     ./gradlew :app:installFdroidStoreCapture
     python3 store-listing/capture-emulator.py --serial emulator-5572
 
-The script installs the fictional apps from fixture-apps.json (code-free APKs built by
-studio/fixture-apps.cjs), sets the clock to 9:41 so the seeded week of traffic ends "now", and
-drives the app by its English labels. Taps are recorded in en-US/raw/tap-map.json so other locales
+The script removes any leftover stub apps (fixture-apps.json), sets the clock to 9:41 so the
+seeded week of traffic ends "now", and drives the app by its English labels. Taps are recorded in en-US/raw/tap-map.json so other locales
 replay them (--locale de-DE). Writes <locale>/raw/<profile>/<scene>.png plus a .nodes.json sidecar.
 Use your own AVD and port; never a personal phone.
 """
@@ -135,12 +135,23 @@ def scroll_to(label, top):
     raise AssertionError(f'Could not scroll to {label}')
 
 
-def capture(name):
+def animations(on):
+    for key in scales:
+        adb('shell', 'settings', 'put', 'global', key, '1' if on else '0')
+
+
+def capture(name, animated=False):
+    """animated: read the layout with animations off, then let the real motion run and grab a frame."""
     if only and name not in only:
         return
     time.sleep(1.5)
     xml = dump()
+    if animated:
+        animations(True)
+        time.sleep(4.5)
     png = adb('exec-out', 'screencap', '-p')
+    if animated:
+        animations(False)
     png = png[png.index(b'\x89PNG\r\n\x1a\n'):]  # some emulators print a display warning first
     image = Image.open(BytesIO(png)).convert('RGB')
     assert image.size == (width, height), image.size
@@ -190,6 +201,13 @@ def status_bar():
         broadcast(*extra)
 
 
+def show_all_apps():
+    """Google's own apps are system apps; the Apps list starts on installed apps only."""
+    tap('Filter.*', 1.6)
+    tap('All', 1.6, text_only=True)
+    back(1.4) if 'Apply' not in (last_xml or '') else tap('Apply', 1.6)
+
+
 def night(on):
     adb('shell', 'cmd', 'uimode', 'night', 'yes' if on else 'no')
     time.sleep(2)
@@ -201,8 +219,11 @@ def settings(screen, wait=2.5):
     tap(screen, wait)
 
 
-subprocess.check_call(['node', str(listing / 'studio' / 'fixture-apps.cjs'), str(listing / 'fixture-apps.json'),
-                       '--install', args.serial], env={**os.environ})
+# The screens show the real Google apps of the Play image; stub apps from earlier runs would mix in.
+for stub in json.loads((listing / 'fixture-apps.json').read_text()).get('apps', []):
+    stub_package = stub.get('package') or stub.get('packageName')
+    if stub_package and stub_package in shell('pm', 'list', 'packages', stub_package):
+        adb('uninstall', stub_package)
 
 profiles = {name: (p['captureWidth'], p['captureHeight'], p['captureDensity'])
             for name, p in json.loads((listing / 'profiles.json').read_text()).items()}
@@ -234,7 +255,7 @@ try:
         theme = 'light'
         night(False)
         launch()
-        capture('01-home')
+        capture('01-home', animated=True)
 
         tap('Stats', text_only=True)
         tap('24h')
@@ -250,8 +271,9 @@ try:
         back()
 
         settings('Apps')
+        show_all_apps()
         capture('03-apps')
-        tap('Glyph Keyboard', 3)
+        tap('Clock', 3)
         capture('07-app-detail')
         back()
         back()
@@ -265,8 +287,9 @@ try:
         theme = 'dark'
         night(True)
         launch()
-        capture('11-home-dark')
+        capture('11-home-dark', animated=True)
         settings('Apps')
+        show_all_apps()
         capture('12-apps-dark')
         night(False)
 finally:

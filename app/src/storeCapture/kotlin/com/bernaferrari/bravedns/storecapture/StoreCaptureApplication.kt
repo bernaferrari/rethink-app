@@ -55,7 +55,7 @@ class StoreCaptureApplication : RethinkDnsApplication() {
         val marker = File(filesDir, "storecapture-seeded")
         if (marker.exists()) return
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
-            // Let the app list pick up the fixture APKs first, then give them their rules and traffic.
+            // Let the app list pick up the installed apps first, then give them their rules and traffic.
             get<RefreshDatabase>().refresh(RefreshDatabase.ACTION_REFRESH_FORCE) {
                 runCatching { seed() }
                     .onSuccess { marker.writeText("ok") }
@@ -70,7 +70,7 @@ class StoreCaptureApplication : RethinkDnsApplication() {
                 val info = packageManager.getApplicationInfo(app.packageName, 0)
                 Installed(app, info.uid, packageManager.getApplicationLabel(info).toString())
             } catch (_: PackageManager.NameNotFoundException) {
-                Log.w(TAG, "fixture app missing: ${app.packageName}; run store-listing/capture-emulator.py")
+                Log.w(TAG, "fixture app not installed: ${app.packageName}")
                 null
             }
         }
@@ -84,7 +84,7 @@ class StoreCaptureApplication : RethinkDnsApplication() {
                 IpInfo().apply {
                     ip = d.ip
                     asName = d.network
-                    asDomain = d.name.substringAfter('.')
+                    asDomain = d.name.split('.').takeLast(2).joinToString(".")
                     countryCode = d.country
                     createdTs = now
                 },
@@ -206,12 +206,20 @@ class StoreCaptureApplication : RethinkDnsApplication() {
             isBlocked = true
             response = "0.0.0.0"
             responseIps = "0.0.0.0"
-            blockLists = "Ads & trackers"
+            blockLists = blocklistsFor(domain.name)
         } else {
             flag = Utilities.getFlag(domain.country)
-            response = Utilities.makeAddressPair(domain.country, domain.ip)
-            responseIps = response
+            response = domain.ip
+            responseIps = domain.ip
         }
+    }
+
+    /** Which public blocklists in Rethink's catalogue list each ad or analytics host. */
+    private fun blocklistsFor(domain: String): String = when {
+        "doubleclick" in domain || "syndication" in domain -> "OISD Big,AdGuard DNS filter,Steven Black"
+        "measurement" in domain || "analytics" in domain -> "EasyPrivacy,Hagezi Multi Pro"
+        "logging" in domain || "crashlytics" in domain -> "Hagezi Multi Pro,1Hosts Pro"
+        else -> "OISD Big"
     }
 
     private companion object {
@@ -220,23 +228,23 @@ class StoreCaptureApplication : RethinkDnsApplication() {
 
         /** The newest visits, newest first: what the top of the logs shows. */
         val latest = listOf(
-            "tools.torchlight" to "ads.torchlight.tools",
-            "chat.harbor" to "push.harbor.chat",
-            "weather.clearsky" to "ads.brightpixel.net",
-            "weather.clearsky" to "api.clearsky.app",
-            "games.orbittiles" to "track.orbittiles.games",
-            "app.fernway.maps" to "tiles.fernway.app",
-            "io.glyphkeys" to "telemetry.glyphkeys.io",
-            "tv.reelhouse" to "cdn.reelhouse.tv",
-            "news.driftwood" to "pixel.readerstat.com",
-            "mail.kestrel" to "imap.kestrelmail.com",
-            "news.driftwood" to "feed.driftwood.news",
-            "chat.harbor" to "voice.harbor.chat",
-            "games.orbittiles" to "events.playmetric.io",
-            "bank.marlow" to "api.marlowbank.com",
-            "fm.cadence" to "stream.cadence.fm",
-            "fit.stride" to "beacon.crashloom.dev",
-            "shop.basketful" to "api.basketful.shop",
+            "com.google.android.deskclock" to "firebaselogging-pa.googleapis.com",
+            "com.google.android.gm" to "mail.google.com",
+            "com.android.chrome" to "googleads.g.doubleclick.net",
+            "com.android.chrome" to "www.google.com",
+            "com.google.android.youtube" to "youtubei.googleapis.com",
+            "com.google.android.apps.maps" to "maps.googleapis.com",
+            "com.google.android.googlequicksearchbox" to "app-measurement.com",
+            "com.google.android.apps.messaging" to "instantmessaging-pa.googleapis.com",
+            "com.google.android.youtube" to "i.ytimg.com",
+            "com.google.android.apps.photos" to "crashlyticsreports-pa.googleapis.com",
+            "com.android.vending" to "play.googleapis.com",
+            "com.google.android.apps.youtube.music" to "music.youtube.com",
+            "com.android.chrome" to "pagead2.googlesyndication.com",
+            "com.google.android.apps.docs" to "drive.googleapis.com",
+            "com.google.android.calendar" to "calendarsync-pa.googleapis.com",
+            "com.google.android.calculator" to "app-measurement.com",
+            "com.google.android.gm" to "gmail.googleapis.com",
         )
         val now: Long get() = System.currentTimeMillis()
     }
