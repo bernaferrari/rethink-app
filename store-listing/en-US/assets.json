@@ -7,7 +7,7 @@
         "slide": 0,
         "width": 1080,
         "height": 1920,
-        "bytes": 195081,
+        "bytes": 195120,
         "sources": [
           "raw/phone/01-home.png"
         ]
@@ -18,7 +18,7 @@
         "slide": 1,
         "width": 1080,
         "height": 1920,
-        "bytes": 244444,
+        "bytes": 244363,
         "sources": [
           "raw/phone/02-logs.png"
         ]
@@ -40,7 +40,7 @@
         "slide": 3,
         "width": 1080,
         "height": 1920,
-        "bytes": 197677,
+        "bytes": 197454,
         "sources": [
           "raw/phone/07-app-detail.png"
         ]
@@ -51,7 +51,7 @@
         "slide": 4,
         "width": 1080,
         "height": 1920,
-        "bytes": 252855,
+        "bytes": 238288,
         "sources": [
           "raw/phone/04-dns-blocked.png"
         ]
@@ -73,7 +73,7 @@
         "slide": 6,
         "width": 1080,
         "height": 1920,
-        "bytes": 211527,
+        "bytes": 217473,
         "sources": [
           "raw/phone/09-dns.png"
         ]
@@ -98,7 +98,7 @@
         "slide": 0,
         "width": 1200,
         "height": 1920,
-        "bytes": 207317,
+        "bytes": 207301,
         "sources": [
           "raw/tablet7/01-home.png"
         ]
@@ -109,7 +109,7 @@
         "slide": 1,
         "width": 1200,
         "height": 1920,
-        "bytes": 256164,
+        "bytes": 256123,
         "sources": [
           "raw/tablet7/04-dns-blocked.png"
         ]
@@ -131,7 +131,7 @@
         "slide": 3,
         "width": 1200,
         "height": 1920,
-        "bytes": 205038,
+        "bytes": 204738,
         "sources": [
           "raw/tablet7/07-app-detail.png"
         ]
@@ -142,7 +142,7 @@
         "slide": 4,
         "width": 1200,
         "height": 1920,
-        "bytes": 226146,
+        "bytes": 226119,
         "sources": [
           "raw/tablet7/11-home-dark.png",
           "raw/tablet7/12-apps-dark.png"
@@ -156,7 +156,7 @@
         "slide": 0,
         "width": 1920,
         "height": 1200,
-        "bytes": 248743,
+        "bytes": 248716,
         "sources": [
           "raw/tablet10/02-logs.png"
         ]
@@ -167,7 +167,7 @@
         "slide": 1,
         "width": 1920,
         "height": 1200,
-        "bytes": 197601,
+        "bytes": 197759,
         "sources": [
           "raw/tablet10/01-home.png"
         ]
@@ -178,7 +178,7 @@
         "slide": 2,
         "width": 1920,
         "height": 1200,
-        "bytes": 238044,
+        "bytes": 237999,
         "sources": [
           "raw/tablet10/04-dns-blocked.png"
         ]
@@ -200,7 +200,7 @@
         "slide": 4,
         "width": 1920,
         "height": 1200,
-        "bytes": 202825,
+        "bytes": 204807,
         "sources": [
           "raw/tablet10/07-app-detail.png"
         ]
@@ -211,7 +211,7 @@
         "slide": 5,
         "width": 1920,
         "height": 1200,
-        "bytes": 223328,
+        "bytes": 223299,
         "sources": [
           "raw/tablet10/08-settings.png",
           "raw/tablet10/11-home-dark.png"
@@ -225,7 +225,7 @@
         "slide": 0,
         "width": 2400,
         "height": 1260,
-        "bytes": 286720,
+        "bytes": 286667,
         "sources": [
           "raw/phone/02-logs.png",
           "raw/phone/01-home.png",
@@ -238,7 +238,7 @@
         "slide": 1,
         "width": 2400,
         "height": 1260,
-        "bytes": 363232,
+        "bytes": 363326,
         "sources": [
           "raw/compare/rethink-home.png",
           "raw/phone/01-home.png",

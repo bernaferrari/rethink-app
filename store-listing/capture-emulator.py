@@ -105,6 +105,16 @@ def tap(label, wait=2.2, text_only=False, above=None):
     time.sleep(wait)
 
 
+def wait_for(label, timeout=40):
+    """The app list fills in from the database; on a cold tablet start that can take a while."""
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        if re.search(rf'text="{label}"', dump()):
+            return
+        time.sleep(2)
+    raise AssertionError(f'{label} never appeared')
+
+
 def back(wait=1.8):
     adb('shell', 'input', 'keyevent', 'KEYCODE_BACK')
     time.sleep(wait)
@@ -265,6 +275,7 @@ try:
 
         settings('Apps')
         capture('03-apps')
+        wait_for('Clock')
         tap('Clock', 7)
         capture('07-app-detail')
         back()
