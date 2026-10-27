@@ -103,7 +103,10 @@
     <string name="lbl_addresses" translatable="true">Mga address</string>
     <string name="lbl_dns_servers" translatable="true">Mga server ng DNS</string>
     <string name="home_last_24_hours">Nakaraang 24 oras</string>
-    <string name="home_stopped_at_dns">lookup na pinigilan sa DNS</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="one">%d lookup na pinigilan sa DNS</item>
+        <item quantity="other">%d lookup na pinigilan sa DNS</item>
+    </plurals>
     <string name="home_stopped_most">Pinakamadalas pinigilan</string>
     <string name="home_nothing_stopped">Walang na-block sa nakaraang 24 oras.</string>
     <string name="home_see_statistics">Mga Estadistika</string>

@@ -589,7 +589,9 @@
     <string name="firewall_rule_domain_trusted_univ" translatable="true">Tên miền được tin tưởng ( chung )</string>
     <string name="firewall_rule_domain_blocked_univ" translatable="true">Tên miền ( chung )</string>
     <string name="home_last_24_hours">24 giờ qua</string>
-    <string name="home_stopped_at_dns">truy vấn bị chặn ngay tại DNS</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="other">%d truy vấn bị chặn ngay tại DNS</item>
+    </plurals>
     <string name="home_stopped_most">Bị chặn nhiều nhất</string>
     <string name="home_nothing_stopped">Không có gì bị chặn trong 24 giờ qua.</string>
     <string name="home_see_statistics">Thống kê</string>

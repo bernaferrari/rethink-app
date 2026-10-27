@@ -751,7 +751,10 @@
     <string name="about_terms_of_service" translatable="true">Általános szerződési feltételek</string>
     <string name="copied_clipboard" translatable="true">Másolva</string>
     <string name="home_last_24_hours">Elmúlt 24 óra</string>
-    <string name="home_stopped_at_dns">lekérés megállítva a DNS-nél</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="one">%d lekérés megállítva a DNS-nél</item>
+        <item quantity="other">%d lekérés megállítva a DNS-nél</item>
+    </plurals>
     <string name="home_stopped_most">Legtöbbet blokkolt</string>
     <string name="home_nothing_stopped">Az elmúlt 24 órában semmi sem lett blokkolva.</string>
     <string name="home_see_statistics">Statisztika</string>

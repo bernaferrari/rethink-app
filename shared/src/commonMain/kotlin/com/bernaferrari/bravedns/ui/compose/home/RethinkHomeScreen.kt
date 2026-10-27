@@ -137,7 +137,7 @@ data class RethinkHomeStrings(
     val last24Hours: String = "Last 24 hours",
     val allowed: String = "Allowed",
     val blocked: String = "Blocked",
-    val stoppedAtDns: String = "lookups stopped at the DNS",
+    val stoppedAtDns: (Long) -> String = { if (it == 1L) "$it lookup stopped at the DNS" else "${formatGrouped(it)} lookups stopped at the DNS" },
     val stoppedMost: String = "Stopped most",
     val nothingStopped: String = "Nothing has been blocked in the last 24 hours.",
     val seeStatistics: String = "Statistics",
@@ -468,7 +468,7 @@ private fun TodaySection(uiState: RethinkHomeUiState, strings: RethinkHomeString
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
                     Icon(MaterialSymbols.Filled.Dns, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(SharedDimensions.iconSizeSm))
                     Text(
-                        "${formatGrouped(uiState.dnsBlockedToday)} ${strings.stoppedAtDns}",
+                        strings.stoppedAtDns(uiState.dnsBlockedToday),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

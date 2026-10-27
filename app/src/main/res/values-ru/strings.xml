@@ -816,7 +816,12 @@
     <string name="settings_jumbo_packets_desc" translatable="true">Использовать <i>jumbo-фреймы</i> внутри VPN-туннеля Rethink.</string>
     <string name="stability_program_toast" translatable="true">Теперь вы участник <i>программы тестирования</i><i> экспериментальных функций</i>.</string>
     <string name="home_last_24_hours">Последние 24 часа</string>
-    <string name="home_stopped_at_dns">запросов остановлено на уровне DNS</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="one">%d запрос остановлен на уровне DNS</item>
+        <item quantity="few">%d запроса остановлено на уровне DNS</item>
+        <item quantity="many">%d запросов остановлено на уровне DNS</item>
+        <item quantity="other">%d запроса остановлено на уровне DNS</item>
+    </plurals>
     <string name="home_stopped_most">Чаще всего блокировались</string>
     <string name="home_nothing_stopped">За последние 24 часа ничего не заблокировано.</string>
     <string name="home_see_statistics">Статистика</string>

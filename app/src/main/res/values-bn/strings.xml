@@ -547,7 +547,10 @@
     <string name="lbl_unselected" translatable="true">অনির্বাচিত</string>
     <string name="lbl_idle" translatable="true">নিষ্ক্রিয়</string>
     <string name="home_last_24_hours">গত ২৪ ঘণ্টা</string>
-    <string name="home_stopped_at_dns">লুকআপ DNS-এই আটকানো হয়েছে</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="one">%dটি লুকআপ DNS-এই আটকানো হয়েছে</item>
+        <item quantity="other">%dটি লুকআপ DNS-এই আটকানো হয়েছে</item>
+    </plurals>
     <string name="home_stopped_most">সবচেয়ে বেশি আটকানো</string>
     <string name="home_nothing_stopped">গত ২৪ ঘণ্টায় কিছুই ব্লক করা হয়নি।</string>
     <string name="home_see_statistics">পরিসংখ্যান</string>

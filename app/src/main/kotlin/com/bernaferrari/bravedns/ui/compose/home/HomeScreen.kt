@@ -141,7 +141,7 @@ private fun androidHomeStrings() = RethinkHomeStrings(
     last24Hours = stringResource(R.string.home_last_24_hours),
     allowed = stringResource(R.string.lbl_allowed),
     blocked = stringResource(R.string.lbl_blocked),
-    stoppedAtDns = stringResource(R.string.home_stopped_at_dns),
+    stoppedAtDns = stoppedAtDnsLabel(),
     stoppedMost = stringResource(R.string.home_stopped_most),
     nothingStopped = stringResource(R.string.home_nothing_stopped),
     seeStatistics = stringResource(R.string.home_see_statistics),
@@ -153,6 +153,12 @@ private fun androidHomeStrings() = RethinkHomeStrings(
     dnsCaption = stringResource(R.string.home_dns_caption),
     blockedCount = blockedCountLabel(),
 )
+
+@Composable
+private fun stoppedAtDnsLabel(): (Long) -> String {
+    val resources = LocalResources.current
+    return { count -> resources.getQuantityString(R.plurals.home_stopped_at_dns_count, count.toInt(), count.toInt()) }
+}
 
 @Composable
 private fun blockedCountLabel(): (Long) -> String {

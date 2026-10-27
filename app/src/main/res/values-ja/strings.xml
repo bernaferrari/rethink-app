@@ -424,7 +424,9 @@
     <string name="lbl_sec" translatable="true">秒</string>
     <string name="lbl_dismiss" translatable="true">却下する</string>
     <string name="home_last_24_hours">過去 24 時間</string>
-    <string name="home_stopped_at_dns">件の DNS 照会をブロック</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="other">%d 件の DNS 照会をブロック</item>
+    </plurals>
     <string name="home_stopped_most">ブロックの多い項目</string>
     <string name="home_nothing_stopped">過去 24 時間にブロックされたものはありません。</string>
     <string name="home_see_statistics">統計</string>

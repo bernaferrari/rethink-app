@@ -42,7 +42,10 @@
     <string name="brbs_restore_dialog_failure_positive" translatable="true">പുനഃസ്ഥാപിക്കാൻ വീണ്ടും ശ്രമിക്കുക</string>
     <string name="private_dns_dialog_positive" translatable="true">ക്രമീകരണങ്ങളിലേക്ക് പോകുക</string>
     <string name="home_last_24_hours">കഴിഞ്ഞ 24 മണിക്കൂർ</string>
-    <string name="home_stopped_at_dns">ലുക്കപ്പുകൾ DNS-ൽ തന്നെ തടഞ്ഞു</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="one">%d ലുക്കപ്പ് DNS-ൽ തന്നെ തടഞ്ഞു</item>
+        <item quantity="other">%d ലുക്കപ്പുകൾ DNS-ൽ തന്നെ തടഞ്ഞു</item>
+    </plurals>
     <string name="home_stopped_most">ഏറ്റവുമധികം തടഞ്ഞത്</string>
     <string name="home_nothing_stopped">കഴിഞ്ഞ 24 മണിക്കൂറിൽ ഒന്നും തടഞ്ഞിട്ടില്ല.</string>
     <string name="home_see_statistics">സ്ഥിതിവിവരക്കണക്കുകൾ</string>

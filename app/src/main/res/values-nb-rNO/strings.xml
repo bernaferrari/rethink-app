@@ -357,7 +357,10 @@
     <string name="settings_proxy_header">mellomtjener</string>
     <string name="settings_check_update_heading">Se etter nye programversjoner</string>
     <string name="home_last_24_hours">Siste 24 timer</string>
-    <string name="home_stopped_at_dns">oppslag stoppet allerede i DNS</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="one">%d oppslag stoppet allerede i DNS</item>
+        <item quantity="other">%d oppslag stoppet allerede i DNS</item>
+    </plurals>
     <string name="home_stopped_most">Stoppet oftest</string>
     <string name="home_nothing_stopped">Ingenting er blokkert de siste 24 timene.</string>
     <string name="home_see_statistics">Statistikk</string>

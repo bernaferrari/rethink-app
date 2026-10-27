@@ -117,7 +117,10 @@
     <string name="always_on_dialog" translatable="true">\"Altid på-VPN\" er aktiveret på denne enhed. For at starte Rethink skal du gå til indstillinger og deaktivere \"Altid på-VPN\".</string>
     <string name="always_on_dialog_positive_btn" translatable="true">Gå til indstillinger</string>
     <string name="home_last_24_hours">Seneste 24 timer</string>
-    <string name="home_stopped_at_dns">opslag stoppet allerede ved DNS</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="one">%d opslag stoppet allerede ved DNS</item>
+        <item quantity="other">%d opslag stoppet allerede ved DNS</item>
+    </plurals>
     <string name="home_stopped_most">Stoppet oftest</string>
     <string name="home_nothing_stopped">Intet er blevet blokeret de seneste 24 timer.</string>
     <string name="home_see_statistics">Statistik</string>

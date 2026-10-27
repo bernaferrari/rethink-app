@@ -723,7 +723,9 @@
     <string name="firewall_rule_proxy_error" translatable="true">代理錯誤</string>
     <string name="firewall_rule_private_dns_desc" translatable="true"><![CDATA[此連線正在尋找一個不存在的<i>私人 DNS</i> 伺服器。]]></string>
     <string name="home_last_24_hours">過去 24 小時</string>
-    <string name="home_stopped_at_dns">次查詢在 DNS 層被攔截</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="other">%d 次查詢在 DNS 層被攔截</item>
+    </plurals>
     <string name="home_stopped_most">攔截最多</string>
     <string name="home_nothing_stopped">過去 24 小時內沒有攔截任何內容。</string>
     <string name="home_see_statistics">統計</string>

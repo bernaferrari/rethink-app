@@ -112,7 +112,10 @@
     <string name="bsct_block_ip" translatable="true">Estä, luota <u>tähän IP-osoitteeseen</u> <u>tälle sovellukselle</u></string>
     <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Käytettävyyspalvelu on pysähtynyt tai kaatunut. <i><b>Mene asetuksiin ja pakota Rethinkin lopetus</b></i> \u0020ja käynnistä se uudelleen <i>Estä mikä tahansa sovellus, jota ei käytetä.</i>\n\nRethink käyttää saavutettavuuspalvelua seuraamaan, mitkä sovellukset ovat käytössä (etualalla) verrattuna niihin, jotka eivät ole käytössä (taustalla).</string>
     <string name="home_last_24_hours">Viimeiset 24 tuntia</string>
-    <string name="home_stopped_at_dns">hakua pysäytetty jo DNS:ssä</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="one">%d haku pysäytetty jo DNS:ssä</item>
+        <item quantity="other">%d hakua pysäytetty jo DNS:ssä</item>
+    </plurals>
     <string name="home_stopped_most">Eniten pysäytetty</string>
     <string name="home_nothing_stopped">Mitään ei ole estetty viimeisen 24 tunnin aikana.</string>
     <string name="home_see_statistics">Tilastot</string>

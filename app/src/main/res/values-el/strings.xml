@@ -120,7 +120,10 @@
     <string name="firewall_act_network_monitor_tab" translatable="true">Δίκτυο</string>
     <string name="dot_custom_url_remove_dialog_message" translatable="true">Διαγράψτε το τελικό σημείο DNS over TLS από την αποθηκευμένη ρύθμιση παραμέτρων.</string>
     <string name="home_last_24_hours">Τελευταίες 24 ώρες</string>
-    <string name="home_stopped_at_dns">αιτήματα σταμάτησαν στο DNS</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="one">%d αίτημα σταμάτησε στο DNS</item>
+        <item quantity="other">%d αιτήματα σταμάτησαν στο DNS</item>
+    </plurals>
     <string name="home_stopped_most">Μπλόκαραν περισσότερο</string>
     <string name="home_nothing_stopped">Τίποτα δεν αποκλείστηκε τις τελευταίες 24 ώρες.</string>
     <string name="home_see_statistics">Στατιστικά</string>

@@ -544,7 +544,10 @@
     <string name="firewall_rule_global_lockdown" translatable="true">قفل</string>
     <string name="rules_load_failure_heading" translatable="true">­تنظیمات سیو شود</string>
     <string name="home_last_24_hours">۲۴ ساعت گذشته</string>
-    <string name="home_stopped_at_dns">درخواست در سطح DNS متوقف شد</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="one">%d درخواست در سطح DNS متوقف شد</item>
+        <item quantity="other">%d درخواست در سطح DNS متوقف شد</item>
+    </plurals>
     <string name="home_stopped_most">بیشترین مسدودشده‌ها</string>
     <string name="home_nothing_stopped">در ۲۴ ساعت گذشته چیزی مسدود نشده است.</string>
     <string name="home_see_statistics">آمار</string>

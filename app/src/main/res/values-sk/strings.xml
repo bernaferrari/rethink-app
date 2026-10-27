@@ -205,7 +205,12 @@
     <string name="settings_orbot_disabled_error" translatable="true">Vypnite HTTP(S) a/alebo SOCKS5 proxy aby ste mohli pokračovať s nastavením Tor-as-a-proxy.</string>
     <string name="settings_https_disabled_error" translatable="true">Pripojené k %1$s. Vypnite ho aby ste mohli pokračovať.</string>
     <string name="home_last_24_hours">Posledných 24 hodín</string>
-    <string name="home_stopped_at_dns">dopytov zastavených na úrovni DNS</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="one">%d dopyt zastavený na úrovni DNS</item>
+        <item quantity="few">%d dopyty zastavené na úrovni DNS</item>
+        <item quantity="many">%d dopytu zastaveného na úrovni DNS</item>
+        <item quantity="other">%d dopytov zastavených na úrovni DNS</item>
+    </plurals>
     <string name="home_stopped_most">Najčastejšie blokované</string>
     <string name="home_nothing_stopped">Za posledných 24 hodín nebolo nič zablokované.</string>
     <string name="home_see_statistics">Štatistiky</string>

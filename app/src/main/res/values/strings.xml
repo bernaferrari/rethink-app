@@ -1864,7 +1864,10 @@
     <string name="log_pane_network_hosts">Where this app connects</string>
     <string name="log_pane_empty">Select an entry to see its details</string>
     <string name="home_last_24_hours">Last 24 hours</string>
-    <string name="home_stopped_at_dns">lookups stopped at the DNS</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="one">%d lookup stopped at the DNS</item>
+        <item quantity="other">%d lookups stopped at the DNS</item>
+    </plurals>
     <string name="home_stopped_most">Stopped most</string>
     <string name="home_nothing_stopped">Nothing has been blocked in the last 24 hours.</string>
     <string name="home_see_statistics">Statistics</string>

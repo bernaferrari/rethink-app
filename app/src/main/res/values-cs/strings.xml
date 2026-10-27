@@ -677,7 +677,12 @@
     <string name="lbl_experimental" translatable="true">(experimentální)</string>
     <string name="lbl_manual" translatable="true">Manuál</string>
     <string name="home_last_24_hours">Posledních 24 hodin</string>
-    <string name="home_stopped_at_dns">dotazů zastavených na úrovni DNS</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="one">%d dotaz zastaven na úrovni DNS</item>
+        <item quantity="few">%d dotazy zastaveny na úrovni DNS</item>
+        <item quantity="many">%d dotazu zastaveno na úrovni DNS</item>
+        <item quantity="other">%d dotazů zastaveno na úrovni DNS</item>
+    </plurals>
     <string name="home_stopped_most">Nejčastěji blokované</string>
     <string name="home_nothing_stopped">Za posledních 24 hodin nebylo nic zablokováno.</string>
     <string name="home_see_statistics">Statistiky</string>

@@ -819,7 +819,11 @@
     <string name="lockdown_download_enable_inapp" translatable="true">Activer le téléchargeur</string>
     <string name="lbl_action" translatable="true">Action</string>
     <string name="home_last_24_hours">Dernières 24 heures</string>
-    <string name="home_stopped_at_dns">requêtes arrêtées au niveau du DNS</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="one">%d requête arrêtée au niveau du DNS</item>
+        <item quantity="many">%d de requêtes arrêtées au niveau du DNS</item>
+        <item quantity="other">%d requêtes arrêtées au niveau du DNS</item>
+    </plurals>
     <string name="home_stopped_most">Les plus bloqués</string>
     <string name="home_nothing_stopped">Rien n’a été bloqué ces dernières 24 heures.</string>
     <string name="home_see_statistics">Statistiques</string>

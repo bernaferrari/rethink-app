@@ -816,7 +816,9 @@
     <string name="settings_jumbo_packets_desc" translatable="true">Menggunakan <i>paket jumbo</i> dalam terowongan VPN Rethink.</string>
     <string name="stability_program_toast" translatable="true">Daftar ke <i>program stabilitas</i> untuk <i>fitur eksperimental</i>.</string>
     <string name="home_last_24_hours">24 jam terakhir</string>
-    <string name="home_stopped_at_dns">kueri dihentikan di DNS</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="other">%d kueri dihentikan di DNS</item>
+    </plurals>
     <string name="home_stopped_most">Paling banyak diblokir</string>
     <string name="home_nothing_stopped">Tidak ada yang diblokir dalam 24 jam terakhir.</string>
     <string name="home_see_statistics">Statistik</string>

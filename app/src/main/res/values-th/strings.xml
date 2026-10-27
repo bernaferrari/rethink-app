@@ -691,7 +691,9 @@
     <string name="cleanbrowsing_adult_dns_desc" translatable="true">ตัวกรองสำหรับผู้ใหญ่จะบล็อกการเข้าถึงเว็บไซต์สำหรับผู้ใหญ่ ลามกอนาจาร และเนื้อหาที่ไม่เหมาะสมทั้งหมด ไม่บล็อกพร็อกซีหรือ VPN หรือเว็บไซต์ที่มีเนื้อหาผสมกัน อนุญาตให้ใช้เว็บไซต์เช่น Reddit ส่วน Google และ Bing จะตั้งค่าเป็นโหมดปลอดภัย</string>
     <string name="quad9_dns_desc" translatable="true">Quad9 กำหนดเส้นทางการสอบถาม DNS ของคุณผ่านเครือข่ายเซิร์ฟเวอร์ที่ปลอดภัยทั่วโลก</string>
     <string name="home_last_24_hours">24 ชั่วโมงที่ผ่านมา</string>
-    <string name="home_stopped_at_dns">คำขอถูกหยุดไว้ที่ DNS</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="other">หยุดคำขอไว้ที่ DNS %d รายการ</item>
+    </plurals>
     <string name="home_stopped_most">ถูกบล็อกมากที่สุด</string>
     <string name="home_nothing_stopped">ไม่มีอะไรถูกบล็อกใน 24 ชั่วโมงที่ผ่านมา</string>
     <string name="home_see_statistics">สถิติ</string>

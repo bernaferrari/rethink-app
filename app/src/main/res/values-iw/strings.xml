@@ -564,7 +564,11 @@
     <string name="cd_no_rules_text" translatable="true">אין כללי דומיין.</string>
     <string name="cd_toast_edit" translatable="true">נערך</string>
     <string name="home_last_24_hours">24 השעות האחרונות</string>
-    <string name="home_stopped_at_dns">בקשות נעצרו ב-DNS</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="one">%d בקשה נעצרה ב-DNS</item>
+        <item quantity="two">%d בקשות נעצרו ב-DNS</item>
+        <item quantity="other">%d בקשות נעצרו ב-DNS</item>
+    </plurals>
     <string name="home_stopped_most">הכי הרבה חסימות</string>
     <string name="home_nothing_stopped">לא נחסם דבר ב-24 השעות האחרונות.</string>
     <string name="home_see_statistics">סטטיסטיקה</string>

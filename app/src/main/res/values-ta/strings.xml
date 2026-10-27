@@ -739,7 +739,10 @@
     <string name="smart_dns" translatable="true">அறிவுள்ள டி.என்.எச்</string>
     <string name="smart_dns_desc" translatable="true"><i> அறிவுள்ள டி.என்.எச் </i> இந்த டிஎன்எச் தீர்வுகளில் எதையும் தோராயமாக பயன்படுத்துகிறது:</string>
     <string name="home_last_24_hours">கடந்த 24 மணிநேரம்</string>
-    <string name="home_stopped_at_dns">தேடல்கள் DNS-இலேயே நிறுத்தப்பட்டன</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="one">%d தேடல் DNS-இலேயே நிறுத்தப்பட்டது</item>
+        <item quantity="other">%d தேடல்கள் DNS-இலேயே நிறுத்தப்பட்டன</item>
+    </plurals>
     <string name="home_stopped_most">அதிகம் தடுக்கப்பட்டவை</string>
     <string name="home_nothing_stopped">கடந்த 24 மணிநேரத்தில் எதுவும் தடுக்கப்படவில்லை.</string>
     <string name="home_see_statistics">புள்ளிவிவரங்கள்</string>

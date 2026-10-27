@@ -746,7 +746,11 @@
     <string name="lbl_criteria" translatable="true">Parámetro</string>
     <string name="lbl_fallback" translatable="true">Alternativa</string>
     <string name="home_last_24_hours">Últimas 24 horas</string>
-    <string name="home_stopped_at_dns">consultas detenidas en el DNS</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="one">%d consulta detenida en el DNS</item>
+        <item quantity="many">%d de consultas detenidas en el DNS</item>
+        <item quantity="other">%d consultas detenidas en el DNS</item>
+    </plurals>
     <string name="home_stopped_most">Los más bloqueados</string>
     <string name="home_nothing_stopped">No se ha bloqueado nada en las últimas 24 horas.</string>
     <string name="home_see_statistics">Estadísticas</string>

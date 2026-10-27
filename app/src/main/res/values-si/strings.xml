@@ -97,7 +97,10 @@
     <string name="status_no_network" translatable="true">ජාලයක් නැත</string>
     <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit." translatable="true">ආරක්ෂිත නැත</string>
     <string name="home_last_24_hours">පසුගිය පැය 24</string>
-    <string name="home_stopped_at_dns">සෙවීම් DNS මට්ටමේදීම නැවැත්විණි</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="one">%d සෙවීමක් DNS මට්ටමේදීම නැවැත්විණි</item>
+        <item quantity="other">සෙවීම් %d ක් DNS මට්ටමේදීම නැවැත්විණි</item>
+    </plurals>
     <string name="home_stopped_most">වැඩිපුරම නැවැත්වූ</string>
     <string name="home_nothing_stopped">පසුගිය පැය 24 තුළ කිසිවක් අවහිර කර නැත.</string>
     <string name="home_see_statistics">සංඛ්‍යාලේඛන</string>

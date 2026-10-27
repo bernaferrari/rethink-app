@@ -476,7 +476,9 @@
     <string name="lbl_manual" translatable="true">수동 편집</string>
     <string name="lbl_fallback" translatable="true">대체</string>
     <string name="home_last_24_hours">최근 24시간</string>
-    <string name="home_stopped_at_dns">건의 조회를 DNS에서 차단</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="other">%d건의 조회를 DNS에서 차단</item>
+    </plurals>
     <string name="home_stopped_most">가장 많이 차단됨</string>
     <string name="home_nothing_stopped">최근 24시간 동안 차단된 항목이 없습니다.</string>
     <string name="home_see_statistics">통계</string>

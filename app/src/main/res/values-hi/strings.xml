@@ -698,7 +698,10 @@
     <string name="wireguard_disable_failure" translatable="true">\"Always-on WireGuard\" को बंद नहीं किया जा सकता</string>
     <string name="wireguard_apps_proxy_map_desc" translatable="true">%1$s का हिस्सा</string>
     <string name="home_last_24_hours">पिछले 24 घंटे</string>
-    <string name="home_stopped_at_dns">लुकअप DNS पर ही रोके गए</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="one">%d लुकअप DNS पर ही रोका गया</item>
+        <item quantity="other">%d लुकअप DNS पर ही रोके गए</item>
+    </plurals>
     <string name="home_stopped_most">सबसे ज़्यादा रोके गए</string>
     <string name="home_nothing_stopped">पिछले 24 घंटों में कुछ भी ब्लॉक नहीं हुआ।</string>
     <string name="home_see_statistics">आँकड़े</string>

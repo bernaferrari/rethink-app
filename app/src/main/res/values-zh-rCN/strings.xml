@@ -733,7 +733,9 @@
     <string name="firewall_rule_private_dns_desc" translatable="true"><![CDATA[此连接正在寻找一个不存在的<i>私人 DNS</i> 服务器。]]></string>
     <string name="firewall_rule_bypass_proxy_desc" translatable="true"><![CDATA[此连接因<i>应用</i>设为<i>绕过代理</i>规则而被放行。<br/><br/>若需更改，请移步<i>分应用防火墙</i>屏。]]></string>
     <string name="home_last_24_hours">过去 24 小时</string>
-    <string name="home_stopped_at_dns">次查询在 DNS 层被拦截</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="other">%d 次查询在 DNS 层被拦截</item>
+    </plurals>
     <string name="home_stopped_most">拦截最多</string>
     <string name="home_nothing_stopped">过去 24 小时内没有拦截任何内容。</string>
     <string name="home_see_statistics">统计</string>

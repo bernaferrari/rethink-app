@@ -41,7 +41,11 @@
     <string name="lbl_ip_rules" translatable="true">IP noteikumi</string>
     <string name="lbl_domain_rules" translatable="true">Domēna noteikumi</string>
     <string name="home_last_24_hours">Pēdējās 24 stundas</string>
-    <string name="home_stopped_at_dns">pieprasījumi apturēti DNS līmenī</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="zero">%d pieprasījumi apturēti DNS līmenī</item>
+        <item quantity="one">%d pieprasījums apturēts DNS līmenī</item>
+        <item quantity="other">%d pieprasījumi apturēti DNS līmenī</item>
+    </plurals>
     <string name="home_stopped_most">Visbiežāk bloķēti</string>
     <string name="home_nothing_stopped">Pēdējo 24 stundu laikā nekas netika bloķēts.</string>
     <string name="home_see_statistics">Statistika</string>

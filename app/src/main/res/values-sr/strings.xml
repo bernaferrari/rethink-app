@@ -674,7 +674,11 @@
     <string name="crypt_cleanbrowsing_family_desc" translatable="true">Блокира приступ свим сајтовима са садржајем за одрасле. Такође блокира прокси и VPN домене који се могу користити за заобилажење филтера. Сајтови мешовитог садржаја (попут Редита) су такође блокирани. Гугл, Бинг и Јутјуб су подешени на безбедни мод.</string>
     <string name="cleanbrowsing_family_dns_desc" translatable="true">Породични филтер блокира приступ свим сајтовима са садржајем за одрасле. Такође блокира све прокси и VPN домене који се могу користити за заобилажење наших филтера. Сајтови мешовитог садржаја (попут Редита) су такође блокирани. Гугл, Бинг и Јутјуб су подешени на безбедни мод.</string>
     <string name="home_last_24_hours">Последња 24 сата</string>
-    <string name="home_stopped_at_dns">упита заустављено на DNS-у</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="one">%d упит заустављен на DNS-у</item>
+        <item quantity="few">%d упита заустављена на DNS-у</item>
+        <item quantity="other">%d упита заустављено на DNS-у</item>
+    </plurals>
     <string name="home_stopped_most">Највише блокирано</string>
     <string name="home_nothing_stopped">Ништа није блокирано у последња 24 сата.</string>
     <string name="home_see_statistics">Статистика</string>

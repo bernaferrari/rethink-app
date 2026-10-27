@@ -54,7 +54,12 @@
     <string name="lbl_status" translatable="true">Стан</string>
     <string name="lbl_remove" translatable="true">Выдаліць</string>
     <string name="home_last_24_hours">Апошнія 24 гадзіны</string>
-    <string name="home_stopped_at_dns">запытаў спынена на ўзроўні DNS</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="one">%d запыт спынены на ўзроўні DNS</item>
+        <item quantity="few">%d запыты спынены на ўзроўні DNS</item>
+        <item quantity="many">%d запытаў спынена на ўзроўні DNS</item>
+        <item quantity="other">%d запыту спынена на ўзроўні DNS</item>
+    </plurals>
     <string name="home_stopped_most">Найчасцей блакаваліся</string>
     <string name="home_nothing_stopped">За апошнія 24 гадзіны нічога не заблакіравана.</string>
     <string name="home_see_statistics">Статыстыка</string>

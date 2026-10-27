@@ -776,7 +776,11 @@
     <string name="settings_jumbo_packets_desc" translatable="true">Folosește <i>pachete jumbo</i> în tunelul VPN al Rethink.</string>
     <string name="stability_program_toast" translatable="true">Înscris în <i>programul de stabilitate</i> pentru <i>caracteristici experimentale</i>.</string>
     <string name="home_last_24_hours">Ultimele 24 de ore</string>
-    <string name="home_stopped_at_dns">interogări oprite la DNS</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="one">%d interogare oprită la DNS</item>
+        <item quantity="few">%d interogări oprite la DNS</item>
+        <item quantity="other">%d de interogări oprite la DNS</item>
+    </plurals>
     <string name="home_stopped_most">Cele mai blocate</string>
     <string name="home_nothing_stopped">Nimic nu a fost blocat în ultimele 24 de ore.</string>
     <string name="home_see_statistics">Statistici</string>

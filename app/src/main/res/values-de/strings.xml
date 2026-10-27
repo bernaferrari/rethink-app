@@ -802,7 +802,10 @@
     <string name="settings_jumbo_packets_desc" translatable="true">Verwendet <i>Jumbo-Pakete</i> innerhalb des VPN-Tunnels von Rethink.</string>
     <string name="stability_program_toast" translatable="true">Für das <i>Stabilitätsprogramm</i> für <i>experimentelle Funktionen</i> angemeldet.</string>
     <string name="home_last_24_hours">Letzte 24 Stunden</string>
-    <string name="home_stopped_at_dns">Anfragen schon beim DNS gestoppt</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="one">%d Anfrage schon beim DNS gestoppt</item>
+        <item quantity="other">%d Anfragen schon beim DNS gestoppt</item>
+    </plurals>
     <string name="home_stopped_most">Am häufigsten gestoppt</string>
     <string name="home_nothing_stopped">In den letzten 24 Stunden wurde nichts blockiert.</string>
     <string name="home_see_statistics">Statistiken</string>

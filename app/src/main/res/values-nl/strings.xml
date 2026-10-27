@@ -469,7 +469,10 @@
     <string name="whats_new_version_update" translatable="true">&lt;b&gt;Don\'t Panic 2&lt;/b&gt;&lt;br/&gt;&lt;br/&gt; 1. New: Capture network engine errors in user bug reports.&lt;br/&gt; 2. New: use System DNS for undelegated domain names iff Prevent DNS leaks is ON.&lt;br/&gt; 3. Improvement: Dual-stack (IPv4 + IPv6) WireGuard connectivity.&lt;br/&gt; 4. Improvement: Avoid blocking the UI elements when the network engine is unresponsive.&lt;br/&gt; 5. Fix: Connection timeouts with Advanced DNS filtering turned ON.&lt;br/&gt; 6. Fix: WireGuard peer endpoints with domain names hang on network changes.&lt;br/&gt;&lt;br/&gt; &lt;a href=https://svc.rethinkdns.com/r/translate&gt;Help translate this app&lt;/a&gt;</string>
     <string name="lbl_split" translatable="true">Splitsen</string>
     <string name="home_last_24_hours">Afgelopen 24 uur</string>
-    <string name="home_stopped_at_dns">lookups al bij de DNS gestopt</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="one">%d lookup al bij de DNS gestopt</item>
+        <item quantity="other">%d lookups al bij de DNS gestopt</item>
+    </plurals>
     <string name="home_stopped_most">Meest gestopt</string>
     <string name="home_nothing_stopped">Er is de afgelopen 24 uur niets geblokkeerd.</string>
     <string name="home_see_statistics">Statistieken</string>

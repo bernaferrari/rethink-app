@@ -823,7 +823,10 @@
     <string name="settings_jumbo_packets_desc" translatable="true">Rethink\'in VPN tüneli içinde <i>jumbo paketleri</i> kullanır.</string>
     <string name="stability_program_toast" translatable="true"><i>Deneysel özellikler</i> için <i>kararlılık programına</i> kaydolundu.</string>
     <string name="home_last_24_hours">Son 24 saat</string>
-    <string name="home_stopped_at_dns">sorgu DNS\'te durduruldu</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="one">%d sorgu DNS\'te durduruldu</item>
+        <item quantity="other">%d sorgu DNS\'te durduruldu</item>
+    </plurals>
     <string name="home_stopped_most">En çok engellenenler</string>
     <string name="home_nothing_stopped">Son 24 saatte hiçbir şey engellenmedi.</string>
     <string name="home_see_statistics">İstatistikler</string>

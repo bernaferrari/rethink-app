@@ -692,7 +692,12 @@
     <string name="wireguard_disable_message" translatable="true">Zatrzymać aktywne VPNy WireGuard?</string>
     <string name="exclude_apps_from_proxy_failure_toast">Ta apka omija proxy</string>
     <string name="home_last_24_hours">Ostatnie 24 godziny</string>
-    <string name="home_stopped_at_dns">zapytań zatrzymanych na poziomie DNS</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="one">%d zapytanie zatrzymane na poziomie DNS</item>
+        <item quantity="few">%d zapytania zatrzymane na poziomie DNS</item>
+        <item quantity="many">%d zapytań zatrzymanych na poziomie DNS</item>
+        <item quantity="other">%d zapytania zatrzymanego na poziomie DNS</item>
+    </plurals>
     <string name="home_stopped_most">Najczęściej blokowane</string>
     <string name="home_nothing_stopped">W ciągu ostatnich 24 godzin nic nie zostało zablokowane.</string>
     <string name="home_see_statistics">Statystyki</string>

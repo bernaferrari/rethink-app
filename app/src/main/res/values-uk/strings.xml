@@ -794,7 +794,12 @@
     <string name="settings_jumbo_packets_desc" translatable="true">Використовує <i>jumbo-пакети</i> в VPN-тунелі Rethink.</string>
     <string name="stability_program_toast" translatable="true">Зареєстровано в <i>програмі стабільності</i> для <i>експериментальних функцій</i>.</string>
     <string name="home_last_24_hours">Останні 24 години</string>
-    <string name="home_stopped_at_dns">запитів зупинено на рівні DNS</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="one">%d запит зупинено на рівні DNS</item>
+        <item quantity="few">%d запити зупинено на рівні DNS</item>
+        <item quantity="many">%d запитів зупинено на рівні DNS</item>
+        <item quantity="other">%d запиту зупинено на рівні DNS</item>
+    </plurals>
     <string name="home_stopped_most">Найчастіше блокувалися</string>
     <string name="home_nothing_stopped">За останні 24 години нічого не заблоковано.</string>
     <string name="home_see_statistics">Статистика</string>

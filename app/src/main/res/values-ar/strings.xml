@@ -672,7 +672,14 @@
     <string name="fail_open_network_title" translatable="true">لا تتوقف عند فقدان الشبكة</string>
     <string name="fail_open_network_desc" translatable="true">عند تعطيله، يقوم Rethink بإيقاف جميع البيانات عند عدم توفر أي إتصال، كما هو الحال في <i>وضع الطائرة</i>.</string>
     <string name="home_last_24_hours">آخر 24 ساعة</string>
-    <string name="home_stopped_at_dns">من الاستعلامات أُوقفت عند DNS</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="zero">%d استعلام أُوقف عند DNS</item>
+        <item quantity="one">%d استعلام أُوقف عند DNS</item>
+        <item quantity="two">%d استعلامان أُوقفا عند DNS</item>
+        <item quantity="few">%d استعلامات أُوقفت عند DNS</item>
+        <item quantity="many">%d استعلامًا أُوقف عند DNS</item>
+        <item quantity="other">%d استعلام أُوقف عند DNS</item>
+    </plurals>
     <string name="home_stopped_most">الأكثر حظرًا</string>
     <string name="home_nothing_stopped">لم يُحظر أي شيء خلال آخر 24 ساعة.</string>
     <string name="home_see_statistics">الإحصائيات</string>

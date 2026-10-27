@@ -732,7 +732,11 @@
     <string name="firewall_rule_paused_app" translatable="true">Aplicativo pausado</string>
     <string name="firewall_rule_lockdown_wg" translatable="true">Proxy de bloqueio</string>
     <string name="home_last_24_hours">Últimas 24 horas</string>
-    <string name="home_stopped_at_dns">consultas barradas no DNS</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="one">%d consulta barrada no DNS</item>
+        <item quantity="many">%d de consultas barradas no DNS</item>
+        <item quantity="other">%d consultas barradas no DNS</item>
+    </plurals>
     <string name="home_stopped_most">Mais bloqueados</string>
     <string name="home_nothing_stopped">Nada foi bloqueado nas últimas 24 horas.</string>
     <string name="home_see_statistics">Estatísticas</string>

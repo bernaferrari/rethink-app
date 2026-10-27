@@ -203,7 +203,10 @@
     <string name="lbl_idle" translatable="true">Неактивен</string>
     <string name="lbl_split" translatable="true">Разбивка</string>
     <string name="home_last_24_hours">Последните 24 часа</string>
-    <string name="home_stopped_at_dns">заявки, спрени на ниво DNS</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="one">%d заявка, спряна на ниво DNS</item>
+        <item quantity="other">%d заявки, спрени на ниво DNS</item>
+    </plurals>
     <string name="home_stopped_most">Най-често блокирани</string>
     <string name="home_nothing_stopped">През последните 24 часа нищо не е блокирано.</string>
     <string name="home_see_statistics">Статистика</string>

@@ -644,7 +644,11 @@
     <string name="firewall_rule_proxied_desc" translatable="true">Questa connessione è stata inoltrata al Proxy preferito dall\'utente.<br/><br/> Per cambiare, andare su <i>Proxy</i> dalla schermata <i>Configura</i>.</string>
     <string name="cd_toast_edit" translatable="true">Modificato</string>
     <string name="home_last_24_hours">Ultime 24 ore</string>
-    <string name="home_stopped_at_dns">richieste fermate al DNS</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="one">%d richiesta fermata al DNS</item>
+        <item quantity="many">%d di richieste fermate al DNS</item>
+        <item quantity="other">%d richieste fermate al DNS</item>
+    </plurals>
     <string name="home_stopped_most">Più bloccati</string>
     <string name="home_nothing_stopped">Nessun blocco nelle ultime 24 ore.</string>
     <string name="home_see_statistics">Statistiche</string>

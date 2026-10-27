@@ -26,7 +26,10 @@
     <string name="lbl_dismiss" translatable="true">رد کرو</string>
     <string name="lbl_all" translatable="true">تمام</string>
     <string name="home_last_24_hours">پچھلے 24 گھنٹے</string>
-    <string name="home_stopped_at_dns">درخواستیں DNS پر روک دی گئیں</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="one">%d درخواست DNS پر روک دی گئی</item>
+        <item quantity="other">%d درخواستیں DNS پر روک دی گئیں</item>
+    </plurals>
     <string name="home_stopped_most">سب سے زیادہ بلاک</string>
     <string name="home_nothing_stopped">پچھلے 24 گھنٹوں میں کچھ بلاک نہیں ہوا۔</string>
     <string name="home_see_statistics">اعدادوشمار</string>

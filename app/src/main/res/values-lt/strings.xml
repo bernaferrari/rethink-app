@@ -503,7 +503,12 @@
     <string name="private_dns_dialog_heading">Išjungti privatų DNS</string>
     <string name="private_dns_dialog_positive">Eiti į nustatymus</string>
     <string name="home_last_24_hours">Pastarosios 24 valandos</string>
-    <string name="home_stopped_at_dns">užkl. sustabdyta DNS lygmeniu</string>
+    <plurals name="home_stopped_at_dns_count">
+        <item quantity="one">%d užklausa sustabdyta DNS lygmeniu</item>
+        <item quantity="few">%d užklausos sustabdytos DNS lygmeniu</item>
+        <item quantity="many">%d užklausos sustabdyta DNS lygmeniu</item>
+        <item quantity="other">%d užklausų sustabdyta DNS lygmeniu</item>
+    </plurals>
     <string name="home_stopped_most">Dažniausiai blokuota</string>
     <string name="home_nothing_stopped">Per pastarąsias 24 valandas nieko neužblokuota.</string>
     <string name="home_see_statistics">Statistika</string>
