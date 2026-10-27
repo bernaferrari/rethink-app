@@ -156,7 +156,7 @@
         "slide": 0,
         "width": 1920,
         "height": 1200,
-        "bytes": 248716,
+        "bytes": 251915,
         "sources": [
           "raw/tablet10/02-logs.png"
         ]
@@ -167,7 +167,7 @@
         "slide": 1,
         "width": 1920,
         "height": 1200,
-        "bytes": 197759,
+        "bytes": 197356,
         "sources": [
           "raw/tablet10/01-home.png"
         ]
@@ -178,7 +178,7 @@
         "slide": 2,
         "width": 1920,
         "height": 1200,
-        "bytes": 237999,
+        "bytes": 246757,
         "sources": [
           "raw/tablet10/04-dns-blocked.png"
         ]
@@ -189,7 +189,7 @@
         "slide": 3,
         "width": 1920,
         "height": 1200,
-        "bytes": 200918,
+        "bytes": 199315,
         "sources": [
           "raw/tablet10/05-stats.png"
         ]
@@ -200,7 +200,7 @@
         "slide": 4,
         "width": 1920,
         "height": 1200,
-        "bytes": 204807,
+        "bytes": 205522,
         "sources": [
           "raw/tablet10/07-app-detail.png"
         ]
@@ -211,7 +211,7 @@
         "slide": 5,
         "width": 1920,
         "height": 1200,
-        "bytes": 223299,
+        "bytes": 226629,
         "sources": [
           "raw/tablet10/08-settings.png",
           "raw/tablet10/11-home-dark.png"

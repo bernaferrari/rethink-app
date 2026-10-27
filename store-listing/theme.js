@@ -135,8 +135,10 @@ export default {
     }
     const hanging = /hang/.test(slide.layout || '');
     for (const {box, spec} of devices) {
-      if (box.left < 0 || box.left + box.width > W + 1) throw new Error(`Screen leaves the side of the card: ${spec.raw}`);
       const landscapeScreen = box.width > box.height;
+      // Landscape tablets may run off the right edge (most of the screen stays in view); phones never leave the sides.
+      const rightOverflow = (box.left + box.width - W) / box.width;
+      if (box.left < 0 || rightOverflow > (landscapeScreen ? .22 : 0.001)) throw new Error(`Screen leaves the side of the card: ${spec.raw}`);
       if (landscapeScreen && (box.top < 0 || box.top + box.height > H + 1)) throw new Error(`Landscape tablet is cut: ${spec.raw}`);
       if (hanging) {
         if ((box.top + box.height) / box.height < .6) throw new Error(`Too little of ${spec.raw} is visible`);

@@ -48,17 +48,17 @@ header p{margin:26px 0 0;font-size:40px;line-height:1.28;font-weight:420;color:v
 .tablet7 .duo .primary{left:50px;top:660px;width:640px}
 .tablet7 .duo .secondary{left:510px;top:820px;width:640px}
 
-/* 10-inch landscape: copy at the top left, the whole tablet on the right; the stream runs below the
-   copy and into the tablet's left edge. */
-.tablet10 header{left:110px;right:auto;top:150px;width:560px}
-.tablet10 h1{font-size:88px}
+/* 10-inch landscape: copy at the top left, the tablet large on the right (it may run off the right edge);
+   the stream runs below the copy and into the tablet's left edge. */
+.tablet10 header{left:90px;right:auto;top:150px;width:520px}
+.tablet10 h1{font-size:84px}
 .tablet10 h1 .line{white-space:normal}
-.tablet10 header p{margin:24px 0 0;font-size:34px;max-width:540px;white-space:normal}
-.tablet10 .brand{left:110px;top:70px}
+.tablet10 header p{margin:24px 0 0;font-size:32px;max-width:500px;white-space:normal}
+.tablet10 .brand{left:90px;top:70px}
 .tablet10 .campaign.first header{top:180px}
-.tablet10 .gate-right .primary{left:720px;top:230px;width:1130px}
-.tablet10 .duo .primary{left:700px;top:90px;width:860px}
-.tablet10 .duo .secondary{left:1000px;top:520px;width:860px}
+.tablet10 .gate-right .primary{left:630px;top:250px;width:1270px}
+.tablet10 .duo .primary{left:640px;top:60px;width:1060px}
+.tablet10 .duo .secondary{left:1000px;top:500px;width:1060px}
 
 /* README art: wide and wordless, on the same field, with the stream running between the phones. */
 .readme .hero .left{left:270px;top:300px;width:540px}
