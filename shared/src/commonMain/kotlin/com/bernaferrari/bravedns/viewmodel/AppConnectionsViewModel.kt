@@ -109,8 +109,8 @@ class AppConnectionsViewModel(
     val rinrDomainLogs: Flow<PagingData<AppConnection>> =
         domainFilter.flatMapLatest { input -> fetchRinrDomainLogs(input) }
 
-    fun fetchTopActiveConnections(uid: Int, uptime: Long): Flow<PagingData<AppConnection>> =
-        appStatsDao.getTopActiveConns(uid, nowMillis() - uptime).toPagingData()
+    fun fetchTopActiveConnections(uid: Int, uptime: Long): Flow<List<AppConnection>> =
+        appStatsDao.getTopActiveConns(uid, nowMillis() - uptime)
 
     fun deleteLogs(uid: Int) {
         viewModelScope.launch {
@@ -123,28 +123,28 @@ class AppConnectionsViewModel(
         }
     }
 
-    fun getDomainLogsLimited(uid: Int): Flow<PagingData<AppConnection>> =
-        domainStatsDao.getMostDomainsByUid(uid, nowMillis() - ONE_WEEK_MILLIS).toPagingData()
+    fun getDomainLogsLimited(uid: Int): Flow<List<AppConnection>> =
+        domainStatsDao.getMostDomainsByUid(uid, nowMillis() - ONE_WEEK_MILLIS)
 
-    fun getRethinkActiveConnsLimited(uptime: Long): Flow<PagingData<AppConnection>> =
-        appStatsDao.getRethinkTopActiveConns(nowMillis() - uptime).toPagingData()
+    fun getRethinkActiveConnsLimited(uptime: Long): Flow<List<AppConnection>> =
+        appStatsDao.getRethinkTopActiveConns(nowMillis() - uptime)
 
     fun getRethinkAllActiveConns(uptime: Long): Flow<PagingData<AppConnection>> =
         Pager(pagingConfig) { appStatsDao.getRethinkAllActiveConns(nowMillis() - uptime) }
             .flow
             .cachedIn(viewModelScope)
 
-    fun getRethinkDomainLogsLimited(): Flow<PagingData<AppConnection>> =
-        rinrDao.getDomainLogsLimited(nowMillis() - ONE_WEEK_MILLIS).toPagingData()
+    fun getRethinkDomainLogsLimited(): Flow<List<AppConnection>> =
+        rinrDao.getDomainLogsLimited(nowMillis() - ONE_WEEK_MILLIS)
 
-    fun getRethinkIpLogsLimited(): Flow<PagingData<AppConnection>> =
-        rinrDao.getIpLogsLimited(nowMillis() - ONE_WEEK_MILLIS).toPagingData()
+    fun getRethinkIpLogsLimited(): Flow<List<AppConnection>> =
+        rinrDao.getIpLogsLimited(nowMillis() - ONE_WEEK_MILLIS)
 
     fun getAsnLogsLimited(uid: Int): Flow<PagingData<AppConnection>> =
         asnStatsDao.getAsnLogsLimited(uid, nowMillis() - ONE_WEEK_MILLIS).toPagingData()
 
-    fun getIpLogsLimited(uid: Int): Flow<PagingData<AppConnection>> =
-        nwlogDao.getAppIpLogsLimited(uid, nowMillis() - ONE_WEEK_MILLIS).toPagingData()
+    fun getIpLogsLimited(uid: Int): Flow<List<AppConnection>> =
+        nwlogDao.getAppIpLogsLimited(uid, nowMillis() - ONE_WEEK_MILLIS)
 
     fun setFilter(input: String, filterType: FilterType) {
         filterQuery = input

@@ -50,6 +50,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -68,8 +69,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.paging.LoadState
-import androidx.paging.compose.collectAsLazyPagingItems
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoLogItem
 import com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoLogSection
@@ -254,37 +253,38 @@ fun AppInfoScreen(
     }
 
     val isRethink = appInfo?.packageName == RETHINK_PACKAGE
-    val uptime = VpnController.uptimeMs()
-    val activeConns =
+    // Build each paging flow once per app: a new Flow on every recomposition restarts the pager,
+    // and the sections never leave "Loading".
+    val activeConns = remember(uid, isRethink) {
+        val uptime = VpnController.uptimeMs()
         if (isRethink) {
             networkLogsViewModel.getRethinkActiveConnsLimited(uptime)
         } else {
             networkLogsViewModel.fetchTopActiveConnections(uid, uptime)
         }
-    val activeItems = activeConns.collectAsLazyPagingItems()
-    val domainItems =
-        if (isRethink) {
-            networkLogsViewModel.getRethinkDomainLogsLimited().collectAsLazyPagingItems()
-        } else {
-            networkLogsViewModel.getDomainLogsLimited(uid).collectAsLazyPagingItems()
-        }
-    val ipItems =
-        if (isRethink) {
-            networkLogsViewModel.getRethinkIpLogsLimited().collectAsLazyPagingItems()
-        } else {
-            networkLogsViewModel.getIpLogsLimited(uid).collectAsLazyPagingItems()
-        }
+    }
+    // Short previews (a few rows each): plain lists, so "empty" is a state of its own instead of
+    // a paging load that never settles.
+    val activeList by activeConns.collectAsState(initial = null)
+    val domainFlow = remember(uid, isRethink) {
+        if (isRethink) networkLogsViewModel.getRethinkDomainLogsLimited() else networkLogsViewModel.getDomainLogsLimited(uid)
+    }
+    val domainList by domainFlow.collectAsState(initial = null)
+    val ipFlow = remember(uid, isRethink) {
+        if (isRethink) networkLogsViewModel.getRethinkIpLogsLimited() else networkLogsViewModel.getIpLogsLimited(uid)
+    }
+    val ipList by ipFlow.collectAsState(initial = null)
     val activePreview =
-        remember(activeItems.itemSnapshotList.items, refreshToken) {
-            activeItems.itemSnapshotList.items.take(8)
+        remember(activeList, refreshToken) {
+            activeList.orEmpty().take(8)
         }
     val domainPreview =
-        remember(domainItems.itemSnapshotList.items, refreshToken) {
-            domainItems.itemSnapshotList.items.take(8)
+        remember(domainList, refreshToken) {
+            domainList.orEmpty().take(8)
         }
     val ipPreview =
-        remember(ipItems.itemSnapshotList.items, refreshToken) {
-            ipItems.itemSnapshotList.items.take(8)
+        remember(ipList, refreshToken) {
+            ipList.orEmpty().take(8)
         }
     val density = LocalDensity.current
     val bottomInset = with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
@@ -390,18 +390,18 @@ fun AppInfoScreen(
             tempAllowed = isTempAllowed,
             activeConnections = RethinkAppInfoLogSection(
                 title = stringResource(R.string.top_active_conns),
-                count = activeItems.itemCount,
-                loading = activeItems.loadState.refresh is LoadState.Loading && activeItems.itemCount == 0,
-                empty = activeItems.itemCount == 0,
+                count = activeList?.size ?: 0,
+                loading = activeList == null,
+                empty = activeList.isNullOrEmpty(),
                 entries = activePreview.mapIndexed { index, item ->
                     RethinkAppInfoLogItem(index.toString(), beautifyCommaSeparated(item.ipAddress), beautifyCommaSeparated(item.appOrDnsName))
                 },
             ),
             domainLogs = RethinkAppInfoLogSection(
                 title = stringResource(R.string.ssv_most_contacted_domain_heading),
-                count = domainItems.itemCount,
-                loading = domainItems.loadState.refresh is LoadState.Loading && domainItems.itemCount == 0,
-                empty = domainItems.itemCount == 0,
+                count = domainList?.size ?: 0,
+                loading = domainList == null,
+                empty = domainList.isNullOrEmpty(),
                 entries = domainPreview.mapIndexed { index, item ->
                     val domain = beautifyCommaSeparated(item.appOrDnsName).ifBlank { beautifyCommaSeparated(item.ipAddress) }
                     val address = beautifyCommaSeparated(item.ipAddress)
@@ -410,9 +410,9 @@ fun AppInfoScreen(
             ),
             ipLogs = RethinkAppInfoLogSection(
                 title = stringResource(R.string.ssv_most_contacted_ips_heading),
-                count = ipItems.itemCount,
-                loading = ipItems.loadState.refresh is LoadState.Loading && ipItems.itemCount == 0,
-                empty = ipItems.itemCount == 0,
+                count = ipList?.size ?: 0,
+                loading = ipList == null,
+                empty = ipList.isNullOrEmpty(),
                 entries = ipPreview.mapIndexed { index, item ->
                     RethinkAppInfoLogItem(index.toString(), beautifyCommaSeparated(item.ipAddress), beautifyCommaSeparated(item.appOrDnsName))
                 },
