@@ -8,7 +8,13 @@
  */
 package com.bernaferrari.bravedns.ui.compose.theme
 
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialExpressiveTheme
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
@@ -22,7 +28,85 @@ import com.materialkolor.PaletteStyle
 import com.materialkolor.dynamicColorScheme
 import com.materialkolor.dynamiccolor.ColorSpec
 
-private val RethinkDefaultSeed = Color(0xFFFF5D73)
+/** The brand coral. Every default surface of the app is generated from it. */
+val RethinkBrandSeed = Color(0xFFFF5D73)
+private val RethinkDefaultSeed = RethinkBrandSeed
+
+/** Seed of the semantic "allowed" role: a clear green that never reads as the coral brand or as error red. */
+private val RethinkAllowedSeed = Color(0xFF1E9E5A)
+
+/**
+ * The app's color scheme for a seed. Brand presets use the Fidelity style, which keeps the seed
+ * itself as the primary container (coral stays coral instead of the muted maroon TonalSpot makes
+ * of it); the wallpaper-derived dynamic scheme keeps TonalSpot. Dark schemes deepen the base
+ * surface so tonal cards stand clearly off the background.
+ */
+fun rethinkColorScheme(seedColor: Color, isDark: Boolean, fromWallpaper: Boolean = false): ColorScheme {
+    val scheme = dynamicColorScheme(
+        seedColor = seedColor,
+        isDark = isDark,
+        style = if (fromWallpaper) PaletteStyle.TonalSpot else PaletteStyle.Fidelity,
+        specVersion = ColorSpec.SpecVersion.SPEC_2025,
+    )
+    return if (isDark) scheme.withDeepDarkSurfaces() else scheme
+}
+
+private const val DARK_SURFACE_DEEPEN = 0.42f
+private const val DARK_CONTAINER_LIFT = 0.18f
+
+private fun ColorScheme.withDeepDarkSurfaces(): ColorScheme {
+    val deep = { c: Color -> lerp(c, Color.Black, DARK_SURFACE_DEEPEN) }
+    val lift = { c: Color -> lerp(c, surfaceBright, DARK_CONTAINER_LIFT) }
+    return copy(
+        background = deep(background),
+        surface = deep(surface),
+        surfaceDim = deep(surfaceDim),
+        surfaceContainerLowest = deep(surfaceContainerLowest),
+        surfaceContainerLow = lift(surfaceContainerLow),
+        surfaceContainer = lift(surfaceContainer),
+        surfaceContainerHigh = lift(surfaceContainerHigh),
+        surfaceContainerHighest = lift(surfaceContainerHighest),
+    )
+}
+
+/** Semantic roles the Material scheme has no slot for. */
+@Immutable
+data class RethinkSemanticColors(
+    val allowed: Color,
+    val allowedContainer: Color,
+    val onAllowedContainer: Color,
+)
+
+fun rethinkSemanticColors(isDark: Boolean): RethinkSemanticColors {
+    val green = dynamicColorScheme(
+        seedColor = RethinkAllowedSeed,
+        isDark = isDark,
+        style = PaletteStyle.TonalSpot,
+        specVersion = ColorSpec.SpecVersion.SPEC_2025,
+    )
+    val vivid = dynamicColorScheme(
+        seedColor = RethinkAllowedSeed,
+        isDark = isDark,
+        style = PaletteStyle.Fidelity,
+        specVersion = ColorSpec.SpecVersion.SPEC_2025,
+    )
+    return RethinkSemanticColors(
+        allowed = vivid.primary,
+        allowedContainer = green.primaryContainer,
+        onAllowedContainer = green.onPrimaryContainer,
+    )
+}
+
+private val LightSemanticColors = rethinkSemanticColors(isDark = false)
+private val DarkSemanticColors = rethinkSemanticColors(isDark = true)
+
+fun rethinkSemanticColorsFor(isDark: Boolean) = if (isDark) DarkSemanticColors else LightSemanticColors
+
+val LocalRethinkSemanticColors = staticCompositionLocalOf { LightSemanticColors }
+
+/** Shorthand for the semantic roles of the current theme. */
+val MaterialTheme.semanticColors: RethinkSemanticColors
+    @Composable @ReadOnlyComposable get() = LocalRethinkSemanticColors.current
 
 private val RethinkSharedShapes = Shapes(
     extraSmall = RoundedCornerShape(SharedDimensions.cornerRadiusXs),
@@ -57,14 +141,12 @@ fun RethinkSharedTheme(
     reducedMotion: Boolean = false,
     content: @Composable () -> Unit,
 ) {
-    CompositionLocalProvider(LocalRethinkMotion provides RethinkMotion(reducedMotion)) {
+    CompositionLocalProvider(
+        LocalRethinkMotion provides RethinkMotion(reducedMotion),
+        LocalRethinkSemanticColors provides rethinkSemanticColorsFor(darkTheme),
+    ) {
         MaterialExpressiveTheme(
-            colorScheme = dynamicColorScheme(
-                seedColor = seedColor,
-                isDark = darkTheme,
-                style = PaletteStyle.TonalSpot,
-                specVersion = ColorSpec.SpecVersion.SPEC_2025,
-            ),
+            colorScheme = rethinkColorScheme(seedColor, darkTheme),
             typography = RethinkTypography,
             shapes = RethinkSharedShapes,
             content = content,

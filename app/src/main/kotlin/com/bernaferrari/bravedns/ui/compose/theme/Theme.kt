@@ -31,17 +31,15 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import com.bernaferrari.bravedns.util.Themes
-import com.materialkolor.PaletteStyle
-import com.materialkolor.dynamicColorScheme
-import com.materialkolor.dynamiccolor.ColorSpec
 
 
-private val RethinkCoralSeed = Color(0xffFF5D73)
+private val RethinkCoralSeed = RethinkBrandSeed
 private val RethinkRoseSeed = Color(0xffEC4899)
 private val RethinkTealSeed = Color(0xff14B8A6)
 private val RethinkBlueSeed = Color(0xff3B82F6)
@@ -94,37 +92,20 @@ fun RethinkTheme(
     )
     val darkTheme = resolvedThemePreference == Themes.DARK.id || resolvedThemePreference == Themes.DARK_PLUS.id
 
-    val useDynamicColor = when (colorPreset) {
-        RethinkColorPreset.DYNAMIC -> true
-        RethinkColorPreset.AUTO -> Themes.useDynamicColor(themePreference)
-        else -> false
-    } && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+    // The brand coral is the default; wallpaper colors are an explicit choice (DYNAMIC).
+    val useDynamicColor =
+        colorPreset == RethinkColorPreset.DYNAMIC && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
     val seedColor = colorPreset.seedColor ?: RethinkCoralSeed
 
-    val colorScheme = when {
-        useDynamicColor -> {
-            val context = LocalContext.current
-            val systemScheme = if (darkTheme) {
-                dynamicDarkColorScheme(context)
-            } else {
-                dynamicLightColorScheme(context)
-            }
-            dynamicColorScheme(
-                seedColor = systemScheme.primary,
-                isDark = darkTheme,
-                style = PaletteStyle.TonalSpot,
-                specVersion = ColorSpec.SpecVersion.SPEC_2025,
-            )
+    val context = LocalContext.current
+    val colorScheme = remember(useDynamicColor, seedColor, darkTheme) {
+        if (useDynamicColor) {
+            val systemScheme = if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+            rethinkColorScheme(systemScheme.primary, darkTheme, fromWallpaper = true)
+        } else {
+            rethinkColorScheme(seedColor, darkTheme)
         }
-
-        else ->
-            dynamicColorScheme(
-                seedColor = seedColor,
-                isDark = darkTheme,
-                style = PaletteStyle.TonalSpot,
-                specVersion = ColorSpec.SpecVersion.SPEC_2025,
-            )
     }
 
     val view = LocalView.current
@@ -139,6 +120,7 @@ fun RethinkTheme(
 
     CompositionLocalProvider(
         LocalRethinkMotion provides RethinkMotion(reducedMotion = rememberReducedMotion()),
+        LocalRethinkSemanticColors provides rethinkSemanticColorsFor(darkTheme),
         LocalRethinkBackDescription provides stringResource(R.string.cd_navigate_back),
     ) {
         MaterialExpressiveTheme(

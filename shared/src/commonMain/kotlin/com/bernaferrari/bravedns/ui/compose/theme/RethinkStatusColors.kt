@@ -11,12 +11,25 @@ import androidx.compose.ui.graphics.Color
 /**
  * Semantic status roles used by firewall, logs, and DNS.
  *
- * Allowed is always [primary] — never tertiary — so allow/block reads the same on every surface.
+ * Allowed is the semantic green of [RethinkSemanticColors] and blocked is [error], whatever the
+ * seed: a coral (or red, or green) brand must never make allow and block look alike.
  * Disabled / idle states use [idle], never [blocked].
  */
 object RethinkStatusColors {
     val allowed: Color
-        @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.primary
+        @Composable @ReadOnlyComposable get() = LocalRethinkSemanticColors.current.allowed
+
+    val allowedContainer: Color
+        @Composable @ReadOnlyComposable get() = LocalRethinkSemanticColors.current.allowedContainer
+
+    val onAllowedContainer: Color
+        @Composable @ReadOnlyComposable get() = LocalRethinkSemanticColors.current.onAllowedContainer
+
+    val blockedContainer: Color
+        @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.errorContainer
+
+    val onBlockedContainer: Color
+        @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.onErrorContainer
 
     val blocked: Color
         @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.error

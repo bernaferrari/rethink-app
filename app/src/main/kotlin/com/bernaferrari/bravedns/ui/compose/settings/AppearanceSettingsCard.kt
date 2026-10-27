@@ -80,7 +80,7 @@ fun AppearanceSettingsCard(
     RethinkAppearanceSettingsCard(
         selectedMode = AppearanceMode.fromThemePreference(themePreference).toShared(),
         selectedPresetId = RethinkColorPreset.fromId(colorPresetId).let {
-            if (it == RethinkColorPreset.AUTO) RethinkColorPreset.DYNAMIC.id else it.id
+            if (it == RethinkColorPreset.AUTO) RethinkColorPreset.CORAL.id else it.id
         },
         presets = selectable.map { preset ->
             RethinkAppearancePreset(

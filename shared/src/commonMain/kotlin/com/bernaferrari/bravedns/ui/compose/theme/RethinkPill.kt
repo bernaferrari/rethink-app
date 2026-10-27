@@ -75,6 +75,20 @@ object RethinkPillDefaults {
         content = MaterialTheme.colorScheme.onTertiaryContainer,
     )
 
+    /** A verdict: allowed traffic, on the semantic green container. */
+    @Composable @ReadOnlyComposable
+    fun allowed(): RethinkPillColors = RethinkPillColors(
+        container = RethinkStatusColors.allowedContainer,
+        content = RethinkStatusColors.onAllowedContainer,
+    )
+
+    /** A verdict: blocked traffic, on the error container. */
+    @Composable @ReadOnlyComposable
+    fun blocked(): RethinkPillColors = RethinkPillColors(
+        container = RethinkStatusColors.blockedContainer,
+        content = RethinkStatusColors.onBlockedContainer,
+    )
+
     private const val STATUS_CONTAINER_ALPHA = 0.14f
 }
 
