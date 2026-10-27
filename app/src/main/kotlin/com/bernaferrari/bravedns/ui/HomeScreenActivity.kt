@@ -309,7 +309,11 @@ class HomeScreenActivity : FragmentActivity() {
 
         regenerateFirebaseTokenIfNeeded()
 
-        appConfig.changeBraveMode(appConfig.getBraveMode().mode)
+        // Re-asserting the mode builds the whole AppConfig graph and writes a preference; keep
+        // that off the main thread so the first frame is not waiting on it.
+        lifecycleScope.launch(Dispatchers.Default) {
+            appConfig.changeBraveMode(appConfig.getBraveMode().mode)
+        }
 
         setContent {
             var composeThemePreference by remember { mutableStateOf(persistentState.theme) }

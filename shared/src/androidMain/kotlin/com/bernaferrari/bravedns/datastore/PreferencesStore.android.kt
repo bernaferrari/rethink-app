@@ -14,6 +14,7 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.datastore.preferences.SharedPreferencesMigration
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -23,6 +24,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
@@ -42,23 +44,41 @@ class AndroidPreferencesStore(context: Context) : PreferencesStore {
             produceFile = { context.preferencesDataStoreFile(PreferencesKeys.DATASTORE_NAME) },
         )
 
-    private val cache = mutableMapOf<String, Any?>()
+    private val cache = ConcurrentHashMap<String, Any>()
+    private val loaded = CompletableDeferred<Unit>()
     private val _preferenceKeyChanges = MutableSharedFlow<String>(extraBufferCapacity = 64)
     override val preferenceKeyChanges: SharedFlow<String> = _preferenceKeyChanges.asSharedFlow()
 
+    // Read the store in the background: the process can keep starting while the file (and, once,
+    // the legacy SharedPreferences migration) is read. Only a caller that needs a value before the
+    // load completes waits, and it waits for the real value, never a default.
     init {
-        runBlocking(Dispatchers.IO) {
-            dataStore.data.first().asMap().forEach { (key, value) ->
-                cache[key.name] = value
+        scope.launch {
+            try {
+                dataStore.data.first().asMap().forEach { (key, value) ->
+                    cache.putIfAbsent(key.name, value)
+                }
+            } finally {
+                loaded.complete(Unit)
             }
         }
+    }
+
+    /** Suspends until the stored preferences are in memory. */
+    suspend fun awaitLoaded() = loaded.await()
+
+    private fun ensureLoaded() {
+        if (!loaded.isCompleted) runBlocking { loaded.await() }
     }
 
     override fun boolean(key: String, default: Boolean) = BooleanProperty(key, default)
     override fun int(key: String, default: Int) = IntProperty(key, default)
     override fun long(key: String, default: Long) = LongProperty(key, default)
     override fun string(key: String, default: String) = StringProperty(key, default)
-    override fun snapshot(): Map<String, Any?> = cache.toMap()
+    override fun snapshot(): Map<String, Any?> {
+        ensureLoaded()
+        return cache.toMap()
+    }
 
     override fun restore(snapshot: Map<String, Any?>) {
         snapshot.forEach { (key, value) ->
@@ -72,6 +92,7 @@ class AndroidPreferencesStore(context: Context) : PreferencesStore {
     }
 
     private fun setBoolean(key: String, value: Boolean) {
+        ensureLoaded()
         cache[key] = value
         scope.launch {
             dataStore.edit { it[booleanPreferencesKey(key)] = value }
@@ -80,6 +101,7 @@ class AndroidPreferencesStore(context: Context) : PreferencesStore {
     }
 
     private fun setInt(key: String, value: Int) {
+        ensureLoaded()
         cache[key] = value
         scope.launch {
             dataStore.edit { it[intPreferencesKey(key)] = value }
@@ -88,6 +110,7 @@ class AndroidPreferencesStore(context: Context) : PreferencesStore {
     }
 
     private fun setLong(key: String, value: Long) {
+        ensureLoaded()
         cache[key] = value
         scope.launch {
             dataStore.edit { it[longPreferencesKey(key)] = value }
@@ -96,6 +119,7 @@ class AndroidPreferencesStore(context: Context) : PreferencesStore {
     }
 
     private fun setString(key: String, value: String) {
+        ensureLoaded()
         cache[key] = value
         scope.launch {
             dataStore.edit { it[stringPreferencesKey(key)] = value }
@@ -103,10 +127,15 @@ class AndroidPreferencesStore(context: Context) : PreferencesStore {
         }
     }
 
+    private fun read(key: String): Any? {
+        ensureLoaded()
+        return cache[key]
+    }
+
     inner class BooleanProperty(private val key: String, private val default: Boolean) :
         ReadWriteProperty<Any?, Boolean> {
         override fun getValue(thisRef: Any?, property: KProperty<*>): Boolean =
-            (cache[key] as? Boolean) ?: default
+            (read(key) as? Boolean) ?: default
 
         override fun setValue(thisRef: Any?, property: KProperty<*>, value: Boolean) =
             setBoolean(key, value)
@@ -115,7 +144,7 @@ class AndroidPreferencesStore(context: Context) : PreferencesStore {
     inner class IntProperty(private val key: String, private val default: Int) :
         ReadWriteProperty<Any?, Int> {
         override fun getValue(thisRef: Any?, property: KProperty<*>): Int =
-            (cache[key] as? Int) ?: default
+            (read(key) as? Int) ?: default
 
         override fun setValue(thisRef: Any?, property: KProperty<*>, value: Int) =
             setInt(key, value)
@@ -124,7 +153,7 @@ class AndroidPreferencesStore(context: Context) : PreferencesStore {
     inner class LongProperty(private val key: String, private val default: Long) :
         ReadWriteProperty<Any?, Long> {
         override fun getValue(thisRef: Any?, property: KProperty<*>): Long =
-            (cache[key] as? Long) ?: default
+            (read(key) as? Long) ?: default
 
         override fun setValue(thisRef: Any?, property: KProperty<*>, value: Long) =
             setLong(key, value)
@@ -133,7 +162,7 @@ class AndroidPreferencesStore(context: Context) : PreferencesStore {
     inner class StringProperty(private val key: String, private val default: String) :
         ReadWriteProperty<Any?, String> {
         override fun getValue(thisRef: Any?, property: KProperty<*>): String =
-            (cache[key] as? String) ?: default
+            (read(key) as? String) ?: default
 
         override fun setValue(thisRef: Any?, property: KProperty<*>, value: String) =
             setString(key, value)

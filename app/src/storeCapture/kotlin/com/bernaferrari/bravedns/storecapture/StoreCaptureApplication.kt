@@ -34,6 +34,9 @@ import kotlin.random.Random
  */
 class StoreCaptureApplication : RethinkDnsApplication() {
 
+    // Background jobs would refresh blocklists, check updates or restart the (removed) VPN.
+    override suspend fun scheduleJobs() = Unit
+
     override fun onCreate() {
         super.onCreate()
         // Background jobs would refresh blocklists, check updates or restart the (removed) VPN.

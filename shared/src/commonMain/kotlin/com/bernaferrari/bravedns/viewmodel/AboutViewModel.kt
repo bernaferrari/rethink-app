@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bernaferrari.bravedns.platform.currentTimeMillis
 import kotlin.math.roundToLong
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -11,6 +12,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.core.annotation.KoinViewModel
 import org.koin.core.annotation.Provided
 
@@ -56,8 +59,18 @@ class AboutViewModel(
             .launchIn(viewModelScope)
     }
 
+    /**
+     * Metadata comes from PackageManager and the Go library's build string; loading the tunnel
+     * library takes hundreds of milliseconds, so it never runs on the main thread at startup.
+     */
     fun updateUiState() {
-        val metadata = metadataProvider.metadata()
+        viewModelScope.launch {
+            val metadata = withContext(Dispatchers.Default) { metadataProvider.metadata() }
+            applyMetadata(metadata)
+        }
+    }
+
+    private fun applyMetadata(metadata: AppMetadata) {
         val version = metadata.versionName
         val sponsorInfo = calculateSponsorInfo(metadata)
 

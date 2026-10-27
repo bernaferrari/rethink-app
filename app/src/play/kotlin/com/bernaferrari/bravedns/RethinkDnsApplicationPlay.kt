@@ -15,6 +15,7 @@
  */
 package com.bernaferrari.bravedns
 
+import Logger
 import android.app.Application
 import android.content.pm.ApplicationInfo
 import androidx.appfunctions.service.AppFunctionConfiguration
@@ -23,7 +24,9 @@ import com.bernaferrari.bravedns.scheduler.ScheduleManager
 import com.bernaferrari.bravedns.scheduler.WorkScheduler
 import com.bernaferrari.bravedns.util.FirebaseErrorReporting
 import com.bernaferrari.bravedns.util.GlobalExceptionHandler
+import com.bernaferrari.bravedns.service.PersistentState
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.get
@@ -49,13 +52,16 @@ class RethinkDnsApplicationPlay : Application(), AppFunctionConfiguration.Provid
             androidContext(this@RethinkDnsApplicationPlay)
         }
 
-        // Initialize global exception handler
-        GlobalExceptionHandler.initialize(this)
-        FirebaseErrorReporting.initialize()
-
-        CoroutineScope(SupervisorJob()).launch {
+        // Read the preferences store on IO while the process keeps starting (see RethinkDnsApplication).
+        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+            get<PersistentState>()
+            Logger.preferencesReady = true
+            FirebaseErrorReporting.initialize()
             scheduleJobs()
         }
+
+        // Initialize global exception handler
+        GlobalExceptionHandler.initialize(this)
     }
 
     private suspend fun scheduleJobs() {

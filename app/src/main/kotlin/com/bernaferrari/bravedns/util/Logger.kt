@@ -27,9 +27,15 @@ object Logger : KoinComponent {
     private val application by inject<Application>()
 
     private var _logLevel: Long? = null
+
+    /** Set once the preferences store is in memory; until then the default level applies. */
+    @Volatile
+    var preferencesReady = false
+
     private var logLevel: Long
         get() {
             if (_logLevel == null) {
+                if (!preferencesReady) return LoggerLevel.ERROR.id
                 _logLevel = try {
                     persistentState.goLoggerLevel
                 } catch (e: Exception) {

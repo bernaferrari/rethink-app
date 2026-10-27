@@ -26,7 +26,9 @@ import com.bernaferrari.bravedns.scheduler.ScheduleManager
 import com.bernaferrari.bravedns.scheduler.WorkScheduler
 import com.bernaferrari.bravedns.util.FirebaseErrorReporting
 import com.bernaferrari.bravedns.util.GlobalExceptionHandler
+import com.bernaferrari.bravedns.service.PersistentState
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.get
@@ -55,18 +57,23 @@ open class RethinkDnsApplication : Application(), AppFunctionConfiguration.Provi
             androidContext(this@RethinkDnsApplication)
         }
 
-        // Initialize global exception handler
-        GlobalExceptionHandler.initialize(this)
-        FirebaseErrorReporting.initialize()
-
-        turnOnStrictMode()
-
-        CoroutineScope(SupervisorJob()).launch {
+        // Read the preferences store on IO while the process keeps starting; until it is in
+        // memory, Logger stays at its default level instead of reading it on the main thread.
+        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+            get<PersistentState>()
+            Logger.preferencesReady = true
+            FirebaseErrorReporting.initialize()
             scheduleJobs()
         }
+
+        // Initialize global exception handler
+        GlobalExceptionHandler.initialize(this)
+
+        turnOnStrictMode()
     }
 
-    private suspend fun scheduleJobs() {
+    /** Periodic background jobs; the store-capture build schedules none. */
+    protected open suspend fun scheduleJobs() {
         Logger.d(LOG_TAG_SCHEDULER, "Schedule job")
         get<WorkScheduler>().scheduleAppExitInfoCollectionJob()
         // database refresh is used in both headless and main project

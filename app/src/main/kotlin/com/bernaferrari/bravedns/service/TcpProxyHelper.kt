@@ -38,7 +38,10 @@ object TcpProxyHelper : KoinComponent {
 
     private val tcpProxies = mutableSetOf<TcpProxyEndpoint>()
 
-    private var cfIpTrie: IpTree = Backend.newIpTree()
+    // Built by load() on IO: creating it here would load the Go library on whichever thread
+    // first touches this object (the main thread, from CheckoutViewModel at startup).
+    @Volatile
+    private var cfIpTrie: IpTree? = null
 
     private const val DEFAULT_ID = 0
     private const val MAX_RETRY_COUNT = 3
@@ -107,8 +110,9 @@ object TcpProxyHelper : KoinComponent {
     }
 
     private fun loadTrie() {
-        cfIpTrie = Backend.newIpTree()
-        cfIpAddresses.forEach { cfIpTrie.set(it.togs(), "".togs()) }
+        val trie = Backend.newIpTree()
+        cfIpAddresses.forEach { trie.set(it.togs(), "".togs()) }
+        cfIpTrie = trie
         Logger.d(LOG_TAG_PROXY, "loadTrie: loading trie for cloudflare ips")
     }
 
@@ -116,7 +120,7 @@ object TcpProxyHelper : KoinComponent {
         // do not check for cloudflare ips for now
         // return false
         return try {
-            cfIpTrie.hasAny(ip.togs())
+            cfIpTrie?.hasAny(ip.togs()) == true
         } catch (e: Exception) {
             Logger.w(LOG_TAG_PROXY, "isCloudflareIp: exception while checking ip: $ip")
             false
