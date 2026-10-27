@@ -185,10 +185,10 @@ fun RethinkAppInfoScreen(
                     RethinkAppStatusChips(state, strings)
                     RethinkAppNetworkPair(state, strings, onWifiClick, onMobileClick)
                     RethinkListGroup {
-                        RethinkAppExclusiveRow(strings.isolate, strings.isolateDescription, state.isolated, MaterialSymbols.Filled.Security, RethinkStatusColors.blocked, CardPosition.First, onIsolateClick)
-                        RethinkAppExclusiveRow(strings.bypassDns, strings.bypassDnsDescription, state.bypassDnsFirewall, MaterialSymbols.Filled.Dns, RethinkStatusColors.mixed, CardPosition.Middle, onBypassDnsClick)
-                        RethinkAppExclusiveRow(strings.bypassUniversal, strings.bypassUniversalDescription, state.bypassUniversalFirewall, MaterialSymbols.Filled.Public, RethinkStatusColors.mixed, CardPosition.Middle, onBypassUniversalClick)
-                        RethinkAppExclusiveRow(strings.exclude, strings.excludeDescription, state.excluded, MaterialSymbols.Filled.Apps, MaterialTheme.colorScheme.secondary, CardPosition.Last, onExcludeClick)
+                        RethinkAppExclusiveRow(strings.isolate, strings.isolateDescription, state.isolated, MaterialSymbols.Filled.Security, CardPosition.First, onIsolateClick)
+                        RethinkAppExclusiveRow(strings.bypassDns, strings.bypassDnsDescription, state.bypassDnsFirewall, MaterialSymbols.Filled.Dns, CardPosition.Middle, onBypassDnsClick)
+                        RethinkAppExclusiveRow(strings.bypassUniversal, strings.bypassUniversalDescription, state.bypassUniversalFirewall, MaterialSymbols.Filled.Public, CardPosition.Middle, onBypassUniversalClick)
+                        RethinkAppExclusiveRow(strings.exclude, strings.excludeDescription, state.excluded, MaterialSymbols.Filled.Apps, CardPosition.Last, onExcludeClick)
                     }
                 }
             }
@@ -509,7 +509,7 @@ private fun animateCorner(
 }
 
 @Composable
-private fun RethinkAppExclusiveRow(title: String, description: String, enabled: Boolean, icon: androidx.compose.ui.graphics.vector.ImageVector, tint: androidx.compose.ui.graphics.Color, position: CardPosition, onClick: () -> Unit) {
+private fun RethinkAppExclusiveRow(title: String, description: String, enabled: Boolean, icon: androidx.compose.ui.graphics.vector.ImageVector, position: CardPosition, onClick: () -> Unit) {
     // Mutually exclusive modes, but each can be switched back off (to "none"), so these are
     // switches rather than radio buttons: turning one on turns the others off.
     RethinkSwitchListItem(
@@ -518,7 +518,6 @@ private fun RethinkAppExclusiveRow(title: String, description: String, enabled: 
         onCheckedChange = { onClick() },
         supporting = description,
         leadingIcon = icon,
-        leadingIconTint = tint,
         position = position,
     )
 }

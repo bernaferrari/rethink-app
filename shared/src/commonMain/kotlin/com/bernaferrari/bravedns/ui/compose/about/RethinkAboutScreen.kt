@@ -9,6 +9,7 @@
 package com.bernaferrari.bravedns.ui.compose.about
 
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWell
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWellContainerColor
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWellDefaults
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillDefaults
@@ -303,7 +304,9 @@ private fun AboutListRow(row: AboutRow, accent: Color, position: CardPosition) {
         onClick = row.onClick,
         trailing = row.trailing,
         leadingContent = {
-            RethinkIconWell(containerColor = RethinkIconWellDefaults.tinted(accent), contentColor = accent) { row.icon(accent) }
+            // One well for every About row, whatever the section: the shared tonal well and primary icon.
+            val tint = MaterialTheme.colorScheme.primary
+            RethinkIconWell(containerColor = RethinkIconWellContainerColor, contentColor = tint) { row.icon(tint) }
         },
     )
 }

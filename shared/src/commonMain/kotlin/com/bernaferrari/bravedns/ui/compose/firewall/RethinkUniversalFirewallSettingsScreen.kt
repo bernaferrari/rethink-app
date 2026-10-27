@@ -83,8 +83,6 @@ fun RethinkUniversalFirewallSettingsScreen(
                         headline = setting.label,
                         supporting = countText,
                         leadingIcon = setting.icon.imageVector(),
-                        leadingIconTint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        leadingIconContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                         position = cardPositionFor(index, settings.lastIndex),
                         // Split row: the row opens this rule's blocked-connection logs; the
                         // switch toggles the rule.

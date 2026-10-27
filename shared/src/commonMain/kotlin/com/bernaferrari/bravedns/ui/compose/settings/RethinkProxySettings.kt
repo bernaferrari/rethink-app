@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.contentDescription
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWellContainerColor
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWellDefaults
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBarLazyColumnScreen
 import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
@@ -232,8 +233,9 @@ private fun RethinkOrbotPanel(
             headline = strings.orbot,
             supporting = "${status.first} · ${state.orbotDescription}",
             leadingIcon = MaterialSymbols.Filled.Security,
-            leadingIconTint = status.second,
-            leadingIconContainerColor = RethinkIconWellDefaults.tinted(status.second),
+            // Inactive Orbot keeps the shared well like every other row; only a live state tints it.
+            leadingIconTint = if (state.orbotEnabled || state.orbotConnecting) status.second else MaterialTheme.colorScheme.primary,
+            leadingIconContainerColor = if (state.orbotEnabled || state.orbotConnecting) RethinkIconWellDefaults.tinted(status.second) else RethinkIconWellContainerColor,
             position = cardPositionFor(0, actionCount - 1),
             highlighted = highlighted,
             enabled = enabled,
