@@ -39,6 +39,9 @@ class DnsLogRepository(private val dnsLogDAO: DnsLogDAO) {
         return dnsLogDAO.logsCount()
     }
 
+    suspend fun getAppsQueryingDomain(domain: String, limit: Int = 5): List<LogGroupCount> =
+        dnsLogDAO.getAppsQueryingDomain(domain, limit)
+
     suspend fun getAllLoggedAppsWithCount(): List<LogAppCount> {
         return dnsLogDAO.getAllLoggedAppsWithCount()
     }

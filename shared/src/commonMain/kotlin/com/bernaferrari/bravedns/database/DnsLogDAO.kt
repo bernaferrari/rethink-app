@@ -96,6 +96,12 @@ interface DnsLogDAO {
     )
     suspend fun getAllLoggedAppsWithCount(): List<LogAppCount>
 
+    /** The apps that looked [domain] up, most frequent first. */
+    @Query(
+        "SELECT appName AS label, packageName AS packageName, COUNT(id) AS count, SUM(isBlocked) AS blocked FROM DNSLogs WHERE queryStr = :domain GROUP BY appName, packageName ORDER BY count DESC LIMIT :limit"
+    )
+    suspend fun getAppsQueryingDomain(domain: String, limit: Int): List<LogGroupCount>
+
     @Query(
         "SELECT appName AS appName, packageName AS packageName, COUNT(id) AS count FROM DNSLogs WHERE isBlocked = 0 AND blockLists = '' AND TRIM(appName) != '' GROUP BY appName, packageName ORDER BY count DESC"
     )

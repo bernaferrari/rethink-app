@@ -25,6 +25,13 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.saveable.rememberSaveable
+import com.bernaferrari.bravedns.ui.compose.common.RethinkAdaptiveWidth
+import com.bernaferrari.bravedns.ui.compose.common.isExpanded
+import com.bernaferrari.bravedns.ui.compose.dns.dnsLogModel
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -219,51 +226,74 @@ private fun ConnectionLogsContent(
 
     val listState = rememberLazyListState()
 
+    var selectedId by rememberSaveable { mutableStateOf<Long?>(null) }
+
     Box(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            RethinkLogsControlsDeck {
-                RethinkToolbarRow {
-                    RethinkLogFilterRow(
-                        selected = parentFilter.toRethinkLogFilter(),
-                        strings = logListStrings(),
-                        onSelected = { filterType ->
-                            parentFilter = filterType.toConnectionFilter()
-                            childFilters = emptySet()
-                        },
-                        modifier = Modifier.weight(1f)
-                    )
+        LogsAdaptiveLayout(
+            controls = {
+                RethinkLogsControlsDeck {
+                    RethinkToolbarRow {
+                        RethinkLogFilterRow(
+                            selected = parentFilter.toRethinkLogFilter(),
+                            strings = logListStrings(),
+                            onSelected = { filterType ->
+                                parentFilter = filterType.toConnectionFilter()
+                                childFilters = emptySet()
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
 
-                    RethinkToolbarIconToggle(
-                        icon = MaterialSymbols.Filled.FilterList,
-                        contentDescription = stringResource(R.string.lbl_rules),
-                        selected = childFilters.isNotEmpty(),
-                        enabled = hasRulesFilter,
-                        count = childFilters.size,
-                        onClick = { showRulesDialog = true }
-                    )
+                        RethinkToolbarIconToggle(
+                            icon = MaterialSymbols.Filled.FilterList,
+                            contentDescription = stringResource(R.string.lbl_rules),
+                            selected = childFilters.isNotEmpty(),
+                            enabled = hasRulesFilter,
+                            count = childFilters.size,
+                            onClick = { showRulesDialog = true }
+                        )
 
-                    RethinkToolbarIconToggle(
-                        icon = MaterialSymbols.Filled.Apps,
-                        contentDescription = stringResource(R.string.lbl_apps),
-                        selected = selectedAppFilter != null,
-                        enabled = true,
-                        onClick = { openAppFilterAction() }
+                        RethinkToolbarIconToggle(
+                            icon = MaterialSymbols.Filled.Apps,
+                            contentDescription = stringResource(R.string.lbl_apps),
+                            selected = selectedAppFilter != null,
+                            enabled = true,
+                            onClick = { openAppFilterAction() }
+                        )
+                    }
+                }
+            },
+            list = { listModifier, twoPane ->
+                LogsPagedListContent(
+                    items = items,
+                    listState = listState,
+                    modifier = listModifier
+                ) { item, index, itemCount ->
+                    val selected = twoPane && item.id.toLong() == (selectedId ?: items.firstLoadedId { it.id.toLong() })
+                    ConnectionRow(
+                        ct = item,
+                        index = index,
+                        itemCount = itemCount,
+                        selected = selected,
+                        onSelect = if (twoPane) ({ selectedId = item.id.toLong() }) else null,
                     )
                 }
-            }
-
-            LogsPagedListContent(
-                items = items,
-                listState = listState,
-                modifier = Modifier.weight(1f)
-            ) { item, index, itemCount ->
-                ConnectionRow(
-                    ct = item,
-                    index = index,
-                    itemCount = itemCount
+            },
+            pane = { paneModifier ->
+                val selected = items.loadedOrFirst(selectedId) { it.id.toLong() }
+                var groups by remember { mutableStateOf<List<RethinkLogGroup>>(emptyList()) }
+                LaunchedEffect(selected?.uid) {
+                    val uid = selected?.uid ?: return@LaunchedEffect
+                    groups = withContext(Dispatchers.IO) { repository.getDestinationsForUid(uid) }
+                        .map { RethinkLogGroup(it.label, it.count, it.blocked, monospace = true) }
+                }
+                RethinkLogDetailPane(
+                    model = selected?.let { connectionLogModel(it) },
+                    groups = groups,
+                    strings = logPaneStrings(R.string.log_pane_network_hosts),
+                    modifier = paneModifier,
                 )
-            }
-        }
+            },
+        )
 
         if (showRulesDialog && ruleFilters.isNotEmpty()) {
             RethinkLogRulesDialog(
@@ -393,43 +423,65 @@ private fun DnsLogsContent(
 
     val listState = rememberLazyListState()
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        RethinkLogsControlsDeck {
-            RethinkToolbarRow {
-                RethinkLogFilterRow(
-                    selected = filterType.toRethinkLogFilter(),
-                    strings = logListStrings(),
-                    onSelected = { selectedFilter ->
-                        filterType = selectedFilter.toDnsLogFilter()
-                    },
-                    modifier = Modifier.weight(1f)
-                )
+    var selectedId by rememberSaveable { mutableStateOf<Long?>(null) }
 
-                RethinkToolbarIconToggle(
-                    icon = MaterialSymbols.Filled.Apps,
-                    contentDescription = stringResource(R.string.lbl_apps),
-                    selected = selectedAppFilter != null,
-                    enabled = true,
-                    onClick = { showAppFilterDialog = true }
+    LogsAdaptiveLayout(
+        controls = {
+            RethinkLogsControlsDeck {
+                RethinkToolbarRow {
+                    RethinkLogFilterRow(
+                        selected = filterType.toRethinkLogFilter(),
+                        strings = logListStrings(),
+                        onSelected = { selectedFilter ->
+                            filterType = selectedFilter.toDnsLogFilter()
+                        },
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    RethinkToolbarIconToggle(
+                        icon = MaterialSymbols.Filled.Apps,
+                        contentDescription = stringResource(R.string.lbl_apps),
+                        selected = selectedAppFilter != null,
+                        enabled = true,
+                        onClick = { showAppFilterDialog = true }
+                    )
+                }
+            }
+        },
+        list = { listModifier, twoPane ->
+            LogsPagedListContent(
+                items = items,
+                listState = listState,
+                modifier = listModifier
+            ) { item, index, itemCount ->
+                DnsLogRow(
+                    log = item,
+                    loadFavIcon = persistentState.fetchFavIcon,
+                    isRethinkDns = false,
+                    onShowBlocklist = onShowDnsLog,
+                    index = index,
+                    itemCount = itemCount,
+                    selected = twoPane && item.id.toLong() == (selectedId ?: items.firstLoadedId { it.id.toLong() }),
+                    onSelect = if (twoPane) ({ selectedId = item.id.toLong() }) else null,
                 )
             }
-        }
-
-        LogsPagedListContent(
-            items = items,
-            listState = listState,
-            modifier = Modifier.weight(1f)
-        ) { item, index, itemCount ->
-            DnsLogRow(
-                log = item,
-                loadFavIcon = persistentState.fetchFavIcon,
-                isRethinkDns = false,
-                onShowBlocklist = onShowDnsLog,
-                index = index,
-                itemCount = itemCount,
+        },
+        pane = { paneModifier ->
+            val selected = items.loadedOrFirst(selectedId) { it.id.toLong() }
+            var groups by remember { mutableStateOf<List<RethinkLogGroup>>(emptyList()) }
+            LaunchedEffect(selected?.queryStr) {
+                val domain = selected?.queryStr ?: return@LaunchedEffect
+                groups = withContext(Dispatchers.IO) { repository.getAppsQueryingDomain(domain) }
+                    .map { group -> RethinkLogGroup(group.label, group.count, group.blocked, icon = { PackageIcon(group.packageName, group.label) }) }
+            }
+            RethinkLogDetailPane(
+                model = selected?.let { dnsLogModel(it, persistentState.fetchFavIcon, false, onShowDnsLog) },
+                groups = groups,
+                strings = logPaneStrings(R.string.log_pane_dns_apps),
+                modifier = paneModifier,
             )
-        }
-    }
+        },
+    )
 
     if (showAppFilterDialog) {
         RethinkLogAppFilterDialog(
@@ -488,6 +540,77 @@ private fun <T : Any> LogsPagedListContent(
     ) { index, total ->
         val item = items[index] ?: return@RethinkPagedLogList
         rowContent(item, index, total)
+    }
+}
+
+/**
+ * Compact and medium widths: filters over one list whose rows expand in place. Expanded width:
+ * the list on the left, the selected entry's details in a pane on the right.
+ */
+@Composable
+private fun LogsAdaptiveLayout(
+    controls: @Composable () -> Unit,
+    list: @Composable (modifier: Modifier, twoPane: Boolean) -> Unit,
+    pane: @Composable (modifier: Modifier) -> Unit,
+) {
+    val density = LocalDensity.current
+    val navBarBottomInset = with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
+    RethinkAdaptiveWidth(Modifier.fillMaxSize()) { widthClass ->
+        if (widthClass.isExpanded) {
+            Row(Modifier.fillMaxSize().padding(end = SharedDimensions.screenPaddingHorizontal)) {
+                Column(Modifier.weight(LIST_PANE_WEIGHT).fillMaxHeight()) {
+                    controls()
+                    list(Modifier.weight(1f), true)
+                }
+                pane(
+                    Modifier
+                        .weight(1f)
+                        .padding(
+                            top = SharedDimensions.spacingXs,
+                            bottom = SharedDimensions.screenPaddingHorizontal + navBarBottomInset,
+                        )
+                )
+            }
+        } else {
+            Column(Modifier.fillMaxSize()) {
+                controls()
+                list(Modifier.weight(1f), false)
+            }
+        }
+    }
+}
+
+private const val LIST_PANE_WEIGHT = 1.15f
+
+/** The selected entry if it is loaded, else the newest one, so the pane is never empty by default. */
+private fun <T : Any, K> LazyPagingItems<T>.loadedOrFirst(selectedId: K?, id: (T) -> K): T? {
+    val loaded = itemSnapshotList.items
+    return loaded.firstOrNull { selectedId != null && id(it) == selectedId } ?: loaded.firstOrNull()
+}
+
+private fun <T : Any, K> LazyPagingItems<T>.firstLoadedId(id: (T) -> K): K? =
+    itemSnapshotList.items.firstOrNull()?.let(id)
+
+@Composable
+private fun logPaneStrings(groupsTitle: Int) = RethinkLogPaneStrings(
+    groupsTitle = stringResource(groupsTitle),
+    emptySelection = stringResource(R.string.log_pane_empty),
+    detailsTitle = stringResource(R.string.log_pane_details),
+)
+
+@Composable
+private fun PackageIcon(packageName: String, label: String) {
+    val context = LocalContext.current
+    var icon by remember(packageName) { mutableStateOf<Drawable?>(null) }
+    LaunchedEffect(packageName) {
+        icon = withContext(Dispatchers.IO) {
+            if (packageName.isBlank()) Utilities.getDefaultIcon(context) else Utilities.getIcon(context, packageName, label)
+        }
+    }
+    icon?.let { drawable ->
+        rememberDrawablePainter(drawable)?.let { painter ->
+            Image(painter = painter, contentDescription = null, modifier = Modifier.fillMaxSize())
+        }
     }
 }
 

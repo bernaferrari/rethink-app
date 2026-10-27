@@ -1838,4 +1838,29 @@
     <string name="custom_rules_clear_selection">Clear selection</string>
     <string name="custom_rules_select">Select</string>
     <string name="custom_rules_delete_rule">Delete rule</string>
+    <string name="log_detail_protocol">Protocol</string>
+    <string name="log_detail_country">Country</string>
+    <string name="log_detail_address">Address</string>
+    <string name="log_detail_domain">Domain</string>
+    <string name="log_detail_rule">Rule</string>
+    <string name="log_detail_proxy">Proxy</string>
+    <string name="log_detail_duration">Duration</string>
+    <string name="log_detail_data">Data</string>
+    <string name="log_detail_flags">Flags</string>
+    <string name="log_detail_message">Message</string>
+    <string name="log_detail_resolver">Resolver</string>
+    <string name="log_detail_blocklists">Blocklists</string>
+    <string name="log_detail_dnssec">DNSSEC</string>
+    <string name="log_detail_dnssec_valid">Valid</string>
+    <string name="log_detail_dnssec_unverified">Unverified</string>
+    <string name="log_data_down_up">↓ %1$s · ↑ %2$s</string>
+    <string name="log_latency_ms">%1$d ms</string>
+    <plurals name="log_blocklists_matched">
+        <item quantity="one">%d blocklist matched</item>
+        <item quantity="other">%d blocklists matched</item>
+    </plurals>
+    <string name="log_pane_details">Details</string>
+    <string name="log_pane_dns_apps">Apps that looked this up</string>
+    <string name="log_pane_network_hosts">Where this app connects</string>
+    <string name="log_pane_empty">Select an entry to see its details</string>
 </resources>

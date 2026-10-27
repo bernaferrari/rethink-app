@@ -15,6 +15,7 @@ object MaterialSymbols {
         val Article: ImageVector get() = filledArticle
         val ArrowBack: ImageVector get() = filledArrowBack
         val ArrowForward: ImageVector get() = filledArrowForward
+        val ArrowOutward: ImageVector get() = filledArrowOutward
         val AutoStories: ImageVector get() = filledAutoStories
         val Backup: ImageVector get() = filledBackup
         val BarChart: ImageVector get() = filledBarChart

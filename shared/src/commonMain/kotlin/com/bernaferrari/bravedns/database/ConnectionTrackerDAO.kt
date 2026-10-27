@@ -252,6 +252,12 @@ interface ConnectionTrackerDAO {
     )
     fun observeTotalUsages(to: Long, meteredTxt: String): Flow<DataUsageSummary>
 
+    /** The hosts (or addresses, without a DNS name) an app reached, most frequent first. */
+    @Query(
+        "SELECT CASE WHEN dnsQuery IS NULL OR dnsQuery = '' THEN ipAddress ELSE dnsQuery END AS label, '' AS packageName, COUNT(id) AS count, SUM(isBlocked) AS blocked FROM ConnectionTracker WHERE uid = :uid GROUP BY label ORDER BY count DESC LIMIT :limit"
+    )
+    suspend fun getDestinationsForUid(uid: Int, limit: Int): List<LogGroupCount>
+
     @Query("select * from ConnectionTracker where blockedByRule in ('Rule #1B', 'Rule #1F', 'Rule #3', 'Rule #4', 'Rule #5', 'Rule #6', 'Rule #7', 'Http block', 'Universal Lockdown')")
     suspend fun getBlockedUniversalRulesCount(): List<ConnectionTracker>
 

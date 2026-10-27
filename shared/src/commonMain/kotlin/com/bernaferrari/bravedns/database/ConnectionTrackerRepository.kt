@@ -72,6 +72,9 @@ class ConnectionTrackerRepository(private val connectionTrackerDAO: ConnectionTr
         return connectionTrackerDAO.logsCount()
     }
 
+    suspend fun getDestinationsForUid(uid: Int, limit: Int = 5): List<LogGroupCount> =
+        connectionTrackerDAO.getDestinationsForUid(uid, limit)
+
     suspend fun getAllLoggedAppsWithCount(rules: Set<String> = emptySet()): List<LogAppCount> {
         return if (rules.isEmpty()) {
             connectionTrackerDAO.getAllLoggedAppsWithCount()

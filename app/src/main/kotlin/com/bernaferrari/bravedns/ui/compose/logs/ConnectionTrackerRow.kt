@@ -89,6 +89,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.rememberReducedMotion
 import com.bernaferrari.bravedns.ui.compose.logs.RethinkLogDetail
 import com.bernaferrari.bravedns.ui.compose.logs.RethinkLogRow
 import com.bernaferrari.bravedns.ui.compose.logs.RethinkLogRowModel
+import com.bernaferrari.bravedns.ui.compose.logs.RethinkLogKind
 import com.bernaferrari.bravedns.database.ConnectionTracker
 import com.bernaferrari.bravedns.service.FirewallManager
 import com.bernaferrari.bravedns.service.FirewallRuleset
@@ -117,7 +118,21 @@ fun ConnectionRow(
     ct: ConnectionTracker,
     index: Int = 0,
     itemCount: Int = 1,
+    selected: Boolean = false,
+    onSelect: (() -> Unit)? = null,
 ) {
+    RethinkLogRow(
+        model = connectionLogModel(ct),
+        index = index,
+        itemCount = itemCount,
+        selected = selected,
+        onSelect = onSelect,
+    )
+}
+
+/** A connection as the shared log model: the app leads, then where it went, how, and the verdict. */
+@Composable
+fun connectionLogModel(ct: ConnectionTracker): RethinkLogRowModel {
     val context = LocalContext.current
     val unknownApp = stringResource(R.string.network_log_app_name_unknown)
     val http3 = stringResource(R.string.connection_http3)
@@ -133,7 +148,7 @@ fun ConnectionRow(
     LaunchedEffect(ct.uid, ct.appName, ct.usrId) {
         val apps = withContext(Dispatchers.IO) { FirewallManager.getPackageNamesByUid(ct.uid) }
         appCount = apps.size
-        appIcon = if (apps.isEmpty()) null else getIcon(context, apps[0])
+        appIcon = if (apps.isEmpty()) null else withContext(Dispatchers.IO) { getIcon(context, apps[0]) }
     }
 
     val appName =
@@ -149,36 +164,48 @@ fun ConnectionRow(
         append(ct.ipAddress)
         if (ct.port > 0) append(":${ct.port}")
     }
+    val rule = FirewallRuleset.getFirewallRule(ct.blockedByRule)
+    val ruleTitle = rule?.let { stringResource(it.title) }
     val details = buildList {
-        add(RethinkLogDetail("Transport", protocol))
-        add(RethinkLogDetail("Country", countryDisplay(unknownApp, ct.flag)))
-        if (endpoint.isNotBlank()) add(RethinkLogDetail("Endpoint", endpoint, monospace = true))
-        if (!ct.dnsQuery.isNullOrBlank()) add(RethinkLogDetail("DNS", ct.dnsQuery.orEmpty(), monospace = true))
-        if (ct.blockedByRule.isNotBlank()) add(RethinkLogDetail("Rule", ct.blockedByRule, isError = ct.isBlocked))
-        if (ct.proxyDetails.isNotBlank()) add(RethinkLogDetail("Proxy", ct.proxyDetails, monospace = true))
-        if (summary.duration.isNotBlank()) add(RethinkLogDetail("Duration", summary.duration))
-        if (summary.dataUsage.isNotBlank()) add(RethinkLogDetail("Usage", summary.dataUsage))
-        if (ct.synack > 0) add(RethinkLogDetail("Latency", "${ct.synack}ms"))
-        if (summary.delay.isNotBlank()) add(RethinkLogDetail("Flags", summary.delay))
-        if (ct.message.isNotBlank()) add(RethinkLogDetail("Message", ct.message, isError = ct.isBlocked))
+        add(RethinkLogDetail(stringResource(R.string.log_detail_protocol), protocol))
+        add(RethinkLogDetail(stringResource(R.string.log_detail_country), countryDisplay(unknownApp, ct.flag)))
+        if (endpoint.isNotBlank()) add(RethinkLogDetail(stringResource(R.string.log_detail_address), endpoint, monospace = true))
+        if (!ct.dnsQuery.isNullOrBlank()) add(RethinkLogDetail(stringResource(R.string.log_detail_domain), ct.dnsQuery.orEmpty(), monospace = true))
+        if (ct.blockedByRule.isNotBlank()) add(RethinkLogDetail(stringResource(R.string.log_detail_rule), ruleTitle ?: ct.blockedByRule, isError = ct.isBlocked))
+        if (ct.proxyDetails.isNotBlank()) add(RethinkLogDetail(stringResource(R.string.log_detail_proxy), ct.proxyDetails, monospace = true))
+        if (summary.duration.isNotBlank()) add(RethinkLogDetail(stringResource(R.string.log_detail_duration), summary.duration))
+        if (summary.dataUsage.isNotBlank()) add(RethinkLogDetail(stringResource(R.string.log_detail_data), summary.dataUsage))
+        if (ct.synack > 0) add(RethinkLogDetail(stringResource(R.string.dns_detail_latency), stringResource(R.string.log_latency_ms, ct.synack.toInt())))
+        if (summary.delay.isNotBlank()) add(RethinkLogDetail(stringResource(R.string.log_detail_flags), summary.delay))
+        if (ct.message.isNotBlank()) add(RethinkLogDetail(stringResource(R.string.log_detail_message), ct.message, isError = ct.isBlocked))
     }
-    RethinkLogRow(
-        model = RethinkLogRowModel(
-            id = ct.id.toString(),
-            destination = destination,
-            appLabel = appName,
-            typeLabel = protocol,
-            timeLabel = time,
-            isBlocked = ct.isBlocked,
-            allowedLabel = stringResource(R.string.lbl_allowed),
-            blockedLabel = stringResource(R.string.lbl_blocked),
-            details = details,
-            icon = { statusContainer -> AppIconSlot(appIcon, statusContainer) },
-        ),
-        index = index,
-        itemCount = itemCount,
+    val facts = buildList {
+        if (!ct.isBlocked && (ct.downloadBytes > 0 || ct.uploadBytes > 0)) {
+            add(
+                stringResource(
+                    R.string.log_data_down_up,
+                    Utilities.humanReadableByteCount(ct.downloadBytes, true),
+                    Utilities.humanReadableByteCount(ct.uploadBytes, true),
+                )
+            )
+        }
+    }
+    return RethinkLogRowModel(
+        id = ct.id.toString(),
+        destination = destination,
+        appLabel = appName,
+        typeLabel = protocol,
+        timeLabel = time,
+        isBlocked = ct.isBlocked,
+        allowedLabel = stringResource(R.string.lbl_allowed),
+        blockedLabel = stringResource(R.string.lbl_blocked),
+        details = details,
+        icon = { statusContainer -> AppIconSlot(appIcon, statusContainer) },
+        kind = RethinkLogKind.Network,
+        reason = ruleTitle.takeIf { ct.isBlocked },
+        endpoint = endpoint,
+        facts = facts,
     )
-    return
 }
 
 @Composable
@@ -188,7 +215,7 @@ private fun AppIconSlot(
 ) {
     val iconDrawable = appIcon
 
-    Box(modifier = Modifier.size(36.dp), contentAlignment = Alignment.Center) {
+    Box(modifier = Modifier.size(SharedDimensions.iconContainerMd), contentAlignment = Alignment.Center) {
         if (iconDrawable != null) {
             Crossfade(targetState = iconDrawable, animationSpec = tween(durationMillis = 180), label = "connIcon") { drawable ->
                 rememberDrawablePainter(drawable)?.let { painter ->
@@ -197,8 +224,8 @@ private fun AppIconSlot(
                         contentDescription = null,
                         modifier =
                             Modifier
-                                .size(SharedDimensions.iconContainerSm)
-                                .clip(RoundedCornerShape(SharedDimensions.cornerRadiusSm)),
+                                .size(SharedDimensions.iconContainerMd)
+                                .clip(RoundedCornerShape(SharedDimensions.cornerRadiusMd)),
                     )
                 }
             }
@@ -206,9 +233,9 @@ private fun AppIconSlot(
             Box(
                 modifier =
                     Modifier
-                        .size(SharedDimensions.iconContainerSm)
-                        .clip(RoundedCornerShape(SharedDimensions.cornerRadiusSmMd))
-                        .background(statusColor.copy(alpha = 0.5f))
+                        .size(SharedDimensions.iconContainerMd)
+                        .clip(RoundedCornerShape(SharedDimensions.cornerRadiusMd))
+                        .background(statusColor)
             )
         }
     }

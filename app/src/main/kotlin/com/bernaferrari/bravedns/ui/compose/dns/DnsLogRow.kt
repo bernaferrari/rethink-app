@@ -97,6 +97,11 @@ import com.bernaferrari.bravedns.ui.compose.logs.RethinkLogDetail
 import com.bernaferrari.bravedns.ui.compose.logs.RethinkLogLatencyStrings
 import com.bernaferrari.bravedns.ui.compose.logs.RethinkLogRow
 import com.bernaferrari.bravedns.ui.compose.logs.RethinkLogRowModel
+import com.bernaferrari.bravedns.ui.compose.logs.RethinkLogKind
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.foundation.layout.fillMaxSize
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.bernaferrari.bravedns.database.DnsLog
 import com.bernaferrari.bravedns.image.FavIconDownloader
 import com.bernaferrari.bravedns.image.FavIconImageLoader
@@ -118,7 +123,26 @@ fun DnsLogRow(
     onShowBlocklist: (DnsLog) -> Unit,
     index: Int = 0,
     itemCount: Int = 1,
+    selected: Boolean = false,
+    onSelect: (() -> Unit)? = null,
 ) {
+    RethinkLogRow(
+        model = dnsLogModel(log, loadFavIcon, isRethinkDns, onShowBlocklist),
+        index = index,
+        itemCount = itemCount,
+        selected = selected,
+        onSelect = onSelect,
+    )
+}
+
+/** A query as the shared log model: the name leads, then the answer or blocklist, then who asked. */
+@Composable
+fun dnsLogModel(
+    log: DnsLog,
+    loadFavIcon: Boolean,
+    isRethinkDns: Boolean,
+    onShowBlocklist: (DnsLog) -> Unit,
+): RethinkLogRowModel {
     val context = LocalContext.current
     val dnsType = dnsTypeName(log, isRethinkDns)
     val hint = unicodeHint(log, isRethinkDns)
@@ -134,16 +158,13 @@ fun DnsLogRow(
             if (log.packageName.isEmpty() || log.packageName == Constants.EMPTY_PACKAGE_NAME) {
                 null
             } else {
-                getIcon(context, log.packageName)
+                withContext(Dispatchers.IO) { getIcon(context, log.packageName) }
             }
     }
 
     LaunchedEffect(log.queryStr, loadFavIcon, log.groundedQuery()) {
         showFav = false
         favIcon = null
-    }
-
-    LaunchedEffect(log.queryStr, loadFavIcon, log.groundedQuery()) {
         if (!loadFavIcon || log.groundedQuery()) return@LaunchedEffect
         displayFavIcon(
             context = context,
@@ -161,77 +182,70 @@ fun DnsLogRow(
         log.flag.isNotBlank() && log.flag != "--" -> log.flag
         else -> stringResource(R.string.network_log_app_name_unknown)
     }
+    val blocklists = log.blockLists.split(",").map { it.trim() }.filter { it.isNotBlank() }
     val details = buildList {
-        add(RethinkLogDetail("Transport", dnsType))
-        add(RethinkLogDetail("Country", country))
-        if (log.responseIps.isNotBlank()) add(RethinkLogDetail("Response", log.responseIps, monospace = true))
-        if (log.serverIP.isNotBlank()) add(RethinkLogDetail("Resolver", log.serverIP, monospace = true))
+        add(RethinkLogDetail(stringResource(R.string.log_detail_protocol), dnsType))
+        add(RethinkLogDetail(stringResource(R.string.log_detail_country), country))
+        if (log.responseIps.isNotBlank()) add(RethinkLogDetail(stringResource(R.string.log_detail_response), log.responseIps, monospace = true))
+        if (log.serverIP.isNotBlank()) add(RethinkLogDetail(stringResource(R.string.log_detail_resolver), log.serverIP, monospace = true))
+        if (blocklists.isNotEmpty()) add(RethinkLogDetail(stringResource(R.string.log_detail_blocklists), blocklists.joinToString(", "), isError = true))
         if (log.dnssecOk || log.dnssecValid) {
-            add(RethinkLogDetail("DNSSEC", if (log.dnssecOk && log.dnssecValid) "✓  Valid" else "⚠  Unverified"))
+            add(
+                RethinkLogDetail(
+                    stringResource(R.string.log_detail_dnssec),
+                    stringResource(if (log.dnssecOk && log.dnssecValid) R.string.log_detail_dnssec_valid else R.string.log_detail_dnssec_unverified),
+                )
+            )
         }
-        if (hint.isNotBlank()) add(RethinkLogDetail("Flags", hint))
+        if (hint.isNotBlank()) add(RethinkLogDetail(stringResource(R.string.log_detail_flags), hint))
     }
-    val blocklistCount = log.blockLists.split(",").count { it.isNotBlank() }
-    RethinkLogRow(
-        model = RethinkLogRowModel(
-            id = log.id.toString(),
-            destination = log.queryStr,
-            appLabel = appLabel,
-            typeLabel = dnsType,
-            timeLabel = log.wallTime(),
-            isBlocked = log.isBlocked,
-            allowedLabel = stringResource(R.string.lbl_allowed),
-            blockedLabel = stringResource(R.string.lbl_blocked),
-            details = details,
-            icon = { statusContainer -> AppIconSlot(showFav, favIcon, appIcon, statusContainer) },
-            latencyMs = log.latency,
-            latencyStrings = RethinkLogLatencyStrings(
-                title = stringResource(R.string.dns_detail_latency),
-                fast = stringResource(R.string.lbl_fast),
-                ok = stringResource(R.string.log_latency_ok),
-                slow = stringResource(R.string.lbl_slow),
-            ),
-            blocklistsLabel = if (blocklistCount > 0) "$blocklistCount blocklists matched" else null,
-            onBlocklistsClick = if (blocklistCount > 0) ({ onShowBlocklist(log) }) else null,
+    val reason = when {
+        blocklists.size > 2 -> "${blocklists.take(2).joinToString(", ")} +${blocklists.size - 2}"
+        blocklists.isNotEmpty() -> blocklists.joinToString(", ")
+        else -> null
+    }
+    val answer = log.responseIps.split(",").firstOrNull()?.trim()
+        ?.let { it.substringAfter('(', it).substringBefore(')') }
+        ?.takeIf { it.isNotBlank() && it != "--" }
+    val favicon = favIcon.takeIf { showFav }
+    return RethinkLogRowModel(
+        id = log.id.toString(),
+        destination = log.queryStr,
+        appLabel = appLabel,
+        typeLabel = dnsType,
+        timeLabel = log.wallTime(),
+        isBlocked = log.isBlocked,
+        allowedLabel = stringResource(R.string.lbl_allowed),
+        blockedLabel = stringResource(R.string.lbl_blocked),
+        details = details,
+        icon = favicon?.let { drawable -> { _ -> DrawableIcon(drawable) } },
+        latencyMs = log.latency,
+        latencyStrings = RethinkLogLatencyStrings(
+            title = stringResource(R.string.dns_detail_latency),
+            fast = stringResource(R.string.lbl_fast),
+            ok = stringResource(R.string.log_latency_ok),
+            slow = stringResource(R.string.lbl_slow),
         ),
-        index = index,
-        itemCount = itemCount,
+        blocklistsLabel = if (blocklists.isNotEmpty()) {
+            pluralStringResource(R.plurals.log_blocklists_matched, blocklists.size, blocklists.size)
+        } else {
+            null
+        },
+        onBlocklistsClick = if (blocklists.isNotEmpty()) ({ onShowBlocklist(log) }) else null,
+        kind = RethinkLogKind.Dns,
+        reason = reason,
+        endpoint = answer,
+        facts = listOfNotNull(
+            log.latency.takeIf { it > 0 }?.let { stringResource(R.string.log_latency_ms, it.toInt()) },
+        ),
+        appIcon = appIcon?.let { drawable -> { DrawableIcon(drawable) } },
     )
-    return
 }
 
 @Composable
-private fun AppIconSlot(
-    showFav: Boolean,
-    favIcon: Drawable?,
-    appIcon: Drawable?,
-    statusColor: Color,
-) {
-    val iconDrawable = if (showFav && favIcon != null) favIcon else appIcon
-
-    Box(modifier = Modifier.size(36.dp), contentAlignment = Alignment.Center) {
-        if (iconDrawable != null) {
-            Crossfade(targetState = iconDrawable, animationSpec = tween(durationMillis = 180), label = "dnsIcon") { drawable ->
-                rememberDrawablePainter(drawable)?.let { painter ->
-                    androidx.compose.foundation.Image(
-                        painter = painter,
-                        contentDescription = null,
-                        modifier =
-                            Modifier
-                                .size(34.dp)
-                                .clip(RoundedCornerShape(7.dp)),
-                    )
-                }
-            }
-        } else {
-            Box(
-                modifier =
-                    Modifier
-                        .size(34.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(statusColor.copy(alpha = 0.5f))
-            )
-        }
+private fun DrawableIcon(drawable: Drawable) {
+    rememberDrawablePainter(drawable)?.let { painter ->
+        androidx.compose.foundation.Image(painter = painter, contentDescription = null, modifier = Modifier.fillMaxSize())
     }
 }
 
