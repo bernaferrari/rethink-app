@@ -40,7 +40,7 @@
     <string name="status_dns_error" translatable="true">DNS æнхъицI</string>
     <string name="status_dns_server_down" translatable="true">DNS а сервер ашьапылам амч зымауа</string>
     <string name="status_no_internet" translatable="true">Амшын адцәаҵаны</string>
-    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit." translatable="true">маҿыцхьауам</string>
+    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit." translatable="true">Маҿыцхьауам</string>
     <string name="universal_firewall_explanation" translatable="true">Ашәымҭақәа зегьы ашәымҭа шьҟаҵар, ацынхарҭа амҩаду аҟәыҟәырҵа, мамзаракь ацынхарҭала аҟәыҟәырҵа, абжьы зхыуа аҟәыҟәырҵа, мамзаракь аҟәыҟәырҵа аҟәыҟәырҵа аҟәыҟәырҵа аҟәыҟәырҵа аҟәыҟәырҵа абжьы зхыу аҟәыҟәырҵа аҟәыҟәырҵа аҟәыҟәырҵа аҟәыҟәырҵа аҟәыҟәырҵа аҟәыҟәырҵа апрвило</string>
     <string name="notification_action_resume_vpn" translatable="true">ААДЫЗРА</string>
     <string name="notification_action_pause_vpn" translatable="true">Аҧхыжьра</string>
@@ -180,10 +180,10 @@
     <string name="settings_default_dns_heading" translatable="true">Ашәахәышәашәашәашьқәа DNS</string>
     <string name="settings_default_dns_desc" translatable="true">Амчҳәаԥшрақәа рахьынтә, аусуҩы иԥсҭаалара амчҳәаԥшра аԥырԥшра ашьҭымхакәа, адгылара амчҳәаԥшра ахыҵхәаԥшра шрымоу.</string>
     <string name="firewall_status_excluded" translatable="true">DNS-им аҿы, Firewall-им аҿы илымҵәахьоу</string>
-    <string name="firewall_status_isolate" translatable="true">ихаԥсазтәу</string>
-    <string name="firewall_status_whitelisted" translatable="true">ауниверсалтә ҳәалтрақәа рыхы данахьлеит</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">dns-иркабала, firewall-иркабала аҟынтә иналацәахоит</string>
-    <string name="firewall_status_unknown" translatable="true">addling</string>
+    <string name="firewall_status_isolate" translatable="true">Ихаԥсазтәу</string>
+    <string name="firewall_status_whitelisted" translatable="true">Ауниверсалтә ҳәалтрақәа рыхы данахьлеит</string>
+    <string name="firewall_status_bypass_dns_firewall" translatable="true">Dns-иркабала, firewall-иркабала аҟынтә иналацәахоит</string>
+    <string name="firewall_status_unknown" translatable="true">Addling</string>
     <string name="hs_biometeric_title" translatable="true">Rethink аишьҭахылар</string>
     <string name="hs_biometeric_desc" translatable="true">Rethink аишьшәаашәоит абиометриатә ашьаҭҝырала</string>
     <string name="hs_biometeric_error" translatable="true">Биомеиутрик ауадацахьхəарак</string>
@@ -429,13 +429,13 @@
     <string name="ada_noapp_dialog_message" translatable="true">Алажьәырԥш адыррақәа рыцәкмыр, еиҧш дызшьамгьы ауаҩы ишьам?</string>
     <string name="ada_noapp_dialog_positive" translatable="true">Аиаахыҧш</string>
     <string name="ada_ip_no_connection" translatable="true">А 네트워크 агәыналара ашәаша а category аҿы иауадаҩым.</string>
-    <string name="ada_app_status_allow" translatable="true">иашьаҧсалар шаҭахыу</string>
+    <string name="ada_app_status_allow" translatable="true">Иашьаҧсалар шаҭахыу</string>
     <string name="ada_app_status_block" translatable="true">Аишьəшəахəуп</string>
-    <string name="ada_app_status_block_wifi" translatable="true">маиуаит ашьапылара ашәымҵәахәала (wifi) амҩақәа рҟны</string>
-    <string name="ada_app_status_block_md" translatable="true">ыутым адәаа ишьҟаҵәа иахыҧхәаҭоуп (амобил) а réseauқa</string>
+    <string name="ada_app_status_block_wifi" translatable="true">Маиуаит ашьапылара ашәымҵәахәала (wifi) амҩақәа рҟны</string>
+    <string name="ada_app_status_block_md" translatable="true">Ыутым адәаа ишьҟаҵәа иахыҧхәаҭоуп (амобил) а réseauқa</string>
     <string name="ada_app_status_whitelist" translatable="true">Динитир универсал ашәахәқатәқәа рҿы изацәахәым</string>
-    <string name="ada_app_status_exclude" translatable="true">dns &amp; firewall аҿы иргалан\n&lt;/div&gt;</string>
-    <string name="ada_app_status_isolate" translatable="true">еизкварлаау; ашәашәахара зну адгьылбӠақәа рҿиоит</string>
+    <string name="ada_app_status_exclude" translatable="true">Dns &amp; firewall аҿы иргалан\n&lt;/div&gt;</string>
+    <string name="ada_app_status_isolate" translatable="true">Еизкварлаау; ашәашәахара зну адгьылбӠақәа рҿиоит</string>
     <string name="ada_app_status_bypass_dns_firewall" translatable="true">Налцәатәи АДНС / Ашәахәышьҭадаҩ далагаауа</string>
     <string name="ada_app_status_unknown" translatable="true">Абыжьәаамыцла</string>
     <string name="ada_app_metered" translatable="true">Метровать</string>

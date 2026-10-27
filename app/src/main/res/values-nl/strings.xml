@@ -4,7 +4,7 @@
     <string name="alert_firewall_accessibility_explanation">RethinkDNS gebruikt de toegankelijkheidsdienst om bij te houden welke apps in gebruik zijn (voorgrond) versus die welke niet in gebruik zijn (achtergrond).
 \n
 \nRethinkDNS verzamelt geen informatie en bespioneert u op geen enkele manier.</string>
-    <string name="status_no_internet">geen internet</string>
+    <string name="status_no_internet">Geen internet</string>
     <string name="notification_action_stop_vpn">STOP</string>
     <string name="alert_permission_accessibility">Toestemming - Toegankelijkheid</string>
     <string name="dns_proxy_remove_dialog_title">DNS Proxy verwijderen\?</string>
@@ -35,7 +35,7 @@
     <string name="settings_ip_text_ipv46">Auto</string>
     <string name="settings_dns_proxy_dialog_app_desc">De geselecteerde app wordt uitgesloten van het VPN om het namens u verbindingen te laten proxyen.</string>
     <string name="settings_ip_dialog_ipv6">IPv6 (experimenteel)</string>
-    <string name="firewall_status_excluded">uitgesloten van dns en firewall</string>
+    <string name="firewall_status_excluded">Uitgesloten van dns en firewall</string>
     <string name="orbot_both">TCP + HTTP-proxy</string>
     <string name="orbot_stop_dialog_message">RethinkDNS is gestopt met het doorsturen van verbindingen naar Orbot, maar Orbot draait misschien op de achtergrond.</string>
     <string name="settings_http_proxy_error_text2">Ongeldige poort</string>
@@ -65,7 +65,7 @@
     <string name="block">blokkeren</string>
     <string name="dns_mode_notification_title">Beschermd! Verbonden met snelle en veilige DNS.</string>
     <string name="hybrid_mode_notification_title">Beschermd! Verbonden met DNS + Firewall.</string>
-    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit.">niet beschermd</string>
+    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit.">Niet beschermd</string>
     <string name="notification_action_dns_firewall_mode">DNS + Firewall</string>
     <string name="dns_mode_info_title">DNS</string>
     <string name="firewall_mode_info_title">Firewall</string>
@@ -101,7 +101,7 @@
     <string name="settings_ip_text_ipv6">IPv6</string>
     <string name="settings_selected_ip_desc">%1$s</string>
     <string name="settings_protocol_translation_dns_inactive">Schakel over naar DNS/DNS+Firewall modus om deze instelling in te schakelen</string>
-    <string name="firewall_status_whitelisted">omzeilt universele firewall regels</string>
+    <string name="firewall_status_whitelisted">Omzeilt universele firewall regels</string>
     <string name="rdns_plus">RDNS Plus</string>
     <string name="slide_2_desc">RethinkDNS is de eenvoudigste manier om netwerkactiviteiten te controleren, internetcensuur te omzeilen en firewall-apps op uw Android-toestel te gebruiken.</string>
     <string name="warning_title" description="Status indicator text shown in a warning notification.">Waarschuwing: RethinkDNS is gedeactiveerd</string>
@@ -128,7 +128,7 @@
     <string name="orbot_stop_dialog_neutral">DNS wijzigen</string>
     <string name="exclude">uitsluiten</string>
     <string name="firewall_mode_notification_title">Beschermd! Verbonden met firewall.</string>
-    <string name="status_dns_error">dns-fout</string>
+    <string name="status_dns_error">Dns-fout</string>
     <string name="notification_action_dns_mode">DNS</string>
     <string name="always_on_dialog_stop_message">Always-on VPN is ingeschakeld voor Rethink. Weet je zeker dat je Rethink toch wilt stoppen\?</string>
     <string name="info_dialog_copy_toast_msg">IP adres gekopieerd.</string>
@@ -142,7 +142,7 @@
     <string name="alert_firewall_accessibility_regrant_explanation">RethinkDNS toegankelijkheidsdienst is gestopt of gecrasht. <i><b>Ga naar Instellingen en Forceer Stop</b></i> RethinkDNS en start het opnieuw om <i>te gebruiken Blokkeer elke app die niet in gebruik is</i> functie.
 \n
 \nRethinkDNS gebruikt de toegankelijkheidsdienst om bij te houden welke apps in gebruik zijn (voorgrond) versus welke niet in gebruik zijn (achtergrond).</string>
-    <string name="firewall_status_unknown">onbekend</string>
+    <string name="firewall_status_unknown">Onbekend</string>
     <string name="hsf_vpn_dialog_message">RethinkDNS heeft toestemming nodig om een lokaal VPN op te zetten om de DNS-verzoeken van het apparaat te versleutelen, een netwerkmonitor te implementeren en firewallregels af te dwingen.
 \n
 \nRethinkDNS verzamelt geen informatie en bespioneert u op geen enkele manier.</string>
@@ -216,7 +216,7 @@
     <string name="dc_dns_leaks_desc">Indien ingeschakeld, vangt RethinkDNS alle pakketten op poort 53 op en stuurt deze door naar een door de gebruiker ingesteld DNS eindpunt</string>
     <string name="firewall_rule_isolate_desc">Een door de gebruiker ingestelde firewallregel blokkeerde deze <i>app</i> door verbinding te maken met andere dan <i>omzeilde IP\'s</i>.<br/><br/> Om te wijzigen ga naar <i>All Apps</i> tab.</string>
     <string name="firewall_rule_global_lockdown_desc">Deze verbinding is geblokkeerd omdat universele lockdown is ingesteld.<br/><br/> Om dit te veranderen ga naar <i>tabblad Universal</i>.</string>
-    <string name="ada_app_status_isolate">staat in lockdown modus</string>
+    <string name="ada_app_status_isolate">Staat in lockdown modus</string>
     <string name="ada_app_isolate">Lockdown</string>
     <string name="settings_orbot_notification_content">Fout bij het starten van Tor-as-a-Proxy. Open de Orbot-app om deze handmatig te starten.</string>
     <string name="always_on_dialog_positive_btn">Open Instellingen</string>
@@ -233,11 +233,11 @@
     <string name="untracked">ongetraceerd</string>
     <string name="isolate">isoleren</string>
     <string name="pause_mode_notification_title">Gepauzeerd! Geblokkeerde apps blijven geblokkeerd.</string>
-    <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">wachtend op</string>
+    <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">Wachtend op</string>
     <string name="universal_firewall_explanation">Pas firewallregels toe op alle toepassingen op basis van apparaatgebeurtenissen, bijvoorbeeld firewall wanneer het apparaat is vergrendeld of wanneer een bepaalde app niet in gebruik is.</string>
     <string name="settings_theme_heading">Vormgeving</string>
     <string name="settings_theme_dialog_themes_2">Licht</string>
-    <string name="firewall_status_isolate">lockdown</string>
+    <string name="firewall_status_isolate">Lockdown</string>
     <string name="hsf_vpn_dialog_header">Attentie!</string>
     <string name="lbl_proceed">Doorgaan</string>
     <string name="hsf_vpn_prepare_failure">Of de VPN toestemming ontbreekt, of een andere app staat in Always-on VPN mode.</string>
@@ -351,7 +351,7 @@
     <string name="lbl_stopped" translatable="true">Gestopt</string>
     <string name="lbl_secure" translatable="true">beveiligde</string>
     <string name="lbl_anonymous" translatable="true">anoniem</string>
-    <string name="status_dns_server_down" translatable="true">dns server onbereikbaar</string>
+    <string name="status_dns_server_down" translatable="true">Dns server onbereikbaar</string>
     <string name="failed_using_default" translatable="true">Fout: gebruikt nu terugval DNS</string>
     <string name="dns_crypt_relay_remove_success" translatable="true">DNSCrypt Relay verwijderd.</string>
     <string name="settings_general_customize" translatable="true">aanpassen</string>
@@ -402,7 +402,7 @@
     <string name="notif_channel_vpn_notification" translatable="true">Actieve VPN</string>
     <string name="notif_channel_desc_firewall_alerts" translatable="true">Waarschuwing voor fouten en anomalieën in de firewall</string>
     <string name="cd_no_rules_text" translatable="true">Geen domein regels gevonden.</string>
-    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">fout</string>
+    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">Fout</string>
     <string name="settings_allow_lan_desc" translatable="true">LAN, loopback, multicast, link-local routes uitsluiten van de Rethink VPN tunnel.</string>
     <string name="new_app_notification_action_toast_allow" translatable="true">Netwerkverbinding toegestaan voor de app</string>
     <string name="ci_dialog_error_invalid_ip" translatable="true">Ongeldig IP-adres, subnet of poort.</string>
@@ -445,7 +445,7 @@
     <string name="orbot_title" translatable="true">Orbot en Proxies</string>
     <string name="cd_dns_crypt_title" translatable="true">resolvers</string>
     <string name="orbot_bs_status_trying_connect" translatable="true">Bezig met opzetten van Orbot…</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">omzeilt dns &amp; firewall regels</string>
+    <string name="firewall_status_bypass_dns_firewall" translatable="true">Omzeilt dns &amp; firewall regels</string>
     <string name="dc_check_update_heading" translatable="true">Prompt bij blocklist updates</string>
     <string name="cd_dns_alg_desc" translatable="true">Uniek IP toewijzen per DNS aanvraag</string>
     <string name="cd_dns_alg_heading" translatable="true">Geavanceerde DNS-filtering (experimenteel)</string>

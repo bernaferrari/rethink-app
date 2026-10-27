@@ -24,12 +24,12 @@
     <string name="notification_content" description="Indicates what will happen if the user taps the notification.">Натисніть, щоб змінити налаштування захисту</string>
     <string name="hybrid_mode_notification_title">Захищено! Підключено до DNS + Брандмауер.</string>
     <string name="pause_mode_notification_title">Призупинено! Заблоковані застосунки будуть продовжувати блокуватися брандмауером.</string>
-    <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">очікування</string>
-    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">невдало</string>
-    <string name="status_dns_error">помилка dns</string>
-    <string name="status_dns_server_down">сервер dns не працює</string>
-    <string name="status_no_internet">немає інтернету</string>
-    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit.">не захищено</string>
+    <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">Очікування</string>
+    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">Невдало</string>
+    <string name="status_dns_error">Помилка dns</string>
+    <string name="status_dns_server_down">Сервер dns не працює</string>
+    <string name="status_no_internet">Немає інтернету</string>
+    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit.">Не захищено</string>
     <string name="notification_action_resume_vpn">ПРОДОВЖИТИ</string>
     <string name="notification_action_pause_vpn">ПАУЗА</string>
     <string name="notification_action_stop_vpn">СТОП</string>
@@ -94,13 +94,13 @@
     <string name="ada_noapp_dialog_message" translatable="true">Інформація про застосунок відсутня. Можливо, цей застосунок було видалено\?</string>
     <string name="ada_noapp_dialog_positive" translatable="true">Ок</string>
     <string name="ada_ip_no_connection" translatable="true">Для цієї категорії немає мережевих журналів.</string>
-    <string name="ada_app_status_allow" translatable="true">дозволено</string>
-    <string name="ada_app_status_block" translatable="true">заблоковано</string>
-    <string name="ada_app_status_block_wifi" translatable="true">блокується в необмежених мережах (wifi)</string>
-    <string name="ada_app_status_exclude" translatable="true">видалено з DNS та фаєрвола</string>
-    <string name="ada_app_status_unknown" translatable="true">невідомо</string>
-    <string name="ada_app_status_block_md" translatable="true">блокується в обмежених мережах (мобільних)</string>
-    <string name="ada_app_status_whitelist" translatable="true">буде обходити універсальні правила брандмауера</string>
+    <string name="ada_app_status_allow" translatable="true">Дозволено</string>
+    <string name="ada_app_status_block" translatable="true">Заблоковано</string>
+    <string name="ada_app_status_block_wifi" translatable="true">Блокується в необмежених мережах (wifi)</string>
+    <string name="ada_app_status_exclude" translatable="true">Видалено з DNS та фаєрвола</string>
+    <string name="ada_app_status_unknown" translatable="true">Невідомо</string>
+    <string name="ada_app_status_block_md" translatable="true">Блокується в обмежених мережах (мобільних)</string>
+    <string name="ada_app_status_whitelist" translatable="true">Буде обходити універсальні правила брандмауера</string>
     <string name="ada_app_metered" translatable="true">Обмежена мережа</string>
     <string name="ada_app_unmetered" translatable="true">Необмежена мережа</string>
     <string name="ada_app_exclude" translatable="true">Виключити</string>
@@ -139,7 +139,7 @@
     <string name="firewall_rule_exempt_app_bypass_univ_desc" translatable="true"><![CDATA[This connection was allowed because the <i>Для програми-джерела</i> налаштовано <i>обхід універсальних</i> правил брандмауера.<br/><br/> Щоб змінити, перейдіть на екран <i>Брандмауер для конкретної програми</i>.]]></string>
     <string name="category_name_non_app_sys" translatable="true">Системні служби</string>
     <string name="category_name_installed" translatable="true">Встановлені застосунки</string>
-    <string name="ada_app_status_isolate" translatable="true">ізольовано; допускаються лише довірені IP-адреси</string>
+    <string name="ada_app_status_isolate" translatable="true">Ізольовано; допускаються лише довірені IP-адреси</string>
     <string name="ada_app_bypass_univ" translatable="true">Обхід Універсальний</string>
     <string name="apps_info_title" translatable="true">Застосунки</string>
     <string name="bsct_app_info" translatable="true">Інформація про застосунок</string>
@@ -448,7 +448,7 @@
     <string name="univ_accessibility_dialog_negative" translatable="true">Відхилити</string>
     <string name="dns_connected_rethink_plus" translatable="true">Підключено. %1$s блок-лист застосовується</string>
     <string name="fapps_bypass_dns_firewall_dialog_title" translatable="true">Застосунки які обходять</string>
-    <string name="ada_app_status_bypass_dns_firewall" translatable="true">ігнорують універсальні правила DNS та брандмауера</string>
+    <string name="ada_app_status_bypass_dns_firewall" translatable="true">Ігнорують універсальні правила DNS та брандмауера</string>
     <string name="univ_firewall_rule_9" translatable="true">Блокувати у мобільній (тарифікованій) мережі</string>
     <string name="wireguard_connection_error" translatable="true">WireGuard VPN не вдається підключити</string>
     <string name="settings_http_proxy_error_text3" translatable="true">Ім\'я хосту порожнє</string>
@@ -472,8 +472,8 @@
     <string name="settings_ip_text_ipv4" translatable="true">IPv4</string>
     <string name="settings_ip_text_ipv6" translatable="true">IPv6</string>
     <string name="settings_ip_text_ipv46" translatable="true">Авто</string>
-    <string name="firewall_status_whitelisted" translatable="true">оминає універсальні правила фаєрволу</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">оминає правила DNS та фаєрвола</string>
+    <string name="firewall_status_whitelisted" translatable="true">Оминає універсальні правила фаєрволу</string>
+    <string name="firewall_status_bypass_dns_firewall" translatable="true">Оминає правила DNS та фаєрвола</string>
     <string name="dc_check_update_heading" translatable="true">Запитувати про оновлення блок листа</string>
     <string name="about_bug_no_log_dialog_message" translatable="true">Не вдалося отримати журнал збоїв. Бажаєте повідомити про помилку вручну?</string>
     <string name="about_twitter" translatable="true">Слідкуйте у Твіттері</string>
@@ -564,12 +564,12 @@
     <string name="ci_block" translatable="true">Блокувати</string>
     <string name="notif_download_cancel_content" translatable="true">Завантаження скасовано.</string>
     <string name="crypt_relay_singapore" translatable="true">Анонімна ретрансляція DNS, розміщена в Сінгапурі.</string>
-    <string name="firewall_status_isolate" translatable="true">ізольовано</string>
-    <string name="firewall_status_unknown" translatable="true">невідомий статус</string>
+    <string name="firewall_status_isolate" translatable="true">Ізольовано</string>
+    <string name="firewall_status_unknown" translatable="true">Невідомий статус</string>
     <string name="rt_list_simple_btn_txt" translatable="true">простий лист</string>
     <string name="rt_filter_parent_selected" translatable="true">Обрати батьківські фільтри</string>
     <string name="rsv_blocklist_count_text" description="This label will appear in rethink configure simple view screen which shows number of blocklists for each category" translatable="true">%1$s блоклисти</string>
-    <string name="firewall_status_excluded" translatable="true">виключено з DNS та фаєрвола</string>
+    <string name="firewall_status_excluded" translatable="true">Виключено з DNS та фаєрвола</string>
     <string name="hs_biometeric_desc" translatable="true">Використовувати біометричну автентифікацію, щоб розблоковувати Rethink</string>
     <string name="hs_biometeric_error" translatable="true">Помилка біометричної автентифікації</string>
     <string name="dc_rethink_dns_radio" translatable="true">Rethink DNS</string>
@@ -696,7 +696,7 @@
     <string name="lbl_service_providers" translatable="true">Постачальники послуг</string>
     <string name="lbl_manual" translatable="true">Ручний</string>
     <string name="dns_desc" translatable="true">Оберіть один із понад 190 списків, щоб зупинити рекламу, трекери та шкідливе програмне забезпечення.</string>
-    <string name="status_no_network" translatable="true">немає мережі</string>
+    <string name="status_no_network" translatable="true">Немає мережі</string>
     <string name="dc_use_sys_dns_undelegated_heading" translatable="true">Використовувати системний DNS для неделегованих доменів</string>
     <string name="dc_use_sys_dns_undelegated_desc" translatable="true">Використовуйте системний DNS для неделегованих доменів, таких як <i>.lan</i>, <i>.internal</i>, тощо.</string>
     <string name="dc_filtering_heading" translatable="true">Фільтрація</string>

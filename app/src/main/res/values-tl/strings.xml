@@ -25,7 +25,7 @@
     <string name="block" translatable="true">harangan</string>
     <string name="title_settings" translatable="true">Mga Setting</string>
     <string name="pause_mode_notification_title" translatable="true">Paused! Ang mga blocked apps ay magpapatuloy na naka-firewall.</string>
-    <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline." translatable="true">naghihintay</string>
+    <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline." translatable="true">Naghihintay</string>
     <string name="exclude" translatable="true">ibukod</string>
     <string name="isolate" translatable="true">ihiwalay</string>
     <string name="bypass_universal" translatable="true">lusutan ang pangkalahatan</string>
@@ -35,7 +35,7 @@
     <string name="firewall_rule_block_univ_ip" translatable="true">IP / Port (Pangkalahatan)</string>
     <string name="fapps_bypass_dns_firewall_dialog_message" translatable="true">Malagpasan ba ang universal DNS &amp; firewall na mga patakaran para sa mga <i>nakalista</i> na mga apps\?</string>
     <string name="firewall_rule_bypass_universal_ip" translatable="true">Na-bypass ang IP</string>
-    <string name="firewall_status_whitelisted" translatable="true">nakakalusot sa pangkalahatang mga patakaran ng firewall</string>
+    <string name="firewall_status_whitelisted" translatable="true">Nakakalusot sa pangkalahatang mga patakaran ng firewall</string>
     <string name="fapps_firewall_filter_bypass_universal" translatable="true">Nalampasan</string>
     <string name="fapps_info_bypass_msg" translatable="true">Iwasan ang mga patakaran ng Universal na firewall.</string>
     <string name="fapps_bypass_block_dialog_message" translatable="true">Mag-bypass ng universal firewall rules para sa <i>naka-lista</i> na mga apps\?</string>
@@ -51,12 +51,12 @@
     <string name="notification_content" description="Indicates what will happen if the user taps the notification." translatable="true">Pindutin upang baguhin ang mga setting ng proteksyon</string>
     <string name="dns_mode_notification_title" translatable="true">Nakasegurong nakakabit sa mabilis at ligtas na DNS.</string>
     <string name="firewall_mode_notification_title" translatable="true">Nakaseguro! Nakakonekta sa Firewall.</string>
-    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">nabibigo</string>
+    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">Nabibigo</string>
     <string name="notification_action_dns_firewall_mode" translatable="true">DNS + Firewall</string>
     <string name="dns_mode_info_title" translatable="true">DNS</string>
     <string name="firewall_mode_info_title" translatable="true">Firewall</string>
     <string name="notification_action_dns_mode" translatable="true">DNS</string>
-    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit." translatable="true">hindi protektado</string>
+    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit." translatable="true">Hindi protektado</string>
     <string name="notification_action_resume_vpn" translatable="true">IPAGPATULOY</string>
     <string name="notification_action_pause_vpn" translatable="true">PAUSE</string>
     <string name="notification_action_stop_vpn" translatable="true">ITIGIL</string>

@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="status_no_internet">sem Internet</string>
-    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">falha</string>
-    <string name="status_dns_error">erro de dns</string>
-    <string name="status_dns_server_down">servidor dns inativo</string>
+    <string name="status_no_internet">Sem Internet</string>
+    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">Falha</string>
+    <string name="status_dns_error">Erro de dns</string>
+    <string name="status_dns_server_down">Servidor dns inativo</string>
     <string name="slide_2_desc">Rethink é a forma mais fácil de monitorizar a atividade da rede, contornar a censura da Internet e bloquear, com a firewall, as aplicações no seu dispositivo Android.</string>
     <string name="warning_title" description="Status indicator text shown in a warning notification.">Aviso: Rethink foi desativado</string>
     <string name="exclude">excluir</string>
     <string name="pause_mode_notification_title">Pausado! As aplicações bloqueadas continuarão a ser controladas.</string>
     <string name="notification_content" description="Indicates what will happen if the user taps the notification.">Toque para alterar a definição de proteção</string>
     <string name="dns_mode_notification_title">Protegido! Conectado a DNS rápido e seguro.</string>
-    <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">à espera</string>
-    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit.">não protegido</string>
+    <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">À espera</string>
+    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit.">Não protegido</string>
     <string name="notification_action_stop_vpn">Parar</string>
     <string name="alert_permission_accessibility">Permissão - Acessibilidade</string>
     <string name="alert_firewall_accessibility_explanation">Rethink utiliza o serviço de acessibilidade para identificar as aplicações que estão a ser utilizadas (primeiro plano) e as que não estão a ser utilizadas (segundo plano).
@@ -65,8 +65,8 @@
 \nRethink não recolhe informações nem monitoriza as suas atividades.</string>
     <string name="dc_block_heading">Regras</string>
     <string name="settings_ip_text_ipv6">IPv6</string>
-    <string name="firewall_status_excluded">excluída de dns e da firewall</string>
-    <string name="firewall_status_isolate">isolada</string>
+    <string name="firewall_status_excluded">Excluída de dns e da firewall</string>
+    <string name="firewall_status_isolate">Isolada</string>
     <string name="hsf_notification_permission_failure">Ative a permissão de notificação nas definições</string>
     <string name="allow">permitir</string>
     <string name="block">bloquear</string>
@@ -114,8 +114,8 @@
     <string name="settings_ip_text_ipv46">Automático</string>
     <string name="settings_selected_ip_desc">%1$s</string>
     <string name="settings_protocol_translation_dns_inactive">Mudar para o modo DNS/DNS+Firewall para ativar esta definição</string>
-    <string name="firewall_status_whitelisted">ignora as regras de firewall universal</string>
-    <string name="firewall_status_unknown">desconhecido</string>
+    <string name="firewall_status_whitelisted">Ignora as regras de firewall universal</string>
+    <string name="firewall_status_unknown">Desconhecido</string>
     <string name="hsf_vpn_dialog_header">Atenção!</string>
     <string name="lbl_proceed">Continuar</string>
     <string name="hsf_vpn_prepare_failure">Falta a permissão de VPN ou outra aplicação está com a opção \"VPN sempre ativa\".</string>
@@ -262,10 +262,10 @@
     <string name="build__flavor_website">site</string>
     <string name="rbl_parental_control">Controlo parental</string>
     <string name="rt_download">Descarregar listas de bloqueio</string>
-    <string name="ada_app_status_whitelist">irá ignorar as regras da firewall universal</string>
+    <string name="ada_app_status_whitelist">Irá ignorar as regras da firewall universal</string>
     <string name="ada_app_bypass_univ">Ignorar universal</string>
     <string name="ada_ip_no_connection">Não há registos de rede para esta aplicação.</string>
-    <string name="ada_app_status_allow">permitida</string>
+    <string name="ada_app_status_allow">Permitida</string>
     <string name="notif_download_content_text">A descarregar…</string>
     <string name="rt_chip_update_available">Atualização disponível</string>
     <string name="rethink_sky_desc">Mais de 280 localizações; mais tempo de atividade; resolvedor de stub em cloudflare.com</string>
@@ -433,12 +433,12 @@
     <string name="ada_noapp_dialog_title">Nenhuma aplicação</string>
     <string name="ada_noapp_dialog_message">Falta a informação da aplicação. Talvez esta aplicação tenha sido desinstalada\?</string>
     <string name="ada_noapp_dialog_positive">OK</string>
-    <string name="ada_app_status_block">bloqueada</string>
-    <string name="ada_app_status_block_wifi">bloqueada em redes ilimitadas (wifi)</string>
-    <string name="ada_app_status_block_md">bloqueada em redes limitadas (móveis)</string>
-    <string name="ada_app_status_exclude">excluída de dns e firewall</string>
-    <string name="ada_app_status_isolate">isolada; apenas permitidos IPs de confiança</string>
-    <string name="ada_app_status_unknown">desconhecida</string>
+    <string name="ada_app_status_block">Bloqueada</string>
+    <string name="ada_app_status_block_wifi">Bloqueada em redes ilimitadas (wifi)</string>
+    <string name="ada_app_status_block_md">Bloqueada em redes limitadas (móveis)</string>
+    <string name="ada_app_status_exclude">Excluída de dns e firewall</string>
+    <string name="ada_app_status_isolate">Isolada; apenas permitidos IPs de confiança</string>
+    <string name="ada_app_status_unknown">Desconhecida</string>
     <string name="ada_app_metered">Rede limitada</string>
     <string name="ada_app_exclude">Excluir</string>
     <string name="ada_app_isolate">Isolar</string>
@@ -563,10 +563,10 @@
     <string name="firewall_rule_dns_blocked_desc" translatable="true">Esta ligação foi bloqueada porque o <i>domínio</i> está bloqueado pelo DNS preferido do utilizador.<br/><br/>Para alterar este comportamento, aceda ao separador <i>Configurar DNS</i>.</string>
     <string name="firewall_rule_domain_trusted_univ_desc" translatable="true">Esta ligação foi permitida porque o <i>domínio</i> está definido como confiável nas regras universais de domínio.<br/><br/>Para alterar este comportamento, aceda ao separador <i>Configurar DNS</i>.</string>
     <string name="dc_setting_dns_cache_desc" translatable="true">Solicitações unificadas, respostas em cache, tratamento de erros resiliente</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">ignora as regras de DNS e de firewall</string>
+    <string name="firewall_status_bypass_dns_firewall" translatable="true">Ignora as regras de DNS e de firewall</string>
     <string name="fapps_bypass_dns_firewall_dialog_title" translatable="true">Ignorar aplicações</string>
     <string name="firewall_rule_domain_trusted_univ" translatable="true">Domínio confiável (universal)</string>
-    <string name="ada_app_status_bypass_dns_firewall" translatable="true">irá ignorar o DNS universal e as regras de firewall</string>
+    <string name="ada_app_status_bypass_dns_firewall" translatable="true">Irá ignorar o DNS universal e as regras de firewall</string>
     <string name="ada_app_bypass_dns_firewall" translatable="true">Ignorar DNS e firewall</string>
     <string name="brbs_backup_restore_desc" translatable="true">Não funciona em todas as versões da aplicação</string>
     <string name="dc_refresh_toast" translatable="true">Atualização concluída</string>

@@ -83,16 +83,16 @@
     <string name="settings_socks_forwarding_default_desc" translatable="true">Kapcsolatok továbbítása a SOCKS5 végpontra.</string>
     <string name="download_update_dialog_trylater_message" translatable="true">A frissítés most nem hajtható végre, kérjük, próbálja meg később újra.</string>
     <string name="info_dialog_copy_toast_msg" translatable="true">IP-cím másolva.</string>
-    <string name="firewall_status_excluded" translatable="true">kizárva a dns és tűzfal alól</string>
+    <string name="firewall_status_excluded" translatable="true">Kizárva a dns és tűzfal alól</string>
     <string name="hs_biometeric_error" translatable="true">Biometrikus hitelesítési hiba</string>
     <string name="dns_mode_info_title" translatable="true">DNS</string>
     <string name="settings_app_list_default_app" translatable="true">Nincs</string>
     <string name="exclude" translatable="true">kizárás</string>
     <string name="untracked" translatable="true">nem követett</string>
-    <string name="status_dns_error" translatable="true">dns hiba</string>
+    <string name="status_dns_error" translatable="true">Dns hiba</string>
     <string name="private_dns_dialog_heading" translatable="true">Privát DNS kikapcsolása</string>
     <string name="orbot_install_dialog_title" translatable="true">Szeretné telepíteni az Orbotot?</string>
-    <string name="status_dns_server_down" translatable="true">dns szerver leállt</string>
+    <string name="status_dns_server_down" translatable="true">Dns szerver leállt</string>
     <string name="apps_info_title" translatable="true">Alkalmazások</string>
     <string name="notification_action_resume_vpn" translatable="true">FOLYTATÁS</string>
     <string name="doh_custom_url_remove_success" translatable="true">Végpont törölve.</string>
@@ -133,8 +133,8 @@
     <string name="settings_theme_dialog_themes_2" translatable="true">Világos</string>
     <string name="settings_default_dns_heading" translatable="true">Válasszon tartalék DNS-t</string>
     <string name="settings_default_dns_desc" translatable="true">Ritka esetekben, amikor a felhasználó által preferált DNS nem állapítható meg, tartalék (fallback) DNS kerül használatra.</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">megkerüli a dns és tűzfal szabályokat</string>
-    <string name="firewall_status_unknown" translatable="true">ismeretlen</string>
+    <string name="firewall_status_bypass_dns_firewall" translatable="true">Megkerüli a dns és tűzfal szabályokat</string>
+    <string name="firewall_status_unknown" translatable="true">Ismeretlen</string>
     <string name="dns_crypt_relay_remove_success" translatable="true">A DNSCrypt átjátszó törölve.</string>
     <string name="notification_action_dns_firewall_mode" translatable="true">DNS + tűzfal</string>
     <string name="alert_firewall_accessibility_explanation" translatable="true">A RethinkDNS az kisegítő szolgáltatást használja, annak nyomon követésére, hogy mely alkalmazások vannak használatban, (előtérben) és melyek nem a (háttérben).\n\nA RethinkDNS nem gyűjt semmilyen információt, és nem kémkedik Ön után semmilyen módon.</string>
@@ -173,15 +173,15 @@
     <string name="allow" translatable="true">engedélyez</string>
     <string name="block" translatable="true">blokk</string>
     <string name="bypass_universal" translatable="true">univerzális megkerülés(bypass)</string>
-    <string name="status_waiting" description="This text appears during the connection process if Rethink needs user permission or the phone is offline." translatable="true">várakozás</string>
-    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">hibás</string>
+    <string name="status_waiting" description="This text appears during the connection process if Rethink needs user permission or the phone is offline." translatable="true">Várakozás</string>
+    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">Hibás</string>
     <string name="failed_using_default" translatable="true">Sikertelen: tartalék DNS használata</string>
-    <string name="status_no_internet" translatable="true">nincs internet</string>
+    <string name="status_no_internet" translatable="true">Nincs internet</string>
     <string name="isolate" translatable="true">elszigetelni</string>
     <string name="bypass_dns_firewall" translatable="true">dns és tűzfal megkerülése</string>
     <string name="notification_content" description="Indicates what will happen if the user taps the notification." translatable="true">Érintse meg a védelmi beállítás módosításához</string>
     <string name="dns_mode_notification_title" translatable="true">Védett! Csatlakozva a gyors és biztonságos DNS-hez.</string>
-    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit." translatable="true">nem védett</string>
+    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit." translatable="true">Nem védett</string>
     <string name="notification_action_pause_vpn" translatable="true">SZÜNET</string>
     <string name="notification_action_stop_vpn" translatable="true">LEÁLLÍTÁS</string>
     <string name="notification_action_dns_mode" translatable="true">DNS</string>
@@ -241,8 +241,8 @@
     <string name="settings_ip_dialog_ipv46" translatable="true">Auto (kísérleti)</string>
     <string name="settings_ip_text_ipv4" translatable="true">IPv4</string>
     <string name="settings_ip_text_ipv6" translatable="true">IPv6</string>
-    <string name="firewall_status_isolate" translatable="true">elkülönített</string>
-    <string name="firewall_status_whitelisted" translatable="true">megkerüli az univerzális tűzfalszabályokat</string>
+    <string name="firewall_status_isolate" translatable="true">Elkülönített</string>
+    <string name="firewall_status_whitelisted" translatable="true">Megkerüli az univerzális tűzfalszabályokat</string>
     <string name="hs_biometeric_title" translatable="true">Rethink feloldása</string>
     <string name="hs_biometeric_desc" translatable="true">Használja a biometrikus hitelesítést a RethinkDNS feloldásához</string>
     <string name="hsf_vpn_prepare_failure" translatable="true">Hiányzik a VPN engedély, vagy egy másik alkalmazás „Mindig bekapcsolt VPN” (Always-on VPN) módban fut.</string>
@@ -517,15 +517,15 @@
     <string name="ada_noapp_dialog_message" translatable="true">Az alkalmazás információi hiányoznak. Lehetséges, hogy ezt az alkalmazást eltávolították?</string>
     <string name="ada_noapp_dialog_positive" translatable="true">OK</string>
     <string name="ada_ip_no_connection" translatable="true">Nincs hálózati napló ebben a kategóriában.</string>
-    <string name="ada_app_status_allow" translatable="true">engedélyezett</string>
-    <string name="ada_app_status_block" translatable="true">blokkolva van</string>
-    <string name="ada_app_status_block_wifi" translatable="true">blokkolva van a korlátlan (wifi) hálózatokon</string>
-    <string name="ada_app_status_block_md" translatable="true">blokkolva van a díjköteles (mobil) hálózatokon</string>
-    <string name="ada_app_status_whitelist" translatable="true">meg fogja kerülni az univerzális tűzfalszabályokat</string>
+    <string name="ada_app_status_allow" translatable="true">Engedélyezett</string>
+    <string name="ada_app_status_block" translatable="true">Blokkolva van</string>
+    <string name="ada_app_status_block_wifi" translatable="true">Blokkolva van a korlátlan (wifi) hálózatokon</string>
+    <string name="ada_app_status_block_md" translatable="true">Blokkolva van a díjköteles (mobil) hálózatokon</string>
+    <string name="ada_app_status_whitelist" translatable="true">Meg fogja kerülni az univerzális tűzfalszabályokat</string>
     <string name="ada_app_status_exclude" translatable="true">Kizárva a DNS- és tűzfalkezelésből</string>
     <string name="ada_app_status_isolate" translatable="true">El van szigetelve; csak megbízható IP-címek engedélyezettek</string>
-    <string name="ada_app_status_bypass_dns_firewall" translatable="true">meg fogja kerülni az univerzális DNS- és tűzfalszabályokat</string>
-    <string name="ada_app_status_unknown" translatable="true">ismeretlen</string>
+    <string name="ada_app_status_bypass_dns_firewall" translatable="true">Meg fogja kerülni az univerzális DNS- és tűzfalszabályokat</string>
+    <string name="ada_app_status_unknown" translatable="true">Ismeretlen</string>
     <string name="ada_app_metered" translatable="true">Korlátozott adatforgalmú</string>
     <string name="ada_app_unmetered" translatable="true">Korlátlan</string>
     <string name="ada_app_bypass_univ" translatable="true">Univerzális megkerülés</string>

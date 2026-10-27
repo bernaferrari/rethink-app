@@ -244,27 +244,21 @@
 
     <string name="pause_mode_notification_title" translatable="true">Paused! Blocked apps will continue to be firewalled.</string>
 
-    <string name="status_waiting" description="This text appears during the connection process if Rethink needs user permission or the phone is offline." translatable="true">
-    waiting
-    </string>
+    <string name="status_waiting" description="This text appears during the connection process if Rethink needs user permission or the phone is offline." translatable="true">Waiting</string>
 
-    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">
-    failing
-    </string>
+    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">Failing</string>
 
 
     <string name="failed_using_default" translatable="true">Failed: using fallback DNS</string>
 
 
-    <string name="status_dns_error" translatable="true">dns error</string>
+    <string name="status_dns_error" translatable="true">DNS error</string>
 
-    <string name="status_dns_server_down" translatable="true">dns server down</string>
+    <string name="status_dns_server_down" translatable="true">DNS server down</string>
 
-    <string name="status_no_internet" translatable="true">no internet</string>
+    <string name="status_no_internet" translatable="true">No internet</string>
 
-    <string name="status_no_network" translatable="true">no network</string>
-
-
+    <string name="status_no_network" translatable="true">No network</string>
 
 
 
@@ -276,9 +270,9 @@
 
 
 
-    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit." translatable="true">
-    not protected
-    </string>
+
+
+    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit." translatable="true">Not protected</string>
 
 
 
@@ -603,11 +597,11 @@
 
     <!-- AppDetailActivity -->
 
-    <string name="firewall_status_excluded" translatable="true">excluded from dns and firewall</string>
-    <string name="firewall_status_isolate" translatable="true">isolated</string>
-    <string name="firewall_status_whitelisted" translatable="true">bypasses universal firewall rules</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">bypasses dns &amp; firewall rules</string>
-    <string name="firewall_status_unknown" translatable="true">unknown</string>
+    <string name="firewall_status_excluded" translatable="true">Excluded from DNS and firewall</string>
+    <string name="firewall_status_isolate" translatable="true">Isolated</string>
+    <string name="firewall_status_whitelisted" translatable="true">Bypasses universal firewall rules</string>
+    <string name="firewall_status_bypass_dns_firewall" translatable="true">Bypasses DNS &amp; firewall rules</string>
+    <string name="firewall_status_unknown" translatable="true">Unknown</string>
 
     <!--Connection tracker bottom sheet -->
 
@@ -1098,15 +1092,15 @@
 
     <string name="ada_ip_no_connection" translatable="true">No network logs for this category.</string>
 
-    <string name="ada_app_status_allow" translatable="true">is allowed</string>
-    <string name="ada_app_status_block" translatable="true">is blocked</string>
-    <string name="ada_app_status_block_wifi" translatable="true">is blocked on unmetered (wifi) networks</string>
-    <string name="ada_app_status_block_md" translatable="true">is blocked on metered (mobile) networks</string>
-    <string name="ada_app_status_whitelist" translatable="true">will bypass universal firewall rules</string>
-    <string name="ada_app_status_exclude" translatable="true">is excluded from dns and firewall</string>
-    <string name="ada_app_status_isolate" translatable="true">is isolated; only trusted IPs and domains allowed</string>
-    <string name="ada_app_status_bypass_dns_firewall" translatable="true">will bypass universal dns &amp; firewall rules</string>
-    <string name="ada_app_status_unknown" translatable="true">is unknown</string>
+    <string name="ada_app_status_allow" translatable="true">Allowed</string>
+    <string name="ada_app_status_block" translatable="true">Blocked</string>
+    <string name="ada_app_status_block_wifi" translatable="true">Blocked on Wi-Fi</string>
+    <string name="ada_app_status_block_md" translatable="true">Blocked on mobile data</string>
+    <string name="ada_app_status_whitelist" translatable="true">Bypasses universal firewall rules</string>
+    <string name="ada_app_status_exclude" translatable="true">Excluded from DNS and firewall</string>
+    <string name="ada_app_status_isolate" translatable="true">Isolated: only trusted IPs and domains are allowed</string>
+    <string name="ada_app_status_bypass_dns_firewall" translatable="true">Bypasses universal DNS &amp; firewall rules</string>
+    <string name="ada_app_status_unknown" translatable="true">Unknown</string>
 
 
 

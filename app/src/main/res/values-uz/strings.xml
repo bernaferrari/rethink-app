@@ -42,6 +42,6 @@
     <string name="firewall_mode_notification_title" translatable="true">Himoyalandi! Firewallga ulandi</string>
     <string name="hybrid_mode_notification_title" translatable="true">Himoyalandi! DNS + Firewallga ulandi.</string>
     <string name="hybrid_mode_with_proxy_notification_title" translatable="true">Himoyalandi! DNS + Firewall + Proksiga ulandi.</string>
-    <string name="status_dns_error" translatable="true">dns xatosi</string>
-    <string name="status_no_internet" translatable="true">internetga ulanmagan</string>
+    <string name="status_dns_error" translatable="true">Dns xatosi</string>
+    <string name="status_no_internet" translatable="true">Internetga ulanmagan</string>
 </resources>

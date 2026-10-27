@@ -19,9 +19,9 @@
     <string name="dns_mode_notification_title" translatable="true">Được bảo vệ! Đã kết nối với DNS nhanh và an toàn.</string>
     <string name="firewall_mode_notification_title" translatable="true">Được bảo vệ! Đã kết nối với Tường lửa.</string>
     <string name="notification_action_resume_vpn" translatable="true">TIẾP TỤC</string>
-    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">thất bại</string>
+    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">Thất bại</string>
     <string name="status_dns_error" translatable="true">Lỗi DNS</string>
-    <string name="status_no_internet" translatable="true">không có mạng</string>
+    <string name="status_no_internet" translatable="true">Không có mạng</string>
     <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit." translatable="true">Chưa được bảo vệ</string>
     <string name="notification_action_stop_vpn" translatable="true">DỪNG</string>
     <string name="notification_action_dns_firewall_mode" translatable="true">DNS + tường lửa</string>
@@ -36,8 +36,8 @@
     <string name="slide_2_desc" translatable="true">RethinkDNS là cách dễ nhất để giám sát hoạt động mạng, vượt qua kiểm duyệt Internet và các ứng dụng tường lửa trên thiết bị Android của bạn.</string>
     <string name="rdns_plus" translatable="true">RDNS Plus</string>
     <string name="hybrid_mode_notification_title" translatable="true">Được bảo vệ! Đã kết nối với DNS + Tường lửa.</string>
-    <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline." translatable="true">đang chờ</string>
-    <string name="status_dns_server_down" translatable="true">máy chủ dns ngừng hoạt động</string>
+    <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline." translatable="true">Đang chờ</string>
+    <string name="status_dns_server_down" translatable="true">Máy chủ dns ngừng hoạt động</string>
     <string name="notification_action_pause_vpn" translatable="true">NGƯNG</string>
     <string name="notification_action_dns_mode" translatable="true">DNS</string>
     <string name="accessibility_service_description" translatable="true">Rethink sử dụng dịch vụ trợ năng để phát hiện và tường lửa các ứng dụng nền. Rethink không thu thập hoặc bán bất kỳ thông tin nào.</string>
@@ -157,9 +157,9 @@
     <string name="settings_ip_text_ipv4" translatable="true">IPv4</string>
     <string name="settings_ip_text_ipv46" translatable="true">Tự động</string>
     <string name="settings_protocol_translation_dns_inactive" translatable="true">Chuyển sang chế độ DNS/DNS+Tường lửa để bật cài đặt này</string>
-    <string name="firewall_status_excluded" translatable="true">loại trừ khỏi dns và tường lửa</string>
-    <string name="firewall_status_isolate" translatable="true">cách ly</string>
-    <string name="firewall_status_unknown" translatable="true">không rõ</string>
+    <string name="firewall_status_excluded" translatable="true">Loại trừ khỏi dns và tường lửa</string>
+    <string name="firewall_status_isolate" translatable="true">Cách ly</string>
+    <string name="firewall_status_unknown" translatable="true">Không rõ</string>
     <string name="hs_biometeric_title" translatable="true">Mở khoá Re-RethinkDNS</string>
     <string name="hs_biometeric_desc" translatable="true">Sử dụng xác thực sinh trắc học để mở khóa Rethink</string>
     <string name="hs_biometeric_error" translatable="true">Lỗi xác thực sinh trắc học</string>
@@ -180,7 +180,7 @@
     <string name="settings_theme_dialog_themes_2" translatable="true">Sáng</string>
     <string name="settings_ip_text_ipv6" translatable="true">IPv6</string>
     <string name="settings_ip_dialog_ipv4" translatable="true">IPv4 (mặc định)</string>
-    <string name="firewall_status_whitelisted" translatable="true">bỏ qua các quy tắc tường lửa phổ quát</string>
+    <string name="firewall_status_whitelisted" translatable="true">Bỏ qua các quy tắc tường lửa phổ quát</string>
     <string name="lbl_rules" translatable="true">Quy tắc</string>
     <string name="lbl_configure" translatable="true">Cấu hình</string>
     <string name="bypass_universal" translatable="true">bỏ qua phổ quát</string>
@@ -296,7 +296,7 @@
     <string name="fapps_filter_categories_heading" translatable="true">Hạng mục</string>
     <string name="fapps_filter_parent_system" translatable="true">Hệ thống</string>
     <string name="fapps_info_isolate_msg" translatable="true">Chặn tất cả ngoại trừ các IP đáng tin cậy.</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">bỏ qua các quy tắc DNS và tường lửa</string>
+    <string name="firewall_status_bypass_dns_firewall" translatable="true">Bỏ qua các quy tắc DNS và tường lửa</string>
     <string name="settings_allow_lan_desc" translatable="true">Loại trừ các tuyến LAN, loopback, link-local khỏi đường hầm VPN của Rethink.</string>
     <string name="settings_lock_down_mode_desc" translatable="true">Một số tùy chọn bị tắt khi VPN ở chế độ khóa.<u>Xem cài đặt VPN</u></string>
     <string name="settings_dns_proxy_dialog_app_desc" translatable="true">Ứng dụng đã chọn sẽ bị loại trừ khỏi VPN để cho phép ứng dụng đó thay mặt bạn kết nối proxy.</string>
@@ -345,9 +345,9 @@
     <string name="ci_block" translatable="true">Chặn</string>
     <string name="firewall_rule_dns_blocked" translatable="true">DNS bị chặn</string>
     <string name="ada_noapp_dialog_positive" translatable="true">Được</string>
-    <string name="ada_app_status_block" translatable="true">bị chặn</string>
+    <string name="ada_app_status_block" translatable="true">Bị chặn</string>
     <string name="firewall_rule_unknown" translatable="true">Nguồn không xác định</string>
-    <string name="ada_app_status_allow" translatable="true">được cho phép</string>
+    <string name="ada_app_status_allow" translatable="true">Được cho phép</string>
     <string name="lbl_private_key" translatable="true">Khóa cá nhân</string>
     <string name="lbl_public_key" translatable="true">Khoá công khai</string>
     <string name="lbl_dns_servers" translatable="true">Máy chủ DNS</string>
@@ -438,7 +438,7 @@
     <string name="lbl_manual" translatable="true">Thủ công</string>
     <string name="lbl_fallback" translatable="true">Dự phòng</string>
     <string name="dns_desc" translatable="true">Chọn từ hơn 190 danh sách để chặn quảng cáo, trình theo dõi và phần mềm độc hại.</string>
-    <string name="status_no_network" translatable="true">không có mạng</string>
+    <string name="status_no_network" translatable="true">Không có mạng</string>
     <string name="dc_use_sys_dns_undelegated_heading" translatable="true">Sử dụng DNS hệ thống cho những tên miền không được chuyển giao</string>
     <string name="dc_use_sys_dns_undelegated_desc" translatable="true">Sử dụng DNS hệ thống cho những tên miền không được chuyển giao như <i>.lan</i>, <i>.internal</i>,...</string>
     <string name="cd_split_dns_heading" translatable="true">Tách DNS (thử nghiệm)</string>

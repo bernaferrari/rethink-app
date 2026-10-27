@@ -99,7 +99,7 @@
     <string name="exclude" translatable="true">exclude</string>
     <string name="isolate" translatable="true">izolează</string>
     <string name="pause_mode_notification_title" translatable="true">În repaus! Aplicațiile blocate vor fi protejate în continuare.</string>
-    <string name="status_waiting" description="This text appears during the connection process if Rethink needs user permission or the phone is offline." translatable="true">în așteptare</string>
+    <string name="status_waiting" description="This text appears during the connection process if Rethink needs user permission or the phone is offline." translatable="true">În așteptare</string>
     <string name="wireguard_disclaimer" translatable="true">DNS retrimis la %1$s.</string>
     <string name="wireguard_no_config_msg" translatable="true">Nu există VPN AdGuard. Adaugă unul pentru a începe.</string>
     <string name="wireguard_connection_error" translatable="true">VPN-ul WireGuard nu a reușit să se conecteze</string>
@@ -134,11 +134,11 @@
     <string name="firewall_act_network_monitor_tab" translatable="true">Retea</string>
     <string name="orbot_install_dialog_positive" translatable="true">Instaleaza</string>
     <string name="settings_general_header" translatable="true">General</string>
-    <string name="firewall_status_unknown" translatable="true">necunoscute</string>
+    <string name="firewall_status_unknown" translatable="true">Necunoscute</string>
     <string name="failed_using_default" translatable="true">Nereușit: se utilizează DNS-ul alternativ</string>
-    <string name="status_dns_error" translatable="true">eroare la DNS</string>
-    <string name="status_dns_server_down" translatable="true">server DNS nefuncțional</string>
-    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit." translatable="true">neprotejat</string>
+    <string name="status_dns_error" translatable="true">Eroare la DNS</string>
+    <string name="status_dns_server_down" translatable="true">Server DNS nefuncțional</string>
+    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit." translatable="true">Neprotejat</string>
     <string name="universal_firewall_explanation" translatable="true">Aplică regulile Firewall-ului la toate aplicațiile în funcție de evenimentele de pe dispozitiv; de exemplu, protejează când dispozitivul este blocat sau când o anumită aplicație nu rulează.</string>
     <string name="notification_action_resume_vpn" translatable="true">CONTINUĂ</string>
     <string name="notification_action_pause_vpn" translatable="true">PAUZĂ</string>
@@ -229,7 +229,7 @@
     <string name="orbot_no_app_toast" translatable="true">Pentru activarea Orbot adăugă cel puțin o aplicație</string>
     <string name="settings_socks5_disabled_error" translatable="true">Conectat la %1$s. Închide pentru a continua.</string>
     <string name="settings_socks5_vpn_disabled_error" translatable="true">Pornește Rethink pentru a continua.</string>
-    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">nu reușește</string>
+    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">Nu reușește</string>
     <string name="settings_exclude_proxy_apps_heading" translatable="true">Aplicații proxy cu loopback</string>
     <string name="orbot_stop_dialog_negative" translatable="true">Oprește Orbot</string>
     <string name="orbot_stop_dialog_neutral" translatable="true">Schimbă DNS</string>
@@ -257,10 +257,10 @@
     <string name="settings_protocol_translation_dns_inactive" translatable="true">Alege modul DNS/DNS+Firewall pentru a activa această setare</string>
     <string name="settings_default_dns_heading" translatable="true">Alege fallback DNS</string>
     <string name="settings_default_dns_desc" translatable="true">În cazurile rare când DNS-ul preferat de utilizator nu este găsit, se utilizează fallback DNS.</string>
-    <string name="firewall_status_excluded" translatable="true">excluse din dns și firewall</string>
-    <string name="firewall_status_isolate" translatable="true">izolate</string>
-    <string name="firewall_status_whitelisted" translatable="true">ocolesc regulile generale ale firewall-ului</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">ocolesc regulile dns și firewall</string>
+    <string name="firewall_status_excluded" translatable="true">Excluse din dns și firewall</string>
+    <string name="firewall_status_isolate" translatable="true">Izolate</string>
+    <string name="firewall_status_whitelisted" translatable="true">Ocolesc regulile generale ale firewall-ului</string>
+    <string name="firewall_status_bypass_dns_firewall" translatable="true">Ocolesc regulile dns și firewall</string>
     <string name="hs_biometeric_error" translatable="true">Eroare la autentificarea biometrică</string>
     <string name="hs_biometeric_title" translatable="true">Deblochează Rethink</string>
     <string name="hs_biometeric_desc" translatable="true">Folosește autentificarea biometrică pentru a debloca Rethink</string>
@@ -552,15 +552,15 @@
     <string name="ada_noapp_dialog_message" translatable="true">Nu există informații despre aplicație. Posibil să fi fost dezinstalată?</string>
     <string name="ada_noapp_dialog_positive" translatable="true">Okay</string>
     <string name="ada_ip_no_connection" translatable="true">Nu există înregistrări în jurnal pentru această categorie.</string>
-    <string name="ada_app_status_whitelist" translatable="true">va ocoli regulile universale de firewall</string>
-    <string name="ada_app_status_isolate" translatable="true">este izolată; numai IP-urile de încredere sunt permise</string>
-    <string name="ada_app_status_exclude" translatable="true">este exclusă de la dns și firewall</string>
-    <string name="ada_app_status_block_md" translatable="true">este blocată în rețelele contorizate (mobile)</string>
-    <string name="ada_app_status_block_wifi" translatable="true">este blocată în rețelele necontorizate (wifi)</string>
-    <string name="ada_app_status_block" translatable="true">este blocată</string>
-    <string name="ada_app_status_allow" translatable="true">este permisă</string>
-    <string name="ada_app_status_bypass_dns_firewall" translatable="true">va ocoli regulile universale de dns și firewall</string>
-    <string name="ada_app_status_unknown" translatable="true">este necunoscută</string>
+    <string name="ada_app_status_whitelist" translatable="true">Va ocoli regulile universale de firewall</string>
+    <string name="ada_app_status_isolate" translatable="true">Este izolată; numai IP-urile de încredere sunt permise</string>
+    <string name="ada_app_status_exclude" translatable="true">Este exclusă de la dns și firewall</string>
+    <string name="ada_app_status_block_md" translatable="true">Este blocată în rețelele contorizate (mobile)</string>
+    <string name="ada_app_status_block_wifi" translatable="true">Este blocată în rețelele necontorizate (wifi)</string>
+    <string name="ada_app_status_block" translatable="true">Este blocată</string>
+    <string name="ada_app_status_allow" translatable="true">Este permisă</string>
+    <string name="ada_app_status_bypass_dns_firewall" translatable="true">Va ocoli regulile universale de dns și firewall</string>
+    <string name="ada_app_status_unknown" translatable="true">Este necunoscută</string>
     <string name="ada_app_metered" translatable="true">Contorizat</string>
     <string name="ada_app_unmetered" translatable="true">Necontorizat</string>
     <string name="ada_app_bypass_univ" translatable="true">Ocolire Universală</string>
@@ -679,7 +679,7 @@
     <string name="lbl_experimental" translatable="true">(experimental)</string>
     <string name="lbl_service_providers" translatable="true">Furnizori de Internet</string>
     <string name="dns_desc" translatable="true">Alege din peste 190 liste pentru a bloca reclame, trackers și malware.</string>
-    <string name="status_no_network" translatable="true">fără rețea</string>
+    <string name="status_no_network" translatable="true">Fără rețea</string>
     <string name="dc_use_sys_dns_undelegated_heading" translatable="true">Utilizează DNS de sistem pentru domenii nedelegate</string>
     <string name="dc_use_sys_dns_undelegated_desc" translatable="true">Utilizează DNS de sistem pentru domenii nedelegate precum <i>.lan</i>, <i>.internal</i>, etc.</string>
     <string name="dc_filtering_heading" translatable="true">Filtrare</string>

@@ -118,7 +118,7 @@
     <string name="settings_ip_text_ipv4" translatable="true">IPv4</string>
     <string name="settings_ip_text_ipv6" translatable="true">IPv6</string>
     <string name="settings_ip_text_ipv46" translatable="true">自動</string>
-    <string name="firewall_status_excluded" translatable="true">dnsとファイアウォールから除外</string>
+    <string name="firewall_status_excluded" translatable="true">Dnsとファイアウォールから除外</string>
     <string name="firewall_status_unknown" translatable="true">不明</string>
     <string name="hsf_vpn_dialog_header" translatable="true">注意！</string>
     <string name="hsf_notification_permission_failure" translatable="true">設定画面から通知機能を有効にする</string>

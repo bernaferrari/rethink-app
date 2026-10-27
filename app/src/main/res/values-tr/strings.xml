@@ -20,11 +20,11 @@
     <string name="slide_2_desc">Rethink, Android aygıtınızda ağ etkinliğini izlemenin, İnternet sansürünü ve güvenlik duvarı uygulamalarını atlamanın en kolay yoludur.</string>
     <string name="allow">izin ver</string>
     <string name="pause_mode_notification_title">Duraklatıldı! Engellenen uygulamalar güvenlik duvarıyla korunmaya devam edecek.</string>
-    <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">bekliyor</string>
-    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">başarısız</string>
-    <string name="status_dns_error">dns hatası</string>
-    <string name="status_dns_server_down">dns sunucusu kapalı</string>
-    <string name="status_no_internet">internet yok</string>
+    <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">Bekliyor</string>
+    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">Başarısız</string>
+    <string name="status_dns_error">Dns hatası</string>
+    <string name="status_dns_server_down">Dns sunucusu kapalı</string>
+    <string name="status_no_internet">İnternet yok</string>
     <string name="universal_firewall_explanation">Aygıt olaylarına göre tüm uygulamalara güvenlik duvarı kuralları uygulayın; örneğin, aygıt kilitlendiğinde veya belirli bir uygulama kullanımda olmadığında güvenlik duvarı uygulayın.</string>
     <string name="notification_action_resume_vpn">SÜRDÜR</string>
     <string name="notification_action_pause_vpn">DURAKLAT</string>
@@ -33,7 +33,7 @@
     <string name="notification_action_dns_firewall_mode">DNS + Güvenlik Duvarı</string>
     <string name="dns_mode_info_title">DNS</string>
     <string name="firewall_mode_info_title">Güvenlik Duvarı</string>
-    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit.">korunmuyor</string>
+    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit.">Korunmuyor</string>
     <string name="settings_https_heading">HTTP(S) BAĞLAN Vekili Kurulumu</string>
     <string name="settings_https_desc">HTTP(S) BAĞLAN son noktası için ileri bağlantılar.</string>
     <string name="orbot">Orbot</string>
@@ -82,7 +82,7 @@
     <string name="orbot_stop_dialog_dns_message">Rethink, DNS sorgularını Orbot\'a iletecek şekilde ayarlanmıştır. Gerektiği gibi değiştirin.</string>
     <string name="settings_autostart_bootup_heading">Açılışta otomatik başlatma (deneysel)</string>
     <string name="settings_ip_text_ipv4">IPv4</string>
-    <string name="firewall_status_excluded">dns ve güvenlik duvarından hariç tutuldu</string>
+    <string name="firewall_status_excluded">Dns ve güvenlik duvarından hariç tutuldu</string>
     <string name="dc_custom_dns_radio">Diğer DNS</string>
     <string name="about_settings_app_info">Uygulama Bilgisi</string>
     <string name="cd_dns_crypt_title">çözücüler</string>
@@ -292,7 +292,7 @@
     <string name="notif_channel_download">Uyarıları İndir</string>
     <string name="category_name_non_app_sys">Sistem Hizmetleri</string>
     <string name="category_name_installed">Yüklü Uygulamalar</string>
-    <string name="ada_app_status_block_md">ölçülü (mobil) ağlarda engellenir</string>
+    <string name="ada_app_status_block_md">Ölçülü (mobil) ağlarda engellenir</string>
     <string name="notif_download_content_text">İndirme işlemi devam ediyor…</string>
     <string name="rt_chip_check_update">Güncellemeleri denetle</string>
     <string name="lbl_advanced">gelişmiş</string>
@@ -327,7 +327,7 @@
     <string name="settings_check_update_desc">Uygulama güncellemelerini haftada bir otomatik olarak kontrol edin.</string>
     <string name="settings_dns_proxy_dialog_header">SOCKS5 Vekili Ayarla</string>
     <string name="settings_ip_dialog_ipv46">Otomatik (deneysel)</string>
-    <string name="firewall_status_isolate">izole edilmiş</string>
+    <string name="firewall_status_isolate">İzole edilmiş</string>
     <string name="lbl_proceed">Devam Et</string>
     <string name="about_website">rethinkdns.com adresini ziyaret edin</string>
     <string name="cd_dns_proxy_mode_external">Harici</string>
@@ -408,7 +408,7 @@
     <string name="settings_autostart_bootup_desc">Cihaz açıldığında, kapatılmadan önce çalışıyorsa Rethink’i başlatın.</string>
     <string name="settings_http_proxy_error_text2">Kapı Geçersiz</string>
     <string name="settings_network_all_networks_desc">Etkinleştirildiğinde, Rethink internete bağlanmak için mevcut tüm ağları kullanır. Değilse, Android tarafından <i>aktif</i> olarak kabul edilen ağı kullanır.</string>
-    <string name="firewall_status_whitelisted">evrensel güvenlik duvarı kurallarını atlar</string>
+    <string name="firewall_status_whitelisted">Evrensel güvenlik duvarı kurallarını atlar</string>
     <string name="hsf_vpn_dialog_message">Rethink, cihazın DNS isteklerini şifrelemek, bir ağ izleyicisi uygulamak ve güvenlik duvarı kurallarını uygulamak için yerel bir VPN kurma iznine ihtiyaç duyar.
 \n
 \nRethink herhangi bir şekilde bilgi toplamaz veya sizi gözetlemez.</string>
@@ -426,11 +426,11 @@
     <string name="dns_proxy_dialog_message_no_app">IP adresi: %1$s
 \n
 \nLiman numarası: %2$s</string>
-    <string name="ada_app_status_block">engellendi</string>
+    <string name="ada_app_status_block">Engellendi</string>
     <string name="ada_app_unmetered">Ölçülmeyen</string>
     <string name="network_dns">Sistem DNS</string>
     <string name="firewall_rule_bypass_universal_ip">Bypass edilen IP</string>
-    <string name="ada_app_status_block_wifi">ölçülmemiş (wifi) ağlarda engellenir</string>
+    <string name="ada_app_status_block_wifi">Ölçülmemiş (wifi) ağlarda engellenir</string>
     <string name="firewall_rule_univ_block_metered">Ölçülü (Evrensel)</string>
     <string name="firewall_rule_block_app_exception">Hata</string>
     <string name="firewall_rule_no_rule_desc">Bu bağlantıyla eşleşen güvenlik duvarı kuralı yok.</string>
@@ -460,13 +460,13 @@
     <string name="firewall_rule_new_app_desc"><![CDATA[Bu uygulama <i>ilk</i> kez bağlantı kurdu. Değiştirmek için <i>Evrensel</i> sekmesine gidin.]]></string>
     <string name="firewall_rule_block_app_mobile_desc"><![CDATA[Kullanıcı tarafından belirlenen güvenlik duvarı kuralı bu <i>uygulamanın</i> <i>Ölçülmüş</i> ağda bağlantı kurma girişimini engelledi. Değiştirmek için <i>Tüm Uygulamalar</i> sekmesine gidin.]]></string>
     <string name="firewall_rule_trusted_ip_desc"><![CDATA[Bu bağlantıya izin verildi çünkü <i>hedef IP</i> Güvenilir IP olarak ayarlandı.<br/><br/> Değiştirmek için <i>Uygulamaya Özel Güvenlik Duvarı</i> ekranına gidin.]]></string>
-    <string name="ada_app_status_allow">izin verilir</string>
+    <string name="ada_app_status_allow">İzin verilir</string>
     <string name="ci_no_rule">Kural Yok</string>
     <string name="ada_noapp_dialog_message">Uygulama bilgisi kayıp.
 \nBu uygulama silinmiş olabilir mi?</string>
-    <string name="ada_app_status_whitelist">evrensel güvenlik duvarı kurallarını atlayacaktır</string>
-    <string name="ada_app_status_isolate">izole edildi; sadece güvenilir IPlere izin verilir</string>
-    <string name="ada_app_status_unknown">bilinmiyor</string>
+    <string name="ada_app_status_whitelist">Evrensel güvenlik duvarı kurallarını atlayacaktır</string>
+    <string name="ada_app_status_isolate">İzole edildi; sadece güvenilir IPlere izin verilir</string>
+    <string name="ada_app_status_unknown">Bilinmiyor</string>
     <string name="ada_app_bypass_univ">Bypass Evrensel</string>
     <string name="ada_app_exclude">Dışarıda tut</string>
     <string name="bsac_title_desc">Kurallar sadece bu uygulama için geçerlidir.</string>
@@ -478,7 +478,7 @@
     <string name="notif_download_success_content">Başarılı indir.</string>
     <string name="rbl_security">Güvenlik</string>
     <string name="ada_ip_no_connection">Bu kategori için ağ kaydı yok.</string>
-    <string name="ada_app_status_exclude">dns ve güvenlik duvarından hariç tutulur</string>
+    <string name="ada_app_status_exclude">Dns ve güvenlik duvarından hariç tutulur</string>
     <string name="ada_app_metered">Ölçülü</string>
     <string name="notif_download_content_title">Cihaz Üzerinde Engelleme Listesi indir</string>
     <string name="rbl_parental_control">Ebeveyn Kontrolü</string>
@@ -665,7 +665,7 @@
     <string name="bad_config_error" translatable="true">%2$s içinde %1$s</string>
     <string name="lbl_create" translatable="true">Oluştur</string>
     <string name="parse_error_inet_endpoint" translatable="true">Uç nokta</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">dns ve güvenlik duvarı kurallarını atlar</string>
+    <string name="firewall_status_bypass_dns_firewall" translatable="true">Dns ve güvenlik duvarı kurallarını atlar</string>
     <string name="no_configs_error" translatable="true">Hiçbir yapılandırma bulunamadı</string>
     <string name="firewall_rule_proxied" translatable="true">Proxy\'li</string>
     <string name="http_proxy_dialog_desc" translatable="true">Form URL\'sini değiştirin, &lt;protocol&gt; https://&lt;username&gt;:&lt;password&gt;@&lt;domain-or-ip&gt;:&lt;port&gt;&lt;path&gt; Örnek: http://proxy.ör.com:8080/</string>
@@ -681,7 +681,7 @@
     <string name="illegal_filename_error" translatable="true">Geçersiz dosya adı \"%s\"</string>
     <string name="fapps_info_exclude_msg" translatable="true">DNS + Güvenlik Duvarı\'nın her ikisinden de hariç tutun.</string>
     <string name="fapps_unblock_dialog_title" translatable="true">Uygulamalara izin ver</string>
-    <string name="ada_app_status_bypass_dns_firewall" translatable="true">evrensel dns ve güvenlik duvarı kurallarını atlayacaktır</string>
+    <string name="ada_app_status_bypass_dns_firewall" translatable="true">Evrensel dns ve güvenlik duvarı kurallarını atlayacaktır</string>
     <string name="crypt_quad9_desc" translatable="true">Quad9 (anycast) no–dnssec/no–log/no–filter/ecs 9.9.9.12 – 149.112.112.12</string>
     <string name="lbl_remove" translatable="true">Kaldır</string>
     <string name="lbl_last" translatable="true">Son</string>
@@ -725,7 +725,7 @@
     <string name="lbl_service_providers" translatable="true">Hizmet Sağlayıcıları</string>
     <string name="lbl_manual" translatable="true">Talimatlar</string>
     <string name="dns_desc" translatable="true">Reklamlar, izleyiciler ve kötücül yazılımları engellemek için 190+ listeden seçimini yap.</string>
-    <string name="status_no_network" translatable="true">bağlantı yok</string>
+    <string name="status_no_network" translatable="true">Bağlantı yok</string>
     <string name="lbl_fallback" translatable="true">Yedek</string>
     <string name="lbl_action" translatable="true">Aksiyon</string>
     <string name="lbl_connect" translatable="true">Bağlan</string>

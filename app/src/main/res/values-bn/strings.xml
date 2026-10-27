@@ -20,7 +20,7 @@
     <string name="about_docs">ডক্স পড়ুন</string>
     <string name="about_docs_link">https://docs.rethinkdns.com/</string>
     <string name="cd_dns_crypt_resolver_heading">সমাধানকারী</string>
-    <string name="status_dns_error">dns ত্রুটি</string>
+    <string name="status_dns_error">Dns ত্রুটি</string>
     <string name="notification_action_resume_vpn">জীবনবৃত্তান্ত</string>
     <string name="dns_crypt_relay_remove_dialog_title">DNSCrypt রিলে মুছবেন\?</string>
     <string name="download_update_dialog_message_success">ব্লকলিস্ট ডাউনলোড সফল হয়েছে।</string>
@@ -33,7 +33,7 @@
     <string name="blocklist_update_check_not_required">ব্লকলিস্টগুলি ইতিমধ্যেই সর্বশেষ সংস্করণে রয়েছে৷</string>
     <string name="search_custom_domains"><font size="12">ডোমেন নাম অনুসন্ধান করুন</font></string>
     <string name="settings_dns_proxy_dialog_header">SOCKS5 (TCP) প্রক্সি সেট করুন</string>
-    <string name="firewall_status_excluded">dns এবং ফায়ারওয়াল থেকে বাদ</string>
+    <string name="firewall_status_excluded">Dns এবং ফায়ারওয়াল থেকে বাদ</string>
     <string name="firewall_status_unknown">অজানা</string>
     <string name="lbl_proceed">আরম্ভ করুন</string>
     <string name="hsf_pause_vpn_failure">বিরতি দেওয়া যাবে না: রিথিঙ্কডিএনএস সক্রিয় নয়</string>

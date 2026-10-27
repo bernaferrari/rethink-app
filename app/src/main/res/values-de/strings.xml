@@ -17,12 +17,12 @@
     <string name="firewall_mode_notification_title">Geschützt! Verbunden mit der Firewall.</string>
     <string name="hybrid_mode_notification_title">Geschützt! Verbunden mit DNS + Firewall.</string>
     <string name="pause_mode_notification_title">Pausiert! Blockierte Apps werden weiterhin mit einer Firewall geblockt.</string>
-    <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">wartend</string>
-    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">fehlerhaft</string>
+    <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">Wartend</string>
+    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">Fehlerhaft</string>
     <string name="status_dns_error">DNS Fehler</string>
     <string name="status_dns_server_down">DNS-Server ausgefallen</string>
     <string name="status_no_internet">Kein Internet</string>
-    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit.">nicht geschützt</string>
+    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit.">Nicht geschützt</string>
     <string name="notification_action_resume_vpn">FORTSETZEN</string>
     <string name="notification_action_pause_vpn">PAUSE</string>
     <string name="notification_action_stop_vpn">STOPP</string>
@@ -236,13 +236,13 @@
     <string name="ci_block">Blockieren</string>
     <string name="ada_noapp_dialog_message">App-Informationen fehlen. Vielleicht wurde diese App deinstalliert\?</string>
     <string name="ada_noapp_dialog_positive">OK</string>
-    <string name="ada_app_status_allow">ist erlaubt</string>
+    <string name="ada_app_status_allow">Ist erlaubt</string>
     <string name="ada_ip_no_connection">Keine Netzwerkprotokolle für diese Kategorie.</string>
-    <string name="ada_app_status_block">ist blockiert</string>
-    <string name="ada_app_status_block_wifi">wird in nicht gebührenpflichtigen Netzwerken (Wlan) blockiert</string>
-    <string name="ada_app_status_isolate">ist isoliert; nur vertrauenswürdige IPs erlaubt</string>
-    <string name="ada_app_status_unknown">ist unbekannt</string>
-    <string name="ada_app_status_whitelist">umgeht die universellen Firewall-Regeln</string>
+    <string name="ada_app_status_block">Ist blockiert</string>
+    <string name="ada_app_status_block_wifi">Wird in nicht gebührenpflichtigen Netzwerken (Wlan) blockiert</string>
+    <string name="ada_app_status_isolate">Ist isoliert; nur vertrauenswürdige IPs erlaubt</string>
+    <string name="ada_app_status_unknown">Ist unbekannt</string>
+    <string name="ada_app_status_whitelist">Umgeht die universellen Firewall-Regeln</string>
     <string name="rbl_parental_control" description="The text appears as part of the blocklist setup screen as categories or headlines">Elterliche Kontrolle</string>
     <string name="rbl_privacy" description="The text appears as part of the blocklist setup screen as categories or headlines">Datenschutz</string>
     <string name="notif_download_cancel_content">Download abgebrochen.</string>
@@ -283,7 +283,7 @@
     <string name="brbs_restore_no_uri_toast">Wiederherstellung fehlgeschlagen; versuchen Sie es nochmal</string>
     <string name="brbs_restore_dialog_failure_title">Wiederherstellung fehlgeschlagen</string>
     <string name="category_name_installed">Installierte Apps</string>
-    <string name="ada_app_status_exclude">ist von DNS und Firewall ausgeschlossen</string>
+    <string name="ada_app_status_exclude">Ist von DNS und Firewall ausgeschlossen</string>
     <string name="rbl_parental_control_desc" description="The text appears as blocklists description in configure screen">Sperren Sie Inhalte für Erwachsene und Raubkopien, Online-Glücksspiele und -Dating, sowie soziale Medien.</string>
     <string name="rt_dialog_message">Möchten Sie neu konfigurierte Blocklisten anwenden\?</string>
     <string name="rt_dialog_neutral">Weiter</string>
@@ -291,9 +291,9 @@
     <string name="brbs_restore_desc">Aus Sicherungsdatei wiederherstellen</string>
     <string name="brbs_backup_desc">Sichern von Anwendungseinstellungen, Netzwerk- und DNS-Protokollen</string>
     <string name="alert_firewall_accessibility_regrant_explanation">Der Rethink Dienst für Barrierefreiheit wurde angehalten oder ist abgestürzt. <i><b>Erzwinge das Beenden von Rethink über die Systemeinstellungen</b></i> und starte Rethink erneut, um die Funktion <i>Blockieren aller nicht genutzten Apps</i> zu verwenden.\n\nRethink verwendet den Dienst für Barrierefreiheit, um zu verfolgen, welche Apps in Gebrauch sind (im Vordergrund) und welche nicht (im Hintergrund).</string>
-    <string name="firewall_status_isolate">isoliert</string>
-    <string name="firewall_status_excluded">von DNS und Firewall ausgeschlossen</string>
-    <string name="firewall_status_whitelisted">umgeht die universellen Firewall-Regeln</string>
+    <string name="firewall_status_isolate">Isoliert</string>
+    <string name="firewall_status_excluded">Von DNS und Firewall ausgeschlossen</string>
+    <string name="firewall_status_whitelisted">Umgeht die universellen Firewall-Regeln</string>
     <string name="firewall_rule_global_lockdown_desc"><![CDATA[Diese Verbindung wurde blockiert, da die universelle Sperre aktiviert ist.<br/><br/> Um dies zu ändern, gehe zum Tab <i>Universal</i>.]]></string>
     <string name="new_app_bulk_notification_content">Rethink hat %1$s neue Apps blockiert. Zum Anzeigen oder Ändern tippen.</string>
     <string name="new_app_notification_content">Rethink blockierte die kürzlich installierte App, %1$s.</string>
@@ -306,7 +306,7 @@
     <string name="build__flavor_website">webseite</string>
     <string name="build__flavor_play_store">Spiel {fileName}</string>
     <string name="build__flavor_fdroid">fdroid</string>
-    <string name="ada_app_status_block_md">ist in gebührenpflichtigen (mobilen) Netzen gesperrt</string>
+    <string name="ada_app_status_block_md">Ist in gebührenpflichtigen (mobilen) Netzen gesperrt</string>
     <string name="ada_app_metered">Getaktet</string>
     <string name="ada_app_unmetered">Ungetaktet</string>
     <string name="ada_app_bypass_univ">Universelle Umgehung</string>
@@ -337,7 +337,7 @@
     <string name="hsf_vpn_prepare_failure">Entweder fehlt die VPN-Berechtigung, oder eine andere Anwendung befindet sich im Always-on-VPN-Modus.</string>
     <string name="lbl_proceed">Fortfahren</string>
     <string name="hsf_notification_permission_failure">Erteile die Berechtigung für Benachrichtigungen in den Android-Einstellungen</string>
-    <string name="firewall_status_unknown">unbekannt</string>
+    <string name="firewall_status_unknown">Unbekannt</string>
     <string name="hsf_pause_vpn_failure">Kann nicht pausieren: Rethink nicht aktiv</string>
     <string name="dc_block_heading">Regeln</string>
     <string name="dc_other_dns_heading">Typ</string>
@@ -543,7 +543,7 @@
     <string name="lbl_rules" translatable="true">Regeln</string>
     <string name="lbl_logs" translatable="true">Protokolle</string>
     <string name="firewall_rule_bypass_dns_firewall" translatable="true">Umgangene App</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">umgeht DNS- und Firewall-Regeln</string>
+    <string name="firewall_status_bypass_dns_firewall" translatable="true">Umgeht DNS- und Firewall-Regeln</string>
     <string name="dc_setting_dns_cache_heading" translatable="true">DNS-Verstärker</string>
     <string name="dc_refresh_toast" translatable="true">Aktualisierung abgeschlossen</string>
     <string name="brbs_backup_restore_desc" translatable="true">Funktioniert nicht über verschiedene App-Versionen hinweg</string>
@@ -555,7 +555,7 @@
     <string name="ada_app_bypass_dns_firewall" translatable="true">Umgehe DNS &amp; Firewall</string>
     <string name="dc_setting_dns_cache_desc" translatable="true">Vereine Anfragen, cache Antworten, robuste Fehlerbehandlung</string>
     <string name="firewall_rule_domain_blocked_univ_desc" translatable="true"><![CDATA[Diese Verbindung wurde blockiert, da die <i>Domain</i> in den universellen Domain-Regeln als blockiert festgelegt ist.<br/><br/> Um dieses Verhalten zu ändern, gehen Sie zur Registerkarte <i>DNS konfigurieren</i>.]]></string>
-    <string name="ada_app_status_bypass_dns_firewall" translatable="true">wird universelle DNS- &amp; Firewall-Regeln umgehen</string>
+    <string name="ada_app_status_bypass_dns_firewall" translatable="true">Wird universelle DNS- &amp; Firewall-Regeln umgehen</string>
     <string name="cd_dns_alg_desc" translatable="true">Einzigartige IP für jede DNS-Anfrage verwenden.</string>
     <string name="firewall_rule_domain_blocked_univ" translatable="true">Domäne (Univ)</string>
     <string name="firewall_rule_bypass_dns_firewall_desc" translatable="true"><![CDATA[Diese Verbindung wurde zugelassen, da die <i>Quell-App</i> auf <i>DNS- und Firewall-Regeln umgehen</i> gesetzt ist.<br/><br/> Zum Ändern gehen Sie zum Bildschirm <i>App-spezifische Firewall</i>.]]></string>
@@ -701,7 +701,7 @@
     <string name="lbl_last" translatable="true">Zuletzt</string>
     <string name="lbl_test" translatable="true">Test</string>
     <string name="lbl_service_providers" translatable="true">Service Provider</string>
-    <string name="status_no_network" translatable="true">kein Netzwerk</string>
+    <string name="status_no_network" translatable="true">Kein Netzwerk</string>
     <string name="cd_split_dns_heading" translatable="true">Split DNS (experimentell)</string>
     <string name="cd_treat_dns_rules_firewall_heading" translatable="true">DNS-Regeln als Firewall-Regeln behandeln (experimentell)</string>
     <string name="lbl_experimental" translatable="true">(experimentell)</string>

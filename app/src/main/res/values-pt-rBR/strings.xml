@@ -23,7 +23,7 @@
     <string name="about_dialog_neutral_button">Sugerir funcionalidades</string>
     <string name="vpn_profile_error">Não foi possível iniciar o perfil VPN.</string>
     <string name="cd_dns_proxy_mode_external">Externo</string>
-    <string name="firewall_status_excluded">excluído do dns e firewall</string>
+    <string name="firewall_status_excluded">Excluído do dns e firewall</string>
     <string name="cd_custom_dns_proxy_name">Proxy %1$s</string>
     <string name="cd_custom_dns_proxy_default_ip">127.0.0.1</string>
     <string name="cd_custom_dns_proxy_name_default">Proxy</string>
@@ -100,11 +100,11 @@
     <string name="notif_channel_desc_vpn_notification">Informar quando o Rethink está ativo e funcionando em segundo plano</string>
     <string name="notif_channel_desc_proxy_failure">Alertar sobre erros e anomalias do Proxy</string>
     <string name="notif_channel_desc_firewall_alerts">Alertar sobre erros e anomalias do Firewall</string>
-    <string name="ada_app_status_block_wifi">bloqueada em redes Wi-Fi</string>
-    <string name="ada_app_status_allow">está permitido</string>
+    <string name="ada_app_status_block_wifi">Bloqueada em redes Wi-Fi</string>
+    <string name="ada_app_status_allow">Está permitido</string>
     <string name="ada_ip_no_connection">Nenhum registro de rede para este aplicativo.</string>
-    <string name="ada_app_status_block_md">bloqueada em redes móveis</string>
-    <string name="ada_app_status_whitelist">irá ignorar as regras universais de firewall</string>
+    <string name="ada_app_status_block_md">Bloqueada em redes móveis</string>
+    <string name="ada_app_status_whitelist">Irá ignorar as regras universais de firewall</string>
     <string name="notif_download_content_title">Download da lista de bloqueio no dispositivo</string>
     <string name="rt_dialog_neutral">Continuar</string>
     <string name="rt_chip_check_update">Verificar atualizações</string>
@@ -121,7 +121,7 @@
     <string name="brbs_restore_complete_toast">Restauração concluída, reiniciando o aplicativo…</string>
     <string name="rdns_plus">RDNS Plus</string>
     <string name="block">bloquear</string>
-    <string name="status_no_internet">sem internet</string>
+    <string name="status_no_internet">Sem internet</string>
     <string name="title_about">Sobre</string>
     <string name="app_name" translatable="false">Re-Rethink</string>
     <string name="title_settings">Configurações</string>
@@ -144,7 +144,7 @@
     <string name="universal_firewall_explanation">Aplicar regras de firewall para todos os aplicativos baseado em eventos no dispositivo, p.ex., usar firewall quando o dispositivo estiver bloqueado ou quando um determinado aplicativo não estiver em uso.</string>
     <string name="settings_allow_bypass_desc">Permitir a solicitação de aplicativos para acessar todas as redes disponíveis. Esses aplicativos podem ignorar o túnel VPN sob demanda do Rethink. Alguns aplicativos de conferência de áudio/vídeo, como Zoom e Meet, podem exigir que isso funcione corretamente.</string>
     <string name="orbot_status_arg_2">TCP</string>
-    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit.">não protegido</string>
+    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit.">Não protegido</string>
     <string name="orbot">Orbot</string>
     <string name="settings_https_desc">Encaminhar conexões para o endpoint HTTP(S) CONNECT.</string>
     <string name="hybrid_mode_notification_title">Protegido! Conectado ao DNS + Firewall.</string>
@@ -170,10 +170,10 @@
     <string name="dns_mode_notification_title">Protegido! Conectado ao DNS rápido e seguro.</string>
     <string name="firewall_mode_notification_title">Protegido! Conectado ao Firewall.</string>
     <string name="pause_mode_notification_title">Pausado! Os aplicativos bloqueados continuarão protegidos por firewall.</string>
-    <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">esperando</string>
-    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">falhando</string>
-    <string name="status_dns_error">falha de dns</string>
-    <string name="status_dns_server_down">servidor dns inativo</string>
+    <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">Esperando</string>
+    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">Falhando</string>
+    <string name="status_dns_error">Falha de dns</string>
+    <string name="status_dns_server_down">Servidor dns inativo</string>
     <string name="notification_action_resume_vpn">RETOMAR</string>
     <string name="notification_action_pause_vpn">PAUSAR</string>
     <string name="notification_action_stop_vpn">ENCERRAR</string>
@@ -283,9 +283,9 @@
     <string name="settings_ip_text_ipv6">IPv6</string>
     <string name="settings_selected_ip_desc">%1$s</string>
     <string name="settings_protocol_translation_dns_inactive">Mudar para o modo DNS/DNS+Firewall para ativar esta configuração</string>
-    <string name="firewall_status_isolate">restrito</string>
+    <string name="firewall_status_isolate">Restrito</string>
     <string name="firewall_status_whitelisted">Ignora regras universais de firewall</string>
-    <string name="firewall_status_unknown">desconhecido</string>
+    <string name="firewall_status_unknown">Desconhecido</string>
     <string name="hsf_vpn_dialog_message">Rethink precisa de permissão para configurar uma VPN local para criptografar as solicitações DNS do dispositivo, implementar um monitor de rede e aplicar regras de firewall.
 \n
 \nRethink não coleta nenhuma informação nem espiona você de forma alguma.</string>
@@ -432,10 +432,10 @@
     <string name="ada_noapp_dialog_title">Esse aplicativo não existe</string>
     <string name="ada_noapp_dialog_message">Faltam informações do aplicativo. Talvez este aplicativo tenha sido desinstalado?</string>
     <string name="ada_noapp_dialog_positive">OK</string>
-    <string name="ada_app_status_block">está bloqueado</string>
-    <string name="ada_app_status_exclude">está excluído do dns e firewall</string>
-    <string name="ada_app_status_isolate">está isolado; somente IPs confiáveis são permitidos</string>
-    <string name="ada_app_status_unknown">é desconhecido</string>
+    <string name="ada_app_status_block">Está bloqueado</string>
+    <string name="ada_app_status_exclude">Está excluído do dns e firewall</string>
+    <string name="ada_app_status_isolate">Está isolado; somente IPs confiáveis são permitidos</string>
+    <string name="ada_app_status_unknown">É desconhecido</string>
     <string name="ada_app_metered">Rede móvel</string>
     <string name="ada_app_unmetered">Rede Wi-Fi</string>
     <string name="ada_app_bypass_univ">Ignorar todos</string>
@@ -564,11 +564,11 @@
     <string name="logs_card_duration" translatable="true">desde %1$s</string>
     <string name="lbl_select_all" translatable="true">Selecionar todos</string>
     <string name="app_ip_domain_rules" translatable="true">Regras de IP/domínio por aplicativo</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">ignora regras de DNS e firewall</string>
+    <string name="firewall_status_bypass_dns_firewall" translatable="true">Ignora regras de DNS e firewall</string>
     <string name="hs_biometeric_desc" translatable="true">Usar autenticação biométrica para desbloquear o Rethink</string>
     <string name="lbl_listen_port" translatable="true">Porta</string>
     <string name="firewall_rule_domain_blocked_univ_desc" translatable="true">Esta conexão foi bloqueada porque o <i>domínio</i> está configurado como bloqueado nas regras de domínio universais.<br/><br/> Para alterar esse comportamento, acesse a guia <i>Configurar DNS</i>.</string>
-    <string name="ada_app_status_bypass_dns_firewall" translatable="true">irá ignorar as regras universais de DNS e firewall</string>
+    <string name="ada_app_status_bypass_dns_firewall" translatable="true">Irá ignorar as regras universais de DNS e firewall</string>
     <string name="ada_app_bypass_dns_firewall" translatable="true">Ignorar DNS + Firewall</string>
     <string name="fapps_isolate_block_dialog_message" translatable="true">Isolar aplicativos <i>listados</i>\?</string>
     <string name="ssv_see_more" translatable="true">Mostrar todos</string>
@@ -719,7 +719,7 @@
     <string name="lbl_manual" translatable="true">Manual</string>
     <string name="lbl_fallback" translatable="true">Fallback</string>
     <string name="dns_desc" translatable="true">Escolha entre mais de 190 listas para bloquear anúncios, rastreadores e malware.</string>
-    <string name="status_no_network" translatable="true">sem rede</string>
+    <string name="status_no_network" translatable="true">Sem rede</string>
     <string name="dc_use_sys_dns_undelegated_heading" translatable="true">Use DNS do sistema para domínios não delegados</string>
     <string name="dc_use_sys_dns_undelegated_desc" translatable="true">Use o DNS do sistema para domínios não controlados, como <i>.lan</i>, <i>.internal</i>, etc.</string>
     <string name="dc_filtering_heading" translatable="true">Filtragem</string>

@@ -6,8 +6,8 @@
     <string name="notification_content" description="Indicates what will happen if the user taps the notification.">Натисни за промяна на настройките за защита</string>
     <string name="pause_mode_notification_title">На пауза! Блокираните приложения ще продължат да бъдат защитени със защитна стена.</string>
     <string name="dns_mode_notification_title">Защитен! Свързан към Бърз и Сигурен DNS.</string>
-    <string name="status_no_internet">няма интернет</string>
-    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit.">не е защитен</string>
+    <string name="status_no_internet">Няма интернет</string>
+    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit.">Не е защитен</string>
     <string name="universal_firewall_explanation">Прилагайте правила за защитна стена за всички приложения въз основа на събития в устройството, например защитна стена, когато устройството е заключено или когато дадено приложение не се използва.</string>
     <string name="notification_action_stop_vpn">STOP</string>
     <string name="firewall_mode_info_title">Защитна стена</string>
@@ -29,10 +29,10 @@
     <string name="warning_title" description="Status indicator text shown in a warning notification.">Внимание: Rethink бе деактивиран</string>
     <string name="firewall_mode_notification_title">Защитен! Свързан към Firewall.</string>
     <string name="hybrid_mode_notification_title">Защитен! Свързан към DNS + Firewall.</string>
-    <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">чакане</string>
-    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">неуспешен</string>
-    <string name="status_dns_error">грешка в dns</string>
-    <string name="status_dns_server_down">dns сървъра не работи</string>
+    <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">Чакане</string>
+    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">Неуспешен</string>
+    <string name="status_dns_error">Грешка в dns</string>
+    <string name="status_dns_server_down">Dns сървъра не работи</string>
     <string name="notification_action_resume_vpn">ПРОДЪЛЖИ</string>
     <string name="notification_action_pause_vpn">ПАУЗА</string>
     <string name="notification_action_dns_mode">DNS</string>

@@ -13,9 +13,9 @@
     <string name="notification_content" description="Indicates what will happen if the user taps the notification.">Bakstelėkite, kad pakeistumėte apsaugos nustatymą</string>
     <string name="dns_mode_notification_title">Apsaugota! Prisijungta prie greito ir saugaus DNS.</string>
     <string name="firewall_mode_notification_title">Apsaugota! Prisijungta prie ugniasienės.</string>
-    <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">laukiama</string>
-    <string name="status_dns_error">dns klaida</string>
-    <string name="status_no_internet">nėra interneto</string>
+    <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">Laukiama</string>
+    <string name="status_dns_error">Dns klaida</string>
+    <string name="status_no_internet">Nėra interneto</string>
     <string name="notification_action_pause_vpn">PRISTABDYTI</string>
     <string name="notification_action_stop_vpn">SUSTABDYTI</string>
     <string name="notification_action_dns_mode">DNS</string>
@@ -93,8 +93,8 @@
     <string name="settings_ip_text_ipv6">IPv6</string>
     <string name="settings_ip_text_ipv46">Automatinis</string>
     <string name="settings_protocol_translation_dns_inactive">Norėdami įjungti šį nustatymą, perjunkite į DNS / DNS + ugniasienės režimą</string>
-    <string name="firewall_status_isolate">visiškas užrakinimas</string>
-    <string name="firewall_status_whitelisted">apeinamos universaliosios ugniasienės taisyklės</string>
+    <string name="firewall_status_isolate">Visiškas užrakinimas</string>
+    <string name="firewall_status_whitelisted">Apeinamos universaliosios ugniasienės taisyklės</string>
     <string name="hsf_vpn_dialog_header">Dėmesio!</string>
     <string name="lbl_proceed">Tęsti</string>
     <string name="hsf_pause_vpn_failure">Nepavyksta pristabdyti: RethinkDNS neaktyvus</string>
@@ -229,10 +229,10 @@
     <string name="ci_dialog_error_invalid_ip">Netinkamas IP adresas, potinklis arba prievadas.</string>
     <string name="ada_noapp_dialog_message">Programėlės informacija nurodytai programėlei nerasta.</string>
     <string name="ada_noapp_dialog_positive">Gerai</string>
-    <string name="ada_app_status_allow">yra leidžiama</string>
-    <string name="ada_app_status_block">yra užblokuota</string>
-    <string name="ada_app_status_block_md">yra užblokuota matuojamuose (mobiliuosiuose) tinkluose</string>
-    <string name="ada_app_status_whitelist">apeis universaliąsias ugniasienės taisykles</string>
+    <string name="ada_app_status_allow">Yra leidžiama</string>
+    <string name="ada_app_status_block">Yra užblokuota</string>
+    <string name="ada_app_status_block_md">Yra užblokuota matuojamuose (mobiliuosiuose) tinkluose</string>
+    <string name="ada_app_status_whitelist">Apeis universaliąsias ugniasienės taisykles</string>
     <string name="bsac_title_desc">Taisyklės taikomos tik šiai programėlei.</string>
     <string name="rt_dialog_neutral">Tęsti</string>
     <string name="rt_list_simple_btn_txt">paprasta</string>
@@ -271,12 +271,12 @@
     <string name="slide_2_desc">RethinkDNS yra lengviausias būdas stebėti tinklo veiklą, apeiti interneto cenzūrą ir ugniasienės programėles jūsų Android įrenginyje.</string>
     <string name="rdns_plus">RDNS Plus</string>
     <string name="allow">leisti</string>
-    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit.">neapsaugota</string>
+    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit.">Neapsaugota</string>
     <string name="block">blokuoti</string>
     <string name="pause_mode_notification_title">Pristabdyta! Užblokuotoms programėlėms ir toliau bus taikoma ugniasienė.</string>
-    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">neveikia</string>
+    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">Neveikia</string>
     <string name="hybrid_mode_notification_title">Apsaugota! Prisijungta prie DNS + ugniasienės.</string>
-    <string name="status_dns_server_down">dns serveris neveikia</string>
+    <string name="status_dns_server_down">Dns serveris neveikia</string>
     <string name="firewall_act_network_monitor_tab">Tinklo žurnalai</string>
     <string name="dns_mode_info_title">DNS</string>
     <string name="apps_info_title">Programėlės</string>
@@ -334,7 +334,7 @@
     <string name="settings_ip_dialog_ipv4">IPv4 (numatytasis)</string>
     <string name="settings_ip_dialog_ipv6">IPv6 (eksperimentinis)</string>
     <string name="settings_ip_dialog_ipv46">Automatinis (eksperimentinis)</string>
-    <string name="firewall_status_unknown">nežinoma</string>
+    <string name="firewall_status_unknown">Nežinoma</string>
     <string name="about_app">Programėlė</string>
     <string name="hsf_vpn_dialog_message">RethinkDNS reikia leidimo nustatyti vietinį VPN, kad būtų galima užšifruoti įrenginio DNS užklausas, įdiegti tinklo monitorių ir vykdyti ugniasienės taisykles.
 \n
@@ -442,11 +442,11 @@
     <string name="notif_download_failure_content">Atsisiųsti nepavyko. Bandykite dar kartą.</string>
     <string name="notif_download_success_content">Atsisiuntimas sėkmingas.</string>
     <string name="rt_re_download">Iš naujo atsisiųsti blokavimo sąrašus</string>
-    <string name="ada_app_status_block_wifi">yra užblokuota nematuojamuose (wifi) tinkluose</string>
+    <string name="ada_app_status_block_wifi">Yra užblokuota nematuojamuose (wifi) tinkluose</string>
     <string name="rt_chip_check_update">Tikrinti, ar yra atnaujinimų</string>
     <string name="brbs_restore_complete_toast">Atkūrimas baigtas, iš naujo paleidžiama programėlė…</string>
-    <string name="ada_app_status_isolate">yra visiško užrakinimo režime</string>
-    <string name="ada_app_status_unknown">yra nežinoma</string>
+    <string name="ada_app_status_isolate">Yra visiško užrakinimo režime</string>
+    <string name="ada_app_status_unknown">Yra nežinoma</string>
     <string name="ada_app_metered">Matuojami</string>
     <string name="notif_download_content_title">Įrenginyje esančio blokavimo sąrašo atsisiuntimas</string>
     <string name="network_dns">Sistemos DNS</string>
@@ -470,7 +470,7 @@
     <string name="settings_dns_proxy_dialog_app_desc">Pasirinkta programėlė bus išskirta iš VPN, kad ji galėtų prisijungti prie įgaliotojo serverio jūsų vardu.</string>
     <string name="settings_socks_forwarding_default_desc">Peradresuoti ryšius į SOCKS5 galinį punktą.</string>
     <string name="always_on_dialog_stop_message">Rethink skirtas nuolatinis VPN yra įjungtas. Ar vis tiek norite sustabdyti Rethink\?</string>
-    <string name="firewall_status_excluded">išskirta DNS ir ugniasienėje</string>
+    <string name="firewall_status_excluded">Išskirta DNS ir ugniasienėje</string>
     <string name="dc_dns_leaks_desc">Kai įjungta, RethinkDNS užfiksuoja visus paketus 53 prievade ir persiunčia juos į vartotojo nustatytą DNS galinį punktą</string>
     <string name="univ_firewall_rule_10">Blokuoti viską, išskyrus apeinančias programėles ir IP adresus</string>
     <string name="univ_view_blocked_ip_desc">Keisti blokuojamų arba apeinamų IP / prievadų taisykles.</string>
@@ -481,7 +481,7 @@
     <string name="firewall_rule_exempt_app_bypass_univ">Apeinanti programėlė</string>
     <string name="firewall_rule_exempt_dns_proxied">DNS per įgaliotąjį serverį</string>
     <string name="firewall_rule_exempt_dns_proxied_desc">Šis DNS ryšys buvo atliktas naudojant įgaliotąjį serverį ir persiųstas į naudotojo pageidaujamą DNS galinį punktą.<br/><br/> Norėdami pakeisti, išjunkite <i>Užkirsti kelią DNS nutekėjimui</i> DNS <i>Konfigūravimas</i> ekrane.</string>
-    <string name="ada_app_status_exclude">yra išskiriama DNS ir ugniasienėje</string>
+    <string name="ada_app_status_exclude">Yra išskiriama DNS ir ugniasienėje</string>
     <string name="ada_app_exclude">Išskirti</string>
     <string name="ada_app_unmetered">Nematuojami</string>
     <string name="ada_app_bypass_univ">Apeiti universaliąsias</string>

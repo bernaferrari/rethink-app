@@ -60,11 +60,11 @@
     <string name="notification_content" description="Indicates what will happen if the user taps the notification." translatable="true">Klepnutím zmeníte nastavenie ochrany</string>
     <string name="dns_mode_notification_title" translatable="true">Ste Chránený! Pripojený k Rýchlemu a Bezpečnému DNS.</string>
     <string name="pause_mode_notification_title" translatable="true">Pozastavené! Zablokované aplikácie budú naďalej chránené bránou firewall.</string>
-    <string name="status_waiting" description="This text appears during the connection process if Rethink needs user permission or the phone is offline." translatable="true">čakám</string>
+    <string name="status_waiting" description="This text appears during the connection process if Rethink needs user permission or the phone is offline." translatable="true">Čakám</string>
     <string name="failed_using_default" translatable="true">Zlyhanie: používa sa záložné DNS</string>
-    <string name="status_dns_error" translatable="true">chyba DNS</string>
+    <string name="status_dns_error" translatable="true">Chyba DNS</string>
     <string name="status_dns_server_down" translatable="true">DNS server nefunguje</string>
-    <string name="status_no_internet" translatable="true">žiadny internet</string>
+    <string name="status_no_internet" translatable="true">Žiadny internet</string>
     <string name="notification_action_resume_vpn" translatable="true">POKRAČOVAŤ</string>
     <string name="notification_action_pause_vpn" translatable="true">PAUZA</string>
     <string name="notification_action_stop_vpn" translatable="true">STOP</string>
@@ -107,10 +107,10 @@
     <string name="firewall_mode_notification_title" translatable="true">Ste Chránený! Pripojený k Firewalu.</string>
     <string name="hybrid_mode_notification_title" translatable="true">Ste Chránený! Pripojený s DNS + Firewalom.</string>
     <string name="lbl_add" translatable="true">pridaj</string>
-    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">zlyháva</string>
+    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">Zlyháva</string>
     <string name="lbl_app_wise" translatable="true">pre jednu aplikáciu</string>
     <string name="lbl_sec" translatable="true">sekúnd</string>
-    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit." translatable="true">nechránený</string>
+    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit." translatable="true">Nechránený</string>
     <string name="lbl_anonymous" translatable="true">anonymný</string>
     <string name="slide_2_desc" translatable="true">Rethink je najjednoduchší spôsob, ako monitorovať sieťovú aktivitu, obísť internetovú cenzúru a firewall na vašom zariadení so systémom Android.</string>
     <string name="universal_firewall_explanation" translatable="true">Aplikujte firewalové pravidlá na všetky aplikácie na základe udalostí zariadenia, napríklad firewall keď je zariadenie uzamknuté alebo keď sa konkrétna aplikácia nepoužíva.</string>

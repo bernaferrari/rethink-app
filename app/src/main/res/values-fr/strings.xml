@@ -10,11 +10,11 @@
     <string name="isolate">confiner</string>
     <string name="notification_content" description="Indicates what will happen if the user taps the notification.">Appuyez sur pour modifier le paramètre de protection</string>
     <string name="warning_title" description="Status indicator text shown in a warning notification.">Attention : Rethink a été désactivé</string>
-    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">en erreur</string>
+    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">En erreur</string>
     <string name="pause_mode_notification_title">En pause ! Les applications bloquées continueront à être soumises au pare-feu.</string>
     <string name="firewall_mode_notification_title">Protégé ! Connecté via un pare-feu.</string>
     <string name="hybrid_mode_notification_title">Protégé ! Connecté via DNS &amp; pare-feu.</string>
-    <string name="status_no_internet">pas d’Internet</string>
+    <string name="status_no_internet">Pas d’Internet</string>
     <string name="universal_firewall_explanation">Appliquer des règles de pare-feu à toutes les applications en fonction des événements survenant sur l’appareil, par exemple, lorsque l’appareil est verrouillé ou lorsqu’une application particulière n’est pas utilisée.</string>
     <string name="notification_action_dns_mode">DNS</string>
     <string name="firewall_mode_info_title">Pare-feu</string>
@@ -27,9 +27,9 @@
     <string name="bsct_block_ip">Bloquer, tolérer <u>cette IP</u> pour <u>cette appli</u></string>
     <string name="always_on_dialog">L’option \"VPN permanent\" est déjà activée sur cet appareil. Pour lancer RethinkDNS, allez dans les paramètres de l’application et désactivez \"VPN permanent\".</string>
     <string name="allow">autoriser</string>
-    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit.">non protégé</string>
+    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit.">Non protégé</string>
     <string name="bypass_universal">exception globale</string>
-    <string name="status_dns_server_down">serveur DNS hors service</string>
+    <string name="status_dns_server_down">Serveur DNS hors service</string>
     <string name="alert_permission_accessibility">Autorisation - Accessibilité</string>
     <string name="custom_url_error_invalid_url">URL invalide</string>
     <string name="always_on_dialog_heading">Désactiver le VPN permanent</string>
@@ -39,14 +39,14 @@
     <string name="dns_mode_info_title">DNS</string>
     <string name="apps_info_title">Applis</string>
     <string name="conn_track_clear_logs_message">Cette opération supprime les journaux réseau mais pas les règles du pare-feu. Cette opération est irréversible. Voulez-vous continuer \?</string>
-    <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">en attente</string>
+    <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">En attente</string>
     <string name="notification_action_stop_vpn">STOP</string>
     <string name="default_dns_name">RDNS par défaut</string>
     <string name="conn_track_clear_logs_title">Effacer tous les journaux réseau \?</string>
     <string name="notification_action_pause_vpn">PAUSE</string>
     <string name="untracked">non suivi</string>
     <string name="bsct_app_info">Infos sur l’appli</string>
-    <string name="status_dns_error">erreur DNS</string>
+    <string name="status_dns_error">Erreur DNS</string>
     <string name="dns_mode_notification_title">Protégé ! Connecté via un DNS rapide et sécurisé.</string>
     <string name="notification_action_dns_firewall_mode">DNS + Pare-feu</string>
     <string name="always_on_dialog_stop_message">Le paramètre VPN permanent est activé pour RethinkDNS. Êtes-vous sûr de vouloir arrêter RethinkDNS \?</string>
@@ -103,11 +103,11 @@
     <string name="settings_ip_text_ipv4">IPv4</string>
     <string name="settings_ip_dialog_ipv4">IPv4 (par défaut)</string>
     <string name="dc_local_block_heading">Listes de blocage embarquées sur l’appareil</string>
-    <string name="firewall_status_excluded">exclue du DNS et du pare-feu</string>
+    <string name="firewall_status_excluded">Exclue du DNS et du pare-feu</string>
     <string name="dc_custom_dns_radio">Autres DNS</string>
     <string name="settings_protocol_translation_dns_inactive">Passez en mode DNS/DNS+Pare-feu pour activer ce paramètre</string>
-    <string name="firewall_status_whitelisted">contourne les règles du pare-feu global</string>
-    <string name="firewall_status_isolate">confinée</string>
+    <string name="firewall_status_whitelisted">Contourne les règles du pare-feu global</string>
+    <string name="firewall_status_isolate">Confinée</string>
     <string name="lbl_proceed">Continuer</string>
     <string name="hsf_vpn_prepare_failure">Soit l’autorisation VPN manque, soit une autre application est en mode VPN permanent.</string>
     <string name="dc_entries">%1$s entrées »</string>
@@ -160,7 +160,7 @@
     <string name="dns_connected">Connecté</string>
     <string name="firewall_rule_univ_block_metered">Avec abonnement (Mobile, Global)</string>
     <string name="new_app_notification_action_toast_allow">Connexion réseau autorisée pour l’application</string>
-    <string name="ada_app_status_block">est bloquée</string>
+    <string name="ada_app_status_block">Est bloquée</string>
     <string name="rt_chip_update_available">Mise à jour disponible</string>
     <string name="dc_doh">DNS over HTTPS</string>
     <string name="lbbs_copy">Copier en tant qu’URL RDNS+</string>
@@ -215,7 +215,7 @@
     <string name="firewall_rule_exempt_dns_proxied_desc"><![CDATA[Cette connexion DNS a été redirigée et transmise au point de terminaison DNS spécifié par l’utilisateur.<br/><br/> Pour modifier cela, désactivez <i>Empêcher les fuites DNS</i> de l’écran DNS <i>Configurer</i>.]]></string>
     <string name="notif_channel_desc_vpn_failure">Informer lorsque Rethink est arrêté par Android ou par une autre application de VPN</string>
     <string name="ada_ip_no_connection">Pas de journaux réseau pour cette catégorie.</string>
-    <string name="ada_app_status_exclude">est exclue du DNS et du pare-feu</string>
+    <string name="ada_app_status_exclude">Est exclue du DNS et du pare-feu</string>
     <string name="notif_download_content_title">Téléchargement des listes de blocage sur l’appareil</string>
     <string name="rt_chip_check_update">Vérifier MàJ</string>
     <string name="brbs_restore_desc">Restaure à partir d’un fichier de sauvegarde</string>
@@ -281,7 +281,7 @@
     <string name="univ_accessibility_dialog_positive">Accorder</string>
     <string name="dns_proxy_desc">%1$s:%2$s, %3$s</string>
     <string name="fapps_unmetered_unblock_dialog_message">Autoriser les connexions sur réseau sans abonnement (Wi-Fi) pour les applications <i>listées</i> \?</string>
-    <string name="ada_app_status_block_md">est bloquées sur les réseaux avec abonnement (mobile)</string>
+    <string name="ada_app_status_block_md">Est bloquées sur les réseaux avec abonnement (mobile)</string>
     <string name="pause_desc">Remarque : %1$s applications bloquées continueront à être bloquées par le pare-feu.</string>
     <string name="firewall_rule_unknown">Source inconnue</string>
     <string name="category_name_sys_apps">Applications système</string>
@@ -301,7 +301,7 @@
     <string name="dns_proxy_ip_address">Adresse IP</string>
     <string name="firewall_rule_block_unmetered">Sans abonnement (Wi-Fi, Appli)</string>
     <string name="network_log_app_name_unnamed">Sans nom (%1$s)</string>
-    <string name="ada_app_status_unknown">est dans un mode inconnu</string>
+    <string name="ada_app_status_unknown">Est dans un mode inconnu</string>
     <string name="notif_download_success_content">Téléchargement réussi.</string>
     <string name="rbl_parental_control">Contrôle parental</string>
     <string name="rt_dialog_title">Enregistrer les changements</string>
@@ -357,7 +357,7 @@
     <string name="dns_proxy_dialog_header_dns">Ajouter un proxy DNS</string>
     <string name="fapps_unmetered_block_dialog_message">Bloquer les connexions sur réseau sans abonnement (Wi-Fi) pour les applications <i>listées</i> \?</string>
     <string name="firewall_rule_block_app_mobile_desc"><![CDATA[Une règle de pare-feu définie par l’utilisateur a bloqué cette <i>application</i> lors de la tentative de connexion sur un réseau <i>Avec abonnement</i>.<br/><br/> Pour la modifier, allez sur l’onglet <i>Toutes les applications</i>.]]></string>
-    <string name="ada_app_status_block_wifi">est bloquée sur les réseaux sans abonnement (Wi-Fi)</string>
+    <string name="ada_app_status_block_wifi">Est bloquée sur les réseaux sans abonnement (Wi-Fi)</string>
     <string name="unicode_warning_sign">⚠</string>
     <string name="rules_load_failure_reload">Recharger</string>
     <string name="firewall_rule_block_dns_bypass">DNS contourné</string>
@@ -404,7 +404,7 @@
     <string name="notif_channel_firewall_alerts">Alertes du pare-feu</string>
     <string name="notif_channel_desc_vpn_notification">Informer lorsque Rethink est actif et fonctionne en arrière-plan</string>
     <string name="notif_channel_desc_firewall_alerts">Alerte sur les erreurs et anomalies du pare-feu</string>
-    <string name="ada_app_status_whitelist">contournera les règles du pare-feu global</string>
+    <string name="ada_app_status_whitelist">Contournera les règles du pare-feu global</string>
     <string name="lbl_advanced">avancé</string>
     <string name="cd_dns_crypt_dialog_stamp">Tampon</string>
     <string name="dc_dns_leaks_desc">Si activé, Rethink capturera tous les paquets sur le port 53 et les transmettra à un point de terminaison DNS défini par l’utilisateur</string>
@@ -460,8 +460,8 @@
     <string name="new_app_notification_content">Rethink a bloqué l’application récemment installée, %1$s.</string>
     <string name="notif_channel_download">Alertes de téléchargement</string>
     <string name="ci_no_rule">Aucune règle</string>
-    <string name="ada_app_status_allow">est autorisée</string>
-    <string name="ada_app_status_isolate">est confinée ; seules les IP de confiance sont autorisées</string>
+    <string name="ada_app_status_allow">Est autorisée</string>
+    <string name="ada_app_status_isolate">Est confinée ; seules les IP de confiance sont autorisées</string>
     <string name="rt_dialog_neutral">Continuer</string>
     <string name="lbbs_search">Recherche de domaines dans les listes de blocage</string>
     <string name="lbbs_update_check">Vérifier MàJ</string>
@@ -476,7 +476,7 @@
     <string name="orbot_stop_dialog_neutral">Changer de DNS</string>
     <string name="orbot_install_dialog_positive">Installer</string>
     <string name="settings_theme_heading">Apparence</string>
-    <string name="firewall_status_unknown">inconnu</string>
+    <string name="firewall_status_unknown">Inconnu</string>
     <string name="hsf_vpn_dialog_header">Attention !</string>
     <string name="about_web">Liens</string>
     <string name="about_mail_to">hello@celzero.com</string>
@@ -560,7 +560,7 @@
     <string name="settings_default_dns_heading" translatable="true">Choisissez le DNS de secours</string>
     <string name="firewall_rule_domain_blocked_univ" translatable="true">Domaine (Univ)</string>
     <string name="settings_default_dns_desc" translatable="true">Dans de rares cas où le DNS préféré de l\'utilisateur n\'a pas pu être déterminé, le DNS de secours est utilisé.</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">contourne les règles des DNS et des pare-feu</string>
+    <string name="firewall_status_bypass_dns_firewall" translatable="true">Contourne les règles des DNS et des pare-feu</string>
     <string name="cd_dns_alg_heading" translatable="true">Filtrage DNS avancé (expérimental)</string>
     <string name="fapps_bypass_dns_firewall_dialog_title" translatable="true">Exceptions</string>
     <string name="fapps_bypass_dns_firewall_dialog_message" translatable="true">Contourner les règles du pare-feu DNS universel &amp; pour les applications <i>listées</i> \?</string>
@@ -577,7 +577,7 @@
     <string name="firewall_rule_domain_blocked_univ_desc" translatable="true"><![CDATA[Cette connexion a été bloquée parce que le domaine <i/> est défini comme bloqué dans les règles de domaine universel.<br/><br/> Pour modifier ce comportement, allez sur l\'onglet <i>Configure DNS</i>.]]></string>
     <string name="firewall_rule_dns_blocked_desc" translatable="true"><![CDATA[Cette connexion a été bloquée parce que le domaine <i/> est bloqué par le DNS préféré de l\'utilisateur.<br/><br/> Pour modifier ce comportement, allez sur l\'onglet <i>Configure DNS</i>.]]></string>
     <string name="firewall_rule_domain_trusted_univ_desc" translatable="true"><![CDATA[Cette connexion a été bloquée parce que le domaine <i/> est défini comme étant de confiance dans les règles du domaine universel.<br/><br/> Pour modifier ce comportement, allez sur l\'onglet <i>Configure DNS</i>.]]></string>
-    <string name="ada_app_status_bypass_dns_firewall" translatable="true">contournera les règles universelles de DNS et de pare-feu</string>
+    <string name="ada_app_status_bypass_dns_firewall" translatable="true">Contournera les règles universelles de DNS et de pare-feu</string>
     <string name="lbl_network" translatable="true">réseau</string>
     <string name="settings_allow_lan_heading" translatable="true">Ne pas acheminer les IP privées (expérimental)</string>
     <string name="settings_allow_lan_desc" translatable="true">Exclure les routes LAN, loopback, multicast, link-local du tunnel VPN de Rethink.</string>
@@ -731,7 +731,7 @@
     <string name="lbl_connect" translatable="true">Connecter</string>
     <string name="lbl_criteria" translatable="true">Critères</string>
     <string name="dns_desc" translatable="true">Choisir depuis 190+ listes pour stopper pubs, traqueurs, et logiciels malveillants.</string>
-    <string name="status_no_network" translatable="true">pas de réseau</string>
+    <string name="status_no_network" translatable="true">Pas de réseau</string>
     <string name="dc_use_sys_dns_undelegated_heading" translatable="true">Utiliser le système DNS pour les domaines non délégués</string>
     <string name="dc_use_sys_dns_undelegated_desc" translatable="true">Utilisez le système DNS pour les domaines non délégués tels que <i>.lan</i>, <i>.internal</i>, etc.</string>
     <string name="dc_filtering_heading" translatable="true">Filtrage</string>

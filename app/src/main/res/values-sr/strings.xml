@@ -64,14 +64,14 @@
     <string name="bypass_dns_firewall" translatable="true">заобиђи днс и заштитни зид</string>
     <string name="notification_content" description="Indicates what will happen if the user taps the notification." translatable="true">Додирните да промените подешавања заштите</string>
     <string name="firewall_mode_notification_title" translatable="true">Заштићени! Повезани са заштитним зидом.</string>
-    <string name="status_waiting" description="This text appears during the connection process if Rethink needs user permission or the phone is offline." translatable="true">чекање</string>
-    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">неуспех</string>
-    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit." translatable="true">није заштићен</string>
+    <string name="status_waiting" description="This text appears during the connection process if Rethink needs user permission or the phone is offline." translatable="true">Чекање</string>
+    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">Неуспех</string>
+    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit." translatable="true">Није заштићен</string>
     <string name="notification_action_resume_vpn" translatable="true">НАСТАВИ</string>
     <string name="hybrid_mode_notification_title" translatable="true">Заштићени! Повезани са DNS + заштитни зид.</string>
     <string name="hybrid_mode_with_proxy_notification_title" translatable="true">Заштићени! Повезани са DNS + заштитни зид + прокси.</string>
     <string name="failed_using_default" translatable="true">Неуспех: користи се резервни DNS</string>
-    <string name="status_dns_server_down" translatable="true">dns сервер није оперативан</string>
+    <string name="status_dns_server_down" translatable="true">Dns сервер није оперативан</string>
     <string name="firewall_mode_info_title" translatable="true">Заштитни зид</string>
     <string name="apps_info_title" translatable="true">Апликације</string>
     <string name="alert_permission_accessibility" translatable="true">Дозвола - Приступачност</string>
@@ -189,10 +189,10 @@
     <string name="settings_ip_text_ipv46" translatable="true">Аутоматски</string>
     <string name="settings_protocol_translation_dns_inactive" translatable="true">Пређи на DNS/DNS+заштитни зид мод да би сте омогућили ово подешавање</string>
     <string name="settings_default_dns_desc" translatable="true">У ретким случајевима када жељени DNS није доступан, користи се резервни DNS.</string>
-    <string name="firewall_status_isolate" translatable="true">изоловано</string>
-    <string name="firewall_status_whitelisted" translatable="true">заобилази универзална правила заштитног зида</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">заобилази dns и правила заштитног зида</string>
-    <string name="firewall_status_unknown" translatable="true">непознато</string>
+    <string name="firewall_status_isolate" translatable="true">Изоловано</string>
+    <string name="firewall_status_whitelisted" translatable="true">Заобилази универзална правила заштитног зида</string>
+    <string name="firewall_status_bypass_dns_firewall" translatable="true">Заобилази dns и правила заштитног зида</string>
+    <string name="firewall_status_unknown" translatable="true">Непознато</string>
     <string name="hs_biometeric_title" translatable="true">Откључај Rethink</string>
     <string name="hs_biometeric_desc" translatable="true">Користи биометријску потврду да би сте откључали Rethink</string>
     <string name="hs_biometeric_error" translatable="true">Грешка биометријске потврде</string>
@@ -394,13 +394,13 @@
     <string name="ada_noapp_dialog_message" translatable="true">Недостаје информација о апликацији. Можда је ова апликација деинсталирана?</string>
     <string name="ada_noapp_dialog_positive" translatable="true">Важи</string>
     <string name="ada_ip_no_connection" translatable="true">Нема мрежних записа за ову апликацију.</string>
-    <string name="ada_app_status_allow" translatable="true">је дозвољено</string>
-    <string name="ada_app_status_block" translatable="true">је блокирано</string>
-    <string name="ada_app_status_block_wifi" translatable="true">је блокирано на неограниченим (wifi) мрежама</string>
-    <string name="ada_app_status_block_md" translatable="true">је блокирано на ограниченим (мобилним) мрежама</string>
-    <string name="ada_app_status_whitelist" translatable="true">ће заобићи универзална правила заштитног зида</string>
-    <string name="ada_app_status_isolate" translatable="true">је изолована; само IP-јеви од поверења су дозвољене</string>
-    <string name="ada_app_status_bypass_dns_firewall" translatable="true">ће заобићи универзална dns и правила заштитног зида</string>
+    <string name="ada_app_status_allow" translatable="true">Је дозвољено</string>
+    <string name="ada_app_status_block" translatable="true">Је блокирано</string>
+    <string name="ada_app_status_block_wifi" translatable="true">Је блокирано на неограниченим (wifi) мрежама</string>
+    <string name="ada_app_status_block_md" translatable="true">Је блокирано на ограниченим (мобилним) мрежама</string>
+    <string name="ada_app_status_whitelist" translatable="true">Ће заобићи универзална правила заштитног зида</string>
+    <string name="ada_app_status_isolate" translatable="true">Је изолована; само IP-јеви од поверења су дозвољене</string>
+    <string name="ada_app_status_bypass_dns_firewall" translatable="true">Ће заобићи универзална dns и правила заштитног зида</string>
     <string name="ci_trust_rule" translatable="true">Поверење</string>
     <string name="ada_app_metered" translatable="true">Ограничена</string>
     <string name="ada_app_bypass_univ" translatable="true">Универзална обилазница</string>
@@ -530,8 +530,8 @@
     <string name="isolate" translatable="true">изолуј</string>
     <string name="dns_mode_notification_title" translatable="true">Заштићени! Повезани са брзим и безбедним DNS-ом.</string>
     <string name="pause_mode_notification_title" translatable="true">Паузирано! Блокиране апликације ће наставити да буду надгледане.</string>
-    <string name="status_no_internet" translatable="true">нема интернета</string>
-    <string name="status_dns_error" translatable="true">грешка dns-а</string>
+    <string name="status_no_internet" translatable="true">Нема интернета</string>
+    <string name="status_dns_error" translatable="true">Грешка dns-а</string>
     <string name="notification_action_pause_vpn" translatable="true">ПАУЗИРАЈ</string>
     <string name="universal_firewall_explanation" translatable="true">Примени правила заштитног зида на све апликације на основу догађаја на уређају, на пример, блокирај када је уређај закључан или када одређена апликација није у употреби.</string>
     <string name="notification_action_stop_vpn" translatable="true">ЗАУСТАВИ</string>
@@ -558,7 +558,7 @@
     <string name="settings_theme_dialog_themes_2" translatable="true">Светла</string>
     <string name="settings_theme_dialog_themes_3" translatable="true">Тамна</string>
     <string name="settings_default_dns_heading" translatable="true">Изабери резервни DNS</string>
-    <string name="firewall_status_excluded" translatable="true">изузето из dns-а и заштитног зида</string>
+    <string name="firewall_status_excluded" translatable="true">Изузето из dns-а и заштитног зида</string>
     <string name="firewall_rule_bypass_universal_ip_desc" translatable="true">Ова конекција је дозвољена јер је &lt;i&gt;одредишна IP&lt;/i&gt; подешена да заобиђе сва универзална правила заштитног зида.&lt;br/&gt;&lt;br/&gt; За промену иди на &lt;i&gt;IP правила&lt;i&gt; на картици &lt;i&gt;универзално&lt;/i&gt;.</string>
     <string name="hsf_vpn_dialog_message" translatable="true">Rethink-у су потребне дозволе да подеси локални VPN за енкрипцију DNS захтева уређаја, имплементацију монитора мреже, и приморавање правила заштитног зида.\n\nRethink не сакупља никакве информације нити вас шпијунира ни на који начин.</string>
     <string name="about_bug_no_log_dialog_positive_btn" translatable="true">Пошаљи е-поруку</string>
@@ -634,8 +634,8 @@
     <string name="cd_no_rules_text" translatable="true">Нема правила домена.</string>
     <string name="ci_no_rule" translatable="true">Нема правила</string>
     <string name="ci_block" translatable="true">Блокирај</string>
-    <string name="ada_app_status_exclude" translatable="true">је изузето из dns-а и заштитног зида</string>
-    <string name="ada_app_status_unknown" translatable="true">је непознато</string>
+    <string name="ada_app_status_exclude" translatable="true">Је изузето из dns-а и заштитног зида</string>
+    <string name="ada_app_status_unknown" translatable="true">Је непознато</string>
     <string name="ada_app_unmetered" translatable="true">Неограничена</string>
     <string name="exclude_apps_from_proxy_failure_toast">Ова апликација заобилази проксије</string>
     <string name="notif_download_content_text" translatable="true">Преузимање у току…</string>

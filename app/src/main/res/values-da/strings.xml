@@ -87,13 +87,13 @@
     <string name="hybrid_mode_notification_title" translatable="true">Beskyttet! Tilsluttet DNS + firewall.</string>
     <string name="hybrid_mode_with_proxy_notification_title" translatable="true">Beskyttet! Tilsluttet DNS + firewall + proxy.</string>
     <string name="pause_mode_notification_title" translatable="true">Sat på pause! Blokerede apps vil forsat være beskyttet af firewall.</string>
-    <string name="status_waiting" description="This text appears during the connection process if Rethink needs user permission or the phone is offline." translatable="true">venter</string>
-    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">fejlet</string>
-    <string name="status_dns_error" translatable="true">dns-fejl</string>
-    <string name="status_dns_server_down" translatable="true">dns-server nede</string>
-    <string name="status_no_internet" translatable="true">ingen internetadgang</string>
-    <string name="status_no_network" translatable="true">intet netværk</string>
-    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit." translatable="true">ikke beskyttet</string>
+    <string name="status_waiting" description="This text appears during the connection process if Rethink needs user permission or the phone is offline." translatable="true">Venter</string>
+    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">Fejlet</string>
+    <string name="status_dns_error" translatable="true">Dns-fejl</string>
+    <string name="status_dns_server_down" translatable="true">Dns-server nede</string>
+    <string name="status_no_internet" translatable="true">Ingen internetadgang</string>
+    <string name="status_no_network" translatable="true">Intet netværk</string>
+    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit." translatable="true">Ikke beskyttet</string>
     <string name="universal_firewall_explanation" translatable="true">Anvend firewall-regler på alle programmer baseret på enhedshændelser, f.eks. firewall når enheden er låst, eller når en bestemt app ikke er i brug.</string>
     <string name="notification_action_resume_vpn" translatable="true">FORTSÆT</string>
     <string name="notification_action_pause_vpn" translatable="true">SÆT PÅ PAUSE</string>

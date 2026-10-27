@@ -65,9 +65,9 @@
     <string name="lbl_anonymous" translatable="true">anonymní</string>
     <string name="block" translatable="true">blokovat</string>
     <string name="exclude" translatable="true">vyloučit</string>
-    <string name="status_waiting" description="This text appears during the connection process if Rethink needs user permission or the phone is offline." translatable="true">čekání</string>
+    <string name="status_waiting" description="This text appears during the connection process if Rethink needs user permission or the phone is offline." translatable="true">Čekání</string>
     <string name="notification_action_resume_vpn" translatable="true">OBNOVIT</string>
-    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit." translatable="true">nechráněno</string>
+    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit." translatable="true">Nechráněno</string>
     <string name="notification_action_stop_vpn" translatable="true">UKONČIT</string>
     <string name="notification_action_dns_mode" translatable="true">DNS</string>
     <string name="notification_action_dns_firewall_mode" translatable="true">DNS + Firewall</string>
@@ -75,8 +75,8 @@
     <string name="warning_title" description="Status indicator text shown in a warning notification." translatable="true">Upozornění: Rethink byl deaktivován</string>
     <string name="isolate" translatable="true">izolovat</string>
     <string name="untracked" translatable="true">nesledováno</string>
-    <string name="status_dns_error" translatable="true">chyba DNS</string>
-    <string name="status_no_internet" translatable="true">bez připojení k internetu</string>
+    <string name="status_dns_error" translatable="true">Chyba DNS</string>
+    <string name="status_no_internet" translatable="true">Bez připojení k internetu</string>
     <string name="status_dns_server_down" translatable="true">DNS server je nedostupný</string>
     <string name="notification_action_pause_vpn" translatable="true">POZASTAVIT</string>
     <string name="dns_mode_info_title" translatable="true">DNS</string>
@@ -92,7 +92,7 @@
     <string name="notification_content" description="Indicates what will happen if the user taps the notification." translatable="true">Klepnutím změníte nastavení ochrany</string>
     <string name="hybrid_mode_with_proxy_notification_title" translatable="true">Chráněno! Připojeno k DNS + Firewall + Proxy.</string>
     <string name="pause_mode_notification_title" translatable="true">Pozastaveno! Blokované aplikace budou nadále firewallovány.</string>
-    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">selhává</string>
+    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">Selhává</string>
     <string name="failed_using_default" translatable="true">Selhalo: používá se záložní DNS</string>
     <string name="apps_info_title" translatable="true">Aplikace</string>
     <string name="universal_firewall_explanation" translatable="true">Použijte firewallová pravidla pro všechny aplikace na základě událostí zařízení, například firewall při uzamčení zařízení nebo pokud aplikace není používána.</string>
@@ -249,11 +249,11 @@
     <string name="settings_ip_text_ipv6" translatable="true">IPv6</string>
     <string name="settings_protocol_translation_dns_inactive" translatable="true">Přepněte do režimu DNS/DNS+Firewall pro povolení této volby</string>
     <string name="settings_default_dns_desc" translatable="true">Ve vzácných případech, kdy nelze určit uživatelsky preferované DNS, se použije záložní DNS.</string>
-    <string name="firewall_status_unknown" translatable="true">neznámé</string>
+    <string name="firewall_status_unknown" translatable="true">Neznámé</string>
     <string name="hs_biometeric_title" translatable="true">Odemkněte Rethink</string>
-    <string name="firewall_status_isolate" translatable="true">izolováno</string>
-    <string name="firewall_status_whitelisted" translatable="true">obchází univerzální firewallová pravidla</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">obchází dns &amp; firewallová pravidla</string>
+    <string name="firewall_status_isolate" translatable="true">Izolováno</string>
+    <string name="firewall_status_whitelisted" translatable="true">Obchází univerzální firewallová pravidla</string>
+    <string name="firewall_status_bypass_dns_firewall" translatable="true">Obchází dns &amp; firewallová pravidla</string>
     <string name="hs_biometeric_desc" translatable="true">Pro odemknutí Rethinku použijte biometrické ověření</string>
     <string name="hs_biometeric_error" translatable="true">Chyba biometrického ověření</string>
     <string name="logs_card_duration" translatable="true">od %1$s</string>
@@ -425,15 +425,15 @@
     <string name="ada_noapp_dialog_title" translatable="true">Tato aplikace neexistuje</string>
     <string name="ada_noapp_dialog_message" translatable="true">Informace o aplikaci chybí. Možná byla odinstalována?</string>
     <string name="ada_ip_no_connection" translatable="true">Tato aplikace nemá žádné síťové záznamy.</string>
-    <string name="ada_app_status_allow" translatable="true">je povolena</string>
-    <string name="ada_app_status_block" translatable="true">je blokována</string>
-    <string name="ada_app_status_block_wifi" translatable="true">je blokována v neomezené (wifi) síti</string>
-    <string name="ada_app_status_block_md" translatable="true">je blokována v účtované (mobilní) síti</string>
-    <string name="ada_app_status_whitelist" translatable="true">obchází univerzální firewallová pravidla</string>
-    <string name="ada_app_status_exclude" translatable="true">je vyloučena z DNS a firewallu</string>
-    <string name="ada_app_status_isolate" translatable="true">je izolována; povoleny jsou pouze důvěryhodné IP</string>
-    <string name="ada_app_status_bypass_dns_firewall" translatable="true">obchází univerzální dns &amp; firewall pravidla</string>
-    <string name="ada_app_status_unknown" translatable="true">je neznámá</string>
+    <string name="ada_app_status_allow" translatable="true">Je povolena</string>
+    <string name="ada_app_status_block" translatable="true">Je blokována</string>
+    <string name="ada_app_status_block_wifi" translatable="true">Je blokována v neomezené (wifi) síti</string>
+    <string name="ada_app_status_block_md" translatable="true">Je blokována v účtované (mobilní) síti</string>
+    <string name="ada_app_status_whitelist" translatable="true">Obchází univerzální firewallová pravidla</string>
+    <string name="ada_app_status_exclude" translatable="true">Je vyloučena z DNS a firewallu</string>
+    <string name="ada_app_status_isolate" translatable="true">Je izolována; povoleny jsou pouze důvěryhodné IP</string>
+    <string name="ada_app_status_bypass_dns_firewall" translatable="true">Obchází univerzální dns &amp; firewall pravidla</string>
+    <string name="ada_app_status_unknown" translatable="true">Je neznámá</string>
     <string name="ada_app_metered" translatable="true">Účtované</string>
     <string name="ada_app_unmetered" translatable="true">Neomezené</string>
     <string name="ada_app_bypass_univ" translatable="true">Obejít univerzálně</string>
@@ -537,7 +537,7 @@
     <string name="settings_ip_dialog_ipv4" translatable="true">IPv4 (výchozí)</string>
     <string name="settings_ip_dialog_ipv6" translatable="true">IPv6 (experimentální)</string>
     <string name="settings_ip_text_ipv46" translatable="true">Auto</string>
-    <string name="firewall_status_excluded" translatable="true">vyloučeno z dns a firewallu</string>
+    <string name="firewall_status_excluded" translatable="true">Vyloučeno z dns a firewallu</string>
     <string name="hsf_vpn_dialog_message" translatable="true">Rethink potřebuje oprávnění k nastavení místní VPN, aby šifroval DNS požadavky zařízení, implementoval monitorování sítě a prosazoval pravidla firewallu.\n\nRethink neshromažďuje žádné informace ani vás nijak nesleduje.</string>
     <string name="about_email" translatable="true">Napište nám e-mail</string>
     <string name="about_settings_app_info" translatable="true">Info o aplikaci</string>

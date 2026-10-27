@@ -62,11 +62,11 @@
     <string name="settings_ip_dialog_ipv4">IPv4 (por defecto)</string>
     <string name="settings_ip_text_ipv6">IPv6</string>
     <string name="settings_selected_ip_desc">%1$s</string>
-    <string name="firewall_status_whitelisted">omite las reglas universales del cortafuegos</string>
-    <string name="firewall_status_isolate">aislada</string>
+    <string name="firewall_status_whitelisted">Omite las reglas universales del cortafuegos</string>
+    <string name="firewall_status_isolate">Aislada</string>
     <string name="settings_protocol_translation_dns_inactive">Cambie al modo DNS/DNS+Cortafuegos para activar esta configuración</string>
-    <string name="firewall_status_excluded">excluido de dns y cortafuegos</string>
-    <string name="firewall_status_unknown">desconocido</string>
+    <string name="firewall_status_excluded">Excluido de dns y cortafuegos</string>
+    <string name="firewall_status_unknown">Desconocido</string>
     <string name="hsf_vpn_dialog_message">Rethink necesita permiso para configurar una VPN local para cifrar las solicitudes de DNS del dispositivo, implementar un monitor de red y aplicar las reglas del cortafuegos.
 \n
 \nRethink no recoge ninguna información ni le espía de ninguna manera.</string>
@@ -87,13 +87,13 @@
     <string name="notification_content" description="Indicates what will happen if the user taps the notification.">Pulse para cambiar los ajustes de la protección</string>
     <string name="dns_mode_notification_title">¡Protegido! Conectado a un DNS rápido y seguro.</string>
     <string name="pause_mode_notification_title">¡Pausado! Las aplicaciones bloqueadas seguirán siendo controladas.</string>
-    <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">esperando</string>
-    <string name="status_dns_server_down">servidor dns caído</string>
-    <string name="status_no_internet">sin internet</string>
+    <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">Esperando</string>
+    <string name="status_dns_server_down">Servidor dns caído</string>
+    <string name="status_no_internet">Sin internet</string>
     <string name="untracked">no rastreado</string>
     <string name="bypass_universal">omisión universal</string>
     <string name="isolate">aislamiento</string>
-    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit.">no protegido</string>
+    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit.">No protegido</string>
     <string name="universal_firewall_explanation">Aplique reglas de cortafuegos en todas las aplicaciones en función de los eventos del dispositivo, p.ej., bloqueándolas cuando el dispositivo está bloqueado o cuando una determinada aplicación no está en uso.</string>
     <string name="notification_action_resume_vpn">REANUDAR</string>
     <string name="notification_action_pause_vpn">PAUSAR</string>
@@ -226,14 +226,14 @@
     <string name="build__flavor_fdroid">fdroid</string>
     <string name="ci_no_rule">Ninguna regla</string>
     <string name="ada_ip_no_connection">No hay registros de red para esta aplicación.</string>
-    <string name="ada_app_status_allow">se permite</string>
-    <string name="ada_app_status_block">está bloqueado</string>
-    <string name="ada_app_status_block_wifi">se bloquea en las redes sin límites (wifi)</string>
-    <string name="ada_app_status_block_md">se bloquea en las redes con límites (móvil)</string>
-    <string name="ada_app_status_whitelist">omitirá las reglas del cortafuegos universal</string>
-    <string name="ada_app_status_exclude">se excluye del dns y cortafuegos</string>
-    <string name="ada_app_status_isolate">está aislada; sólo se permiten IPs de confianza</string>
-    <string name="ada_app_status_unknown">es desconocido</string>
+    <string name="ada_app_status_allow">Se permite</string>
+    <string name="ada_app_status_block">Está bloqueado</string>
+    <string name="ada_app_status_block_wifi">Se bloquea en las redes sin límites (wifi)</string>
+    <string name="ada_app_status_block_md">Se bloquea en las redes con límites (móvil)</string>
+    <string name="ada_app_status_whitelist">Omitirá las reglas del cortafuegos universal</string>
+    <string name="ada_app_status_exclude">Se excluye del dns y cortafuegos</string>
+    <string name="ada_app_status_isolate">Está aislada; sólo se permiten IPs de confianza</string>
+    <string name="ada_app_status_unknown">Es desconocido</string>
     <string name="ada_app_isolate">Aislamiento</string>
     <string name="bsac_title_desc">Las reglas se aplican únicamente a esta aplicación.</string>
     <string name="notif_download_content_text">Descarga en curso…</string>
@@ -426,7 +426,7 @@
     <string name="settings_custom_downloader_heading">Utilizar el descargador de la aplicación</string>
     <string name="orbot_app_issue">No se puede lanzar Orbot. ¿Está instalado\?</string>
     <string name="orbot_stop_dialog_negative">Detener Orbot</string>
-    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">fallando</string>
+    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">Fallando</string>
     <string name="orbot_stop_dialog_dns_message">Rethink está configurado para reenviar las consultas DNS a Orbot. Cámbielo según sea necesario.</string>
     <string name="orbot_install_dialog_title">¿Instalar Orbot\?</string>
     <string name="warning_title" description="Status indicator text shown in a warning notification.">Advertencia: Rethink ha sido desactivado</string>
@@ -446,7 +446,7 @@
     <string name="settings_autostart_bootup_desc">Al encender el dispositivo, se iniciará Rethink si se estaba ejecutando antes de apagarlo.</string>
     <string name="settings_check_update_desc">Comprueba automáticamente las actualizaciones de la aplicación una vez a la semana.</string>
     <string name="settings_https_desc">Reenvía las conexiones al punto final de la CONEXIÓN HTTP(S).</string>
-    <string name="status_dns_error">error de dns</string>
+    <string name="status_dns_error">Error de dns</string>
     <string name="settings_socks5_disabled_error">Conectado a %1$s. Apágalo para continuar.</string>
     <string name="settings_orbot_notification_content">Fallo al iniciar Tor-como-un-Proxy. Abra la aplicación Orbot para iniciarla manualmente.</string>
     <string name="settings_orbot_notification_action">Abrir Orbot</string>
@@ -558,7 +558,7 @@
     <string name="bsct_block_domain" translatable="true">Bloquear, confiar en <u>dominio(s)</u> para <u>esta aplicación</u></string>
     <string name="settings_default_dns_heading" translatable="true">Elegir DNS alternativo</string>
     <string name="settings_default_dns_desc" translatable="true">En raras ocasiones, cuando no se puede determinar el DNS preferido por el usuario, se utiliza el DNS alternativo.</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">omite las reglas de dns y cortafuegos</string>
+    <string name="firewall_status_bypass_dns_firewall" translatable="true">Omite las reglas de dns y cortafuegos</string>
     <string name="fapps_bypass_dns_firewall_dialog_title" translatable="true">Omitir aplicaciones</string>
     <string name="firewall_rule_bypass_dns_firewall" translatable="true">Aplicación omitida</string>
     <string name="cd_dns_alg_heading" translatable="true">Filtrado DNS avanzado (experimental)</string>
@@ -567,7 +567,7 @@
     <string name="firewall_rule_dns_blocked_desc" translatable="true">Esta conexión se bloqueó porque el <i>dominio</i> está bloqueado por el DNS preferido del usuario.<br/><br/> Para cambiar este comportamiento, vaya a la pestaña <i>Configurar DNS</i>.</string>
     <string name="firewall_rule_domain_trusted_univ_desc" translatable="true">Esta conexión se permitió porque el <i>dominio</i> está configurado como confiable en las reglas de dominio universal.<br/><br/> Para cambiar este comportamiento, vaya a la pestaña <i>Configurar DNS</i>.</string>
     <string name="firewall_rule_domain_blocked_univ_desc" translatable="true">Esta conexión se bloqueó porque el <i>dominio</i> está configurado como bloqueado en las reglas de dominio universal.<br/><br/> Para cambiar este comportamiento, vaya a la pestaña <i>Configurar DNS</i>.</string>
-    <string name="ada_app_status_bypass_dns_firewall" translatable="true">omitirá las reglas universales de dns y cortafuegos</string>
+    <string name="ada_app_status_bypass_dns_firewall" translatable="true">Omitirá las reglas universales de dns y cortafuegos</string>
     <string name="ada_app_bypass_dns_firewall" translatable="true">Omitir DNS y cortafuegos</string>
     <string name="dc_refresh_toast" translatable="true">Actualización completa</string>
     <string name="dc_setting_dns_cache_heading" translatable="true">Refuerzo DNS</string>
@@ -718,7 +718,7 @@
     <string name="lbl_service_providers" translatable="true">Provedores de servicio</string>
     <string name="lbl_manual" translatable="true">Manual</string>
     <string name="dns_desc" translatable="true">Elige entre más de 190 listas para bloquear anuncios, rastreadores y malware.</string>
-    <string name="status_no_network" translatable="true">sin conexión</string>
+    <string name="status_no_network" translatable="true">Sin conexión</string>
     <string name="dc_filtering_heading" translatable="true">Filtrando</string>
     <string name="firewall_rule_private_dns" translatable="true">DNS Privado</string>
     <string name="firewall_rule_paused_app" translatable="true">Aplicación Pausada</string>
