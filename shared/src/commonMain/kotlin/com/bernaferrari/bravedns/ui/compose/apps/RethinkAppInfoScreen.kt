@@ -36,6 +36,9 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import com.bernaferrari.bravedns.ui.compose.common.isExpanded
+import com.bernaferrari.bravedns.ui.compose.common.RethinkAdaptiveWidth
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -176,75 +179,108 @@ fun RethinkAppInfoScreen(
             )
         },
     ) { padding ->
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(
-                start = SharedDimensions.screenPaddingHorizontal,
-                end = SharedDimensions.screenPaddingHorizontal,
-                top = SharedDimensions.spacingSm,
-                bottom = SharedDimensions.spacing3xl,
-            ),
-            verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
-        ) {
-            if (!state.appAvailable) {
-                item {
-                    // The top bar already provides back navigation; no duplicate in-content row.
-                    RethinkEmptyState(
-                        icon = MaterialSymbols.Filled.Apps,
-                        title = strings.unavailable,
-                        message = "",
-                    )
+        val controls: LazyListScope.() -> Unit = {
+            item {
+                RethinkFormSection(strings.firewall) {
+                    RethinkAppStatusChips(state, strings)
+                    RethinkAppNetworkPair(state, strings, onWifiClick, onMobileClick)
+                    RethinkListGroup {
+                        RethinkAppExclusiveRow(strings.isolate, strings.isolateDescription, state.isolated, MaterialSymbols.Filled.Security, RethinkStatusColors.blocked, CardPosition.First, onIsolateClick)
+                        RethinkAppExclusiveRow(strings.bypassDns, strings.bypassDnsDescription, state.bypassDnsFirewall, MaterialSymbols.Filled.Dns, RethinkStatusColors.mixed, CardPosition.Middle, onBypassDnsClick)
+                        RethinkAppExclusiveRow(strings.bypassUniversal, strings.bypassUniversalDescription, state.bypassUniversalFirewall, MaterialSymbols.Filled.Public, RethinkStatusColors.mixed, CardPosition.Middle, onBypassUniversalClick)
+                        RethinkAppExclusiveRow(strings.exclude, strings.excludeDescription, state.excluded, MaterialSymbols.Filled.Apps, MaterialTheme.colorScheme.secondary, CardPosition.Last, onExcludeClick)
+                    }
+                }
+            }
+        }
+        val rules: LazyListScope.() -> Unit = {
+            item {
+                RethinkFormSection(strings.rules) {
+                    RethinkListGroup {
+                        RethinkAppNavigationRow(strings.ipRules, MaterialSymbols.Filled.Public, CardPosition.First, onIpRules)
+                        RethinkAppNavigationRow(strings.domainRules, MaterialSymbols.Filled.Dns, CardPosition.Last, onDomainRules)
+                    }
+                }
+            }
+        }
+        val advanced: LazyListScope.() -> Unit = {
+            item {
+                // System app info is an app-level escape hatch, not a rule: it closes the
+                // Advanced group instead of sitting among IP/domain rules.
+                RethinkFormSection(strings.advanced) {
+                    RethinkListGroup {
+                        RethinkAppToggleRow(strings.proxyExclude, strings.proxyExcludeDescription, state.proxyExcluded, MaterialSymbols.Filled.VpnKey, CardPosition.First, onProxyExcludedChange)
+                        RethinkAppToggleRow(strings.temporaryAllow, strings.temporaryAllowDescription, state.tempAllowed, MaterialSymbols.Filled.Timer, CardPosition.Middle, onTempAllowChange)
+                        RethinkAppNavigationRow(strings.systemAppInfo, MaterialSymbols.Filled.PhoneAndroid, CardPosition.Last, onSystemAppInfo)
+                    }
+                }
+            }
+        }
+        val activity: LazyListScope.() -> Unit = {
+            val logSections = listOf(
+                Triple(state.activeConnections, onActiveConnections, onActiveEntry),
+                Triple(state.domainLogs, onDomains, onDomainEntry),
+                Triple(state.ipLogs, onIps, onIpEntry),
+            )
+            if (logSections.all { (section) -> section.empty && !section.loading }) {
+                // One compact note instead of three stacked full empty states.
+                item { RethinkAppNoActivity(strings.empty) }
+            } else {
+                logSections.forEach { (section, onOpen, onEntry) ->
+                    item { RethinkAppLogCard(section, strings, onOpen, onEntry) }
+                }
+            }
+            item { Spacer(Modifier.height(SharedDimensions.spacingSm)) }
+        }
+        RethinkAdaptiveWidth(Modifier.fillMaxSize().padding(padding)) { widthClass ->
+            if (widthClass.isExpanded && state.appAvailable) {
+                // Wide windows: the app's controls in one column, its rules and traffic in the other.
+                Row(
+                    Modifier.fillMaxSize().padding(horizontal = SharedDimensions.spacingSm),
+                    horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
+                ) {
+                    LazyColumn(Modifier.weight(1f).fillMaxHeight(), contentPadding = AppInfoPadding, verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd)) {
+                        controls()
+                        advanced()
+                    }
+                    LazyColumn(Modifier.weight(1f).fillMaxHeight(), contentPadding = AppInfoPadding, verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd)) {
+                        rules()
+                        activity()
+                    }
                 }
             } else {
-                item {
-                    RethinkFormSection(strings.firewall) {
-                        RethinkAppStatusChips(state, strings)
-                        RethinkAppNetworkPair(state, strings, onWifiClick, onMobileClick)
-                        RethinkListGroup {
-                            RethinkAppExclusiveRow(strings.isolate, strings.isolateDescription, state.isolated, MaterialSymbols.Filled.Security, RethinkStatusColors.blocked, CardPosition.First, onIsolateClick)
-                            RethinkAppExclusiveRow(strings.bypassDns, strings.bypassDnsDescription, state.bypassDnsFirewall, MaterialSymbols.Filled.Dns, RethinkStatusColors.mixed, CardPosition.Middle, onBypassDnsClick)
-                            RethinkAppExclusiveRow(strings.bypassUniversal, strings.bypassUniversalDescription, state.bypassUniversalFirewall, MaterialSymbols.Filled.Public, RethinkStatusColors.mixed, CardPosition.Middle, onBypassUniversalClick)
-                            RethinkAppExclusiveRow(strings.exclude, strings.excludeDescription, state.excluded, MaterialSymbols.Filled.Apps, MaterialTheme.colorScheme.secondary, CardPosition.Last, onExcludeClick)
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = AppInfoPadding,
+                    verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
+                ) {
+                    if (!state.appAvailable) {
+                        item {
+                            // The top bar already provides back navigation; no duplicate in-content row.
+                            RethinkEmptyState(
+                                icon = MaterialSymbols.Filled.Apps,
+                                title = strings.unavailable,
+                                message = "",
+                            )
                         }
+                    } else {
+                        controls()
+                        rules()
+                        advanced()
+                        activity()
                     }
                 }
-                item {
-                    RethinkFormSection(strings.rules) {
-                        RethinkListGroup {
-                            RethinkAppNavigationRow(strings.ipRules, MaterialSymbols.Filled.Public, CardPosition.First, onIpRules)
-                            RethinkAppNavigationRow(strings.domainRules, MaterialSymbols.Filled.Dns, CardPosition.Last, onDomainRules)
-                        }
-                    }
-                }
-                item {
-                    // System app info is an app-level escape hatch, not a rule: it closes the
-                    // Advanced group instead of sitting among IP/domain rules.
-                    RethinkFormSection(strings.advanced) {
-                        RethinkListGroup {
-                            RethinkAppToggleRow(strings.proxyExclude, strings.proxyExcludeDescription, state.proxyExcluded, MaterialSymbols.Filled.VpnKey, CardPosition.First, onProxyExcludedChange)
-                            RethinkAppToggleRow(strings.temporaryAllow, strings.temporaryAllowDescription, state.tempAllowed, MaterialSymbols.Filled.Timer, CardPosition.Middle, onTempAllowChange)
-                            RethinkAppNavigationRow(strings.systemAppInfo, MaterialSymbols.Filled.PhoneAndroid, CardPosition.Last, onSystemAppInfo)
-                        }
-                    }
-                }
-                val logSections = listOf(
-                    Triple(state.activeConnections, onActiveConnections, onActiveEntry),
-                    Triple(state.domainLogs, onDomains, onDomainEntry),
-                    Triple(state.ipLogs, onIps, onIpEntry),
-                )
-                if (logSections.all { (section) -> section.empty && !section.loading }) {
-                    // One compact note instead of three stacked full empty states.
-                    item { RethinkAppNoActivity(strings.empty) }
-                } else {
-                    logSections.forEach { (section, onOpen, onEntry) ->
-                        item { RethinkAppLogCard(section, strings, onOpen, onEntry) }
-                    }
-                }
-                item { Spacer(Modifier.height(SharedDimensions.spacingSm)) }
             }
         }
     }
 }
+
+private val AppInfoPadding = PaddingValues(
+    start = SharedDimensions.screenPaddingHorizontal,
+    end = SharedDimensions.screenPaddingHorizontal,
+    top = SharedDimensions.spacingSm,
+    bottom = SharedDimensions.spacing3xl,
+)
 
 /** The app's effective firewall verdict, derived from the same flags the controls below edit. */
 private enum class RethinkAppStatusTone { Allowed, Partial, Blocked }

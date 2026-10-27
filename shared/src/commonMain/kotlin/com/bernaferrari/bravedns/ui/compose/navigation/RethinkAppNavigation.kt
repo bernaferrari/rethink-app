@@ -247,6 +247,6 @@ fun RethinkAppNavigation(
 /** Routes whose screens switch to multi-column layouts at Expanded width. */
 private fun RethinkRoute.hasAdaptiveLayout(): Boolean = when (this) {
     RethinkRoute.Home, RethinkRoute.Statistics, RethinkRoute.Configure, RethinkRoute.DnsList -> true
-    is RethinkRoute.NetworkLogs -> true
+    is RethinkRoute.NetworkLogs, is RethinkRoute.AppInfo -> true
     else -> false
 }
