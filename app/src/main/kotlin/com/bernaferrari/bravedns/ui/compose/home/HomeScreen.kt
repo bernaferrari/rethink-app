@@ -17,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.database.AppBlockCount
@@ -155,6 +156,6 @@ private fun androidHomeStrings() = RethinkHomeStrings(
 
 @Composable
 private fun blockedCountLabel(): (Long) -> String {
-    val resources = LocalContext.current.resources
+    val resources = LocalResources.current
     return { count -> resources.getQuantityString(R.plurals.home_blocked_count, count.toInt(), count.toInt()) }
 }
