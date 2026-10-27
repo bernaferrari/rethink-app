@@ -67,6 +67,7 @@ fun DnsSettingsScreen(
 }
 
 private fun DnsSettingsUiState.toRethinkDnsSettingsState() = RethinkDnsSettingsState(
+    recentLatencies = recentLatencies,
     connectedDnsName = connectedDnsName,
     dnsLatency = dnsLatency,
     dnsType = dnsType.toRethinkDnsType(),
@@ -170,6 +171,10 @@ private fun androidDnsSettingsStrings() = RethinkDnsSettingsStrings(
     preventLeaks = stringResource(R.string.dc_dns_leaks_heading),
     preventLeaksDescription = stringResource(R.string.dc_dns_leaks_desc),
     aboutItem = { stringResource(R.string.cd_about_item, it) },
+    inUse = stringResource(R.string.dns_in_use),
+    medianLookup = stringResource(R.string.dns_median_lookup),
+    recentLookups = stringResource(R.string.dns_recent_lookups),
+    noLookupsYet = stringResource(R.string.dns_no_lookups_yet),
 )
 
 private fun RethinkBlockFreeDnsMode.blockFreeLabelRes() = when (this) {

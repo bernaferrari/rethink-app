@@ -105,6 +105,10 @@ interface DnsLogDAO {
     @Query("SELECT COUNT(id) FROM DNSLogs WHERE isBlocked = 1 AND time > :since")
     fun observeBlockedSince(since: Long): Flow<Long>
 
+    /** Latencies of the latest answered lookups, newest first. */
+    @Query("SELECT latency FROM DNSLogs WHERE isBlocked = 0 AND latency > 0 ORDER BY id DESC LIMIT :limit")
+    fun observeRecentLatencies(limit: Int): Flow<List<Long>>
+
     @Query(
         "SELECT appName AS appName, packageName AS packageName, COUNT(id) AS count FROM DNSLogs WHERE isBlocked = 0 AND blockLists = '' AND TRIM(appName) != '' GROUP BY appName, packageName ORDER BY count DESC"
     )

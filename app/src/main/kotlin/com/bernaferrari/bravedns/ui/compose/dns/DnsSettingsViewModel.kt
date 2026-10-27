@@ -14,6 +14,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import com.bernaferrari.bravedns.database.DnsLogRepository
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.core.annotation.KoinViewModel
@@ -44,20 +48,27 @@ data class DnsSettingsUiState(
     val allowedDnsRecordTypesSize: Int = 0,
     val isShowSplitDns: Boolean = false,
     val isShowBypassDnsBlock: Boolean = false,
-    val isRefreshing: Boolean = false
+    val isRefreshing: Boolean = false,
+    val recentLatencies: List<Long> = emptyList(),
 )
 
 @KoinViewModel
 class DnsSettingsViewModel(
     private val persistentState: PersistentState,
     private val appConfig: AppConfig,
-    private val workScheduler: WorkScheduler
+    private val workScheduler: WorkScheduler,
+    private val dnsLogRepository: DnsLogRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DnsSettingsUiState())
     val uiState: StateFlow<DnsSettingsUiState> = _uiState.asStateFlow()
 
     init {
+        // The hero's latency bars follow the DNS log live.
+        dnsLogRepository.observeRecentLatencies()
+            .onEach { latencies -> _uiState.update { it.copy(recentLatencies = latencies) } }
+            .flowOn(Dispatchers.IO)
+            .launchIn(viewModelScope)
         updateUiState()
         // We might want to observe appConfig.connectedDnsFlow()
         // but for now we'll just pull it.
