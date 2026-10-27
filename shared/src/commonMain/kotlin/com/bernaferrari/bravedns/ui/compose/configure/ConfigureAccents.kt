@@ -4,7 +4,10 @@ package com.bernaferrari.bravedns.ui.compose.configure
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.lerp
+import androidx.compose.runtime.remember
+import com.materialkolor.PaletteStyle
+import com.materialkolor.dynamicColorScheme
+import com.materialkolor.dynamiccolor.ColorSpec
 import androidx.compose.ui.graphics.luminance
 
 /**
@@ -32,16 +35,23 @@ data class ConfigureTileColors(
     val edge: Color,
 )
 
+/**
+ * One rule for every well, whatever its hue: the hue's container tone with its on-container icon
+ * (a pale well and a dark icon in light mode, a deep well and a pale icon in dark mode), so no
+ * tile carries a light icon beside a dark one.
+ */
 @Composable
 fun configureTileColors(accent: Color): ConfigureTileColors {
     val scheme = MaterialTheme.colorScheme
+    val dark = scheme.surface.luminance() < 0.5f
     val hue = if (accent == Color.Unspecified) scheme.primary else harmonize(accent, scheme.primary)
-    val well = if (scheme.surface.luminance() < 0.5f) lerp(hue, Color.Black, 0.18f) else lerp(hue, Color.White, 0.04f)
-    val onWell = if (well.luminance() < 0.5f) Color(0xFFF6F3EE) else Color(0xFF1C1B18)
+    val tones = remember(hue, dark) {
+        dynamicColorScheme(seedColor = hue, isDark = dark, style = PaletteStyle.Vibrant, specVersion = ColorSpec.SpecVersion.SPEC_2025)
+    }
     return ConfigureTileColors(
         fill = scheme.surfaceContainerLow,
-        well = well,
-        icon = onWell,
+        well = tones.primaryContainer,
+        icon = tones.onPrimaryContainer,
         title = scheme.onSurface,
         edge = Color.Transparent,
     )
