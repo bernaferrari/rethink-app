@@ -410,6 +410,10 @@ fun HomeScreenRoot(
                     uiState = latestHomeUiState.value,
                     onStartStopClick = onHomeStartStopClick,
                     onActivityClick = { nav.selectRoot(RethinkRootDestination.Statistics) },
+                    onAppsClick = { nav.push(RethinkRoute.AppList) },
+                    onLogsClick = { nav.push(RethinkRoute.NetworkLogs()) },
+                    onDnsClick = { nav.push(RethinkRoute.DnsSettings) },
+                    onAppClick = { uid -> nav.push(RethinkRoute.AppInfo(uid)) },
                 )
             }
             entry<RethinkRoute.Statistics> {

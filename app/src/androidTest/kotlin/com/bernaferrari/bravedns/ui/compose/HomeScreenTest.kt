@@ -17,7 +17,6 @@ package com.bernaferrari.bravedns.ui.compose.home
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -47,7 +46,7 @@ class HomeScreenTest {
             }
         }
 
-        composeTestRule.onNodeWithContentDescription("Start").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Start").assertIsDisplayed()
     }
 
     @Test
@@ -65,7 +64,7 @@ class HomeScreenTest {
             }
         }
 
-        composeTestRule.onNodeWithContentDescription("Stop").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Stop").assertIsDisplayed()
     }
 
     @Test
@@ -82,7 +81,7 @@ class HomeScreenTest {
             }
         }
 
-        composeTestRule.onNodeWithContentDescription("Start").performClick()
+        composeTestRule.onNodeWithText("Start").performClick()
 
         // Verify callback was triggered
         assert(clickCount == 1)
@@ -91,8 +90,8 @@ class HomeScreenTest {
     @Test
     fun homeScreen_displaysActivity() {
         val uiState = HomeScreenUiState(
-            networkLogsCount = 432,
-            dnsLogsCount = 87,
+            allowedToday = 432,
+            blockedToday = 87,
         )
 
         composeTestRule.setContent {

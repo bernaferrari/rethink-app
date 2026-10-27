@@ -6,9 +6,24 @@
  */
 package com.bernaferrari.bravedns.ui.compose.home
 
+import android.graphics.drawable.Drawable
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.bernaferrari.bravedns.R
+import com.bernaferrari.bravedns.database.AppBlockCount
+import com.bernaferrari.bravedns.ui.compose.rememberDrawablePainter
+import com.bernaferrari.bravedns.util.Utilities
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 enum class HomeProtectionStatus {
     Protected,
@@ -25,6 +40,11 @@ data class HomeScreenUiState(
     val dnsLogsCount: Long = 0,
     val protectionStatus: HomeProtectionStatus? = null,
     val isProtectionFailing: Boolean = false,
+    val allowedToday: Long = 0,
+    val blockedToday: Long = 0,
+    val dnsBlockedToday: Long = 0,
+    val topBlocked: List<AppBlockCount> = emptyList(),
+    val dnsName: String = "",
 )
 
 @Composable
@@ -32,12 +52,20 @@ fun HomeScreen(
     uiState: HomeScreenUiState,
     onStartStopClick: () -> Unit,
     onActivityClick: (() -> Unit)? = null,
+    onAppsClick: (() -> Unit)? = null,
+    onLogsClick: (() -> Unit)? = null,
+    onDnsClick: (() -> Unit)? = null,
+    onAppClick: ((Int) -> Unit)? = null,
 ) {
     RethinkHomeScreen(
         uiState = uiState.toCommonUiState(),
         strings = androidHomeStrings(),
         onStartStopClick = onStartStopClick,
         onActivityClick = onActivityClick,
+        onAppsClick = onAppsClick,
+        onLogsClick = onLogsClick,
+        onDnsClick = onDnsClick,
+        onBlockedAppClick = onAppClick?.let { open -> { id: String -> id.toIntOrNull()?.let(open) } },
     )
 }
 
@@ -48,7 +76,33 @@ private fun HomeScreenUiState.toCommonUiState() = RethinkHomeUiState(
     dnsLogsCount = dnsLogsCount,
     protectionStatus = protectionStatusLabel(protectionStatus),
     isProtectionFailing = isProtectionFailing,
+    allowedToday = allowedToday,
+    blockedToday = blockedToday,
+    dnsBlockedToday = dnsBlockedToday,
+    topBlocked = topBlocked.map { app ->
+        RethinkHomeBlockedApp(
+            id = app.uid.toString(),
+            label = app.appName.ifBlank { app.packageName },
+            count = app.count,
+            icon = { PackageIcon(app.packageName, app.appName) },
+        )
+    },
+    dnsName = dnsName,
 )
+
+@Composable
+private fun PackageIcon(packageName: String, label: String) {
+    val context = LocalContext.current
+    var icon by remember(packageName) { mutableStateOf<Drawable?>(null) }
+    LaunchedEffect(packageName) {
+        icon = withContext(Dispatchers.IO) { Utilities.getIcon(context, packageName, label) }
+    }
+    icon?.let { drawable ->
+        rememberDrawablePainter(drawable)?.let { painter ->
+            Image(painter = painter, contentDescription = null, modifier = Modifier.fillMaxSize())
+        }
+    }
+}
 
 @Composable
 private fun protectionStatusLabel(status: HomeProtectionStatus?): String {
@@ -83,4 +137,24 @@ private fun androidHomeStrings() = RethinkHomeStrings(
     reconnecting = stringResource(R.string.home_reconnecting),
     activityTitle = stringResource(R.string.home_activity_title),
     activitySubtitle = stringResource(R.string.home_activity_subtitle),
+    last24Hours = stringResource(R.string.home_last_24_hours),
+    allowed = stringResource(R.string.lbl_allowed),
+    blocked = stringResource(R.string.lbl_blocked),
+    stoppedAtDns = stringResource(R.string.home_stopped_at_dns),
+    stoppedMost = stringResource(R.string.home_stopped_most),
+    nothingStopped = stringResource(R.string.home_nothing_stopped),
+    seeStatistics = stringResource(R.string.home_see_statistics),
+    apps = stringResource(R.string.lbl_apps),
+    appsCaption = stringResource(R.string.home_apps_caption),
+    logs = stringResource(R.string.lbl_logs),
+    logsCaption = stringResource(R.string.home_logs_caption),
+    dns = stringResource(R.string.lbl_dns),
+    dnsCaption = stringResource(R.string.home_dns_caption),
+    blockedCount = blockedCountLabel(),
 )
+
+@Composable
+private fun blockedCountLabel(): (Long) -> String {
+    val resources = LocalContext.current.resources
+    return { count -> resources.getQuantityString(R.plurals.home_blocked_count, count.toInt(), count.toInt()) }
+}

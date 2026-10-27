@@ -72,6 +72,11 @@ class ConnectionTrackerRepository(private val connectionTrackerDAO: ConnectionTr
         return connectionTrackerDAO.logsCount()
     }
 
+    fun observeVerdictCounts(since: Long): Flow<VerdictCounts> = connectionTrackerDAO.observeVerdictCounts(since)
+
+    fun observeTopBlockedApps(since: Long, limit: Int = 3): Flow<List<AppBlockCount>> =
+        connectionTrackerDAO.observeTopBlockedApps(since, limit)
+
     suspend fun getDestinationsForUid(uid: Int, limit: Int = 5): List<LogGroupCount> =
         connectionTrackerDAO.getDestinationsForUid(uid, limit)
 

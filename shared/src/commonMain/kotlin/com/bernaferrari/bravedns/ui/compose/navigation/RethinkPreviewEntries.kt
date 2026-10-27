@@ -45,6 +45,7 @@ import com.bernaferrari.bravedns.ui.compose.demoConfigureStrings
 import com.bernaferrari.bravedns.ui.compose.demoCountryStatistic
 import com.bernaferrari.bravedns.ui.compose.demoFirewallApps
 import com.bernaferrari.bravedns.ui.compose.demoHomeStrings
+import com.bernaferrari.bravedns.ui.compose.home.RethinkHomeBlockedApp
 import com.bernaferrari.bravedns.ui.compose.home.RethinkHomeScreen
 import com.bernaferrari.bravedns.ui.compose.home.RethinkHomeUiState
 import com.bernaferrari.bravedns.ui.compose.statistics.RethinkStatisticsWindow
@@ -77,6 +78,15 @@ fun EntryProviderScope<NavKey>.rethinkPreviewEntries(
                     networkLogsCount = 4_320,
                     dnsLogsCount = 1_284,
                     protectionStatus = if (active) "Protected" else "Not active",
+                    allowedToday = 3_412,
+                    blockedToday = 908,
+                    dnsBlockedToday = 512,
+                    topBlocked = listOf(
+                        RethinkHomeBlockedApp("chrome", "Chrome", 214),
+                        RethinkHomeBlockedApp("youtube", "YouTube", 133),
+                        RethinkHomeBlockedApp("clock", "Clock", 96),
+                    ),
+                    dnsName = "Rethink DNS",
                 ),
                 strings = demoHomeStrings,
                 onStartStopClick = { vpnOn.value = !vpnOn.value },

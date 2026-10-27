@@ -102,6 +102,9 @@ interface DnsLogDAO {
     )
     suspend fun getAppsQueryingDomain(domain: String, limit: Int): List<LogGroupCount>
 
+    @Query("SELECT COUNT(id) FROM DNSLogs WHERE isBlocked = 1 AND time > :since")
+    fun observeBlockedSince(since: Long): Flow<Long>
+
     @Query(
         "SELECT appName AS appName, packageName AS packageName, COUNT(id) AS count FROM DNSLogs WHERE isBlocked = 0 AND blockLists = '' AND TRIM(appName) != '' GROUP BY appName, packageName ORDER BY count DESC"
     )

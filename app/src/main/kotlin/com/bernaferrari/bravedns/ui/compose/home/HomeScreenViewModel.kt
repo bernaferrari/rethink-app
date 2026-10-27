@@ -6,7 +6,17 @@ import com.bernaferrari.bravedns.data.AppConfig
 import com.bernaferrari.bravedns.service.BraveVPNService
 import com.bernaferrari.bravedns.service.PersistentState
 import com.bernaferrari.bravedns.service.VpnController
+import com.bernaferrari.bravedns.database.ConnectionTrackerRepository
+import com.bernaferrari.bravedns.database.DnsLogRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
@@ -18,7 +28,9 @@ import org.koin.core.annotation.KoinViewModel
 @KoinViewModel
 class HomeScreenViewModel(
     private val persistentState: PersistentState,
-    private val appConfig: AppConfig
+    private val appConfig: AppConfig,
+    private val connectionTrackerRepository: ConnectionTrackerRepository,
+    private val dnsLogRepository: DnsLogRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeScreenUiState())
@@ -27,6 +39,40 @@ class HomeScreenViewModel(
     init {
         observeVpnState()
         observeLogsCount()
+        observeLastDay()
+    }
+
+    /** The last 24 hours, sliding: the window start moves every few minutes. */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun observeLastDay() {
+        val since = flow {
+            while (true) {
+                emit(System.currentTimeMillis() - DAY_MILLIS)
+                delay(WINDOW_STEP_MILLIS)
+            }
+        }
+        since.flatMapLatest { start ->
+            combine(
+                connectionTrackerRepository.observeVerdictCounts(start),
+                dnsLogRepository.observeBlockedSince(start),
+                connectionTrackerRepository.observeTopBlockedApps(start),
+            ) { verdicts, dnsBlocked, top -> Triple(verdicts, dnsBlocked, top) }
+        }.conflate().onEach { (verdicts, dnsBlocked, top) ->
+            _uiState.update {
+                it.copy(
+                    allowedToday = verdicts.allowed,
+                    blockedToday = verdicts.blocked,
+                    dnsBlockedToday = dnsBlocked,
+                    topBlocked = top,
+                    dnsName = persistentState.connectedDnsName,
+                )
+            }
+        }.flowOn(Dispatchers.IO).launchIn(viewModelScope)
+    }
+
+    private companion object {
+        const val DAY_MILLIS = 24 * 60 * 60 * 1000L
+        const val WINDOW_STEP_MILLIS = 5 * 60 * 1000L
     }
 
     private fun observeVpnState() {

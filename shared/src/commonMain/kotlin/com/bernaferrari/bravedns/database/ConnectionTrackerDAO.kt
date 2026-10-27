@@ -258,6 +258,16 @@ interface ConnectionTrackerDAO {
     )
     suspend fun getDestinationsForUid(uid: Int, limit: Int): List<LogGroupCount>
 
+    @Query(
+        "SELECT COALESCE(SUM(CASE WHEN isBlocked = 0 THEN 1 ELSE 0 END), 0) AS allowed, COALESCE(SUM(isBlocked), 0) AS blocked FROM ConnectionTracker WHERE timeStamp > :since"
+    )
+    fun observeVerdictCounts(since: Long): Flow<VerdictCounts>
+
+    @Query(
+        "SELECT uid AS uid, appName AS appName, packageName AS packageName, COUNT(id) AS count FROM ConnectionTracker WHERE isBlocked = 1 AND timeStamp > :since GROUP BY uid ORDER BY count DESC LIMIT :limit"
+    )
+    fun observeTopBlockedApps(since: Long, limit: Int): Flow<List<AppBlockCount>>
+
     @Query("select * from ConnectionTracker where blockedByRule in ('Rule #1B', 'Rule #1F', 'Rule #3', 'Rule #4', 'Rule #5', 'Rule #6', 'Rule #7', 'Http block', 'Universal Lockdown')")
     suspend fun getBlockedUniversalRulesCount(): List<ConnectionTracker>
 

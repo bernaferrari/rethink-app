@@ -3,16 +3,16 @@
 /*
  * Copyright 2026 RethinkDNS and its authors
  *
- * The home screen is a control surface, not a settings summary. It gives protection one
- * unmistakable hero: a shape-morphing protection mark (a quiet circle when off, a turning cookie
- * with soft pulse rings when protected), a headline that says the state in words, one primary
- * action, and the traffic this device has actually handled. Configuration belongs elsewhere.
+ * Home answers three questions at a glance, in this order of weight:
+ *  1. Am I protected? One coloured hero: a shape-morphing mark, the state in emphasized display
+ *     type, the DNS in use, and the one primary action (Start, or a quieter Stop).
+ *  2. What is it doing? The last 24 hours as allowed vs blocked, with a split bar, the lookups
+ *     the DNS stopped, and the apps that were stopped most (each one opens its rules).
+ *  3. Where do I go next? Apps, Logs and DNS as one connected group of large targets.
+ * Phones stack these; wide windows put the hero in one pane and the activity in the other.
  */
 package com.bernaferrari.bravedns.ui.compose.home
 
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillColors
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillSize
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.LinearEasing
@@ -23,13 +23,15 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -38,36 +40,41 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialShapes
-import androidx.compose.material3.toShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
@@ -75,14 +82,24 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.graphics.shapes.Morph
 import com.bernaferrari.bravedns.ui.compose.common.RethinkAdaptiveWidth
+import com.bernaferrari.bravedns.ui.compose.common.WindowWidthClass
 import com.bernaferrari.bravedns.ui.compose.common.isExpanded
-import com.bernaferrari.bravedns.ui.compose.common.rethinkContentWidth
 import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillColors
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillDefaults
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillSize
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusColors
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkMetric
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkMetricSize
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
-import kotlin.math.roundToInt
+
+/** An app the firewall stopped, with how many of its connections were blocked. */
+data class RethinkHomeBlockedApp(
+    val id: String,
+    val label: String,
+    val count: Long,
+    val icon: (@Composable () -> Unit)? = null,
+)
 
 data class RethinkHomeUiState(
     val isVpnActive: Boolean = false,
@@ -90,6 +107,14 @@ data class RethinkHomeUiState(
     val dnsLogsCount: Long = 0,
     val protectionStatus: String = "",
     val isProtectionFailing: Boolean = false,
+    /** Connections in the last 24 hours, by verdict. */
+    val allowedToday: Long = 0,
+    val blockedToday: Long = 0,
+    /** DNS lookups the blocklists stopped in the last 24 hours. */
+    val dnsBlockedToday: Long = 0,
+    val topBlocked: List<RethinkHomeBlockedApp> = emptyList(),
+    /** The resolver in use, shown in the hero while protected. */
+    val dnsName: String = "",
 )
 
 data class RethinkHomeStrings(
@@ -109,27 +134,30 @@ data class RethinkHomeStrings(
     val reconnecting: String,
     val activityTitle: String,
     val activitySubtitle: String,
+    val last24Hours: String = "Last 24 hours",
+    val allowed: String = "Allowed",
+    val blocked: String = "Blocked",
+    val stoppedAtDns: String = "lookups stopped at the DNS",
+    val stoppedMost: String = "Stopped most",
+    val nothingStopped: String = "Nothing has been blocked in the last 24 hours.",
+    val seeStatistics: String = "Statistics",
+    val apps: String = "Apps",
+    val appsCaption: String = "Wi-Fi and data, app by app",
+    val logs: String = "Logs",
+    val logsCaption: String = "Every connection",
+    val dns: String = "DNS",
+    val dnsCaption: String = "Resolver and blocklists",
+    val blockedCount: (Long) -> String = { "$it blocked" },
 )
 
 private enum class ProtectionVisualState { Protected, Recovering, Off }
 
-private const val BEACON_TURN_MILLIS = 22_000
-
-/** Pulse rings emitted per clock turn (one every two seconds). */
-private const val PULSES_PER_TURN = 11
-private const val PULSE_RINGS = 3
-
-/** The morphing shape's share of the mark; the remainder is the pulse field. */
-private const val MARK_SHAPE_RATIO = 0.62f
-private const val MARK_ICON_RATIO = 0.22f
-private const val HALO_RATIO = 0.84f
-
-/** The halo's resting tilt, so its lobes sit between the cookie's when nothing moves. */
-private const val HALO_REST_ANGLE = 15f
-private val MarkSizeCompact = 248.dp
-private val MarkSizeExpanded = 300.dp
-private val ActionMinWidth = 208.dp
-private val ActivityDividerHeight = 40.dp
+private const val MARK_TURN_MILLIS = 24_000
+private val MarkSizeCompact = 104.dp
+private val MarkSizeExpanded = 232.dp
+private val HeroCorner = 40.dp
+private val SplitBarHeight = 14.dp
+private val QuickTileHeight = 112.dp
 
 @Composable
 fun RethinkHomeScreen(
@@ -137,117 +165,312 @@ fun RethinkHomeScreen(
     strings: RethinkHomeStrings,
     onStartStopClick: () -> Unit,
     modifier: Modifier = Modifier,
-    showAtmosphere: Boolean = true,
-    /** Opens the full breakdown (Statistics); null keeps the activity card informational. */
+    /** Kept for hosts that draw their own background; Home itself is opaque now. */
+    @Suppress("UNUSED_PARAMETER") showAtmosphere: Boolean = true,
+    /** Opens the full breakdown (Statistics); null hides the link. */
     onActivityClick: (() -> Unit)? = null,
+    onAppsClick: (() -> Unit)? = null,
+    onLogsClick: (() -> Unit)? = null,
+    onDnsClick: (() -> Unit)? = null,
+    onBlockedAppClick: ((String) -> Unit)? = null,
 ) {
     val visualState = uiState.visualState()
-    val status = uiState.protectionStatus.ifBlank {
-        if (uiState.isVpnActive) strings.protected else strings.notActive
+    Scaffold(modifier = modifier, containerColor = MaterialTheme.colorScheme.surface) { insets ->
+        RethinkAdaptiveWidth(Modifier.fillMaxSize().padding(insets)) { widthClass ->
+            val hero: @Composable (Modifier) -> Unit = { heroModifier ->
+                ProtectionHero(uiState, strings, visualState, widthClass, onStartStopClick, heroModifier)
+            }
+            val activity: @Composable ColumnScope.() -> Unit = {
+                TodaySection(uiState, strings, onActivityClick)
+                StoppedMostSection(uiState.topBlocked, strings, onBlockedAppClick)
+                QuickActions(strings, onAppsClick, onLogsClick, onDnsClick)
+            }
+            if (widthClass.isExpanded) {
+                Row(
+                    Modifier.fillMaxSize().padding(SharedDimensions.spacingXl),
+                    horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXl),
+                ) {
+                    Column(Modifier.weight(1f).fillMaxHeight()) {
+                        HomeHeader(strings, visualState)
+                        Spacer(Modifier.height(SharedDimensions.spacingLg))
+                        hero(Modifier.weight(1f).fillMaxWidth())
+                    }
+                    Column(
+                        Modifier.weight(1.05f).fillMaxHeight().verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXl),
+                        content = activity,
+                    )
+                }
+            } else {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+                    Column(
+                        Modifier
+                            .widthIn(max = 640.dp)
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
+                            .padding(horizontal = SharedDimensions.screenPaddingHorizontal, vertical = SharedDimensions.spacingLg),
+                        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXl),
+                    ) {
+                        Column {
+                            HomeHeader(strings, visualState)
+                            Spacer(Modifier.height(SharedDimensions.spacingLg))
+                            hero(Modifier.fillMaxWidth())
+                        }
+                        activity()
+                    }
+                }
+            }
+        }
     }
-    val subtitle = when (visualState) {
+}
+
+@Composable
+private fun HomeHeader(strings: RethinkHomeStrings, state: ProtectionVisualState) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            strings.productName,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.weight(1f).semantics { heading() },
+        )
+        RethinkPill(
+            text = when (state) {
+                ProtectionVisualState.Protected -> strings.live
+                ProtectionVisualState.Recovering -> strings.reconnecting
+                ProtectionVisualState.Off -> strings.offline
+            },
+            colors = RethinkPillColors(MaterialTheme.colorScheme.surfaceContainerHigh, MaterialTheme.colorScheme.onSurface),
+            size = RethinkPillSize.Large,
+            dotColor = when (state) {
+                ProtectionVisualState.Protected -> RethinkStatusColors.allowed
+                ProtectionVisualState.Recovering -> MaterialTheme.colorScheme.error
+                ProtectionVisualState.Off -> MaterialTheme.colorScheme.outline
+            },
+        )
+    }
+}
+
+private data class HeroColors(val container: Color, val content: Color, val mark: Color, val onMark: Color, val halo: Color)
+
+@Composable
+private fun heroColors(state: ProtectionVisualState): HeroColors {
+    val scheme = MaterialTheme.colorScheme
+    val motion = LocalRethinkMotion.current
+    val target = when (state) {
+        ProtectionVisualState.Protected -> HeroColors(scheme.primaryContainer, scheme.onPrimaryContainer, scheme.primary, scheme.onPrimary, scheme.onPrimaryContainer.copy(alpha = 0.12f))
+        ProtectionVisualState.Recovering -> HeroColors(scheme.errorContainer, scheme.onErrorContainer, scheme.error, scheme.onError, scheme.onErrorContainer.copy(alpha = 0.12f))
+        ProtectionVisualState.Off -> HeroColors(scheme.surfaceContainerHigh, scheme.onSurface, scheme.surfaceContainerHighest, scheme.onSurfaceVariant, scheme.outlineVariant.copy(alpha = 0.5f))
+    }
+    val spec: AnimationSpec<Color> = if (motion.reducedMotion) snap() else MaterialTheme.motionScheme.defaultEffectsSpec()
+    val container by animateColorAsState(target.container, spec, label = "heroContainer")
+    val content by animateColorAsState(target.content, spec, label = "heroContent")
+    val mark by animateColorAsState(target.mark, spec, label = "heroMark")
+    val onMark by animateColorAsState(target.onMark, spec, label = "heroOnMark")
+    val halo by animateColorAsState(target.halo, spec, label = "heroHalo")
+    return HeroColors(container, content, mark, onMark, halo)
+}
+
+/** The protection state as one coloured hero: mark, state, resolver, action. */
+@Composable
+private fun ProtectionHero(
+    uiState: RethinkHomeUiState,
+    strings: RethinkHomeStrings,
+    state: ProtectionVisualState,
+    widthClass: WindowWidthClass,
+    onStartStopClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val colors = heroColors(state)
+    val expanded = widthClass.isExpanded
+    val status = uiState.protectionStatus.ifBlank { if (uiState.isVpnActive) strings.protected else strings.notActive }
+    val subtitle = when (state) {
         ProtectionVisualState.Protected -> strings.protectedSubtitle
         ProtectionVisualState.Recovering -> strings.failingSubtitle
         ProtectionVisualState.Off -> strings.inactiveSubtitle
     }
-    val activeProgress by animateStateProgress(uiState.isVpnActive, "homeBeaconState")
-    val recoveringProgress by animateStateProgress(
-        visualState == ProtectionVisualState.Recovering,
-        "homeRecoveringProgress",
-    )
-    // The shape itself rides a spatial spring (slight overshoot) so the circle → cookie change
-    // feels physical; colors and the atmosphere keep the calmer effects spec.
+    Surface(modifier = modifier, shape = RoundedCornerShape(HeroCorner), color = colors.container, contentColor = colors.content) {
+        Column(
+            Modifier.padding(if (expanded) SharedDimensions.spacing2xl else SharedDimensions.spacingXl),
+        ) {
+            val dnsPill: @Composable () -> Unit = {
+                if (state != ProtectionVisualState.Off && uiState.dnsName.isNotBlank()) {
+                    RethinkPill(
+                        text = uiState.dnsName,
+                        colors = RethinkPillColors(colors.content.copy(alpha = 0.1f), colors.content),
+                        size = RethinkPillSize.Large,
+                        leadingIcon = MaterialSymbols.Filled.Dns,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.widthIn(max = 220.dp),
+                    )
+                }
+            }
+            if (expanded) {
+                // Wide: the mark is the centre of the pane, the words and the action below it.
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) { dnsPill() }
+                Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    ProtectionMark(state, colors, MarkSizeExpanded)
+                }
+            } else {
+                Row(verticalAlignment = Alignment.Top) {
+                    ProtectionMark(state, colors, MarkSizeCompact)
+                    Spacer(Modifier.weight(1f))
+                    dnsPill()
+                }
+                Spacer(Modifier.height(SharedDimensions.spacingXl))
+            }
+            Text(
+                text = status,
+                style = if (expanded) MaterialTheme.typography.displayLarge else MaterialTheme.typography.displayMedium,
+                fontWeight = FontWeight.ExtraBold,
+                letterSpacing = (-1).sp,
+                lineHeight = if (expanded) 60.sp else 50.sp,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.semantics { heading() },
+            )
+            Spacer(Modifier.height(SharedDimensions.spacingSm))
+            Text(subtitle, style = MaterialTheme.typography.bodyLarge, color = colors.content.copy(alpha = 0.82f))
+            Spacer(Modifier.height(SharedDimensions.spacingXl))
+            HeroAction(
+                isActive = uiState.isVpnActive,
+                label = if (uiState.isVpnActive) strings.stop else strings.start,
+                stateDescription = status,
+                heroColor = colors.container,
+                contentColor = colors.content,
+                onClick = onStartStopClick,
+            )
+        }
+    }
+}
+
+/**
+ * The hero mark: a Material shape that morphs from a circle (off) into a 12-sided cookie
+ * (protected) on a spatial spring, over a soft-burst halo. While protected the two turn slowly in
+ * opposite directions; with reduced motion they rest at angles where their lobes interleave.
+ */
+@Composable
+private fun ProtectionMark(state: ProtectionVisualState, colors: HeroColors, size: Dp) {
     val motion = LocalRethinkMotion.current
+    val active = state != ProtectionVisualState.Off
     val morphProgress by animateFloatAsState(
-        targetValue = if (uiState.isVpnActive) 1f else 0f,
+        targetValue = if (active) 1f else 0f,
         animationSpec = if (motion.reducedMotion) snap() else MaterialTheme.motionScheme.slowSpatialSpec(),
         label = "homeMarkMorph",
     )
-    val phase = rememberBeaconPhase()
-    val palette = rememberBeaconPalette(visualState)
-
-    Scaffold(
-        modifier = modifier,
-        containerColor = if (showAtmosphere) MaterialTheme.colorScheme.surface else Color.Transparent,
-    ) { insets ->
+    val morph = remember { Morph(MaterialShapes.Circle, MaterialShapes.Cookie12Sided) }
+    val haloShape = MaterialShapes.SoftBurst.toShape()
+    val phase = rememberTurn(active && !motion.reducedMotion)
+    Box(Modifier.size(size), contentAlignment = Alignment.Center) {
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(insets),
-        ) {
-            if (showAtmosphere) {
-                ProtectionFlowBackground(
-                    phase = phase,
-                    activeProgress = activeProgress,
-                    recoveringProgress = recoveringProgress,
-                    accent = palette.accent,
-                    secondary = palette.secondary,
-                    field = palette.field,
-                    surface = MaterialTheme.colorScheme.surface,
-                    opacity = 0.56f,
-                    modifier = Modifier.fillMaxSize(),
-                )
+            Modifier
+                .size(size)
+                .graphicsLayer {
+                    alpha = morphProgress
+                    rotationZ = HALO_REST_ANGLE - phase.value * 180f
+                }
+                .background(colors.halo, haloShape),
+        )
+        Box(
+            Modifier
+                .size(size * 0.78f)
+                .graphicsLayer { rotationZ = phase.value * 360f }
+                .background(colors.mark, MorphShape(morph, morphProgress)),
+        )
+        Icon(
+            imageVector = if (state == ProtectionVisualState.Recovering) MaterialSymbols.Filled.WarningAmber else MaterialSymbols.Filled.Shield,
+            contentDescription = null,
+            tint = colors.onMark,
+            modifier = Modifier.size(size * 0.34f),
+        )
+    }
+}
+
+private const val HALO_REST_ANGLE = 15f
+
+/** A slow 0..1 turn read only in layer scopes, so Home never recomposes per frame. */
+@Composable
+private fun rememberTurn(running: Boolean): State<Float> {
+    if (!running) return remember { StillTurn }
+    return rememberInfiniteTransition(label = "homeMarkTurn").animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(MARK_TURN_MILLIS, easing = LinearEasing), RepeatMode.Restart),
+        label = "homeMarkPhase",
+    )
+}
+
+private object StillTurn : State<Float> {
+    override val value: Float = 0f
+}
+
+/**
+ * Start is the call to action: a large filled button. Stop is deliberately quieter: a light
+ * button on the coloured hero, so protection is not one careless tap away from off.
+ */
+@Composable
+private fun HeroAction(isActive: Boolean, label: String, stateDescription: String, heroColor: Color, contentColor: Color, onClick: () -> Unit) {
+    val scheme = MaterialTheme.colorScheme
+    val height = ButtonDefaults.MediumContainerHeight
+    Button(
+        onClick = onClick,
+        shapes = ButtonDefaults.shapesFor(height),
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = height)
+            .semantics { this.stateDescription = stateDescription },
+        contentPadding = ButtonDefaults.contentPaddingFor(height),
+        colors = ButtonDefaults.buttonColors(
+            // A near-white tint of the hero itself, in light and dark alike.
+            containerColor = if (isActive) lerp(heroColor, Color.White, 0.82f) else scheme.primary,
+            contentColor = if (isActive) contentColor else scheme.onPrimary,
+        ),
+    ) {
+        Icon(
+            if (isActive) MaterialSymbols.Filled.Stop else MaterialSymbols.Filled.PlayArrow,
+            contentDescription = null,
+            modifier = Modifier.size(ButtonDefaults.iconSizeFor(height)),
+        )
+        Spacer(Modifier.width(ButtonDefaults.iconSpacingFor(height)))
+        Text(label, style = ButtonDefaults.textStyleFor(height))
+    }
+}
+
+@Composable
+private fun SectionHeader(title: String, action: String? = null, onAction: (() -> Unit)? = null) {
+    Row(Modifier.fillMaxWidth().heightIn(min = SharedDimensions.touchTargetMin), verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            title,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.weight(1f).semantics { heading() },
+        )
+        if (action != null && onAction != null) {
+            TextButton(onClick = onAction) {
+                Text(action)
+                Icon(MaterialSymbols.AutoMirrored.Filled.KeyboardArrowRight, null, modifier = Modifier.size(SharedDimensions.iconSizeSm))
             }
-            RethinkAdaptiveWidth(Modifier.fillMaxSize()) { widthClass ->
-                val expanded = widthClass.isExpanded
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = SharedDimensions.screenPaddingHorizontal),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    HomeMasthead(
-                        name = strings.productName,
-                        networkProtection = strings.networkProtection,
-                        stateLabel = when (visualState) {
-                            ProtectionVisualState.Protected -> strings.live
-                            ProtectionVisualState.Recovering -> strings.reconnecting
-                            ProtectionVisualState.Off -> strings.offline
-                        },
-                        stateColor = when (visualState) {
-                            ProtectionVisualState.Off -> MaterialTheme.colorScheme.outline
-                            else -> palette.accent
-                        },
-                        modifier = Modifier
-                            .rethinkContentWidth(widthClass)
-                            .padding(top = SharedDimensions.spacingLg),
-                    )
-                    Spacer(Modifier.weight(1f))
-                    ProtectionMark(
-                        visualState = visualState,
-                        activeProgress = activeProgress,
-                        morphProgress = morphProgress,
-                        phase = phase,
-                        palette = palette,
-                        size = if (expanded) MarkSizeExpanded else MarkSizeCompact,
-                    )
-                    Spacer(Modifier.height(SharedDimensions.spacingLg))
-                    HomeStatus(
-                        status = status,
-                        subtitle = subtitle,
-                        isRecovering = visualState == ProtectionVisualState.Recovering,
-                        expanded = expanded,
-                        modifier = Modifier.rethinkContentWidth(widthClass),
-                    )
-                    Spacer(Modifier.height(SharedDimensions.spacingXl))
-                    BeaconAction(
-                        isActive = uiState.isVpnActive,
-                        label = if (uiState.isVpnActive) strings.stop else strings.start,
-                        stateDescription = status,
-                        onClick = onStartStopClick,
-                    )
-                    Spacer(Modifier.weight(1f))
-                    HomeActivityCard(
-                        title = strings.activityTitle,
-                        caption = strings.activitySubtitle,
-                        connectionsLabel = strings.connections,
-                        dnsQueriesLabel = strings.dnsQueries,
-                        connections = uiState.networkLogsCount,
-                        dnsQueries = uiState.dnsLogsCount,
-                        onClick = onActivityClick,
-                        modifier = Modifier
-                            .rethinkContentWidth(widthClass)
-                            .padding(bottom = SharedDimensions.spacingLg),
+        }
+    }
+}
+
+/** The last 24 hours: allowed vs blocked as numbers and as one split bar. */
+@Composable
+private fun TodaySection(uiState: RethinkHomeUiState, strings: RethinkHomeStrings, onActivityClick: (() -> Unit)?) {
+    Column {
+        SectionHeader(strings.last24Hours, strings.seeStatistics, onActivityClick)
+        Surface(shape = RoundedCornerShape(SharedDimensions.cornerRadius2xl), color = MaterialTheme.colorScheme.surfaceContainerLow) {
+            Column(Modifier.padding(SharedDimensions.spacingXl), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg)) {
+                    TodayMetric(formatGrouped(uiState.allowedToday), strings.allowed, RethinkStatusColors.allowed, MaterialSymbols.Filled.CheckCircle, Modifier.weight(1f))
+                    TodayMetric(formatGrouped(uiState.blockedToday), strings.blocked, RethinkStatusColors.blocked, MaterialSymbols.Filled.Block, Modifier.weight(1f))
+                }
+                SplitBar(uiState.allowedToday, uiState.blockedToday)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
+                    Icon(MaterialSymbols.Filled.Dns, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(SharedDimensions.iconSizeSm))
+                    Text(
+                        "${formatGrouped(uiState.dnsBlockedToday)} ${strings.stoppedAtDns}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -256,270 +479,156 @@ fun RethinkHomeScreen(
 }
 
 @Composable
-private fun HomeMasthead(
-    name: String,
-    networkProtection: String,
-    stateLabel: String,
-    stateColor: Color,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile)) {
-            Text(
-                text = name,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Text(
-                text = networkProtection,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+private fun TodayMetric(value: String, label: String, color: Color, icon: ImageVector, modifier: Modifier = Modifier) {
+    Column(modifier.semantics(mergeDescendants = true) {}, verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
+            Icon(icon, null, tint = color, modifier = Modifier.size(SharedDimensions.iconSizeXs))
+            Text(label, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        // Live/Off as a tonal status pill, so the state reads as a control-surface readout.
-        RethinkPill(
-            text = stateLabel,
-            colors = RethinkPillColors(MaterialTheme.colorScheme.surfaceContainerHigh, MaterialTheme.colorScheme.onSurface),
-            size = RethinkPillSize.Large,
-            dotColor = stateColor,
+        Text(
+            value,
+            style = MaterialTheme.typography.displaySmall.copy(fontFeatureSettings = "tnum"),
+            fontWeight = FontWeight.Bold,
+            color = color,
+            maxLines = 1,
         )
     }
 }
 
-private data class BeaconPalette(
-    val accent: Color,
-    val secondary: Color,
-    val field: Color,
-    val icon: Color,
-    val disc: Color,
+/** Allowed (green) and blocked (error) as one rounded bar with a small gap between the parts. */
+@Composable
+private fun SplitBar(allowed: Long, blocked: Long) {
+    val total = (allowed + blocked).coerceAtLeast(1)
+    Row(Modifier.fillMaxWidth().height(SplitBarHeight), horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+        if (allowed + blocked == 0L) {
+            Box(Modifier.fillMaxSize().clip(CircleShape).background(MaterialTheme.colorScheme.surfaceContainerHighest))
+            return@Row
+        }
+        if (allowed > 0) Box(Modifier.weight(allowed.toFloat() / total).fillMaxHeight().clip(CircleShape).background(RethinkStatusColors.allowed))
+        if (blocked > 0) Box(Modifier.weight(blocked.toFloat() / total).fillMaxHeight().clip(CircleShape).background(RethinkStatusColors.blocked))
+    }
+}
+
+/** The apps the firewall stopped most, each a row that opens its rules. */
+@Composable
+private fun StoppedMostSection(apps: List<RethinkHomeBlockedApp>, strings: RethinkHomeStrings, onClick: ((String) -> Unit)?) {
+    Column {
+        SectionHeader(strings.stoppedMost)
+        if (apps.isEmpty()) {
+            Surface(shape = RoundedCornerShape(SharedDimensions.cornerRadius2xl), color = MaterialTheme.colorScheme.surfaceContainerLow) {
+                Text(
+                    strings.nothingStopped,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.fillMaxWidth().padding(SharedDimensions.spacingXl),
+                )
+            }
+            return@Column
+        }
+        Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile)) {
+            apps.forEachIndexed { index, app ->
+                StoppedAppRow(app, strings, groupedShape(index, apps.size), onClick)
+            }
+        }
+    }
+}
+
+@Composable
+private fun StoppedAppRow(app: RethinkHomeBlockedApp, strings: RethinkHomeStrings, shape: Shape, onClick: ((String) -> Unit)?) {
+    val content: @Composable () -> Unit = {
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = SharedDimensions.spacingLg, vertical = SharedDimensions.spacingMd),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
+        ) {
+            Box(Modifier.size(SharedDimensions.iconContainerMd).clip(RoundedCornerShape(SharedDimensions.cornerRadiusMd)), contentAlignment = Alignment.Center) {
+                app.icon?.invoke() ?: Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceContainerHighest))
+            }
+            Text(app.label, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+            RethinkPill(
+                text = strings.blockedCount(app.count),
+                colors = RethinkPillDefaults.blocked(),
+                size = RethinkPillSize.Medium,
+                leadingIcon = MaterialSymbols.Filled.Block,
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
+    }
+    val color = MaterialTheme.colorScheme.surfaceContainerLow
+    if (onClick != null) {
+        Surface(onClick = { onClick(app.id) }, shape = shape, color = color, content = content)
+    } else {
+        Surface(shape = shape, color = color, content = content)
+    }
+}
+
+/** Apps, Logs and DNS as one connected group: big targets, outer corners round, inner ones tight. */
+@Composable
+private fun QuickActions(strings: RethinkHomeStrings, onApps: (() -> Unit)?, onLogs: (() -> Unit)?, onDns: (() -> Unit)?) {
+    val actions = listOfNotNull(
+        onApps?.let { QuickAction(strings.apps, strings.appsCaption, MaterialSymbols.Filled.Apps, MaterialShapes.Cookie9Sided, it) },
+        onLogs?.let { QuickAction(strings.logs, strings.logsCaption, MaterialSymbols.AutoMirrored.Filled.Subject, MaterialShapes.Pill, it) },
+        onDns?.let { QuickAction(strings.dns, strings.dnsCaption, MaterialSymbols.Filled.Dns, MaterialShapes.Clover4Leaf, it) },
+    )
+    if (actions.isEmpty()) return
+    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile)) {
+        actions.forEachIndexed { index, action ->
+            QuickTile(action, connectedShape(index, actions.size), Modifier.weight(1f).fillMaxHeight())
+        }
+    }
+}
+
+private class QuickAction(
+    val label: String,
+    val caption: String,
+    val icon: ImageVector,
+    val shape: androidx.graphics.shapes.RoundedPolygon,
+    val onClick: () -> Unit,
 )
 
 @Composable
-private fun rememberBeaconPalette(state: ProtectionVisualState): BeaconPalette {
-    val motion = LocalRethinkMotion.current
-    val scheme = MaterialTheme.colorScheme
-    // Protected follows RethinkStatusColors ("allowed is always primary"); tertiary only
-    // supplies contrast in the atmosphere.
-    val accentTarget = when (state) {
-        ProtectionVisualState.Protected -> scheme.primary
-        ProtectionVisualState.Recovering -> scheme.error
-        ProtectionVisualState.Off -> scheme.outline
-    }
-    val fieldTarget = when (state) {
-        ProtectionVisualState.Protected -> scheme.primaryContainer
-        ProtectionVisualState.Recovering -> scheme.errorContainer
-        ProtectionVisualState.Off -> scheme.surfaceContainerLow
-    }
-    val secondaryTarget = when (state) {
-        ProtectionVisualState.Protected -> scheme.tertiary
-        ProtectionVisualState.Recovering -> scheme.tertiary
-        ProtectionVisualState.Off -> scheme.outlineVariant
-    }
-    // Off is a quiet tonal circle, not a filled outline-colored blob.
-    val discTarget = when (state) {
-        ProtectionVisualState.Off -> scheme.surfaceContainerHighest
-        else -> accentTarget
-    }
-    val iconTarget = when (state) {
-        ProtectionVisualState.Protected -> scheme.onPrimary
-        ProtectionVisualState.Recovering -> scheme.onError
-        ProtectionVisualState.Off -> scheme.onSurfaceVariant
-    }
-    val spec: AnimationSpec<Color> =
-        if (motion.reducedMotion) snap() else MaterialTheme.motionScheme.defaultEffectsSpec()
-    val accent by animateColorAsState(accentTarget, spec, label = "beaconAccent")
-    val secondary by animateColorAsState(secondaryTarget, spec, label = "beaconSecondary")
-    val field by animateColorAsState(fieldTarget, spec, label = "beaconField")
-    val icon by animateColorAsState(iconTarget, spec, label = "beaconIcon")
-    val disc by animateColorAsState(discTarget, spec, label = "beaconDisc")
-    return BeaconPalette(accent, secondary, field, icon, disc)
-}
-
-@Composable
-internal fun RethinkHomeAtmosphere(
-    uiState: RethinkHomeUiState,
-    modifier: Modifier = Modifier,
-) {
-    val visualState = uiState.visualState()
-    val activeProgress by animateStateProgress(uiState.isVpnActive, "homeAtmosphereState")
-    val recoveringProgress by animateStateProgress(
-        visualState == ProtectionVisualState.Recovering,
-        "homeAtmosphereRecovering",
-    )
-    val phase = rememberBeaconPhase()
-    val palette = rememberBeaconPalette(visualState)
-
-    Box(modifier = modifier) {
-        ProtectionFlowBackground(
-            phase = phase,
-            activeProgress = activeProgress,
-            recoveringProgress = recoveringProgress,
-            accent = palette.accent,
-            secondary = palette.secondary,
-            field = palette.field,
-            surface = MaterialTheme.colorScheme.surface,
-            opacity = 0.56f,
-            modifier = Modifier.fillMaxSize(),
-        )
+private fun QuickTile(action: QuickAction, shape: Shape, modifier: Modifier = Modifier) {
+    Surface(
+        onClick = action.onClick,
+        shape = shape,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        modifier = modifier.heightIn(min = QuickTileHeight),
+    ) {
+        Column(Modifier.padding(SharedDimensions.spacingLg), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
+            Box(
+                Modifier.size(SharedDimensions.iconContainerLg).background(MaterialTheme.colorScheme.secondaryContainer, action.shape.toShape()),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(action.icon, null, tint = MaterialTheme.colorScheme.onSecondaryContainer, modifier = Modifier.size(SharedDimensions.iconSizeMd))
+            }
+            Text(action.label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, maxLines = 1)
+            Text(action.caption, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
     }
 }
+
+private val OuterCorner = SharedDimensions.cornerRadius2xl
+private val InnerCorner = SharedDimensions.cornerRadiusSm
+
+private fun groupedShape(index: Int, count: Int) = RoundedCornerShape(
+    topStart = if (index == 0) OuterCorner else InnerCorner,
+    topEnd = if (index == 0) OuterCorner else InnerCorner,
+    bottomStart = if (index == count - 1) OuterCorner else InnerCorner,
+    bottomEnd = if (index == count - 1) OuterCorner else InnerCorner,
+)
+
+private fun connectedShape(index: Int, count: Int) = RoundedCornerShape(
+    topStart = if (index == 0) OuterCorner else InnerCorner,
+    bottomStart = if (index == 0) OuterCorner else InnerCorner,
+    topEnd = if (index == count - 1) OuterCorner else InnerCorner,
+    bottomEnd = if (index == count - 1) OuterCorner else InnerCorner,
+)
 
 private fun RethinkHomeUiState.visualState(): ProtectionVisualState = when {
     isVpnActive && isProtectionFailing -> ProtectionVisualState.Recovering
     isVpnActive -> ProtectionVisualState.Protected
     else -> ProtectionVisualState.Off
-}
-
-@Composable
-private fun animateStateProgress(target: Boolean, label: String): State<Float> {
-    val motion = LocalRethinkMotion.current
-    return animateFloatAsState(
-        targetValue = if (target) 1f else 0f,
-        animationSpec = if (motion.reducedMotion) snap() else MaterialTheme.motionScheme.defaultEffectsSpec(),
-        label = label,
-    )
-}
-
-/**
- * The ambient 0..1 clock behind the mark and the protection field. It is handed out as a
- * provider and only read in draw/layer scopes, so the screen does not recompose on every frame.
- */
-@Composable
-private fun rememberBeaconPhase(): () -> Float {
-    if (LocalRethinkMotion.current.reducedMotion) return StaticPhase
-    val phase = rememberInfiniteTransition(label = "homeBeaconClock").animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(BEACON_TURN_MILLIS, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart,
-        ),
-        label = "homeBeaconPhase",
-    )
-    return remember(phase) { { phase.value } }
-}
-
-private val StaticPhase: () -> Float = { 0f }
-
-/**
- * The hero: a Material shape that morphs from a circle (off) into a 12-sided cookie
- * (protected) and turns slowly, with pulse rings radiating while protected. Rings and rotation
- * read the clock in draw/layer scopes only; with reduced motion they hold still.
- */
-@Composable
-private fun ProtectionMark(
-    visualState: ProtectionVisualState,
-    activeProgress: Float,
-    morphProgress: Float,
-    phase: () -> Float,
-    palette: BeaconPalette,
-    size: Dp,
-) {
-    val morph = remember { Morph(MaterialShapes.Circle, MaterialShapes.Cookie12Sided) }
-    val haloShape = MaterialShapes.SoftBurst.toShape()
-    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(size)) {
-        Canvas(Modifier.matchParentSize()) {
-            val outer = this.size.minDimension / 2f
-            val inner = outer * MARK_SHAPE_RATIO
-            // A soft glow under the whole mark: the protected state reads as "lit" even when the
-            // clock is still (reduced motion, or a single captured frame).
-            if (activeProgress > 0f) {
-                drawCircle(
-                    brush = Brush.radialGradient(
-                        0f to palette.accent.copy(alpha = 0.20f * activeProgress),
-                        0.62f to palette.accent.copy(alpha = 0.10f * activeProgress),
-                        1f to Color.Transparent,
-                        center = center,
-                        radius = outer,
-                    ),
-                    radius = outer,
-                )
-            }
-            // A hairline boundary is always there, so "off" still has a defined object.
-            drawCircle(
-                color = palette.accent.copy(alpha = 0.18f),
-                radius = outer - 1.dp.toPx(),
-                style = Stroke(width = 1.dp.toPx()),
-            )
-            if (activeProgress > 0f) {
-                // Pulses ride the clock; at rest they sit evenly spaced, like a frozen sonar.
-                val turn = phase() * PULSES_PER_TURN
-                repeat(PULSE_RINGS) { ring ->
-                    val progress = (turn + (ring + 0.5f) / PULSE_RINGS.toFloat()) % 1f
-                    drawCircle(
-                        color = palette.accent.copy(alpha = (1f - progress) * 0.42f * activeProgress),
-                        radius = inner + (outer - inner) * progress,
-                        style = Stroke(width = 2.dp.toPx()),
-                    )
-                }
-            }
-        }
-        // The halo: a soft-burst in the container tone, counter-rotating behind the cookie, so the
-        // mark is a layered expressive object rather than a flat badge. It grows in with protection.
-        Box(
-            Modifier
-                .size(size * HALO_RATIO)
-                .graphicsLayer {
-                    val grow = 0.72f + 0.28f * activeProgress
-                    scaleX = grow
-                    scaleY = grow
-                    alpha = activeProgress
-                    rotationZ = HALO_REST_ANGLE - phase() * 180f * activeProgress
-                }
-                .background(palette.field.copy(alpha = 0.72f), haloShape),
-        )
-        Box(
-            Modifier
-                .size(size * MARK_SHAPE_RATIO)
-                .graphicsLayer { rotationZ = phase() * 360f * activeProgress }
-                .background(palette.disc, MorphShape(morph, morphProgress)),
-        )
-        Icon(
-            imageVector = if (visualState == ProtectionVisualState.Recovering) {
-                MaterialSymbols.Filled.WarningAmber
-            } else {
-                MaterialSymbols.Filled.Shield
-            },
-            contentDescription = null,
-            tint = palette.icon,
-            modifier = Modifier.size(size * MARK_ICON_RATIO),
-        )
-    }
-}
-
-@Composable
-private fun HomeStatus(
-    status: String,
-    subtitle: String,
-    isRecovering: Boolean,
-    expanded: Boolean,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
-    ) {
-        Text(
-            text = status,
-            style = if (expanded) MaterialTheme.typography.displayMedium else MaterialTheme.typography.displaySmall,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = (-0.5f).sp,
-            textAlign = TextAlign.Center,
-            color = if (isRecovering) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
-        )
-        Text(
-            text = subtitle,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
-    }
 }
 
 /** A [Morph] between two normalized Material shapes, scaled to the layout size. */
@@ -540,141 +649,39 @@ private class MorphShape(private val morph: Morph, private val progress: Float) 
     }
 }
 
+/** 1234567 → "1,234,567"; counts read faster grouped. */
+internal fun formatGrouped(raw: Long): String {
+    val digits = raw.coerceAtLeast(0).toString()
+    return digits.reversed().chunked(3).joinToString(",").reversed()
+}
+
 /**
- * The one hero action on Home. A plain [Button] (not a ToggleButton): its label already flips
- * between Start and Stop, so toggle semantics would announce "Stop, on". The protection state is
- * exposed as the state description instead, and press feedback comes from the expressive
- * shape morph. Active swaps to a quieter tonal button with square-ish corners.
+ * The web demo's ambient field behind Home: the protection flow, tinted by the same state.
+ * Android Home is opaque and does not use it.
  */
 @Composable
-private fun BeaconAction(
-    isActive: Boolean,
-    label: String,
-    stateDescription: String,
-    onClick: () -> Unit,
-) {
-    val scheme = MaterialTheme.colorScheme
-    val height = ButtonDefaults.MediumContainerHeight
-    Button(
-        onClick = onClick,
-        shapes = if (isActive) {
-            ButtonDefaults.shapes(ButtonDefaults.squareShape, ButtonDefaults.mediumPressedShape)
-        } else {
-            ButtonDefaults.shapesFor(height)
-        },
-        modifier = Modifier
-            .heightIn(min = height)
-            .widthIn(min = ActionMinWidth)
-            .semantics { this.stateDescription = stateDescription },
-        contentPadding = ButtonDefaults.contentPaddingFor(height),
-        colors = ButtonDefaults.buttonColors(
-            // Starting is the call to action; once protected, stopping is secondary and tonal.
-            containerColor = if (isActive) scheme.surfaceContainerHighest else scheme.primary,
-            contentColor = if (isActive) scheme.onSurface else scheme.onPrimary,
-        ),
-    ) {
-        Icon(
-            imageVector = if (isActive) MaterialSymbols.Filled.Stop else MaterialSymbols.Filled.PlayArrow,
-            contentDescription = null,
-            modifier = Modifier.size(ButtonDefaults.iconSizeFor(height)),
-        )
-        Spacer(Modifier.width(ButtonDefaults.iconSpacingFor(height)))
-        Text(text = label, style = ButtonDefaults.textStyleFor(height))
-    }
-}
-
-/** Traffic handled since logs were last cleared, as hero numbers in a tonal card. */
-@Composable
-private fun HomeActivityCard(
-    title: String,
-    caption: String,
-    connectionsLabel: String,
-    dnsQueriesLabel: String,
-    connections: Long,
-    dnsQueries: Long,
-    onClick: (() -> Unit)?,
+internal fun RethinkHomeAtmosphere(
+    uiState: RethinkHomeUiState,
     modifier: Modifier = Modifier,
 ) {
-    val shape = RoundedCornerShape(SharedDimensions.groupCornerRadius)
-    val color = MaterialTheme.colorScheme.surfaceContainerLow
-    val content: @Composable () -> Unit = { HomeActivityContent(title, caption, connectionsLabel, dnsQueriesLabel, connections, dnsQueries, onClick != null) }
-    if (onClick != null) {
-        Surface(onClick = onClick, modifier = modifier, shape = shape, color = color, content = content)
-    } else {
-        Surface(modifier = modifier, shape = shape, color = color, content = content)
+    val state = uiState.visualState()
+    val motion = LocalRethinkMotion.current
+    val scheme = MaterialTheme.colorScheme
+    val spec = if (motion.reducedMotion) snap<Float>() else MaterialTheme.motionScheme.defaultEffectsSpec()
+    val active by animateFloatAsState(if (uiState.isVpnActive) 1f else 0f, spec, label = "atmosphereActive")
+    val recovering by animateFloatAsState(if (state == ProtectionVisualState.Recovering) 1f else 0f, spec, label = "atmosphereRecovering")
+    val phase = rememberTurn(!motion.reducedMotion)
+    Box(modifier) {
+        ProtectionFlowBackground(
+            phase = { phase.value },
+            activeProgress = active,
+            recoveringProgress = recovering,
+            accent = if (state == ProtectionVisualState.Recovering) scheme.error else scheme.primary,
+            secondary = scheme.tertiary,
+            field = scheme.primaryContainer,
+            surface = scheme.surface,
+            opacity = 0.56f,
+            modifier = Modifier.fillMaxSize(),
+        )
     }
-}
-
-@Composable
-private fun HomeActivityContent(
-    title: String,
-    caption: String,
-    connectionsLabel: String,
-    dnsQueriesLabel: String,
-    connections: Long,
-    dnsQueries: Long,
-    navigable: Boolean,
-) {
-    Column(
-        modifier = Modifier.padding(SharedDimensions.cardPadding),
-        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
-    ) {
-        Row(verticalAlignment = Alignment.Bottom) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.weight(1f),
-            )
-            Text(
-                text = caption,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            if (navigable) {
-                Icon(
-                    MaterialSymbols.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(SharedDimensions.iconSizeSm),
-                )
-            }
-        }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            RethinkMetric(
-                value = formatCompactCount(connections),
-                label = connectionsLabel,
-                modifier = Modifier.weight(1f),
-                size = RethinkMetricSize.Large,
-                labelMaxLines = 1,
-            )
-            VerticalDivider(
-                modifier = Modifier
-                    .height(ActivityDividerHeight)
-                    .padding(horizontal = SharedDimensions.spacingLg),
-                color = MaterialTheme.colorScheme.outlineVariant,
-            )
-            RethinkMetric(
-                value = formatCompactCount(dnsQueries),
-                label = dnsQueriesLabel,
-                modifier = Modifier.weight(1f),
-                size = RethinkMetricSize.Large,
-                labelMaxLines = 1,
-            )
-        }
-    }
-}
-
-private fun formatCompactCount(rawValue: Long): String {
-    val value = rawValue.coerceAtLeast(0)
-    return when {
-        value < 1_000 -> value.toString()
-        value < 1_000_000 -> compactUnit(value, 1_000, "K")
-        else -> compactUnit(value, 1_000_000, "M")
-    }
-}
-
-private fun compactUnit(value: Long, unit: Long, suffix: String): String {
-    val tenths = ((value.toDouble() / unit.toDouble()) * 10.0).roundToInt()
-    return if (tenths % 10 == 0) "${tenths / 10}$suffix" else "${tenths / 10}.${tenths % 10}$suffix"
 }
