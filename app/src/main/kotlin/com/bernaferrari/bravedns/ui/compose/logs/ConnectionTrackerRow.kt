@@ -212,15 +212,11 @@ private fun connectionDetails(
     )
 }
 
-/** "↓ 1.2 MB · ↑ 12 KB" for allowed connections that moved data. */
+/** "↓ 1.2 MB" for allowed connections that received data (the details pane has both directions). */
 @Composable
 private fun dataMoved(ct: ConnectionTracker): String? {
-    if (ct.isBlocked || (ct.downloadBytes <= 0 && ct.uploadBytes <= 0)) return null
-    return stringResource(
-        R.string.log_data_down_up,
-        Utilities.humanReadableByteCount(ct.downloadBytes, true),
-        Utilities.humanReadableByteCount(ct.uploadBytes, true),
-    )
+    if (ct.isBlocked || ct.downloadBytes <= 0) return null
+    return stringResource(R.string.log_data_down, Utilities.humanReadableByteCount(ct.downloadBytes, true))
 }
 
 @Composable

@@ -205,8 +205,9 @@ fun dnsLogModel(
         kind = RethinkLogKind.Dns,
         reason = blocklistSummary(blocklists),
         endpoint = firstAnswer(log.responseIps),
+        // Blocked rows name their blocklists instead; the latency of a refusal says little.
         facts = listOfNotNull(
-            log.latency.takeIf { it > 0 }?.let { stringResource(R.string.log_latency_ms, it.toInt()) },
+            log.latency.takeIf { it > 0 && !log.isBlocked }?.let { stringResource(R.string.log_latency_ms, it.toInt()) },
         ),
         appIcon = appIcon?.let { drawable -> { DrawableIcon(drawable) } },
     )
