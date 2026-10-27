@@ -116,6 +116,16 @@ const relative = element => {
 };
 if (theme.layout) await theme.layout(context);
 context.devices = devices.map(d => ({...d, box: relative(d.node), screen: relative(d.node.querySelector('.screen'))}));
+// A device may carry a label (a before/after pair, say): a caption centred above the frame, styled by the theme.
+for (const {spec, box} of context.devices) {
+  if (!spec.label) continue;
+  const label = document.createElement('div');
+  label.className = `device-label${spec.role ? ` ${spec.role}` : ''}`;
+  label.dataset.checkBounds = '';
+  label.append(Object.assign(document.createElement('span'), {textContent: spec.label}));
+  Object.assign(label.style, {left: `${box.left}px`, width: `${box.width}px`, top: `${box.top}px`});
+  main.append(label);
+}
 context.device = context.devices[0]?.box;
 context.screen = context.devices[0]?.screen;
 

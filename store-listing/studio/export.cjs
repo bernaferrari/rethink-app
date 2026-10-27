@@ -33,6 +33,8 @@ const defaultLocale = config.defaultLocale || 'en-US';
       const tally = {locale, cards: 0, untranslated: 0, borrowedCaptures: 0, movedCallouts: 0, fixedCallouts: 0, shrunk: 0};
       for (const kind of Object.keys(galleries)) {
         if (arg('kind') && arg('kind') !== kind) continue;
+        // README art (a hero, a before/after) is written once, in the default locale.
+        if (profiles[kind].defaultLocaleOnly && locale !== defaultLocale) continue;
         const slides = cardsFor(galleries, kind);
         const {width, height} = profiles[kind];
         manifest.galleries[kind] = [];
@@ -91,7 +93,7 @@ const defaultLocale = config.defaultLocale || 'en-US';
           console.log(`${label}${notes.length ? `  (${notes.join('; ')})` : ''}`);
         }
         // Contact sheet: the set edge to edge, so seams can be checked at a glance.
-        if (slides.length < 2 || (config.contactSheets || {})[kind] === false) continue;
+        if (slides.length < 2 || profiles[kind].defaultLocaleOnly || (config.contactSheets || {})[kind] === false) continue;
         const h = width > height ? 600 : 960, w = Math.round(h * width / height);
         const sheet = await browser.newPage({viewport: {width: w * slides.length, height: h}});
         await sheet.setContent(`<body style="margin:0;display:flex">${manifest.galleries[kind].map(m => `<img src="${base}/${locale}/${m.file}?t=${Date.now()}" style="height:${h}px;width:${w}px">`).join('')}</body>`);

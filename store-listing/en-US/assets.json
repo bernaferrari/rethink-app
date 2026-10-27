@@ -7,7 +7,7 @@
         "slide": 0,
         "width": 1080,
         "height": 1920,
-        "bytes": 243894,
+        "bytes": 195081,
         "sources": [
           "raw/phone/01-home.png"
         ]
@@ -18,7 +18,7 @@
         "slide": 1,
         "width": 1080,
         "height": 1920,
-        "bytes": 272213,
+        "bytes": 244444,
         "sources": [
           "raw/phone/02-logs.png"
         ]
@@ -29,7 +29,7 @@
         "slide": 2,
         "width": 1080,
         "height": 1920,
-        "bytes": 185790,
+        "bytes": 198382,
         "sources": [
           "raw/phone/03-apps.png"
         ]
@@ -40,7 +40,7 @@
         "slide": 3,
         "width": 1080,
         "height": 1920,
-        "bytes": 214964,
+        "bytes": 197677,
         "sources": [
           "raw/phone/07-app-detail.png"
         ]
@@ -51,7 +51,7 @@
         "slide": 4,
         "width": 1080,
         "height": 1920,
-        "bytes": 271375,
+        "bytes": 252855,
         "sources": [
           "raw/phone/04-dns-blocked.png"
         ]
@@ -62,9 +62,8 @@
         "slide": 5,
         "width": 1080,
         "height": 1920,
-        "bytes": 207388,
+        "bytes": 225254,
         "sources": [
-          "raw/phone/06-blocked-apps.png",
           "raw/phone/05-stats.png"
         ]
       },
@@ -74,7 +73,7 @@
         "slide": 6,
         "width": 1080,
         "height": 1920,
-        "bytes": 219580,
+        "bytes": 211527,
         "sources": [
           "raw/phone/09-dns.png"
         ]
@@ -85,7 +84,7 @@
         "slide": 7,
         "width": 1080,
         "height": 1920,
-        "bytes": 240124,
+        "bytes": 216420,
         "sources": [
           "raw/phone/11-home-dark.png",
           "raw/phone/12-apps-dark.png"
@@ -99,31 +98,31 @@
         "slide": 0,
         "width": 1200,
         "height": 1920,
-        "bytes": 243193,
+        "bytes": 207317,
         "sources": [
           "raw/tablet7/01-home.png"
         ]
       },
       {
-        "file": "tablet7/tablet7-02-logs.jpg",
-        "feature": "logs",
+        "file": "tablet7/tablet7-02-trackers.jpg",
+        "feature": "trackers",
         "slide": 1,
         "width": 1200,
         "height": 1920,
-        "bytes": 278401,
+        "bytes": 256164,
         "sources": [
-          "raw/tablet7/02-logs.png"
+          "raw/tablet7/04-dns-blocked.png"
         ]
       },
       {
-        "file": "tablet7/tablet7-03-trackers.jpg",
-        "feature": "trackers",
+        "file": "tablet7/tablet7-03-apps.jpg",
+        "feature": "apps",
         "slide": 2,
         "width": 1200,
         "height": 1920,
-        "bytes": 277840,
+        "bytes": 208892,
         "sources": [
-          "raw/tablet7/04-dns-blocked.png"
+          "raw/tablet7/03-apps.png"
         ]
       },
       {
@@ -132,7 +131,7 @@
         "slide": 3,
         "width": 1200,
         "height": 1920,
-        "bytes": 217012,
+        "bytes": 205038,
         "sources": [
           "raw/tablet7/07-app-detail.png"
         ]
@@ -143,7 +142,7 @@
         "slide": 4,
         "width": 1200,
         "height": 1920,
-        "bytes": 253976,
+        "bytes": 226146,
         "sources": [
           "raw/tablet7/11-home-dark.png",
           "raw/tablet7/12-apps-dark.png"
@@ -152,14 +151,14 @@
     ],
     "tablet10": [
       {
-        "file": "tablet10/tablet10-01-stats.jpg",
-        "feature": "stats",
+        "file": "tablet10/tablet10-01-logs.jpg",
+        "feature": "logs",
         "slide": 0,
         "width": 1920,
         "height": 1200,
-        "bytes": 200273,
+        "bytes": 248743,
         "sources": [
-          "raw/tablet10/05-stats.png"
+          "raw/tablet10/02-logs.png"
         ]
       },
       {
@@ -168,31 +167,31 @@
         "slide": 1,
         "width": 1920,
         "height": 1200,
-        "bytes": 234295,
+        "bytes": 197601,
         "sources": [
           "raw/tablet10/01-home.png"
         ]
       },
       {
-        "file": "tablet10/tablet10-03-logs.jpg",
-        "feature": "logs",
+        "file": "tablet10/tablet10-03-trackers.jpg",
+        "feature": "trackers",
         "slide": 2,
         "width": 1920,
         "height": 1200,
-        "bytes": 206506,
+        "bytes": 238044,
         "sources": [
-          "raw/tablet10/02-logs.png"
+          "raw/tablet10/04-dns-blocked.png"
         ]
       },
       {
-        "file": "tablet10/tablet10-04-trackers.jpg",
-        "feature": "trackers",
+        "file": "tablet10/tablet10-04-stats.jpg",
+        "feature": "stats",
         "slide": 3,
         "width": 1920,
         "height": 1200,
-        "bytes": 204118,
+        "bytes": 200918,
         "sources": [
-          "raw/tablet10/04-dns-blocked.png"
+          "raw/tablet10/05-stats.png"
         ]
       },
       {
@@ -201,7 +200,7 @@
         "slide": 4,
         "width": 1920,
         "height": 1200,
-        "bytes": 179381,
+        "bytes": 202825,
         "sources": [
           "raw/tablet10/07-app-detail.png"
         ]
@@ -212,10 +211,39 @@
         "slide": 5,
         "width": 1920,
         "height": 1200,
-        "bytes": 239902,
+        "bytes": 223328,
         "sources": [
           "raw/tablet10/08-settings.png",
           "raw/tablet10/11-home-dark.png"
+        ]
+      }
+    ],
+    "readme": [
+      {
+        "file": "readme/hero.jpg",
+        "feature": "readme-hero",
+        "slide": 0,
+        "width": 2400,
+        "height": 1260,
+        "bytes": 286720,
+        "sources": [
+          "raw/phone/02-logs.png",
+          "raw/phone/01-home.png",
+          "raw/phone/03-apps.png"
+        ]
+      },
+      {
+        "file": "readme/before-after.jpg",
+        "feature": "readme-compare",
+        "slide": 1,
+        "width": 2400,
+        "height": 1260,
+        "bytes": 363232,
+        "sources": [
+          "raw/compare/rethink-home.png",
+          "raw/phone/01-home.png",
+          "raw/compare/rethink-apps.png",
+          "raw/phone/03-apps.png"
         ]
       }
     ]

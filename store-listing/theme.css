@@ -1,55 +1,82 @@
-/* Re-Rethink: a deep-wine night from the app's coral seed, packets falling into line across the strip,
-   coral for the one phrase that matters, and real screens held in blush frames. */
+/* Re-Rethink: "the gate". A dark field with a stream of green (allowed) and coral (blocked) packets;
+   every device is the firewall the stream runs into. Copy sits flush left at the top, devices
+   alternate sides below it (or hang from the top with the copy underneath), so no two neighbours
+   share a composition. */
 @font-face{font-family:Rethink;src:url(fonts/GoogleSansFlex-Latin.woff2) format('woff2');font-weight:100 1000;font-style:normal;font-display:block}
-:root{--field:#2d0d18;--ink:#fff7f5;--coral:#ff9b8a;--muted:#e8c4c2;--frame-top:#fff0ec;--frame-bottom:#f2c4ba}
+:root{--field:#190a11;--ink:#fff6f3;--coral:#ff8a7a;--green:#7fe6ad;--muted:#e3c6c3;--frame-top:#fbf3f1;--frame-bottom:#ecd9d5}
 body,.campaign{background:var(--field);color:var(--ink)}
 body{font-family:Rethink,var(--script-font),sans-serif}
 
-header{left:72px;right:72px;top:120px;text-align:center;z-index:5}
-h1{font-size:108px;line-height:1.02;letter-spacing:-.02em;font-weight:700;font-variation-settings:'opsz' 144,'ROND' 30}
-/* The highlighted phrase: coral, with a soft glow like the Home beacon. */
-h1 em{font-style:normal;color:var(--coral);text-shadow:0 0 44px #ff6a5a55}
-header p{margin:28px auto 0;font-size:40px;line-height:1.28;font-weight:420;color:var(--muted);max-width:900px;white-space:pre-line}
+header{left:84px;right:84px;top:150px;text-align:left;z-index:5}
+h1{font-size:104px;line-height:1.02;letter-spacing:-.02em;font-weight:720;font-variation-settings:'opsz' 144,'ROND' 40}
+/* The highlighted phrase in the blocked-packet coral; "allowed" phrases can use the green via [..]. */
+h1 em{font-style:normal;color:var(--coral)}
+h1 ins{text-decoration:none;color:var(--green)}
+header p{margin:26px 0 0;font-size:40px;line-height:1.28;font-weight:420;color:var(--muted);max-width:880px;white-space:pre-line}
 
-.brand{position:absolute;z-index:6;left:0;right:0;top:92px;display:flex;justify-content:center;align-items:center;gap:16px;
-  font-size:36px;font-weight:600;letter-spacing:-.01em;color:#ffe9e4}
-.brand img{width:64px;height:64px;border-radius:50%;box-shadow:0 8px 24px #12030880}
-.campaign.first header{top:200px}
+.brand{position:absolute;z-index:6;left:84px;top:84px;display:flex;align-items:center;gap:16px;
+  font-size:34px;font-weight:620;letter-spacing:-.01em;color:#ffe9e4}
+.brand img{width:60px;height:60px;border-radius:50%;box-shadow:0 8px 24px #0a020680}
+.campaign.first header{top:196px}
 
-/* Frames: blush glass, so every screen sits in the same warm light. */
+/* Frames: warm porcelain, so light and dark screens both stand clear of the dark field. */
 .device{--bezel:14px;--radius:78px;background:linear-gradient(170deg,var(--frame-top),var(--frame-bottom));
-  box-shadow:inset 0 0 0 2px #ffffffb0,inset 0 -3px 0 #d98f8044,0 60px 120px -24px #12030cdd,0 0 0 1px #12030840,0 0 140px -40px #ff7a6866}
+  box-shadow:inset 0 0 0 2px #ffffffc0,inset 0 -3px 0 #c7a49c55,0 50px 110px -20px #050103ee,0 0 0 1px #05010350}
 
-/* Phone: copy on top, the real screen large below it, running off the bottom edge. */
-.phone .big .primary{left:126px;top:560px;width:828px}
+/* Phone. Gate on the right: the stream arrives from the left and piles against the phone. */
+.phone .gate-right .primary{left:300px;top:610px;width:720px}
 .phone .first .primary{top:640px}
-
-/* Two screens, one hanging from the top and one rising from the bottom, the copy between them. */
-.phone .stack header{top:742px}
-.phone .stack .primary{left:220px;top:-800px;width:640px}
-.phone .stack .secondary{left:220px;top:1270px;width:640px}
-
-/* Light and dark, side by side and upright. */
-.phone .duo .primary{left:30px;top:600px;width:560px}
-.phone .duo .secondary{left:490px;top:800px;width:560px;z-index:3}
+/* Gate on the left: allowed traffic leaves to the right. */
+.phone .gate-left .primary{left:60px;top:610px;width:720px}
+/* Hanging from the top, copy underneath; the stream runs beneath the phone. */
+.phone .hang header{top:1300px}
+.phone .hang .primary{left:180px;top:-400px;width:720px}
+/* Light and dark side by side, upright; together they are one gate. */
+.phone .duo .primary{left:40px;top:640px;width:560px}
+.phone .duo .secondary{left:480px;top:820px;width:560px;z-index:3}
 
 /* 7-inch portrait: the same system, a little wider. */
-.tablet7 header{top:130px}
-.tablet7 h1{font-size:116px}
+.tablet7 header{left:96px;right:96px;top:160px}
+.tablet7 h1{font-size:112px}
 .tablet7 header p{font-size:42px}
-.tablet7 .campaign.first header{top:220px}
-.tablet7 .big .primary{left:150px;top:640px;width:900px}
-.tablet7 .first .primary{top:720px}
-.tablet7 .duo .primary{left:40px;top:600px;width:640px}
-.tablet7 .duo .secondary{left:520px;top:780px;width:640px}
+.tablet7 .brand{left:96px}
+.tablet7 .campaign.first header{top:210px}
+.tablet7 .gate-right .primary{left:330px;top:640px;width:800px}
+.tablet7 .gate-left .primary{left:70px;top:640px;width:800px}
+.tablet7 .hang header{top:1330px}
+.tablet7 .hang .primary{left:200px;top:-470px;width:800px}
+.tablet7 .duo .primary{left:50px;top:660px;width:640px}
+.tablet7 .duo .secondary{left:510px;top:820px;width:640px}
 
-/* 10-inch landscape: copy on the left, the whole tablet on the right. */
-.tablet10 header{left:110px;right:auto;top:0;bottom:0;width:560px;text-align:left;display:flex;flex-direction:column;justify-content:center}
-.tablet10 h1{font-size:92px}
+/* 10-inch landscape: copy at the top left, the whole tablet on the right; the stream runs below the
+   copy and into the tablet's left edge. */
+.tablet10 header{left:110px;right:auto;top:150px;width:560px}
+.tablet10 h1{font-size:88px}
 .tablet10 h1 .line{white-space:normal}
-.tablet10 header p{margin:26px 0 0;font-size:36px;max-width:540px;white-space:normal}
-.tablet10 .brand{left:110px;right:auto;top:84px;justify-content:flex-start}
-.tablet10 .campaign.first header{top:0}
-.tablet10 .big .primary{left:730px;top:240px;width:1110px}
-.tablet10 .duo .primary{left:720px;top:120px;width:840px}
-.tablet10 .duo .secondary{left:1010px;top:560px;width:840px}
+.tablet10 header p{margin:24px 0 0;font-size:34px;max-width:540px;white-space:normal}
+.tablet10 .brand{left:110px;top:70px}
+.tablet10 .campaign.first header{top:180px}
+.tablet10 .gate-right .primary{left:720px;top:230px;width:1130px}
+.tablet10 .duo .primary{left:700px;top:90px;width:860px}
+.tablet10 .duo .secondary{left:1000px;top:520px;width:860px}
+
+/* README art: wide and wordless, on the same field, with the stream running between the phones. */
+.readme .hero .left{left:270px;top:300px;width:540px}
+.readme .hero .center{left:890px;top:140px;width:620px;z-index:3}
+.readme .hero .right{left:1590px;top:300px;width:540px}
+/* Before and after: the same phone, one sheet per pair. The original keeps a thin, quiet ring;
+   Re-Rethink steps forward in a coral frame with a warm glow, its name in the headline coral. */
+.readme .compare .device{width:450px;top:110px}
+.readme .compare .device .screen{border-radius:44px;overflow:hidden}
+.readme .compare .device.before{--bezel:4px;--radius:48px;background:#ffffff30;box-shadow:0 30px 60px -30px #050103cc}
+.readme .compare .device.after{--bezel:9px;--radius:53px;background:linear-gradient(155deg,#ffd9cf,#ff9a86 38%,#ff5d73 72%,#c2304b);
+  box-shadow:0 0 0 1px #ffffff55,0 0 90px -10px #ff6f6199,0 40px 80px -30px #050103f0}
+.readme .compare .pair1.before{left:150px}
+.readme .compare .pair1.after{left:650px}
+.readme .compare .pair2.before{left:1300px}
+.readme .compare .pair2.after{left:1800px}
+.readme .compare .device.before::before{content:'';position:absolute;z-index:-1;left:-50px;top:-50px;width:1050px;height:1140px;border-radius:98px;
+  background:radial-gradient(120% 80% at 75% 40%,#ff6f6124,transparent 60%),linear-gradient(170deg,#ffffff12,#ffffff06);box-shadow:inset 0 0 0 1.5px #ffffff1a}
+.readme .compare .device-label{transform:translateY(calc(var(--h) + 30px));display:flex;justify-content:center}
+.device-label.before span{font-size:40px;font-weight:500;color:#bfa9a6}
+.device-label.after span{font-size:40px;font-weight:720;color:var(--coral)}

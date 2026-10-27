@@ -1,7 +1,12 @@
-// Re-Rethink: one deep-wine field under the whole strip, crossed by the "cipher current" of the
-// Home screen: loose packets that drift in from the left and fall into line as woven strands.
-// Everything is drawn in panorama coordinates, so the strip joins exactly in the store carousel.
+// Re-Rethink: "the gate". One dark field runs under the whole strip, and through it a stream of
+// packets: green ones are allowed, coral ones are blocked. Wherever the stream meets a device, the
+// device is the firewall: blocked packets pile up against its edge and only green ones come out the
+// other side, until new traffic mixes back in before the next card. Devices alternate sides, so the
+// strip reads as traffic passing gate after gate.
 import {panoramaGradient, panoramaX} from './studio/shapes.js';
+
+const ALLOWED = '#6fe0a2';
+const BLOCKED = '#ff6f61';
 
 // Deterministic noise, so every export draws the same packets.
 function random(seed) {
@@ -9,61 +14,95 @@ function random(seed) {
   return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
 }
 
-// Strands: height (fraction of the canvas), wave amplitude, wavelength in card widths, phase.
-const strands = [
-  {y: .70, amp: .07, wave: 2.6, phase: 0, size: 1},
-  {y: .74, amp: .06, wave: 2.6, phase: Math.PI * .66, size: .9},
-  {y: .78, amp: .05, wave: 2.6, phase: Math.PI * 1.33, size: .8},
-  {y: .29, amp: .04, wave: 3.4, phase: Math.PI * .4, size: .6},
-];
+/** Lane heights as fractions of the canvas: clear of the copy in every layout. */
+const lanes = landscape => landscape ? [.585, .615, .645, .675, .705] : [.55, .575, .6, .625, .65];
 
 function art(ctx) {
-  const {W, H, slides, index} = ctx;
+  const {W, H, slides} = ctx;
   const unit = Math.max(W, H);
   const landscape = W > H;
-  let defs = panoramaGradient(ctx, 'field', ['#2a0c15', '#35101c', '#2d0d18', '#3a1220', '#2b0c16', '#36111d']);
+  let defs = panoramaGradient(ctx, 'field', ['#170910', '#1d0b14', '#180a11', '#200c16', '#170910', '#1e0b14']);
   let body = `<rect width="${W}" height="${H}" fill="url(#field)"/>`;
-  // A warm light behind each card's product, wide enough to spill into the neighbours.
+  // A faint wash of light behind each card's product, wide enough to join its neighbours.
   slides.forEach((_, k) => {
-    const cx = panoramaX(ctx, k + (landscape ? .68 : .5)), cy = H * (landscape ? .55 : .72);
-    defs += `<radialGradient id="glow${k}" gradientUnits="userSpaceOnUse" cx="${cx}" cy="${cy}" r="${unit * .6}"><stop offset="0" stop-color="#ff7a68" stop-opacity=".30"/><stop offset=".5" stop-color="#ff7a68" stop-opacity=".08"/><stop offset="1" stop-color="#ff7a68" stop-opacity="0"/></radialGradient>`;
-    body += `<rect width="${W}" height="${H}" fill="url(#glow${k})"/>`;
+    const cx = panoramaX(ctx, k + (landscape ? .66 : .5)), cy = H * (landscape ? .5 : .62);
+    defs += `<radialGradient id="wash${k}" gradientUnits="userSpaceOnUse" cx="${cx}" cy="${cy}" r="${unit * .55}"><stop offset="0" stop-color="#ff7a68" stop-opacity=".16"/><stop offset=".55" stop-color="#ff7a68" stop-opacity=".04"/><stop offset="1" stop-color="#ff7a68" stop-opacity="0"/></radialGradient>`;
+    body += `<rect width="${W}" height="${H}" fill="url(#wash${k})"/>`;
   });
+  // The lane bed: a quiet band the packets travel in, continuous across every card.
+  const ys = lanes(landscape).map(f => f * H);
+  const top = ys[0] - unit * .02, bottom = ys[ys.length - 1] + unit * .02;
+  defs += `<linearGradient id="bed" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0"/><stop offset=".5" stop-color="#ffffff" stop-opacity=".035"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></linearGradient>`;
+  body += `<rect x="0" y="${top}" width="${W}" height="${bottom - top}" fill="url(#bed)"/>`;
+  return `<defs>${defs}</defs>${body}`;
+}
 
-  // Packets along each strand. Order grows along the strip: early cards scatter the packets,
-  // later ones tighten them into strands, with a slow breathing between.
-  const step = unit * .016;
+/** The devices crossing a lane at height y, as left-to-right spans (overlapping ones merged). */
+function gatesAt(devices, y) {
+  const spans = devices
+    .filter(({box}) => box.top <= y && y <= box.top + box.height)
+    .map(({box}) => ({left: box.left, right: box.left + box.width}))
+    .sort((a, b) => a.left - b.left);
+  const merged = [];
+  for (const span of spans) {
+    const last = merged[merged.length - 1];
+    if (last && span.left <= last.right) last.right = Math.max(last.right, span.right);
+    else merged.push({...span});
+  }
+  return merged;
+}
+
+function stream({W, H, index, slides, devices}) {
+  const unit = Math.max(W, H);
+  const s = unit / 1920;
+  const landscape = W > H;
+  const ys = lanes(landscape).map(f => f * H);
+  const step = 34 * s;
   const total = slides.length * W;
-  let dots = '';
-  strands.forEach((strand, s) => {
-    const rnd = random(941 + s * 97);
-    for (let gx = -step; gx < total + step; gx += step) {
-      const along = gx / total;
-      const order = Math.min(1, .25 + along * 1.1) * (.8 + .2 * Math.sin(gx / W * 2.1 + s));
-      const jitter = (1 - order) * H * .09;
-      const local = gx - index * W;
-      const theta = (gx / W) / strand.wave * Math.PI * 2 + strand.phase;
-      const r1 = rnd(), r2 = rnd(), r3 = rnd();
-      if (local < -40 || local > W + 40) continue;
-      const y = H * (strand.y + strand.amp * Math.sin(theta)) + (r1 - .5) * 2 * jitter;
-      const x = local + (r2 - .5) * step * (1 - order) * 1.6;
-      const radius = (3.2 + r3 * 3.6) * strand.size * (unit / 1920);
-      const opacity = (.28 + .5 * order) * strand.size * (r3 > .85 ? 1.5 : 1);
-      dots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${radius.toFixed(2)}" fill="#ffb4a6" fill-opacity="${Math.min(.9, opacity).toFixed(3)}"/>`;
+  let packets = '';
+  ys.forEach((y, li) => {
+    const rnd = random(941 + li * 131);
+    const gates = gatesAt(devices, y);
+    for (let gx = 0; gx < total; gx += step) {
+      const r1 = rnd(), r2 = rnd(), r3 = rnd(), r4 = rnd();
+      const length = (12 + r1 * 22) * s;
+      let x = gx + (r2 - .5) * step * .7 - index * W;
+      if (x < -60 || x > W + 60) continue;
+      const blocked = r3 < .36;
+      const lane = y + (r4 - .5) * 10 * s;
+      let opacity = blocked ? .9 : .72;
+      if (gates.some(g => x + length > g.left - 4 * s && x < g.right + 4 * s)) continue;
+      const next = gates.find(g => g.left >= x);
+      const previous = [...gates].reverse().find(g => g.right <= x);
+      if (blocked && next && next.left - x < 300 * s) {
+        // Blocked packets slow down and pile up against the device ahead of them.
+        x = next.left - length - 8 * s - (next.left - x) * .34;
+        opacity = .95;
+      } else if (blocked && previous) {
+        // Past a gate only allowed traffic flows; new traffic mixes back in towards the next one.
+        const room = Math.max(1, (next ? next.left : W) - previous.right);
+        if (r4 > Math.pow((x - previous.right) / room, 1.4)) continue;
+      }
+      const h = 8 * s;
+      packets += `<rect x="${x.toFixed(1)}" y="${(lane - h / 2).toFixed(1)}" width="${length.toFixed(1)}" height="${h.toFixed(1)}" rx="${(h / 2).toFixed(1)}" fill="${blocked ? BLOCKED : ALLOWED}" fill-opacity="${opacity}"/>`;
     }
   });
-  // Packets stay faint behind the headline and brighten around the screens.
-  defs += `<linearGradient id="hushg" x1="0" y1="0" x2="${landscape ? 1 : 0}" y2="${landscape ? 0 : 1}"><stop offset="0" stop-color="#fff" stop-opacity=".25"/><stop offset=".38" stop-color="#fff" stop-opacity=".45"/><stop offset=".6" stop-color="#fff" stop-opacity="1"/></linearGradient><mask id="hush" maskUnits="userSpaceOnUse" x="0" y="0" width="${W}" height="${H}"><rect width="${W}" height="${H}" fill="url(#hushg)"/></mask>`;
-  body += `<g mask="url(#hush)">${dots}</g>`;
-  defs += `<linearGradient id="dusk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#14040a" stop-opacity=".3"/><stop offset=".4" stop-color="#14040a" stop-opacity="0"/><stop offset="1" stop-color="#14040a" stop-opacity=".25"/></linearGradient>`;
-  return `<defs>${defs}</defs>${body}<rect width="${W}" height="${H}" fill="url(#dusk)"/>`;
+  // Light where each wall holds traffic back, and a green trail where allowed traffic leaves.
+  const mid = ys[Math.floor(ys.length / 2)];
+  let defs = '', lights = '';
+  gatesAt(devices, mid).forEach((g, k) => {
+    defs += `<radialGradient id="hold${k}" gradientUnits="userSpaceOnUse" cx="${g.left}" cy="${mid}" r="${260 * s}"><stop offset="0" stop-color="${BLOCKED}" stop-opacity=".5"/><stop offset="1" stop-color="${BLOCKED}" stop-opacity="0"/></radialGradient>`;
+    defs += `<radialGradient id="pass${k}" gradientUnits="userSpaceOnUse" cx="${g.right}" cy="${mid}" r="${200 * s}"><stop offset="0" stop-color="${ALLOWED}" stop-opacity=".28"/><stop offset="1" stop-color="${ALLOWED}" stop-opacity="0"/></radialGradient>`;
+    lights += `<rect width="${W}" height="${H}" fill="url(#hold${k})"/><rect width="${W}" height="${H}" fill="url(#pass${k})"/>`;
+  });
+  return `<defs>${defs}</defs>${lights}${packets}`;
 }
 
 export default {
   art,
 
-  compose({index, main}) {
-    if (index !== 0) return;
+  compose({index, main, kind}) {
+    if (index !== 0 || kind === 'readme') return;
     // The app opens the set; later cards carry only their headline.
     main.classList.add('first');
     const brand = document.createElement('div');
@@ -76,6 +115,7 @@ export default {
   /** Bezel and corners follow the frame's width, so small and large screens look like one device family. */
   layout({main}) {
     for (const node of main.querySelectorAll('.device:not(.device-frame-none)')) {
+      if (main.classList.contains('compare')) break;
       const image = node.querySelector('img'), width = node.clientWidth;
       const landscape = image.naturalWidth > image.naturalHeight;
       const tablet = node.classList.contains('device-frame-tablet');
@@ -84,17 +124,27 @@ export default {
     }
   },
 
-  // Screens may run off the bottom (or hang from the top on the stacked card), never off the sides,
-  // and most of each screen stays in view. Landscape tablets stay whole.
-  decorate({W, H, slide, devices}) {
-    const stacked = /stack/.test(slide.layout || '');
+  // Screens may run off the bottom (or hang from the top), never off the sides, and most of each
+  // screen stays in view. Landscape tablets stay whole. Then the packet stream meets the devices.
+  decorate(ctx) {
+    const {W, H, slide, devices, art: svg} = ctx;
+    if (slide.layout === 'compare') {
+      // Each name sits just under its screen; the comparison stays calm, without the stream.
+      for (const label of devices[0].node.parentElement.querySelectorAll('.device-label')) label.style.setProperty('--h', `${devices[0].box.height}px`);
+      return;
+    }
+    const hanging = /hang/.test(slide.layout || '');
     for (const {box, spec} of devices) {
       if (box.left < 0 || box.left + box.width > W + 1) throw new Error(`Screen leaves the side of the card: ${spec.raw}`);
-      if (stacked) continue;
-      if (box.top < 0) throw new Error(`Screen leaves the top of the card: ${spec.raw}`);
       const landscapeScreen = box.width > box.height;
-      if (landscapeScreen && box.top + box.height > H + 1) throw new Error(`Landscape tablet is cut: ${spec.raw}`);
+      if (landscapeScreen && (box.top < 0 || box.top + box.height > H + 1)) throw new Error(`Landscape tablet is cut: ${spec.raw}`);
+      if (hanging) {
+        if ((box.top + box.height) / box.height < .6) throw new Error(`Too little of ${spec.raw} is visible`);
+        continue;
+      }
+      if (box.top < 0) throw new Error(`Screen leaves the top of the card: ${spec.raw}`);
       if ((H - box.top) / box.height < .6) throw new Error(`Too little of ${spec.raw} is visible`);
     }
+    svg.insertAdjacentHTML('beforeend', stream(ctx));
   },
 };

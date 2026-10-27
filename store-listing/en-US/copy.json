@@ -2,32 +2,32 @@
   "home": {
     "title": "Every app,\n*on your terms.*",
     "body": "Firewall, DNS and VPN in one app.\nNo root needed.",
-    "alt": "Re-Rethink Home: protected, with today's connections and DNS queries"
+    "alt": "Re-Rethink Home: protected, with the connections and DNS queries it has handled"
   },
   "logs": {
     "title": "Every connection,\n*in plain sight.*",
     "body": "Which app, which server,\nallowed or blocked.",
-    "alt": "The network log: a flashlight, a game and a keyboard blocked from ad and tracking domains"
+    "alt": "The network log: YouTube, Gmail and Maps connecting, a clock and an ad host blocked"
   },
   "apps": {
     "title": "Cut an app off\n*with one tap.*",
     "body": "Block Wi-Fi, mobile data or both.",
-    "alt": "The app list with Wi-Fi and mobile data switches; a music app blocked on mobile data"
+    "alt": "The app list with Wi-Fi and mobile data switches; YouTube and Photos wait for Wi-Fi"
   },
   "trackers": {
     "title": "Trackers stop\n*at the DNS.*",
     "body": "Blocklists drop ads and trackers\nbefore they connect.",
-    "alt": "DNS log filtered to blocked queries: ad, analytics and telemetry domains from several apps"
+    "alt": "The DNS log filtered to blocked queries: ad and analytics hosts stopped by blocklists"
   },
   "detail": {
-    "title": "Your keyboard\n*stays offline.*",
-    "body": "Isolate, bypass or exclude any app.",
-    "alt": "Glyph Keyboard blocked on Wi-Fi and mobile data, with isolate, bypass and exclude rules"
+    "title": "Your clock\n*stays offline.*",
+    "body": "Cut off any app that has\nno reason to connect.",
+    "alt": "Clock blocked on Wi-Fi and mobile data, with isolate, bypass and exclude rules"
   },
   "stats": {
     "title": "Who called,\n*who got through.*",
     "body": "Top apps, countries and domains\nfor the hour, day or week.",
-    "alt": "Statistics for the last 24 hours, with the most allowed and most blocked apps"
+    "alt": "Statistics for the last 24 hours: data, connections and the most allowed apps"
   },
   "dns": {
     "title": "Encrypted DNS,\n*your choice.*",
@@ -37,11 +37,21 @@
   "dark": {
     "title": "Just as calm\n*after dark.*",
     "body": "Light, dark and your own colors.",
-    "alt": "Home and the network log in dark mode"
+    "alt": "Home and the app list in dark mode"
   },
   "tablet10/dark": {
     "title": "Room for\n*every setting.*",
     "body": "Built for tablets and foldables,\nlight or dark.",
     "alt": "Settings in light mode beside Home in dark mode on a landscape tablet"
+  },
+  "tablet10/logs": {
+    "title": "Every connection,\n*in plain sight.*",
+    "body": "Pick one to see where it went, why, and everything else that app reached.",
+    "alt": "The network log beside the details of a YouTube connection on a landscape tablet"
+  },
+  "tablet10/trackers": {
+    "title": "Trackers stop\n*at the DNS.*",
+    "body": "See which blocklist caught each one, and which apps asked for it.",
+    "alt": "Blocked DNS queries beside the apps that looked up an analytics host"
   }
 }

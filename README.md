@@ -13,9 +13,7 @@
 </p>
 
 <p align="center">
-  <img src="store-listing/en-US/phone/phone-01-home.jpg" height="540" alt="Every app, on your terms: Home showing protection on, with today's connections and DNS queries">
-  &nbsp;&nbsp;
-  <img src="store-listing/en-US/phone/phone-02-logs.jpg" height="540" alt="Every connection, in plain sight: the network log with blocked ad and tracking domains">
+  <img src="store-listing/en-US/readme/hero.jpg" width="100%" alt="Re-Rethink's network log, Home with protection on, and the app list with Wi-Fi and mobile data switches">
 </p>
 
 ## Your network, app by app
@@ -23,9 +21,9 @@
 <table>
   <tr>
     <td width="25%"><img src="store-listing/en-US/phone/phone-03-apps.jpg" alt="Cut an app off with one tap: Wi-Fi and mobile data switches per app"></td>
-    <td width="25%"><img src="store-listing/en-US/phone/phone-04-detail.jpg" alt="Your keyboard stays offline: a keyboard app blocked on both networks"></td>
-    <td width="25%"><img src="store-listing/en-US/phone/phone-05-trackers.jpg" alt="Trackers stop at the DNS: blocked ad and analytics queries"></td>
-    <td width="25%"><img src="store-listing/en-US/phone/phone-06-stats.jpg" alt="Who called, who got through: top allowed and blocked apps and countries"></td>
+    <td width="25%"><img src="store-listing/en-US/phone/phone-04-detail.jpg" alt="Your clock stays offline: the Clock app blocked on Wi-Fi and mobile data"></td>
+    <td width="25%"><img src="store-listing/en-US/phone/phone-05-trackers.jpg" alt="Trackers stop at the DNS: ad and analytics queries stopped by blocklists"></td>
+    <td width="25%"><img src="store-listing/en-US/phone/phone-06-stats.jpg" alt="Who called, who got through: data, connections and the most active apps"></td>
   </tr>
 </table>
 
@@ -33,18 +31,26 @@
 - **Encrypted DNS that blocks trackers.** Use Rethink DNS with on-device blocklists, or your own resolver over DNS-over-HTTPS, DNS-over-TLS, DNSCrypt or ODoH.
 - **Logs you can read.** Every connection and DNS query shows the app, the server, the country and whether it got through, with statistics for the hour, day or week.
 
-## On a bigger screen
+## From Rethink to Re-Rethink
 
-Statistics, logs and rules spread out on tablets and foldables, with a navigation rail beside them.
+Rethink and Re-Rethink side by side. Home trades four mode cards for one clear state, one action and what the firewall did today, and the app list trades its icon strip and filter chips for search, sections and a Wi-Fi and mobile data switch pair on every app.
 
 <p align="center">
-  <img src="store-listing/en-US/tablet10/tablet10-01-stats.jpg" width="80%" alt="Re-Rethink statistics on a landscape tablet: most allowed and most blocked apps side by side">
+  <img src="store-listing/en-US/readme/before-after.jpg" width="100%" alt="Rethink's home with mode cards and its app list beside Re-Rethink's Home and app list">
+</p>
+
+Re-Rethink is a fork of [Rethink DNS + Firewall + VPN](https://github.com/celzero/rethink-app) by Celzero, redesigned with Jetpack Compose and Material 3 Expressive, and stays under the [Apache License 2.0](LICENSE). The tunnel runs on Celzero's [firestack](https://github.com/celzero/firestack).
+
+## On a bigger screen
+
+On tablets and foldables the logs open beside the details of the entry you pick, with a navigation rail beside them.
+
+<p align="center">
+  <img src="store-listing/en-US/tablet10/tablet10-01-logs.jpg" width="80%" alt="The Re-Rethink network log on a landscape tablet, beside the details of the selected connection">
 </p>
 
 ## Private by design
 
 Re-Rethink filters on the device through Android's `VpnService`. Connections go straight to where they were headed, unless you route them through a WireGuard peer or proxy of your own; DNS goes to the resolver you pick, Rethink DNS by default. Logs stay on the phone and can be turned off, and there are no ads. Android allows one VPN at a time, so Re-Rethink takes the place of any other VPN app.
-
-Re-Rethink is a fork of [Rethink DNS + Firewall + VPN](https://github.com/celzero/rethink-app) by Celzero, redesigned with Jetpack Compose and Material 3 Expressive, and stays under the [Apache License 2.0](LICENSE). The tunnel runs on Celzero's [firestack](https://github.com/celzero/firestack).
 
 <sub>Building from source or contributing? See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).</sub>
