@@ -398,7 +398,8 @@ private fun AppInfo.toRethinkFirewallApp(
         wifiBlocked = appStatus == FirewallManager.FirewallStatus.NONE && (connection == FirewallManager.ConnectionStatus.UNMETERED || connection == FirewallManager.ConnectionStatus.BOTH),
         mobileBlocked = appStatus == FirewallManager.FirewallStatus.NONE && (connection == FirewallManager.ConnectionStatus.METERED || connection == FirewallManager.ConnectionStatus.BOTH),
         dataUsage = dataUsageText(this),
-        proxyEnabled = !isProxyExcluded && ProxyManager.getProxyIdForApp(uid) != ProxyManager.ID_NONE,
+        proxyEnabled = !isProxyExcluded &&
+            ProxyManager.getProxyIdForApp(uid).let { it.isNotEmpty() && it != ProxyManager.ID_NONE },
         hasInternetPermission = hasInternetPermission(context.packageManager),
         tombstoned = tombstoneTs > 0,
         canToggleConnections = packageName != context.packageName,
