@@ -1,47 +1,57 @@
 {
   "home": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Setiap aplikasi,\n*sesuai aturanmu.*",
+    "body": "Firewall, DNS, dan VPN jadi satu.\nTanpa perlu root.",
+    "alt": "Beranda Re-Rethink: terlindungi, dengan koneksi dan kueri DNS yang sudah ditangani"
   },
   "logs": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Setiap koneksi,\n*terlihat jelas.*",
+    "body": "Aplikasi mana, server mana,\ndiizinkan atau diblokir.",
+    "alt": "Log jaringan: YouTube, Gmail, dan Maps terhubung, sementara aplikasi jam dan host iklan diblokir"
   },
   "apps": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Putuskan aplikasi\n*sekali ketuk.*",
+    "body": "Blokir Wi-Fi, data seluler,\natau keduanya.",
+    "alt": "Daftar aplikasi dengan tombol Wi-Fi dan data seluler; YouTube dan Foto menunggu Wi-Fi"
   },
   "trackers": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Pelacak berhenti\n*di DNS.*",
+    "body": "Daftar blokir menahan iklan dan\npelacak sebelum terhubung.",
+    "alt": "Log DNS yang difilter ke kueri yang diblokir: host iklan dan analitik dihentikan oleh daftar blokir"
   },
   "detail": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Aplikasi jam\n*tetap offline.*",
+    "body": "Putuskan aplikasi yang tak punya\nalasan untuk terhubung.",
+    "alt": "Aplikasi Jam diblokir di Wi-Fi dan data seluler, dengan aturan isolasi, bypass, dan pengecualian"
   },
   "stats": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Siapa memanggil,\n*siapa lolos.*",
+    "body": "Aplikasi, negara & domain teratas\nper jam, hari, atau minggu.",
+    "alt": "Statistik 24 jam terakhir: data, koneksi, dan aplikasi yang paling banyak diizinkan"
   },
   "dns": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "DNS terenkripsi,\n*pilihanmu.*",
+    "body": "Rethink DNS, DNS-over-HTTPS,\nDoT, DNSCrypt, atau milikmu.",
+    "alt": "Setelan DNS dengan Rethink DNS dipilih di antara DNS sistem, lainnya, dan pintar"
   },
   "dark": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Tetap tenang\n*saat malam.*",
+    "body": "Mode terang, gelap & warnamu.",
+    "alt": "Beranda dan daftar aplikasi dalam mode gelap"
   },
   "tablet10/dark": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Ruang untuk\n*semua setelan.*",
+    "body": "Untuk tablet dan ponsel lipat,\nterang atau gelap.",
+    "alt": "Setelan dalam mode terang di samping Beranda dalam mode gelap pada tablet lanskap"
+  },
+  "tablet10/logs": {
+    "title": "Setiap koneksi,\n*terlihat jelas.*",
+    "body": "Pilih satu untuk melihat tujuannya, alasannya, dan semua yang dihubungi aplikasi itu.",
+    "alt": "Log jaringan di samping detail koneksi YouTube pada tablet lanskap"
+  },
+  "tablet10/trackers": {
+    "title": "Pelacak berhenti\n*di DNS.*",
+    "body": "Lihat daftar blokir yang menangkap masing-masing, dan aplikasi mana yang memintanya.",
+    "alt": "Kueri DNS yang diblokir di samping aplikasi yang mencari host analitik"
   }
 }

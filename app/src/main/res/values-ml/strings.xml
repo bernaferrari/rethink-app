@@ -41,4 +41,47 @@
     <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit." translatable="true">സംരക്ഷിച്ചിട്ടില്ല</string>
     <string name="brbs_restore_dialog_failure_positive" translatable="true">പുനഃസ്ഥാപിക്കാൻ വീണ്ടും ശ്രമിക്കുക</string>
     <string name="private_dns_dialog_positive" translatable="true">ക്രമീകരണങ്ങളിലേക്ക് പോകുക</string>
+    <string name="home_last_24_hours">കഴിഞ്ഞ 24 മണിക്കൂർ</string>
+    <string name="home_stopped_at_dns">ലുക്കപ്പുകൾ DNS-ൽ തന്നെ തടഞ്ഞു</string>
+    <string name="home_stopped_most">ഏറ്റവുമധികം തടഞ്ഞത്</string>
+    <string name="home_nothing_stopped">കഴിഞ്ഞ 24 മണിക്കൂറിൽ ഒന്നും തടഞ്ഞിട്ടില്ല.</string>
+    <string name="home_see_statistics">സ്ഥിതിവിവരക്കണക്കുകൾ</string>
+    <string name="home_apps_caption">ഓരോ ആപ്പിനും Wi-Fi, ഡാറ്റ</string>
+    <string name="home_logs_caption">എല്ലാ കണക്ഷനുകളും ലുക്കപ്പുകളും</string>
+    <string name="home_dns_caption">റിസോൾവറും ബ്ലോക്ക്‌ലിസ്റ്റുകളും</string>
+    <string name="log_detail_protocol">പ്രോട്ടോക്കോൾ</string>
+    <string name="log_detail_country">രാജ്യം</string>
+    <string name="log_detail_address">വിലാസം</string>
+    <string name="log_detail_domain">ഡൊമെയ്ൻ</string>
+    <string name="log_detail_rule">നിയമം</string>
+    <string name="log_detail_proxy">പ്രോക്സി</string>
+    <string name="log_detail_duration">ദൈർഘ്യം</string>
+    <string name="log_detail_data">ഡാറ്റ</string>
+    <string name="log_detail_flags">ഫ്ലാഗുകൾ</string>
+    <string name="log_detail_message">സന്ദേശം</string>
+    <string name="log_detail_resolver">റിസോൾവർ</string>
+    <string name="log_detail_blocklists">ബ്ലോക്ക്‌ലിസ്റ്റുകൾ</string>
+    <string name="log_detail_dnssec">DNSSEC</string>
+    <string name="log_detail_dnssec_valid">സാധുവാണ്</string>
+    <string name="log_detail_dnssec_unverified">പരിശോധിച്ചിട്ടില്ല</string>
+    <string name="log_data_down">↓ %1$s</string>
+    <string name="log_latency_ms">%1$d മി.സെ.</string>
+    <string name="log_pane_details">വിശദാംശങ്ങൾ</string>
+    <string name="log_pane_dns_apps">ഇത് തിരഞ്ഞ ആപ്പുകൾ</string>
+    <string name="log_pane_network_hosts">ഈ ആപ്പ് കണക്റ്റ് ചെയ്യുന്നിടങ്ങൾ</string>
+    <string name="log_pane_empty">വിശദാംശങ്ങൾ കാണാൻ ഒരു എൻട്രി തിരഞ്ഞെടുക്കുക</string>
+    <plurals name="home_blocked_count">
+        <item quantity="one">%d തടഞ്ഞു</item>
+        <item quantity="other">%d തടഞ്ഞു</item>
+    </plurals>
+    <plurals name="log_blocklists_matched">
+        <item quantity="one">%d ബ്ലോക്ക്‌ലിസ്റ്റ് പൊരുത്തപ്പെട്ടു</item>
+        <item quantity="other">%d ബ്ലോക്ക്‌ലിസ്റ്റുകൾ പൊരുത്തപ്പെട്ടു</item>
+    </plurals>
+    <string name="app_pane_empty_title">ഒരു ആപ്പ് തിരഞ്ഞെടുക്കുക</string>
+    <string name="app_pane_empty_message">ഇതിന്റെ Wi-Fi, ഡാറ്റ സ്വിച്ചുകളും നിയമങ്ങളും ട്രാഫിക്കും ഇവിടെ തുറക്കും.</string>
+    <string name="dns_in_use">ഉപയോഗത്തിൽ</string>
+    <string name="dns_median_lookup">ശരാശരി ലുക്കപ്പ് സമയം</string>
+    <string name="dns_recent_lookups">അവസാന ലുക്കപ്പുകൾ</string>
+    <string name="dns_no_lookups_yet">ഇതുവരെ ലുക്കപ്പുകളില്ല</string>
 </resources>

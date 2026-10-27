@@ -2,8 +2,8 @@
 <resources>
     <string name="status_no_internet">Sem Internet</string>
     <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">Falha</string>
-    <string name="status_dns_error">Erro de dns</string>
-    <string name="status_dns_server_down">Servidor dns inativo</string>
+    <string name="status_dns_error">Erro de DNS</string>
+    <string name="status_dns_server_down">Servidor DNS inativo</string>
     <string name="slide_2_desc">Rethink é a forma mais fácil de monitorizar a atividade da rede, contornar a censura da Internet e bloquear, com a firewall, as aplicações no seu dispositivo Android.</string>
     <string name="warning_title" description="Status indicator text shown in a warning notification.">Aviso: Rethink foi desativado</string>
     <string name="exclude">excluir</string>
@@ -65,7 +65,7 @@
 \nRethink não recolhe informações nem monitoriza as suas atividades.</string>
     <string name="dc_block_heading">Regras</string>
     <string name="settings_ip_text_ipv6">IPv6</string>
-    <string name="firewall_status_excluded">Excluída de dns e da firewall</string>
+    <string name="firewall_status_excluded">Excluída do DNS e da firewall</string>
     <string name="firewall_status_isolate">Isolada</string>
     <string name="hsf_notification_permission_failure">Ative a permissão de notificação nas definições</string>
     <string name="allow">permitir</string>
@@ -114,7 +114,7 @@
     <string name="settings_ip_text_ipv46">Automático</string>
     <string name="settings_selected_ip_desc">%1$s</string>
     <string name="settings_protocol_translation_dns_inactive">Mudar para o modo DNS/DNS+Firewall para ativar esta definição</string>
-    <string name="firewall_status_whitelisted">Ignora as regras de firewall universal</string>
+    <string name="firewall_status_whitelisted">Ignora as regras universais da firewall</string>
     <string name="firewall_status_unknown">Desconhecido</string>
     <string name="hsf_vpn_dialog_header">Atenção!</string>
     <string name="lbl_proceed">Continuar</string>
@@ -262,7 +262,7 @@
     <string name="build__flavor_website">site</string>
     <string name="rbl_parental_control">Controlo parental</string>
     <string name="rt_download">Descarregar listas de bloqueio</string>
-    <string name="ada_app_status_whitelist">Irá ignorar as regras da firewall universal</string>
+    <string name="ada_app_status_whitelist">Ignora as regras universais da firewall</string>
     <string name="ada_app_bypass_univ">Ignorar universal</string>
     <string name="ada_ip_no_connection">Não há registos de rede para esta aplicação.</string>
     <string name="ada_app_status_allow">Permitida</string>
@@ -434,11 +434,11 @@
     <string name="ada_noapp_dialog_message">Falta a informação da aplicação. Talvez esta aplicação tenha sido desinstalada\?</string>
     <string name="ada_noapp_dialog_positive">OK</string>
     <string name="ada_app_status_block">Bloqueada</string>
-    <string name="ada_app_status_block_wifi">Bloqueada em redes ilimitadas (wifi)</string>
-    <string name="ada_app_status_block_md">Bloqueada em redes limitadas (móveis)</string>
-    <string name="ada_app_status_exclude">Excluída de dns e firewall</string>
-    <string name="ada_app_status_isolate">Isolada; apenas permitidos IPs de confiança</string>
-    <string name="ada_app_status_unknown">Desconhecida</string>
+    <string name="ada_app_status_block_wifi">Bloqueada em Wi-Fi</string>
+    <string name="ada_app_status_block_md">Bloqueada em dados móveis</string>
+    <string name="ada_app_status_exclude">Excluída do DNS e da firewall</string>
+    <string name="ada_app_status_isolate">Isolada: só são permitidos IP e domínios de confiança</string>
+    <string name="ada_app_status_unknown">Desconhecido</string>
     <string name="ada_app_metered">Rede limitada</string>
     <string name="ada_app_exclude">Excluir</string>
     <string name="ada_app_isolate">Isolar</string>
@@ -563,10 +563,10 @@
     <string name="firewall_rule_dns_blocked_desc" translatable="true">Esta ligação foi bloqueada porque o <i>domínio</i> está bloqueado pelo DNS preferido do utilizador.<br/><br/>Para alterar este comportamento, aceda ao separador <i>Configurar DNS</i>.</string>
     <string name="firewall_rule_domain_trusted_univ_desc" translatable="true">Esta ligação foi permitida porque o <i>domínio</i> está definido como confiável nas regras universais de domínio.<br/><br/>Para alterar este comportamento, aceda ao separador <i>Configurar DNS</i>.</string>
     <string name="dc_setting_dns_cache_desc" translatable="true">Solicitações unificadas, respostas em cache, tratamento de erros resiliente</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">Ignora as regras de DNS e de firewall</string>
+    <string name="firewall_status_bypass_dns_firewall" translatable="true">Ignora as regras de DNS e da firewall</string>
     <string name="fapps_bypass_dns_firewall_dialog_title" translatable="true">Ignorar aplicações</string>
     <string name="firewall_rule_domain_trusted_univ" translatable="true">Domínio confiável (universal)</string>
-    <string name="ada_app_status_bypass_dns_firewall" translatable="true">Irá ignorar o DNS universal e as regras de firewall</string>
+    <string name="ada_app_status_bypass_dns_firewall" translatable="true">Ignora as regras universais de DNS e da firewall</string>
     <string name="ada_app_bypass_dns_firewall" translatable="true">Ignorar DNS e firewall</string>
     <string name="brbs_backup_restore_desc" translatable="true">Não funciona em todas as versões da aplicação</string>
     <string name="dc_refresh_toast" translatable="true">Atualização concluída</string>
@@ -713,4 +713,49 @@
     <string name="exclude_apps_from_proxy">Ignorar a aplicação de todos os proxies</string>
     <string name="exclude_apps_from_proxy_failure_toast">Esta aplicação contorna os proxies</string>
     <string name="memory_notification_text">O Rethink está com pouca memória. As ações do sistema podem ser limitadas.</string>
+    <string name="home_last_24_hours">Últimas 24 horas</string>
+    <string name="home_stopped_at_dns">consultas travadas no DNS</string>
+    <string name="home_stopped_most">Mais bloqueados</string>
+    <string name="home_nothing_stopped">Nada foi bloqueado nas últimas 24 horas.</string>
+    <string name="home_see_statistics">Estatísticas</string>
+    <string name="home_apps_caption">Wi-Fi e dados, app a app</string>
+    <string name="home_logs_caption">Cada ligação e consulta</string>
+    <string name="home_dns_caption">Resolvedor e listas de bloqueio</string>
+    <string name="log_detail_protocol">Protocolo</string>
+    <string name="log_detail_country">País</string>
+    <string name="log_detail_address">Endereço</string>
+    <string name="log_detail_domain">Domínio</string>
+    <string name="log_detail_rule">Regra</string>
+    <string name="log_detail_proxy">Proxy</string>
+    <string name="log_detail_duration">Duração</string>
+    <string name="log_detail_data">Dados</string>
+    <string name="log_detail_flags">Sinalizadores</string>
+    <string name="log_detail_message">Mensagem</string>
+    <string name="log_detail_resolver">Resolvedor</string>
+    <string name="log_detail_blocklists">Listas de bloqueio</string>
+    <string name="log_detail_dnssec">DNSSEC</string>
+    <string name="log_detail_dnssec_valid">Válido</string>
+    <string name="log_detail_dnssec_unverified">Não verificado</string>
+    <string name="log_data_down">↓ %1$s</string>
+    <string name="log_latency_ms">%1$d ms</string>
+    <string name="log_pane_details">Detalhes</string>
+    <string name="log_pane_dns_apps">Apps que fizeram esta consulta</string>
+    <string name="log_pane_network_hosts">Onde esta app se liga</string>
+    <string name="log_pane_empty">Selecione uma entrada para ver os detalhes</string>
+    <plurals name="home_blocked_count">
+        <item quantity="one">%d bloqueio</item>
+        <item quantity="other">%d bloqueios</item>
+        <item quantity="many">%d bloqueios</item>
+    </plurals>
+    <plurals name="log_blocklists_matched">
+        <item quantity="one">%d lista de bloqueio correspondente</item>
+        <item quantity="other">%d listas de bloqueio correspondentes</item>
+        <item quantity="many">%d listas de bloqueio correspondentes</item>
+    </plurals>
+    <string name="app_pane_empty_title">Escolha uma app</string>
+    <string name="app_pane_empty_message">Aqui abrem os interruptores de Wi-Fi e dados, as regras e o tráfego da app.</string>
+    <string name="dns_in_use">Em utilização</string>
+    <string name="dns_median_lookup">Tempo mediano de consulta</string>
+    <string name="dns_recent_lookups">Últimas consultas</string>
+    <string name="dns_no_lookups_yet">Ainda sem consultas</string>
 </resources>

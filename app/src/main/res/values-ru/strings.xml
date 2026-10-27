@@ -11,7 +11,7 @@
     <string name="firewall_act_universal_tab">Универсальные правила</string>
     <string name="settings_dns_proxy_dialog_app">Приложение</string>
     <string name="orbot_website_link">https://guardianproject.info/apps/org.torproject.android/</string>
-    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">Неудача</string>
+    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">Сбой</string>
     <string name="about_mail_to">hello@celzero.com</string>
     <string name="exclude">исключить</string>
     <string name="notification_action_stop_vpn">СТОП</string>
@@ -41,7 +41,7 @@
     <string name="slide_2_desc">RethinkDNS — это самый простой способ обходить интернет-цензуру, отслеживать и блокировать сетевую активность приложений на вашем Android устройстве.</string>
     <string name="title_about">О приложении</string>
     <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">Ожидание</string>
-    <string name="status_dns_server_down">Dns-сервер не работает</string>
+    <string name="status_dns_server_down">DNS-сервер не работает</string>
     <string name="app_name" translatable="false">Re-Rethink</string>
     <string name="title_settings">Настройки</string>
     <string name="finish">Закончить</string>
@@ -51,11 +51,11 @@
     <string name="dns_mode_notification_title">Защищено! Подключен к быстрому и безопасному DNS.</string>
     <string name="firewall_mode_notification_title">Защищено! Подключен к брандмауэру.</string>
     <string name="pause_mode_notification_title">Приостановлен! Заблокированные приложения по-прежнему защищены брандмауэром.</string>
-    <string name="status_dns_error">Ошибка dns</string>
+    <string name="status_dns_error">Ошибка DNS</string>
     <string name="status_no_internet">Нет интернета</string>
     <string name="about_website_link">https://www.rethinkdns.com/</string>
     <string name="about_github_link">https://github.com/celzero/rethink-app</string>
-    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit.">Не защищенно</string>
+    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit.">Не защищено</string>
     <string name="universal_firewall_explanation">Применяйте правила брандмауэра для всех приложений на основе событий устройства, например, применяйте брандмауэр, когда устройство заблокировано или когда определенное приложение не используется.</string>
     <string name="about_faq_link">https://www.rethinkdns.com/faq</string>
     <string name="download_update_dialog_message_ok_title">Актуально!</string>
@@ -77,7 +77,7 @@
     <string name="about_connect">Связь с нами</string>
     <string name="settings_ip_text_ipv4">IPv4</string>
     <string name="settings_ip_text_ipv6">IPv6</string>
-    <string name="firewall_status_isolate">Изолированный</string>
+    <string name="firewall_status_isolate">Изолировано</string>
     <string name="settings_selected_ip_desc">%1$s</string>
     <string name="settings_network_all_networks_desc">Если функция включена, Rethink использует все доступные сети для подключения к интернету. Если нет, то используется та сеть, которая считается <i>активной</i> в Android.</string>
     <string name="hsf_vpn_dialog_header">Внимание!</string>
@@ -237,13 +237,13 @@
     <string name="new_app_notification_action_toast_deny">Для приложения запрещено сетевое подключение</string>
     <string name="ci_no_rule">Нет правил</string>
     <string name="ada_app_status_allow">Разрешено</string>
-    <string name="ada_app_status_whitelist">Будет обходить универсальные правила брандмауэра</string>
+    <string name="ada_app_status_whitelist">Обходит универсальные правила брандмауэра</string>
     <string name="ada_noapp_dialog_title">Нет такого приложения</string>
-    <string name="ada_app_status_block">Заблокирован</string>
-    <string name="ada_app_status_block_md">Блокируется в (мобильных) сетях с тарификацией</string>
+    <string name="ada_app_status_block">Заблокировано</string>
+    <string name="ada_app_status_block_md">Заблокировано в мобильной сети</string>
     <string name="ada_ip_no_connection">В этой категории нет журналов сети.</string>
-    <string name="ada_app_status_exclude">Исключен из dns и брандмауэра</string>
-    <string name="ada_app_status_isolate">Изолирован; разрешено только доверенным IP</string>
+    <string name="ada_app_status_exclude">Исключено из DNS и брандмауэра</string>
+    <string name="ada_app_status_isolate">Изолировано: разрешены только доверенные IP и домены</string>
     <string name="network_dns">Системный DNS</string>
     <string name="notif_download_failure_content">Загрузка не удалась. Попробуйте еще раз.</string>
     <string name="notif_download_content_title">Загрузка списка блокировки</string>
@@ -323,7 +323,7 @@
     <string name="network_log_app_name_unnamed">Неназванный (%1$s)</string>
     <string name="ci_dialog_error_invalid_ip">Неверный IP-адрес, подсеть или порт.</string>
     <string name="ada_noapp_dialog_message">Информация о приложении отсутствует. Возможно, это приложение было удалено\?</string>
-    <string name="ada_app_status_block_wifi">Блокируется в сетях без учета тарифов (wifi)</string>
+    <string name="ada_app_status_block_wifi">Заблокировано в Wi-Fi</string>
     <string name="ada_app_status_unknown">Неизвестно</string>
     <string name="ada_app_metered">Моб.сеть</string>
     <string name="ada_app_unmetered">WiFi</string>
@@ -365,7 +365,7 @@
     <string name="settings_ip_dialog_title">Выберите версию IP</string>
     <string name="settings_ip_dialog_ipv4">IPv4 (по умолчанию)</string>
     <string name="settings_ip_dialog_ipv6">IPv6 (экспериментально)</string>
-    <string name="firewall_status_excluded">Исключен из dns и брандмауэра</string>
+    <string name="firewall_status_excluded">Исключено из DNS и брандмауэра</string>
     <string name="hsf_vpn_prepare_failure">Либо отсутствует разрешение VPN, либо другое приложение находится в режиме постоянного VPN.</string>
     <string name="hsf_pause_vpn_failure">Невозможно сделать паузу: Rethink не активен</string>
     <string name="dc_custom_dns_radio">Другие DNS</string>
@@ -572,7 +572,7 @@
     <string name="firewall_rule_bypass_dns_firewall_desc" translatable="true"><![CDATA[Это подключение было разрешено, поскольку <i>исходное приложение</i> настроено на <i>обход правил DNS и брандмауэра</i>.<br/><br/>Чтобы внести изменения, перейдите на экран <i>Брандмауэр приложения</i>.]]></string>
     <string name="dc_setting_dns_cache_desc" translatable="true">Объединение запросов, кэширование ответов, отказоустойчивая обработка ошибок</string>
     <string name="firewall_rule_domain_blocked_univ_desc" translatable="true"><![CDATA[Это подключение было заблокировано, так как <i>домен</i> заблокирован в правилах универсального домена.<br/><br/> Чтобы изменить это поведение, перейдите на вкладку <i>Настройка DNS</i>.]]></string>
-    <string name="ada_app_status_bypass_dns_firewall" translatable="true">Будет обходить универсальные правила DNS и брандмауэра</string>
+    <string name="ada_app_status_bypass_dns_firewall" translatable="true">Обходит универсальные правила DNS и брандмауэра</string>
     <string name="ada_app_bypass_dns_firewall" translatable="true">Обход DNS и брандмауэра</string>
     <string name="brbs_backup_restore_desc" translatable="true">Не работает в разных версиях приложения</string>
     <string name="lbl_network" translatable="true">Cеть</string>
@@ -717,7 +717,7 @@
     <string name="lbl_experimental" translatable="true">(эксперементально)</string>
     <string name="lbl_manual" translatable="true">Вручную</string>
     <string name="dns_desc" translatable="true">Выбирайте из 190+ списков, чтобы остановить рекламу, трекеры и вредоносное ПО.</string>
-    <string name="status_no_network" translatable="true">Нет подключения к сети</string>
+    <string name="status_no_network" translatable="true">Нет сети</string>
     <string name="dc_use_sys_dns_undelegated_heading" translatable="true">Использовать системный DNS для неделегированных доменов</string>
     <string name="dc_use_sys_dns_undelegated_desc" translatable="true">Использовать системный DNS для неделегированных доменов, таких как <i>.lan</i>, <i>.internal</i> и т. д.</string>
     <string name="dc_filtering_heading" translatable="true">Фильтрация</string>
@@ -815,4 +815,51 @@
     <string name="settings_jumbo_packets" translatable="true">Расширение пропускной способности</string>
     <string name="settings_jumbo_packets_desc" translatable="true">Использовать <i>jumbo-фреймы</i> внутри VPN-туннеля Rethink.</string>
     <string name="stability_program_toast" translatable="true">Теперь вы участник <i>программы тестирования</i><i> экспериментальных функций</i>.</string>
+    <string name="home_last_24_hours">Последние 24 часа</string>
+    <string name="home_stopped_at_dns">запросов остановлено на уровне DNS</string>
+    <string name="home_stopped_most">Чаще всего блокировались</string>
+    <string name="home_nothing_stopped">За последние 24 часа ничего не заблокировано.</string>
+    <string name="home_see_statistics">Статистика</string>
+    <string name="home_apps_caption">Wi-Fi и данные для каждого приложения</string>
+    <string name="home_logs_caption">Все подключения и запросы</string>
+    <string name="home_dns_caption">Резолвер и списки блокировки</string>
+    <string name="log_detail_protocol">Протокол</string>
+    <string name="log_detail_country">Страна</string>
+    <string name="log_detail_address">Адрес</string>
+    <string name="log_detail_domain">Домен</string>
+    <string name="log_detail_rule">Правило</string>
+    <string name="log_detail_proxy">Прокси</string>
+    <string name="log_detail_duration">Длительность</string>
+    <string name="log_detail_data">Данные</string>
+    <string name="log_detail_flags">Флаги</string>
+    <string name="log_detail_message">Сообщение</string>
+    <string name="log_detail_resolver">Резолвер</string>
+    <string name="log_detail_blocklists">Списки блокировки</string>
+    <string name="log_detail_dnssec">DNSSEC</string>
+    <string name="log_detail_dnssec_valid">Действительно</string>
+    <string name="log_detail_dnssec_unverified">Не проверено</string>
+    <string name="log_data_down">↓ %1$s</string>
+    <string name="log_latency_ms">%1$d мс</string>
+    <string name="log_pane_details">Подробности</string>
+    <string name="log_pane_dns_apps">Приложения, запросившие этот домен</string>
+    <string name="log_pane_network_hosts">Куда подключается это приложение</string>
+    <string name="log_pane_empty">Выберите запись, чтобы увидеть подробности</string>
+    <plurals name="home_blocked_count">
+        <item quantity="one">%d заблокировано</item>
+        <item quantity="few">%d заблокировано</item>
+        <item quantity="many">%d заблокировано</item>
+        <item quantity="other">%d заблокировано</item>
+    </plurals>
+    <plurals name="log_blocklists_matched">
+        <item quantity="one">Сработал %d список блокировки</item>
+        <item quantity="few">Сработали %d списка блокировки</item>
+        <item quantity="many">Сработали %d списков блокировки</item>
+        <item quantity="other">Сработали %d списка блокировки</item>
+    </plurals>
+    <string name="app_pane_empty_title">Выберите приложение</string>
+    <string name="app_pane_empty_message">Здесь откроются переключатели Wi-Fi и мобильных данных, правила и трафик.</string>
+    <string name="dns_in_use">Используется</string>
+    <string name="dns_median_lookup">Медиана времени запроса</string>
+    <string name="dns_recent_lookups">Последние запросы</string>
+    <string name="dns_no_lookups_yet">Запросов пока нет</string>
 </resources>

@@ -49,16 +49,16 @@
     <string name="exclude">kecualikan</string>
     <string name="block">blokir</string>
     <string name="title_settings">Pengaturan</string>
-    <string name="status_dns_error">Dns mengalami gangguan</string>
+    <string name="status_dns_error">Error DNS</string>
     <string name="title_about">Tentang</string>
     <string name="allow">izinkan</string>
     <string name="dns_mode_notification_title">Terlindungi! Terhubung dengan DNS Cepat dan Aman.</string>
     <string name="firewall_mode_notification_title">Terlindungi! Terhubung dengan Firewall.</string>
     <string name="warning_title" description="Status indicator text shown in a warning notification.">Peringatan: Rethink telah dihentikan</string>
     <string name="notification_content" description="Indicates what will happen if the user taps the notification.">Sentuh untuk merubah pengaturan keamanan</string>
-    <string name="status_no_internet">Tidak ada jaringan</string>
+    <string name="status_no_internet">Tidak ada internet</string>
     <string name="txt_home">Halaman muka</string>
-    <string name="status_dns_server_down">Server dns tidak berfungsi</string>
+    <string name="status_dns_server_down">Server DNS tidak aktif</string>
     <string name="conn_track_clear_logs_message">Hanya menghapus riwayat catatan jaringan, tidak dengan aturan-aturan firewall. Tindakan ini tidak dapat dibatalkan. Apakah Anda ingin melanjutkan\?</string>
     <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit.">Tidak terlindungi</string>
     <string name="about_website">Kunjungi rethinkdns.com</string>
@@ -102,7 +102,7 @@
     <string name="firewall_rule_block_udp_ntp">UDP Diblokir</string>
     <string name="firewall_rule_exempt_orbot_setup">Pengaturan Orbot</string>
     <string name="dc_dns_website_desc">Mengambil ikon situs web dari <i>nextdns.io</i> dan <i>duckduckgo.com</i>. Mengonsumsi ruang penyimpanan hingga 350 mb</string>
-    <string name="firewall_status_excluded">Dikecualikan dari dns dan firewall</string>
+    <string name="firewall_status_excluded">Dikecualikan dari DNS dan firewall</string>
     <string name="bsct_app_info">Info Aplikasi</string>
     <string name="network_log_app_name_unknown">Tidak diketahui</string>
     <string name="category_name_non_app_sys">Layanan Sistem</string>
@@ -240,7 +240,7 @@
     <string name="bypass_universal">memintas (bypass) aturan secara universal</string>
     <string name="dns_crypt_relay_remove_dialog_title">Hapus Jembatan Penghubung (Relay) DNSCrypt\?</string>
     <string name="firewall_rule_block_app_exception">Kesalahan</string>
-    <string name="ada_app_status_allow">Diperbolehkan</string>
+    <string name="ada_app_status_allow">Diizinkan</string>
     <string name="notif_download_success_content">Berhasil terunduh.</string>
     <string name="rt_dialog_title">Simpan Perubahan</string>
     <string name="brbs_backup_dialog_failure_positive">Cadangkan Ulang</string>
@@ -250,7 +250,7 @@
     <string name="settings_ip_text_ipv4">IPv4</string>
     <string name="cd_dns_proxy_mode_external">Eksternal</string>
     <string name="radio_sky_btn">⛅ Langit</string>
-    <string name="ada_app_status_exclude">Dikecualikan dari dns dan firewall</string>
+    <string name="ada_app_status_exclude">Dikecualikan dari DNS dan firewall</string>
     <string name="settings_check_update_heading">Periksa pembaruan aplikasi</string>
     <string name="settings_http_proxy_error_text1">Port harus dalam rentang 1024–65535</string>
     <string name="collecting_logs_progress_text">Menangkap…</string>
@@ -267,7 +267,7 @@
 \nNomor port: %2$s</string>
     <string name="dc_block_heading">Aturan-aturan</string>
     <string name="new_app_notification_content">Rethink memblokir aplikasi yang baru dipasang, %1$s.</string>
-    <string name="firewall_status_whitelisted">Aturan firewall universal dilewati (di-bypass)</string>
+    <string name="firewall_status_whitelisted">Melewati aturan firewall universal</string>
     <string name="vpn_profile_error">Tidak dapat membuka konfigurasi profil VPN.</string>
     <string name="settings_socks_forwarding_desc">Meneruskan ke %1$s:%2$s, %3$s</string>
     <string name="refresh_complete"><!-- use dc_refresh_toast -->Sinkronisasi ulang daftar aplikasi selesai.</string>
@@ -340,10 +340,10 @@
     <string name="settings_orbot_notification_content">Gagal menjalankan Tor-sebagai-Proksi. Buka aplikasi Orbot untuk menjalankannya secara manual.</string>
     <string name="ada_noapp_dialog_message">Informasi aplikasi tidak ada. Mungkin, aplikasi sudah di hapus \'uninstall\' \?</string>
     <string name="bsac_title_desc">Aturan hanya berlaku untuk aplikasi ini.</string>
-    <string name="ada_app_status_whitelist">Akan mengabaikan (Bypass) aturan firewall universal</string>
+    <string name="ada_app_status_whitelist">Melewati aturan firewall universal</string>
     <string name="settings_http_proxy_error_text3">Nama host tidak terisi</string>
     <string name="notif_dialog_pause_dialog_negative">Singkirkan</string>
-    <string name="ada_app_status_block_wifi">Diblokir pada jaringan yang tidak terukur (WiFi)</string>
+    <string name="ada_app_status_block_wifi">Diblokir di Wi-Fi</string>
     <string name="about_dialog_positive_button">Ayo Jalankan</string>
     <string name="fapps_metered_unblock_dialog_title">Izinkan koneksi pada jaringan yang terukur</string>
     <string name="cd_doh_dialog_heading">Tambahkan DNS melalui HTTPS</string>
@@ -356,7 +356,7 @@
     <string name="dns_crypt_url_remove_success">penyelesai (resolver) DNSCrypt telah terhapus.</string>
     <string name="firewall_status_isolate">Diisolasi</string>
     <string name="fapps_metered_block_dialog_title">Blokir jaringan yang terukur</string>
-    <string name="ada_app_status_block_md">Diblokir pada jaringan yang terukur (Data Seluler)</string>
+    <string name="ada_app_status_block_md">Diblokir di data seluler</string>
     <string name="cd_dns_crypt_dialog_heading">Tambahkan Penyelesai (Resolver) atau Jembatan-Penghubung (Relay) DNSCrypt</string>
     <string name="cd_doh_dialog_resolver_name">Nama Server Penyelesai</string>
     <string name="rt_chip_update_available">Pembaruan tersedia</string>
@@ -512,7 +512,7 @@
     <string name="ssv_most_contacted_domain_heading" description="This label will appear on the stats screen as a header for most visited domains" translatable="true">Domain yang paling banyak terhubung</string>
     <string name="fapps_info_bypass_msg">Mengabaikan (Bypass) aturan firewall universal.</string>
     <string name="fapps_firewall_filter_isolate">Diisolasi</string>
-    <string name="ada_app_status_isolate">Sudah diisolasi; hanya IP terpercaya yang diizinkan</string>
+    <string name="ada_app_status_isolate">Diisolasi: hanya IP dan domain tepercaya yang diizinkan</string>
     <string name="hs_biometeric_desc">Gunakan otentikasi biometrik untuk membuka kunci Rethink</string>
     <string name="fapps_info_metered_msg">Izinkan / Blokir pada jaringan terukur (Data Seluler).</string>
     <string name="fapps_bypass_block_dialog_message">Lewati (Bypass) aturan firewall universal untuk aplikasi yang <i>terdaftar</i> \?</string>
@@ -553,7 +553,7 @@
     <string name="bypass_dns_firewall" translatable="true">lewati (bypass) dns &amp; firewall</string>
     <string name="settings_lock_down_proxy_desc" translatable="true">Tidak dapat menyiapkan proksi ketika VPN berjalan dalam mode hanya DNS.</string>
     <string name="settings_general_customize" translatable="true">sesuaikan</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">Melewati aturan dns &amp; firewall</string>
+    <string name="firewall_status_bypass_dns_firewall" translatable="true">Melewati aturan DNS &amp; firewall</string>
     <string name="settings_default_dns_heading" translatable="true">Pilih DNS cadangan</string>
     <string name="settings_default_dns_desc" translatable="true">Dalam kasus yang jarang terjadi ketika DNS pilihan pengguna tidak dapat dipastikan, DNS fallback akan digunakan.</string>
     <string name="bsct_block_domain" translatable="true">Blokir, percayakan <u>domain</u> untuk <u>aplikasi ini</u></string>
@@ -561,7 +561,7 @@
     <string name="cd_dns_alg_desc" translatable="true">Tetapkan IP unik di setiap permintaan DNS.</string>
     <string name="fapps_bypass_dns_firewall_dialog_title" translatable="true">Pintaskan (Bypass) Aplikasi</string>
     <string name="firewall_rule_domain_trusted_univ" translatable="true">Domain Tepercaya (Universal)</string>
-    <string name="ada_app_status_bypass_dns_firewall" translatable="true">Akan mengabaikan aturan dns &amp; firewall universal</string>
+    <string name="ada_app_status_bypass_dns_firewall" translatable="true">Melewati aturan DNS &amp; firewall universal</string>
     <string name="ada_app_bypass_dns_firewall" translatable="true">Lewati DNS &amp; Firewall</string>
     <string name="dc_refresh_toast" translatable="true">Penyegaran selesai</string>
     <string name="dc_setting_dns_cache_heading" translatable="true">Penguat DNS</string>
@@ -815,4 +815,45 @@
     <string name="settings_jumbo_packets" translatable="true">Peningkat bandwidth</string>
     <string name="settings_jumbo_packets_desc" translatable="true">Menggunakan <i>paket jumbo</i> dalam terowongan VPN Rethink.</string>
     <string name="stability_program_toast" translatable="true">Daftar ke <i>program stabilitas</i> untuk <i>fitur eksperimental</i>.</string>
+    <string name="home_last_24_hours">24 jam terakhir</string>
+    <string name="home_stopped_at_dns">kueri dihentikan di DNS</string>
+    <string name="home_stopped_most">Paling banyak diblokir</string>
+    <string name="home_nothing_stopped">Tidak ada yang diblokir dalam 24 jam terakhir.</string>
+    <string name="home_see_statistics">Statistik</string>
+    <string name="home_apps_caption">Wi-Fi dan data, per aplikasi</string>
+    <string name="home_logs_caption">Setiap koneksi dan kueri</string>
+    <string name="home_dns_caption">Resolver dan daftar blokir</string>
+    <string name="log_detail_protocol">Protokol</string>
+    <string name="log_detail_country">Negara</string>
+    <string name="log_detail_address">Alamat</string>
+    <string name="log_detail_domain">Domain</string>
+    <string name="log_detail_rule">Aturan</string>
+    <string name="log_detail_proxy">Proxy</string>
+    <string name="log_detail_duration">Durasi</string>
+    <string name="log_detail_data">Data</string>
+    <string name="log_detail_flags">Flag</string>
+    <string name="log_detail_message">Pesan</string>
+    <string name="log_detail_resolver">Resolver</string>
+    <string name="log_detail_blocklists">Daftar blokir</string>
+    <string name="log_detail_dnssec">DNSSEC</string>
+    <string name="log_detail_dnssec_valid">Valid</string>
+    <string name="log_detail_dnssec_unverified">Belum diverifikasi</string>
+    <string name="log_data_down">↓ %1$s</string>
+    <string name="log_latency_ms">%1$d ms</string>
+    <string name="log_pane_details">Detail</string>
+    <string name="log_pane_dns_apps">Aplikasi yang mencari domain ini</string>
+    <string name="log_pane_network_hosts">Tujuan koneksi aplikasi ini</string>
+    <string name="log_pane_empty">Pilih entri untuk melihat detailnya</string>
+    <plurals name="home_blocked_count">
+        <item quantity="other">%d diblokir</item>
+    </plurals>
+    <plurals name="log_blocklists_matched">
+        <item quantity="other">Cocok dengan %d daftar blokir</item>
+    </plurals>
+    <string name="app_pane_empty_title">Pilih aplikasi</string>
+    <string name="app_pane_empty_message">Sakelar Wi-Fi dan data, aturan, serta lalu lintasnya akan terbuka di sini.</string>
+    <string name="dns_in_use">Digunakan</string>
+    <string name="dns_median_lookup">Median waktu kueri</string>
+    <string name="dns_recent_lookups">Kueri terakhir</string>
+    <string name="dns_no_lookups_yet">Belum ada kueri</string>
 </resources>

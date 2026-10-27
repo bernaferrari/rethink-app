@@ -1875,4 +1875,10 @@
         <item quantity="one">%d blocked</item>
         <item quantity="other">%d blocked</item>
     </plurals>
+    <string name="app_pane_empty_title">Pick an app</string>
+    <string name="app_pane_empty_message">Its Wi-Fi and data switches, rules and traffic open here.</string>
+    <string name="dns_in_use">In use</string>
+    <string name="dns_median_lookup">Median lookup time</string>
+    <string name="dns_recent_lookups">Last lookups</string>
+    <string name="dns_no_lookups_yet">No lookups yet</string>
 </resources>

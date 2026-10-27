@@ -1,47 +1,57 @@
 {
   "home": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Kila programu,\n*upendavyo.*",
+    "body": "Firewall, DNS na VPN kwa pamoja.\nHakuna haja ya root.",
+    "alt": "Skrini ya mwanzo ya Re-Rethink: imelindwa, pamoja na miunganisho na hoja za DNS ilizoshughulikia"
   },
   "logs": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Kila muunganisho,\n*waziwazi.*",
+    "body": "Programu ipi, seva ipi,\nimeruhusiwa au imezuiwa.",
+    "alt": "Kumbukumbu ya mtandao: YouTube, Gmail na Maps zikiunganisha, saa na seva ya matangazo zikiwa zimezuiwa"
   },
   "apps": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Zima programu\n*kwa mguso mmoja.*",
+    "body": "Zuia Wi-Fi, data ya simu au zote.",
+    "alt": "Orodha ya programu yenye swichi za Wi-Fi na data ya simu; YouTube na Photos zinasubiri Wi-Fi"
   },
   "trackers": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Vifuatiliaji\n*hukoma kwenye DNS.*",
+    "body": "Orodha za kuzuia hutupa matangazo\nna vifuatiliaji mapema.",
+    "alt": "Kumbukumbu ya DNS iliyochujwa kwa hoja zilizozuiwa: seva za matangazo na takwimu zimezuiwa na orodha za kuzuia"
   },
   "detail": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Saa yako\n*haiko mtandaoni.*",
+    "body": "Zima programu yoyote isiyo na\nsababu ya kuunganisha.",
+    "alt": "Programu ya Saa imezuiwa kwenye Wi-Fi na data ya simu, pamoja na sheria za kutenga, kupita na kuondoa"
   },
   "stats": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Nani aliita,\n*nani alipita.*",
+    "body": "Programu, nchi na vikoa vikuu\nkwa saa, siku au wiki.",
+    "alt": "Takwimu za saa 24 zilizopita: data, miunganisho na programu zilizoruhusiwa zaidi"
   },
   "dns": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "DNS iliyosimbwa,\n*chaguo lako.*",
+    "body": "Rethink DNS, DNS-over-HTTPS,\nDoT, DNSCrypt au yako mwenyewe.",
+    "alt": "Mipangilio ya DNS ikiwa Rethink DNS imechaguliwa kati ya DNS ya mfumo, nyingine na mahiri"
   },
   "dark": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Tulivu vilevile\n*hata usiku.*",
+    "body": "Mwanga, giza na rangi zako.",
+    "alt": "Skrini ya mwanzo na orodha ya programu katika hali nyeusi"
   },
   "tablet10/dark": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Nafasi kwa\n*kila mpangilio.*",
+    "body": "Kwa kompyuta kibao na simu za\nkukunjwa, mwanga au giza.",
+    "alt": "Mipangilio katika hali ya mwanga kando ya skrini ya mwanzo katika hali nyeusi kwenye kompyuta kibao iliyolazwa"
+  },
+  "tablet10/logs": {
+    "title": "Kila muunganisho,\n*waziwazi.*",
+    "body": "Chagua mmoja uone ulikoenda, kwa nini, na kila kitu kingine ambacho programu hiyo ilifikia.",
+    "alt": "Kumbukumbu ya mtandao kando ya maelezo ya muunganisho wa YouTube kwenye kompyuta kibao iliyolazwa"
+  },
+  "tablet10/trackers": {
+    "title": "Vifuatiliaji\n*hukoma kwenye DNS.*",
+    "body": "Ona ni orodha ipi ya kuzuia iliyonasa kila moja, na ni programu zipi ziliiomba.",
+    "alt": "Hoja za DNS zilizozuiwa kando ya programu zilizotafuta seva ya takwimu"
   }
 }

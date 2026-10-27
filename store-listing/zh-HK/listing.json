@@ -1,5 +1,5 @@
 {
-  "title": "",
-  "shortDescription": "",
-  "fullDescription": ""
+  "title": "Re-Rethink：防火牆、DNS、VPN",
+  "shortDescription": "逐個應用程式設定防火牆，用加密 DNS 攔截追蹤器，睇清每一個連線。",
+  "fullDescription": "Re-Rethink 係一個毋須 root 嘅 Android 防火牆、加密 DNS 同 VPN 應用程式。由你決定邊啲應用程式可以上網，喺廣告同追蹤器連線之前就擋低佢哋，仲可以睇清手機發出嘅每一個連線。\n\n防火牆\n• 㩒一下，就可以封鎖任何應用程式嘅 Wi-Fi、流動數據或者兩樣都封。\n• 隔離應用程式、俾佢繞過規則，或者將佢排除喺通道之外。\n• 全局規則：喺背景運行、熄咗螢幕或者安裝新應用程式時封鎖應用程式。\n• 適用於單一應用程式或者所有應用程式嘅 IP、連接埠同網域規則。\n\n加密 DNS\n• Rethink DNS，配合針對廣告、追蹤器同惡意軟件嘅裝置端攔截清單。\n• 亦可以透過 DNS-over-HTTPS、DNS-over-TLS、DNSCrypt 或者 ODoH 用自選嘅解析服務。\n• DNS 回應喺本機驗證，同時可以繞過以 DNS 為基礎嘅審查。\n\n睇吓應用程式做緊乜\n• 網絡同 DNS 記錄：邊個應用程式、邊部伺服器、邊個國家，放行定攔截。\n• 過去一個鐘、一日或者一個星期嘅統計：熱門應用程式、被封鎖嘅應用程式、國家、網絡同網域。\n\nVPN 同代理伺服器\n• 透過 WireGuard、SOCKS5 或者 HTTP 代理伺服器轉送應用程式流量，支援逐個應用程式分割通道。\n• 透過 Orbot 㩒一下就連上 Tor。\n\n私隱為本嘅設計\n過濾經 Android 嘅 VPN 服務喺你部裝置上進行。記錄只會留喺手機，可以隨時關閉，而且冇廣告。\n\nRe-Rethink 係 Celzero 出品嘅 Rethink DNS + Firewall 嘅開放原始碼分支，採用 Material 3 Expressive 重新設計，以 Apache 2.0 授權發佈。"
 }

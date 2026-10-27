@@ -25,9 +25,9 @@
     <string name="hybrid_mode_notification_title">Захищено! Підключено до DNS + Брандмауер.</string>
     <string name="pause_mode_notification_title">Призупинено! Заблоковані застосунки будуть продовжувати блокуватися брандмауером.</string>
     <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">Очікування</string>
-    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">Невдало</string>
-    <string name="status_dns_error">Помилка dns</string>
-    <string name="status_dns_server_down">Сервер dns не працює</string>
+    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">Збій</string>
+    <string name="status_dns_error">Помилка DNS</string>
+    <string name="status_dns_server_down">DNS-сервер не працює</string>
     <string name="status_no_internet">Немає інтернету</string>
     <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit.">Не захищено</string>
     <string name="notification_action_resume_vpn">ПРОДОВЖИТИ</string>
@@ -96,11 +96,11 @@
     <string name="ada_ip_no_connection" translatable="true">Для цієї категорії немає мережевих журналів.</string>
     <string name="ada_app_status_allow" translatable="true">Дозволено</string>
     <string name="ada_app_status_block" translatable="true">Заблоковано</string>
-    <string name="ada_app_status_block_wifi" translatable="true">Блокується в необмежених мережах (wifi)</string>
-    <string name="ada_app_status_exclude" translatable="true">Видалено з DNS та фаєрвола</string>
+    <string name="ada_app_status_block_wifi" translatable="true">Заблоковано в Wi-Fi</string>
+    <string name="ada_app_status_exclude" translatable="true">Виключено з DNS і брандмауера</string>
     <string name="ada_app_status_unknown" translatable="true">Невідомо</string>
-    <string name="ada_app_status_block_md" translatable="true">Блокується в обмежених мережах (мобільних)</string>
-    <string name="ada_app_status_whitelist" translatable="true">Буде обходити універсальні правила брандмауера</string>
+    <string name="ada_app_status_block_md" translatable="true">Заблоковано в мобільній мережі</string>
+    <string name="ada_app_status_whitelist" translatable="true">Оминає універсальні правила брандмауера</string>
     <string name="ada_app_metered" translatable="true">Обмежена мережа</string>
     <string name="ada_app_unmetered" translatable="true">Необмежена мережа</string>
     <string name="ada_app_exclude" translatable="true">Виключити</string>
@@ -139,7 +139,7 @@
     <string name="firewall_rule_exempt_app_bypass_univ_desc" translatable="true"><![CDATA[This connection was allowed because the <i>Для програми-джерела</i> налаштовано <i>обхід універсальних</i> правил брандмауера.<br/><br/> Щоб змінити, перейдіть на екран <i>Брандмауер для конкретної програми</i>.]]></string>
     <string name="category_name_non_app_sys" translatable="true">Системні служби</string>
     <string name="category_name_installed" translatable="true">Встановлені застосунки</string>
-    <string name="ada_app_status_isolate" translatable="true">Ізольовано; допускаються лише довірені IP-адреси</string>
+    <string name="ada_app_status_isolate" translatable="true">Ізольовано: дозволено лише довірені IP і домени</string>
     <string name="ada_app_bypass_univ" translatable="true">Обхід Універсальний</string>
     <string name="apps_info_title" translatable="true">Застосунки</string>
     <string name="bsct_app_info" translatable="true">Інформація про застосунок</string>
@@ -448,7 +448,7 @@
     <string name="univ_accessibility_dialog_negative" translatable="true">Відхилити</string>
     <string name="dns_connected_rethink_plus" translatable="true">Підключено. %1$s блок-лист застосовується</string>
     <string name="fapps_bypass_dns_firewall_dialog_title" translatable="true">Застосунки які обходять</string>
-    <string name="ada_app_status_bypass_dns_firewall" translatable="true">Ігнорують універсальні правила DNS та брандмауера</string>
+    <string name="ada_app_status_bypass_dns_firewall" translatable="true">Оминає універсальні правила DNS і брандмауера</string>
     <string name="univ_firewall_rule_9" translatable="true">Блокувати у мобільній (тарифікованій) мережі</string>
     <string name="wireguard_connection_error" translatable="true">WireGuard VPN не вдається підключити</string>
     <string name="settings_http_proxy_error_text3" translatable="true">Ім\'я хосту порожнє</string>
@@ -472,8 +472,8 @@
     <string name="settings_ip_text_ipv4" translatable="true">IPv4</string>
     <string name="settings_ip_text_ipv6" translatable="true">IPv6</string>
     <string name="settings_ip_text_ipv46" translatable="true">Авто</string>
-    <string name="firewall_status_whitelisted" translatable="true">Оминає універсальні правила фаєрволу</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">Оминає правила DNS та фаєрвола</string>
+    <string name="firewall_status_whitelisted" translatable="true">Оминає універсальні правила брандмауера</string>
+    <string name="firewall_status_bypass_dns_firewall" translatable="true">Оминає правила DNS і брандмауера</string>
     <string name="dc_check_update_heading" translatable="true">Запитувати про оновлення блок листа</string>
     <string name="about_bug_no_log_dialog_message" translatable="true">Не вдалося отримати журнал збоїв. Бажаєте повідомити про помилку вручну?</string>
     <string name="about_twitter" translatable="true">Слідкуйте у Твіттері</string>
@@ -565,11 +565,11 @@
     <string name="notif_download_cancel_content" translatable="true">Завантаження скасовано.</string>
     <string name="crypt_relay_singapore" translatable="true">Анонімна ретрансляція DNS, розміщена в Сінгапурі.</string>
     <string name="firewall_status_isolate" translatable="true">Ізольовано</string>
-    <string name="firewall_status_unknown" translatable="true">Невідомий статус</string>
+    <string name="firewall_status_unknown" translatable="true">Невідомо</string>
     <string name="rt_list_simple_btn_txt" translatable="true">простий лист</string>
     <string name="rt_filter_parent_selected" translatable="true">Обрати батьківські фільтри</string>
     <string name="rsv_blocklist_count_text" description="This label will appear in rethink configure simple view screen which shows number of blocklists for each category" translatable="true">%1$s блоклисти</string>
-    <string name="firewall_status_excluded" translatable="true">Виключено з DNS та фаєрвола</string>
+    <string name="firewall_status_excluded" translatable="true">Виключено з DNS і брандмауера</string>
     <string name="hs_biometeric_desc" translatable="true">Використовувати біометричну автентифікацію, щоб розблоковувати Rethink</string>
     <string name="hs_biometeric_error" translatable="true">Помилка біометричної автентифікації</string>
     <string name="dc_rethink_dns_radio" translatable="true">Rethink DNS</string>
@@ -793,4 +793,51 @@
     <string name="settings_jumbo_packets" translatable="true">Підсилювач пропускної здатності</string>
     <string name="settings_jumbo_packets_desc" translatable="true">Використовує <i>jumbo-пакети</i> в VPN-тунелі Rethink.</string>
     <string name="stability_program_toast" translatable="true">Зареєстровано в <i>програмі стабільності</i> для <i>експериментальних функцій</i>.</string>
+    <string name="home_last_24_hours">Останні 24 години</string>
+    <string name="home_stopped_at_dns">запитів зупинено на рівні DNS</string>
+    <string name="home_stopped_most">Найчастіше блокувалися</string>
+    <string name="home_nothing_stopped">За останні 24 години нічого не заблоковано.</string>
+    <string name="home_see_statistics">Статистика</string>
+    <string name="home_apps_caption">Wi-Fi і дані для кожного застосунку</string>
+    <string name="home_logs_caption">Усі з’єднання та запити</string>
+    <string name="home_dns_caption">Резолвер і списки блокування</string>
+    <string name="log_detail_protocol">Протокол</string>
+    <string name="log_detail_country">Країна</string>
+    <string name="log_detail_address">Адреса</string>
+    <string name="log_detail_domain">Домен</string>
+    <string name="log_detail_rule">Правило</string>
+    <string name="log_detail_proxy">Проксі</string>
+    <string name="log_detail_duration">Тривалість</string>
+    <string name="log_detail_data">Дані</string>
+    <string name="log_detail_flags">Прапорці</string>
+    <string name="log_detail_message">Повідомлення</string>
+    <string name="log_detail_resolver">Резолвер</string>
+    <string name="log_detail_blocklists">Списки блокування</string>
+    <string name="log_detail_dnssec">DNSSEC</string>
+    <string name="log_detail_dnssec_valid">Дійсно</string>
+    <string name="log_detail_dnssec_unverified">Не перевірено</string>
+    <string name="log_data_down">↓ %1$s</string>
+    <string name="log_latency_ms">%1$d мс</string>
+    <string name="log_pane_details">Подробиці</string>
+    <string name="log_pane_dns_apps">Застосунки, що запитували цей домен</string>
+    <string name="log_pane_network_hosts">Куди підключається цей застосунок</string>
+    <string name="log_pane_empty">Виберіть запис, щоб переглянути подробиці</string>
+    <plurals name="home_blocked_count">
+        <item quantity="one">%d заблоковано</item>
+        <item quantity="few">%d заблоковано</item>
+        <item quantity="many">%d заблоковано</item>
+        <item quantity="other">%d заблоковано</item>
+    </plurals>
+    <plurals name="log_blocklists_matched">
+        <item quantity="one">Спрацював %d список блокування</item>
+        <item quantity="few">Спрацювали %d списки блокування</item>
+        <item quantity="many">Спрацювали %d списків блокування</item>
+        <item quantity="other">Спрацювали %d списку блокування</item>
+    </plurals>
+    <string name="app_pane_empty_title">Виберіть застосунок</string>
+    <string name="app_pane_empty_message">Тут відкриються перемикачі Wi-Fi і мобільних даних, правила й трафік.</string>
+    <string name="dns_in_use">Використовується</string>
+    <string name="dns_median_lookup">Медіана часу запиту</string>
+    <string name="dns_recent_lookups">Останні запити</string>
+    <string name="dns_no_lookups_yet">Запитів ще немає</string>
 </resources>

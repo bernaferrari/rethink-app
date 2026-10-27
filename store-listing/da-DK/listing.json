@@ -1,5 +1,5 @@
 {
-  "title": "",
-  "shortDescription": "",
-  "fullDescription": ""
+  "title": "Re-Rethink: Firewall, DNS, VPN",
+  "shortDescription": "Firewall til apps, bloker trackere med krypteret DNS, og se hver forbindelse.",
+  "fullDescription": "Re-Rethink er en firewall, krypteret DNS og VPN til Android, uden root. Bestem, hvilke apps der må gå på internettet, stop reklamer og trackere, før de opretter forbindelse, og se hver forbindelse, din telefon laver.\n\nFIREWALL\n• Bloker enhver app på Wi-Fi, mobildata eller begge dele med ét tryk.\n• Isoler en app, lad den omgå reglerne, eller udeluk den fra tunnelen.\n• Universelle regler: bloker apps i baggrunden, når skærmen er slukket, eller når en ny app installeres.\n• IP-, port- og domæneregler for én app eller for alle apps.\n\nKRYPTERET DNS\n• Rethink DNS med blokeringslister på enheden mod reklamer, trackere og malware.\n• Eller vælg din egen resolver via DNS-over-HTTPS, DNS-over-TLS, DNSCrypt eller ODoH.\n• DNS-svar kontrolleres lokalt, hvilket også omgår DNS-baseret censur.\n\nSE, HVAD DINE APPS GØR\n• Netværks- og DNS-logs: hvilken app, hvilken server, hvilket land, tilladt eller blokeret.\n• Statistik for den seneste time, dag eller uge: topapps, blokerede apps, lande, netværk og domæner.\n\nVPN OG PROXYER\n• Send apps gennem WireGuard-, SOCKS5- eller HTTP-proxyer med split tunneling pr. app.\n• Tor med ét tryk via Orbot.\n\nPRIVAT FRA BUNDEN\nFiltreringen kører på din enhed via Androids VPN-tjeneste. Logs bliver på telefonen, du kan slå dem fra, og der er ingen reklamer.\n\nRe-Rethink er en open source-fork af Rethink DNS + Firewall fra Celzero, redesignet med Material 3 Expressive. Licenseret under Apache 2.0."
 }

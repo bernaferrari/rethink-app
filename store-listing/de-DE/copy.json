@@ -1,47 +1,57 @@
 {
   "home": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Jede App,\n*wie Sie wollen.*",
+    "body": "Firewall, DNS & VPN in einer App.\nOhne Root.",
+    "alt": "Re-Rethink-Startseite: geschützt, mit den bearbeiteten Verbindungen und DNS-Anfragen"
   },
   "logs": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Jede Verbindung,\n*klar im Blick.*",
+    "body": "Welche App, welcher Server,\nerlaubt oder blockiert.",
+    "alt": "Das Netzwerkprotokoll: YouTube, Gmail und Maps verbinden sich, eine Uhr-App und ein Werbe-Host sind blockiert"
   },
   "apps": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Eine App kappen,\n*mit einem Tipp.*",
+    "body": "Sperren Sie WLAN, mobile Daten\noder beides.",
+    "alt": "Die App-Liste mit Schaltern für WLAN und mobile Daten; YouTube und Fotos warten auf WLAN"
   },
   "trackers": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Tracker enden\n*beim DNS.*",
+    "body": "Blocklisten stoppen Werbung und\nTracker vor dem Verbindungsaufbau.",
+    "alt": "Das DNS-Protokoll gefiltert nach blockierten Anfragen: Werbe- und Analyse-Hosts, gestoppt durch Blocklisten"
   },
   "detail": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Ihre Uhr\n*bleibt offline.*",
+    "body": "Kappen Sie jede App, die keinen\nGrund zum Verbinden hat.",
+    "alt": "Die Uhr-App, blockiert in WLAN und mobilen Daten, mit Regeln zum Isolieren, Umgehen und Ausschließen"
   },
   "stats": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Wer anfragt,\n*wer durchkommt.*",
+    "body": "Top-Apps, Länder und Domains\nnach Stunde, Tag oder Woche.",
+    "alt": "Statistiken der letzten 24 Stunden: Daten, Verbindungen und die am häufigsten erlaubten Apps"
   },
   "dns": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "DNS verschlüsselt,\n*nach Ihrer Wahl.*",
+    "body": "Rethink DNS, DNS-over-HTTPS,\nDoT, DNSCrypt oder Ihr eigenes.",
+    "alt": "DNS-Einstellungen mit Rethink DNS ausgewählt, neben System-DNS, anderem DNS und Smart-DNS"
   },
   "dark": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Genauso ruhig\n*bei Nacht.*",
+    "body": "Hell, dunkel, in Ihren Farben.",
+    "alt": "Startseite und App-Liste im dunklen Design"
   },
   "tablet10/dark": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Platz für\n*jede Einstellung.*",
+    "body": "Für Tablets und Foldables,\nhell oder dunkel.",
+    "alt": "Einstellungen im hellen Design neben der Startseite im dunklen Design auf einem Tablet im Querformat"
+  },
+  "tablet10/logs": {
+    "title": "Jede Verbindung,\n*klar im Blick.*",
+    "body": "Wählen Sie eine aus und sehen Sie, wohin sie ging, warum und was die App sonst noch erreicht hat.",
+    "alt": "Das Netzwerkprotokoll neben den Details einer YouTube-Verbindung auf einem Tablet im Querformat"
+  },
+  "tablet10/trackers": {
+    "title": "Tracker enden\n*beim DNS.*",
+    "body": "Sehen Sie, welche Blockliste jede Anfrage gestoppt hat und welche Apps danach gefragt haben.",
+    "alt": "Blockierte DNS-Anfragen neben den Apps, die einen Analyse-Host abgefragt haben"
   }
 }

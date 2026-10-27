@@ -42,7 +42,7 @@
     <string name="pause_mode_notification_title">இடைநிறுத்தப்பட்டது! தடுக்கப்பட்ட பயன்பாடுகள் தொடர்ந்து ஃபயர்வால் செய்யப்படும்.</string>
     <string name="status_no_internet">இணையம் இல்லை</string>
     <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">தோல்வியுற்றது</string>
-    <string name="status_dns_error">டிஎன்எச் பிழை</string>
+    <string name="status_dns_error">DNS பிழை</string>
     <string name="conn_track_clear_logs_title">அனைத்து பிணையம் பதிவுகளையும் நீக்கவா?</string>
     <string name="always_on_dialog_positive_btn">அமைப்புகளுக்குச் செல்லவும்</string>
     <string name="conn_track_clear_logs_message">இது பிணைய பதிவுகளை மட்டுமே நீக்குகிறது ஆனால் ஃபயர்வால் விதிகளை அல்ல. இந்த செயல்பாடு மீளக்கூடியது அல்ல. தொடர வேண்டுமா\?</string>
@@ -61,7 +61,7 @@
     <string name="block">தொகுதி</string>
     <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">காத்திருக்கிறது</string>
     <string name="rdns_plus">ஆர்டிஎன்எஸ் கூடுதல்</string>
-    <string name="status_dns_server_down">டிஎன்எச் சர்வர் செயலிழந்தது</string>
+    <string name="status_dns_server_down">DNS சர்வர் செயலிழந்துள்ளது</string>
     <string name="always_on_dialog_lockdown_stop_message">ரீடிங்க் <i> பூட்டுதல் </i> பயன்முறையில் VPN ஐ இயக்குகிறது. அதை நிறுத்துவது இந்த பயனர் சுயவிவரத்தில் இணைய இணைப்பை இழக்க நேரிடும். எப்படியும் தொடர விரும்புகிறீர்களா?</string>
     <string name="doh_custom_url_remove_success">இறுதிப்புள்ளி நீக்கப்பட்டது.</string>
     <string name="lbl_idle" translatable="true">நிலையிக்கம்</string>
@@ -100,7 +100,7 @@
     <string name="firewall_rule_unknown_desc" translatable="true">&lt;!</string>
     <string name="notif_channel_proxy_failure" translatable="true">பதிலாள் எச்சரிக்கைகள்</string>
     <string name="ada_noapp_dialog_title" translatable="true">அத்தகைய பயன்பாடு இல்லை</string>
-    <string name="ada_app_status_bypass_dns_firewall" translatable="true">யுனிவர்சல் டிஎன்எச் மற்றும் ஃபயர்வால் விதிகளை புறக்கணிக்கும்</string>
+    <string name="ada_app_status_bypass_dns_firewall" translatable="true">உலகளாவிய DNS மற்றும் ஃபயர்வால் விதிகளைப் புறக்கணிக்கிறது</string>
     <string name="ada_app_status_unknown" translatable="true">தெரியவில்லை</string>
     <string name="ada_delete_logs_dialog_title" description="Appears as dialog title to clear the logs in app specific screen" translatable="true">பதிவுகளை அழிக்கவும்</string>
     <string name="ada_app_unmetered" translatable="true">அளவிடப்படாதது</string>
@@ -160,7 +160,7 @@
     <string name="firewall_rule_block_unmetered" translatable="true">அளவிடப்படாத (வைஃபை)</string>
     <string name="firewall_rule_block_udp_ntp" translatable="true">யுடிபி தடுக்கப்பட்டது</string>
     <string name="ci_block" translatable="true">தொகுதி</string>
-    <string name="ada_app_status_isolate" translatable="true">தனிமைப்படுத்தப்பட்டுள்ளது; நம்பகமான ஐபிக்கள் மட்டுமே அனுமதிக்கப்படுகின்றன</string>
+    <string name="ada_app_status_isolate" translatable="true">தனிமைப்படுத்தப்பட்டது: நம்பகமான IP-கள், டொமைன்கள் மட்டுமே அனுமதி</string>
     <string name="rt_list_simple_btn_txt" translatable="true">எளிய</string>
     <string name="http_proxy_dialog_desc" translatable="true">படிவத்தின் முகவரி ஐ அமைக்கவும், &lt;நெறிமுறை&gt;: // &lt;பயனர்பெயர்&gt;: &lt;கடவுச்சொல்&gt;@&lt;டொமைன்-அல்லது-ஐபி&gt;: &lt;port&gt; &lt;athe&gt;. எடுத்துக்காட்டு: http://proxy.example.com:8080/</string>
     <string name="settings_https_heading" translatable="true">அமைவு http (கள்) இணைக்க பதிலாள்</string>
@@ -200,7 +200,7 @@
     <string name="cd_toast_edit" translatable="true">திருத்தப்பட்டது</string>
     <string name="ada_noapp_dialog_message" translatable="true">பயன்பாட்டு செய்தி இல்லை. ஒருவேளை இந்த பயன்பாடு நிறுவல் நீக்கப்பட்டிருக்கலாம்?</string>
     <string name="ada_ip_no_connection" translatable="true">இந்த வகைக்கு பிணைய பதிவுகள் இல்லை.</string>
-    <string name="ada_app_status_exclude" translatable="true">டி.என்.எச் மற்றும் ஃபயர்வாலில் இருந்து விலக்கப்பட்டுள்ளது</string>
+    <string name="ada_app_status_exclude" translatable="true">DNS மற்றும் ஃபயர்வாலில் இருந்து விலக்கப்பட்டது</string>
     <string name="rbl_privacy_desc" description="The text appears as blocklists description in configure screen" translatable="true">கவனம் செலுத்துதல், ச்பைவேர், செதுக்குதல்.</string>
     <string name="rt_dialog_title" translatable="true">மாற்றங்களை சேமியுங்கள்</string>
     <string name="rt_dialog_neutral" translatable="true">தொடரவும்</string>
@@ -305,7 +305,7 @@
     <string name="univ_accessibility_crash_dialog_positive" translatable="true">கோட்டோ அமைப்புகள்</string>
     <string name="firewall_rule_block_app_exception" translatable="true">பிழை</string>
     <string name="new_app_notification_content" translatable="true">ரீதிங்க் அண்மைக் காலத்தில் நிறுவப்பட்ட பயன்பாடு, %1$s.</string>
-    <string name="ada_app_status_allow" translatable="true">அனுமதிக்கப்படுகிறது</string>
+    <string name="ada_app_status_allow" translatable="true">அனுமதிக்கப்பட்டது</string>
     <string name="brbs_restore_dialog_failure_positive" translatable="true">மீட்டமைக்க மீண்டும் முயற்சிக்கவும்</string>
     <string name="ssv_most_blocked_ips_heading" description="This label will appear on the stats screen as a header for most blocked ips" translatable="true">பெரும்பாலானவை தடுக்கப்பட்ட ஐபிக்கள்</string>
     <string name="settings_import_export_desc" translatable="true">பயன்பாட்டு தரவு மற்றும் அமைப்புகளை கைமுறையாக காப்புப் பிரதி எடுக்கவும் அல்லது மீட்டெடுக்கவும்.</string>
@@ -349,8 +349,8 @@
     <string name="settings_theme_dialog_themes_2" translatable="true">ஒளி</string>
     <string name="settings_theme_dialog_themes_3" translatable="true">இருள்</string>
     <string name="settings_default_dns_desc" translatable="true">பயனர்-விருப்பமான டி.என்.எச்சை கண்டறிய முடியாத அரிதான சந்தர்ப்பங்களில், குறைவடையும் டி.என்.எச் பயன்படுத்தப்படுகிறது.</string>
-    <string name="firewall_status_excluded" translatable="true">டி.என்.எச் மற்றும் ஃபயர்வாலில் இருந்து விலக்கப்பட்டது</string>
-    <string name="firewall_status_isolate" translatable="true">தனித்த</string>
+    <string name="firewall_status_excluded" translatable="true">DNS மற்றும் ஃபயர்வாலில் இருந்து விலக்கப்பட்டது</string>
+    <string name="firewall_status_isolate" translatable="true">தனிமைப்படுத்தப்பட்டது</string>
     <string name="firewall_status_whitelisted" translatable="true">உலகளாவிய ஃபயர்வால் விதிகளை புறக்கணிக்கிறது</string>
     <string name="dc_block_heading" translatable="true">விதிகள்</string>
     <string name="dc_other_dns_heading" translatable="true">வகை</string>
@@ -384,7 +384,7 @@
     <string name="ci_dialog_error_invalid_ip" translatable="true">தவறான ஐபி முகவரி, சப்நெட் அல்லது துறைமுகம்.</string>
     <string name="ci_no_rule" translatable="true">விதி இல்லை</string>
     <string name="ci_trust_rule" translatable="true">நம்பிக்கை</string>
-    <string name="ada_app_status_whitelist" translatable="true">உலகளாவிய ஃபயர்வால் விதிகளைத் தவிர்ப்பது</string>
+    <string name="ada_app_status_whitelist" translatable="true">உலகளாவிய ஃபயர்வால் விதிகளைப் புறக்கணிக்கிறது</string>
     <string name="ada_app_metered" translatable="true">அளவிடப்பட்ட</string>
     <string name="rbl_security_desc" description="The text appears as blocklists description in configure screen" translatable="true">தீம்பொருள், ransomware, Cryptoware, Phishers மற்றும் பிற அச்சுறுத்தல்களைத் தடுக்கவும்.</string>
     <string name="rt_dialog_message" translatable="true">புதிதாக உள்ளமைக்கப்பட்ட பிளாக்லிச்ட்களைப் பயன்படுத்த விரும்புகிறீர்களா?</string>
@@ -578,9 +578,9 @@
     <string name="category_name_others" translatable="true">மற்றொன்று</string>
     <string name="category_name_installed" translatable="true">நிறுவப்பட்ட பயன்பாடுகள்</string>
     <string name="build__flavor_play_store" translatable="true">விளையாடுங்கள்</string>
-    <string name="ada_app_status_block" translatable="true">தடுக்கப்பட்டுள்ளது</string>
-    <string name="ada_app_status_block_wifi" translatable="true">அளவிடப்படாத (வைஃபை) நெட்வொர்க்குகளில் தடுக்கப்பட்டுள்ளது</string>
-    <string name="ada_app_status_block_md" translatable="true">மீட்டர் (மொபைல்) நெட்வொர்க்குகளில் தடுக்கப்பட்டுள்ளது</string>
+    <string name="ada_app_status_block" translatable="true">தடுக்கப்பட்டது</string>
+    <string name="ada_app_status_block_wifi" translatable="true">Wi-Fi-இல் தடுக்கப்பட்டது</string>
+    <string name="ada_app_status_block_md" translatable="true">மொபைல் டேட்டாவில் தடுக்கப்பட்டது</string>
     <string name="exclude_apps_from_proxy_failure_toast">இந்த பயன்பாடு ப்ராக்சிகளை புறக்கணிக்கிறது</string>
     <string name="ada_delete_logs_dialog_desc" description="Appears as dialog description to clear the logs in app specific screen" translatable="true">இந்த பயன்பாடு தொடர்பான அனைத்து பதிவுகளையும் அழிக்கவும்.</string>
     <string name="network_dns" translatable="true">கணினி டி.என்.எச்</string>
@@ -623,7 +623,7 @@
     <string name="wireguard_disable_message" translatable="true">அனைத்து செயலில் உள்ள வயர் கார்ட் VPN களையும் நிறுத்தவா?</string>
     <string name="cloudflare_security_dns_desc" translatable="true">தீங்கிழைக்கும் உள்ளடக்கத்தைத் தடுக்கிறது. கிளவுட்ஃப்ளேரின் 1.1.1.2 டிஎன்எச் எண்ட்பாயிண்ட் பயன்படுத்துகிறது.</string>
     <string name="google_dns_desc" translatable="true">எந்த டிஎன்எச் கோரிக்கைகளையும் தடுக்காது. கூகிளின் டிஎன்எச் இறுதிப்புள்ளியைப் பயன்படுத்துகிறது.</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">டி.என்.எச் மற்றும் ஃபயர்வால் விதிகளை புறக்கணிக்கிறது</string>
+    <string name="firewall_status_bypass_dns_firewall" translatable="true">DNS மற்றும் ஃபயர்வால் விதிகளைப் புறக்கணிக்கிறது</string>
     <string name="firewall_status_unknown" translatable="true">தெரியவில்லை</string>
     <string name="hs_biometeric_title" translatable="true">மறுபரிசீலனை திறக்கவும்</string>
     <string name="hs_biometeric_desc" translatable="true">மறுபரிசீலனை செய்ய பயோமெட்ரிக் அங்கீகாரத்தைப் பயன்படுத்தவும்</string>
@@ -738,4 +738,47 @@
     <string name="about_license" translatable="true">APLV2 இன் கீழ் உரிமம் பெற்றது</string>
     <string name="smart_dns" translatable="true">அறிவுள்ள டி.என்.எச்</string>
     <string name="smart_dns_desc" translatable="true"><i> அறிவுள்ள டி.என்.எச் </i> இந்த டிஎன்எச் தீர்வுகளில் எதையும் தோராயமாக பயன்படுத்துகிறது:</string>
+    <string name="home_last_24_hours">கடந்த 24 மணிநேரம்</string>
+    <string name="home_stopped_at_dns">தேடல்கள் DNS-இலேயே நிறுத்தப்பட்டன</string>
+    <string name="home_stopped_most">அதிகம் தடுக்கப்பட்டவை</string>
+    <string name="home_nothing_stopped">கடந்த 24 மணிநேரத்தில் எதுவும் தடுக்கப்படவில்லை.</string>
+    <string name="home_see_statistics">புள்ளிவிவரங்கள்</string>
+    <string name="home_apps_caption">ஒவ்வொரு செயலிக்கும் Wi-Fi, டேட்டா</string>
+    <string name="home_logs_caption">ஒவ்வொரு இணைப்பும் தேடலும்</string>
+    <string name="home_dns_caption">ரிசால்வர், தடுப்புப் பட்டியல்கள்</string>
+    <string name="log_detail_protocol">நெறிமுறை</string>
+    <string name="log_detail_country">நாடு</string>
+    <string name="log_detail_address">முகவரி</string>
+    <string name="log_detail_domain">டொமைன்</string>
+    <string name="log_detail_rule">விதி</string>
+    <string name="log_detail_proxy">ப்ராக்ஸி</string>
+    <string name="log_detail_duration">கால அளவு</string>
+    <string name="log_detail_data">டேட்டா</string>
+    <string name="log_detail_flags">ஃபிளாக்குகள்</string>
+    <string name="log_detail_message">செய்தி</string>
+    <string name="log_detail_resolver">ரிசால்வர்</string>
+    <string name="log_detail_blocklists">தடுப்புப் பட்டியல்கள்</string>
+    <string name="log_detail_dnssec">DNSSEC</string>
+    <string name="log_detail_dnssec_valid">சரியானது</string>
+    <string name="log_detail_dnssec_unverified">சரிபார்க்கப்படவில்லை</string>
+    <string name="log_data_down">↓ %1$s</string>
+    <string name="log_latency_ms">%1$d மி.வி.</string>
+    <string name="log_pane_details">விவரங்கள்</string>
+    <string name="log_pane_dns_apps">இதைத் தேடிய செயலிகள்</string>
+    <string name="log_pane_network_hosts">இந்தச் செயலி இணையும் இடங்கள்</string>
+    <string name="log_pane_empty">விவரங்களைப் பார்க்க ஒரு பதிவைத் தேர்ந்தெடுக்கவும்</string>
+    <plurals name="home_blocked_count">
+        <item quantity="one">%d தடுக்கப்பட்டது</item>
+        <item quantity="other">%d தடுக்கப்பட்டன</item>
+    </plurals>
+    <plurals name="log_blocklists_matched">
+        <item quantity="one">%d தடுப்புப் பட்டியல் பொருந்தியது</item>
+        <item quantity="other">%d தடுப்புப் பட்டியல்கள் பொருந்தின</item>
+    </plurals>
+    <string name="app_pane_empty_title">ஒரு ஆப்ஸைத் தேர்ந்தெடுக்கவும்</string>
+    <string name="app_pane_empty_message">அதன் Wi-Fi, டேட்டா சுவிட்சுகள், விதிகள், டிராஃபிக் இங்கே திறக்கும்.</string>
+    <string name="dns_in_use">பயன்பாட்டில்</string>
+    <string name="dns_median_lookup">சராசரி தேடல் நேரம்</string>
+    <string name="dns_recent_lookups">சமீபத்திய தேடல்கள்</string>
+    <string name="dns_no_lookups_yet">இன்னும் தேடல்கள் இல்லை</string>
 </resources>

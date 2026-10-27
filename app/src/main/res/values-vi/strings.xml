@@ -19,9 +19,9 @@
     <string name="dns_mode_notification_title" translatable="true">Được bảo vệ! Đã kết nối với DNS nhanh và an toàn.</string>
     <string name="firewall_mode_notification_title" translatable="true">Được bảo vệ! Đã kết nối với Tường lửa.</string>
     <string name="notification_action_resume_vpn" translatable="true">TIẾP TỤC</string>
-    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">Thất bại</string>
+    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">Đang lỗi</string>
     <string name="status_dns_error" translatable="true">Lỗi DNS</string>
-    <string name="status_no_internet" translatable="true">Không có mạng</string>
+    <string name="status_no_internet" translatable="true">Không có Internet</string>
     <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit." translatable="true">Chưa được bảo vệ</string>
     <string name="notification_action_stop_vpn" translatable="true">DỪNG</string>
     <string name="notification_action_dns_firewall_mode" translatable="true">DNS + tường lửa</string>
@@ -37,7 +37,7 @@
     <string name="rdns_plus" translatable="true">RDNS Plus</string>
     <string name="hybrid_mode_notification_title" translatable="true">Được bảo vệ! Đã kết nối với DNS + Tường lửa.</string>
     <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline." translatable="true">Đang chờ</string>
-    <string name="status_dns_server_down" translatable="true">Máy chủ dns ngừng hoạt động</string>
+    <string name="status_dns_server_down" translatable="true">Máy chủ DNS ngừng hoạt động</string>
     <string name="notification_action_pause_vpn" translatable="true">NGƯNG</string>
     <string name="notification_action_dns_mode" translatable="true">DNS</string>
     <string name="accessibility_service_description" translatable="true">Rethink sử dụng dịch vụ trợ năng để phát hiện và tường lửa các ứng dụng nền. Rethink không thu thập hoặc bán bất kỳ thông tin nào.</string>
@@ -157,8 +157,8 @@
     <string name="settings_ip_text_ipv4" translatable="true">IPv4</string>
     <string name="settings_ip_text_ipv46" translatable="true">Tự động</string>
     <string name="settings_protocol_translation_dns_inactive" translatable="true">Chuyển sang chế độ DNS/DNS+Tường lửa để bật cài đặt này</string>
-    <string name="firewall_status_excluded" translatable="true">Loại trừ khỏi dns và tường lửa</string>
-    <string name="firewall_status_isolate" translatable="true">Cách ly</string>
+    <string name="firewall_status_excluded" translatable="true">Được loại trừ khỏi DNS và tường lửa</string>
+    <string name="firewall_status_isolate" translatable="true">Bị cách ly</string>
     <string name="firewall_status_unknown" translatable="true">Không rõ</string>
     <string name="hs_biometeric_title" translatable="true">Mở khoá Re-RethinkDNS</string>
     <string name="hs_biometeric_desc" translatable="true">Sử dụng xác thực sinh trắc học để mở khóa Rethink</string>
@@ -180,7 +180,7 @@
     <string name="settings_theme_dialog_themes_2" translatable="true">Sáng</string>
     <string name="settings_ip_text_ipv6" translatable="true">IPv6</string>
     <string name="settings_ip_dialog_ipv4" translatable="true">IPv4 (mặc định)</string>
-    <string name="firewall_status_whitelisted" translatable="true">Bỏ qua các quy tắc tường lửa phổ quát</string>
+    <string name="firewall_status_whitelisted" translatable="true">Bỏ qua quy tắc tường lửa chung</string>
     <string name="lbl_rules" translatable="true">Quy tắc</string>
     <string name="lbl_configure" translatable="true">Cấu hình</string>
     <string name="bypass_universal" translatable="true">bỏ qua phổ quát</string>
@@ -296,7 +296,7 @@
     <string name="fapps_filter_categories_heading" translatable="true">Hạng mục</string>
     <string name="fapps_filter_parent_system" translatable="true">Hệ thống</string>
     <string name="fapps_info_isolate_msg" translatable="true">Chặn tất cả ngoại trừ các IP đáng tin cậy.</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">Bỏ qua các quy tắc DNS và tường lửa</string>
+    <string name="firewall_status_bypass_dns_firewall" translatable="true">Bỏ qua quy tắc DNS và tường lửa</string>
     <string name="settings_allow_lan_desc" translatable="true">Loại trừ các tuyến LAN, loopback, link-local khỏi đường hầm VPN của Rethink.</string>
     <string name="settings_lock_down_mode_desc" translatable="true">Một số tùy chọn bị tắt khi VPN ở chế độ khóa.<u>Xem cài đặt VPN</u></string>
     <string name="settings_dns_proxy_dialog_app_desc" translatable="true">Ứng dụng đã chọn sẽ bị loại trừ khỏi VPN để cho phép ứng dụng đó thay mặt bạn kết nối proxy.</string>
@@ -347,7 +347,7 @@
     <string name="ada_noapp_dialog_positive" translatable="true">Được</string>
     <string name="ada_app_status_block" translatable="true">Bị chặn</string>
     <string name="firewall_rule_unknown" translatable="true">Nguồn không xác định</string>
-    <string name="ada_app_status_allow" translatable="true">Được cho phép</string>
+    <string name="ada_app_status_allow" translatable="true">Được phép</string>
     <string name="lbl_private_key" translatable="true">Khóa cá nhân</string>
     <string name="lbl_public_key" translatable="true">Khoá công khai</string>
     <string name="lbl_dns_servers" translatable="true">Máy chủ DNS</string>
@@ -588,4 +588,45 @@
     <string name="cd_no_rules_text" translatable="true">Không có quy tắc tên miền.</string>
     <string name="firewall_rule_domain_trusted_univ" translatable="true">Tên miền được tin tưởng ( chung )</string>
     <string name="firewall_rule_domain_blocked_univ" translatable="true">Tên miền ( chung )</string>
+    <string name="home_last_24_hours">24 giờ qua</string>
+    <string name="home_stopped_at_dns">truy vấn bị chặn ngay tại DNS</string>
+    <string name="home_stopped_most">Bị chặn nhiều nhất</string>
+    <string name="home_nothing_stopped">Không có gì bị chặn trong 24 giờ qua.</string>
+    <string name="home_see_statistics">Thống kê</string>
+    <string name="home_apps_caption">Wi-Fi và dữ liệu cho từng ứng dụng</string>
+    <string name="home_logs_caption">Mọi kết nối và truy vấn</string>
+    <string name="home_dns_caption">Trình phân giải và danh sách chặn</string>
+    <string name="log_detail_protocol">Giao thức</string>
+    <string name="log_detail_country">Quốc gia</string>
+    <string name="log_detail_address">Địa chỉ</string>
+    <string name="log_detail_domain">Tên miền</string>
+    <string name="log_detail_rule">Quy tắc</string>
+    <string name="log_detail_proxy">Proxy</string>
+    <string name="log_detail_duration">Thời lượng</string>
+    <string name="log_detail_data">Dữ liệu</string>
+    <string name="log_detail_flags">Cờ</string>
+    <string name="log_detail_message">Thông báo</string>
+    <string name="log_detail_resolver">Trình phân giải</string>
+    <string name="log_detail_blocklists">Danh sách chặn</string>
+    <string name="log_detail_dnssec">DNSSEC</string>
+    <string name="log_detail_dnssec_valid">Hợp lệ</string>
+    <string name="log_detail_dnssec_unverified">Chưa xác minh</string>
+    <string name="log_data_down">↓ %1$s</string>
+    <string name="log_latency_ms">%1$d ms</string>
+    <string name="log_pane_details">Chi tiết</string>
+    <string name="log_pane_dns_apps">Ứng dụng đã tra cứu tên miền này</string>
+    <string name="log_pane_network_hosts">Nơi ứng dụng này kết nối</string>
+    <string name="log_pane_empty">Chọn một mục để xem chi tiết</string>
+    <plurals name="home_blocked_count">
+        <item quantity="other">%d lượt chặn</item>
+    </plurals>
+    <plurals name="log_blocklists_matched">
+        <item quantity="other">Khớp %d danh sách chặn</item>
+    </plurals>
+    <string name="app_pane_empty_title">Chọn một ứng dụng</string>
+    <string name="app_pane_empty_message">Công tắc Wi-Fi và dữ liệu, quy tắc và lưu lượng của ứng dụng sẽ mở ở đây.</string>
+    <string name="dns_in_use">Đang dùng</string>
+    <string name="dns_median_lookup">Thời gian truy vấn trung vị</string>
+    <string name="dns_recent_lookups">Truy vấn gần đây</string>
+    <string name="dns_no_lookups_yet">Chưa có truy vấn nào</string>
 </resources>

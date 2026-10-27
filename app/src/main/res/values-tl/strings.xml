@@ -35,7 +35,7 @@
     <string name="firewall_rule_block_univ_ip" translatable="true">IP / Port (Pangkalahatan)</string>
     <string name="fapps_bypass_dns_firewall_dialog_message" translatable="true">Malagpasan ba ang universal DNS &amp; firewall na mga patakaran para sa mga <i>nakalista</i> na mga apps\?</string>
     <string name="firewall_rule_bypass_universal_ip" translatable="true">Na-bypass ang IP</string>
-    <string name="firewall_status_whitelisted" translatable="true">Nakakalusot sa pangkalahatang mga patakaran ng firewall</string>
+    <string name="firewall_status_whitelisted" translatable="true">Lumalampas sa pangkalahatang patakaran ng firewall</string>
     <string name="fapps_firewall_filter_bypass_universal" translatable="true">Nalampasan</string>
     <string name="fapps_info_bypass_msg" translatable="true">Iwasan ang mga patakaran ng Universal na firewall.</string>
     <string name="fapps_bypass_block_dialog_message" translatable="true">Mag-bypass ng universal firewall rules para sa <i>naka-lista</i> na mga apps\?</string>
@@ -51,7 +51,7 @@
     <string name="notification_content" description="Indicates what will happen if the user taps the notification." translatable="true">Pindutin upang baguhin ang mga setting ng proteksyon</string>
     <string name="dns_mode_notification_title" translatable="true">Nakasegurong nakakabit sa mabilis at ligtas na DNS.</string>
     <string name="firewall_mode_notification_title" translatable="true">Nakaseguro! Nakakonekta sa Firewall.</string>
-    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">Nabibigo</string>
+    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">Pumapalya</string>
     <string name="notification_action_dns_firewall_mode" translatable="true">DNS + Firewall</string>
     <string name="dns_mode_info_title" translatable="true">DNS</string>
     <string name="firewall_mode_info_title" translatable="true">Firewall</string>
@@ -102,4 +102,47 @@
     <string name="lbl_public_key" translatable="true">Pampublikong Susi</string>
     <string name="lbl_addresses" translatable="true">Mga address</string>
     <string name="lbl_dns_servers" translatable="true">Mga server ng DNS</string>
+    <string name="home_last_24_hours">Nakaraang 24 oras</string>
+    <string name="home_stopped_at_dns">lookup na pinigilan sa DNS</string>
+    <string name="home_stopped_most">Pinakamadalas pinigilan</string>
+    <string name="home_nothing_stopped">Walang na-block sa nakaraang 24 oras.</string>
+    <string name="home_see_statistics">Mga Estadistika</string>
+    <string name="home_apps_caption">Wi-Fi at data, kada app</string>
+    <string name="home_logs_caption">Bawat koneksyon at lookup</string>
+    <string name="home_dns_caption">Resolver at mga blocklist</string>
+    <string name="log_detail_protocol">Protocol</string>
+    <string name="log_detail_country">Bansa</string>
+    <string name="log_detail_address">Address</string>
+    <string name="log_detail_domain">Domain</string>
+    <string name="log_detail_rule">Patakaran</string>
+    <string name="log_detail_proxy">Proxy</string>
+    <string name="log_detail_duration">Tagal</string>
+    <string name="log_detail_data">Data</string>
+    <string name="log_detail_flags">Mga flag</string>
+    <string name="log_detail_message">Mensahe</string>
+    <string name="log_detail_resolver">Resolver</string>
+    <string name="log_detail_blocklists">Mga blocklist</string>
+    <string name="log_detail_dnssec">DNSSEC</string>
+    <string name="log_detail_dnssec_valid">Valid</string>
+    <string name="log_detail_dnssec_unverified">Hindi pa beripikado</string>
+    <string name="log_data_down">↓ %1$s</string>
+    <string name="log_latency_ms">%1$d ms</string>
+    <string name="log_pane_details">Mga detalye</string>
+    <string name="log_pane_dns_apps">Mga app na nag-lookup nito</string>
+    <string name="log_pane_network_hosts">Saan kumokonekta ang app na ito</string>
+    <string name="log_pane_empty">Pumili ng entry para makita ang mga detalye nito</string>
+    <plurals name="home_blocked_count">
+        <item quantity="one">%d na-block</item>
+        <item quantity="other">%d na-block</item>
+    </plurals>
+    <plurals name="log_blocklists_matched">
+        <item quantity="one">%d blocklist ang tumugma</item>
+        <item quantity="other">%d blocklist ang tumugma</item>
+    </plurals>
+    <string name="app_pane_empty_title">Pumili ng app</string>
+    <string name="app_pane_empty_message">Dito bubukas ang mga switch nito sa Wi-Fi at data, mga panuntunan at trapiko.</string>
+    <string name="dns_in_use">Ginagamit</string>
+    <string name="dns_median_lookup">Median na oras ng lookup</string>
+    <string name="dns_recent_lookups">Mga huling lookup</string>
+    <string name="dns_no_lookups_yet">Wala pang lookup</string>
 </resources>

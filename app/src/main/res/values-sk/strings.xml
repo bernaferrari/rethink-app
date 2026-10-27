@@ -60,11 +60,11 @@
     <string name="notification_content" description="Indicates what will happen if the user taps the notification." translatable="true">Klepnutím zmeníte nastavenie ochrany</string>
     <string name="dns_mode_notification_title" translatable="true">Ste Chránený! Pripojený k Rýchlemu a Bezpečnému DNS.</string>
     <string name="pause_mode_notification_title" translatable="true">Pozastavené! Zablokované aplikácie budú naďalej chránené bránou firewall.</string>
-    <string name="status_waiting" description="This text appears during the connection process if Rethink needs user permission or the phone is offline." translatable="true">Čakám</string>
+    <string name="status_waiting" description="This text appears during the connection process if Rethink needs user permission or the phone is offline." translatable="true">Čaká sa</string>
     <string name="failed_using_default" translatable="true">Zlyhanie: používa sa záložné DNS</string>
     <string name="status_dns_error" translatable="true">Chyba DNS</string>
     <string name="status_dns_server_down" translatable="true">DNS server nefunguje</string>
-    <string name="status_no_internet" translatable="true">Žiadny internet</string>
+    <string name="status_no_internet" translatable="true">Bez internetu</string>
     <string name="notification_action_resume_vpn" translatable="true">POKRAČOVAŤ</string>
     <string name="notification_action_pause_vpn" translatable="true">PAUZA</string>
     <string name="notification_action_stop_vpn" translatable="true">STOP</string>
@@ -110,7 +110,7 @@
     <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">Zlyháva</string>
     <string name="lbl_app_wise" translatable="true">pre jednu aplikáciu</string>
     <string name="lbl_sec" translatable="true">sekúnd</string>
-    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit." translatable="true">Nechránený</string>
+    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit." translatable="true">Nechránené</string>
     <string name="lbl_anonymous" translatable="true">anonymný</string>
     <string name="slide_2_desc" translatable="true">Rethink je najjednoduchší spôsob, ako monitorovať sieťovú aktivitu, obísť internetovú cenzúru a firewall na vašom zariadení so systémom Android.</string>
     <string name="universal_firewall_explanation" translatable="true">Aplikujte firewalové pravidlá na všetky aplikácie na základe udalostí zariadenia, napríklad firewall keď je zariadenie uzamknuté alebo keď sa konkrétna aplikácia nepoužíva.</string>
@@ -204,4 +204,51 @@
     <string name="settings_socks5_vpn_disabled_error" translatable="true">Zapnite Rethink k pokračovaniu.</string>
     <string name="settings_orbot_disabled_error" translatable="true">Vypnite HTTP(S) a/alebo SOCKS5 proxy aby ste mohli pokračovať s nastavením Tor-as-a-proxy.</string>
     <string name="settings_https_disabled_error" translatable="true">Pripojené k %1$s. Vypnite ho aby ste mohli pokračovať.</string>
+    <string name="home_last_24_hours">Posledných 24 hodín</string>
+    <string name="home_stopped_at_dns">dopytov zastavených na úrovni DNS</string>
+    <string name="home_stopped_most">Najčastejšie blokované</string>
+    <string name="home_nothing_stopped">Za posledných 24 hodín nebolo nič zablokované.</string>
+    <string name="home_see_statistics">Štatistiky</string>
+    <string name="home_apps_caption">Wi-Fi a dáta pre každú aplikáciu</string>
+    <string name="home_logs_caption">Každé pripojenie a dopyt</string>
+    <string name="home_dns_caption">Resolver a blokovacie zoznamy</string>
+    <string name="log_detail_protocol">Protokol</string>
+    <string name="log_detail_country">Krajina</string>
+    <string name="log_detail_address">Adresa</string>
+    <string name="log_detail_domain">Doména</string>
+    <string name="log_detail_rule">Pravidlo</string>
+    <string name="log_detail_proxy">Proxy</string>
+    <string name="log_detail_duration">Trvanie</string>
+    <string name="log_detail_data">Dáta</string>
+    <string name="log_detail_flags">Príznaky</string>
+    <string name="log_detail_message">Správa</string>
+    <string name="log_detail_resolver">Resolver</string>
+    <string name="log_detail_blocklists">Blokovacie zoznamy</string>
+    <string name="log_detail_dnssec">DNSSEC</string>
+    <string name="log_detail_dnssec_valid">Platné</string>
+    <string name="log_detail_dnssec_unverified">Neoverené</string>
+    <string name="log_data_down">↓ %1$s</string>
+    <string name="log_latency_ms">%1$d ms</string>
+    <string name="log_pane_details">Podrobnosti</string>
+    <string name="log_pane_dns_apps">Aplikácie, ktoré to vyhľadávali</string>
+    <string name="log_pane_network_hosts">Kam sa táto aplikácia pripája</string>
+    <string name="log_pane_empty">Vyberte záznam a zobrazte jeho podrobnosti</string>
+    <plurals name="home_blocked_count">
+        <item quantity="one">Zablokované: %d</item>
+        <item quantity="few">Zablokované: %d</item>
+        <item quantity="many">Zablokované: %d</item>
+        <item quantity="other">Zablokované: %d</item>
+    </plurals>
+    <plurals name="log_blocklists_matched">
+        <item quantity="one">%d zodpovedajúci blokovací zoznam</item>
+        <item quantity="few">%d zodpovedajúce blokovacie zoznamy</item>
+        <item quantity="many">%d zodpovedajúceho blokovacieho zoznamu</item>
+        <item quantity="other">%d zodpovedajúcich blokovacích zoznamov</item>
+    </plurals>
+    <string name="app_pane_empty_title">Vyberte aplikáciu</string>
+    <string name="app_pane_empty_message">Tu sa otvoria jej prepínače Wi-Fi a dát, pravidlá a prevádzka.</string>
+    <string name="dns_in_use">Používa sa</string>
+    <string name="dns_median_lookup">Medián času dopytu</string>
+    <string name="dns_recent_lookups">Posledné dopyty</string>
+    <string name="dns_no_lookups_yet">Zatiaľ žiadne dopyty</string>
 </resources>

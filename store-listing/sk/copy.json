@@ -1,47 +1,57 @@
 {
   "home": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Každá aplikácia\n*podľa vás.*",
+    "body": "Firewall, DNS a VPN v jednej\naplikácii. Bez rootu.",
+    "alt": "Domovská obrazovka Re-Rethink: chránené, so spracovanými pripojeniami a DNS dopytmi"
   },
   "logs": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Každé pripojenie\n*ako na dlani.*",
+    "body": "Ktorá aplikácia, ktorý server,\npovolené alebo blokované.",
+    "alt": "Sieťový záznam: YouTube, Gmail a Mapy sa pripájajú, hodiny a reklamný server sú blokované"
   },
   "apps": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Odpojte aplikáciu\n*jedným ťuknutím.*",
+    "body": "Blokujte Wi-Fi, mobilné dáta\nalebo oboje.",
+    "alt": "Zoznam aplikácií s prepínačmi Wi-Fi a mobilných dát; YouTube a Fotky čakajú na Wi-Fi"
   },
   "trackers": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Sledovače končia\n*už pri DNS.*",
+    "body": "Blokovacie zoznamy zastavia\nreklamy a sledovače vopred.",
+    "alt": "Záznam DNS len s blokovanými dopytmi: reklamné a analytické servery zastavené blokovacími zoznamami"
   },
   "detail": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Vaše hodiny\n*zostanú offline.*",
+    "body": "Odpojte každú aplikáciu,\nktorá sa nemá prečo pripájať.",
+    "alt": "Hodiny blokované na Wi-Fi aj mobilných dátach, s pravidlami izolácie, obídenia a vylúčenia"
   },
   "stats": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Kto volal,\n*kto prešiel.*",
+    "body": "Top aplikácie, krajiny a domény\nza hodinu, deň alebo týždeň.",
+    "alt": "Štatistiky za posledných 24 hodín: dáta, pripojenia a najčastejšie povolené aplikácie"
   },
   "dns": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Šifrované DNS,\n*vaša voľba.*",
+    "body": "Rethink DNS, DNS-over-HTTPS,\nDoT, DNSCrypt alebo vlastné.",
+    "alt": "Nastavenia DNS s vybraným Rethink DNS vedľa systémového, iného a inteligentného DNS"
   },
   "dark": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Rovnako pokojná\n*aj po zotmení.*",
+    "body": "Svetlý a tmavý režim\naj vlastné farby.",
+    "alt": "Domovská obrazovka a zoznam aplikácií v tmavom režime"
   },
   "tablet10/dark": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Miesto pre\n*každé nastavenie.*",
+    "body": "Pre tablety a skladacie telefóny,\nvo svetlom aj tmavom režime.",
+    "alt": "Nastavenia vo svetlom režime vedľa domovskej obrazovky v tmavom režime na tablete na šírku"
+  },
+  "tablet10/logs": {
+    "title": "Každé pripojenie\n*ako na dlani.*",
+    "body": "Vyberte jedno a uvidíte, kam smerovalo, prečo a kam všade sa tá aplikácia pripojila.",
+    "alt": "Sieťový záznam vedľa podrobností pripojenia YouTube na tablete na šírku"
+  },
+  "tablet10/trackers": {
+    "title": "Sledovače končia\n*už pri DNS.*",
+    "body": "Pozrite sa, ktorý blokovací zoznam zachytil každý z nich a ktoré aplikácie sa naň pýtali.",
+    "alt": "Blokované DNS dopyty vedľa aplikácií, ktoré hľadali analytický server"
   }
 }

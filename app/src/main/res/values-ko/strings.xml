@@ -287,8 +287,8 @@
     <string name="settings_ip_text_ipv4" translatable="true">IPv4</string>
     <string name="settings_ip_text_ipv46" translatable="true">자동</string>
     <string name="settings_default_dns_heading" translatable="true">대체 DNS 선택</string>
-    <string name="firewall_status_excluded" translatable="true">DNS 및 방화벽에서 제외</string>
-    <string name="firewall_status_isolate" translatable="true">외딴</string>
+    <string name="firewall_status_excluded" translatable="true">DNS 및 방화벽에서 제외됨</string>
+    <string name="firewall_status_isolate" translatable="true">격리됨</string>
     <string name="firewall_status_bypass_dns_firewall" translatable="true">DNS 및 방화벽 규칙 우회</string>
     <string name="hs_biometeric_title" translatable="true">Rethink 잠금 해제</string>
     <string name="hs_biometeric_desc" translatable="true">생체 인증을 사용하여 Rethink 잠금 해제</string>
@@ -475,4 +475,45 @@
     <string name="dc_use_sys_dns_undelegated_desc" translatable="true"><i>.lan</i>, <i>.internal</i> 등 별도로 지정된 DNS가 없는 도메인에는 시스템 DNS를 사용합니다.</string>
     <string name="lbl_manual" translatable="true">수동 편집</string>
     <string name="lbl_fallback" translatable="true">대체</string>
+    <string name="home_last_24_hours">최근 24시간</string>
+    <string name="home_stopped_at_dns">건의 조회를 DNS에서 차단</string>
+    <string name="home_stopped_most">가장 많이 차단됨</string>
+    <string name="home_nothing_stopped">최근 24시간 동안 차단된 항목이 없습니다.</string>
+    <string name="home_see_statistics">통계</string>
+    <string name="home_apps_caption">앱별 Wi-Fi 및 데이터</string>
+    <string name="home_logs_caption">모든 연결과 조회</string>
+    <string name="home_dns_caption">리졸버 및 차단 목록</string>
+    <string name="log_detail_protocol">프로토콜</string>
+    <string name="log_detail_country">국가</string>
+    <string name="log_detail_address">주소</string>
+    <string name="log_detail_domain">도메인</string>
+    <string name="log_detail_rule">규칙</string>
+    <string name="log_detail_proxy">프록시</string>
+    <string name="log_detail_duration">소요 시간</string>
+    <string name="log_detail_data">데이터</string>
+    <string name="log_detail_flags">플래그</string>
+    <string name="log_detail_message">메시지</string>
+    <string name="log_detail_resolver">리졸버</string>
+    <string name="log_detail_blocklists">차단 목록</string>
+    <string name="log_detail_dnssec">DNSSEC</string>
+    <string name="log_detail_dnssec_valid">유효</string>
+    <string name="log_detail_dnssec_unverified">확인되지 않음</string>
+    <string name="log_data_down">↓ %1$s</string>
+    <string name="log_latency_ms">%1$dms</string>
+    <string name="log_pane_details">세부정보</string>
+    <string name="log_pane_dns_apps">이 도메인을 조회한 앱</string>
+    <string name="log_pane_network_hosts">이 앱의 연결 대상</string>
+    <string name="log_pane_empty">항목을 선택하면 세부정보가 표시됩니다</string>
+    <plurals name="home_blocked_count">
+        <item quantity="other">%d건 차단</item>
+    </plurals>
+    <plurals name="log_blocklists_matched">
+        <item quantity="other">차단 목록 %d개 일치</item>
+    </plurals>
+    <string name="app_pane_empty_title">앱 선택</string>
+    <string name="app_pane_empty_message">Wi-Fi 및 데이터 스위치, 규칙, 트래픽이 여기에 표시됩니다.</string>
+    <string name="dns_in_use">사용 중</string>
+    <string name="dns_median_lookup">조회 시간 중앙값</string>
+    <string name="dns_recent_lookups">최근 조회</string>
+    <string name="dns_no_lookups_yet">아직 조회 없음</string>
 </resources>

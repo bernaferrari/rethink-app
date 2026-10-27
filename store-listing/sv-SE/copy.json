@@ -1,47 +1,57 @@
 {
   "home": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Varje app,\n*på dina villkor.*",
+    "body": "Brandvägg, DNS och VPN i en app.\nKräver inte root.",
+    "alt": "Re-Rethinks startskärm: skyddad, med anslutningarna och DNS-förfrågningarna den har hanterat"
   },
   "logs": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Varje anslutning,\n*fullt synlig.*",
+    "body": "Vilken app, vilken server,\ntillåten eller blockerad.",
+    "alt": "Nätverksloggen: YouTube, Gmail och Maps ansluter, en klocka och en annonsvärd är blockerade"
   },
   "apps": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Stäng av en app\n*med ett tryck.*",
+    "body": "Blockera Wi-Fi, mobildata\neller båda.",
+    "alt": "Applistan med reglage för Wi-Fi och mobildata; YouTube och Foton väntar på Wi-Fi"
   },
   "trackers": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Spårare stoppas\n*redan i DNS.*",
+    "body": "Blockeringslistor stoppar annonser\noch spårare innan de ansluter.",
+    "alt": "DNS-loggen filtrerad på blockerade förfrågningar: annons- och analysvärdar stoppade av blockeringslistor"
   },
   "detail": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Din klocka\n*förblir offline.*",
+    "body": "Stäng av appar som inte har\nnågon anledning att ansluta.",
+    "alt": "Klockappen blockerad på Wi-Fi och mobildata, med regler för att isolera, kringgå och undanta"
   },
   "stats": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Vem ringde,\n*vem slapp igenom.*",
+    "body": "Toppappar, länder och domäner\nför timmen, dagen eller veckan.",
+    "alt": "Statistik för de senaste 24 timmarna: data, anslutningar och de mest tillåtna apparna"
   },
   "dns": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Krypterad DNS,\n*ditt val.*",
+    "body": "Rethink DNS, DNS-over-HTTPS,\nDoT, DNSCrypt eller din egen.",
+    "alt": "DNS-inställningar med Rethink DNS valt bland system-DNS, annan DNS och smart DNS"
   },
   "dark": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Lika lugn\n*när det mörknar.*",
+    "body": "Ljust, mörkt och dina egna färger.",
+    "alt": "Startskärmen och applistan i mörkt läge"
   },
   "tablet10/dark": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Rum för varje\n*inställning.*",
+    "body": "Byggd för surfplattor och vikbara,\nljust eller mörkt.",
+    "alt": "Inställningar i ljust läge bredvid startskärmen i mörkt läge på en surfplatta i liggande läge"
+  },
+  "tablet10/logs": {
+    "title": "Varje anslutning,\n*fullt synlig.*",
+    "body": "Välj en för att se vart den gick, varför och vad mer appen nådde.",
+    "alt": "Nätverksloggen bredvid detaljerna för en YouTube-anslutning på en surfplatta i liggande läge"
+  },
+  "tablet10/trackers": {
+    "title": "Spårare stoppas\n*redan i DNS.*",
+    "body": "Se vilken blockeringslista som stoppade varje förfrågan, och vilka appar som frågade.",
+    "alt": "Blockerade DNS-förfrågningar bredvid apparna som slog upp en analysvärd"
   }
 }

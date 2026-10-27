@@ -20,7 +20,7 @@
     <string name="hybrid_mode_notification_title" translatable="true">保護されています！ DNS とファイアウォールに接続しています。</string>
     <string name="pause_mode_notification_title" translatable="true">一時停止しています！ブロックしたアプリはファイアウォールされます。</string>
     <string name="status_dns_error" translatable="true">DNS エラー</string>
-    <string name="status_dns_server_down" translatable="true">DNS サーバーダウン</string>
+    <string name="status_dns_server_down" translatable="true">DNS サーバー停止中</string>
     <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit." translatable="true">保護されていません</string>
     <string name="notification_action_dns_mode" translatable="true">DNS</string>
     <string name="firewall_mode_info_title" translatable="true">ファイアウォール</string>
@@ -45,7 +45,7 @@
     <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline." translatable="true">待機中</string>
     <string name="bypass_dns_firewall" translatable="true">DNS とファイアウォールを回避</string>
     <string name="dns_mode_notification_title" translatable="true">保護されています！高速で安全な DNS に接続しています。</string>
-    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">失敗</string>
+    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">接続エラー</string>
     <string name="status_no_internet" translatable="true">インターネット接続なし</string>
     <string name="notification_action_pause_vpn" translatable="true">一時停止</string>
     <string name="notification_action_stop_vpn" translatable="true">停止</string>
@@ -118,7 +118,7 @@
     <string name="settings_ip_text_ipv4" translatable="true">IPv4</string>
     <string name="settings_ip_text_ipv6" translatable="true">IPv6</string>
     <string name="settings_ip_text_ipv46" translatable="true">自動</string>
-    <string name="firewall_status_excluded" translatable="true">Dnsとファイアウォールから除外</string>
+    <string name="firewall_status_excluded" translatable="true">DNS とファイアウォールから除外</string>
     <string name="firewall_status_unknown" translatable="true">不明</string>
     <string name="hsf_vpn_dialog_header" translatable="true">注意！</string>
     <string name="hsf_notification_permission_failure" translatable="true">設定画面から通知機能を有効にする</string>
@@ -246,8 +246,8 @@
     <string name="settings_default_dns_heading" translatable="true">フォールバックDNSを選択する</string>
     <string name="settings_import_export_desc" translatable="true">アプリのデータや設定を手動でバックアップしたり、復元したりすることができます。</string>
     <string name="orbot_install_dialog_positive" translatable="true">インストール</string>
-    <string name="firewall_status_whitelisted" translatable="true">ユニバーサルファイアウォールルールをバイパスします</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">DNSとファイアウォールルールをバイパスします</string>
+    <string name="firewall_status_whitelisted" translatable="true">共通ファイアウォールルールをバイパス</string>
+    <string name="firewall_status_bypass_dns_firewall" translatable="true">DNS とファイアウォールのルールをバイパス</string>
     <string name="hs_biometeric_desc" translatable="true">RethinkDNSのロック解除に生体認証を利用する</string>
     <string name="hs_biometeric_error" translatable="true">生体認証に失敗しました</string>
     <string name="orbot_bs_status_2" translatable="true">HTTP プロキシが設定されています (アプリはこれを無視する場合があります)。</string>
@@ -423,4 +423,45 @@
     <string name="lbl_http_socks5" translatable="true">HTTPS &amp; SOCKS5</string>
     <string name="lbl_sec" translatable="true">秒</string>
     <string name="lbl_dismiss" translatable="true">却下する</string>
+    <string name="home_last_24_hours">過去 24 時間</string>
+    <string name="home_stopped_at_dns">件の DNS 照会をブロック</string>
+    <string name="home_stopped_most">ブロックの多い項目</string>
+    <string name="home_nothing_stopped">過去 24 時間にブロックされたものはありません。</string>
+    <string name="home_see_statistics">統計</string>
+    <string name="home_apps_caption">Wi-Fi とデータをアプリごとに</string>
+    <string name="home_logs_caption">すべての接続と照会</string>
+    <string name="home_dns_caption">リゾルバとブロックリスト</string>
+    <string name="log_detail_protocol">プロトコル</string>
+    <string name="log_detail_country">国</string>
+    <string name="log_detail_address">アドレス</string>
+    <string name="log_detail_domain">ドメイン</string>
+    <string name="log_detail_rule">ルール</string>
+    <string name="log_detail_proxy">プロキシ</string>
+    <string name="log_detail_duration">所要時間</string>
+    <string name="log_detail_data">データ量</string>
+    <string name="log_detail_flags">フラグ</string>
+    <string name="log_detail_message">メッセージ</string>
+    <string name="log_detail_resolver">リゾルバ</string>
+    <string name="log_detail_blocklists">ブロックリスト</string>
+    <string name="log_detail_dnssec">DNSSEC</string>
+    <string name="log_detail_dnssec_valid">有効</string>
+    <string name="log_detail_dnssec_unverified">未検証</string>
+    <string name="log_data_down">↓ %1$s</string>
+    <string name="log_latency_ms">%1$d ms</string>
+    <string name="log_pane_details">詳細</string>
+    <string name="log_pane_dns_apps">このドメインを照会したアプリ</string>
+    <string name="log_pane_network_hosts">このアプリの接続先</string>
+    <string name="log_pane_empty">項目を選択すると詳細が表示されます</string>
+    <plurals name="home_blocked_count">
+        <item quantity="other">%d 件ブロック</item>
+    </plurals>
+    <plurals name="log_blocklists_matched">
+        <item quantity="other">%d 件のブロックリストに一致</item>
+    </plurals>
+    <string name="app_pane_empty_title">アプリを選択</string>
+    <string name="app_pane_empty_message">Wi-Fi とモバイルデータの切り替え、ルール、通信量がここに表示されます。</string>
+    <string name="dns_in_use">使用中</string>
+    <string name="dns_median_lookup">応答時間の中央値</string>
+    <string name="dns_recent_lookups">最近の問い合わせ</string>
+    <string name="dns_no_lookups_yet">まだ問い合わせはありません</string>
 </resources>

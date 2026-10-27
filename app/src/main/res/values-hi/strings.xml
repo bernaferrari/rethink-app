@@ -19,7 +19,7 @@
     <string name="firewall_mode_notification_title">सुरक्षित! फ़ायरवॉल से जुड़ा हुआ है।</string>
     <string name="hybrid_mode_notification_title">सुरक्षित! डीएनएस + फ़ायरवॉल से जुड़ा हुआ है।</string>
     <string name="pause_mode_notification_title">रोका गया! ब्लॉक किए गए ऐप्स फ़ायरवॉल किए जाते रहेंगे।</string>
-    <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">प्रतीक्षा</string>
+    <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">प्रतीक्षा में</string>
     <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">असफल</string>
     <string name="status_dns_error">डीएनएस त्रुटि</string>
     <string name="status_dns_server_down">डीएनएस सर्वर डाउन</string>
@@ -139,7 +139,7 @@
     <string name="settings_ip_text_ipv4" translatable="true">आईपीवी4</string>
     <string name="settings_ip_text_ipv6" translatable="true">आईपीवी6</string>
     <string name="settings_ip_text_ipv46" translatable="true">ऑटो</string>
-    <string name="firewall_status_excluded" translatable="true">डीएनएस और फ़ायरवॉल से निकाला गया</string>
+    <string name="firewall_status_excluded" translatable="true">DNS और फ़ायरवॉल से बाहर रखा गया</string>
     <string name="firewall_status_whitelisted" translatable="true">यूनिवर्सल फ़ायरवॉल नियमों को बायपास करता है</string>
     <string name="hsf_vpn_dialog_message" translatable="true">रीथिंक डिवाइस के डीएनएस अनुरोधों को एन्क्रिप्ट करने, नेटवर्क मॉनिटर को लागू करने, और फ़ायरवॉल नियमों को लागू करने के लिए एक स्थानीय वीपीएन सेट करने की अनुमति की आवश्यकता होती है।
 \n
@@ -216,8 +216,8 @@
     <string name="category_name_non_app_sys" translatable="true">सिस्टम सेवाएं</string>
     <string name="category_name_installed" translatable="true">इंस्टॉल किए गए ऐप्स</string>
     <string name="ci_no_rule" translatable="true">कोई नियम नहीं</string>
-    <string name="ada_app_status_exclude" translatable="true">डीएनएस और फ़ायरवॉल से निकाल रखा गया है</string>
-    <string name="ada_app_status_unknown" translatable="true">अनजान है</string>
+    <string name="ada_app_status_exclude" translatable="true">DNS और फ़ायरवॉल से बाहर रखा गया</string>
+    <string name="ada_app_status_unknown" translatable="true">अज्ञात</string>
     <string name="ada_app_exclude" translatable="true">निकाले</string>
     <string name="notif_download_success_content" translatable="true">डाउनलोड सफल रहा।</string>
     <string name="brbs_backup_dialog_positive" translatable="true">बैकअप</string>
@@ -253,8 +253,8 @@
     <string name="brbs_restore_dialog_failure_message" translatable="true">रीस्टोर नहीं हो सका। पुनः प्रयास करें\?</string>
     <string name="brbs_restore_dialog_failure_positive" translatable="true">रीस्टोर प्रयास वापिस करे</string>
     <string name="settings_protocol_translation_dns_inactive" translatable="true">इस सेटिंग को सक्षम करने के लिए डीएनएस/डीएनएस+फ़ायरवॉल मोड पर स्विच करें</string>
-    <string name="firewall_status_isolate" translatable="true">अलग रखा</string>
-    <string name="firewall_status_unknown" translatable="true">अज्ञात स्थिति</string>
+    <string name="firewall_status_isolate" translatable="true">अलग रखा गया</string>
+    <string name="firewall_status_unknown" translatable="true">अज्ञात</string>
     <string name="hs_biometeric_title" translatable="true">रीथिंक अनलॉक करें</string>
     <string name="hs_biometeric_desc" translatable="true">रीथिंक अनलॉक करने के लिए बायोमेट्रिक सत्यापन इस्तेमाल करें</string>
     <string name="hs_biometeric_error" translatable="true">बायोमेट्रिक प्रमाणीकरण त्रुटि</string>
@@ -360,7 +360,7 @@
     <string name="new_app_bulk_notification_title" translatable="true">सावधान</string>
     <string name="notif_channel_desc_proxy_failure" translatable="true">प्रॉक्सी त्रुटियों और विसंगतियों पर अलर्ट</string>
     <string name="notif_channel_desc_vpn_notification" translatable="true">सूचित करें कि रीथिंक कब सक्रिय है और बैकग्राउंड में चल रहा है</string>
-    <string name="ada_app_status_whitelist" translatable="true">यूनिवर्सल फ़ायरवॉल नियमों को बायपास करेगा</string>
+    <string name="ada_app_status_whitelist" translatable="true">यूनिवर्सल फ़ायरवॉल नियमों को बायपास करता है</string>
     <string name="notif_channel_desc_vpn_failure" translatable="true">जब एंड्रॉइड या किसी अन्य वीपीएन ऐप द्वारा रीथिंक को बंद कर दिया जाए तो सूचित करें</string>
     <string name="notif_channel_desc_firewall_alerts" translatable="true">फ़ायरवॉल त्रुटियों और विसंगतियों पर अलर्ट</string>
     <string name="ada_app_unmetered" translatable="true">बिना मीटर</string>
@@ -466,10 +466,10 @@
     <string name="firewall_rule_block_app_unmetered_desc" translatable="true"><i>अनमीटर्ड</i> नेटवर्क पर कनेक्ट करने का प्रयास करते समय एक उपयोगकर्ता-सेट फ़ायरवॉल नियम ने इस <i>ऐप</i> को अवरुद्ध कर दिया। <br/> <br/> बदलने के लिए <i>सभी ऐप्स</i> टैब पर जाएं।</string>
     <string name="ci_block" translatable="true">ब्लॉक</string>
     <string name="ada_ip_no_connection" translatable="true">इस ऐप के लिए कोई नेटवर्क लॉग नहीं है।</string>
-    <string name="ada_app_status_allow" translatable="true">को अनुमति है</string>
-    <string name="ada_app_status_block" translatable="true">को अनुमति नही है</string>
-    <string name="ada_app_status_block_wifi" translatable="true">को बिना मीटर वाले (वाईफ़ाई) नेटवर्क पर ब्लॉक किया गया है</string>
-    <string name="ada_app_status_isolate" translatable="true">अलग रखा गया है; केवल विश्वसनीय आईपी की अनुमति है</string>
+    <string name="ada_app_status_allow" translatable="true">अनुमति दी गई</string>
+    <string name="ada_app_status_block" translatable="true">ब्लॉक किया गया</string>
+    <string name="ada_app_status_block_wifi" translatable="true">Wi-Fi पर ब्लॉक किया गया</string>
+    <string name="ada_app_status_isolate" translatable="true">अलग रखा गया: सिर्फ़ भरोसेमंद IP और डोमेन की अनुमति है</string>
     <string name="ada_app_metered" translatable="true">मीटर्ड</string>
     <string name="ada_app_bypass_univ" translatable="true">यूनिवर्सल बाईपास</string>
     <string name="ada_app_isolate" translatable="true">अलग रखे</string>
@@ -507,7 +507,7 @@
     <string name="firewall_rule_exempt_orbot_setup_desc" translatable="true">इस कनेक्शन की अनुमति दी गई थी क्योंकि <i>ऑर्बोट के माध्यम से एक-क्लिक टॉर-एज-ए-प्रॉक्सी</i> सेटअप प्रगति पर था।</string>
     <string name="ada_noapp_dialog_title" translatable="true">ऐसा कोई ऐप नही</string>
     <string name="ada_noapp_dialog_message" translatable="true">ऐप जानकारी लापता। शायद इसे अनइंस्टाल कर दिया गया\?</string>
-    <string name="ada_app_status_block_md" translatable="true">को मीटर्ड (मोबाइल) नेटवर्क पर अवरुद्ध किया है</string>
+    <string name="ada_app_status_block_md" translatable="true">मोबाइल डेटा पर ब्लॉक किया गया</string>
     <string name="firewall_rule_bypass_universal_ip_desc" translatable="true">इस कनेक्शन की अनुमति दी गई थी क्योंकि <i>गंतव्य आईपी</i> सभी यूनीवर्सल फ़ायरवॉल नियमों को बायपास करने के लिए सेट है।<br/><br/> बदलने के लिए <i>आईपी नियम</i> में जाए जो <i>यूनीवर्सल</i> टैब में है।</string>
     <string name="firewall_rule_block_app_mobile_desc" translatable="true"><i>अनमीटर्ड</i> नेटवर्क पर कनेक्ट करने का प्रयास करते समय एक उपयोगकर्ता-सेट फ़ायरवॉल नियम ने इस <i>ऐप</i> को अवरुद्ध कर दिया। <br/> <br/> बदलने के लिए <i>सभी ऐप्स</i> टैब पर जाएं।</string>
     <string name="ada_delete_logs_dialog_desc" description="Appears as dialog description to clear the logs in app specific screen" translatable="true">इस एप्लिकेशन से संबंधित सभी लॉग साफ़ करें।</string>
@@ -549,7 +549,7 @@
     <string name="settings_lock_down_proxy_desc" translatable="true">जब VPN केवल DNS मोड में चल रहा हो तो प्रॉक्सी सेट नहीं किया जा सकता।</string>
     <string name="settings_default_dns_heading" translatable="true">फॉलबैक डीएनएस चुनें</string>
     <string name="settings_default_dns_desc" translatable="true">कुछ दुर्लभ केस में जब यूज़र का पसंदीदा डीएनएस नहीं पता चलता, तब फॉलबैक डीएनएस का इस्तेमाल होता है।</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">डीएनएस और फायरवॉल नियम को बायपास करें</string>
+    <string name="firewall_status_bypass_dns_firewall" translatable="true">DNS और फ़ायरवॉल नियमों को बायपास करता है</string>
     <string name="fapps_bypass_dns_firewall_dialog_message" translatable="true">यूनीवर्सल डीएनएस और फायरवॉल नियमों को बायपास करे <i>सूचीबद्ध</i> ऐप्स के लिए\?</string>
     <string name="cd_dns_alg_desc" translatable="true">हर डीएनएस मांग पे खास आइपी असाइन करे</string>
     <string name="firewall_rule_bypass_dns_firewall" translatable="true">बायपास किए ऐप्स</string>
@@ -557,7 +557,7 @@
     <string name="firewall_rule_bypass_dns_firewall_desc" translatable="true">इस कनेक्शन की इजाज़त दी गई क्योकीं <i>स्त्रोत ऐप</i> सेट किया गया है <i>डीएनएस और फायरवॉल नियमों को बायपास करने के लिए</i>।<br/><br/> बदलने के लिए जाए <i>ऐप-विशेष फायरवॉल</i> सक्रिन पे।</string>
     <string name="firewall_rule_dns_blocked_desc" translatable="true">ये कनेक्शन ब्लॉक किया गया क्योकिं <i>डोमेन</i> ब्लॉक है यूज़र पसंदीदा डीएनएस के द्वारा। <br/><br/> बदलने के लिए जाए <i>डीएनएस कन्फिगर</i> टैब पे।</string>
     <string name="firewall_rule_domain_trusted_univ_desc" translatable="true">ये कनेक्शन अनुमति प्राप्त किया क्योकिं <i>डोमेन</i> विश्वसनिय है यूनीवर्सल डोमेन नियमों में। <br/><br/> बदलने के लिए जाए <i>डीएनएस कन्फिगर</i> टैब पे।</string>
-    <string name="ada_app_status_bypass_dns_firewall" translatable="true">यूनीवर्सल डीएनएस और फायरवॉल नियमों को बायपास करेगा</string>
+    <string name="ada_app_status_bypass_dns_firewall" translatable="true">यूनिवर्सल DNS और फ़ायरवॉल नियमों को बायपास करता है</string>
     <string name="brbs_backup_restore_desc" translatable="true">सभी ऐप संस्करणों पर काम नहीं करता</string>
     <string name="settings_allow_lan_heading" translatable="true">निजी आइपी रूट ना करे (प्रयोग)</string>
     <string name="settings_allow_lan_desc" translatable="true">रीथिंक के VPN टनल से LAN, लूपबैक, मल्टीकास्ट, लिंक-लोकल रूट को बाहर रखें।</string>
@@ -697,4 +697,47 @@
     <string name="crypt_relay_sweden" translatable="true">https://cryptostrom.is/ द्वारा प्रदान किया गया स्वीडन में होस्ट किया गया अनाम DNS रिले।</string>
     <string name="wireguard_disable_failure" translatable="true">\"Always-on WireGuard\" को बंद नहीं किया जा सकता</string>
     <string name="wireguard_apps_proxy_map_desc" translatable="true">%1$s का हिस्सा</string>
+    <string name="home_last_24_hours">पिछले 24 घंटे</string>
+    <string name="home_stopped_at_dns">लुकअप DNS पर ही रोके गए</string>
+    <string name="home_stopped_most">सबसे ज़्यादा रोके गए</string>
+    <string name="home_nothing_stopped">पिछले 24 घंटों में कुछ भी ब्लॉक नहीं हुआ।</string>
+    <string name="home_see_statistics">आँकड़े</string>
+    <string name="home_apps_caption">हर ऐप के लिए Wi-Fi और डेटा</string>
+    <string name="home_logs_caption">हर कनेक्शन और लुकअप</string>
+    <string name="home_dns_caption">रिज़ॉल्वर और ब्लॉकलिस्ट</string>
+    <string name="log_detail_protocol">प्रोटोकॉल</string>
+    <string name="log_detail_country">देश</string>
+    <string name="log_detail_address">पता</string>
+    <string name="log_detail_domain">डोमेन</string>
+    <string name="log_detail_rule">नियम</string>
+    <string name="log_detail_proxy">प्रॉक्सी</string>
+    <string name="log_detail_duration">अवधि</string>
+    <string name="log_detail_data">डेटा</string>
+    <string name="log_detail_flags">फ़्लैग</string>
+    <string name="log_detail_message">संदेश</string>
+    <string name="log_detail_resolver">रिज़ॉल्वर</string>
+    <string name="log_detail_blocklists">ब्लॉकलिस्ट</string>
+    <string name="log_detail_dnssec">DNSSEC</string>
+    <string name="log_detail_dnssec_valid">मान्य</string>
+    <string name="log_detail_dnssec_unverified">असत्यापित</string>
+    <string name="log_data_down">↓ %1$s</string>
+    <string name="log_latency_ms">%1$d मि.से.</string>
+    <string name="log_pane_details">विवरण</string>
+    <string name="log_pane_dns_apps">इसे लुकअप करने वाले ऐप</string>
+    <string name="log_pane_network_hosts">यह ऐप कहाँ कनेक्ट होता है</string>
+    <string name="log_pane_empty">विवरण देखने के लिए कोई एंट्री चुनें</string>
+    <plurals name="home_blocked_count">
+        <item quantity="one">%d ब्लॉक</item>
+        <item quantity="other">%d ब्लॉक</item>
+    </plurals>
+    <plurals name="log_blocklists_matched">
+        <item quantity="one">%d ब्लॉकलिस्ट मेल खाई</item>
+        <item quantity="other">%d ब्लॉकलिस्ट मेल खाईं</item>
+    </plurals>
+    <string name="app_pane_empty_title">कोई ऐप चुनें</string>
+    <string name="app_pane_empty_message">इसके Wi-Fi और डेटा स्विच, नियम और ट्रैफ़िक यहाँ खुलेंगे।</string>
+    <string name="dns_in_use">उपयोग में</string>
+    <string name="dns_median_lookup">मध्य लुकअप समय</string>
+    <string name="dns_recent_lookups">हाल के लुकअप</string>
+    <string name="dns_no_lookups_yet">अभी तक कोई लुकअप नहीं</string>
 </resources>

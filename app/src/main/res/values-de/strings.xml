@@ -17,9 +17,9 @@
     <string name="firewall_mode_notification_title">Geschützt! Verbunden mit der Firewall.</string>
     <string name="hybrid_mode_notification_title">Geschützt! Verbunden mit DNS + Firewall.</string>
     <string name="pause_mode_notification_title">Pausiert! Blockierte Apps werden weiterhin mit einer Firewall geblockt.</string>
-    <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">Wartend</string>
-    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">Fehlerhaft</string>
-    <string name="status_dns_error">DNS Fehler</string>
+    <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">Wartet</string>
+    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">Gestört</string>
+    <string name="status_dns_error">DNS-Fehler</string>
     <string name="status_dns_server_down">DNS-Server ausgefallen</string>
     <string name="status_no_internet">Kein Internet</string>
     <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit.">Nicht geschützt</string>
@@ -236,12 +236,12 @@
     <string name="ci_block">Blockieren</string>
     <string name="ada_noapp_dialog_message">App-Informationen fehlen. Vielleicht wurde diese App deinstalliert\?</string>
     <string name="ada_noapp_dialog_positive">OK</string>
-    <string name="ada_app_status_allow">Ist erlaubt</string>
+    <string name="ada_app_status_allow">Erlaubt</string>
     <string name="ada_ip_no_connection">Keine Netzwerkprotokolle für diese Kategorie.</string>
-    <string name="ada_app_status_block">Ist blockiert</string>
-    <string name="ada_app_status_block_wifi">Wird in nicht gebührenpflichtigen Netzwerken (Wlan) blockiert</string>
-    <string name="ada_app_status_isolate">Ist isoliert; nur vertrauenswürdige IPs erlaubt</string>
-    <string name="ada_app_status_unknown">Ist unbekannt</string>
+    <string name="ada_app_status_block">Blockiert</string>
+    <string name="ada_app_status_block_wifi">Im WLAN blockiert</string>
+    <string name="ada_app_status_isolate">Isoliert: nur vertrauenswürdige IPs und Domains erlaubt</string>
+    <string name="ada_app_status_unknown">Unbekannt</string>
     <string name="ada_app_status_whitelist">Umgeht die universellen Firewall-Regeln</string>
     <string name="rbl_parental_control" description="The text appears as part of the blocklist setup screen as categories or headlines">Elterliche Kontrolle</string>
     <string name="rbl_privacy" description="The text appears as part of the blocklist setup screen as categories or headlines">Datenschutz</string>
@@ -283,7 +283,7 @@
     <string name="brbs_restore_no_uri_toast">Wiederherstellung fehlgeschlagen; versuchen Sie es nochmal</string>
     <string name="brbs_restore_dialog_failure_title">Wiederherstellung fehlgeschlagen</string>
     <string name="category_name_installed">Installierte Apps</string>
-    <string name="ada_app_status_exclude">Ist von DNS und Firewall ausgeschlossen</string>
+    <string name="ada_app_status_exclude">Von DNS und Firewall ausgeschlossen</string>
     <string name="rbl_parental_control_desc" description="The text appears as blocklists description in configure screen">Sperren Sie Inhalte für Erwachsene und Raubkopien, Online-Glücksspiele und -Dating, sowie soziale Medien.</string>
     <string name="rt_dialog_message">Möchten Sie neu konfigurierte Blocklisten anwenden\?</string>
     <string name="rt_dialog_neutral">Weiter</string>
@@ -306,7 +306,7 @@
     <string name="build__flavor_website">webseite</string>
     <string name="build__flavor_play_store">Spiel {fileName}</string>
     <string name="build__flavor_fdroid">fdroid</string>
-    <string name="ada_app_status_block_md">Ist in gebührenpflichtigen (mobilen) Netzen gesperrt</string>
+    <string name="ada_app_status_block_md">Bei mobilen Daten blockiert</string>
     <string name="ada_app_metered">Getaktet</string>
     <string name="ada_app_unmetered">Ungetaktet</string>
     <string name="ada_app_bypass_univ">Universelle Umgehung</string>
@@ -555,7 +555,7 @@
     <string name="ada_app_bypass_dns_firewall" translatable="true">Umgehe DNS &amp; Firewall</string>
     <string name="dc_setting_dns_cache_desc" translatable="true">Vereine Anfragen, cache Antworten, robuste Fehlerbehandlung</string>
     <string name="firewall_rule_domain_blocked_univ_desc" translatable="true"><![CDATA[Diese Verbindung wurde blockiert, da die <i>Domain</i> in den universellen Domain-Regeln als blockiert festgelegt ist.<br/><br/> Um dieses Verhalten zu ändern, gehen Sie zur Registerkarte <i>DNS konfigurieren</i>.]]></string>
-    <string name="ada_app_status_bypass_dns_firewall" translatable="true">Wird universelle DNS- &amp; Firewall-Regeln umgehen</string>
+    <string name="ada_app_status_bypass_dns_firewall" translatable="true">Umgeht die universellen DNS- und Firewall-Regeln</string>
     <string name="cd_dns_alg_desc" translatable="true">Einzigartige IP für jede DNS-Anfrage verwenden.</string>
     <string name="firewall_rule_domain_blocked_univ" translatable="true">Domäne (Univ)</string>
     <string name="firewall_rule_bypass_dns_firewall_desc" translatable="true"><![CDATA[Diese Verbindung wurde zugelassen, da die <i>Quell-App</i> auf <i>DNS- und Firewall-Regeln umgehen</i> gesetzt ist.<br/><br/> Zum Ändern gehen Sie zum Bildschirm <i>App-spezifische Firewall</i>.]]></string>
@@ -801,4 +801,47 @@
     <string name="lockdown_download_enable_inapp" translatable="true">Downloader aktivieren</string>
     <string name="settings_jumbo_packets_desc" translatable="true">Verwendet <i>Jumbo-Pakete</i> innerhalb des VPN-Tunnels von Rethink.</string>
     <string name="stability_program_toast" translatable="true">Für das <i>Stabilitätsprogramm</i> für <i>experimentelle Funktionen</i> angemeldet.</string>
+    <string name="home_last_24_hours">Letzte 24 Stunden</string>
+    <string name="home_stopped_at_dns">Anfragen schon beim DNS gestoppt</string>
+    <string name="home_stopped_most">Am häufigsten gestoppt</string>
+    <string name="home_nothing_stopped">In den letzten 24 Stunden wurde nichts blockiert.</string>
+    <string name="home_see_statistics">Statistiken</string>
+    <string name="home_apps_caption">WLAN und mobile Daten, App für App</string>
+    <string name="home_logs_caption">Jede Verbindung und Anfrage</string>
+    <string name="home_dns_caption">Resolver und Blocklisten</string>
+    <string name="log_detail_protocol">Protokoll</string>
+    <string name="log_detail_country">Land</string>
+    <string name="log_detail_address">Adresse</string>
+    <string name="log_detail_domain">Domain</string>
+    <string name="log_detail_rule">Regel</string>
+    <string name="log_detail_proxy">Proxy</string>
+    <string name="log_detail_duration">Dauer</string>
+    <string name="log_detail_data">Daten</string>
+    <string name="log_detail_flags">Flags</string>
+    <string name="log_detail_message">Meldung</string>
+    <string name="log_detail_resolver">Resolver</string>
+    <string name="log_detail_blocklists">Blocklisten</string>
+    <string name="log_detail_dnssec">DNSSEC</string>
+    <string name="log_detail_dnssec_valid">Gültig</string>
+    <string name="log_detail_dnssec_unverified">Nicht verifiziert</string>
+    <string name="log_data_down">↓ %1$s</string>
+    <string name="log_latency_ms">%1$d ms</string>
+    <string name="log_pane_details">Details</string>
+    <string name="log_pane_dns_apps">Apps, die das abgefragt haben</string>
+    <string name="log_pane_network_hosts">Wohin sich diese App verbindet</string>
+    <string name="log_pane_empty">Eintrag auswählen, um Details zu sehen</string>
+    <plurals name="home_blocked_count">
+        <item quantity="one">%d blockiert</item>
+        <item quantity="other">%d blockiert</item>
+    </plurals>
+    <plurals name="log_blocklists_matched">
+        <item quantity="one">%d Blockliste greift</item>
+        <item quantity="other">%d Blocklisten greifen</item>
+    </plurals>
+    <string name="app_pane_empty_title">App auswählen</string>
+    <string name="app_pane_empty_message">Hier erscheinen ihre WLAN- und Datenschalter, Regeln und ihr Datenverkehr.</string>
+    <string name="dns_in_use">Aktiv</string>
+    <string name="dns_median_lookup">Mittlere Abfragezeit</string>
+    <string name="dns_recent_lookups">Letzte Abfragen</string>
+    <string name="dns_no_lookups_yet">Noch keine Abfragen</string>
 </resources>

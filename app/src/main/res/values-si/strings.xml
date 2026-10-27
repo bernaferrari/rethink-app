@@ -92,8 +92,51 @@
     <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">අසමත් වෙමින් ඇත</string>
     <string name="failed_using_default" translatable="true">අසමත්: ආපස්සට DNS භාවිතා කරයි</string>
     <string name="status_dns_error" translatable="true">DNS දෝෂය</string>
-    <string name="status_dns_server_down" translatable="true">DNS server එක down වි ඇත</string>
+    <string name="status_dns_server_down" translatable="true">DNS සේවාදායකය අක්‍රියයි</string>
     <string name="status_no_internet" translatable="true">අන්තර්ජාලය නැත</string>
     <string name="status_no_network" translatable="true">ජාලයක් නැත</string>
     <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit." translatable="true">ආරක්ෂිත නැත</string>
+    <string name="home_last_24_hours">පසුගිය පැය 24</string>
+    <string name="home_stopped_at_dns">සෙවීම් DNS මට්ටමේදීම නැවැත්විණි</string>
+    <string name="home_stopped_most">වැඩිපුරම නැවැත්වූ</string>
+    <string name="home_nothing_stopped">පසුගිය පැය 24 තුළ කිසිවක් අවහිර කර නැත.</string>
+    <string name="home_see_statistics">සංඛ්‍යාලේඛන</string>
+    <string name="home_apps_caption">එක් එක් යෙදුමට Wi-Fi සහ දත්ත</string>
+    <string name="home_logs_caption">සෑම සම්බන්ධතාවක්ම සහ සෙවීමක්ම</string>
+    <string name="home_dns_caption">Resolver සහ අවහිර ලැයිස්තු</string>
+    <string name="log_detail_protocol">ප්‍රොටෝකෝලය</string>
+    <string name="log_detail_country">රට</string>
+    <string name="log_detail_address">ලිපිනය</string>
+    <string name="log_detail_domain">වසම</string>
+    <string name="log_detail_rule">නීතිය</string>
+    <string name="log_detail_proxy">Proxy</string>
+    <string name="log_detail_duration">කාලය</string>
+    <string name="log_detail_data">දත්ත</string>
+    <string name="log_detail_flags">Flags</string>
+    <string name="log_detail_message">පණිවිඩය</string>
+    <string name="log_detail_resolver">Resolver</string>
+    <string name="log_detail_blocklists">අවහිර ලැයිස්තු</string>
+    <string name="log_detail_dnssec">DNSSEC</string>
+    <string name="log_detail_dnssec_valid">වලංගුයි</string>
+    <string name="log_detail_dnssec_unverified">සත්‍යාපනය කර නැත</string>
+    <string name="log_data_down">↓ %1$s</string>
+    <string name="log_latency_ms">%1$d ms</string>
+    <string name="log_pane_details">විස්තර</string>
+    <string name="log_pane_dns_apps">මෙය සෙවූ යෙදුම්</string>
+    <string name="log_pane_network_hosts">මෙම යෙදුම සම්බන්ධ වන තැන්</string>
+    <string name="log_pane_empty">විස්තර බැලීමට ඇතුළත් කිරීමක් තෝරන්න</string>
+    <plurals name="home_blocked_count">
+        <item quantity="one">%d ක් අවහිරයි</item>
+        <item quantity="other">%d ක් අවහිරයි</item>
+    </plurals>
+    <plurals name="log_blocklists_matched">
+        <item quantity="one">අවහිර ලැයිස්තු %d ක් ගැළපිණි</item>
+        <item quantity="other">අවහිර ලැයිස්තු %d ක් ගැළපිණි</item>
+    </plurals>
+    <string name="app_pane_empty_title">යෙදුමක් තෝරන්න</string>
+    <string name="app_pane_empty_message">එහි Wi-Fi සහ දත්ත ස්විච, නීති සහ ගමනාගමනය මෙහි විවෘත වේ.</string>
+    <string name="dns_in_use">භාවිතයේ</string>
+    <string name="dns_median_lookup">මධ්‍ය විමසුම් කාලය</string>
+    <string name="dns_recent_lookups">අවසන් විමසුම්</string>
+    <string name="dns_no_lookups_yet">තවම විමසුම් නැත</string>
 </resources>

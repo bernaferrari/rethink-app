@@ -35,7 +35,7 @@
     <string name="settings_ip_text_ipv46">Auto</string>
     <string name="settings_dns_proxy_dialog_app_desc">De geselecteerde app wordt uitgesloten van het VPN om het namens u verbindingen te laten proxyen.</string>
     <string name="settings_ip_dialog_ipv6">IPv6 (experimenteel)</string>
-    <string name="firewall_status_excluded">Uitgesloten van dns en firewall</string>
+    <string name="firewall_status_excluded">Uitgesloten van DNS en firewall</string>
     <string name="orbot_both">TCP + HTTP-proxy</string>
     <string name="orbot_stop_dialog_message">RethinkDNS is gestopt met het doorsturen van verbindingen naar Orbot, maar Orbot draait misschien op de achtergrond.</string>
     <string name="settings_http_proxy_error_text2">Ongeldige poort</string>
@@ -101,7 +101,7 @@
     <string name="settings_ip_text_ipv6">IPv6</string>
     <string name="settings_selected_ip_desc">%1$s</string>
     <string name="settings_protocol_translation_dns_inactive">Schakel over naar DNS/DNS+Firewall modus om deze instelling in te schakelen</string>
-    <string name="firewall_status_whitelisted">Omzeilt universele firewall regels</string>
+    <string name="firewall_status_whitelisted">Omzeilt universele firewallregels</string>
     <string name="rdns_plus">RDNS Plus</string>
     <string name="slide_2_desc">RethinkDNS is de eenvoudigste manier om netwerkactiviteiten te controleren, internetcensuur te omzeilen en firewall-apps op uw Android-toestel te gebruiken.</string>
     <string name="warning_title" description="Status indicator text shown in a warning notification.">Waarschuwing: RethinkDNS is gedeactiveerd</string>
@@ -128,7 +128,7 @@
     <string name="orbot_stop_dialog_neutral">DNS wijzigen</string>
     <string name="exclude">uitsluiten</string>
     <string name="firewall_mode_notification_title">Beschermd! Verbonden met firewall.</string>
-    <string name="status_dns_error">Dns-fout</string>
+    <string name="status_dns_error">DNS-fout</string>
     <string name="notification_action_dns_mode">DNS</string>
     <string name="always_on_dialog_stop_message">Always-on VPN is ingeschakeld voor Rethink. Weet je zeker dat je Rethink toch wilt stoppen\?</string>
     <string name="info_dialog_copy_toast_msg">IP adres gekopieerd.</string>
@@ -216,7 +216,7 @@
     <string name="dc_dns_leaks_desc">Indien ingeschakeld, vangt RethinkDNS alle pakketten op poort 53 op en stuurt deze door naar een door de gebruiker ingesteld DNS eindpunt</string>
     <string name="firewall_rule_isolate_desc">Een door de gebruiker ingestelde firewallregel blokkeerde deze <i>app</i> door verbinding te maken met andere dan <i>omzeilde IP\'s</i>.<br/><br/> Om te wijzigen ga naar <i>All Apps</i> tab.</string>
     <string name="firewall_rule_global_lockdown_desc">Deze verbinding is geblokkeerd omdat universele lockdown is ingesteld.<br/><br/> Om dit te veranderen ga naar <i>tabblad Universal</i>.</string>
-    <string name="ada_app_status_isolate">Staat in lockdown modus</string>
+    <string name="ada_app_status_isolate">Geïsoleerd: alleen vertrouwde IP\'s en domeinen toegestaan</string>
     <string name="ada_app_isolate">Lockdown</string>
     <string name="settings_orbot_notification_content">Fout bij het starten van Tor-as-a-Proxy. Open de Orbot-app om deze handmatig te starten.</string>
     <string name="always_on_dialog_positive_btn">Open Instellingen</string>
@@ -233,11 +233,11 @@
     <string name="untracked">ongetraceerd</string>
     <string name="isolate">isoleren</string>
     <string name="pause_mode_notification_title">Gepauzeerd! Geblokkeerde apps blijven geblokkeerd.</string>
-    <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">Wachtend op</string>
+    <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">Wachten</string>
     <string name="universal_firewall_explanation">Pas firewallregels toe op alle toepassingen op basis van apparaatgebeurtenissen, bijvoorbeeld firewall wanneer het apparaat is vergrendeld of wanneer een bepaalde app niet in gebruik is.</string>
     <string name="settings_theme_heading">Vormgeving</string>
     <string name="settings_theme_dialog_themes_2">Licht</string>
-    <string name="firewall_status_isolate">Lockdown</string>
+    <string name="firewall_status_isolate">Geïsoleerd</string>
     <string name="hsf_vpn_dialog_header">Attentie!</string>
     <string name="lbl_proceed">Doorgaan</string>
     <string name="hsf_vpn_prepare_failure">Of de VPN toestemming ontbreekt, of een andere app staat in Always-on VPN mode.</string>
@@ -351,7 +351,7 @@
     <string name="lbl_stopped" translatable="true">Gestopt</string>
     <string name="lbl_secure" translatable="true">beveiligde</string>
     <string name="lbl_anonymous" translatable="true">anoniem</string>
-    <string name="status_dns_server_down" translatable="true">Dns server onbereikbaar</string>
+    <string name="status_dns_server_down" translatable="true">DNS-server onbereikbaar</string>
     <string name="failed_using_default" translatable="true">Fout: gebruikt nu terugval DNS</string>
     <string name="dns_crypt_relay_remove_success" translatable="true">DNSCrypt Relay verwijderd.</string>
     <string name="settings_general_customize" translatable="true">aanpassen</string>
@@ -402,7 +402,7 @@
     <string name="notif_channel_vpn_notification" translatable="true">Actieve VPN</string>
     <string name="notif_channel_desc_firewall_alerts" translatable="true">Waarschuwing voor fouten en anomalieën in de firewall</string>
     <string name="cd_no_rules_text" translatable="true">Geen domein regels gevonden.</string>
-    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">Fout</string>
+    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">Werkt niet</string>
     <string name="settings_allow_lan_desc" translatable="true">LAN, loopback, multicast, link-local routes uitsluiten van de Rethink VPN tunnel.</string>
     <string name="new_app_notification_action_toast_allow" translatable="true">Netwerkverbinding toegestaan voor de app</string>
     <string name="ci_dialog_error_invalid_ip" translatable="true">Ongeldig IP-adres, subnet of poort.</string>
@@ -445,7 +445,7 @@
     <string name="orbot_title" translatable="true">Orbot en Proxies</string>
     <string name="cd_dns_crypt_title" translatable="true">resolvers</string>
     <string name="orbot_bs_status_trying_connect" translatable="true">Bezig met opzetten van Orbot…</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">Omzeilt dns &amp; firewall regels</string>
+    <string name="firewall_status_bypass_dns_firewall" translatable="true">Omzeilt DNS- en firewallregels</string>
     <string name="dc_check_update_heading" translatable="true">Prompt bij blocklist updates</string>
     <string name="cd_dns_alg_desc" translatable="true">Uniek IP toewijzen per DNS aanvraag</string>
     <string name="cd_dns_alg_heading" translatable="true">Geavanceerde DNS-filtering (experimenteel)</string>
@@ -468,4 +468,47 @@
     <string name="settings_exclude_proxy_apps_heading" translatable="true">Loopback proxy-forwarder-apps</string>
     <string name="whats_new_version_update" translatable="true">&lt;b&gt;Don\'t Panic 2&lt;/b&gt;&lt;br/&gt;&lt;br/&gt; 1. New: Capture network engine errors in user bug reports.&lt;br/&gt; 2. New: use System DNS for undelegated domain names iff Prevent DNS leaks is ON.&lt;br/&gt; 3. Improvement: Dual-stack (IPv4 + IPv6) WireGuard connectivity.&lt;br/&gt; 4. Improvement: Avoid blocking the UI elements when the network engine is unresponsive.&lt;br/&gt; 5. Fix: Connection timeouts with Advanced DNS filtering turned ON.&lt;br/&gt; 6. Fix: WireGuard peer endpoints with domain names hang on network changes.&lt;br/&gt;&lt;br/&gt; &lt;a href=https://svc.rethinkdns.com/r/translate&gt;Help translate this app&lt;/a&gt;</string>
     <string name="lbl_split" translatable="true">Splitsen</string>
+    <string name="home_last_24_hours">Afgelopen 24 uur</string>
+    <string name="home_stopped_at_dns">lookups al bij de DNS gestopt</string>
+    <string name="home_stopped_most">Meest gestopt</string>
+    <string name="home_nothing_stopped">Er is de afgelopen 24 uur niets geblokkeerd.</string>
+    <string name="home_see_statistics">Statistieken</string>
+    <string name="home_apps_caption">Wifi en mobiele data, per app</string>
+    <string name="home_logs_caption">Elke verbinding en lookup</string>
+    <string name="home_dns_caption">Resolver en blocklists</string>
+    <string name="log_detail_protocol">Protocol</string>
+    <string name="log_detail_country">Land</string>
+    <string name="log_detail_address">Adres</string>
+    <string name="log_detail_domain">Domein</string>
+    <string name="log_detail_rule">Regel</string>
+    <string name="log_detail_proxy">Proxy</string>
+    <string name="log_detail_duration">Duur</string>
+    <string name="log_detail_data">Data</string>
+    <string name="log_detail_flags">Flags</string>
+    <string name="log_detail_message">Bericht</string>
+    <string name="log_detail_resolver">Resolver</string>
+    <string name="log_detail_blocklists">Blocklists</string>
+    <string name="log_detail_dnssec">DNSSEC</string>
+    <string name="log_detail_dnssec_valid">Geldig</string>
+    <string name="log_detail_dnssec_unverified">Niet geverifieerd</string>
+    <string name="log_data_down">↓ %1$s</string>
+    <string name="log_latency_ms">%1$d ms</string>
+    <string name="log_pane_details">Details</string>
+    <string name="log_pane_dns_apps">Apps die dit opzochten</string>
+    <string name="log_pane_network_hosts">Waarmee deze app verbindt</string>
+    <string name="log_pane_empty">Selecteer een item om de details te zien</string>
+    <plurals name="home_blocked_count">
+        <item quantity="one">%d geblokkeerd</item>
+        <item quantity="other">%d geblokkeerd</item>
+    </plurals>
+    <plurals name="log_blocklists_matched">
+        <item quantity="one">%d blocklist komt overeen</item>
+        <item quantity="other">%d blocklists komen overeen</item>
+    </plurals>
+    <string name="app_pane_empty_title">Kies een app</string>
+    <string name="app_pane_empty_message">Hier openen de wifi- en dataschakelaars, regels en het verkeer van de app.</string>
+    <string name="dns_in_use">In gebruik</string>
+    <string name="dns_median_lookup">Mediane opzoektijd</string>
+    <string name="dns_recent_lookups">Laatste opzoekingen</string>
+    <string name="dns_no_lookups_yet">Nog geen opzoekingen</string>
 </resources>

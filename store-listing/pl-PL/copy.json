@@ -1,47 +1,57 @@
 {
   "home": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Każda aplikacja,\n*po twojemu.*",
+    "body": "Firewall, DNS i VPN w jednej\naplikacji. Bez roota.",
+    "alt": "Ekran główny Re-Rethink: ochrona aktywna, z obsłużonymi połączeniami i zapytaniami DNS"
   },
   "logs": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Każde połączenie\n*jak na dłoni.*",
+    "body": "Która aplikacja, jaki serwer,\nzezwolono czy zablokowano.",
+    "alt": "Dziennik sieci: YouTube, Gmail i Mapy łączą się, a zegar i serwer reklam są zablokowane"
   },
   "apps": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Odetnij aplikację\n*jednym ruchem.*",
+    "body": "Zablokuj Wi-Fi, dane komórkowe\nalbo jedno i drugie.",
+    "alt": "Lista aplikacji z przełącznikami Wi-Fi i danych komórkowych; YouTube i Zdjęcia czekają na Wi-Fi"
   },
   "trackers": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Trackery giną\n*już na DNS.*",
+    "body": "Listy blokowania usuwają reklamy\ni trackery, zanim się połączą.",
+    "alt": "Dziennik DNS z samymi zablokowanymi zapytaniami: serwery reklam i analityki zatrzymane przez listy blokowania"
   },
   "detail": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Twój zegar\n*zostaje offline.*",
+    "body": "Odetnij każdą aplikację,\nktóra nie musi się łączyć.",
+    "alt": "Zegar zablokowany w Wi-Fi i sieci komórkowej, z regułami izolacji, omijania i wykluczenia"
   },
   "stats": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Kto dzwonił,\n*kto się przebił.*",
+    "body": "Top aplikacje, kraje i domeny\nz godziny, dnia lub tygodnia.",
+    "alt": "Statystyki z ostatnich 24 godzin: dane, połączenia i najczęściej dopuszczane aplikacje"
   },
   "dns": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Szyfrowany DNS,\n*twój wybór.*",
+    "body": "Rethink DNS, DNS-over-HTTPS,\nDoT, DNSCrypt lub własny.",
+    "alt": "Ustawienia DNS z wybranym Rethink DNS obok DNS systemowego, innego i inteligentnego"
   },
   "dark": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Równie spokojnie\n*po zmroku.*",
+    "body": "Jasny, ciemny i własne kolory.",
+    "alt": "Ekran główny i lista aplikacji w trybie ciemnym"
   },
   "tablet10/dark": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Miejsce na\n*każde ustawienie.*",
+    "body": "Dla tabletów i składanych,\nw jasnym lub ciemnym motywie.",
+    "alt": "Ustawienia w trybie jasnym obok ekranu głównego w trybie ciemnym na tablecie w poziomie"
+  },
+  "tablet10/logs": {
+    "title": "Każde połączenie\n*jak na dłoni.*",
+    "body": "Wybierz jedno, by zobaczyć, dokąd trafiło, dlaczego i z czym jeszcze łączyła się ta aplikacja.",
+    "alt": "Dziennik sieci obok szczegółów połączenia YouTube na tablecie w poziomie"
+  },
+  "tablet10/trackers": {
+    "title": "Trackery giną\n*już na DNS.*",
+    "body": "Zobacz, która lista blokowania wyłapała każde z nich i które aplikacje o nie pytały.",
+    "alt": "Zablokowane zapytania DNS obok aplikacji, które szukały serwera analityki"
   }
 }

@@ -7,7 +7,7 @@
     <string name="pause_mode_notification_title">На пауза! Блокираните приложения ще продължат да бъдат защитени със защитна стена.</string>
     <string name="dns_mode_notification_title">Защитен! Свързан към Бърз и Сигурен DNS.</string>
     <string name="status_no_internet">Няма интернет</string>
-    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit.">Не е защитен</string>
+    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit.">Не е защитено</string>
     <string name="universal_firewall_explanation">Прилагайте правила за защитна стена за всички приложения въз основа на събития в устройството, например защитна стена, когато устройството е заключено или когато дадено приложение не се използва.</string>
     <string name="notification_action_stop_vpn">STOP</string>
     <string name="firewall_mode_info_title">Защитна стена</string>
@@ -30,9 +30,9 @@
     <string name="firewall_mode_notification_title">Защитен! Свързан към Firewall.</string>
     <string name="hybrid_mode_notification_title">Защитен! Свързан към DNS + Firewall.</string>
     <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">Чакане</string>
-    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">Неуспешен</string>
-    <string name="status_dns_error">Грешка в dns</string>
-    <string name="status_dns_server_down">Dns сървъра не работи</string>
+    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">Неуспешно</string>
+    <string name="status_dns_error">Грешка в DNS</string>
+    <string name="status_dns_server_down">DNS сървърът не работи</string>
     <string name="notification_action_resume_vpn">ПРОДЪЛЖИ</string>
     <string name="notification_action_pause_vpn">ПАУЗА</string>
     <string name="notification_action_dns_mode">DNS</string>
@@ -202,4 +202,47 @@
     <string name="hybrid_mode_with_proxy_notification_title" translatable="true">Защитен! Свързан към DNS + Firewall.</string>
     <string name="lbl_idle" translatable="true">Неактивен</string>
     <string name="lbl_split" translatable="true">Разбивка</string>
+    <string name="home_last_24_hours">Последните 24 часа</string>
+    <string name="home_stopped_at_dns">заявки, спрени на ниво DNS</string>
+    <string name="home_stopped_most">Най-често блокирани</string>
+    <string name="home_nothing_stopped">През последните 24 часа нищо не е блокирано.</string>
+    <string name="home_see_statistics">Статистика</string>
+    <string name="home_apps_caption">Wi-Fi и данни за всяко приложение</string>
+    <string name="home_logs_caption">Всяка връзка и заявка</string>
+    <string name="home_dns_caption">Резолвер и списъци за блокиране</string>
+    <string name="log_detail_protocol">Протокол</string>
+    <string name="log_detail_country">Държава</string>
+    <string name="log_detail_address">Адрес</string>
+    <string name="log_detail_domain">Домейн</string>
+    <string name="log_detail_rule">Правило</string>
+    <string name="log_detail_proxy">Прокси</string>
+    <string name="log_detail_duration">Продължителност</string>
+    <string name="log_detail_data">Данни</string>
+    <string name="log_detail_flags">Флагове</string>
+    <string name="log_detail_message">Съобщение</string>
+    <string name="log_detail_resolver">Резолвер</string>
+    <string name="log_detail_blocklists">Списъци за блокиране</string>
+    <string name="log_detail_dnssec">DNSSEC</string>
+    <string name="log_detail_dnssec_valid">Валидно</string>
+    <string name="log_detail_dnssec_unverified">Непроверено</string>
+    <string name="log_data_down">↓ %1$s</string>
+    <string name="log_latency_ms">%1$d мс</string>
+    <string name="log_pane_details">Подробности</string>
+    <string name="log_pane_dns_apps">Приложения, потърсили този домейн</string>
+    <string name="log_pane_network_hosts">Къде се свързва това приложение</string>
+    <string name="log_pane_empty">Изберете запис, за да видите подробностите</string>
+    <plurals name="home_blocked_count">
+        <item quantity="one">%d блокирана</item>
+        <item quantity="other">%d блокирани</item>
+    </plurals>
+    <plurals name="log_blocklists_matched">
+        <item quantity="one">%d съвпадащ списък за блокиране</item>
+        <item quantity="other">%d съвпадащи списъка за блокиране</item>
+    </plurals>
+    <string name="app_pane_empty_title">Изберете приложение</string>
+    <string name="app_pane_empty_message">Тук ще се отворят превключвателите за Wi-Fi и данни, правилата и трафикът му.</string>
+    <string name="dns_in_use">В употреба</string>
+    <string name="dns_median_lookup">Медианно време за заявка</string>
+    <string name="dns_recent_lookups">Последни заявки</string>
+    <string name="dns_no_lookups_yet">Още няма заявки</string>
 </resources>

@@ -88,9 +88,9 @@
     <string name="hybrid_mode_with_proxy_notification_title" translatable="true">Beskyttet! Tilsluttet DNS + firewall + proxy.</string>
     <string name="pause_mode_notification_title" translatable="true">Sat på pause! Blokerede apps vil forsat være beskyttet af firewall.</string>
     <string name="status_waiting" description="This text appears during the connection process if Rethink needs user permission or the phone is offline." translatable="true">Venter</string>
-    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">Fejlet</string>
-    <string name="status_dns_error" translatable="true">Dns-fejl</string>
-    <string name="status_dns_server_down" translatable="true">Dns-server nede</string>
+    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">Fejler</string>
+    <string name="status_dns_error" translatable="true">DNS-fejl</string>
+    <string name="status_dns_server_down" translatable="true">DNS-server nede</string>
     <string name="status_no_internet" translatable="true">Ingen internetadgang</string>
     <string name="status_no_network" translatable="true">Intet netværk</string>
     <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit." translatable="true">Ikke beskyttet</string>
@@ -116,4 +116,47 @@
     <string name="always_on_dialog_heading" translatable="true">Deaktivér \"Altid på-VPN\"</string>
     <string name="always_on_dialog" translatable="true">\"Altid på-VPN\" er aktiveret på denne enhed. For at starte Rethink skal du gå til indstillinger og deaktivere \"Altid på-VPN\".</string>
     <string name="always_on_dialog_positive_btn" translatable="true">Gå til indstillinger</string>
+    <string name="home_last_24_hours">Seneste 24 timer</string>
+    <string name="home_stopped_at_dns">opslag stoppet allerede ved DNS</string>
+    <string name="home_stopped_most">Stoppet oftest</string>
+    <string name="home_nothing_stopped">Intet er blevet blokeret de seneste 24 timer.</string>
+    <string name="home_see_statistics">Statistik</string>
+    <string name="home_apps_caption">Wi-Fi og mobildata, app for app</string>
+    <string name="home_logs_caption">Hver forbindelse og hvert opslag</string>
+    <string name="home_dns_caption">Resolver og blokeringslister</string>
+    <string name="log_detail_protocol">Protokol</string>
+    <string name="log_detail_country">Land</string>
+    <string name="log_detail_address">Adresse</string>
+    <string name="log_detail_domain">Domæne</string>
+    <string name="log_detail_rule">Regel</string>
+    <string name="log_detail_proxy">Proxy</string>
+    <string name="log_detail_duration">Varighed</string>
+    <string name="log_detail_data">Data</string>
+    <string name="log_detail_flags">Flag</string>
+    <string name="log_detail_message">Besked</string>
+    <string name="log_detail_resolver">Resolver</string>
+    <string name="log_detail_blocklists">Blokeringslister</string>
+    <string name="log_detail_dnssec">DNSSEC</string>
+    <string name="log_detail_dnssec_valid">Gyldig</string>
+    <string name="log_detail_dnssec_unverified">Ikke bekræftet</string>
+    <string name="log_data_down">↓ %1$s</string>
+    <string name="log_latency_ms">%1$d ms</string>
+    <string name="log_pane_details">Detaljer</string>
+    <string name="log_pane_dns_apps">Apps, der slog dette op</string>
+    <string name="log_pane_network_hosts">Hvor denne app forbinder til</string>
+    <string name="log_pane_empty">Vælg en post for at se detaljerne</string>
+    <plurals name="home_blocked_count">
+        <item quantity="one">%d blokeret</item>
+        <item quantity="other">%d blokeret</item>
+    </plurals>
+    <plurals name="log_blocklists_matched">
+        <item quantity="one">%d blokeringsliste matchede</item>
+        <item quantity="other">%d blokeringslister matchede</item>
+    </plurals>
+    <string name="app_pane_empty_title">Vælg en app</string>
+    <string name="app_pane_empty_message">Her åbner dens Wi-Fi- og dataknapper, regler og trafik.</string>
+    <string name="dns_in_use">I brug</string>
+    <string name="dns_median_lookup">Median opslagstid</string>
+    <string name="dns_recent_lookups">Seneste opslag</string>
+    <string name="dns_no_lookups_yet">Ingen opslag endnu</string>
 </resources>

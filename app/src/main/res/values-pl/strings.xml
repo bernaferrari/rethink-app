@@ -5,7 +5,7 @@
     <string name="title_settings">Ustawienia</string>
     <string name="slide_2_desc">RethinkDNS to najłatwiejszy sposób monitorowania aktywności sieciowej, omijania cenzury Internetu i zapory sieciowej na urządzeniu z Androidem.</string>
     <string name="dns_mode_notification_title">Chroniony! Połączony z szybkim i bezpiecznym DNS.</string>
-    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit.">Brak zabezpieczienia</string>
+    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit.">Brak ochrony</string>
     <string name="apps_info_title">Aplikacje</string>
     <string name="universal_firewall_explanation">Zastosuj reguły zapory do wszystkich aplikacji na podstawie zdarzeń urządzenia, na przykład włączenie zapory, gdy urządzenie jest zablokowane lub gdy dana aplikacja nie jest używana.</string>
     <string name="notification_action_resume_vpn">KONTYNUUJ</string>
@@ -27,8 +27,8 @@
     <string name="pause_mode_notification_title">Wstrzymane! Zablokowane aplikacje będą nadal blokowane zaporą.</string>
     <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">Oczekiwanie</string>
     <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">Awaria</string>
-    <string name="status_dns_error">Błąd dnsu</string>
-    <string name="status_dns_server_down">Awaria serwera dns</string>
+    <string name="status_dns_error">Błąd DNS</string>
+    <string name="status_dns_server_down">Serwer DNS nie działa</string>
     <string name="status_no_internet">Brak internetu</string>
     <string name="bsct_block_ip">Blokowanie, zaufaj <u>temu adresowi IP</u> dla <u>tej aplikacji</u></string>
     <string name="alert_firewall_accessibility_explanation">Rethink korzysta z usługi ułatwień dostępu, aby śledzić, które aplikacje są używane (pierwszy plan), a które nie są używane (w tle).
@@ -219,7 +219,7 @@
     <string name="settings_ip_text_ipv46" translatable="true">Automatycznie</string>
     <string name="settings_default_dns_heading" translatable="true">Wybierz rezerwowy DNS</string>
     <string name="settings_default_dns_desc" translatable="true">W rzadkich przypadkach, gdy nie można było ustalić preferowanego przez użytkownika DNS, używany jest rezerwowy DNS.</string>
-    <string name="firewall_status_excluded" translatable="true">Wykluczone z dns i firewalla</string>
+    <string name="firewall_status_excluded" translatable="true">Wykluczona z DNS i firewalla</string>
     <string name="firewall_status_bypass_dns_firewall" translatable="true">Omija reguły DNS i firewalla</string>
     <string name="dc_other_dns_heading" translatable="true">Typ</string>
     <string name="dc_check_update_heading" translatable="true">Komunikat o aktualizacji listy bloków</string>
@@ -310,7 +310,7 @@
     <string name="brbs_restore_dialog_failure_message" translatable="true">Nie można przywrócić. Spróbuj jeszcze raz\?</string>
     <string name="brbs_backup_complete_toast" translatable="true">Zakończono tworzenie kopii zapasowej</string>
     <string name="brbs_restore_complete_toast" translatable="true">Przywracanie zakończone, ponowne uruchomienie aplikacji…</string>
-    <string name="firewall_status_isolate" translatable="true">Odizolowany</string>
+    <string name="firewall_status_isolate" translatable="true">Izolowana</string>
     <string name="firewall_status_whitelisted" translatable="true">Omija uniwersalne reguły firewalla</string>
     <string name="hs_biometeric_title" translatable="true">Odblokuj Rethink</string>
     <string name="hs_biometeric_desc" translatable="true">Użyj uwierzytelniania biometrycznego, aby odblokować Rethink</string>
@@ -437,7 +437,7 @@
     <string name="dc_setting_dns_cache_heading" translatable="true">DNS Booster (wzmacniacz DNS)</string>
     <string name="dc_dns_crypt" translatable="true">DNSCrypt</string>
     <string name="ada_app_bypass_dns_firewall" translatable="true">Obejście DNS i Firewall</string>
-    <string name="ada_app_status_bypass_dns_firewall" translatable="true">Ominie uniwersalne reguły dns i firewalla</string>
+    <string name="ada_app_status_bypass_dns_firewall" translatable="true">Omija uniwersalne reguły DNS i firewalla</string>
     <string name="rt_dialog_title" translatable="true">Zapisz zmiany</string>
     <string name="rt_download" translatable="true">Pobierz listy blokujące</string>
     <string name="rt_re_download" translatable="true">Ponownie pobierz listy blokujące</string>
@@ -487,9 +487,9 @@
     <string name="new_app_notification_action_toast_deny" translatable="true">Odmowa połączenia sieciowego dla aplikacji</string>
     <string name="firewall_rule_block_app_univ_mobile_desc" translatable="true">Ustawiona przez użytkownika reguła firewalla (uniwersalna) zablokowała tę aplikację <i/> podczas próby połączenia w sieci <i>Komórkowa</i> (Mobile).<br/><br/> Aby to zmienić, przejdź do zakładki <i>Uniwersalna</i>.</string>
     <string name="firewall_rule_block_ip_desc" translatable="true">Reguła firewalla ustawiona przez użytkownika zablokowała docelowy adres IP <i/> .<br/><br/> Aby to zmienić, przejdź do ekranu <i>App-specific Firewall</i>.</string>
-    <string name="ada_app_status_block_md" translatable="true">Jest zablokowany w sieciach komórkowych</string>
-    <string name="ada_app_status_unknown" translatable="true">Jest nieznany</string>
-    <string name="ada_app_status_exclude" translatable="true">Jest wykluczony z dns i firewalla</string>
+    <string name="ada_app_status_block_md" translatable="true">Zablokowana w sieci komórkowej</string>
+    <string name="ada_app_status_unknown" translatable="true">Nieznany</string>
+    <string name="ada_app_status_exclude" translatable="true">Wykluczona z DNS i firewalla</string>
     <string name="ada_app_unmetered" translatable="true">Niemierzona</string>
     <string name="ada_app_metered" translatable="true">Mierzona</string>
     <string name="ada_delete_logs_dialog_desc" description="Appears as dialog description to clear the logs in app specific screen" translatable="true">Wyczyść wszystkie logi związane z tą aplikacją.</string>
@@ -524,11 +524,11 @@
     <string name="bsac_title_desc" translatable="true">Reguły dotyczą tylko tej aplikacji.</string>
     <string name="ada_app_isolate" translatable="true">Odizolować</string>
     <string name="ada_app_bypass_univ" translatable="true">Uniwersalne obejście</string>
-    <string name="ada_app_status_isolate" translatable="true">Jest izolowany; tylko zaufane IP są dozwolone</string>
-    <string name="ada_app_status_whitelist" translatable="true">Ominie uniwersalne reguły firewalla</string>
-    <string name="ada_app_status_block_wifi" translatable="true">Jest zablokowany w sieciach wifi</string>
-    <string name="ada_app_status_block" translatable="true">Jest zablokowany</string>
-    <string name="ada_app_status_allow" translatable="true">Jest dozwolony</string>
+    <string name="ada_app_status_isolate" translatable="true">Izolowana: dozwolone tylko zaufane IP i domeny</string>
+    <string name="ada_app_status_whitelist" translatable="true">Omija uniwersalne reguły firewalla</string>
+    <string name="ada_app_status_block_wifi" translatable="true">Zablokowana w Wi-Fi</string>
+    <string name="ada_app_status_block" translatable="true">Zablokowana</string>
+    <string name="ada_app_status_allow" translatable="true">Dozwolona</string>
     <string name="ada_ip_no_connection" translatable="true">Brak logów sieciowych dla tej aplikacji.</string>
     <string name="rt_filter_desc" translatable="true">Wyświetlanie <u>%1$s</u> list blokujących</string>
     <string name="ci_block" translatable="true">zablokuj</string>
@@ -691,4 +691,51 @@
     <string name="failed_using_default" translatable="true">Niepowodzenie: użycie zapasowego DNS</string>
     <string name="wireguard_disable_message" translatable="true">Zatrzymać aktywne VPNy WireGuard?</string>
     <string name="exclude_apps_from_proxy_failure_toast">Ta apka omija proxy</string>
+    <string name="home_last_24_hours">Ostatnie 24 godziny</string>
+    <string name="home_stopped_at_dns">zapytań zatrzymanych na poziomie DNS</string>
+    <string name="home_stopped_most">Najczęściej blokowane</string>
+    <string name="home_nothing_stopped">W ciągu ostatnich 24 godzin nic nie zostało zablokowane.</string>
+    <string name="home_see_statistics">Statystyki</string>
+    <string name="home_apps_caption">Wi-Fi i dane dla każdej aplikacji</string>
+    <string name="home_logs_caption">Każde połączenie i zapytanie</string>
+    <string name="home_dns_caption">Resolver i listy blokowania</string>
+    <string name="log_detail_protocol">Protokół</string>
+    <string name="log_detail_country">Kraj</string>
+    <string name="log_detail_address">Adres</string>
+    <string name="log_detail_domain">Domena</string>
+    <string name="log_detail_rule">Reguła</string>
+    <string name="log_detail_proxy">Proxy</string>
+    <string name="log_detail_duration">Czas trwania</string>
+    <string name="log_detail_data">Dane</string>
+    <string name="log_detail_flags">Flagi</string>
+    <string name="log_detail_message">Komunikat</string>
+    <string name="log_detail_resolver">Resolver</string>
+    <string name="log_detail_blocklists">Listy blokowania</string>
+    <string name="log_detail_dnssec">DNSSEC</string>
+    <string name="log_detail_dnssec_valid">Prawidłowy</string>
+    <string name="log_detail_dnssec_unverified">Niezweryfikowany</string>
+    <string name="log_data_down">↓ %1$s</string>
+    <string name="log_latency_ms">%1$d ms</string>
+    <string name="log_pane_details">Szczegóły</string>
+    <string name="log_pane_dns_apps">Aplikacje, które o to pytały</string>
+    <string name="log_pane_network_hosts">Dokąd łączy się ta aplikacja</string>
+    <string name="log_pane_empty">Wybierz wpis, aby zobaczyć szczegóły</string>
+    <plurals name="home_blocked_count">
+        <item quantity="one">Zablokowano %d</item>
+        <item quantity="few">Zablokowano %d</item>
+        <item quantity="many">Zablokowano %d</item>
+        <item quantity="other">Zablokowano %d</item>
+    </plurals>
+    <plurals name="log_blocklists_matched">
+        <item quantity="one">%d pasująca lista blokowania</item>
+        <item quantity="few">%d pasujące listy blokowania</item>
+        <item quantity="many">%d pasujących list blokowania</item>
+        <item quantity="other">%d pasującej listy blokowania</item>
+    </plurals>
+    <string name="app_pane_empty_title">Wybierz aplikację</string>
+    <string name="app_pane_empty_message">Tu otworzą się jej przełączniki Wi-Fi i danych, reguły oraz ruch.</string>
+    <string name="dns_in_use">W użyciu</string>
+    <string name="dns_median_lookup">Mediana czasu zapytania</string>
+    <string name="dns_recent_lookups">Ostatnie zapytania</string>
+    <string name="dns_no_lookups_yet">Brak zapytań</string>
 </resources>

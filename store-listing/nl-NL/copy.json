@@ -1,47 +1,57 @@
 {
   "home": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Elke app,\n*naar jouw hand.*",
+    "body": "Firewall, DNS en VPN in één app.\nGeen root nodig.",
+    "alt": "Re-Rethink-startscherm: beschermd, met de verbindingen en DNS-verzoeken die zijn afgehandeld"
   },
   "logs": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Elke verbinding,\n*gewoon zichtbaar.*",
+    "body": "Welke app, welke server,\ntoegestaan of geblokkeerd.",
+    "alt": "Het netwerklog: YouTube, Gmail en Maps maken verbinding, een klok-app en een advertentiehost zijn geblokkeerd"
   },
   "apps": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Een app afsluiten\n*met één tik.*",
+    "body": "Blokkeer wifi, mobiele data\nof allebei.",
+    "alt": "De lijst met apps met schakelaars voor wifi en mobiele data; YouTube en Foto's wachten op wifi"
   },
   "trackers": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Trackers stoppen\n*bij de DNS.*",
+    "body": "Blocklists houden advertenties en\ntrackers tegen vóór ze verbinden.",
+    "alt": "Het DNS-log gefilterd op geblokkeerde verzoeken: advertentie- en analysehosts tegengehouden door blocklists"
   },
   "detail": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Je klok\n*blijft offline.*",
+    "body": "Sluit elke app af die geen\nreden heeft om te verbinden.",
+    "alt": "De klok-app geblokkeerd op wifi en mobiele data, met regels om te isoleren, te omzeilen en uit te sluiten"
   },
   "stats": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Wie belde,\n*wie kwam erdoor.*",
+    "body": "Top-apps, landen en domeinen\nper uur, dag of week.",
+    "alt": "Statistieken van de afgelopen 24 uur: data, verbindingen en de meest toegestane apps"
   },
   "dns": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Versleutelde DNS,\n*jij kiest.*",
+    "body": "Rethink DNS, DNS-over-HTTPS,\nDoT, DNSCrypt of je eigen.",
+    "alt": "DNS-instellingen met Rethink DNS geselecteerd, naast systeem-DNS, andere DNS en slimme DNS"
   },
   "dark": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Net zo rustig\n*na het donker.*",
+    "body": "Licht, donker en je eigen kleuren.",
+    "alt": "Het startscherm en de lijst met apps in donkere modus"
   },
   "tablet10/dark": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Ruimte voor\n*elke instelling.*",
+    "body": "Gemaakt voor tablets en foldables,\nlicht of donker.",
+    "alt": "Instellingen in lichte modus naast het startscherm in donkere modus op een liggende tablet"
+  },
+  "tablet10/logs": {
+    "title": "Elke verbinding,\n*gewoon zichtbaar.*",
+    "body": "Kies er een om te zien waarheen, waarom, en wat die app verder nog bereikte.",
+    "alt": "Het netwerklog naast de details van een YouTube-verbinding op een liggende tablet"
+  },
+  "tablet10/trackers": {
+    "title": "Trackers stoppen\n*bij de DNS.*",
+    "body": "Zie welke blocklist elk verzoek tegenhield, en welke apps erom vroegen.",
+    "alt": "Geblokkeerde DNS-verzoeken naast de apps die een analysehost opzochten"
   }
 }

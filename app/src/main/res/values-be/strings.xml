@@ -53,4 +53,51 @@
     <string name="lbl_save" translatable="true">захаваць</string>
     <string name="lbl_status" translatable="true">Стан</string>
     <string name="lbl_remove" translatable="true">Выдаліць</string>
+    <string name="home_last_24_hours">Апошнія 24 гадзіны</string>
+    <string name="home_stopped_at_dns">запытаў спынена на ўзроўні DNS</string>
+    <string name="home_stopped_most">Найчасцей блакаваліся</string>
+    <string name="home_nothing_stopped">За апошнія 24 гадзіны нічога не заблакіравана.</string>
+    <string name="home_see_statistics">Статыстыка</string>
+    <string name="home_apps_caption">Wi-Fi і даныя для кожнай праграмы</string>
+    <string name="home_logs_caption">Усе злучэнні і запыты</string>
+    <string name="home_dns_caption">Рэзолвер і спісы блакіроўкі</string>
+    <string name="log_detail_protocol">Пратакол</string>
+    <string name="log_detail_country">Краіна</string>
+    <string name="log_detail_address">Адрас</string>
+    <string name="log_detail_domain">Дамен</string>
+    <string name="log_detail_rule">Правіла</string>
+    <string name="log_detail_proxy">Проксі</string>
+    <string name="log_detail_duration">Працягласць</string>
+    <string name="log_detail_data">Даныя</string>
+    <string name="log_detail_flags">Сцягі</string>
+    <string name="log_detail_message">Паведамленне</string>
+    <string name="log_detail_resolver">Рэзолвер</string>
+    <string name="log_detail_blocklists">Спісы блакіроўкі</string>
+    <string name="log_detail_dnssec">DNSSEC</string>
+    <string name="log_detail_dnssec_valid">Сапраўдна</string>
+    <string name="log_detail_dnssec_unverified">Не праверана</string>
+    <string name="log_data_down">↓ %1$s</string>
+    <string name="log_latency_ms">%1$d мс</string>
+    <string name="log_pane_details">Падрабязнасці</string>
+    <string name="log_pane_dns_apps">Праграмы, якія запытвалі гэты дамен</string>
+    <string name="log_pane_network_hosts">Куды падключаецца гэта праграма</string>
+    <string name="log_pane_empty">Выберыце запіс, каб убачыць падрабязнасці</string>
+    <plurals name="home_blocked_count">
+        <item quantity="one">%d заблакіравана</item>
+        <item quantity="few">%d заблакіравана</item>
+        <item quantity="many">%d заблакіравана</item>
+        <item quantity="other">%d заблакіравана</item>
+    </plurals>
+    <plurals name="log_blocklists_matched">
+        <item quantity="one">Спрацаваў %d спіс блакіроўкі</item>
+        <item quantity="few">Спрацавалі %d спісы блакіроўкі</item>
+        <item quantity="many">Спрацавалі %d спісаў блакіроўкі</item>
+        <item quantity="other">Спрацавалі %d спіса блакіроўкі</item>
+    </plurals>
+    <string name="app_pane_empty_title">Выберыце праграму</string>
+    <string name="app_pane_empty_message">Тут адкрыюцца перамыкачы Wi-Fi і мабільных даных, правілы і трафік.</string>
+    <string name="dns_in_use">Выкарыстоўваецца</string>
+    <string name="dns_median_lookup">Медыяна часу запыту</string>
+    <string name="dns_recent_lookups">Апошнія запыты</string>
+    <string name="dns_no_lookups_yet">Запытаў пакуль няма</string>
 </resources>

@@ -1,47 +1,57 @@
 {
   "home": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Katra lietotne\n*pēc jūsu prāta.*",
+    "body": "Ugunsmūris, DNS un VPN vienā\nlietotnē. Bez root.",
+    "alt": "Re-Rethink sākuma ekrāns: aizsargāts, ar apstrādātajiem savienojumiem un DNS pieprasījumiem"
   },
   "logs": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Katrs savienojums\n*kā uz delnas.*",
+    "body": "Kura lietotne, kurš serveris,\natļauts vai bloķēts.",
+    "alt": "Tīkla žurnāls: YouTube, Gmail un Maps savienojas, pulkstenis un reklāmu serveris ir bloķēti"
   },
   "apps": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Bloķējiet lietotni\n*vienā pieskārienā.*",
+    "body": "Bloķējiet Wi-Fi, mobilos datus\nvai abus.",
+    "alt": "Lietotņu saraksts ar Wi-Fi un mobilo datu slēdžiem; YouTube un Photos gaida Wi-Fi"
   },
   "trackers": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Izsekotāji\n*apstājas pie DNS.*",
+    "body": "Bloķēšanas saraksti aptur reklāmas\nun izsekotājus jau laikus.",
+    "alt": "DNS žurnāls tikai ar bloķētiem pieprasījumiem: reklāmu un analītikas serverus apturējuši bloķēšanas saraksti"
   },
   "detail": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Jūsu pulkstenis\n*paliek bezsaistē.*",
+    "body": "Atslēdziet lietotnes, kurām\nnav iemesla savienoties.",
+    "alt": "Pulkstenis bloķēts Wi-Fi un mobilajos datos, ar izolēšanas, apiešanas un izslēgšanas noteikumiem"
   },
   "stats": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Kas zvanīja,\n*kurš tika cauri.*",
+    "body": "Top lietotnes, valstis un domēni\nstundā, dienā vai nedēļā.",
+    "alt": "Pēdējo 24 stundu statistika: dati, savienojumi un visbiežāk atļautās lietotnes"
   },
   "dns": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Šifrēts DNS,\n*jūsu izvēle.*",
+    "body": "Rethink DNS, DNS-over-HTTPS,\nDoT, DNSCrypt vai savs.",
+    "alt": "DNS iestatījumi: starp sistēmas, citu un viedo DNS atlasīts Rethink DNS"
   },
   "dark": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Tikpat mierīgi\n*arī tumsā.*",
+    "body": "Gaišs, tumšs un savas krāsas.",
+    "alt": "Sākuma ekrāns un lietotņu saraksts tumšajā režīmā"
   },
   "tablet10/dark": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Vieta visiem\n*iestatījumiem.*",
+    "body": "Planšetdatoriem un salokāmiem,\ngaišā vai tumšā režīmā.",
+    "alt": "Iestatījumi gaišajā režīmā blakus sākuma ekrānam tumšajā režīmā horizontālā planšetdatorā"
+  },
+  "tablet10/logs": {
+    "title": "Katrs savienojums\n*kā uz delnas.*",
+    "body": "Izvēlieties vienu, lai redzētu, kurp tas devās, kāpēc un ko vēl sasniedza šī lietotne.",
+    "alt": "Tīkla žurnāls blakus YouTube savienojuma informācijai horizontālā planšetdatorā"
+  },
+  "tablet10/trackers": {
+    "title": "Izsekotāji\n*apstājas pie DNS.*",
+    "body": "Skatiet, kurš bloķēšanas saraksts noķēra katru pieprasījumu un kuras lietotnes to pieprasīja.",
+    "alt": "Bloķēti DNS pieprasījumi blakus lietotnēm, kas meklēja analītikas serveri"
   }
 }

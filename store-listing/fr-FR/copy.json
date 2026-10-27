@@ -1,47 +1,57 @@
 {
   "home": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Chaque app,\n*selon vos règles.*",
+    "body": "Pare-feu, DNS et VPN en une app.\nSans root.",
+    "alt": "Accueil de Re-Rethink : protégé, avec les connexions et requêtes DNS traitées"
   },
   "logs": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Chaque connexion,\n*au grand jour.*",
+    "body": "Quelle app, quel serveur,\nautorisée ou bloquée.",
+    "alt": "Le journal réseau : YouTube, Gmail et Maps se connectent, une horloge et un serveur publicitaire sont bloqués"
   },
   "apps": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Coupez une app\n*en un seul appui.*",
+    "body": "Bloquez le Wi-Fi, les données\nmobiles ou les deux.",
+    "alt": "La liste des apps avec les interrupteurs Wi-Fi et données mobiles ; YouTube et Photos attendent le Wi-Fi"
   },
   "trackers": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Les traqueurs\n*s’arrêtent au DNS.*",
+    "body": "Les listes de blocage écartent\npubs et traqueurs.",
+    "alt": "Le journal DNS filtré sur les requêtes bloquées : serveurs de pub et d’analyse arrêtés par les listes de blocage"
   },
   "detail": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Votre horloge\n*reste hors ligne.*",
+    "body": "Coupez toute app qui n’a\naucune raison de se connecter.",
+    "alt": "L’horloge bloquée en Wi-Fi et sur les données mobiles, avec les règles isoler, contourner et exclure"
   },
   "stats": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Qui appelle,\n*qui passe.*",
+    "body": "Top apps, pays et domaines\npar heure, jour ou semaine.",
+    "alt": "Statistiques des dernières 24 heures : données, connexions et apps les plus autorisées"
   },
   "dns": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "DNS chiffré,\n*à votre façon.*",
+    "body": "Rethink DNS, DNS-over-HTTPS,\nDoT, DNSCrypt ou le vôtre.",
+    "alt": "Réglages DNS avec Rethink DNS sélectionné parmi DNS système, autre et intelligent"
   },
   "dark": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Tout aussi calme\n*la nuit venue.*",
+    "body": "Clair, sombre et vos couleurs.",
+    "alt": "L’accueil et la liste des apps en mode sombre"
   },
   "tablet10/dark": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "De la place pour\n*chaque réglage.*",
+    "body": "Conçu pour tablettes et pliables,\nclair ou sombre.",
+    "alt": "Les réglages en mode clair à côté de l’accueil en mode sombre sur une tablette en paysage"
+  },
+  "tablet10/logs": {
+    "title": "Chaque connexion,\n*au grand jour.*",
+    "body": "Touchez-en une pour voir où elle est allée, pourquoi, et tout ce que cette app a contacté.",
+    "alt": "Le journal réseau à côté des détails d’une connexion YouTube sur une tablette en paysage"
+  },
+  "tablet10/trackers": {
+    "title": "Les traqueurs\n*s’arrêtent au DNS.*",
+    "body": "Voyez quelle liste de blocage a arrêté chacun, et quelles apps l’ont demandé.",
+    "alt": "Requêtes DNS bloquées à côté des apps ayant interrogé un serveur d’analyse"
   }
 }

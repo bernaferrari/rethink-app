@@ -291,7 +291,7 @@
     <string name="about_settings_app_info" translatable="true">מידע על האפליקציה</string>
     <string name="cd_dns_crypt_relay_heading" translatable="true">ממסר</string>
     <string name="cd_dns_crypt_dialog_name" translatable="true">שם</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">עוקף כללי dns וחומת אש</string>
+    <string name="firewall_status_bypass_dns_firewall" translatable="true">עוקפת את כללי ה-DNS וחומת האש</string>
     <string name="hs_biometeric_desc" translatable="true">השתמש באימות ביומטרי כדי לפתוח את Rethink</string>
     <string name="hs_biometeric_error" translatable="true">שגיאת אימות ביומטרי</string>
     <string name="dc_block_heading" translatable="true">כללים</string>
@@ -310,9 +310,9 @@
     <string name="settings_https_disabled_error" translatable="true">מחובר ל%1$s. כבה אותו כדי להמשיך.</string>
     <string name="settings_default_dns_heading" translatable="true">בחר DNS חלופי</string>
     <string name="settings_default_dns_desc" translatable="true">במקרים נדירים שבהם לא ניתן היה לקבוע את ה-DNS המועדף על ידי המשתמש, נעשה שימוש ב-DNS חלופי.</string>
-    <string name="firewall_status_excluded" translatable="true">לא נכלל ב-dns ובחומת האש</string>
-    <string name="firewall_status_isolate" translatable="true">מבודדות</string>
-    <string name="firewall_status_whitelisted" translatable="true">עוקף כללי חומת אש אוניברסליים</string>
+    <string name="firewall_status_excluded" translatable="true">מוחרגת מ-DNS ומחומת האש</string>
+    <string name="firewall_status_isolate" translatable="true">מבודדת</string>
+    <string name="firewall_status_whitelisted" translatable="true">עוקפת את כללי חומת האש הגלובליים</string>
     <string name="logs_card_duration" translatable="true">מאז %1$s</string>
     <string name="dc_custom_dns_radio" translatable="true">DNS אחר</string>
     <string name="dc_rethink_dns_radio" translatable="true">Rethink DNS</string>
@@ -439,8 +439,8 @@
     <string name="rt_filter_desc_subgroups" translatable="true">מציג את רשימות החסימה: <u>%1$s</u> בקבוצה:%2$s ובתת הקבוצה: %3$s</string>
     <string name="parse_error_generic" translatable="true">מחרוזת</string>
     <string name="rt_filter_desc" translatable="true">מציג את רשימות החסימה: <u>%1$s</u></string>
-    <string name="ada_app_status_isolate" translatable="true">מבודד; רק כתובות IP מהימנות מורשות</string>
-    <string name="ada_app_status_exclude" translatable="true">מוחרגת מה-DNS וחומת האש</string>
+    <string name="ada_app_status_isolate" translatable="true">מבודדת: רק כתובות IP ודומיינים מהימנים מורשים</string>
+    <string name="ada_app_status_exclude" translatable="true">מוחרגת מ-DNS ומחומת האש</string>
     <string name="notif_download_cancel_content" translatable="true">הורדה בוטלה.</string>
     <string name="settings_local_blocklist_version" translatable="true">גרסה: V%1$s</string>
     <string name="collecting_logs_progress_text" translatable="true">תופס…</string>
@@ -450,8 +450,8 @@
     <string name="firewall_rule_block_dns_bypass" translatable="true">עוקף DNS</string>
     <string name="firewall_rule_exempt_app_bypass_univ" translatable="true">אפליקציה עוקפת</string>
     <string name="ada_noapp_dialog_positive" translatable="true">אישור</string>
-    <string name="ada_app_status_allow" translatable="true">מאושר</string>
-    <string name="ada_app_status_block" translatable="true">חסום</string>
+    <string name="ada_app_status_allow" translatable="true">מאושרת</string>
+    <string name="ada_app_status_block" translatable="true">חסומה</string>
     <string name="notif_download_success_content" translatable="true">הורדה הושלמה בהצלחה.</string>
     <string name="rt_filter_hint" translatable="true">מציג את <u>כל</u> רשימות החסימה</string>
     <string name="parse_error_integer" translatable="true">מספר</string>
@@ -563,4 +563,49 @@
     <string name="build__flavor_fdroid" translatable="true">F-Droid</string>
     <string name="cd_no_rules_text" translatable="true">אין כללי דומיין.</string>
     <string name="cd_toast_edit" translatable="true">נערך</string>
+    <string name="home_last_24_hours">24 השעות האחרונות</string>
+    <string name="home_stopped_at_dns">בקשות נעצרו ב-DNS</string>
+    <string name="home_stopped_most">הכי הרבה חסימות</string>
+    <string name="home_nothing_stopped">לא נחסם דבר ב-24 השעות האחרונות.</string>
+    <string name="home_see_statistics">סטטיסטיקה</string>
+    <string name="home_apps_caption">Wi-Fi ונתונים, לכל אפליקציה</string>
+    <string name="home_logs_caption">כל חיבור וכל בקשה</string>
+    <string name="home_dns_caption">שרת DNS ורשימות חסימה</string>
+    <string name="log_detail_protocol">פרוטוקול</string>
+    <string name="log_detail_country">מדינה</string>
+    <string name="log_detail_address">כתובת</string>
+    <string name="log_detail_domain">דומיין</string>
+    <string name="log_detail_rule">כלל</string>
+    <string name="log_detail_proxy">שרת proxy</string>
+    <string name="log_detail_duration">משך</string>
+    <string name="log_detail_data">נתונים</string>
+    <string name="log_detail_flags">דגלים</string>
+    <string name="log_detail_message">הודעה</string>
+    <string name="log_detail_resolver">שרת DNS</string>
+    <string name="log_detail_blocklists">רשימות חסימה</string>
+    <string name="log_detail_dnssec">DNSSEC</string>
+    <string name="log_detail_dnssec_valid">תקין</string>
+    <string name="log_detail_dnssec_unverified">לא מאומת</string>
+    <string name="log_data_down">↓ %1$s</string>
+    <string name="log_latency_ms">%1$d ms</string>
+    <string name="log_pane_details">פרטים</string>
+    <string name="log_pane_dns_apps">אפליקציות שחיפשו את זה</string>
+    <string name="log_pane_network_hosts">לאן האפליקציה מתחברת</string>
+    <string name="log_pane_empty">יש לבחור רשומה כדי לראות את הפרטים שלה</string>
+    <plurals name="home_blocked_count">
+        <item quantity="one">%d חסימה</item>
+        <item quantity="two">%d חסימות</item>
+        <item quantity="other">%d חסימות</item>
+    </plurals>
+    <plurals name="log_blocklists_matched">
+        <item quantity="one">%d רשימת חסימה תאמה</item>
+        <item quantity="two">%d רשימות חסימה תאמו</item>
+        <item quantity="other">%d רשימות חסימה תאמו</item>
+    </plurals>
+    <string name="app_pane_empty_title">בחירת אפליקציה</string>
+    <string name="app_pane_empty_message">כאן ייפתחו מתגי ה-Wi-Fi והנתונים, הכללים והתעבורה שלה.</string>
+    <string name="dns_in_use">בשימוש</string>
+    <string name="dns_median_lookup">זמן חיפוש חציוני</string>
+    <string name="dns_recent_lookups">חיפושים אחרונים</string>
+    <string name="dns_no_lookups_yet">אין עדיין חיפושים</string>
 </resources>

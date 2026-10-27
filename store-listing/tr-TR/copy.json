@@ -1,47 +1,57 @@
 {
   "home": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Her uygulama\n*kurallar sizden.*",
+    "body": "Güvenlik duvarı, DNS ve VPN.\nRoot gerekmez.",
+    "alt": "Re-Rethink ana ekranı: koruma açık, işlenen bağlantılar ve DNS sorgularıyla"
   },
   "logs": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Her bağlantı\n*göz önünde.*",
+    "body": "Hangi uygulama, hangi sunucu,\nizinli mi engelli mi.",
+    "alt": "Ağ günlüğü: YouTube, Gmail ve Haritalar bağlanıyor, bir saat uygulaması ve bir reklam sunucusu engellendi"
   },
   "apps": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Uygulamayı kes\n*tek dokunuşla.*",
+    "body": "Wi-Fi, mobil veri ya da ikisi.",
+    "alt": "Wi-Fi ve mobil veri anahtarlarıyla uygulama listesi; YouTube ve Fotoğraflar Wi-Fi bekliyor"
   },
   "trackers": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "İzleyiciler\n*DNS'te durur.*",
+    "body": "Engelleme listeleri reklam ve\nizleyicileri bağlanmadan durdurur.",
+    "alt": "Engellenen sorgulara göre filtrelenmiş DNS günlüğü: engelleme listelerinin durdurduğu reklam ve analiz sunucuları"
   },
   "detail": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Saatiniz\n*çevrimdışı kalır.*",
+    "body": "Bağlanması için sebep olmayan\nher uygulamayı kesin.",
+    "alt": "Saat uygulaması Wi-Fi ve mobil veride engellenmiş; izole, atlama ve hariç tutma kurallarıyla"
   },
   "stats": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Kim istedi,\n*kim geçti.*",
+    "body": "Saat, gün ya da hafta için en çok\nuygulama, ülke ve alan adı.",
+    "alt": "Son 24 saatin istatistikleri: veri, bağlantılar ve en çok izin verilen uygulamalar"
   },
   "dns": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Şifreli DNS,\n*sizin seçiminiz.*",
+    "body": "Rethink DNS, DNS-over-HTTPS,\nDoT, DNSCrypt ya da kendiniz.",
+    "alt": "Sistem, diğer ve akıllı DNS arasından Rethink DNS seçili DNS ayarları"
   },
   "dark": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Gece de\n*aynı sakinlikte.*",
+    "body": "Açık, koyu ya da kendi renginiz.",
+    "alt": "Koyu modda ana ekran ve uygulama listesi"
   },
   "tablet10/dark": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Her ayara\n*yer var.*",
+    "body": "Tabletler ve katlanabilirler için,\naçık ya da koyu.",
+    "alt": "Yatay tablette açık moddaki Ayarlar ve yanında koyu moddaki ana ekran"
+  },
+  "tablet10/logs": {
+    "title": "Her bağlantı\n*göz önünde.*",
+    "body": "Birini seçin; nereye, neden gittiğini ve o uygulamanın başka nerelere ulaştığını görün.",
+    "alt": "Yatay tablette ağ günlüğü ve yanında bir YouTube bağlantısının ayrıntıları"
+  },
+  "tablet10/trackers": {
+    "title": "İzleyiciler\n*DNS'te durur.*",
+    "body": "Her birini hangi engelleme listesinin yakaladığını ve hangi uygulamaların istediğini görün.",
+    "alt": "Engellenen DNS sorguları ve yanında bir analiz sunucusunu sorgulayan uygulamalar"
   }
 }

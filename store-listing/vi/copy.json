@@ -1,47 +1,57 @@
 {
   "home": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Mọi ứng dụng,\n*theo ý bạn.*",
+    "body": "Tường lửa, DNS và VPN trong một.\nKhông cần root.",
+    "alt": "Màn hình chính của Re-Rethink: đang được bảo vệ, cùng các kết nối và truy vấn DNS đã xử lý"
   },
   "logs": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Mọi kết nối,\n*hiện rõ mồn một.*",
+    "body": "Ứng dụng nào, máy chủ nào,\nđược phép hay bị chặn.",
+    "alt": "Nhật ký mạng: YouTube, Gmail và Maps đang kết nối, một ứng dụng đồng hồ và một máy chủ quảng cáo bị chặn"
   },
   "apps": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Cắt mạng ứng dụng\n*chỉ một chạm.*",
+    "body": "Chặn Wi-Fi, dữ liệu di động\nhoặc cả hai.",
+    "alt": "Danh sách ứng dụng với công tắc Wi-Fi và dữ liệu di động; YouTube và Photos chờ Wi-Fi"
   },
   "trackers": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Trình theo dõi\n*dừng ở DNS.*",
+    "body": "Danh sách chặn loại quảng cáo và\ntrình theo dõi trước khi kết nối.",
+    "alt": "Nhật ký DNS lọc theo truy vấn bị chặn: máy chủ quảng cáo và phân tích bị danh sách chặn chặn lại"
   },
   "detail": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Đồng hồ của bạn\n*luôn ngoại tuyến.*",
+    "body": "Cắt mạng mọi ứng dụng không có\nlý do để kết nối.",
+    "alt": "Ứng dụng Đồng hồ bị chặn trên Wi-Fi và dữ liệu di động, kèm các quy tắc cách ly, bỏ qua và loại trừ"
   },
   "stats": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Ai gọi đến,\n*ai lọt qua.*",
+    "body": "Top ứng dụng, quốc gia, tên miền\ntheo giờ, ngày hoặc tuần.",
+    "alt": "Thống kê 24 giờ qua: dữ liệu, kết nối và các ứng dụng được cho phép nhiều nhất"
   },
   "dns": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "DNS mã hóa,\n*tùy bạn chọn.*",
+    "body": "Rethink DNS, DNS-over-HTTPS,\nDoT, DNSCrypt hoặc của riêng bạn.",
+    "alt": "Cài đặt DNS với Rethink DNS được chọn giữa DNS hệ thống, DNS khác và DNS thông minh"
   },
   "dark": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Vẫn dịu mắt\n*khi đêm xuống.*",
+    "body": "Sáng, tối và màu của riêng bạn.",
+    "alt": "Màn hình chính và danh sách ứng dụng ở chế độ tối"
   },
   "tablet10/dark": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Đủ chỗ cho\n*mọi cài đặt.*",
+    "body": "Dành cho máy tính bảng và máy gập,\nsáng hoặc tối.",
+    "alt": "Cài đặt ở chế độ sáng bên cạnh màn hình chính ở chế độ tối trên máy tính bảng nằm ngang"
+  },
+  "tablet10/logs": {
+    "title": "Mọi kết nối,\n*hiện rõ mồn một.*",
+    "body": "Chọn một kết nối để xem nó đi đâu, vì sao, và mọi nơi khác ứng dụng đó đã kết nối.",
+    "alt": "Nhật ký mạng bên cạnh chi tiết một kết nối YouTube trên máy tính bảng nằm ngang"
+  },
+  "tablet10/trackers": {
+    "title": "Trình theo dõi\n*dừng ở DNS.*",
+    "body": "Xem danh sách chặn nào đã chặn từng truy vấn, và những ứng dụng nào đã yêu cầu.",
+    "alt": "Các truy vấn DNS bị chặn bên cạnh những ứng dụng đã tra cứu một máy chủ phân tích"
   }
 }

@@ -214,7 +214,7 @@
     <string name="vpn_profile_error">Kunne ikke igangsette VPN-profil.</string>
     <string name="warning_title" description="Status indicator text shown in a warning notification.">Advarsel: Rethink har blitt avslått</string>
     <string name="notification_content" description="Indicates what will happen if the user taps the notification.">Trykk for å endre beskyttelsesinstilling</string>
-    <string name="status_no_internet">Ikke tilknyttet Internett</string>
+    <string name="status_no_internet">Ingen internett</string>
     <string name="dns_crypt_url_remove_dialog_message">Slett DNSCrypt-utlederen fra lagret oppsett.</string>
     <string name="hs_download_positive_website">Besøk nettsiden</string>
     <string name="dns_connected">Tilkoblet</string>
@@ -345,7 +345,7 @@
     <string name="univ_firewall_rule_1">Blokker alle programmer når enheten er låst</string>
     <string name="dc_check_update_heading">Spør om oppdatering av svartelister</string>
     <string name="firewall_status_excluded">Utelatt fra DNS og brannmur</string>
-    <string name="firewall_status_whitelisted">Omgår universelle brannmursregler</string>
+    <string name="firewall_status_whitelisted">Omgår universelle brannmurregler</string>
     <string name="settings_http_proxy_error_text1">Portområde skal være fra 1024–65535</string>
     <string name="settings_theme_dialog_themes_1">Satt av systemet</string>
     <string name="firewall_status_unknown">Ukjent</string>
@@ -356,4 +356,47 @@
     <string name="pause_mode_notification_title">Pauset. Blokkerte programmer vil forbli bak brannmur.</string>
     <string name="settings_proxy_header">mellomtjener</string>
     <string name="settings_check_update_heading">Se etter nye programversjoner</string>
+    <string name="home_last_24_hours">Siste 24 timer</string>
+    <string name="home_stopped_at_dns">oppslag stoppet allerede i DNS</string>
+    <string name="home_stopped_most">Stoppet oftest</string>
+    <string name="home_nothing_stopped">Ingenting er blokkert de siste 24 timene.</string>
+    <string name="home_see_statistics">Statistikk</string>
+    <string name="home_apps_caption">Wi-Fi og mobildata, app for app</string>
+    <string name="home_logs_caption">Hver tilkobling og hvert oppslag</string>
+    <string name="home_dns_caption">Resolver og blokkeringslister</string>
+    <string name="log_detail_protocol">Protokoll</string>
+    <string name="log_detail_country">Land</string>
+    <string name="log_detail_address">Adresse</string>
+    <string name="log_detail_domain">Domene</string>
+    <string name="log_detail_rule">Regel</string>
+    <string name="log_detail_proxy">Proxy</string>
+    <string name="log_detail_duration">Varighet</string>
+    <string name="log_detail_data">Data</string>
+    <string name="log_detail_flags">Flagg</string>
+    <string name="log_detail_message">Melding</string>
+    <string name="log_detail_resolver">Resolver</string>
+    <string name="log_detail_blocklists">Blokkeringslister</string>
+    <string name="log_detail_dnssec">DNSSEC</string>
+    <string name="log_detail_dnssec_valid">Gyldig</string>
+    <string name="log_detail_dnssec_unverified">Ikke bekreftet</string>
+    <string name="log_data_down">↓ %1$s</string>
+    <string name="log_latency_ms">%1$d ms</string>
+    <string name="log_pane_details">Detaljer</string>
+    <string name="log_pane_dns_apps">Apper som slo opp dette</string>
+    <string name="log_pane_network_hosts">Hvor denne appen kobler til</string>
+    <string name="log_pane_empty">Velg en oppføring for å se detaljene</string>
+    <plurals name="home_blocked_count">
+        <item quantity="one">%d blokkert</item>
+        <item quantity="other">%d blokkert</item>
+    </plurals>
+    <plurals name="log_blocklists_matched">
+        <item quantity="one">%d blokkeringsliste traff</item>
+        <item quantity="other">%d blokkeringslister traff</item>
+    </plurals>
+    <string name="app_pane_empty_title">Velg en app</string>
+    <string name="app_pane_empty_message">Wi-Fi- og databrytere, regler og trafikk for appen åpnes her.</string>
+    <string name="dns_in_use">I bruk</string>
+    <string name="dns_median_lookup">Median oppslagstid</string>
+    <string name="dns_recent_lookups">Siste oppslag</string>
+    <string name="dns_no_lookups_yet">Ingen oppslag ennå</string>
 </resources>

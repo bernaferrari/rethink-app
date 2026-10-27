@@ -1,47 +1,57 @@
 {
   "home": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Jokainen sovellus\n*sinun ehdoillasi.*",
+    "body": "Palomuuri, DNS ja VPN samassa.\nEi vaadi roottausta.",
+    "alt": "Re-Rethinkin aloitusnäkymä: suojattu, ja näkyvissä käsitellyt yhteydet ja DNS-kyselyt"
   },
   "logs": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Jokainen yhteys\n*näkyvissä.*",
+    "body": "Mikä sovellus, mikä palvelin,\nsallittu vai estetty.",
+    "alt": "Verkkoloki: YouTube, Gmail ja Maps muodostavat yhteyden, kellosovellus ja mainospalvelin on estetty"
   },
   "apps": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Katkaise yhteys\n*yhdellä napilla.*",
+    "body": "Estä Wi-Fi, mobiilidata\ntai molemmat.",
+    "alt": "Sovelluslista Wi-Fi- ja mobiilidatakytkimineen; YouTube ja Kuvat odottavat Wi-Fi-yhteyttä"
   },
   "trackers": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Seuraimet jäävät\n*jo DNS:ään.*",
+    "body": "Estolistat pysäyttävät mainokset\nja seuraimet ennen yhteyttä.",
+    "alt": "DNS-loki suodatettuna estettyihin kyselyihin: estolistojen pysäyttämiä mainos- ja analytiikkapalvelimia"
   },
   "detail": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Kellosi pysyy\n*offline-tilassa.*",
+    "body": "Katkaise yhteys sovelluksilta,\njoiden ei tarvitse olla verkossa.",
+    "alt": "Kellosovellus estettynä Wi-Fi-yhteydellä ja mobiilidatalla, eristys-, ohitus- ja poissulkusääntöineen"
   },
   "stats": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Kuka kysyi,\n*kuka pääsi läpi.*",
+    "body": "Kärkisovellukset, maat ja domainit\ntunnin, päivän tai viikon ajalta.",
+    "alt": "Tilastot viimeisiltä 24 tunnilta: data, yhteydet ja eniten sallitut sovellukset"
   },
   "dns": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Salattu DNS,\n*sinun valintasi.*",
+    "body": "Rethink DNS, DNS-over-HTTPS,\nDoT, DNSCrypt tai oma palvelin.",
+    "alt": "DNS-asetukset, joissa Rethink DNS on valittu järjestelmän, muun ja älykkään DNS:n joukosta"
   },
   "dark": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Yhtä rauhallinen\n*pimeälläkin.*",
+    "body": "Vaalea, tumma ja omat värisi.",
+    "alt": "Aloitusnäkymä ja sovelluslista tummassa teemassa"
   },
   "tablet10/dark": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Tilaa jokaiselle\n*asetukselle.*",
+    "body": "Tehty tableteille ja taitettaville,\nvaalea tai tumma.",
+    "alt": "Asetukset vaaleassa teemassa aloitusnäkymän vieressä tummassa teemassa vaakasuuntaisella tabletilla"
+  },
+  "tablet10/logs": {
+    "title": "Jokainen yhteys\n*näkyvissä.*",
+    "body": "Valitse yhteys ja näe, minne se meni, miksi ja mihin muualle sovellus otti yhteyttä.",
+    "alt": "Verkkoloki YouTube-yhteyden tietojen vieressä vaakasuuntaisella tabletilla"
+  },
+  "tablet10/trackers": {
+    "title": "Seuraimet jäävät\n*jo DNS:ään.*",
+    "body": "Näe, mikä estolista pysäytti kunkin kyselyn ja mitkä sovellukset sitä pyysivät.",
+    "alt": "Estetyt DNS-kyselyt niiden sovellusten vieressä, jotka hakivat analytiikkapalvelinta"
   }
 }

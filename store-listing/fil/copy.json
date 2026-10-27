@@ -1,47 +1,57 @@
 {
   "home": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Bawat app,\n*sa gusto mo.*",
+    "body": "Firewall, DNS at VPN sa isang app.\nHindi kailangan ng root.",
+    "alt": "Home ng Re-Rethink: protektado, kasama ang mga koneksyon at DNS query na nahawakan nito"
   },
   "logs": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Bawat koneksyon,\n*kitang-kita.*",
+    "body": "Aling app, aling server,\npinayagan o na-block.",
+    "alt": "Ang network log: kumokonekta ang YouTube, Gmail at Maps, habang naka-block ang isang orasan at isang ad host"
   },
   "apps": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Putulin ang app\n*sa isang tap.*",
+    "body": "I-block sa Wi-Fi, mobile data\no pareho.",
+    "alt": "Ang listahan ng app na may mga switch para sa Wi-Fi at mobile data; naghihintay ng Wi-Fi ang YouTube at Photos"
   },
   "trackers": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Hinto ang tracker\n*sa DNS.*",
+    "body": "Hinaharang ng blocklist ang ads at\ntracker bago pa kumonekta.",
+    "alt": "Ang DNS log na naka-filter sa mga na-block na query: mga ad at analytics host na pinigilan ng mga blocklist"
   },
   "detail": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Ang orasan mo,\n*laging offline.*",
+    "body": "Putulin ang anumang app na\nwalang dahilang kumonekta.",
+    "alt": "Naka-block ang Clock sa Wi-Fi at mobile data, kasama ang mga patakarang isolate, bypass at exclude"
   },
   "stats": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Sino'ng tumawag,\n*sino'ng nakalusot.*",
+    "body": "Nangungunang app, bansa at domain\nkada oras, araw o linggo.",
+    "alt": "Mga estadistika sa nakaraang 24 oras: data, mga koneksyon at ang mga app na pinakamadalas payagan"
   },
   "dns": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Encrypted DNS,\n*ikaw ang pipili.*",
+    "body": "Rethink DNS, DNS-over-HTTPS,\nDoT, DNSCrypt o sarili mo.",
+    "alt": "Mga setting ng DNS na napili ang Rethink DNS mula sa system, iba pa at smart DNS"
   },
   "dark": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Kalmado pa rin\n*kahit gabi.*",
+    "body": "Light, dark at sarili mong kulay.",
+    "alt": "Ang Home at listahan ng app sa dark mode"
   },
   "tablet10/dark": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "May puwang para\n*sa bawat setting.*",
+    "body": "Ginawa para sa tablet at foldable,\nlight o dark.",
+    "alt": "Mga setting sa light mode sa tabi ng Home sa dark mode sa naka-landscape na tablet"
+  },
+  "tablet10/logs": {
+    "title": "Bawat koneksyon,\n*kitang-kita.*",
+    "body": "Pumili ng isa para makita kung saan ito pumunta, bakit, at lahat ng iba pang naabot ng app na iyon.",
+    "alt": "Ang network log sa tabi ng mga detalye ng isang koneksyon ng YouTube sa naka-landscape na tablet"
+  },
+  "tablet10/trackers": {
+    "title": "Hinto ang tracker\n*sa DNS.*",
+    "body": "Tingnan kung aling blocklist ang humuli sa bawat isa, at kung aling mga app ang humiling nito.",
+    "alt": "Mga na-block na DNS query sa tabi ng mga app na nag-lookup ng isang analytics host"
   }
 }

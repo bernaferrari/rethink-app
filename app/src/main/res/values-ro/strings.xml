@@ -229,7 +229,7 @@
     <string name="orbot_no_app_toast" translatable="true">Pentru activarea Orbot adăugă cel puțin o aplicație</string>
     <string name="settings_socks5_disabled_error" translatable="true">Conectat la %1$s. Închide pentru a continua.</string>
     <string name="settings_socks5_vpn_disabled_error" translatable="true">Pornește Rethink pentru a continua.</string>
-    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">Nu reușește</string>
+    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">Nu funcționează</string>
     <string name="settings_exclude_proxy_apps_heading" translatable="true">Aplicații proxy cu loopback</string>
     <string name="orbot_stop_dialog_negative" translatable="true">Oprește Orbot</string>
     <string name="orbot_stop_dialog_neutral" translatable="true">Schimbă DNS</string>
@@ -552,15 +552,15 @@
     <string name="ada_noapp_dialog_message" translatable="true">Nu există informații despre aplicație. Posibil să fi fost dezinstalată?</string>
     <string name="ada_noapp_dialog_positive" translatable="true">Okay</string>
     <string name="ada_ip_no_connection" translatable="true">Nu există înregistrări în jurnal pentru această categorie.</string>
-    <string name="ada_app_status_whitelist" translatable="true">Va ocoli regulile universale de firewall</string>
-    <string name="ada_app_status_isolate" translatable="true">Este izolată; numai IP-urile de încredere sunt permise</string>
-    <string name="ada_app_status_exclude" translatable="true">Este exclusă de la dns și firewall</string>
-    <string name="ada_app_status_block_md" translatable="true">Este blocată în rețelele contorizate (mobile)</string>
-    <string name="ada_app_status_block_wifi" translatable="true">Este blocată în rețelele necontorizate (wifi)</string>
-    <string name="ada_app_status_block" translatable="true">Este blocată</string>
-    <string name="ada_app_status_allow" translatable="true">Este permisă</string>
-    <string name="ada_app_status_bypass_dns_firewall" translatable="true">Va ocoli regulile universale de dns și firewall</string>
-    <string name="ada_app_status_unknown" translatable="true">Este necunoscută</string>
+    <string name="ada_app_status_whitelist" translatable="true">Ocolește regulile universale de firewall</string>
+    <string name="ada_app_status_isolate" translatable="true">Izolată: sunt permise doar IP-uri și domenii de încredere</string>
+    <string name="ada_app_status_exclude" translatable="true">Exclusă din DNS și firewall</string>
+    <string name="ada_app_status_block_md" translatable="true">Blocată pe date mobile</string>
+    <string name="ada_app_status_block_wifi" translatable="true">Blocată pe Wi-Fi</string>
+    <string name="ada_app_status_block" translatable="true">Blocată</string>
+    <string name="ada_app_status_allow" translatable="true">Permisă</string>
+    <string name="ada_app_status_bypass_dns_firewall" translatable="true">Ocolește regulile universale de DNS și firewall</string>
+    <string name="ada_app_status_unknown" translatable="true">Necunoscută</string>
     <string name="ada_app_metered" translatable="true">Contorizat</string>
     <string name="ada_app_unmetered" translatable="true">Necontorizat</string>
     <string name="ada_app_bypass_univ" translatable="true">Ocolire Universală</string>
@@ -775,4 +775,49 @@
     <string name="settings_jumbo_packets" translatable="true">Extindere lățime de bandă</string>
     <string name="settings_jumbo_packets_desc" translatable="true">Folosește <i>pachete jumbo</i> în tunelul VPN al Rethink.</string>
     <string name="stability_program_toast" translatable="true">Înscris în <i>programul de stabilitate</i> pentru <i>caracteristici experimentale</i>.</string>
+    <string name="home_last_24_hours">Ultimele 24 de ore</string>
+    <string name="home_stopped_at_dns">interogări oprite la DNS</string>
+    <string name="home_stopped_most">Cele mai blocate</string>
+    <string name="home_nothing_stopped">Nimic nu a fost blocat în ultimele 24 de ore.</string>
+    <string name="home_see_statistics">Statistici</string>
+    <string name="home_apps_caption">Wi-Fi și date, pentru fiecare aplicație</string>
+    <string name="home_logs_caption">Fiecare conexiune și interogare</string>
+    <string name="home_dns_caption">Rezolvator și liste de blocat</string>
+    <string name="log_detail_protocol">Protocol</string>
+    <string name="log_detail_country">Țară</string>
+    <string name="log_detail_address">Adresă</string>
+    <string name="log_detail_domain">Domeniu</string>
+    <string name="log_detail_rule">Regulă</string>
+    <string name="log_detail_proxy">Proxy</string>
+    <string name="log_detail_duration">Durată</string>
+    <string name="log_detail_data">Date</string>
+    <string name="log_detail_flags">Indicatori</string>
+    <string name="log_detail_message">Mesaj</string>
+    <string name="log_detail_resolver">Rezolvator</string>
+    <string name="log_detail_blocklists">Liste de blocat</string>
+    <string name="log_detail_dnssec">DNSSEC</string>
+    <string name="log_detail_dnssec_valid">Valid</string>
+    <string name="log_detail_dnssec_unverified">Neverificat</string>
+    <string name="log_data_down">↓ %1$s</string>
+    <string name="log_latency_ms">%1$d ms</string>
+    <string name="log_pane_details">Detalii</string>
+    <string name="log_pane_dns_apps">Aplicații care au făcut interogarea</string>
+    <string name="log_pane_network_hosts">Unde se conectează aplicația</string>
+    <string name="log_pane_empty">Selectează o intrare pentru a-i vedea detaliile</string>
+    <plurals name="home_blocked_count">
+        <item quantity="one">%d blocare</item>
+        <item quantity="few">%d blocări</item>
+        <item quantity="other">%d de blocări</item>
+    </plurals>
+    <plurals name="log_blocklists_matched">
+        <item quantity="one">%d listă de blocat potrivită</item>
+        <item quantity="few">%d liste de blocat potrivite</item>
+        <item quantity="other">%d de liste de blocat potrivite</item>
+    </plurals>
+    <string name="app_pane_empty_title">Alegeți o aplicație</string>
+    <string name="app_pane_empty_message">Aici se deschid comutatoarele Wi-Fi și de date, regulile și traficul ei.</string>
+    <string name="dns_in_use">În uz</string>
+    <string name="dns_median_lookup">Timp median de interogare</string>
+    <string name="dns_recent_lookups">Ultimele interogări</string>
+    <string name="dns_no_lookups_yet">Încă nicio interogare</string>
 </resources>

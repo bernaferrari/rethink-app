@@ -1,47 +1,57 @@
 {
   "home": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Minden app\n*a te kezedben.*",
+    "body": "Tűzfal, DNS és VPN egy appban.\nRoot nélkül.",
+    "alt": "A Re-Rethink kezdőképernyője: védett állapot, a kezelt kapcsolatokkal és DNS-lekérésekkel"
   },
   "logs": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Minden kapcsolat\n*szem előtt.*",
+    "body": "Melyik app, melyik szerver,\nengedélyezve vagy blokkolva.",
+    "alt": "A hálózati napló: a YouTube, a Gmail és a Térkép csatlakozik, egy óra és egy hirdetésszerver blokkolva"
   },
   "apps": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Vágj le egy appot\n*egy koppintással.*",
+    "body": "Tiltsd a Wi-Fit, a mobiladatot\nvagy mindkettőt.",
+    "alt": "Az alkalmazáslista Wi-Fi- és mobiladat-kapcsolókkal; a YouTube és a Fotók Wi-Fire vár"
   },
   "trackers": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Követés?\n*A DNS-nél vége.*",
+    "body": "A blokkolólisták kiszűrik\na hirdetéseket és követőket.",
+    "alt": "A blokkolt lekérésekre szűrt DNS-napló: blokkolólisták által megállított hirdetési és analitikai szerverek"
   },
   "detail": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Az órád\n*offline marad.*",
+    "body": "Vágj le minden appot, amelynek\nnincs oka csatlakozni.",
+    "alt": "Az Óra blokkolva Wi-Fin és mobiladaton, elkülönítési, megkerülési és kizárási szabályokkal"
   },
   "stats": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Ki hívott,\n*ki jutott át.*",
+    "body": "Top appok, országok és domainek\nóránként, naponta vagy hetente.",
+    "alt": "Az elmúlt 24 óra statisztikái: adatforgalom, kapcsolatok és a leggyakrabban engedélyezett appok"
   },
   "dns": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Titkosított DNS,\n*ahogy te akarod.*",
+    "body": "Rethink DNS, DNS-over-HTTPS,\nDoT, DNSCrypt vagy saját.",
+    "alt": "DNS-beállítások: a rendszer-, egyéb és okos DNS közül a Rethink DNS van kiválasztva"
   },
   "dark": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Sötétben is\n*nyugodt.*",
+    "body": "Világos, sötét és saját színek.",
+    "alt": "A kezdőképernyő és az alkalmazáslista sötét módban"
   },
   "tablet10/dark": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Hely minden\n*beállításnak.*",
+    "body": "Táblagépekre és összehajthatókra,\nvilágos vagy sötét módban.",
+    "alt": "Beállítások világos módban a sötét módú kezdőképernyő mellett, fekvő táblagépen"
+  },
+  "tablet10/logs": {
+    "title": "Minden kapcsolat\n*szem előtt.*",
+    "body": "Válassz egyet, és lásd, hová ment, miért, és mi mást ért még el az az app.",
+    "alt": "A hálózati napló egy YouTube-kapcsolat részletei mellett, fekvő táblagépen"
+  },
+  "tablet10/trackers": {
+    "title": "Követés?\n*A DNS-nél vége.*",
+    "body": "Nézd meg, melyik blokkolólista fogta meg őket, és mely appok kérték le őket.",
+    "alt": "Blokkolt DNS-lekérések az analitikai szervert lekérdező appok mellett"
   }
 }

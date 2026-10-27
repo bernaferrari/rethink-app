@@ -1,47 +1,57 @@
 {
   "home": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Ogni app,\n*alle tue regole.*",
+    "body": "Firewall, DNS e VPN in un'app.\nSenza root.",
+    "alt": "Home di Re-Rethink: protetto, con le connessioni e le richieste DNS gestite"
   },
   "logs": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Ogni connessione,\n*sotto controllo.*",
+    "body": "Quale app, quale server,\nconsentita o bloccata.",
+    "alt": "Il log di rete: YouTube, Gmail e Maps si connettono, un orologio e un server pubblicitario bloccati"
   },
   "apps": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Blocca un'app\n*con un tocco.*",
+    "body": "Blocca Wi-Fi, dati mobili\no entrambi.",
+    "alt": "L'elenco delle app con gli interruttori Wi-Fi e dati mobili; YouTube e Foto aspettano il Wi-Fi"
   },
   "trackers": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Tracker fermati\n*già al DNS.*",
+    "body": "Le liste di blocco fermano\npubblicità e tracker in anticipo.",
+    "alt": "Il log DNS filtrato sulle richieste bloccate: server pubblicitari e di analisi fermati dalle liste di blocco"
   },
   "detail": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Il tuo orologio\n*resta offline.*",
+    "body": "Blocca ogni app che non ha\nmotivo di connettersi.",
+    "alt": "Orologio bloccato su Wi-Fi e dati mobili, con le regole isola, aggira ed escludi"
   },
   "stats": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Chi ha chiamato,\n*chi è passato.*",
+    "body": "App, paesi e domini principali\nper ora, giorno o settimana.",
+    "alt": "Statistiche delle ultime 24 ore: dati, connessioni e app più consentite"
   },
   "dns": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "DNS cifrato,\n*a tua scelta.*",
+    "body": "Rethink DNS, DNS-over-HTTPS,\nDoT, DNSCrypt o il tuo.",
+    "alt": "Impostazioni DNS con Rethink DNS selezionato tra DNS di sistema, altro e smart DNS"
   },
   "dark": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Sempre calmo,\n*anche di notte.*",
+    "body": "Chiaro, scuro e i tuoi colori.",
+    "alt": "La home e l'elenco delle app in modalità scura"
   },
   "tablet10/dark": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Spazio per\n*ogni opzione.*",
+    "body": "Pensato per tablet e pieghevoli,\nchiaro o scuro.",
+    "alt": "Impostazioni in modalità chiara accanto alla home in modalità scura su un tablet orizzontale"
+  },
+  "tablet10/logs": {
+    "title": "Ogni connessione,\n*sotto controllo.*",
+    "body": "Toccane una per vedere dove è andata, perché e tutto ciò che quell'app ha raggiunto.",
+    "alt": "Il log di rete accanto ai dettagli di una connessione di YouTube su un tablet orizzontale"
+  },
+  "tablet10/trackers": {
+    "title": "Tracker fermati\n*già al DNS.*",
+    "body": "Scopri quale lista ha bloccato ciascuno e quali app l'hanno richiesto.",
+    "alt": "Richieste DNS bloccate accanto alle app che hanno cercato un server di analisi"
   }
 }

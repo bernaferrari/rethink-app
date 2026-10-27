@@ -78,9 +78,9 @@
     <string name="bypass_dns_firewall" translatable="true">ohita DNS ja palomuuri</string>
     <string name="notification_content" description="Indicates what will happen if the user taps the notification." translatable="true">Muuta suojausasetusta napauttamalla</string>
     <string name="dns_mode_notification_title" translatable="true">Suojattu! Yhdistetty nopeaan ja suojattuun DNS:ään.</string>
-    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">Epäonnistuminen</string>
+    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">Ei toimi</string>
     <string name="hybrid_mode_notification_title" translatable="true">Suojattu! Yhteys DNS + palomuuriin.</string>
-    <string name="status_waiting" description="This text appears during the connection process if Rethink needs user permission or the phone is offline." translatable="true">Odottamassa</string>
+    <string name="status_waiting" description="This text appears during the connection process if Rethink needs user permission or the phone is offline." translatable="true">Odottaa</string>
     <string name="warning_title" description="Status indicator text shown in a warning notification." translatable="true">Varoitus: Rethink on poistettu käytöstä</string>
     <string name="firewall_mode_notification_title" translatable="true">Suojattu! Yhteys palomuuriin.</string>
     <string name="universal_firewall_explanation" translatable="true">Käytä palomuurisääntöjä kaikissa sovelluksissa laitteen tapahtumien perusteella, esimerkiksi kun laite on lukittu tai kun tietty sovellus ei ole käytössä.</string>
@@ -88,7 +88,7 @@
     <string name="failed_using_default" translatable="true">Epäonnistui: käytetään vara-DNS:ää</string>
     <string name="notification_action_pause_vpn" translatable="true">Keskeytä</string>
     <string name="status_dns_error" translatable="true">DNS-virhe</string>
-    <string name="status_dns_server_down" translatable="true">DNS-palvelin alas</string>
+    <string name="status_dns_server_down" translatable="true">DNS-palvelin ei vastaa</string>
     <string name="notification_action_resume_vpn" translatable="true">Jatka</string>
     <string name="notification_action_stop_vpn" translatable="true">Lopeta</string>
     <string name="notification_action_dns_mode" translatable="true">DNS</string>
@@ -111,4 +111,47 @@
     <string name="bsct_app_info" translatable="true">Tietoa sovelluksesta</string>
     <string name="bsct_block_ip" translatable="true">Estä, luota <u>tähän IP-osoitteeseen</u> <u>tälle sovellukselle</u></string>
     <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Käytettävyyspalvelu on pysähtynyt tai kaatunut. <i><b>Mene asetuksiin ja pakota Rethinkin lopetus</b></i> \u0020ja käynnistä se uudelleen <i>Estä mikä tahansa sovellus, jota ei käytetä.</i>\n\nRethink käyttää saavutettavuuspalvelua seuraamaan, mitkä sovellukset ovat käytössä (etualalla) verrattuna niihin, jotka eivät ole käytössä (taustalla).</string>
+    <string name="home_last_24_hours">Viimeiset 24 tuntia</string>
+    <string name="home_stopped_at_dns">hakua pysäytetty jo DNS:ssä</string>
+    <string name="home_stopped_most">Eniten pysäytetty</string>
+    <string name="home_nothing_stopped">Mitään ei ole estetty viimeisen 24 tunnin aikana.</string>
+    <string name="home_see_statistics">Tilastot</string>
+    <string name="home_apps_caption">Wi-Fi ja mobiilidata sovelluskohtaisesti</string>
+    <string name="home_logs_caption">Jokainen yhteys ja haku</string>
+    <string name="home_dns_caption">DNS-palvelin ja estolistat</string>
+    <string name="log_detail_protocol">Protokolla</string>
+    <string name="log_detail_country">Maa</string>
+    <string name="log_detail_address">Osoite</string>
+    <string name="log_detail_domain">Verkkotunnus</string>
+    <string name="log_detail_rule">Sääntö</string>
+    <string name="log_detail_proxy">Välityspalvelin</string>
+    <string name="log_detail_duration">Kesto</string>
+    <string name="log_detail_data">Data</string>
+    <string name="log_detail_flags">Liput</string>
+    <string name="log_detail_message">Viesti</string>
+    <string name="log_detail_resolver">DNS-palvelin</string>
+    <string name="log_detail_blocklists">Estolistat</string>
+    <string name="log_detail_dnssec">DNSSEC</string>
+    <string name="log_detail_dnssec_valid">Kelvollinen</string>
+    <string name="log_detail_dnssec_unverified">Vahvistamaton</string>
+    <string name="log_data_down">↓ %1$s</string>
+    <string name="log_latency_ms">%1$d ms</string>
+    <string name="log_pane_details">Tiedot</string>
+    <string name="log_pane_dns_apps">Sovellukset, jotka hakivat tämän</string>
+    <string name="log_pane_network_hosts">Mihin tämä sovellus yhdistää</string>
+    <string name="log_pane_empty">Valitse merkintä nähdäksesi sen tiedot</string>
+    <plurals name="home_blocked_count">
+        <item quantity="one">%d estetty</item>
+        <item quantity="other">%d estetty</item>
+    </plurals>
+    <plurals name="log_blocklists_matched">
+        <item quantity="one">%d estolista osui</item>
+        <item quantity="other">%d estolistaa osui</item>
+    </plurals>
+    <string name="app_pane_empty_title">Valitse sovellus</string>
+    <string name="app_pane_empty_message">Sen Wi-Fi- ja datakytkimet, säännöt ja liikenne avautuvat tähän.</string>
+    <string name="dns_in_use">Käytössä</string>
+    <string name="dns_median_lookup">Kyselyn mediaaniaika</string>
+    <string name="dns_recent_lookups">Viimeisimmät kyselyt</string>
+    <string name="dns_no_lookups_yet">Ei vielä kyselyitä</string>
 </resources>

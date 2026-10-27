@@ -1,47 +1,57 @@
 {
   "home": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Kiekviena programa\n*jūsų taisyklėmis.*",
+    "body": "Ugniasienė, DNS ir VPN vienoje\nprogramoje. Be root.",
+    "alt": "Re-Rethink pradžios ekranas: apsaugota, su apdorotais ryšiais ir DNS užklausomis"
   },
   "logs": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Kiekvienas ryšys\n*kaip ant delno.*",
+    "body": "Kuri programa, kuris serveris,\nleista ar užblokuota.",
+    "alt": "Tinklo žurnalas: YouTube, Gmail ir Žemėlapiai jungiasi, laikrodis ir reklamų serveris užblokuoti"
   },
   "apps": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Atjunkite programą\n*vienu palietimu.*",
+    "body": "Blokuokite Wi-Fi, mobiliuosius\nduomenis arba abu.",
+    "alt": "Programų sąrašas su Wi-Fi ir mobiliųjų duomenų jungikliais; YouTube ir Nuotraukos laukia Wi-Fi"
   },
   "trackers": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Stebėjimas\n*sustoja ties DNS.*",
+    "body": "Blokavimo sąrašai atmeta\nreklamas ir stebėjimą iš anksto.",
+    "alt": "DNS žurnalas tik su užblokuotomis užklausomis: reklamų ir analitikos serverius sustabdė blokavimo sąrašai"
   },
   "detail": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Jūsų laikrodis\n*lieka be ryšio.*",
+    "body": "Atjunkite programas, kurioms\nnėra reikalo jungtis.",
+    "alt": "Laikrodis užblokuotas per Wi-Fi ir mobiliuosius duomenis, su izoliavimo, apėjimo ir išskyrimo taisyklėmis"
   },
   "stats": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Kas skambino,\n*kas prasiveržė.*",
+    "body": "Top programos, šalys ir domenai\nper valandą, dieną ar savaitę.",
+    "alt": "Pastarųjų 24 valandų statistika: duomenys, ryšiai ir dažniausiai leidžiamos programos"
   },
   "dns": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Šifruotas DNS,\n*jūsų pasirinkimu.*",
+    "body": "Rethink DNS, DNS-over-HTTPS,\nDoT, DNSCrypt ar savas.",
+    "alt": "DNS nustatymai: tarp sistemos, kito ir išmaniojo DNS pasirinktas Rethink DNS"
   },
   "dark": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Taip pat ramu\n*ir sutemus.*",
+    "body": "Šviesus ir tamsus režimas\nbei savos spalvos.",
+    "alt": "Pradžios ekranas ir programų sąrašas tamsiuoju režimu"
   },
   "tablet10/dark": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Vietos visiems\n*nustatymams.*",
+    "body": "Planšetėms ir sulankstomiems,\nšviesiu ar tamsiu režimu.",
+    "alt": "Nustatymai šviesiuoju režimu šalia pradžios ekrano tamsiuoju režimu horizontalioje planšetėje"
+  },
+  "tablet10/logs": {
+    "title": "Kiekvienas ryšys\n*kaip ant delno.*",
+    "body": "Pasirinkite vieną ir pamatykite, kur jis nukeliavo, kodėl ir ką dar pasiekė ta programa.",
+    "alt": "Tinklo žurnalas šalia YouTube ryšio išsamios informacijos horizontalioje planšetėje"
+  },
+  "tablet10/trackers": {
+    "title": "Stebėjimas\n*sustoja ties DNS.*",
+    "body": "Pažiūrėkite, kuris blokavimo sąrašas sugavo kiekvieną užklausą ir kurios programos jos prašė.",
+    "alt": "Užblokuotos DNS užklausos šalia programų, kurios ieškojo analitikos serverio"
   }
 }

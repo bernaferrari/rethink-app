@@ -1,5 +1,5 @@
 {
-  "title": "",
-  "shortDescription": "",
-  "fullDescription": ""
+  "title": "Re-Rethink: Firewall, DNS, VPN",
+  "shortDescription": "Cortafuegos por app, bloqueo de rastreadores con DNS cifrado y cada conexión.",
+  "fullDescription": "Re-Rethink es un cortafuegos, DNS cifrado y VPN para Android que no necesita root. Decide qué apps acceden a internet, frena anuncios y rastreadores antes de que se conecten y mira cada conexión que hace tu teléfono.\n\nCORTAFUEGOS\n• Bloquea cualquier app en Wi-Fi, datos móviles o ambos, con un toque.\n• Aísla una app, deja que omita las reglas o exclúyela del túnel.\n• Reglas universales: bloquea apps en segundo plano, con la pantalla apagada o cuando se instala una app nueva.\n• Reglas de IP, puerto y dominio para una app o para todas.\n\nDNS CIFRADO\n• Rethink DNS con listas de bloqueo en el dispositivo contra anuncios, rastreadores y malware.\n• O elige tu propio servidor de resolución con DNS-over-HTTPS, DNS-over-TLS, DNSCrypt u ODoH.\n• Las respuestas DNS se comprueban localmente, lo que también sortea la censura basada en DNS.\n\nMIRA QUÉ HACEN TUS APPS\n• Registros de red y DNS: qué app, qué servidor, qué país, permitida o bloqueada.\n• Estadísticas de la última hora, día o semana: apps principales, apps bloqueadas, países, redes y dominios.\n\nVPN Y PROXIES\n• Dirige apps a través de WireGuard o proxies SOCKS5 o HTTP, con túnel dividido por app.\n• Tor con un toque a través de Orbot.\n\nPRIVADO POR DISEÑO\nEl filtrado se hace en tu dispositivo mediante el servicio VPN de Android. Los registros se quedan en el teléfono, puedes desactivarlos y no hay anuncios.\n\nRe-Rethink es un fork de código abierto de Rethink DNS + Firewall de Celzero, rediseñado con Material 3 Expressive. Con licencia Apache 2.0."
 }

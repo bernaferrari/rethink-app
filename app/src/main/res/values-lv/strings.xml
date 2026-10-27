@@ -40,4 +40,49 @@
     <string name="lbl_dns_servers" translatable="true">DNS serveri</string>
     <string name="lbl_ip_rules" translatable="true">IP noteikumi</string>
     <string name="lbl_domain_rules" translatable="true">Domēna noteikumi</string>
+    <string name="home_last_24_hours">Pēdējās 24 stundas</string>
+    <string name="home_stopped_at_dns">pieprasījumi apturēti DNS līmenī</string>
+    <string name="home_stopped_most">Visbiežāk bloķēti</string>
+    <string name="home_nothing_stopped">Pēdējo 24 stundu laikā nekas netika bloķēts.</string>
+    <string name="home_see_statistics">Statistika</string>
+    <string name="home_apps_caption">Wi-Fi un mobilie dati katrai lietotnei</string>
+    <string name="home_logs_caption">Katrs savienojums un pieprasījums</string>
+    <string name="home_dns_caption">DNS serveris un bloķēšanas saraksti</string>
+    <string name="log_detail_protocol">Protokols</string>
+    <string name="log_detail_country">Valsts</string>
+    <string name="log_detail_address">Adrese</string>
+    <string name="log_detail_domain">Domēns</string>
+    <string name="log_detail_rule">Noteikums</string>
+    <string name="log_detail_proxy">Starpniekserveris</string>
+    <string name="log_detail_duration">Ilgums</string>
+    <string name="log_detail_data">Dati</string>
+    <string name="log_detail_flags">Karodziņi</string>
+    <string name="log_detail_message">Ziņojums</string>
+    <string name="log_detail_resolver">DNS serveris</string>
+    <string name="log_detail_blocklists">Bloķēšanas saraksti</string>
+    <string name="log_detail_dnssec">DNSSEC</string>
+    <string name="log_detail_dnssec_valid">Derīgs</string>
+    <string name="log_detail_dnssec_unverified">Nepārbaudīts</string>
+    <string name="log_data_down">↓ %1$s</string>
+    <string name="log_latency_ms">%1$d ms</string>
+    <string name="log_pane_details">Informācija</string>
+    <string name="log_pane_dns_apps">Lietotnes, kas to pieprasīja</string>
+    <string name="log_pane_network_hosts">Kur pieslēdzas šī lietotne</string>
+    <string name="log_pane_empty">Atlasiet ierakstu, lai skatītu informāciju</string>
+    <plurals name="home_blocked_count">
+        <item quantity="zero">Bloķēti: %d</item>
+        <item quantity="one">Bloķēti: %d</item>
+        <item quantity="other">Bloķēti: %d</item>
+    </plurals>
+    <plurals name="log_blocklists_matched">
+        <item quantity="zero">%d atbilstošu bloķēšanas sarakstu</item>
+        <item quantity="one">%d atbilstošs bloķēšanas saraksts</item>
+        <item quantity="other">%d atbilstoši bloķēšanas saraksti</item>
+    </plurals>
+    <string name="app_pane_empty_title">Izvēlieties lietotni</string>
+    <string name="app_pane_empty_message">Šeit tiks atvērti tās Wi-Fi un datu slēdži, kārtulas un datplūsma.</string>
+    <string name="dns_in_use">Tiek lietots</string>
+    <string name="dns_median_lookup">Vaicājuma laika mediāna</string>
+    <string name="dns_recent_lookups">Pēdējie vaicājumi</string>
+    <string name="dns_no_lookups_yet">Vaicājumu vēl nav</string>
 </resources>

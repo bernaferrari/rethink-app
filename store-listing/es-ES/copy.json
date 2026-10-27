@@ -1,47 +1,57 @@
 {
   "home": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Cada app,\n*a tu manera.*",
+    "body": "Cortafuegos, DNS y VPN en una app.\nSin root.",
+    "alt": "Inicio de Re-Rethink: protegido, con las conexiones y consultas DNS que ha gestionado"
   },
   "logs": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Cada conexión,\n*a la vista.*",
+    "body": "Qué app, qué servidor,\npermitida o bloqueada.",
+    "alt": "El registro de red: YouTube, Gmail y Maps conectándose, un reloj y un servidor de anuncios bloqueados"
   },
   "apps": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Corta una app\n*con un toque.*",
+    "body": "Bloquea Wi-Fi, datos móviles\no ambos.",
+    "alt": "La lista de apps con interruptores de Wi-Fi y datos móviles; YouTube y Fotos esperan al Wi-Fi"
   },
   "trackers": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Los rastreadores\n*caen en el DNS.*",
+    "body": "Las listas de bloqueo descartan\nanuncios y rastreadores.",
+    "alt": "El registro DNS filtrado por consultas bloqueadas: servidores de anuncios y analítica detenidos por listas de bloqueo"
   },
   "detail": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Tu reloj\n*se queda sin red.*",
+    "body": "Corta cualquier app que no\ntenga por qué conectarse.",
+    "alt": "Reloj bloqueado en Wi-Fi y datos móviles, con las reglas de aislar, omitir y excluir"
   },
   "stats": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Quién llamó,\n*quién pasó.*",
+    "body": "Top de apps, países y dominios\npor hora, día o semana.",
+    "alt": "Estadísticas de las últimas 24 horas: datos, conexiones y las apps más permitidas"
   },
   "dns": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "DNS cifrado,\n*a tu elección.*",
+    "body": "Rethink DNS, DNS-over-HTTPS,\nDoT, DNSCrypt o el tuyo.",
+    "alt": "Ajustes de DNS con Rethink DNS seleccionado entre DNS del sistema, otro y DNS inteligente"
   },
   "dark": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Igual de sereno\n*de noche.*",
+    "body": "Claro, oscuro y tus colores.",
+    "alt": "El inicio y la lista de apps en modo oscuro"
   },
   "tablet10/dark": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Espacio para\n*cada ajuste.*",
+    "body": "Hecho para tabletas y plegables,\nen claro u oscuro.",
+    "alt": "Ajustes en modo claro junto al inicio en modo oscuro en una tableta en horizontal"
+  },
+  "tablet10/logs": {
+    "title": "Cada conexión,\n*a la vista.*",
+    "body": "Toca una para ver adónde fue, por qué y todo lo demás que contactó esa app.",
+    "alt": "El registro de red junto a los detalles de una conexión de YouTube en una tableta en horizontal"
+  },
+  "tablet10/trackers": {
+    "title": "Los rastreadores\n*caen en el DNS.*",
+    "body": "Mira qué lista de bloqueo detuvo cada uno y qué apps lo pidieron.",
+    "alt": "Consultas DNS bloqueadas junto a las apps que buscaron un servidor de analítica"
   }
 }

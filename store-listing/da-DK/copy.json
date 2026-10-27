@@ -1,47 +1,57 @@
 {
   "home": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Hver app,\n*på dine præmisser.*",
+    "body": "Firewall, DNS og VPN i én app.\nKræver ikke root.",
+    "alt": "Re-Rethink-startskærmen: beskyttet, med de forbindelser og DNS-forespørgsler, den har håndteret"
   },
   "logs": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Hver forbindelse,\n*helt synlig.*",
+    "body": "Hvilken app, hvilken server,\ntilladt eller blokeret.",
+    "alt": "Netværksloggen: YouTube, Gmail og Maps opretter forbindelse, et ur og en annoncevært er blokeret"
   },
   "apps": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Afskær en app\n*med ét tryk.*",
+    "body": "Bloker Wi-Fi, mobildata\neller begge dele.",
+    "alt": "Applisten med kontakter til Wi-Fi og mobildata; YouTube og Fotos venter på Wi-Fi"
   },
   "trackers": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Trackere stopper\n*ved DNS.*",
+    "body": "Blokeringslister stopper reklamer\nog trackere, før de forbinder.",
+    "alt": "DNS-loggen filtreret til blokerede forespørgsler: annonce- og analyseværter stoppet af blokeringslister"
   },
   "detail": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Dit ur\n*forbliver offline.*",
+    "body": "Afskær enhver app, der ikke\nhar grund til at gå online.",
+    "alt": "Ur-appen blokeret på Wi-Fi og mobildata, med regler for isolering, omgåelse og udelukkelse"
   },
   "stats": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Hvem ringede,\n*hvem kom igennem.*",
+    "body": "Topapps, lande og domæner\nfor timen, dagen eller ugen.",
+    "alt": "Statistik for de seneste 24 timer: data, forbindelser og de mest tilladte apps"
   },
   "dns": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Krypteret DNS,\n*dit valg.*",
+    "body": "Rethink DNS, DNS-over-HTTPS,\nDoT, DNSCrypt eller din egen.",
+    "alt": "DNS-indstillinger med Rethink DNS valgt blandt system-DNS, anden DNS og smart DNS"
   },
   "dark": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Lige så roligt\n*i mørke.*",
+    "body": "Lyst, mørkt og dine egne farver.",
+    "alt": "Startskærmen og applisten i mørk tilstand"
   },
   "tablet10/dark": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Plads til\n*hver indstilling.*",
+    "body": "Lavet til tablets og foldbare,\nlyst eller mørkt.",
+    "alt": "Indstillinger i lys tilstand ved siden af startskærmen i mørk tilstand på en tablet i liggende format"
+  },
+  "tablet10/logs": {
+    "title": "Hver forbindelse,\n*helt synlig.*",
+    "body": "Vælg én for at se, hvor den gik hen, hvorfor, og hvad appen ellers nåede.",
+    "alt": "Netværksloggen ved siden af detaljerne for en YouTube-forbindelse på en tablet i liggende format"
+  },
+  "tablet10/trackers": {
+    "title": "Trackere stopper\n*ved DNS.*",
+    "body": "Se, hvilken blokeringsliste der fangede hver enkelt, og hvilke apps der spurgte.",
+    "alt": "Blokerede DNS-forespørgsler ved siden af de apps, der slog en analysevært op"
   }
 }

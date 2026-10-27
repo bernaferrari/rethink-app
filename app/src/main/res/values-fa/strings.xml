@@ -13,7 +13,7 @@
     <string name="warning_title" description="Status indicator text shown in a warning notification.">هشدار: Rethink غیرفعال شده است</string>
     <string name="dns_mode_notification_title">حفاظت شده! متصل به DNS سریع و امن.</string>
     <string name="firewall_mode_notification_title">حفاظت شده! متصل به دیوار آتش.</string>
-    <string name="status_dns_error">خطای dns</string>
+    <string name="status_dns_error">خطای DNS</string>
     <string name="finish">پایان</string>
     <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">در انتظار</string>
     <string name="other_dns_list_tab1">DoH</string>
@@ -23,7 +23,7 @@
     <string name="dns_mode_info_title">DNS</string>
     <string name="firewall_mode_info_title">دیوار آتش</string>
     <string name="block">مسدود کردن</string>
-    <string name="status_dns_server_down">سرور dns از کار افتاده است</string>
+    <string name="status_dns_server_down">سرور DNS در دسترس نیست</string>
     <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit.">محافظت نشده</string>
     <string name="notification_action_stop_vpn">متوقف کردن</string>
     <string name="notification_action_dns_firewall_mode">DNS + دیوار آتش</string>
@@ -35,7 +35,7 @@
     <string name="lbl_configure" translatable="true">پیکربندی</string>
     <string name="lbl_logs" translatable="true">گزارشها</string>
     <string name="lbl_domain_rules" translatable="true">قوانین دامنه</string>
-    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">شکست خوردن</string>
+    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">ناموفق</string>
     <string name="title_statistics" translatable="true">آمار</string>
     <string name="lbl_dismiss" translatable="true">نادیده گرفتن</string>
     <string name="lbl_all" translatable="true">همه</string>
@@ -278,7 +278,7 @@
     <string name="firewall_status_unknown" translatable="true">نامشخص</string>
     <string name="hs_biometeric_title" translatable="true">بازکردن Rethink</string>
     <string name="settings_theme_dialog_themes_1" translatable="true">تنظیم شده توسط System</string>
-    <string name="firewall_status_excluded" translatable="true">از dns و فایروال حذف شده است</string>
+    <string name="firewall_status_excluded" translatable="true">مستثنا از DNS و فایروال</string>
     <string name="hsf_vpn_prepare_failure" translatable="true">یا مجوز وی پی ان وجود ندارد، یا برنامه دیگری در حالت وی پی ان همیشه روشن است.</string>
     <string name="hsf_notification_permission_failure" translatable="true">فعال کردن مجوز اعلان از صفحه تنظیمات</string>
     <string name="dc_custom_dns_radio" translatable="true">دی‌ان‌ اس سایر</string>
@@ -316,8 +316,8 @@
     <string name="about_mozilla" translatable="true">Rethink توسط Mozilla Builders، بنیاد FOSS United و FLOSS/fund پشتیبانی می‌شود.</string>
     <string name="dc_local_block_desc_1" translatable="true">از بین بیش از ۱۹۵ لیست مسدودکننده انتخاب کنید. برای دانلود یا پیکربندی لیست‌های مسدودکننده اینجا کلیک کنید.</string>
     <string name="dc_dns_website_desc" translatable="true">آیکون‌های وب‌سایت را از <i>nextdns.io</i> و <i>duckduckgo.com</i> دریافت می‌کند. تا ۳۵۰ مگابایت از فضای دیسک را اشغال می‌کند</string>
-    <string name="firewall_status_whitelisted" translatable="true">قوانین جهانی فایروال را دور می‌زند</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">قوانین دی ان اس و فایروال را دور می‌زند</string>
+    <string name="firewall_status_whitelisted" translatable="true">قوانین فراگیر فایروال را دور می‌زند</string>
+    <string name="firewall_status_bypass_dns_firewall" translatable="true">قوانین DNS و فایروال را دور می‌زند</string>
     <string name="hsf_vpn_dialog_message" translatable="true">Rethink برای راه‌اندازی VPN محلی جهت رمزگذاری درخواست‌های DNS دستگاه، پیاده‌سازی مانیتور شبکه و اجرای قوانین دیوار‌آتش به مجوز نیاز دارد.\n\nRethink هیچ اطلاعاتی را جمع‌آوری نمی‌کند و به هیچ وجه از شما جاسوسی نمی‌کند.</string>
     <string name="dc_other_dns_heading" translatable="true">نوع</string>
     <string name="about_github" translatable="true">مشارکت در گیت‌هاب</string>
@@ -543,4 +543,47 @@
     <string name="firewall_rule_block_http" translatable="true">HTTP نا‌امن</string>
     <string name="firewall_rule_global_lockdown" translatable="true">قفل</string>
     <string name="rules_load_failure_heading" translatable="true">­تنظیمات سیو شود</string>
+    <string name="home_last_24_hours">۲۴ ساعت گذشته</string>
+    <string name="home_stopped_at_dns">درخواست در سطح DNS متوقف شد</string>
+    <string name="home_stopped_most">بیشترین مسدودشده‌ها</string>
+    <string name="home_nothing_stopped">در ۲۴ ساعت گذشته چیزی مسدود نشده است.</string>
+    <string name="home_see_statistics">آمار</string>
+    <string name="home_apps_caption">Wi-Fi و داده، برای هر برنامه</string>
+    <string name="home_logs_caption">همه اتصال‌ها و درخواست‌ها</string>
+    <string name="home_dns_caption">سرور DNS و فهرست‌های بلاک</string>
+    <string name="log_detail_protocol">پروتکل</string>
+    <string name="log_detail_country">کشور</string>
+    <string name="log_detail_address">نشانی</string>
+    <string name="log_detail_domain">دامنه</string>
+    <string name="log_detail_rule">قانون</string>
+    <string name="log_detail_proxy">پروکسی</string>
+    <string name="log_detail_duration">مدت</string>
+    <string name="log_detail_data">داده</string>
+    <string name="log_detail_flags">پرچم‌ها</string>
+    <string name="log_detail_message">پیام</string>
+    <string name="log_detail_resolver">سرور DNS</string>
+    <string name="log_detail_blocklists">فهرست‌های بلاک</string>
+    <string name="log_detail_dnssec">DNSSEC</string>
+    <string name="log_detail_dnssec_valid">معتبر</string>
+    <string name="log_detail_dnssec_unverified">تأییدنشده</string>
+    <string name="log_data_down">↓ %1$s</string>
+    <string name="log_latency_ms">%1$d میلی‌ثانیه</string>
+    <string name="log_pane_details">جزئیات</string>
+    <string name="log_pane_dns_apps">برنامه‌هایی که این را درخواست کردند</string>
+    <string name="log_pane_network_hosts">این برنامه به کجا وصل می‌شود</string>
+    <string name="log_pane_empty">برای دیدن جزئیات، یک مورد را انتخاب کنید</string>
+    <plurals name="home_blocked_count">
+        <item quantity="one">%d مسدود</item>
+        <item quantity="other">%d مسدود</item>
+    </plurals>
+    <plurals name="log_blocklists_matched">
+        <item quantity="one">%d فهرست بلاک منطبق</item>
+        <item quantity="other">%d فهرست بلاک منطبق</item>
+    </plurals>
+    <string name="app_pane_empty_title">یک برنامه انتخاب کنید</string>
+    <string name="app_pane_empty_message">کلیدهای Wi-Fi و داده، قوانین و ترافیک آن اینجا باز می‌شود.</string>
+    <string name="dns_in_use">در حال استفاده</string>
+    <string name="dns_median_lookup">میانه زمان پرس‌وجو</string>
+    <string name="dns_recent_lookups">آخرین پرس‌وجوها</string>
+    <string name="dns_no_lookups_yet">هنوز پرس‌وجویی نیست</string>
 </resources>

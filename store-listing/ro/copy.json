@@ -1,47 +1,57 @@
 {
   "home": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Orice aplicație,\n*pe regulile tale.*",
+    "body": "Firewall, DNS și VPN într-o\nsingură aplicație. Fără root.",
+    "alt": "Ecranul principal Re-Rethink: protejat, cu conexiunile și interogările DNS gestionate"
   },
   "logs": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Orice conexiune,\n*la vedere.*",
+    "body": "Ce aplicație, ce server,\npermisă sau blocată.",
+    "alt": "Jurnalul de rețea: YouTube, Gmail și Maps se conectează, un ceas și un server de reclame sunt blocate"
   },
   "apps": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Taie accesul\n*dintr-o atingere.*",
+    "body": "Blochează Wi-Fi, date mobile\nsau ambele.",
+    "alt": "Lista de aplicații cu comutatoare pentru Wi-Fi și date mobile; YouTube și Foto așteaptă Wi-Fi"
   },
   "trackers": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Trackerele\n*se opresc la DNS.*",
+    "body": "Listele de blocare opresc\nreclamele și trackerele.",
+    "alt": "Jurnalul DNS filtrat pe interogări blocate: servere de reclame și analiză oprite de listele de blocare"
   },
   "detail": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Ceasul tău\n*rămâne offline.*",
+    "body": "Blochează orice aplicație\ncare n-are motiv să se conecteze.",
+    "alt": "Ceasul blocat pe Wi-Fi și date mobile, cu regulile de izolare, ocolire și excludere"
   },
   "stats": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Cine a sunat,\n*cine a trecut.*",
+    "body": "Top aplicații, țări și domenii\npe oră, zi sau săptămână.",
+    "alt": "Statistici pentru ultimele 24 de ore: date, conexiuni și cele mai permise aplicații"
   },
   "dns": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "DNS criptat,\n*la alegere.*",
+    "body": "Rethink DNS, DNS-over-HTTPS,\nDoT, DNSCrypt sau al tău.",
+    "alt": "Setările DNS cu Rethink DNS selectat dintre DNS de sistem, alt DNS și DNS inteligent"
   },
   "dark": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "La fel de calm\n*și noaptea.*",
+    "body": "Mod luminos, întunecat\nși culorile tale.",
+    "alt": "Ecranul principal și lista de aplicații în modul întunecat"
   },
   "tablet10/dark": {
-    "title": "",
-    "body": "",
-    "alt": ""
+    "title": "Loc pentru\n*fiecare setare.*",
+    "body": "Gândit pentru tablete și pliabile,\nluminos sau întunecat.",
+    "alt": "Setările în modul luminos lângă ecranul principal în modul întunecat, pe o tabletă în format peisaj"
+  },
+  "tablet10/logs": {
+    "title": "Orice conexiune,\n*la vedere.*",
+    "body": "Atinge una ca să vezi unde a ajuns, de ce și tot ce a mai contactat aplicația.",
+    "alt": "Jurnalul de rețea lângă detaliile unei conexiuni YouTube, pe o tabletă în format peisaj"
+  },
+  "tablet10/trackers": {
+    "title": "Trackerele\n*se opresc la DNS.*",
+    "body": "Vezi ce listă de blocare a oprit fiecare tracker și ce aplicații l-au cerut.",
+    "alt": "Interogări DNS blocate lângă aplicațiile care au căutat un server de analiză"
   }
 }

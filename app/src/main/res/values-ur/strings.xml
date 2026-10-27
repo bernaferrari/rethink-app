@@ -13,8 +13,8 @@
     <string name="warning_title" description="Status indicator text shown in a warning notification.">انتباہ:ریتھینک ڈی این ایس کو غیر فعال کر دیا گیا ہے</string>
     <string name="txt_home">گھر</string>
     <string name="slide_2_desc">ریتھینک ڈی این ایس نیٹ ورک کی سرگرمیوں کی نگرانی کرنے، انٹرنیٹ سنسرشپ کو نظرانداز کرنے، اور آپ کے Android ڈیوائس پر فائر وال ایپس کا سب سے آسان طریقہ ہے۔</string>
-    <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">انتظار</string>
-    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">گرنا</string>
+    <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">منتظر</string>
+    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">ناکام</string>
     <string name="accessibility_service_description">ریتھینک ڈی این ایس پس منظر کی ایپلی کیشنز کا پتہ لگانے اور فائر وال کرنے کے لیے قابل رسائی سروس کا استعمال کرتا ہے۔ ریتھینک ڈی این ایس کوئی معلومات اکٹھا یا فروخت نہیں کرتا ہے۔</string>
     <string name="notification_content" description="Indicates what will happen if the user taps the notification.">تحفظ کی ترتیب کو تبدیل کرنے کے لیے تھپتھپائیں</string>
     <string name="dns_mode_notification_title">محفوظ! تیز اور محفوظ ڈی این ایس سے منسلک ہے۔</string>
@@ -25,4 +25,47 @@
     <string name="lbl_apply" translatable="true">لاگو کرو</string>
     <string name="lbl_dismiss" translatable="true">رد کرو</string>
     <string name="lbl_all" translatable="true">تمام</string>
+    <string name="home_last_24_hours">پچھلے 24 گھنٹے</string>
+    <string name="home_stopped_at_dns">درخواستیں DNS پر روک دی گئیں</string>
+    <string name="home_stopped_most">سب سے زیادہ بلاک</string>
+    <string name="home_nothing_stopped">پچھلے 24 گھنٹوں میں کچھ بلاک نہیں ہوا۔</string>
+    <string name="home_see_statistics">اعدادوشمار</string>
+    <string name="home_apps_caption">Wi-Fi اور ڈیٹا، ہر ایپ کے لیے</string>
+    <string name="home_logs_caption">ہر کنکشن اور ہر درخواست</string>
+    <string name="home_dns_caption">DNS سرور اور بلاک لسٹس</string>
+    <string name="log_detail_protocol">پروٹوکول</string>
+    <string name="log_detail_country">ملک</string>
+    <string name="log_detail_address">پتہ</string>
+    <string name="log_detail_domain">ڈومین</string>
+    <string name="log_detail_rule">اصول</string>
+    <string name="log_detail_proxy">پراکسی</string>
+    <string name="log_detail_duration">دورانیہ</string>
+    <string name="log_detail_data">ڈیٹا</string>
+    <string name="log_detail_flags">فلیگز</string>
+    <string name="log_detail_message">پیغام</string>
+    <string name="log_detail_resolver">DNS سرور</string>
+    <string name="log_detail_blocklists">بلاک لسٹس</string>
+    <string name="log_detail_dnssec">DNSSEC</string>
+    <string name="log_detail_dnssec_valid">درست</string>
+    <string name="log_detail_dnssec_unverified">غیر تصدیق شدہ</string>
+    <string name="log_data_down">↓ %1$s</string>
+    <string name="log_latency_ms">%1$d ملی سیکنڈ</string>
+    <string name="log_pane_details">تفصیلات</string>
+    <string name="log_pane_dns_apps">یہ تلاش کرنے والی ایپس</string>
+    <string name="log_pane_network_hosts">یہ ایپ کہاں کنیکٹ ہوتی ہے</string>
+    <string name="log_pane_empty">تفصیلات دیکھنے کے لیے کوئی اندراج منتخب کریں</string>
+    <plurals name="home_blocked_count">
+        <item quantity="one">%d بلاک</item>
+        <item quantity="other">%d بلاک</item>
+    </plurals>
+    <plurals name="log_blocklists_matched">
+        <item quantity="one">%d بلاک لسٹ سے مماثل</item>
+        <item quantity="other">%d بلاک لسٹس سے مماثل</item>
+    </plurals>
+    <string name="app_pane_empty_title">کوئی ایپ منتخب کریں</string>
+    <string name="app_pane_empty_message">اس کے Wi-Fi اور ڈیٹا سوئچ، اصول اور ٹریفک یہاں کھلیں گے۔</string>
+    <string name="dns_in_use">زیرِ استعمال</string>
+    <string name="dns_median_lookup">اوسط تلاش کا وقت</string>
+    <string name="dns_recent_lookups">حالیہ تلاشیں</string>
+    <string name="dns_no_lookups_yet">ابھی کوئی تلاش نہیں</string>
 </resources>
