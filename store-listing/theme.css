@@ -1,7 +1,6 @@
-/* Re-Rethink: "the gate". A dark field with a stream of green (allowed) and coral (blocked) packets;
-   every device is the firewall the stream runs into. Copy sits flush left at the top, devices
-   alternate sides below it (or hang from the top with the copy underneath), so no two neighbours
-   share a composition. */
+/* Re-Rethink: "the aurora". A dark plum field lit by coral, rose and magenta light. The copy sits at the
+   top, its first letter exactly where the device below starts; devices run large, off the bottom (or hang
+   from the top with the copy underneath). */
 @font-face{font-family:Rethink;src:url(fonts/GoogleSansFlex-Latin.woff2) format('woff2');font-weight:100 1000;font-style:normal;font-display:block}
 :root{--field:#190a11;--ink:#fff6f3;--coral:#ff8a7a;--green:#7fe6ad;--muted:#e3c6c3;--frame-top:#fbf3f1;--frame-bottom:#ecd9d5}
 body,.campaign{background:var(--field);color:var(--ink)}
@@ -23,17 +22,15 @@ header p{margin:26px 0 0;font-size:40px;line-height:1.28;font-weight:420;color:v
 .device{--bezel:14px;--radius:78px;background:linear-gradient(170deg,var(--frame-top),var(--frame-bottom));
   box-shadow:inset 0 0 0 2px #ffffffc0,inset 0 -3px 0 #c7a49c55,0 50px 110px -20px #050103ee,0 0 0 1px #05010350}
 
-/* Phone. Gate on the right: the stream arrives from the left and piles against the phone. */
-.phone .gate-right .primary{left:300px;top:610px;width:720px}
-.phone .first .primary{top:640px}
-/* Gate on the left: allowed traffic leaves to the right. */
-.phone .gate-left .primary{left:60px;top:610px;width:720px}
-/* Hanging from the top, copy underneath; the stream runs beneath the phone. */
-.phone .hang header{top:1300px}
-.phone .hang .primary{left:180px;top:-400px;width:720px}
-/* Light and dark side by side, upright; together they are one gate. */
-.phone .duo .primary{left:40px;top:640px;width:560px}
-.phone .duo .secondary{left:480px;top:820px;width:560px;z-index:3}
+/* Phone: the app across the whole column, its left edge under the copy's first letter. */
+.phone .gate-right .primary,.phone .gate-left .primary{left:84px;top:620px;width:912px}
+.phone .first .primary{top:660px}
+/* Hanging from the top, copy underneath. */
+.phone .hang header{top:1330px}
+.phone .hang .primary{left:84px;top:-740px;width:912px}
+/* Light and dark side by side: the light one lines up with the copy, the dark one steps in front. */
+.phone .duo .primary{left:84px;top:640px;width:560px}
+.phone .duo .secondary{left:436px;top:820px;width:560px;z-index:3}
 
 /* 7-inch portrait: the same system, a little wider. */
 .tablet7 header{left:96px;right:96px;top:160px}
@@ -41,21 +38,21 @@ header p{margin:26px 0 0;font-size:40px;line-height:1.28;font-weight:420;color:v
 .tablet7 header p{font-size:42px}
 .tablet7 .brand{left:96px}
 .tablet7 .campaign.first header{top:210px}
-.tablet7 .gate-right .primary{left:330px;top:640px;width:800px}
-.tablet7 .gate-left .primary{left:70px;top:640px;width:800px}
-.tablet7 .hang header{top:1330px}
-.tablet7 .hang .primary{left:200px;top:-470px;width:800px}
-.tablet7 .duo .primary{left:50px;top:660px;width:640px}
-.tablet7 .duo .secondary{left:510px;top:820px;width:640px}
+.tablet7 .gate-right .primary,.tablet7 .gate-left .primary{left:96px;top:640px;width:1008px}
+.tablet7 .hang header{top:1360px}
+.tablet7 .hang .primary{left:96px;top:-400px;width:1008px}
+.tablet7 .duo .primary{left:96px;top:660px;width:640px}
+.tablet7 .duo .secondary{left:464px;top:820px;width:640px}
 
-/* 10-inch landscape: copy at the top left, the tablet large on the right (it may run off the right edge);
-   the stream runs below the copy and into the tablet's left edge. */
-.tablet10 header{left:90px;right:auto;top:150px;width:520px}
+/* 10-inch landscape: copy on the left, its first line level with the top of the tablet on the right
+   (which may run off the right edge). */
+.tablet10 header{left:90px;right:auto;top:250px;width:520px}
 .tablet10 h1{font-size:84px}
 .tablet10 h1 .line{white-space:normal}
 .tablet10 header p{margin:24px 0 0;font-size:32px;max-width:500px;white-space:normal}
 .tablet10 .brand{left:90px;top:70px}
-.tablet10 .campaign.first header{top:180px}
+.tablet10 .campaign.first header{top:250px}
+.tablet10 .first .brand{top:150px}
 .tablet10 .gate-right .primary{left:630px;top:250px;width:1270px}
 .tablet10 .duo .primary{left:640px;top:60px;width:1060px}
 .tablet10 .duo .secondary{left:1000px;top:500px;width:1060px}
