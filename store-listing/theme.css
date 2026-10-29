@@ -70,19 +70,19 @@ header p{margin:26px 0 0;font-size:40px;line-height:1.28;font-weight:420;color:v
 .readme .spread header p{font-size:38px}
 .readme .spread .slate{left:960px;top:150px;width:1380px}
 .readme .spread .front{left:636px;top:450px;width:400px}
-/* Before and after: the same phone, one sheet per pair. The original keeps a thin, quiet ring;
-   Keepout steps forward in a coral frame with a warm glow, its name in the headline coral. */
-.readme .compare .device{width:450px;top:110px}
-.readme .compare .device .screen{border-radius:44px;overflow:hidden}
-.readme .compare .device.before{--bezel:4px;--radius:48px;background:#ffffff30;box-shadow:0 30px 60px -30px #050103cc}
-.readme .compare .device.after{--bezel:9px;--radius:53px;background:linear-gradient(155deg,#ffd9cf,#ff9a86 38%,#ff5d73 72%,#c2304b);
+/* Before and after, like the other apps: a headline, then four equal phones in two pairs, each named
+   above. No panels. The original keeps a quiet frame; Keepout steps forward in coral with a warm glow. */
+.readme .compare header{left:0;right:0;top:110px;text-align:center}
+.readme .compare h1{font-size:96px}
+.readme .compare .device{width:460px;top:450px;--bezel:10px;--radius:56px}
+.readme .compare .device .screen{border-radius:46px;overflow:hidden}
+.readme .compare .device.before{background:#ffffff2e;box-shadow:inset 0 0 0 1.5px #ffffff22,0 40px 80px -36px #050103e6}
+.readme .compare .device.after{background:linear-gradient(155deg,#ffd9cf,#ff9a86 38%,#ff5d73 72%,#c2304b);
   box-shadow:0 0 0 1px #ffffff55,0 0 90px -10px #ff6f6199,0 40px 80px -30px #050103f0}
-.readme .compare .pair1.before{left:150px}
-.readme .compare .pair1.after{left:650px}
-.readme .compare .pair2.before{left:1300px}
-.readme .compare .pair2.after{left:1800px}
-.readme .compare .device.before::before{content:'';position:absolute;z-index:-1;left:-50px;top:-50px;width:1050px;height:1140px;border-radius:98px;
-  background:radial-gradient(120% 80% at 75% 40%,#ff6f6124,transparent 60%),linear-gradient(170deg,#ffffff12,#ffffff06);box-shadow:inset 0 0 0 1.5px #ffffff1a}
-.readme .compare .device-label{transform:translateY(calc(var(--tallest-device) + 30px));display:flex;justify-content:center}
-.device-label.before span{font-size:40px;font-weight:500;color:#bfa9a6}
-.device-label.after span{font-size:40px;font-weight:720;color:var(--coral)}
+.readme .compare .pair1.before{left:180px}
+.readme .compare .pair1.after{left:670px}
+.readme .compare .pair2.before{left:1270px}
+.readme .compare .pair2.after{left:1760px}
+.readme .compare .device-label{transform:translateY(calc(-100% - 22px));display:flex;justify-content:center}
+.device-label.before span{font-size:46px;font-weight:500;color:#bfa9a6}
+.device-label.after span{font-size:46px;font-weight:720;color:var(--coral)}

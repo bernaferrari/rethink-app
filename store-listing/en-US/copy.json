@@ -67,5 +67,8 @@
     "title": "Room for\n*the details.*",
     "body": "Every log entry opens beside\nthe list on tablets and foldables.",
     "alt": "The network log on a landscape tablet beside the details of the selected connection, and Home in dark mode on a phone in front"
+  },
+  "readme-compare": {
+    "title": "Rethink, *made simple.*"
   }
 }
