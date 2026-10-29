@@ -1,0 +1,19 @@
+{
+  "icons": [
+    {
+      "android": {"res": "app/src/main/res", "legacy": true},
+      "files": [
+        {"path": "app/src/main/res/drawable-mdpi/ic_launcher.png", "size": 48, "shape": "rounded"},
+        {"path": "app/src/main/res/drawable-hdpi/ic_launcher.png", "size": 72, "shape": "rounded"},
+        {"path": "app/src/main/res/drawable-xhdpi/ic_launcher.png", "size": 96, "shape": "rounded"},
+        {"path": "app/src/main/res/drawable-xxhdpi/ic_launcher.png", "size": 144, "shape": "rounded"},
+        {"path": "app/src/main/res/drawable-xxxhdpi/ic_launcher.png", "size": 192, "shape": "rounded"},
+        {"path": "store-listing/brand/icon.png", "size": 512, "shape": "square"},
+        {"path": "store-listing/brand/icon.svg", "shape": "square"},
+        {"path": "fastlane/metadata/android/en-US/images/icon.png", "size": 512, "shape": "square"},
+        {"path": "shared/src/wasmJsMain/resources/favicon.svg", "shape": "circle"}
+      ]
+    },
+    {"layers": "alpha", "android": {"res": "app/src/alpha/res"}}
+  ]
+}
