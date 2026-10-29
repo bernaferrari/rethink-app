@@ -103,6 +103,28 @@ const defaultLocale = config.defaultLocale || 'en-US';
         await sheet.screenshot({path: path.join(dir, sheetName), type: 'jpeg', quality: 90});
         await sheet.close();
       }
+      // README strips: a run of real store cards joined edge to edge, as the store carousel shows them.
+      for (const strip of locale === defaultLocale ? config.readmeStrips || [] : []) {
+        if (arg('kind') && arg('kind') !== strip.kind && arg('kind') !== 'strips') continue;
+        const {width, height} = profiles[strip.kind];
+        const shots = [];
+        for (const [n, i] of strip.cards.entries()) {
+          const position = strip.cards.length === 1 ? 'only' : n === 0 ? 'first' : n === strip.cards.length - 1 ? 'last' : 'middle';
+          const page = await browser.newPage({viewport: {width, height}, deviceScaleFactor: config.supersample || 1, locale});
+          await page.goto(`${base}/studio/preview.html?locale=${locale}&kind=${strip.kind}&slide=${i}&strip=${position}`);
+          await page.locator('html[data-ready="true"]').waitFor({timeout: 30_000});
+          shots.push((await page.screenshot({type: 'png', scale: 'css'})).toString('base64'));
+          await page.close();
+        }
+        const h = strip.height || 1200, w = Math.round(h * width / height);
+        const sheet = await browser.newPage({viewport: {width: w * shots.length, height: h}});
+        await sheet.setContent(`<body style="margin:0;display:flex">${shots.map(s => `<img src="data:image/png;base64,${s}" style="height:${h}px;width:${w}px">`).join('')}</body>`);
+        await sheet.waitForLoadState('load');
+        fs.mkdirSync(path.dirname(path.join(dir, strip.file)), {recursive: true});
+        await sheet.screenshot({path: path.join(dir, strip.file), type: 'jpeg', quality: config.jpegQuality || 92});
+        await sheet.close();
+        console.log(`${locale}/${strip.file}  (strip of ${strip.kind} ${strip.cards.map(i => i + 1).join(', ')})`);
+      }
       if (config.writeAssets !== false && !arg('kind')) fs.writeFileSync(path.join(dir, 'assets.json'), JSON.stringify(manifest, null, 2) + '\n');
       summary.push(tally);
       if (strict && locale !== defaultLocale && (tally.untranslated || tally.borrowedCaptures || tally.fixedCallouts)) failures++;

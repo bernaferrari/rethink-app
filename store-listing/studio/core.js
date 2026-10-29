@@ -4,6 +4,9 @@
 import {cardsFor, devicesFor, withCopy, nodesFile, followCallout} from './gallery.js';
 
 const q = new URLSearchParams(location.search);
+// A README strip renders a card as first, middle, last or only of a run, so themes can hide art that sits on the
+// strip's outer seams (html[data-strip="last"] .seam-right, say).
+if (q.get('strip')) document.documentElement.dataset.strip = q.get('strip');
 const json = async (file, optional = false) => {
   const response = await fetch(file);
   if (!response.ok) {
@@ -122,7 +125,11 @@ for (const {spec, box} of context.devices) {
   const label = document.createElement('div');
   label.className = `device-label${spec.role ? ` ${spec.role}` : ''}`;
   label.dataset.checkBounds = '';
-  label.append(Object.assign(document.createElement('span'), {textContent: spec.label}));
+  // Labels take the headline's *highlight* markup.
+  const span = document.createElement('span');
+  spec.label.split(/(\*[^*]+\*)/).filter(Boolean).forEach(part => span.append(
+    part.startsWith('*') ? Object.assign(document.createElement('em'), {textContent: part.slice(1, -1)}) : document.createTextNode(part)));
+  label.append(span);
   Object.assign(label.style, {left: `${box.left}px`, width: `${box.width}px`, top: `${box.top}px`});
   main.append(label);
 }

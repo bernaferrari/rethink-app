@@ -58,12 +58,7 @@ export default {
   // Screens may run off the bottom (or hang from the top), never off the sides, and most of each
   // screen stays in view. Landscape tablets stay whole.
   decorate(ctx) {
-    const {W, H, slide, devices, main} = ctx;
-    // Captions mark their key words like the headlines: *words* turn coral.
-    for (const span of main.querySelectorAll('.device-label span')) {
-      if (span.querySelector('em')) continue;
-      span.innerHTML = span.textContent.replace(/[&<>]/g, c => `&#${c.charCodeAt(0)};`).replace(/\*([^*]+)\*/g, '<em>$1</em>');
-    }
+    const {W, H, slide, devices} = ctx;
     if (slide.layout === 'compare') {
       // Each name sits just under its screen.
       for (const label of devices[0].node.parentElement.querySelectorAll('.device-label')) label.style.setProperty('--h', `${devices[0].box.height}px`);
