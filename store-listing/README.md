@@ -9,11 +9,11 @@ Built with [Screenshot Studio](studio/). Read `~/Documents/screenshot-studio/PLA
 | Look | `theme.css`, `theme.js` |
 | Canvas and capture sizes | `profiles.json` |
 | Seeded apps and traffic | `app/src/storeCapture/.../StoreFixtures.kt` |
+| Scene tour | `capture-emulator.py` (build and runs: `studio.json` → `capture`) |
 
 ```sh
-./gradlew :app:installFdroidStoreCapture
-export PLAYWRIGHT_MODULE=$HOME/.cache/weakspot-shots/node_modules/playwright   # any Playwright install
-python3 store-listing/capture-emulator.py --serial emulator-5572   # needs Pillow; your own AVD and port
+node store-listing/studio/recapture.cjs          # build, install, capture every size on emulator-5578, export
+python3 store-listing/capture-emulator.py --profile phone   # the scene tour alone (needs Pillow)
 node store-listing/studio/server.cjs 8790        # editor
 node store-listing/studio/export.cjs --locale en-US
 ```

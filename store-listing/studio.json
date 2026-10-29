@@ -49,5 +49,19 @@
     "zh-TW"
   ],
   "defaultLocale": "en-US",
-  "supersample": 2
+  "supersample": 2,
+  "capture": {
+    "build": "./gradlew :app:assembleFdroidStoreCapture -q",
+    "install": [
+      {
+        "apk": "app/build/outputs/apk/fdroid/storeCapture/app-fdroid-arm64-v8a-storeCapture.apk",
+        "package": "com.bernaferrari.bravedns.storecapture"
+      }
+    ],
+    "runs": [
+      {
+        "locales": "default"
+      }
+    ]
+  }
 }
