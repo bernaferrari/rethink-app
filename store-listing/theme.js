@@ -15,7 +15,7 @@ function random(seed) {
 }
 
 /** Lane heights as fractions of the canvas: clear of the copy in every layout. */
-const lanes = landscape => landscape ? [.585, .615, .645, .675, .705] : [.55, .575, .6, .625, .65];
+const lanes = landscape => landscape ? [.6, .645, .69] : [.565, .6, .635];
 
 function art(ctx) {
   const {W, H, slides} = ctx;
@@ -57,36 +57,38 @@ function stream({W, H, index, slides, devices}) {
   const s = unit / 1920;
   const landscape = W > H;
   const ys = lanes(landscape).map(f => f * H);
-  const step = 34 * s;
+  const step = 92 * s;
   const total = slides.length * W;
   let packets = '';
   ys.forEach((y, li) => {
     const rnd = random(941 + li * 131);
     const gates = gatesAt(devices, y);
-    for (let gx = 0; gx < total; gx += step) {
+    // Each lane starts at its own offset, so the streaks never line up into a grid.
+    for (let gx = li * step * .37; gx < total; gx += step) {
       const r1 = rnd(), r2 = rnd(), r3 = rnd(), r4 = rnd();
-      const length = (12 + r1 * 22) * s;
-      let x = gx + (r2 - .5) * step * .7 - index * W;
-      if (x < -60 || x > W + 60) continue;
-      const blocked = r3 < .36;
-      const lane = y + (r4 - .5) * 10 * s;
-      let opacity = blocked ? .9 : .72;
+      const length = (46 + r1 * 70) * s;
+      let x = gx + (r2 - .5) * step * .5 - index * W;
+      if (x < -160 || x > W + 60) continue;
+      const blocked = r3 < .34;
       if (gates.some(g => x + length > g.left - 4 * s && x < g.right + 4 * s)) continue;
       const next = gates.find(g => g.left >= x);
       const previous = [...gates].reverse().find(g => g.right <= x);
-      if (blocked && next && next.left - x < 300 * s) {
-        // Blocked packets slow down and pile up against the device ahead of them.
-        x = next.left - length - 8 * s - (next.left - x) * .34;
-        opacity = .95;
+      if (blocked && next && next.left - x < 260 * s) {
+        // Blocked traffic stops short of the device ahead of it, bunching up against the wall.
+        x = next.left - length - 10 * s - (next.left - x) * .3;
       } else if (blocked && previous) {
         // Past a gate only allowed traffic flows; new traffic mixes back in towards the next one.
         const room = Math.max(1, (next ? next.left : W) - previous.right);
         if (r4 > Math.pow((x - previous.right) / room, 1.4)) continue;
       }
-      const h = 8 * s;
-      packets += `<rect x="${x.toFixed(1)}" y="${(lane - h / 2).toFixed(1)}" width="${length.toFixed(1)}" height="${h.toFixed(1)}" rx="${(h / 2).toFixed(1)}" fill="${blocked ? BLOCKED : ALLOWED}" fill-opacity="${opacity}"/>`;
+      // A light trail: a bright head on the right, fading to nothing behind it.
+      const h = 7 * s;
+      packets += `<rect x="${x.toFixed(1)}" y="${(y - h / 2).toFixed(1)}" width="${length.toFixed(1)}" height="${h.toFixed(1)}" rx="${(h / 2).toFixed(1)}" fill="url(#${blocked ? 'trailBlocked' : 'trailAllowed'})"/>`;
     }
   });
+  const trail = (id, colour) => `<linearGradient id="${id}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${colour}" stop-opacity="0"/><stop offset=".7" stop-color="${colour}" stop-opacity=".75"/><stop offset="1" stop-color="${colour}" stop-opacity="1"/></linearGradient>`;
+  const glow = `<filter id="glow" x="-20%" y="-300%" width="140%" height="700%"><feGaussianBlur stdDeviation="${5 * s}" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`;
+  packets = `<g filter="url(#glow)">${packets}</g>`;
   // Light where each wall holds traffic back, and a green trail where allowed traffic leaves.
   const mid = ys[Math.floor(ys.length / 2)];
   let defs = '', lights = '';
@@ -95,7 +97,7 @@ function stream({W, H, index, slides, devices}) {
     defs += `<radialGradient id="pass${k}" gradientUnits="userSpaceOnUse" cx="${g.right}" cy="${mid}" r="${200 * s}"><stop offset="0" stop-color="${ALLOWED}" stop-opacity=".28"/><stop offset="1" stop-color="${ALLOWED}" stop-opacity="0"/></radialGradient>`;
     lights += `<rect width="${W}" height="${H}" fill="url(#hold${k})"/><rect width="${W}" height="${H}" fill="url(#pass${k})"/>`;
   });
-  return `<defs>${defs}</defs>${lights}${packets}`;
+  return `<defs>${defs}${trail('trailAllowed', ALLOWED)}${trail('trailBlocked', BLOCKED)}${glow}</defs>${lights}${packets}`;
 }
 
 export default {
