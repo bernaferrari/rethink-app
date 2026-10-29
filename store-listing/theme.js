@@ -1,7 +1,7 @@
 // Re-Rethink: "the aurora". A dark plum field lit by soft coral, rose and magenta light: coral rising
-// from the lower left, magenta high on the right, a warm glow behind the devices. Nothing is random,
-// and nothing sits between the reader and the app.
-import {panoramaGradient} from './studio/shapes.js';
+// from the lower left, magenta high on the right, a warm glow behind the devices, laid out across the
+// whole strip so every seam continues. Nothing is random, and nothing sits between the reader and the app.
+import {panoramaGradient, panoramaX} from './studio/shapes.js';
 
 
 function art(ctx) {
@@ -10,12 +10,17 @@ function art(ctx) {
   const landscape = W > H;
   let defs = panoramaGradient(ctx, 'field', ['#170910', '#1d0b14', '#180a11', '#200c16', '#170910', '#1e0b14']);
   let body = `<rect width="${W}" height="${H}" fill="url(#field)"/>`;
-  // The aurora: the same lights on every card, so each one reads alone and the strip stays one mood.
+  // The aurora. On the Play strip it is laid out once across every card, so each seam continues into
+  // the next; a README image (always seen alone) gets the whole aurora to itself.
   const lights = [[.15, .95, .55, '#ff5d73', .42], [.85, .2, .5, '#b0306a', .38], [.55, .7, .45, '#ff8a5c', .22],
                   [.95, .92, .32, '#e2456e', .3], [.05, .1, .4, '#5a1a5a', .5]];
-  lights.forEach(([x, y, r, colour, o], i) => {
-    defs += `<radialGradient id="aurora${i}" gradientUnits="userSpaceOnUse" cx="${W * x}" cy="${H * y}" r="${unit * r}"><stop offset="0" stop-color="${colour}" stop-opacity="${o}"/><stop offset="1" stop-color="${colour}" stop-opacity="0"/></radialGradient>`;
-    body += `<rect width="${W}" height="${H}" fill="url(#aurora${i})"/>`;
+  const cards = ctx.kind === 'readme' ? [null] : slides.map((_, k) => k);
+  cards.forEach(k => {
+    lights.forEach(([x, y, r, colour, o], i) => {
+      const cx = k === null ? W * x : panoramaX(ctx, k + x);
+      defs += `<radialGradient id="aurora${k}_${i}" gradientUnits="userSpaceOnUse" cx="${cx}" cy="${H * y}" r="${unit * r}"><stop offset="0" stop-color="${colour}" stop-opacity="${o}"/><stop offset="1" stop-color="${colour}" stop-opacity="0"/></radialGradient>`;
+      body += `<rect width="${W}" height="${H}" fill="url(#aurora${k}_${i})"/>`;
+    });
   });
   return `<defs>${defs}</defs>${body}`;
 }

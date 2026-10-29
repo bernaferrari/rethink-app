@@ -7,7 +7,7 @@
         "slide": 0,
         "width": 1080,
         "height": 1920,
-        "bytes": 189586,
+        "bytes": 198795,
         "sources": [
           "raw/phone/01-home.png"
         ]
@@ -18,7 +18,7 @@
         "slide": 1,
         "width": 1080,
         "height": 1920,
-        "bytes": 233041,
+        "bytes": 249370,
         "sources": [
           "raw/phone/02-logs.png"
         ]
@@ -29,7 +29,7 @@
         "slide": 2,
         "width": 1080,
         "height": 1920,
-        "bytes": 178347,
+        "bytes": 197505,
         "sources": [
           "raw/phone/03-apps.png"
         ]
@@ -40,7 +40,7 @@
         "slide": 3,
         "width": 1080,
         "height": 1920,
-        "bytes": 193579,
+        "bytes": 210209,
         "sources": [
           "raw/phone/07-app-detail.png"
         ]
@@ -51,7 +51,7 @@
         "slide": 4,
         "width": 1080,
         "height": 1920,
-        "bytes": 250027,
+        "bytes": 266320,
         "sources": [
           "raw/phone/04-dns-blocked.png"
         ]
@@ -62,7 +62,7 @@
         "slide": 5,
         "width": 1080,
         "height": 1920,
-        "bytes": 203463,
+        "bytes": 222067,
         "sources": [
           "raw/phone/05-stats.png"
         ]
@@ -73,7 +73,7 @@
         "slide": 6,
         "width": 1080,
         "height": 1920,
-        "bytes": 192628,
+        "bytes": 209015,
         "sources": [
           "raw/phone/09-dns.png"
         ]
@@ -84,7 +84,7 @@
         "slide": 7,
         "width": 1080,
         "height": 1920,
-        "bytes": 226787,
+        "bytes": 236664,
         "sources": [
           "raw/phone/11-home-dark.png",
           "raw/phone/12-apps-dark.png"
@@ -98,7 +98,7 @@
         "slide": 0,
         "width": 1200,
         "height": 1920,
-        "bytes": 204214,
+        "bytes": 213256,
         "sources": [
           "raw/tablet7/01-home.png"
         ]
@@ -109,7 +109,7 @@
         "slide": 1,
         "width": 1200,
         "height": 1920,
-        "bytes": 255851,
+        "bytes": 274300,
         "sources": [
           "raw/tablet7/04-dns-blocked.png"
         ]
@@ -120,7 +120,7 @@
         "slide": 2,
         "width": 1200,
         "height": 1920,
-        "bytes": 186523,
+        "bytes": 203747,
         "sources": [
           "raw/tablet7/03-apps.png"
         ]
@@ -131,7 +131,7 @@
         "slide": 3,
         "width": 1200,
         "height": 1920,
-        "bytes": 201092,
+        "bytes": 218582,
         "sources": [
           "raw/tablet7/07-app-detail.png"
         ]
@@ -142,7 +142,7 @@
         "slide": 4,
         "width": 1200,
         "height": 1920,
-        "bytes": 237066,
+        "bytes": 247336,
         "sources": [
           "raw/tablet7/11-home-dark.png",
           "raw/tablet7/12-apps-dark.png"
@@ -156,7 +156,7 @@
         "slide": 0,
         "width": 1920,
         "height": 1200,
-        "bytes": 253683,
+        "bytes": 256900,
         "sources": [
           "raw/tablet10/02-logs.png"
         ]
@@ -167,7 +167,7 @@
         "slide": 1,
         "width": 1920,
         "height": 1200,
-        "bytes": 195312,
+        "bytes": 208636,
         "sources": [
           "raw/tablet10/01-home.png"
         ]
@@ -178,7 +178,7 @@
         "slide": 2,
         "width": 1920,
         "height": 1200,
-        "bytes": 243984,
+        "bytes": 258189,
         "sources": [
           "raw/tablet10/04-dns-blocked.png"
         ]
@@ -189,7 +189,7 @@
         "slide": 3,
         "width": 1920,
         "height": 1200,
-        "bytes": 194357,
+        "bytes": 207981,
         "sources": [
           "raw/tablet10/05-stats.png"
         ]
@@ -200,7 +200,7 @@
         "slide": 4,
         "width": 1920,
         "height": 1200,
-        "bytes": 203384,
+        "bytes": 217948,
         "sources": [
           "raw/tablet10/07-app-detail.png"
         ]
@@ -211,7 +211,7 @@
         "slide": 5,
         "width": 1920,
         "height": 1200,
-        "bytes": 211824,
+        "bytes": 222708,
         "sources": [
           "raw/tablet10/08-settings.png",
           "raw/tablet10/11-home-dark.png"
