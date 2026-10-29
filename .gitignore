@@ -46,3 +46,7 @@ web-build/build/
 .dolt/
 *.db
 .beads-credential-key
+
+# Release signing, never committed
+keystore.properties
+upload-keystore.properties
