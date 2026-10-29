@@ -142,7 +142,7 @@ private fun RethinkWelcomeHero(content: RethinkWelcomeContent) {
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
         ) {
             Text(
-                // Keep hyphenated names ("Re-Rethink") whole; balance the heading's lines.
+                // Keep hyphenated names ("Wi-Fi") whole; balance the heading's lines.
                 text = content.title.replace('-', '\u2011'),
                 style = MaterialTheme.typography.headlineLarge.copy(lineBreak = LineBreak.Heading),
                 fontWeight = FontWeight.Bold,

@@ -47,7 +47,7 @@
     <string name="ada_app_metered">收費嘅網絡</string>
     <string name="ada_app_exclude">排除</string>
     <string name="rethink_sky_desc">超過 280 個地方；更長嘅在線時間；喺 cloudflare.com 上面行嘅中間解析服務</string>
-    <string name="app_name" translatable="false">Re-Rethink</string>
+    <string name="app_name" translatable="false">Keepout</string>
     <string name="title_about">關於</string>
     <string name="title_settings">設定</string>
     <string name="txt_home">首頁</string>

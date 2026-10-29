@@ -185,7 +185,7 @@
     <string name="download_update_dialog_message_ok">আপনি ইতিমধ্যেই সর্বশেষ সংস্করণে রয়েছেন৷</string>
     <string name="orbot_app_issue">অরবট চালু করা যায়নি। এটা ইনস্টল করা হয়\?</string>
     <string name="orbot_install_dialog_neutral">ওয়েবসাইট</string>
-    <string name="dc_rethink_dns_radio">Re-RethinkDNS</string>
+    <string name="dc_rethink_dns_radio">RethinkDNS</string>
     <string name="about_github">GitHub-এ অবদান রাখুন</string>
     <string name="about_mail_subject">[RethinkDNS]:</string>
     <string name="cd_dns_crypt_name">DNSCrypt %1$s</string>
@@ -230,7 +230,7 @@
     <string name="about_join_telegram">Telegram</string>
     <string name="about_dialog_neutral_button">বৈশিষ্ট্য প্রস্তাব করুন</string>
     <string name="univ_firewall_rule_1">ডিভাইস লক হয়ে গেলে সমস্ত অ্যাপ ব্লক করুন</string>
-    <string name="app_name" translatable="false">Re-Rethink</string>
+    <string name="app_name" translatable="false">Keepout</string>
     <string name="title_settings">পছন্দসমূহ</string>
     <string name="title_about">বিস্তারিত</string>
     <string name="finish">শেষ করুন</string>

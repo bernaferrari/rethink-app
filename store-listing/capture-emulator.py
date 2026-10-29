@@ -1,4 +1,4 @@
-"""Capture Re-Rethink's store screens on a dedicated emulator (needs adb, Node with Playwright, and Pillow).
+"""Capture Keepout's store screens on a dedicated emulator (needs adb, Node with Playwright, and Pillow).
 
 Install the capture build first. It shows the real UI over the Google apps that ship on the
 emulator's Play image, with a seeded week of traffic; it has no VPN service and no INTERNET
@@ -80,7 +80,7 @@ def dump():
         except subprocess.CalledProcessError:
             pass
         time.sleep(1.5)
-    raise AssertionError('The Re-Rethink capture build is not in the foreground')
+    raise AssertionError('The Keepout capture build is not in the foreground')
 
 
 def find(label, text_only=False, above=None):

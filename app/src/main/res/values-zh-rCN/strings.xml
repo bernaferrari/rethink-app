@@ -385,7 +385,7 @@
     <string name="about_docs_link">https://docs.rethinkdns.com/</string>
     <string name="ada_app_status_allow">已放行</string>
     <string name="lbbs_copy">复制为 RDNS+ URL</string>
-    <string name="app_name" translatable="false">Re-Rethink</string>
+    <string name="app_name" translatable="false">Keepout</string>
     <string name="title_about">关于</string>
     <string name="isolate">隔离</string>
     <string name="dns_mode_notification_title">已保护！已连接至快速且安全的 DNS 。</string>

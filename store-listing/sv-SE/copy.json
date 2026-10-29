@@ -2,7 +2,7 @@
   "home": {
     "title": "Varje app,\n*på dina villkor.*",
     "body": "Brandvägg, DNS och VPN i en app.\nKräver inte root.",
-    "alt": "Re-Rethinks startskärm: skyddad, med anslutningarna och DNS-förfrågningarna den har hanterat"
+    "alt": "Keepouts startskärm: skyddad, med anslutningarna och DNS-förfrågningarna den har hanterat"
   },
   "logs": {
     "title": "Varje anslutning,\n*fullt synlig.*",

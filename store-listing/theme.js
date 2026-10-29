@@ -1,4 +1,4 @@
-// Re-Rethink: "the aurora". A dark plum field lit by soft coral, rose and magenta light: coral rising
+// Keepout: "the aurora". A dark plum field lit by soft coral, rose and magenta light: coral rising
 // from the lower left, magenta high on the right, a warm glow behind the devices, laid out across the
 // whole strip so every seam continues. Nothing is random, and nothing sits between the reader and the app.
 import {panoramaGradient, panoramaX} from './studio/shapes.js';
@@ -38,7 +38,7 @@ export default {
       const id = document.createElement('div');
       id.className = 'identity';
       id.dataset.checkBounds = '';
-      id.innerHTML = '<img src="../brand/icon.png" alt=""><span>Re-Rethink</span><small>Every app, <em>on your terms.</em></small>';
+      id.innerHTML = '<img src="../brand/icon.png" alt=""><span>Keepout</span><small>Every app, <em>on your terms.</em></small>';
       main.append(id);
     }
   },

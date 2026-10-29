@@ -1,4 +1,4 @@
-# Developing Re-Rethink
+# Developing Keepout
 
 Related: [README](../README.md) · [AGENTS.md](../AGENTS.md) (architecture map and invariants) · [Store listing](../store-listing/README.md)
 
@@ -47,5 +47,5 @@ code-free APKs described in `store-listing/fixture-apps.json`. See [store-listin
 
 - Some device makers apply stricter VPN and background policies, so behavior can vary.
 - Background firewall rules rely on notification, battery-optimization and accessibility permissions.
-- Re-Rethink is local-first: rules and logs stay on the device, and only DNS goes to the chosen resolver
+- Keepout is local-first: rules and logs stay on the device, and only DNS goes to the chosen resolver
   (Rethink DNS by default) unless you add a proxy or WireGuard peer.

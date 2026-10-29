@@ -2,7 +2,7 @@
   "home": {
     "title": "Every app,\n*on your terms.*",
     "body": "Firewall, DNS and VPN in one app.\nNo root needed.",
-    "alt": "Re-Rethink Home: protected, with the connections and DNS queries it has handled"
+    "alt": "Keepout Home: protected, with the connections and DNS queries it has handled"
   },
   "logs": {
     "title": "Every connection,\n*in plain sight.*",
@@ -55,8 +55,8 @@
     "alt": "Blocked DNS queries beside the apps that looked up an analytics host"
   },
   "readme-identity": {
-    "title": "Re-Rethink",
-    "alt": "Re-Rethink: the network log, Home with protection on, and the app list with Wi-Fi and mobile data switches"
+    "title": "Keepout",
+    "alt": "Keepout: the network log, Home with protection on, and the app list with Wi-Fi and mobile data switches"
   },
   "readme-tools": {
     "title": "",

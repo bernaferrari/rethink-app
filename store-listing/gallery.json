@@ -151,7 +151,7 @@
       "feature": "readme-identity",
       "layout": "hero",
       "file": "readme/hero.jpg",
-      "alt": "Re-Rethink Home, the network log and the app list",
+      "alt": "Keepout Home, the network log and the app list",
       "devices": [
         {
           "raw": "phone/02-logs.png",
@@ -210,7 +210,7 @@
       "feature": "readme-compare",
       "layout": "compare",
       "file": "readme/before-after.jpg",
-      "alt": "Rethink's home and app list beside Re-Rethink's Home and app list",
+      "alt": "Rethink's home and app list beside Keepout's Home and app list",
       "devices": [
         {
           "raw": "compare/rethink-home.png",
@@ -220,7 +220,7 @@
         {
           "raw": "phone/01-home.png",
           "role": "after pair1",
-          "label": "Re-Rethink"
+          "label": "Keepout"
         },
         {
           "raw": "compare/rethink-apps.png",
@@ -230,7 +230,7 @@
         {
           "raw": "phone/03-apps.png",
           "role": "after pair2",
-          "label": "Re-Rethink"
+          "label": "Keepout"
         }
       ]
     }

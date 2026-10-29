@@ -60,7 +60,7 @@
     <string name="info_dialog_url_copy_toast_msg">URL gekopieerd</string>
     <string name="info_dialog_rethink_toast_msg">Gekopieerd als RDNS+ DNS-over-HTTPS URL</string>
     <string name="settings_enable_logs_desc">Sla DNS- en firewall-logs lokaal op het apparaat op.</string>
-    <string name="app_name" translatable="false">Re-Rethink</string>
+    <string name="app_name" translatable="false">Keepout</string>
     <string name="title_settings">Instellingen</string>
     <string name="block">blokkeren</string>
     <string name="dns_mode_notification_title">Beschermd! Verbonden met snelle en veilige DNS.</string>
@@ -151,7 +151,7 @@
     <string name="hsf_pause_vpn_failure">Kan niet pauzeren: RethinkDNS niet actief</string>
     <string name="dc_block_heading">Regels</string>
     <string name="dc_custom_dns_radio">Andere DNS</string>
-    <string name="dc_rethink_dns_radio">Re-RethinkDNS</string>
+    <string name="dc_rethink_dns_radio">RethinkDNS</string>
     <string name="dc_local_block_heading">Blokkeringslijsten op het apparaat</string>
     <string name="dc_dns_website_desc">Haalt website iconen op van <i>duckduckgo.com</i>. Verbruikt tot 350 mb aan schijfruimte</string>
     <string name="univ_firewall_rule_5">Blokkeren wanneer DNS wordt omzeild</string>

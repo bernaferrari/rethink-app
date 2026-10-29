@@ -42,7 +42,7 @@
     <string name="title_about">О приложении</string>
     <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">Ожидание</string>
     <string name="status_dns_server_down">DNS-сервер не работает</string>
-    <string name="app_name" translatable="false">Re-Rethink</string>
+    <string name="app_name" translatable="false">Keepout</string>
     <string name="title_settings">Настройки</string>
     <string name="finish">Закончить</string>
     <string name="hybrid_mode_notification_title">Защищен! Подключен к DNS + брандмауэр.</string>

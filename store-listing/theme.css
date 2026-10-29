@@ -1,4 +1,4 @@
-/* Re-Rethink: "the aurora". A dark plum field lit by coral, rose and magenta light. The copy sits at the
+/* Keepout: "the aurora". A dark plum field lit by coral, rose and magenta light. The copy sits at the
    top, its first letter exactly where the device below starts; devices run large, off the bottom (or hang
    from the top with the copy underneath). */
 @font-face{font-family:Rethink;src:url(fonts/GoogleSansFlex-Latin.woff2) format('woff2');font-weight:100 1000;font-style:normal;font-display:block}
@@ -71,7 +71,7 @@ header p{margin:26px 0 0;font-size:40px;line-height:1.28;font-weight:420;color:v
 .readme .spread .slate{left:960px;top:150px;width:1380px}
 .readme .spread .front{left:636px;top:450px;width:400px;z-index:4}
 /* Before and after: the same phone, one sheet per pair. The original keeps a thin, quiet ring;
-   Re-Rethink steps forward in a coral frame with a warm glow, its name in the headline coral. */
+   Keepout steps forward in a coral frame with a warm glow, its name in the headline coral. */
 .readme .compare .device{width:450px;top:110px}
 .readme .compare .device .screen{border-radius:44px;overflow:hidden}
 .readme .compare .device.before{--bezel:4px;--radius:48px;background:#ffffff30;box-shadow:0 30px 60px -30px #050103cc}

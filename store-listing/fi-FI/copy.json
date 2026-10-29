@@ -2,7 +2,7 @@
   "home": {
     "title": "Jokainen sovellus\n*sinun ehdoillasi.*",
     "body": "Palomuuri, DNS ja VPN samassa.\nEi vaadi roottausta.",
-    "alt": "Re-Rethinkin aloitusnäkymä: suojattu, ja näkyvissä käsitellyt yhteydet ja DNS-kyselyt"
+    "alt": "Keepoutin aloitusnäkymä: suojattu, ja näkyvissä käsitellyt yhteydet ja DNS-kyselyt"
   },
   "logs": {
     "title": "Jokainen yhteys\n*näkyvissä.*",

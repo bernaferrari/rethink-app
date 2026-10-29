@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">Re-Rethink</string>
+    <string name="app_name" translatable="false">Keepout</string>
     <string name="accessibility_service_description">Rethink използва услуга за достъпност, за да открива и защитава фонови приложения. Rethink не събира и не продава никаква информация.</string>
     <string name="slide_2_desc">Rethink е най-лесният начин да наблюдавате мрежовата активност, да заобикаляте интернет цензурата и приложенията за защитна стена на вашето устройство с Android.</string>
     <string name="notification_content" description="Indicates what will happen if the user taps the notification.">Натисни за промяна на настройките за защита</string>

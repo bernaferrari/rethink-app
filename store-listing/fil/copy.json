@@ -2,7 +2,7 @@
   "home": {
     "title": "Bawat app,\n*sa gusto mo.*",
     "body": "Firewall, DNS at VPN sa isang app.\nHindi kailangan ng root.",
-    "alt": "Home ng Re-Rethink: protektado, kasama ang mga koneksyon at DNS query na nahawakan nito"
+    "alt": "Home ng Keepout: protektado, kasama ang mga koneksyon at DNS query na nahawakan nito"
   },
   "logs": {
     "title": "Bawat koneksyon,\n*kitang-kita.*",

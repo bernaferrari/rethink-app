@@ -116,7 +116,7 @@
     <string name="new_app_notification_action_deny">Tetap memblok</string>
     <string name="about_web">Tautan</string>
     <string name="about_whats_new">Yang baru di versi %1$s</string>
-    <string name="app_name" translatable="false">Re-Rethink</string>
+    <string name="app_name" translatable="false">Keepout</string>
     <string name="unicode_question_sign">❔</string>
     <string name="firewall_rule_unknown">Sumber Tidak Diketahui</string>
     <string name="category_name_installed">Aplikasi yang Terpasang</string>

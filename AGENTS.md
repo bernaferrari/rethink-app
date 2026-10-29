@@ -1,4 +1,4 @@
-# AGENTS.md — Re-Rethink architecture map
+# AGENTS.md — Keepout architecture map
 
 A no-root Android VPN/DNS/firewall app (fork of RethinkDNS, modernized). Kotlin, Jetpack Compose, Material 3 Expressive, KMP `:shared` module (Android + wasmJs demo), Go (Firestack/Intra) tunnel core via `tun2socks/`.
 

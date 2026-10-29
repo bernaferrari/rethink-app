@@ -587,7 +587,7 @@ internal fun DemoAntiCensorshipScreen(modifier: Modifier, onBack: () -> Unit) {
             title = "Anti-censorship",
             splitHeading = "Split strategy", splitDescription = "How the first bytes of each connection are split to slip past deep-packet inspection.",
             retryHeading = "Retry strategy",
-            retryDescription = "Choose how Re-Rethink retries connections when censorship is detected.",
+            retryDescription = "Choose how Keepout retries connections when censorship is detected.",
         ),
         onDialSelected = { id ->
             dialId = id

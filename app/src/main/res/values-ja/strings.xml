@@ -384,7 +384,7 @@
     <string name="rt_filter_hint" translatable="true"><u>すべての</u>ブロックリストを表示</string>
     <string name="about_bug_no_log_dialog_positive_btn" translatable="true">メールを送信</string>
     <string name="radio_max_btn" translatable="true">🪂 Max</string>
-    <string name="dc_rethink_dns_radio" translatable="true">Re-RethinkDNS</string>
+    <string name="dc_rethink_dns_radio" translatable="true">RethinkDNS</string>
     <string name="dc_block_heading" translatable="true">ルール</string>
     <string name="dc_custom_dns_radio" translatable="true">その他のDNS</string>
     <string name="about_join_telegram" translatable="true">Telegram</string>

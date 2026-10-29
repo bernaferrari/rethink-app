@@ -47,7 +47,7 @@
     <string name="hybrid_mode_notification_title" translatable="true">Nakaseguro! Nakakonekta sa DNS + Firewall.</string>
     <string name="untracked" translatable="true">hindi nasusundan</string>
     <string name="bypass_dns_firewall" translatable="true">Lusutan ang DNS at firewall</string>
-    <string name="warning_title" description="Status indicator text shown in a warning notification." translatable="true">Paalala: Na-deactivate na ang Re-RethinkDNS</string>
+    <string name="warning_title" description="Status indicator text shown in a warning notification." translatable="true">Paalala: Na-deactivate na ang Keepout</string>
     <string name="notification_content" description="Indicates what will happen if the user taps the notification." translatable="true">Pindutin upang baguhin ang mga setting ng proteksyon</string>
     <string name="dns_mode_notification_title" translatable="true">Nakasegurong nakakabit sa mabilis at ligtas na DNS.</string>
     <string name="firewall_mode_notification_title" translatable="true">Nakaseguro! Nakakonekta sa Firewall.</string>
