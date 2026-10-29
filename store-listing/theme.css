@@ -13,10 +13,6 @@ h1 em{font-style:normal;color:var(--coral)}
 h1 ins{text-decoration:none;color:var(--green)}
 header p{margin:26px 0 0;font-size:40px;line-height:1.28;font-weight:420;color:var(--muted);max-width:880px;white-space:pre-line}
 
-.brand{position:absolute;z-index:6;left:84px;top:84px;display:flex;align-items:center;gap:16px;
-  font-size:34px;font-weight:620;letter-spacing:-.01em;color:#ffe9e4}
-.brand img{width:60px;height:60px;border-radius:50%;box-shadow:0 8px 24px #0a020680}
-.campaign.first header{top:196px}
 
 /* Frames: warm porcelain, so light and dark screens both stand clear of the dark field. */
 .device{--bezel:14px;--radius:78px;background:linear-gradient(170deg,var(--frame-top),var(--frame-bottom));
@@ -24,7 +20,6 @@ header p{margin:26px 0 0;font-size:40px;line-height:1.28;font-weight:420;color:v
 
 /* Phone: the app across the whole column, its left edge under the copy's first letter. */
 .phone .gate-right .primary,.phone .gate-left .primary{left:84px;top:620px;width:912px}
-.phone .first .primary{top:660px}
 /* Hanging from the top, copy underneath. */
 .phone .hang header{top:1330px}
 .phone .hang .primary{left:84px;top:-740px;width:912px}
@@ -36,8 +31,6 @@ header p{margin:26px 0 0;font-size:40px;line-height:1.28;font-weight:420;color:v
 .tablet7 header{left:96px;right:96px;top:160px}
 .tablet7 h1{font-size:112px}
 .tablet7 header p{font-size:42px}
-.tablet7 .brand{left:96px}
-.tablet7 .campaign.first header{top:210px}
 .tablet7 .gate-right .primary,.tablet7 .gate-left .primary{left:96px;top:640px;width:1008px}
 .tablet7 .hang header{top:1360px}
 .tablet7 .hang .primary{left:96px;top:-400px;width:1008px}
@@ -50,9 +43,6 @@ header p{margin:26px 0 0;font-size:40px;line-height:1.28;font-weight:420;color:v
 .tablet10 h1{font-size:84px}
 .tablet10 h1 .line{white-space:normal}
 .tablet10 header p{margin:24px 0 0;font-size:32px;max-width:500px;white-space:normal}
-.tablet10 .brand{left:90px;top:70px}
-.tablet10 .campaign.first header{top:250px}
-.tablet10 .first .brand{top:150px}
 .tablet10 .gate-right .primary{left:630px;top:250px;width:1270px}
 .tablet10 .duo .primary{left:640px;top:60px;width:1060px}
 .tablet10 .duo .secondary{left:1000px;top:500px;width:1060px}

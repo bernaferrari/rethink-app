@@ -7,7 +7,7 @@
         "slide": 0,
         "width": 1080,
         "height": 1920,
-        "bytes": 198795,
+        "bytes": 191229,
         "sources": [
           "raw/phone/01-home.png"
         ]
@@ -98,7 +98,7 @@
         "slide": 0,
         "width": 1200,
         "height": 1920,
-        "bytes": 213256,
+        "bytes": 206660,
         "sources": [
           "raw/tablet7/01-home.png"
         ]
@@ -156,7 +156,7 @@
         "slide": 0,
         "width": 1920,
         "height": 1200,
-        "bytes": 256900,
+        "bytes": 251308,
         "sources": [
           "raw/tablet10/02-logs.png"
         ]

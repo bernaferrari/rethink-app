@@ -28,7 +28,7 @@ function art(ctx) {
 export default {
   art,
 
-  compose({index, main, kind, slide}) {
+  compose({main, slide}) {
     // A card without a headline (the README trio, under its own section heading) has no copy.
     const header = main.querySelector('header');
     if (header && !header.querySelector('h1')?.textContent.trim()) header.remove();
@@ -41,14 +41,6 @@ export default {
       id.innerHTML = '<img src="../brand/icon.png" alt=""><span>Re-Rethink</span><small>Every app, <em>on your terms.</em></small>';
       main.append(id);
     }
-    if (index !== 0 || kind === 'readme') return;
-    // The app opens the set; later cards carry only their headline.
-    main.classList.add('first');
-    const brand = document.createElement('div');
-    brand.className = 'brand';
-    brand.dataset.checkBounds = '';
-    brand.innerHTML = '<img src="../brand/icon.png" alt="">Re-Rethink';
-    main.append(brand);
   },
 
   /** Bezel and corners follow the frame's width, so small and large screens look like one device family. */
