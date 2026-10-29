@@ -15,78 +15,27 @@
  */
 package com.bernaferrari.bravedns.service
 
-import Logger
-import Logger.LOG_TAG_UI
-import Logger.LOG_TAG_VPN
-import com.bernaferrari.bravedns.util.Constants.Companion.INIT_TIME_MS
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import android.os.SystemClock
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.StateFlow
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicLong
 
-// should this be replaced with developer.android.com/reference/android/os/CountDownTimer?
 object PauseTimer {
-
-    // default duration for pause state: 15mins
     val DEFAULT_PAUSE_TIME_MS = TimeUnit.MINUTES.toMillis(15)
-
-    private var countdownMs: AtomicLong = AtomicLong(DEFAULT_PAUSE_TIME_MS)
-    private var pauseCountDownTimer: MutableStateFlow<Long> = MutableStateFlow(INIT_TIME_MS)
-    private const val COUNT_DOWN_INTERVAL = 1000L
-
-    // increment/decrement value to pause vpn
     val PAUSE_VPN_EXTRA_MILLIS = TimeUnit.MINUTES.toMillis(1)
 
-    fun start(durationMs: Long) {
-        Logger.d(LOG_TAG_UI, "timer started, duration: $durationMs")
-        io {
-            try {
-                setCountdown(durationMs)
-                while (countdownMs.get() > 0L) {
-                    delay(COUNT_DOWN_INTERVAL)
-                    addCountdown(-COUNT_DOWN_INTERVAL)
-                }
-            } finally {
-                Logger.d(LOG_TAG_VPN, "pause timer complete")
-                if (VpnController.isAppPaused()) {
-                    VpnController.resumeApp()
-                }
-                setCountdown(INIT_TIME_MS)
-            }
-        }
+    private val countdown = PauseCountdown(
+        CoroutineScope(SupervisorJob() + Dispatchers.IO),
+        SystemClock::elapsedRealtime,
+    ) {
+        if (VpnController.isAppPaused()) VpnController.resumeApp()
     }
 
-    private fun setCountdown(c: Long): Long {
-        countdownMs.set(c)
-        pauseCountDownTimer.value = c
-        return c
-    }
-
-    private fun addCountdown(c: Long): Long {
-        val r = countdownMs.getAndAdd(c)
-        pauseCountDownTimer.value = r
-        return r
-    }
-
-    fun stop() {
-        setCountdown(INIT_TIME_MS)
-    }
-
-    fun addDuration(duration: Long) {
-        addCountdown(duration)
-    }
-
-    fun subtractDuration(duration: Long) {
-        addCountdown(-duration)
-    }
-
-    fun pauseCountDownFlow(): StateFlow<Long> {
-        return pauseCountDownTimer
-    }
-
-    private fun io(f: suspend () -> Unit) = CoroutineScope(Dispatchers.IO).launch { f() }
+    fun start(durationMs: Long) { countdown.start(durationMs) }
+    fun stop() { countdown.stop() }
+    fun addDuration(duration: Long) { countdown.adjust(duration) }
+    fun subtractDuration(duration: Long) { countdown.adjust(-duration) }
+    fun pauseCountDownFlow(): StateFlow<Long> = countdown.state
 }

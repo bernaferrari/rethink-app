@@ -1,13 +1,18 @@
 {
   "icons": [
     {
-      "android": {"res": "app/src/main/res", "legacy": true},
+      "android": {"res": "app/src/main/res", "legacy": false},
       "files": [
-        {"path": "app/src/main/res/drawable-mdpi/ic_launcher.png", "size": 48, "shape": "rounded"},
-        {"path": "app/src/main/res/drawable-hdpi/ic_launcher.png", "size": 72, "shape": "rounded"},
-        {"path": "app/src/main/res/drawable-xhdpi/ic_launcher.png", "size": 96, "shape": "rounded"},
-        {"path": "app/src/main/res/drawable-xxhdpi/ic_launcher.png", "size": 144, "shape": "rounded"},
-        {"path": "app/src/main/res/drawable-xxxhdpi/ic_launcher.png", "size": 192, "shape": "rounded"},
+        {"path": "app/src/main/res/mipmap-mdpi/ic_launcher_legacy.png", "size": 48, "shape": "rounded"},
+        {"path": "app/src/main/res/mipmap-hdpi/ic_launcher_legacy.png", "size": 72, "shape": "rounded"},
+        {"path": "app/src/main/res/mipmap-xhdpi/ic_launcher_legacy.png", "size": 96, "shape": "rounded"},
+        {"path": "app/src/main/res/mipmap-xxhdpi/ic_launcher_legacy.png", "size": 144, "shape": "rounded"},
+        {"path": "app/src/main/res/mipmap-xxxhdpi/ic_launcher_legacy.png", "size": 192, "shape": "rounded"},
+        {"path": "app/src/main/res/mipmap-mdpi/ic_launcher_round.png", "size": 48, "shape": "circle"},
+        {"path": "app/src/main/res/mipmap-hdpi/ic_launcher_round.png", "size": 72, "shape": "circle"},
+        {"path": "app/src/main/res/mipmap-xhdpi/ic_launcher_round.png", "size": 96, "shape": "circle"},
+        {"path": "app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png", "size": 144, "shape": "circle"},
+        {"path": "app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png", "size": 192, "shape": "circle"},
         {"path": "store-listing/brand/icon.png", "size": 512, "shape": "square"},
         {"path": "store-listing/brand/icon.svg", "shape": "square"},
         {"path": "fastlane/metadata/android/en-US/images/icon.png", "size": 512, "shape": "square"},

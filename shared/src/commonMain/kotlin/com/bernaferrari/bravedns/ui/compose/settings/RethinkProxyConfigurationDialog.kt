@@ -93,7 +93,8 @@ fun RethinkProxyConfigurationDialog(
     ) { dismissSheet ->
         RethinkSheetHeader(title = strings.title, subtitle = strings.description)
         Column(
-            modifier = Modifier.verticalScroll(rememberScrollState()),
+            // Leave room for Cancel/Save on short displays and above the IME.
+            modifier = Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
         ) {
             RethinkProxyTextField(state.host, strings.host) { onStateChange(state.copy(host = it, error = null)) }

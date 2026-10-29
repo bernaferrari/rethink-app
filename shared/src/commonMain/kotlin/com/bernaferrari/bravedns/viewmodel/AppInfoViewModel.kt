@@ -128,9 +128,9 @@ class AppInfoViewModel(
                 RethinkFirewallFilter.Blocked ->
                     status == AppFirewallStatus.None.id && connection in BLOCKED_CONNECTION_IDS
                 RethinkFirewallFilter.BlockedWifi ->
-                    status == AppFirewallStatus.None.id && connection == AppConnectionStatus.Unmetered.id
+                    status == AppFirewallStatus.None.id && connection in setOf(AppConnectionStatus.Unmetered.id, AppConnectionStatus.Both.id)
                 RethinkFirewallFilter.BlockedMobile ->
-                    status == AppFirewallStatus.None.id && connection == AppConnectionStatus.Metered.id
+                    status == AppFirewallStatus.None.id && connection in setOf(AppConnectionStatus.Metered.id, AppConnectionStatus.Both.id)
                 RethinkFirewallFilter.Bypass -> status in BYPASS_STATUS_IDS
                 RethinkFirewallFilter.Excluded -> status == AppFirewallStatus.Exclude.id
                 RethinkFirewallFilter.Lockdown -> status == AppFirewallStatus.Isolate.id

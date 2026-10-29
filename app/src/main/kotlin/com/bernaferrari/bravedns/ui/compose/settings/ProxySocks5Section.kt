@@ -47,18 +47,7 @@ internal fun ProxySocks5DialogHost(
     Socks5Dialog(
         state = state,
         onStateChange = { onStateChange(it) },
-        onCancel = {
-            scope.launch {
-                withContext(Dispatchers.IO) {
-                    appConfig.removeProxy(
-                        AppConfig.ProxyType.SOCKS5,
-                        AppConfig.ProxyProvider.CUSTOM
-                    )
-                }
-                onStateChange(null)
-                onReloadUi()
-            }
-        },
+        onCancel = { onStateChange(null) },
         onConfirm = {
             scope.launch {
                 val validationError =

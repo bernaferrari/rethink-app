@@ -12,7 +12,6 @@ import com.bernaferrari.bravedns.database.ConnectionTrackerDAO
 import com.bernaferrari.bravedns.database.AppStatsDao
 import com.bernaferrari.bravedns.database.AsnStatsDao
 import com.bernaferrari.bravedns.database.CountryStatsDao
-import com.bernaferrari.bravedns.database.DailyStatsDao
 import com.bernaferrari.bravedns.database.DomainStatsDao
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -39,7 +38,6 @@ class SummaryStatisticsViewModel(
     @Provided private val asnStatsDao: AsnStatsDao,
     @Provided private val domainStatsDao: DomainStatsDao,
     @Provided private val countryStatsDao: CountryStatsDao,
-    @Provided private val dailyStatsDao: DailyStatsDao,
     @Provided private val uptimeProvider: NetworkUptimeProvider,
     private val nowMillis: () -> Long = { Clock.System.now().toEpochMilliseconds() }
 ) : ViewModel() {
@@ -80,21 +78,19 @@ class SummaryStatisticsViewModel(
         combine(startTime, topActiveConnsTick, refreshTick) { start, uptime, _ ->
             start to (nowMillis() - uptime)
         }.flatMapLatest { (start, activeFrom) ->
-            // Sub-day windows stay on the live tables (daily rollups are calendar-day
-            // coarse); day+ windows read the materialized daily_* tables.
-            val useDaily = start <= nowMillis() - ONE_DAY_MILLIS
+            // These are rolling windows, so include only rows inside the exact cutoff.
             combine(
                 listOf(
                     appStatsDao.getTopActiveConns(activeFrom),
-                    if (useDaily) dailyStatsDao.getMostAllowedAppsDaily(start) else appStatsDao.getMostAllowedApps(start),
-                    if (useDaily) dailyStatsDao.getMostBlockedAppsDaily(start) else appStatsDao.getMostBlockedApps(start),
-                    if (useDaily) dailyStatsDao.getMostConnectedASNDaily(start) else asnStatsDao.getMostConnectedASN(start),
-                    if (useDaily) dailyStatsDao.getMostBlockedASNDaily(start) else asnStatsDao.getMostBlockedASN(start),
-                    if (useDaily) dailyStatsDao.getMostBlockedDomainsDaily(start) else domainStatsDao.getMostBlockedDomains(start),
-                    if (useDaily) dailyStatsDao.getMostContactedDomainsDaily(start) else domainStatsDao.getMostContactedDomains(start),
-                    if (useDaily) dailyStatsDao.getMostContactedCountriesDaily(start) else countryStatsDao.getMostContactedCountries(start),
-                    if (useDaily) dailyStatsDao.getMostContactedIpsDaily(start) else connectionTrackerDAO.getMostContactedIps(start),
-                    if (useDaily) dailyStatsDao.getMostBlockedIpsDaily(start) else connectionTrackerDAO.getMostBlockedIps(start),
+                    appStatsDao.getMostAllowedApps(start),
+                    appStatsDao.getMostBlockedApps(start),
+                    asnStatsDao.getMostConnectedASN(start),
+                    asnStatsDao.getMostBlockedASN(start),
+                    domainStatsDao.getMostBlockedDomains(start),
+                    domainStatsDao.getMostContactedDomains(start),
+                    countryStatsDao.getMostContactedCountries(start),
+                    connectionTrackerDAO.getMostContactedIps(start),
+                    connectionTrackerDAO.getMostBlockedIps(start),
                 )
             ) { lists ->
                 SummaryCardLists(

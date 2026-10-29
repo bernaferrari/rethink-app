@@ -42,7 +42,7 @@ import java.io.File
 import java.io.ObjectOutputStream
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [28])
+@Config(application = Application::class, sdk = [28])
 class RestoreAgentTest {
 
     @get:Rule
@@ -112,10 +112,10 @@ class RestoreAgentTest {
     }
 
     @Test
-    fun `restore accepts older schemas that this build can migrate`() {
+    fun `restore rejects older schemas because v0 has no migrations`() {
         val app = sqliteDb(AppDatabase.DATABASE_NAME, AppDatabase.SCHEMA_VERSION - 1)
         val logs = sqliteDb(LogDatabase.LOGS_DATABASE_NAME, LogDatabase.SCHEMA_VERSION - 1)
-        assertTrue(validateRestoredSchemaVersions(arrayOf(app, logs)))
+        assertFalse(validateRestoredSchemaVersions(arrayOf(app, logs)))
     }
 
     @Test
@@ -124,7 +124,8 @@ class RestoreAgentTest {
         val wal = File(tmp.newFolder(), "${AppDatabase.DATABASE_NAME}-wal").apply { writeText("not-sqlite") }
         val shm = File(tmp.newFolder(), "${AppDatabase.DATABASE_NAME}-shm").apply { writeText("not-sqlite") }
         val journal = File(tmp.newFolder(), "${AppDatabase.DATABASE_NAME}-journal").apply { writeText("not-sqlite") }
-        assertTrue(validateRestoredSchemaVersions(arrayOf(app, wal, shm, journal)))
+        val logs = sqliteDb(LogDatabase.LOGS_DATABASE_NAME, LogDatabase.SCHEMA_VERSION)
+        assertTrue(validateRestoredSchemaVersions(arrayOf(app, logs, wal, shm, journal)))
     }
 
     @Test

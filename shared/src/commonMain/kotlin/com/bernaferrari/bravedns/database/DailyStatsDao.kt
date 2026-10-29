@@ -8,8 +8,10 @@ import androidx.room3.Query
 import com.bernaferrari.bravedns.data.AppConnection
 import kotlinx.coroutines.flow.Flow
 
+// Room exposes one method per query; keeping this SQL surface together makes aggregate consistency reviewable.
+@Suppress("TooManyFunctions")
 @Dao
-interface DailyStatsDao {
+interface DailyStatsDao : AsnStatsMaintenanceDao {
 
     @Query(
         """

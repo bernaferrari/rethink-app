@@ -9,6 +9,8 @@
  */
 package com.bernaferrari.bravedns.backup
 
+import android.app.Application
+
 import com.bernaferrari.bravedns.database.AppDatabase
 import com.bernaferrari.bravedns.database.LogDatabase
 import io.mockk.coVerify
@@ -32,7 +34,7 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [28])
+@Config(application = Application::class, sdk = [28])
 class BackupHelperTest {
 
     @get:Rule

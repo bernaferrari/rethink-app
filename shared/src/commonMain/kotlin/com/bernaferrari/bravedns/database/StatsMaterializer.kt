@@ -3,8 +3,6 @@
  */
 package com.bernaferrari.bravedns.database
 
-import com.bernaferrari.bravedns.data.ConnectionSummary
-import kotlin.concurrent.Volatile
 
 /**
  * Incremental daily-stats maintenance. Groups only the flushed log batch (O(batch)),
@@ -22,10 +20,22 @@ class StatsMaterializer(
         }
     }
 
-    suspend fun onUpdated(batch: List<*>) {
-        if (batch.isEmpty()) return
-        if (batch.first() !is ConnectionSummary) return
-        applySummaries(batch.filterIsInstance<ConnectionSummary>())
+    suspend fun onConnectionsChanged(before: List<ConnectionTracker>, after: List<ConnectionTracker>) {
+        // An ASN may have become known since the original insert. Reversing its old row
+        // with today's metadata would subtract a contribution that was never materialized.
+        applyConnections(before, -1, includeAsns = false)
+        applyConnections(after, includeAsns = false)
+        val connections = before + after
+        val info = lookupAsns(connections)
+        connections.mapNotNull { connection ->
+            info[connection.ipAddress]?.asName?.takeIf { it.isNotEmpty() }
+                ?.let { epochDay(connection.timeStamp) to it }
+        }.distinct().forEach { (day, name) -> dailyStatsDao.replaceAsnDay(day, name) }
+    }
+
+    suspend fun onIpInfoInserted(ip: String) {
+        val name = ipInfoDao.getIpInfo(ip)?.asName?.takeIf { it.isNotEmpty() } ?: return
+        dailyStatsDao.daysForIp(ip).forEach { day -> dailyStatsDao.replaceAsnDay(day, name) }
     }
 
     suspend fun purgeBefore(cutoffMillis: Long) {
@@ -37,17 +47,21 @@ class StatsMaterializer(
         dailyStatsDao.purgeIpsBefore(fromDay)
     }
 
-    private suspend fun applyConnections(conns: List<ConnectionTracker>) {
+    private suspend fun applyConnections(
+        conns: List<ConnectionTracker>,
+        direction: Int = 1,
+        includeAsns: Boolean = true,
+    ) {
         val apps = aggregateAppsFromConnections(conns)
         val countries = aggregateCountriesFromConnections(conns)
         val domains = aggregateDomainsFromConnections(conns)
         val ips = aggregateIpsFromConnections(conns)
-        val asns = aggregateAsnsFromConnections(conns, lookupAsns(conns))
-        apps.forEach { dailyStatsDao.upsertApp(it.date, it.uid, it.appName, it.connectionCount, it.blockedCount, it.downloadBytes, it.uploadBytes, it.dnsQueryCount, it.blockedDnsCount) }
-        countries.forEach { dailyStatsDao.upsertCountry(it.date, it.flag, it.connectionCount, it.dnsQueryCount) }
-        domains.forEach { dailyStatsDao.upsertDomain(it.date, it.domain, it.flag, it.contactedCount, it.blockedCount) }
-        ips.forEach { dailyStatsDao.upsertIp(it.date, it.ipAddress, it.flag, it.contactedCount, it.blockedCount, it.downloadBytes, it.uploadBytes) }
-        asns.forEach { dailyStatsDao.upsertAsn(it.date, it.asName, it.countryCode, it.connectionCount, it.blockedCount, it.downloadBytes, it.uploadBytes) }
+        val asns = if (includeAsns) aggregateAsnsFromConnections(conns, lookupAsns(conns)) else emptyList()
+        apps.forEach { dailyStatsDao.upsertApp(it.date, it.uid, it.appName, it.connectionCount * direction, it.blockedCount * direction, it.downloadBytes * direction, it.uploadBytes * direction, it.dnsQueryCount * direction, it.blockedDnsCount * direction) }
+        countries.forEach { dailyStatsDao.upsertCountry(it.date, it.flag, it.connectionCount * direction, it.dnsQueryCount * direction) }
+        domains.forEach { dailyStatsDao.upsertDomain(it.date, it.domain, it.flag, it.contactedCount * direction, it.blockedCount * direction) }
+        ips.forEach { dailyStatsDao.upsertIp(it.date, it.ipAddress, it.flag, it.contactedCount * direction, it.blockedCount * direction, it.downloadBytes * direction, it.uploadBytes * direction) }
+        asns.forEach { dailyStatsDao.upsertAsn(it.date, it.asName, it.countryCode, it.connectionCount * direction, it.blockedCount * direction, it.downloadBytes * direction, it.uploadBytes * direction) }
     }
 
     private suspend fun applyDns(logs: List<DnsLog>) {
@@ -57,21 +71,6 @@ class StatsMaterializer(
         apps.forEach { dailyStatsDao.upsertApp(it.date, it.uid, it.appName, it.connectionCount, it.blockedCount, it.downloadBytes, it.uploadBytes, it.dnsQueryCount, it.blockedDnsCount) }
         countries.forEach { dailyStatsDao.upsertCountry(it.date, it.flag, it.connectionCount, it.dnsQueryCount) }
         domains.forEach { dailyStatsDao.upsertDomain(it.date, it.domain, it.flag, it.contactedCount, it.blockedCount) }
-    }
-
-    private suspend fun applySummaries(summaries: List<ConnectionSummary>) {
-        val today = epochDay(kotlin.time.Clock.System.now().toEpochMilliseconds())
-        val byUid = LinkedHashMap<Int, LongArray>()
-        for (s in summaries) {
-            val uid = s.uid.toIntOrNull() ?: continue
-            val acc = byUid.getOrPut(uid) { longArrayOf(0L, 0L) }
-            acc[0] += s.downloadBytes
-            acc[1] += s.uploadBytes
-        }
-        for ((uid, bytes) in byUid) {
-            if (bytes[0] == 0L && bytes[1] == 0L) continue
-            dailyStatsDao.upsertApp(today, uid, "", 0, 0, bytes[0], bytes[1], 0, 0)
-        }
     }
 
     private suspend fun lookupAsns(conns: List<ConnectionTracker>): Map<String, IpInfo> {
@@ -145,8 +144,8 @@ internal fun aggregateAppsFromConnections(conns: List<ConnectionTracker>): Colle
         if (c.appName.isNotEmpty()) row.appName = c.appName
         if (c.isBlocked) {
             row.blockedCount += 1
-        } else if (!c.dnsQuery.isNullOrEmpty()) {
-            row.connectionCount += 1
+        } else {
+            if (!c.dnsQuery.isNullOrEmpty()) row.connectionCount += 1
             row.downloadBytes += c.downloadBytes
             row.uploadBytes += c.uploadBytes
         }

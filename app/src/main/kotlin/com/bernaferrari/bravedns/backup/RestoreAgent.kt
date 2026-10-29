@@ -1,425 +1,187 @@
-/*
- * Copyright 2022 RethinkDNS and its authors
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.bernaferrari.bravedns.backup
 
 import Logger
 import Logger.LOG_TAG_BACKUP_RESTORE
 import android.content.Context
-import android.content.pm.PackageInfo
 import android.database.sqlite.SQLiteDatabase
 import android.net.Uri
 import androidx.core.net.toUri
 import androidx.work.CoroutineWorker
+import androidx.work.Data
 import androidx.work.WorkerParameters
 import com.bernaferrari.bravedns.backup.BackupHelper.Companion.DATA_BUILDER_RESTORE_URI
 import com.bernaferrari.bravedns.backup.BackupHelper.Companion.METADATA_FILENAME
 import com.bernaferrari.bravedns.backup.BackupHelper.Companion.SHARED_PREFS_BACKUP_FILE_NAME
 import com.bernaferrari.bravedns.backup.BackupHelper.Companion.TEMP_WG_DIR
-import com.bernaferrari.bravedns.backup.BackupHelper.Companion.deleteResidue
-import com.bernaferrari.bravedns.backup.BackupHelper.Companion.getTempDir
-import com.bernaferrari.bravedns.backup.BackupHelper.Companion.stopVpn
-import com.bernaferrari.bravedns.backup.BackupHelper.Companion.unzip
-import com.bernaferrari.bravedns.data.AppConfig
 import com.bernaferrari.bravedns.database.AppDatabase
 import com.bernaferrari.bravedns.database.LogDatabase
 import com.bernaferrari.bravedns.service.PersistentState
-import com.bernaferrari.bravedns.service.RethinkBlocklistManager
-import com.bernaferrari.bravedns.util.Constants
-import com.bernaferrari.bravedns.util.RemoteFileTagUtil
+import com.bernaferrari.bravedns.service.VpnController
 import com.bernaferrari.bravedns.util.Utilities
-import com.bernaferrari.bravedns.util.Utilities.deleteRecursive
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 import java.io.File
 import java.io.FileInputStream
-import java.io.IOException
-import java.io.InputStream
 import java.io.ObjectInputStream
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 class RestoreAgent(val context: Context, workerParams: WorkerParameters) :
     CoroutineWorker(context, workerParams), KoinComponent {
-
     private val logDatabase by inject<LogDatabase>()
     private val appDatabase by inject<AppDatabase>()
-    private val appConfig by inject<AppConfig>()
     private val persistentState by inject<PersistentState>()
+    private var restartRequired = false
 
     companion object {
         const val TAG = "RestoreAgent"
+        const val RESTART_REQUIRED = "restartRequired"
     }
 
     override suspend fun doWork(): Result {
-        val restoreUri = inputData.getString(DATA_BUILDER_RESTORE_URI)?.toUri()
-        if (restoreUri == null) {
-            Logger.w(LOG_TAG_BACKUP_RESTORE, "restore uri is null, return failure")
-            return Result.failure()
-        }
-
-        Logger.d(LOG_TAG_BACKUP_RESTORE, "begin restore process with file uri: $restoreUri")
-        val result = startRestore(restoreUri)
-
-        Logger.i(LOG_TAG_BACKUP_RESTORE, "completed restore process, is successful? $result")
-        return if (result) {
-            Result.success()
-        } else {
-            Result.failure()
-        }
+        val uri = inputData.getString(DATA_BUILDER_RESTORE_URI)?.toUri() ?: return Result.failure()
+        return if (startRestore(uri)) Result.success()
+        else Result.failure(Data.Builder().putBoolean(RESTART_REQUIRED, restartRequired).build())
     }
 
-    private suspend fun startRestore(importUri: Uri): Boolean {
-        var inputStream: InputStream? = null
-        stopVpn(context)
-        try {
-            val tempDir = getTempDir(context)
-            inputStream = context.contentResolver.openInputStream(importUri)
-
-            Logger.d(LOG_TAG_BACKUP_RESTORE, "restore process, temp file dir: ${tempDir.path}")
-            // unzip the backup files to tempDir
-            if (!unzip(inputStream, tempDir.path)) {
-                Logger.w(
-                    LOG_TAG_BACKUP_RESTORE,
-                    "failed to unzip the uri to temp dir $importUri, ${tempDir.path}, return failure"
-                )
-                return false
-            } else {
-                Logger.d(LOG_TAG_BACKUP_RESTORE, "restore process, unzipped the files to temp dir")
-                // proceed
+    // Import boundary: every deserialization/filesystem failure must leave the original state intact.
+    @Suppress("TooGenericExceptionCaught")
+    private suspend fun startRestore(uri: Uri): Boolean {
+        val directory = File(context.filesDir, "restore-$id")
+        val wasRunning = VpnController.isOn()
+        val originalPreferences = persistentState.snapshotPreferences()
+        var stopped = false
+        return try {
+            directory.deleteRecursively()
+            check(directory.mkdirs()) { "Cannot create restore directory" }
+            context.contentResolver.openInputStream(uri).use { input ->
+                check(BackupHelper.unzip(input, directory.path)) { "Cannot unpack backup" }
             }
-
-            if (!validateMetadata(tempDir.path)) {
-                Logger.w(
-                    LOG_TAG_BACKUP_RESTORE,
-                    "invalid meta-data or metadata not found. maybe earlier version backup"
-                )
-                return false
-            } else {
-                Logger.i(LOG_TAG_BACKUP_RESTORE, "metadata file validation complete")
-                // no-op; proceed
-            }
-
-            // copy SharedPreferences file to its directory,
-            // if shared pref copy is succeeds then proceed to database restore else
-            // return failed
-            if (!restoreSharedPreferencesFromFile(tempDir.path)) {
-                Logger.w(LOG_TAG_BACKUP_RESTORE, "failed to restore shared pref, return failure")
-                return false
-            } else {
-                Logger.i(LOG_TAG_BACKUP_RESTORE, "shared pref restored to the temp dir")
-                // proceed
-            }
-
-            // Copy new database file into its final directory
-            if (!restoreDatabaseFile(tempDir)) {
-                Logger.w(LOG_TAG_BACKUP_RESTORE, "failed to restore database, return failure")
-                return false
-            } else {
-                Logger.i(LOG_TAG_BACKUP_RESTORE, "database restored to the temp dir")
-                // proceed
-            }
-
-            // copy wireguard contents into temp_wg folder
-            // if wireguard copy failed, the proceed with cleanup
-            if (!restoreWireGuardFiles(tempDir)) {
-                Logger.w(LOG_TAG_BACKUP_RESTORE, "failed to restore wireguard files, return failure")
-                // clear WireGuard related entries from database
-                wireGuardCleanup()
-            } else {
-                Logger.i(LOG_TAG_BACKUP_RESTORE, "wireguard files restored to the temp dir")
-            }
-
-            // open log database if its not open
-            handleDatabaseInit()
-
-            // copy the blocklist file from assets to the remote blocklist folder
-            moveRemoteBlocklistFileFromAsset()
-
-            // update app version after the restore process
-            updateLatestVersion()
-
-            // clean up the temp directory
-            deleteRecursive(tempDir)
-
-            return true
-        } catch (e: Exception) {
-            Logger.crash(
-                LOG_TAG_BACKUP_RESTORE,
-                "exception during restore process, reason? ${e.message}",
-                e
-            )
-            return false
+            check(validateMetadata(directory.path)) { "Backup metadata is missing" }
+            check(validateRestoredSchemaVersions(directory.listFiles() ?: emptyArray())) { "Invalid database schema" }
+            validateSchemaIdentities(directory)
+            val preferences = readPreferences(directory)
+            val transactions = stageFiles(directory)
+            stopped = true
+            VpnController.stopAndAwait("restore", context)
+            installRestore(transactions, preferences, originalPreferences)
+            directory.deleteRecursively()
+            true
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            Logger.e(LOG_TAG_BACKUP_RESTORE, "Restore failed; original files retained", error)
+            false
         } finally {
-            inputStream?.close()
-        }
-    }
-
-    private suspend fun moveRemoteBlocklistFileFromAsset() {
-        // already there is a remote blocklist file available
-        if (
-            persistentState.remoteBlocklistTimestamp >
-            Constants.PACKAGED_REMOTE_FILETAG_TIMESTAMP
-        ) {
-            RethinkBlocklistManager.readJson(
-                context,
-                RethinkBlocklistManager.DownloadType.REMOTE,
-                persistentState.remoteBlocklistTimestamp
-            )
-            return
-        }
-
-        RemoteFileTagUtil.moveFileToLocalDir(context.applicationContext, persistentState)
-    }
-
-        private fun handleDatabaseInit() {
-        // Room connections are closed before the file replace. The restore success path
-        // restarts the process (BackupRestoreDialog), which rebuilds Koin/Room singletons.
-        Logger.i(LOG_TAG_BACKUP_RESTORE, "restore copied db files; Room will reopen after process restart")
-    }
-
-    // Restore database file stored at tempDir/nameOfFileToRestore.
-    private suspend fun restoreDatabaseFile(tempDir: File): Boolean {
-        checkPoint()
-
-        Logger.d(LOG_TAG_BACKUP_RESTORE, "begin restore database to temp dir: ${tempDir.path}")
-
-        val files = tempDir.listFiles()
-        if (files == null) {
-            Logger.w(LOG_TAG_BACKUP_RESTORE, "files to restore is empty, path: ${tempDir.path}")
-            return false
-        }
-
-        Logger.d(
-            LOG_TAG_BACKUP_RESTORE,
-            "List of files in backup folder: ${files.size}, path: ${tempDir.path}"
-        )
-        if (!validateRestoredSchemaVersions(files)) {
-            return false
-        }
-        closeRoomDatabases()
-        for (file in files) {
-            val currentDbFile = File(context.getDatabasePath(file.name).path)
-            if (
-                !file.name.contains(AppDatabase.DATABASE_NAME) &&
-                    !file.name.contains(LogDatabase.LOGS_DATABASE_NAME)
-            ) {
-                Logger.w(
-                    LOG_TAG_BACKUP_RESTORE,
-                    "restore process, file name is not db, file name: ${file.name}"
-                )
-                continue
+            if (!restartRequired) {
+                directory.deleteRecursively()
+                if (wasRunning && stopped) withContext(NonCancellable) {
+                    VpnController.stopAndAwait("restore-recovery", context)
+                    BackupHelper.startVpn(context)
+                }
             }
-            if (!Utilities.copy(file.path, currentDbFile.path)) {
-                Logger.w(
-                    LOG_TAG_BACKUP_RESTORE,
-                    "restore process, failure copying database file: ${file.path} to ${currentDbFile.path}"
-                )
-                return false
-            }
-            Logger.i(
-                LOG_TAG_BACKUP_RESTORE,
-                "database file: ${file.name} backed up from ${file.path} to ${currentDbFile.path}"
-            )
         }
-
-        deleteResidue(tempDir)
-        return true
     }
+
+    private fun stageFiles(directory: File): List<RestoreFileTransaction> {
+        val databaseNames = listOf(AppDatabase.DATABASE_NAME, LogDatabase.LOGS_DATABASE_NAME)
+            .flatMap { name -> listOf(name, "$name-wal", "$name-shm", "$name-journal") }
+        val databaseDirectory = requireNotNull(context.getDatabasePath(AppDatabase.DATABASE_NAME).parentFile)
+        val databases = RestoreFileTransaction(databaseDirectory, File(directory, "database-stage"), databaseNames)
+        databases.stage(directory)
+        val wireguardSource = File(directory, TEMP_WG_DIR)
+        check(wireguardSource.mkdirs()) { "Cannot stage WireGuard files" }
+        directory.listFiles().orEmpty().filter { it.isFile && it.extension == "conf" }.forEach {
+            it.copyTo(File(wireguardSource, it.name))
+        }
+        val wireguard = RestoreFileTransaction(context.filesDir, File(directory, "wireguard-stage"), listOf(TEMP_WG_DIR))
+        wireguard.stage(directory)
+        return listOf(databases, wireguard)
+    }
+
+    // Transaction boundary must roll back for any failure after Room closes.
+    @Suppress("TooGenericExceptionCaught")
+    private suspend fun installRestore(
+        transactions: List<RestoreFileTransaction>,
+        preferences: Map<String, Any?>,
+        originalPreferences: Map<String, Any?>,
+    ) =
+        withContext(NonCancellable) {
+            BackupHelper.checkpointRoomDatabases(appDatabase, logDatabase)
+            restartRequired = true
+            File(context.filesDir, RestoreRestart.MARKER).writeText("restart")
+            appDatabase.close()
+            logDatabase.close()
+            try {
+                transactions.forEach { it.install() }
+                @Suppress("DEPRECATION")
+                val currentVersion = Utilities.getPackageMetadata(context.packageManager, context.packageName)?.versionCode
+                val restoredPreferences = if (currentVersion == null) preferences
+                    else preferences + (PersistentState.APP_VERSION to currentVersion)
+                persistentState.restorePreferencesAndAwait(restoredPreferences)
+                transactions.forEach { it.commit() }
+            } catch (error: Exception) {
+                transactions.asReversed().forEach { it.rollback() }
+                persistentState.restorePreferencesAndAwait(originalPreferences)
+                throw error
+            }
+        }
 
     private fun validateRestoredSchemaVersions(files: Array<File>): Boolean {
-        for (file in files) {
-            if (isSqliteSidecar(file.name)) continue
-            val maxVersion =
-                when {
-                    file.name == AppDatabase.DATABASE_NAME -> AppDatabase.SCHEMA_VERSION
-                    file.name == LogDatabase.LOGS_DATABASE_NAME -> LogDatabase.SCHEMA_VERSION
-                    else -> continue
-                }
-            val restoredVersion = readSqliteUserVersion(file)
-            if (restoredVersion == null) {
-                Logger.e(
-                    LOG_TAG_BACKUP_RESTORE,
-                    "restore rejected: could not read user_version from ${file.name}"
-                )
-                return false
-            }
-            if (restoredVersion > maxVersion) {
-                Logger.e(
-                    LOG_TAG_BACKUP_RESTORE,
-                    "restore rejected: ${file.name} schema $restoredVersion is newer than $maxVersion"
-                )
-                return false
-            }
-            Logger.i(
-                LOG_TAG_BACKUP_RESTORE,
-                "restore schema ok: ${file.name} user_version=$restoredVersion (max $maxVersion)"
-            )
-        }
-        return true
-    }
-
-    private fun isSqliteSidecar(name: String): Boolean {
-        return name.endsWith("-wal") || name.endsWith("-shm") || name.endsWith("-journal")
-    }
-
-    private fun readSqliteUserVersion(file: File): Int? {
-        return try {
-            SQLiteDatabase.openDatabase(file.path, null, SQLiteDatabase.OPEN_READONLY).use { db ->
-                db.version
-            }
-        } catch (e: Exception) {
-            Logger.e(
-                LOG_TAG_BACKUP_RESTORE,
-                "failed to read PRAGMA user_version from ${file.path}: ${e.message}",
-                e
-            )
-            null
+        val required = setOf(AppDatabase.DATABASE_NAME, LogDatabase.LOGS_DATABASE_NAME)
+        if (!files.map { it.name }.containsAll(required)) return false
+        return files.filter { it.name in required }.all { file ->
+            val expected = if (file.name == AppDatabase.DATABASE_NAME) AppDatabase.SCHEMA_VERSION
+                else LogDatabase.SCHEMA_VERSION
+            readSqliteUserVersion(file) == expected
         }
     }
 
-    private fun closeRoomDatabases() {
-        try {
-            appDatabase.close()
-        } catch (e: Exception) {
-            Logger.w(LOG_TAG_BACKUP_RESTORE, "failed to close AppDatabase before restore copy", e)
-        }
-        try {
-            logDatabase.close()
-        } catch (e: Exception) {
-            Logger.w(LOG_TAG_BACKUP_RESTORE, "failed to close LogDatabase before restore copy", e)
-        }
-    }
-
-    private fun restoreWireGuardFiles(dir: File): Boolean {
-        if (!dir.exists()) {
-            // no files to restore
-            Logger.i(LOG_TAG_BACKUP_RESTORE, "no wireguard files to restore")
-            return true
-        }
-
-        // store the wireguard files in the temp_wireguard folder and then copy it to the wireguard
-        // folder during db updates, database update is handled in RefreshDatabase
-        // clear if temp_wireguard folder is already there if not, create the folder
-        val tempWgDir = File(context.filesDir, TEMP_WG_DIR)
-        if (tempWgDir.exists()) {
-            Logger.d(LOG_TAG_BACKUP_RESTORE, "$TEMP_WG_DIR folder exists, delete")
-            tempWgDir.deleteRecursively()
-        }
-
-        if (!tempWgDir.mkdirs()) {
-            Logger.w(LOG_TAG_BACKUP_RESTORE, "failed to create $TEMP_WG_DIR folder")
-            return false
-        }
-
-        // read the wireguard files from the temp dir and write it to the wireguard folder
-        val files = dir.listFiles()
-        if (files == null) {
-            Logger.w(LOG_TAG_BACKUP_RESTORE, "files to restore is empty, path: ${dir.path}")
-            return false
-        }
-        files.forEach { file ->
-            // if file name ends with .conf, then copy it to the wireguard folder
-            if (!file.name.endsWith(".conf")) {
-                Logger.d(LOG_TAG_BACKUP_RESTORE, "not wg file, file name: ${file.name}")
-                return@forEach
-            }
-
-            val currentWgFile = File(tempWgDir, file.name)
-            if (!Utilities.copy(file.path, currentWgFile.path)) {
-                Logger.w(
-                    LOG_TAG_BACKUP_RESTORE,
-                    "restore process, failure copying wireguard file: ${file.path} to ${currentWgFile.path}"
-                )
-                // no need to return false, proceed with the next file
-                // missing files database entry will be handled (deleted) in RefreshDatabase
-            } else {
-                Logger.i(
-                    LOG_TAG_BACKUP_RESTORE,
-                    "wireguard file: ${file.name} backed up from ${file.path} to ${currentWgFile.path}"
-                )
-            }
-        }
-        return true
-    }
-
-    private fun updateLatestVersion() {
-        if (isNewVersion()) {
-            persistentState.appVersion = getLatestVersion()
-            Logger.i(LOG_TAG_BACKUP_RESTORE, "app version updated to ${persistentState.appVersion}")
-        } else {
-            Logger.i(LOG_TAG_BACKUP_RESTORE, "no need to update app version")
-        }
-    }
-
-    private fun isNewVersion(): Boolean {
-        val versionStored = persistentState.appVersion
-        val version = getLatestVersion()
-        return (version != 0 && version != versionStored)
-    }
-
-    @Suppress("DEPRECATION")
-    private fun getLatestVersion(): Int {
-        val pInfo: PackageInfo? =
-            Utilities.getPackageMetadata(context.packageManager, context.packageName)
-        return pInfo?.versionCode ?: 0
-    }
-
-    private suspend fun checkPoint() {
-        Logger.i(LOG_TAG_BACKUP_RESTORE, "database checkpoint() during restore process")
+    private suspend fun validateSchemaIdentities(directory: File) {
+        // v0 schemas all use version 1; Room's identity distinguishes incompatible v1 backups.
         BackupHelper.checkpointRoomDatabases(appDatabase, logDatabase)
-    }
-
-    private fun wireGuardCleanup() {
-        if (appConfig.isWireGuardEnabled()) {
-            Logger.i(LOG_TAG_BACKUP_RESTORE, "wireGuard is enabled, reset the wireguard entries")
-            appConfig.removeAllProxies()
+        for (name in listOf(AppDatabase.DATABASE_NAME, LogDatabase.LOGS_DATABASE_NAME)) {
+            val expected = readSchemaIdentity(context.getDatabasePath(name))
+            check(expected != null && readSchemaIdentity(File(directory, name)) == expected) {
+                "Backup schema does not match this build: $name"
+            }
         }
-        // cleaning up the wireguard entries are handled in RefreshDatabase
     }
 
-    private fun validateMetadata(tempDirectory: String?): Boolean =
-        File(tempDirectory, METADATA_FILENAME).exists()
+    private fun readSchemaIdentity(file: File): String? = try {
+        SQLiteDatabase.openDatabase(file.path, null, SQLiteDatabase.OPEN_READONLY).use { database ->
+            database.roomIdentity()
+        }
+    } catch (error: android.database.SQLException) {
+        Logger.e(LOG_TAG_BACKUP_RESTORE, "Missing Room identity in ${file.name}", error)
+        null
+    }
 
-    private fun restoreSharedPreferencesFromFile(tempDirectory: String?): Boolean {
-        var input: ObjectInputStream? = null
-        val prefsBackupFile = File(tempDirectory, SHARED_PREFS_BACKUP_FILE_NAME)
+    private fun readSqliteUserVersion(file: File): Int? = try {
+        SQLiteDatabase.openDatabase(file.path, null, SQLiteDatabase.OPEN_READONLY).use { it.version }
+    } catch (error: android.database.SQLException) {
+        Logger.e(LOG_TAG_BACKUP_RESTORE, "Cannot validate database ${file.name}", error)
+        null
+    }
 
-        Logger.d(LOG_TAG_BACKUP_RESTORE, "shared pref file path: ${prefsBackupFile.path}")
-        try {
-            input = ObjectInputStream(FileInputStream(prefsBackupFile))
-            @Suppress("UNCHECKED_CAST")
-            val pref: Map<String, Any?> = input.readObject() as Map<String, Any?>
-            persistentState.restorePreferences(pref)
-            Logger.i(
-                LOG_TAG_BACKUP_RESTORE,
-                "completed restore of shared pref values, ${pref.entries}"
-            )
-            return true
-        } catch (e: Exception) {
-            Logger.crash(
-                LOG_TAG_BACKUP_RESTORE,
-                "exception while restoring shared pref, reason? ${e.message}",
-                e
-            )
-            return false
-        } finally {
-            deleteResidue(prefsBackupFile)
-            try {
-                input?.close()
-            } catch (e: IOException) {
-                // no-op
+    private fun validateMetadata(directory: String?): Boolean = File(directory, METADATA_FILENAME).isFile
+
+    private fun readPreferences(directory: File): Map<String, Any?> {
+        ObjectInputStream(FileInputStream(File(directory, SHARED_PREFS_BACKUP_FILE_NAME))).use { input ->
+            val values = input.readObject() as? Map<*, *> ?: error("Invalid preference backup")
+            return values.entries.associate { (key, value) ->
+                require(key is String) { "Invalid preference name" }
+                require(value == null || value is Boolean || value is Int || value is Long || value is String) {
+                    "Invalid preference type"
+                }
+                key to value
             }
         }
     }
 }
+
+private fun SQLiteDatabase.roomIdentity(): String? =
+    rawQuery("SELECT identity_hash FROM room_master_table WHERE id = 42", null).use { cursor ->
+        if (cursor.moveToFirst()) cursor.getString(0) else null
+    }

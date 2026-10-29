@@ -1641,14 +1641,6 @@
     <string name="bfdm_option_global_desc">Resolve trusted domains with your currently configured DNS.</string>
     <string name="bfdm_option_fallback_label">Use fallback DNS</string>
     <string name="bfdm_option_fallback_desc">Resolve trusted domains with the network fallback resolver.</string>
-    <string name="notif_channel_rpn" translatable="false">RPN alerts</string>
-    <string name="notif_channel_desc_rpn" translatable="false">Important RPN account and purchase alerts</string>
-    <string name="conflict_notif_title" translatable="false">Action required: purchase conflict</string>
-    <string name="conflict_notif_body" translatable="false">A server conflict was detected with your purchase. Tap to review it.</string>
-    <string name="device_auth_error_title" translatable="false">Device authorization failed</string>
-    <string name="device_auth_error_notif_body" translatable="false">Your device could not be authorized by the Rethink server. Tap to review it.</string>
-    <string name="device_not_registered_title" translatable="false">Device not registered</string>
-    <string name="device_not_registered_notif_body" translatable="false">Your device could not be linked to your active subscription. Tap to review it.</string>
     <string name="rpn_account_title">RPN account</string>
     <string name="rpn_account_manage_tab">Manage</string>
     <string name="rpn_account_history_tab">History</string>

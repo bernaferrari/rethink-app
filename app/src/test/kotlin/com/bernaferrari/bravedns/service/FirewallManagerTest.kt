@@ -678,6 +678,25 @@ class FirewallManagerTest : KoinTest {
         assertNotNull(observer)
     }
 
+    @Test
+    fun `published firewall snapshots survive later cache mutations`() = runBlocking {
+        // This suite seeds the singleton cache directly. Its lazy Koin repository may belong to
+        // an earlier test, so loading it here replaces this test's fixture with a relaxed mock result.
+        FirewallManager.GlobalVariable.appInfos.clear()
+        FirewallManager.GlobalVariable.appInfos.put(testUid1, testAppInfo1)
+        FirewallManager.updateFirewallStatus(testUid1, FirewallManager.FirewallStatus.EXCLUDE,
+            FirewallManager.ConnectionStatus.ALLOW)
+        val previous = FirewallManager.appListFlow().value
+        FirewallManager.updateFirewallStatus(testUid1, FirewallManager.FirewallStatus.NONE,
+            FirewallManager.ConnectionStatus.BOTH)
+        val current = FirewallManager.appListFlow().value
+        assertEquals(FirewallManager.FirewallStatus.EXCLUDE.id,
+            previous.first { it.uid == testUid1 }.firewallStatus)
+        assertEquals(FirewallManager.FirewallStatus.NONE.id,
+            current.first { it.uid == testUid1 }.firewallStatus)
+        assertNotEquals(previous, current)
+    }
+
     // Test constants
     @Test
     fun testConstants() {

@@ -17,6 +17,7 @@ package com.bernaferrari.bravedns.database
 
 import kotlinx.coroutines.flow.Flow
 import androidx.paging.PagingSource
+import androidx.room3.Transaction
 import androidx.room3.Dao
 import androidx.room3.Delete
 import androidx.room3.Insert
@@ -29,7 +30,12 @@ import com.bernaferrari.bravedns.data.DataUsageSummary
 import com.bernaferrari.bravedns.util.Constants.Companion.MAX_LOGS
 
 @Dao
-interface ConnectionTrackerDAO {
+// Room requires a query method per SQL statement; transaction wrappers preserve atomic deletion.
+@Suppress("TooManyFunctions")
+interface ConnectionTrackerDAO : StatsRebuildDao {
+
+    @Query("SELECT * FROM ConnectionTracker WHERE connId IN (:ids)")
+    suspend fun connectionsByIds(ids: List<String>): List<ConnectionTracker>
 
     @Update suspend fun update(connectionTracker: ConnectionTracker)
 
@@ -144,14 +150,14 @@ interface ConnectionTrackerDAO {
         filter: Set<String>
     ): PagingSource<Int, ConnectionTracker>
 
-    @Query("delete from ConnectionTracker") suspend fun clearAllData()
+    @Query("delete from ConnectionTracker") suspend fun clearAllDataRaw()
 
-    @Query("delete from ConnectionTracker where uid = :uid") suspend fun clearLogsByUid(uid: Int)
+    @Query("delete from ConnectionTracker where uid = :uid") suspend fun clearLogsByUidRaw(uid: Int)
 
-    @Query("delete from ConnectionTracker where blockedByRule = :rule") suspend fun clearLogsByRule(rule: String)
+    @Query("delete from ConnectionTracker where blockedByRule = :rule") suspend fun clearLogsByRuleRaw(rule: String)
 
     @Query("delete from ConnectionTracker where uid = :uid and timeStamp > :time")
-    suspend fun clearLogsByTime(uid: Int, time: Long)
+    suspend fun clearLogsByTimeRaw(uid: Int, time: Long)
 
     @Query("DELETE FROM ConnectionTracker WHERE  timeStamp < :date") suspend fun purgeLogsByDate(date: Long)
 
@@ -268,8 +274,8 @@ interface ConnectionTrackerDAO {
     )
     fun observeTopBlockedApps(since: Long, limit: Int): Flow<List<AppBlockCount>>
 
-    @Query("select * from ConnectionTracker where blockedByRule in ('Rule #1B', 'Rule #1F', 'Rule #3', 'Rule #4', 'Rule #5', 'Rule #6', 'Rule #7', 'Http block', 'Universal Lockdown')")
-    suspend fun getBlockedUniversalRulesCount(): List<ConnectionTracker>
+    @Query(UNIVERSAL_RULE_COUNTS_QUERY)
+    suspend fun getBlockedUniversalRulesCount(): List<UniversalRuleCount>
 
     @Query("SELECT uid AS uid, '' AS ipAddress, 0 AS port, COUNT(id) AS count, flag AS flag, 0 AS blocked, appName AS appOrDnsName, SUM(downloadBytes) AS downloadBytes, SUM(uploadBytes) AS uploadBytes, SUM(uploadBytes + downloadBytes) AS totalBytes FROM ConnectionTracker WHERE proxyDetails like :wgId AND timeStamp > :to GROUP BY appName ORDER BY totalBytes DESC")
     fun getWgAppNetworkActivity(wgId: String, to: Long): PagingSource<Int, AppConnection>
@@ -304,6 +310,30 @@ interface ConnectionTrackerDAO {
         "SELECT COUNT(*) FROM ConnectionTracker WHERE isBlocked = 1 AND timeStamp >= :since"
     )
     fun observeBlockedConnectionsCount(since: Long): Flow<Int>
+
+    @Transaction
+    suspend fun clearAllData() {
+        clearAllDataRaw()
+        rebuildStats()
+    }
+
+    @Transaction
+    suspend fun clearLogsByUid(uid: Int) {
+        clearLogsByUidRaw(uid)
+        rebuildStats()
+    }
+
+    @Transaction
+    suspend fun clearLogsByRule(rule: String) {
+        clearLogsByRuleRaw(rule)
+        rebuildStats()
+    }
+
+    @Transaction
+    suspend fun clearLogsByTime(uid: Int, time: Long) {
+        clearLogsByTimeRaw(uid, time)
+        rebuildStats()
+    }
 }
 
 data class BlockedAppResult(

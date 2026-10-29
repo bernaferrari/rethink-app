@@ -18,8 +18,8 @@ package com.bernaferrari.bravedns.util
 
 import Logger.LOG_BATCH_LOGGER
 import android.util.Log
-import com.bernaferrari.bravedns.database.materializeStatsInserted
-import com.bernaferrari.bravedns.database.materializeStatsUpdated
+import com.bernaferrari.bravedns.database.persistLogBatch
+import com.bernaferrari.bravedns.database.persistConnectionSummaries
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -29,6 +29,11 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.withContext
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
@@ -42,9 +47,6 @@ class NetLogBatcher<T, V>(
     private val processor: suspend (List<T>) -> Unit,
     private val updator: suspend (List<V>) -> Unit = { _ -> },
 ) {
-    companion object {
-        private const val DEBUG = true
-    }
 
     // i keeps track of currently in-use buffer
     var lsn = 0
@@ -64,19 +66,23 @@ class NetLogBatcher<T, V>(
     // Each DROP_OLDEST victim is up to batchSize lost entries; count so loss is observable.
     private val droppedBuffers = java.util.concurrent.atomic.AtomicInteger()
 
-    private fun onBufferDropped(buffer: List<T>) {
+    private data class Batch<T, V>(val entries: List<T>, val summaries: List<V>)
+    private val drained = CompletableDeferred<Unit>()
+
+    private fun onBufferDropped(buffer: Batch<T, V>) {
         val n = droppedBuffers.incrementAndGet()
         if (n % 32 == 1) {
-            Log.w(LOG_BATCH_LOGGER, "$tag; dropped ${n} buffers so far (last: ${buffer.size} entries)")
+            Log.w(LOG_BATCH_LOGGER, "$tag; dropped ${n} buffers so far (last: ${buffer.entries.size} entries)")
         }
     }
 
-    // buffer channel, holds at most 2 buffers, and drops the oldest
-    private val buffersCh =
-        Channel<List<T>>(qsize, BufferOverflow.DROP_OLDEST, onUndeliveredElement = ::onBufferDropped)
-
-    // update channel, holds at most 2 buffers, and drops the oldest
-    private val updatesCh = Channel<List<V>>(qsize, BufferOverflow.DROP_OLDEST)
+    // One consumer preserves insert-before-summary order, even when storage is slow.
+    private val buffersCh = Channel<Batch<T, V>>(
+        qsize, BufferOverflow.DROP_OLDEST, onUndeliveredElement = ::onBufferDropped,
+    )
+    private var workerScope: CoroutineScope? = null
+    private var signalJob: Job? = null
+    private var consumerJob: Job? = null
 
     // signal channel, holds at most 1 signal, and drops the oldest
     private val signal = Channel<Int>(Channel.Factory.CONFLATED)
@@ -87,52 +93,63 @@ class NetLogBatcher<T, V>(
     fun begin(scope: CoroutineScope) {
         // launch suspend fns sig and consume asynchronously
         // exceptions with async will close the scope, with launch only job is cancelled
-        scope.launch { sig() }
-        scope.launch { consumeAdd() }
-        scope.launch { consumeUpdate() }
+        // Consumers outlive producer cancellation long enough to drain committed buffers.
+        val workers = CoroutineScope(scope.coroutineContext + SupervisorJob())
+        workerScope = workers
+        signalJob = scope.launch { sig() }
+        consumerJob = workers.launch {
+            withContext(Dispatchers.IO + ncons) {
+                for (batch in buffersCh) processBatch(batch)
+            }
+        }
     }
 
     // stackoverflow.com/a/68905423
-    suspend fun close() = withContext(NonCancellable) {
-                if (closed.compareAndSet(false, true)) {
-                    signal.close()
-                    buffersCh.close()
-                    updatesCh.close()
-                    logd("end")
-                }
+    suspend fun close() = withContext(looper + NonCancellable) {
+        if (!closed.compareAndSet(false, true)) {
+            drained.await()
+            return@withContext
+        }
+        try {
+            signalJob?.cancelAndJoin()
+            signal.close()
+            buffersCh.close()
+            consumerJob?.join()
+            // Process the partial tail directly, so a full queue cannot evict it on close.
+            withContext(Dispatchers.IO) {
+                processBatch(Batch(batches.getAndSet(mutableListOf()), updates.getAndSet(mutableListOf())))
+            }
+        } finally {
+            workerScope?.cancel()
+            drained.complete(Unit)
+        }
+        Log.d(LOG_BATCH_LOGGER, "end")
     }
 
-    private suspend fun consumeAdd() =
-        withContext(Dispatchers.IO + ncons) {
-            for (y in buffersCh) {
-                try {
-                    processor(y)
-                    materializeStatsInserted(y)
-                } catch (e: kotlinx.coroutines.CancellationException) {
-                    throw e
-                } catch (e: Exception) {
-                    Log.e(LOG_BATCH_LOGGER, "$tag; consumeAdd error: ${e.message}", e)
-                }
-            }
-        }
+    private suspend fun processBatch(batch: Batch<T, V>) {
+        if (batch.entries.isNotEmpty()) processAdds(batch.entries)
+        if (batch.summaries.isNotEmpty()) processUpdates(batch.summaries)
+    }
 
-    private suspend fun consumeUpdate() =
-        withContext(Dispatchers.IO + ncons) {
-            for (y in updatesCh) {
-                try {
-                    updator(y)
-                    materializeStatsUpdated(y)
-                } catch (e: kotlinx.coroutines.CancellationException) {
-                    throw e
-                } catch (e: Exception) {
-                    Log.e(LOG_BATCH_LOGGER, "$tag; consumeUpdate error: ${e.message}", e)
-                }
-            }
+    private suspend fun processAdds(batch: List<T>) {
+        try {
+            persistLogBatch(batch) { processor(batch) }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(LOG_BATCH_LOGGER, "$tag; consumeAdd error: ${e.message}", e)
         }
+    }
 
-    private fun logd(msg: String) {
-        // write batcher logs only in DEBUG mode to avoid log spam
-        if (DEBUG) Log.d(LOG_BATCH_LOGGER, "$tag; $msg")
+    private suspend fun processUpdates(batch: List<V>) {
+        try {
+            if (tag == "ip") persistConnectionSummaries(batch) { updator(batch) }
+            else updator(batch)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(LOG_BATCH_LOGGER, "$tag; consumeUpdate error: ${e.message}", e)
+        }
     }
 
     private suspend fun txswap(reason: String) {
@@ -143,19 +160,14 @@ class NetLogBatcher<T, V>(
         val b = batches.getAndSet(mutableListOf())
         val u = updates.getAndSet(mutableListOf())
 
-        if (b.isNotEmpty()) {
-            buffersCh.send(b)
-        }
-        if (u.isNotEmpty()) {
-            delay(waitms / 5)
-            updatesCh.send(u)
-        }
+        if (b.isNotEmpty() || u.isNotEmpty()) buffersCh.trySend(Batch(b, u))
 
-        logd( "txswap (${lsn}) b: ${b.size}, u: ${u.size}, lsn -> $lsn, reason: $reason")
+        Log.d(LOG_BATCH_LOGGER,  "txswap (${lsn}) b: ${b.size}, u: ${u.size}, lsn -> $lsn, reason: $reason")
     }
 
     suspend fun add(payload: T) =
         withContext(looper + nprod) {
+            if (closed.get()) return@withContext
             val b = batches.get()
             b.add(payload)
             // if the batch size is met, dispatch it to the consumer
@@ -168,6 +180,7 @@ class NetLogBatcher<T, V>(
 
     suspend fun update(payload: V) =
         withContext(looper + nprod) {
+            if (closed.get()) return@withContext
             val u = updates.get()
             u.add(payload)
             if (u.size >= batchSize) {
@@ -182,7 +195,7 @@ class NetLogBatcher<T, V>(
             // consume all signals
             for (tracklsn in signal) {
                 if (tracklsn < lsn) {
-                    logd("expired signal skip $tracklsn < $lsn")
+                    Log.d(LOG_BATCH_LOGGER, "expired signal skip $tracklsn < $lsn")
                     continue
                 }
                 // do not honor the signal for 'l' if a[l] is empty
@@ -191,15 +204,15 @@ class NetLogBatcher<T, V>(
                 val b = batches.get()
                 val u = updates.get()
                 if (b.isEmpty() && u.isEmpty()) {
-                    logd("signal continue, empty buf; cur: $lsn / track: $tracklsn")
+                    Log.d(LOG_BATCH_LOGGER, "signal continue, empty buf; cur: $lsn / track: $tracklsn")
                     continue
                 } else {
-                    logd("signal sleep $waitms ms, cur: $lsn / track: $tracklsn")
+                    Log.d(LOG_BATCH_LOGGER, "signal sleep $waitms ms, cur: $lsn / track: $tracklsn")
                 }
 
                 // wait for 'batch' to dispatch
                 delay(waitms)
-                logd("signal wait over, sz(b: ${b.size}, u: ${u.size}) / cur(${lsn}), track(${tracklsn})")
+                Log.d(LOG_BATCH_LOGGER, "signal wait over, sz(b: ${b.size}, u: ${u.size}) / cur(${lsn}), track(${tracklsn})")
 
                 // 'l' is the current buffer, that is, 'l == i',
                 // and 'batch' hasn't dispatched it,

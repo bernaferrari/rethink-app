@@ -38,7 +38,7 @@ object FirebaseErrorReporting : KoinComponent {
      */
     fun initialize() {
         if (!persistentState.firebaseErrorReportingEnabled) {
-            Logger.i(LOG_FIREBASE, "crashlytics disabled in settings")
+            setEnabled(false)
             return
         }
         try {
@@ -49,10 +49,10 @@ object FirebaseErrorReporting : KoinComponent {
                 persistentState.firebaseUserToken = newToken
                 persistentState.firebaseUserTokenTimestamp = System.currentTimeMillis()
                 crashlytics.setUserId(newToken)
-                Logger.i(LOG_FIREBASE, "generated new firebase token: $newToken")
+                Logger.i(LOG_FIREBASE, "generated firebase reporting identifier")
             } else {
                 crashlytics.setUserId(token)
-                Logger.i(LOG_FIREBASE, "existing firebase token found: $token")
+                Logger.i(LOG_FIREBASE, "loaded firebase reporting identifier")
             }
             setEnabled(persistentState.firebaseErrorReportingEnabled)
             Logger.i(LOG_FIREBASE, "crashlytics initialized, enabled? ${crashlytics.isCrashlyticsCollectionEnabled}")

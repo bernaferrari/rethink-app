@@ -52,12 +52,7 @@ fun UniversalFirewallSettingsScreen(
         loadingStats = true
         scope.launch(Dispatchers.IO) {
             val rows = connTrackerRepository.getBlockedUniversalRulesCount()
-            val ids = listOf(
-                FirewallRuleset.RULE3.id, FirewallRuleset.RULE4.id, FirewallRuleset.RULE5.id,
-                FirewallRuleset.RULE6.id, FirewallRuleset.RULE7.id, FirewallRuleset.RULE1B.id,
-                FirewallRuleset.RULE1F.id, FirewallRuleset.RULE10.id, FirewallRuleset.RULE11.id,
-            )
-            val counts = ids.associateWith { id -> rows.count { it.blockedByRule.contains(id) } }
+            val counts = rows.associate { it.blockedByRule to it.count }
             withContext(Dispatchers.Main) { blockedCounts = counts; loadingStats = false }
         }
     }

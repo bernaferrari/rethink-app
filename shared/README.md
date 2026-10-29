@@ -44,7 +44,7 @@ App: `ConfigIo` for streams; Firestack only via `toFirestackKey()` on Android.
 # Product Android path
 ./gradlew :shared:compileKotlinJvm
 ./gradlew :shared:compileAndroidMain
-./gradlew :app:compilePlayFullDebugKotlin
+./gradlew :app:compilePlayDebugKotlin
 ```
 
 **UI strategy:** one navigation host, one route graph, host-only data.

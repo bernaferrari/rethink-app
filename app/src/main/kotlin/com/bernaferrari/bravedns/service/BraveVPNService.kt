@@ -115,6 +115,8 @@ import com.celzero.firestack.intra.PreMark
 import com.bernaferrari.bravedns.util.ExpiringCache
 import inet.ipaddr.HostName
 import inet.ipaddr.IPAddressString
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.Deferred
@@ -149,6 +151,16 @@ import kotlin.random.Random
 class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge {
 
     private val vpnScope = MainScope()
+    private val teardown = VpnTeardown(
+        scope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
+        disconnect = { stopVpnAdapter() },
+        drain = { netLogTracker.stop(vpnScope) },
+        cancelServiceWork = {
+            vpnScope.cancel("vpnDestroy")
+            VpnController.onVpnTeardownComplete(this)
+        },
+        stopService = { withContext(Dispatchers.Main) { stopSelf() } },
+    )
 
     // used mostly for service to adapter creation and updates
     private var serializer: CoroutineDispatcher = Daemons.make("vpnser")
@@ -1220,6 +1232,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (teardown.isStopping) return START_NOT_STICKY
         rethinkUid = getRethinkUid()
         val pid = Process.myPid()
 
@@ -1499,12 +1512,15 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
 
     fun signalStopService(reason: String, userInitiated: Boolean = true) {
         if (!userInitiated) notifyUserOnVpnFailure()
-        io(reason) { stopVpnAdapter() }
+        teardown.requestStop()
         eventLogger.logHigh(EventType.VPN_STOP, "vpn service destroyed",
                     EventSource.SERVICE, userAction = userInitiated, details = "vpn destroyed")
-        stopSelf()
-        Logger.i(LOG_TAG_VPN, "stopped vpn adapter & service: $reason, $userInitiated")
+        Logger.i(LOG_TAG_VPN, "stopping vpn adapter & service: $reason, $userInitiated")
     }
+
+    fun isStopping(): Boolean = teardown.isStopping
+
+    suspend fun awaitStopped() = teardown.awaitCompletion()
 
     private suspend fun stopVpnAdapter() =
         withContext(CoroutineName("stopVpn") + serializer) {
@@ -1542,6 +1558,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
         why: String
     ) =
         withContext(CoroutineName(why) + serializer) {
+            if (teardown.isStopping) return@withContext
             if (!persistentState.getVpnEnabled()) {
                 // when persistent-state "thinks" vpn is disabled, stop the service, especially when
                 // we could be here via onStartCommand -> isNewVpn -> restartVpn while both,
@@ -2010,14 +2027,8 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
         // Must unregister callbacks before vpnScope.cancel — ConnectionMonitor shares vpnScope.
         connectionMonitor.onVpnStop()
         VpnController.onVpnDestroyed()
-        try {
-            // this will also cancels the restarter state flow
-            vpnScope.cancel("vpnDestroy")
-        } catch (e: CancellationException) {
-            Logger.w(LOG_TAG_VPN, "vpnScope already cancelled: ${e.message}")
-        } catch (e: IllegalStateException) {
-            Logger.w(LOG_TAG_VPN, "vpnScope cancel failed: ${e.message}")
-        }
+        // Callbacks remain available until the native tunnel has disconnected and logs are drained.
+        teardown.onDestroyed()
 
         Logger.w(LOG_TAG_VPN, "Destroying VPN service")
 

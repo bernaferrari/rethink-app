@@ -23,6 +23,8 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.runBlocking
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.properties.ReadWriteProperty
@@ -89,6 +91,28 @@ class AndroidPreferencesStore(context: Context) : PreferencesStore {
                 is String -> setString(key, value)
             }
         }
+    }
+
+    override suspend fun restoreAndAwait(snapshot: Map<String, Any?>) {
+        loaded.await()
+        // Finish writes queued before the restore, so they cannot overwrite the replacement.
+        scope.coroutineContext[Job]?.children?.toList()?.joinAll()
+        val values = snapshot.filterValues { it is Boolean || it is Int || it is Long || it is String }
+        dataStore.edit { preferences ->
+            preferences.clear()
+            values.forEach { (key, value) ->
+                when (value) {
+                    is Boolean -> preferences[booleanPreferencesKey(key)] = value
+                    is Int -> preferences[intPreferencesKey(key)] = value
+                    is Long -> preferences[longPreferencesKey(key)] = value
+                    is String -> preferences[stringPreferencesKey(key)] = value
+                }
+            }
+        }
+        val changedKeys = cache.keys.toSet() + values.keys
+        cache.clear()
+        values.forEach { (key, value) -> if (value != null) cache[key] = value }
+        changedKeys.forEach { _preferenceKeyChanges.emit(it) }
     }
 
     private fun setBoolean(key: String, value: Boolean) {

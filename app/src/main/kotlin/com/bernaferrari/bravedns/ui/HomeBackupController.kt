@@ -164,12 +164,14 @@ internal class HomeBackupController(
                     "WorkManager state: ${workInfo.state} for ${RestoreAgent.TAG}"
                 )
                 if (WorkInfo.State.SUCCEEDED == workInfo.state) {
+                    if (!com.bernaferrari.bravedns.backup.RestoreRestart.required(activity)) return@collect
                     showToastUiCentered(
                         activity,
                         activity.getString(R.string.brbs_restore_complete_toast),
                         Toast.LENGTH_SHORT
                     )
                     workManager.pruneWork()
+                    com.bernaferrari.bravedns.backup.RestoreRestart.restart(activity)
                 } else if (
                     WorkInfo.State.CANCELLED == workInfo.state ||
                     WorkInfo.State.FAILED == workInfo.state
@@ -181,6 +183,9 @@ internal class HomeBackupController(
                     )
                     workManager.pruneWork()
                     workManager.cancelAllWorkByTag(RestoreAgent.TAG)
+                    if (com.bernaferrari.bravedns.backup.RestoreRestart.required(activity) || workInfo.outputData.getBoolean(RestoreAgent.RESTART_REQUIRED, false)) {
+                        com.bernaferrari.bravedns.backup.RestoreRestart.restart(activity)
+                    }
                 }
             }
         }

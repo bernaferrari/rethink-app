@@ -31,9 +31,7 @@ import com.bernaferrari.bravedns.service.FirewallManager.GlobalVariable.foregrou
 import com.bernaferrari.bravedns.util.AndroidUidConfig
 import com.bernaferrari.bravedns.util.Constants.Companion.RETHINK_PACKAGE
 import com.bernaferrari.bravedns.util.OrbotHelper
-import com.bernaferrari.bravedns.util.ExpiringCache
 import com.bernaferrari.bravedns.util.UidMultimap
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -46,9 +44,6 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.util.ConcurrentModificationException
 import java.util.concurrent.CopyOnWriteArraySet
-import java.util.concurrent.Executor
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 import com.bernaferrari.bravedns.database.hasInternetPermission
 
 object FirewallManager : KoinComponent {
@@ -310,36 +305,14 @@ object FirewallManager : KoinComponent {
 
     // ---- Temp Allow (15 min) cache + DB (source of truth) ----
 
-    private val tempAllowDbExecutor: Executor = Executors.newSingleThreadExecutor { r ->
-        Thread(r, "fw-temp-allow-db").apply { isDaemon = true }
+    private val temporaryAllowances by lazy {
+        TemporaryAppAllowances(db) { uid ->
+            VpnController.closeConnectionsIfNeeded(uid, "temporary-allow-ended")
+        }
     }
-
-    /**
-     * Cache(uid -> expiryEpochMs).
-     * ExpiringCache uses a fixed write TTL; each entry stores the real expiry time in its value.
-     */
-    private val tempAllowCache: ExpiringCache<Int, Long> =
-        ExpiringCache(
-            maxSize = 10_000,
-            expireAfterWriteMs = TimeUnit.MINUTES.toMillis(60),
-            onRemoval = { uid, expiry, cause ->
-                if (cause == ExpiringCache.RemovalCause.EXPIRED) {
-                    tempAllowDbExecutor.execute {
-                        runCatching {
-                            kotlinx.coroutines.runBlocking {
-                                db.clearTempAllowByUidIfExpiryBlocking(uid, expiry)
-                            }
-                        }.onFailure { t ->
-                            Logger.e(LOG_TAG_FIREWALL, "err clearing expired temp allow: ${t.message}", t as? Exception)
-                        }
-                    }
-                }
-            },
-        )
 
     init {
         io { load() }
-        io { hydrateTempAllowCacheFromDb() }
     }
 
     private var appContext: Context? = null
@@ -354,49 +327,6 @@ object FirewallManager : KoinComponent {
     private fun scheduleTempAllowExpiryIfPossible() {
         val ctx = appContext ?: return
         TempAllowExpiryWorker.scheduleNext(ctx)
-    }
-
-    private fun cancelTempAllowExpiryIfPossible() {
-        val ctx = appContext ?: return
-        TempAllowExpiryWorker.cancel(ctx)
-    }
-
-    private suspend fun hydrateTempAllowCacheFromDb() {
-        val now = System.currentTimeMillis()
-        val apps = try {
-            db.getTempAllowedApps()
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: android.database.SQLException) {
-            Logger.e(LOG_TAG_FIREWALL, "err hydrate temp allows: ${e.message}", e)
-            emptyList()
-        } catch (e: IllegalStateException) {
-            Logger.e(LOG_TAG_FIREWALL, "err hydrate temp allows: ${e.message}", e)
-            emptyList()
-        }
-
-        var hasAny = false
-        apps.forEach { ai ->
-            if (!ai.tempAllowEnabled) return@forEach
-            val expiry = ai.tempAllowExpiryTime
-            if (expiry <= now) {
-                try {
-                    db.clearTempAllowByUidIfExpiry(ai.uid, expiry)
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (e: android.database.SQLException) {
-                    Logger.e(LOG_TAG_FIREWALL, "err clearing stale temp allow: ${e.message}", e)
-                } catch (e: IllegalStateException) {
-                    Logger.e(LOG_TAG_FIREWALL, "err clearing stale temp allow: ${e.message}", e)
-                }
-                return@forEach
-            }
-            hasAny = true
-            tempAllowCache.put(ai.uid, expiry)
-        }
-
-        // schedule/cancel based on presence
-        if (hasAny) scheduleTempAllowExpiryIfPossible() else cancelTempAllowExpiryIfPossible()
     }
 
     suspend fun isUidFirewalled(uid: Int): Boolean {
@@ -694,6 +624,7 @@ object FirewallManager : KoinComponent {
     }
 
     suspend fun load(): Int {
+        temporaryAllowances.invalidate()
         val apps = db.getAppInfo()
         mutex.withLock {
             appInfos.clear()
@@ -707,6 +638,7 @@ object FirewallManager : KoinComponent {
     }
 
     suspend fun clearAllApps() {
+        temporaryAllowances.invalidate()
         db.deleteAll()
         mutex.withLock { appInfos.clear() }
         foregroundUids.clear()
@@ -782,66 +714,20 @@ object FirewallManager : KoinComponent {
     }
 
     suspend fun updateTempAllowStatus(uid: Int, durationMinutes: Int = TEMP_ALLOW_DEFAULT_MINUTES) {
-        Logger.i(LOG_TAG_FIREWALL, "Apply temporary allow for uid: $uid for $durationMinutes minutes")
-
-        val expiryTime = System.currentTimeMillis() + (durationMinutes * 60 * 1000L)
-
-        db.updateTempAllowByUid(uid, true, expiryTime)
-        tempAllowCache.put(uid, expiryTime)
-
+        temporaryAllowances.grant(uid, durationMinutes)
         scheduleTempAllowExpiryIfPossible()
-
-        Logger.i(LOG_TAG_FIREWALL, "Temporary allow applied for uid: $uid, expires at: $expiryTime")
     }
 
-    private suspend fun revertTempAllow(uid: Int) {
-        Logger.i(LOG_TAG_FIREWALL, "Reverting temporary allow for uid: $uid")
+    suspend fun isTempAllowed(uid: Int): Boolean = temporaryAllowances.isAllowed(uid)
 
-        tempAllowCache.invalidate(uid)
-        db.clearTempAllowByUid(uid)
-
-        // schedule/cancel based on remaining entries (DB is source of truth)
-        scheduleTempAllowExpiryIfPossible()
-
-        Logger.i(LOG_TAG_FIREWALL, "Temporary allow reverted for uid: $uid")
-    }
-
-    suspend fun isTempAllowed(uid: Int): Boolean {
-        val now = System.currentTimeMillis()
-
-        val cachedExpiry = tempAllowCache.getIfPresent(uid)
-        if (cachedExpiry != null) {
-            return now < cachedExpiry
-        }
-
-        // Cache miss: consult DB (source of truth) and warm cache if still valid.
-        val ai = try {
-            db.getAppInfoByUid(uid)
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: android.database.SQLException) {
-            Logger.e(LOG_TAG_FIREWALL, "err getAppInfoByUid: ${e.message}", e)
-            null
-        } catch (e: IllegalStateException) {
-            Logger.e(LOG_TAG_FIREWALL, "err getAppInfoByUid: ${e.message}", e)
-            null
-        }
-
-        if (ai?.tempAllowEnabled == true && ai.tempAllowExpiryTime > now) {
-            tempAllowCache.put(uid, ai.tempAllowExpiryTime)
-            return true
-        }
-
-        // If DB says expired/disabled, ensure cache doesn't keep it.
-        tempAllowCache.invalidate(uid)
-        return false
-    }
+    suspend fun expireTemporaryAllows(now: Long): Int = temporaryAllowances.expire(now)
 
     suspend fun updateTempAllow(uid: Int, enabled: Boolean) {
         if (enabled) {
-            updateTempAllowStatus(uid, TEMP_ALLOW_DEFAULT_MINUTES)
+            updateTempAllowStatus(uid)
         } else {
-            revertTempAllow(uid)
+            temporaryAllowances.revoke(uid)
+            scheduleTempAllowExpiryIfPossible()
         }
     }
 
@@ -862,7 +748,7 @@ object FirewallManager : KoinComponent {
                 if (appInfos.isEmpty()) {
                     emptyList()
                 } else {
-                    runCatching { appInfos.values().toList() }.getOrDefault(emptyList())
+                    runCatching { appInfos.values().map { it.snapshot() } }.getOrDefault(emptyList())
                 }
             }
         if (cacheSnapshot.isNotEmpty()) return cacheSnapshot
@@ -973,7 +859,7 @@ object FirewallManager : KoinComponent {
                 if (appInfos.isEmpty()) {
                     emptyList()
                 } else {
-                    runCatching { appInfos.values().toList() }
+                    runCatching { appInfos.values().map { it.snapshot() } }
                         .getOrElse { appInfosFlow.value.toList() }
                 }
             }

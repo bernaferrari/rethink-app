@@ -30,5 +30,7 @@ class SyncPreferencesStore(context: Context) {
 
     fun snapshot(): Map<String, Any?> = delegate.snapshot()
 
+    suspend fun restoreAndAwait(snapshot: Map<String, Any?>) = delegate.restoreAndAwait(snapshot)
+
     fun restore(snapshot: Map<String, Any?>) = delegate.restore(snapshot)
 }

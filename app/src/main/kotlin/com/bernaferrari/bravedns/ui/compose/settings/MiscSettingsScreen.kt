@@ -83,7 +83,7 @@ fun MiscSettingsScreen(
                 "general_firewall_bubble" -> { firewallBubbleEnabled = enabled; persistentState.firewallBubbleEnabled = enabled }
                 "general_ip_info" -> { ipInfoEnabled = enabled; persistentState.downloadIpInfo = enabled }
                 "general_app_updates" -> { checkUpdatesEnabled = enabled; persistentState.checkForAppUpdate = enabled }
-                "general_crash_reports" -> { firebaseEnabled = enabled; persistentState.firebaseErrorReportingEnabled = enabled }
+                "general_crash_reports" -> { firebaseEnabled = enabled; persistentState.firebaseErrorReportingEnabled = enabled; com.bernaferrari.bravedns.util.FirebaseErrorReporting.setEnabled(enabled) }
                 "general_custom_downloader" -> { customDownloadEnabled = enabled; persistentState.useCustomDownloadManager = enabled }
             }
             eventLogger.log(

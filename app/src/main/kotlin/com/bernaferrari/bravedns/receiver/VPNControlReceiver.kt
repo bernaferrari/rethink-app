@@ -45,7 +45,7 @@ class VpnControlReceiver: BroadcastReceiver(), KoinComponent {
             return
         }
 
-        val allowedPackages = persistentState.appTriggerPackages.split(",").map { it.trim() }.toSet()
+        val allowedPackages = persistentState.appTriggerPackages.split(",").map { it.trim() }.filter { it.isNotEmpty() }.toSet()
         Logger.d(LOG_TAG_VPN, "$TAG Allowed packages: $allowedPackages")
         if (allowedPackages.isEmpty()) {
             Logger.i(LOG_TAG_VPN, "$TAG No allowed packages, ignoring intent")
@@ -115,46 +115,13 @@ class VpnControlReceiver: BroadcastReceiver(), KoinComponent {
         // package name of the app that sent the broadcast
         if (DEBUG) dumpIntent(intent)
 
-        // expecting the intent to have a package name in the extras with key "sender"
-        var callerPkg = intent.getStringExtra("sender")
-        if (callerPkg != null) {
-            Logger.i(LOG_TAG_VPN, "$TAG Received intent from extra sender: $callerPkg, from sender")
-            return callerPkg
-        }
-
-        // above 34 (Android U) sentFromPackage and sentFromUid are available
-        if (isAtleastU()) {
-            callerPkg = sentFromPackage
-            if (callerPkg != null) {
-                Logger.i(LOG_TAG_VPN, "$TAG Received intent from sentFromPackage: $callerPkg")
-                return callerPkg
-            }
-            val uid = sentFromUid
-            callerPkg = context.packageManager.getPackagesForUid(uid)?.firstOrNull()
-            if (callerPkg != null) {
-                Logger.i(LOG_TAG_VPN, "$TAG received intent from sentFromUid, $uid, $callerPkg")
-                return callerPkg
-            }
-        }
-
-        // see if the intent has a package name in the extras with key "EXTRA_PACKAGE_NAME" or
-        // "EXTRA_INTENT", less reliable method unless the app explicitly sets it
-        // Intent.EXTRA_PACKAGE_NAME is typically for identifying the target package of an explicit
-        // intent, not usually the sender of a broadcast. However, checking it doesn't hurt.
-        // Intent.EXTRA_INTENT might contain package name.
-        callerPkg = if (isAtleastT()) {
-            intent.getStringExtra(Intent.EXTRA_PACKAGE_NAME)
-        } else {
-            intent.getStringExtra(Intent.EXTRA_INTENT)
-        }
-        if (callerPkg != null) {
-            Logger.i(LOG_TAG_VPN, "$TAG Received intent from extra sender: $callerPkg, from sender")
-            return callerPkg
-        }
-
-
-        Logger.i(LOG_TAG_VPN, "$TAG could not determine caller pkg")
-        return callerPkg
+        // Only the OS-provided identity is an authentication boundary. Older Android
+        // versions cannot authenticate this broadcast protocol, so fail closed.
+        if (!isAtleastU()) return null
+        val uid = sentFromUid
+        if (uid < 0) return null
+        val packages = context.packageManager.getPackagesForUid(uid)?.toSet().orEmpty()
+        return sentFromPackage?.takeIf { it in packages }
     }
 
     fun dumpIntent(intent: Intent) {

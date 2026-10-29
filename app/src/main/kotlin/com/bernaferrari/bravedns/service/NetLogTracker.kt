@@ -33,7 +33,6 @@ import com.bernaferrari.bravedns.database.RethinkLogRepository
 import com.bernaferrari.bravedns.util.Daemons
 import com.bernaferrari.bravedns.util.NetLogBatcher
 import com.celzero.firestack.backend.DNSSummary
-import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
@@ -41,6 +40,9 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.util.Calendar
 
 class NetLogTracker
@@ -54,6 +56,8 @@ internal constructor(
 ) {
 
     @Volatile private var scope: CoroutineScope? = null
+    private val lifecycle = Mutex()
+    @Volatile private var writers: PendingLogWrites? = null
 
     private val dnsdb: DnsLogTracker = DnsLogTracker(dnsLogRepository, persistentState, context)
     private val ipdb: IPTracker =
@@ -78,9 +82,10 @@ internal constructor(
 
     private val consoleLogLooper = Daemons.make("consl")
 
-    suspend fun restart(s: CoroutineScope) {
-        this.scope = s
-        serializer("restart", looper) {
+    suspend fun restart(s: CoroutineScope) = lifecycle.withLock {
+        stopBatchers()
+        s.coroutineContext.ensureActive()
+        withContext(looper) {
 
             // create new batchers on every new scope as their lifecycle is tied to the scope
             val b1 = NetLogBatcher<DnsLog, Nothing>("dns", looper, logBatchSize, dnsdb::insertBatch)
@@ -108,34 +113,47 @@ internal constructor(
             b3.begin(s)
             b4.begin(s)
 
-            this.dnsBatcher = b1
-            this.ipBatcher = b2
-            this.rrBatcher = b3
-            this.consoleLogBatcher = b4
+            this@NetLogTracker.dnsBatcher = b1
+            this@NetLogTracker.ipBatcher = b2
+            this@NetLogTracker.rrBatcher = b3
+            this@NetLogTracker.consoleLogBatcher = b4
+            writers = PendingLogWrites()
+            scope = s
 
-            s.launch(Dispatchers.IO) { monitorCancellation() }
+            s.launch(Dispatchers.IO) {
+                try {
+                    awaitCancellation()
+                } finally {
+                    stop(s)
+                }
+            }
             Log.d(LOG_BATCH_LOGGER, "tracker: restart, $scope")
         }
     }
 
-    // stackoverflow.com/a/68905423
-    private suspend fun monitorCancellation() {
+    suspend fun stop(expectedScope: CoroutineScope? = scope) = withContext(NonCancellable) {
+        lifecycle.withLock {
+            if (scope === expectedScope) stopBatchers()
+        }
+    }
+
+    private suspend fun stopBatchers() {
         try {
-            awaitCancellation()
+            writers?.close()
         } finally {
+            writers = null
             withContext(looper + NonCancellable) {
+                scope = null
                 dnsBatcher?.close()
                 ipBatcher?.close()
                 rrBatcher?.close()
                 dnsBatcher = null
                 ipBatcher = null
                 rrBatcher = null
-                Logger.d(LOG_BATCH_LOGGER, "tracker: close scope")
             }
             withContext(consoleLogLooper + NonCancellable) {
                 consoleLogBatcher?.close()
                 consoleLogBatcher = null
-                Logger.d(LOG_BATCH_LOGGER, "tracker: close consoleLogLooper")
             }
         }
     }
@@ -212,6 +230,5 @@ internal constructor(
     }
 
     private fun serializer(s: String, e: ExecutorCoroutineDispatcher, f: suspend () -> Unit) =
-        scope?.launch(CoroutineName(s) + e) { f() }
-            ?: Log.e(LOG_BATCH_LOGGER, "scope is null", Exception())
+        writers?.submit(s, e, f)
 }

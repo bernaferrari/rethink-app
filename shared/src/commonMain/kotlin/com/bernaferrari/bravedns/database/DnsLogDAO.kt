@@ -18,6 +18,7 @@ package com.bernaferrari.bravedns.database
 
 import kotlinx.coroutines.flow.Flow
 import androidx.paging.PagingSource
+import androidx.room3.Transaction
 import androidx.room3.Dao
 import androidx.room3.Insert
 import androidx.room3.OnConflictStrategy
@@ -25,7 +26,9 @@ import androidx.room3.Query
 import com.bernaferrari.bravedns.util.Constants.Companion.MAX_LOGS
 
 @Dao
-interface DnsLogDAO {
+// Room requires a query method per SQL statement; transaction wrappers preserve atomic deletion.
+@Suppress("TooManyFunctions")
+interface DnsLogDAO : StatsRebuildDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insert(dnsLog: DnsLog)
 
@@ -85,7 +88,7 @@ interface DnsLogDAO {
     )
     fun getMaybeBlockedDnsLogsByName(searchString: String): PagingSource<Int, DnsLog>
 
-    @Query("delete from DNSLogs") suspend fun clearAllData()
+    @Query("delete from DNSLogs") suspend fun clearAllDataRaw()
 
     @Query("delete from DNSLogs where time < :date") suspend fun purgeDnsLogsByDate(date: Long)
 
@@ -131,6 +134,12 @@ interface DnsLogDAO {
         "SELECT uid AS uid, MAX(time) AS lastBlocked, COUNT(*) AS count FROM DNSLogs WHERE isBlocked = 1 AND time > :time GROUP BY uid ORDER BY lastBlocked DESC"
     )
     fun getRecentlyBlockedDnsAppsPaged(time: Long): PagingSource<Int, BlockedDnsAppResult>
+
+    @Transaction
+    suspend fun clearAllData() {
+        clearAllDataRaw()
+        rebuildStats()
+    }
 }
 
 data class BlockedDnsAppResult(

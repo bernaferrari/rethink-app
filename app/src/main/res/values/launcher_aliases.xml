@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Explicit legacy target keeps Compose from resolving an adaptive drawable. -->
+    <item type="mipmap" name="ic_launcher">@mipmap/ic_launcher_legacy</item>
+    <item type="drawable" name="ic_launcher">@mipmap/ic_launcher_legacy</item>
+    <item type="drawable" name="ic_launcher_foreground">@mipmap/ic_launcher_foreground</item>
+</resources>

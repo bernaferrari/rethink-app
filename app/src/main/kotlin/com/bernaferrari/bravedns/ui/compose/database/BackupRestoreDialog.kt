@@ -21,7 +21,6 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
 import android.content.pm.PackageInfo
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -55,7 +54,6 @@ import com.bernaferrari.bravedns.backup.BackupHelper.Companion.BACKUP_FILE_NAME
 import com.bernaferrari.bravedns.backup.BackupHelper.Companion.BACKUP_FILE_NAME_DATETIME
 import com.bernaferrari.bravedns.backup.BackupHelper.Companion.DATA_BUILDER_BACKUP_URI
 import com.bernaferrari.bravedns.backup.BackupHelper.Companion.DATA_BUILDER_RESTORE_URI
-import com.bernaferrari.bravedns.backup.BackupHelper.Companion.INTENT_RESTART_APP
 import com.bernaferrari.bravedns.backup.BackupHelper.Companion.INTENT_TYPE_OCTET
 import com.bernaferrari.bravedns.backup.BackupHelper.Companion.INTENT_TYPE_XZIP
 import com.bernaferrari.bravedns.backup.RestoreAgent
@@ -164,6 +162,10 @@ fun BackupRestoreSheet(
                 WorkInfo.State.FAILED == workInfo.state
             ) {
                 failure = RethinkBackupRestoreFailure.Restore
+                if (com.bernaferrari.bravedns.backup.RestoreRestart.required(host) ||
+                    workInfo.outputData.getBoolean(RestoreAgent.RESTART_REQUIRED, false)) {
+                    com.bernaferrari.bravedns.backup.RestoreRestart.restart(host)
+                }
                 workManager.pruneWork()
                 workManager.cancelAllWorkByTag(RestoreAgent.TAG)
             }
@@ -388,8 +390,6 @@ private fun startBackupProcess(activity: ComponentActivity, backupUri: Uri?, wor
         return
     }
 
-    BackupHelper.stopVpn(activity)
-
     Logger.i(LOG_TAG_UI, "invoke worker to initiate the backup process")
     val data = Data.Builder()
     data.putString(DATA_BUILDER_BACKUP_URI, backupUri.toString())
@@ -406,12 +406,4 @@ private fun startBackupProcess(activity: ComponentActivity, backupUri: Uri?, wor
     workManager.beginWith(downloadWatcher).enqueue()
 }
 
-private fun restartApp(context: Context) {
-    val packageManager: PackageManager = context.packageManager
-    val intent = packageManager.getLaunchIntentForPackage(context.packageName)
-    val componentName = intent!!.component
-    val mainIntent = Intent.makeRestartActivityTask(componentName)
-    mainIntent.putExtra(INTENT_RESTART_APP, true)
-    context.startActivity(mainIntent)
-    Runtime.getRuntime().exit(0)
-}
+private fun restartApp(context: Context) = com.bernaferrari.bravedns.backup.RestoreRestart.restart(context)

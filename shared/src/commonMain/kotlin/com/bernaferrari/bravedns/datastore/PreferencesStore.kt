@@ -18,6 +18,7 @@ interface PreferencesStore {
     fun string(key: String, default: String): ReadWriteProperty<Any?, String>
     fun snapshot(): Map<String, Any?>
     fun restore(snapshot: Map<String, Any?>)
+    suspend fun restoreAndAwait(snapshot: Map<String, Any?>) { restore(snapshot) }
     val preferenceKeyChanges: SharedFlow<String>
 }
 

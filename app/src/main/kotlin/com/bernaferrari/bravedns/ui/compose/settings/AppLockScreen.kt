@@ -213,7 +213,7 @@ private fun AppLockContent(
  *
  * @return true if biometric prompt should be shown, false otherwise
  */
-private fun checkBiometricRequired(
+internal fun checkBiometricRequired(
     context: Context,
     persistentState: PersistentState
 ): Boolean {

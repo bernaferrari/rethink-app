@@ -32,7 +32,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
-import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
@@ -127,7 +126,8 @@ internal class BillingConnectionController(
         logv(mname, "Starting billing connection")
 
         scope.launch {
-            if (!connectionMutex.tryLock()) {
+            val lockOwner = Any()
+            if (!connectionMutex.tryLock(lockOwner)) {
                 logd(mname, "connection attempt already in progress")
                 withContext(Dispatchers.Main) {
                     callback.invoke(false, "Connection already in progress")
@@ -135,25 +135,15 @@ internal class BillingConnectionController(
                 return@launch
             }
 
-            val safetyCancelled = AtomicBoolean(false)
+            val release = BillingConnectionLease(connectionMutex, lockOwner)
             val safetyJob = scope.launch {
                 delay(60_000L.milliseconds)
-                if (!safetyCancelled.get() && connectionMutex.isLocked) {
-                    try { connectionMutex.unlock() } catch (ignored: IllegalStateException) {
-                        logd(mname, "mutex unlock race after timeout: ${ignored.message}")
-                    }
-                    logd(mname, "connection mutex force-unlocked after safety timeout (60s)")
+                if (release.release()) {
+                    logd(mname, "connection mutex released after safety timeout (60s)")
                 }
             }
             val unlock = {
-                if (safetyCancelled.compareAndSet(false, true)) {
-                    safetyJob.cancel()
-                }
-                if (connectionMutex.isLocked) {
-                    try { connectionMutex.unlock() } catch (ignored: IllegalStateException) {
-                        logd(mname, "mutex unlock race: ${ignored.message}")
-                    }
-                }
+                if (release.release()) safetyJob.cancel()
             }
 
             try {

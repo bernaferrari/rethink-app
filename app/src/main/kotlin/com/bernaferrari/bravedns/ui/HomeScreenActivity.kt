@@ -79,6 +79,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -138,6 +139,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkColorPreset
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 import com.bernaferrari.bravedns.ui.compose.settings.AppLockScreen
+import com.bernaferrari.bravedns.ui.compose.settings.checkBiometricRequired
 import com.bernaferrari.bravedns.ui.compose.settings.AppLockResult
 import com.bernaferrari.bravedns.ui.compose.home.PauseScreen
 import com.bernaferrari.bravedns.util.BioMetricType
@@ -254,7 +256,12 @@ class HomeScreenActivity : FragmentActivity() {
     private val backupController = HomeBackupController(
         activity = this,
         onRestorePrompt = { showRestoreDialog(it) },
-        onRestartRefresh = { io { rdb.refresh(RefreshDatabase.ACTION_REFRESH_RESTORE) } },
+        onRestartRefresh = {
+            io {
+                com.bernaferrari.bravedns.backup.RestoreRestart.refreshBlocklists(this, persistentState)
+                rdb.refresh(RefreshDatabase.ACTION_REFRESH_RESTORE)
+            }
+        },
     )
 
     private lateinit var startForResult: androidx.activity.result.ActivityResultLauncher<Intent>
@@ -303,6 +310,7 @@ class HomeScreenActivity : FragmentActivity() {
         handleFrostEffectIfNeeded(resolvedThemePreference)
 
         registerForActivityResult()
+        backupController.observeRestoreWorker()
 
         handleIncomingIntents(intent)
 
@@ -338,7 +346,10 @@ class HomeScreenActivity : FragmentActivity() {
                 val homeState by homeViewModel.uiState.collectAsStateWithLifecycle()
                 val aboutState by aboutViewModel.uiState.collectAsStateWithLifecycle()
 
-                var isUnlocked by rememberSaveable { mutableStateOf(false) }
+                var isUnlocked by rememberAppUnlockState {
+                    checkBiometricRequired(this@HomeScreenActivity, persistentState)
+                }
+                val homeStateHolder = rememberSaveableStateHolder()
                 var homeDialogState by rememberSaveable(stateSaver = HomeDialog.Saver) {
                     mutableStateOf(pendingDialog.value ?: HomeDialog.Hidden)
                 }
@@ -377,6 +388,7 @@ class HomeScreenActivity : FragmentActivity() {
                         }
                     )
                 } else {
+                    homeStateHolder.SaveableStateProvider("unlocked-home") {
                     // Keep HomeScreenRoot composed while paused so rememberNavBackStack survives.
                     PauseOverlayHost {
                         HomeScreenRoot(
@@ -569,9 +581,10 @@ class HomeScreenActivity : FragmentActivity() {
                             PauseScreen(onFinish = { })
                         }
                     }
+                    }
                 }
 
-
+                if (isUnlocked) {
                 if (showBugReportSheet) {
                     BugReportFilesSheet(onDismiss = { showBugReportSheet = false })
                 }
@@ -582,7 +595,6 @@ class HomeScreenActivity : FragmentActivity() {
                         onRestoreConfirm = { uriString ->
                             val uri = uriString.toUri()
                             backupController.startRestore(uri)
-                            backupController.observeRestoreWorker()
                         },
                         onDownloadConfirm = { download, isUpdateAvailable ->
                             if (isUpdateAvailable) {
@@ -620,6 +632,7 @@ class HomeScreenActivity : FragmentActivity() {
                         },
                     )
                 )
+                }
             }
         }
     }

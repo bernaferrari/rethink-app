@@ -20,7 +20,7 @@ import Logger.LOG_TAG_BACKUP_RESTORE
 import android.content.Context
 import android.net.Uri
 import androidx.core.net.toUri
-import androidx.work.Worker
+import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.bernaferrari.bravedns.backup.BackupHelper.Companion.BACKUP_WG_DIR
 import com.bernaferrari.bravedns.backup.BackupHelper.Companion.CREATED_TIME
@@ -60,7 +60,9 @@ import kotlinx.coroutines.runBlocking
 // ref:
 // https://gavingt.medium.com/refactoring-my-backup-and-restore-feature-to-comply-with-scoped-storage-e2b6c792c3b
 class BackupAgent(val context: Context, workerParams: WorkerParameters) :
-    Worker(context, workerParams), KoinComponent {
+    CoroutineWorker(context, workerParams), KoinComponent {
+
+    private var backupPreferences: Map<String, Any?>? = null
 
     var filesPathToZip: MutableList<String> = ArrayList()
     private val persistentState by inject<PersistentState>()
@@ -71,7 +73,7 @@ class BackupAgent(val context: Context, workerParams: WorkerParameters) :
         const val TAG = "BackupExport"
     }
 
-    override fun doWork(): Result {
+    override suspend fun doWork(): Result {
         val backupFileUri = inputData.getString(DATA_BUILDER_BACKUP_URI)?.toUri()
         if (backupFileUri == null) {
             Logger.w(LOG_TAG_BACKUP_RESTORE, "backup file uri is null, return failure")
@@ -79,17 +81,17 @@ class BackupAgent(val context: Context, workerParams: WorkerParameters) :
         }
 
         Logger.d(LOG_TAG_BACKUP_RESTORE, "begin backup process with file uri: $backupFileUri")
-        val isBackupSucceed = startBackupProcess(backupFileUri)
-
-        Logger.i(
-            LOG_TAG_BACKUP_RESTORE,
-            "completed backup process, is backup successful? $isBackupSucceed"
-        )
-        if (isBackupSucceed) {
-            startVpn(context)
-            return Result.success()
+        val wasRunning = com.bernaferrari.bravedns.service.VpnController.isOn()
+        backupPreferences = persistentState.snapshotPreferences()
+        return try {
+            if (wasRunning) com.bernaferrari.bravedns.service.VpnController.stopAndAwait("backup", context)
+            if (startBackupProcess(backupFileUri)) Result.success() else Result.failure()
+        } finally {
+            if (wasRunning) kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
+                com.bernaferrari.bravedns.service.VpnController.stopAndAwait("backup-finish", context)
+                startVpn(context)
+            }
         }
-        return Result.failure()
     }
 
     private fun startBackupProcess(backupFileUri: Uri): Boolean {
@@ -278,16 +280,12 @@ class BackupAgent(val context: Context, workerParams: WorkerParameters) :
                     "file ${f.name} found in database dir (${f.absolutePath})"
                 )
             val databaseFile =
-                backUpFile(f.absolutePath, constructDbFileName(path, f.name)) ?: return false
+                backUpFile(f.absolutePath, File(path, f.name).path) ?: return false
             Logger.i(LOG_TAG_BACKUP_RESTORE, "file ${databaseFile.name} added to backup dir")
             filesPathToZip.add(databaseFile.absolutePath)
         }
 
         return true
-    }
-
-    private fun constructDbFileName(path: String, fileName: String): String {
-        return path + File.separator + fileName
     }
 
     private fun saveSharedPreferencesToFile(prefFile: File): Boolean {
@@ -297,7 +295,7 @@ class BackupAgent(val context: Context, workerParams: WorkerParameters) :
 
         try {
             output = ObjectOutputStream(FileOutputStream(prefFile))
-            val allPrefs = persistentState.snapshotPreferences()
+            val allPrefs = backupPreferences ?: persistentState.snapshotPreferences()
             output.writeObject(allPrefs)
         } catch (e: Exception) {
             Logger.crash(LOG_TAG_BACKUP_RESTORE, "exception during shared pref backup, ${e.message}", e)

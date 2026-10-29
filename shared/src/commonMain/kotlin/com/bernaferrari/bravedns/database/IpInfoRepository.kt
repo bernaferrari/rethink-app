@@ -16,10 +16,17 @@
 
 package com.bernaferrari.bravedns.database
 
-class IpInfoRepository(private val dao: IpInfoDAO) {
+import androidx.room3.withWriteTransaction
+
+class IpInfoRepository(private val database: LogDatabase) {
+    private val dao = database.ipInfoDao()
+    private val stats = StatsMaterializer(database.dailyStatsDAO(), dao)
 
     suspend fun insertAsync(ipInfo: IpInfo) {
-        dao.insert(ipInfo)
+        database.withWriteTransaction {
+            dao.insert(ipInfo)
+            stats.onIpInfoInserted(ipInfo.ip)
+        }
     }
 
     suspend fun getIpInfo(ip: String): IpInfo? {

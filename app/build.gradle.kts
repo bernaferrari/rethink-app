@@ -35,29 +35,16 @@ java {
 }
 
 
-// Apply Google Services and Firebase Crashlytics plugins only for the release channels that
-// actually ship Firebase (play, website). Gradle applies plugins at configuration time, so we
-// must inspect the requested tasks: Firebase builds are keyed on the CHANNEL flavor names —
-// never on the releaseType ("full") substring, which every variant contains.
-// fdroid and the fdroid CI server always stay de-Googled.
-val taskNames = gradle.startParameter.taskNames.joinToString(",").lowercase()
-val buildsPlayOrWebsiteChannel = taskNames.split(",").any {
-    it.contains("play", true) || it.contains("website", true)
-}
-val fdroidBuild = taskNames.contains("fdroid")
-val fdroidBuildServer = System.getenv("fdroidserver")
-val isFdroidBuildServer = !fdroidBuildServer.isNullOrEmpty() && fdroidBuildServer != "null"
-val deGoogled = fdroidBuild || isFdroidBuildServer || !buildsPlayOrWebsiteChannel
+// Apply plugins independently of requested task spelling; disable their tasks for
+// channels that do not contain Firebase. This also handles aggregate/mixed builds.
+apply(plugin = "com.google.gms.google-services")
+apply(plugin = "com.google.firebase.crashlytics")
 
-println("app-task names: '$taskNames'")
-println("gradle deGoogled? $deGoogled (fdroidBuild: $fdroidBuild, fdroidBuildServer: $isFdroidBuildServer, playOrWebsite: $buildsPlayOrWebsiteChannel)")
-
-if (!deGoogled) {
-    apply(plugin = "com.google.gms.google-services")
-    apply(plugin = "com.google.firebase.crashlytics")
-    println("app firebase plugins applied")
-} else {
-    println("app firebase plugins SKIPPED")
+tasks.configureEach {
+    if (name.contains("Fdroid", ignoreCase = true) &&
+        (name.contains("GoogleServices") || name.contains("Crashlytics"))) {
+        enabled = false
+    }
 }
 
 val keystorePropertiesFile = rootProject.file("keystore.properties")
@@ -168,10 +155,8 @@ android {
                 debugSymbolLevel = "SYMBOL_TABLE"
                 abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64")
             }
-            if (!deGoogled) {
-                configure<com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsExtension> {
-                    nativeSymbolUploadEnabled = true
-                }
+            configure<com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsExtension> {
+                nativeSymbolUploadEnabled = true
             }
         }
         create("leakCanary") {
@@ -195,7 +180,7 @@ android {
         }
     }
 
-    if (!deGoogled) {
+    run {
         afterEvaluate {
             tasks.configureEach {
                 if (name.contains("injectCrashlyticsBuildIds")) {
@@ -261,6 +246,14 @@ android {
 
 }
 
+// Robolectric loads several Android framework images; keep each worker bounded and
+// recycle it between groups of test classes instead of exhausting the default heap.
+tasks.withType<org.gradle.api.tasks.testing.Test>().configureEach {
+    maxHeapSize = "2g"
+    maxParallelForks = 1
+    forkEvery = 12
+}
+
 configure<DetektExtension> {
     parallel = true
     buildUponDefaultConfig = true
@@ -274,6 +267,30 @@ configure<DetektExtension> {
         )
     )
 }
+
+// Shared production code has its own ratchet, initialized from the committed tree.
+// Keeping it separate prevents previously unscanned KMP debt from expanding the app baseline.
+val detektShared by tasks.registering(Detekt::class) {
+    description = "Check shared production Kotlin against its existing-debt baseline"
+    setSource(files(
+        "../shared/src/commonMain/kotlin",
+        "../shared/src/androidMain/kotlin",
+        "../shared/src/jvmMain/kotlin",
+        "../shared/src/wasmJsMain/kotlin",
+    ))
+    config.setFrom("$rootDir/config/detekt/detekt.yml")
+    baseline.set(file("$rootDir/config/detekt/shared-baseline.xml"))
+    buildUponDefaultConfig = true
+    parallel = true
+    reports {
+        html.outputLocation.set(layout.buildDirectory.file("reports/detekt/shared.html"))
+        xml.outputLocation.set(layout.buildDirectory.file("reports/detekt/shared.xml"))
+        sarif.outputLocation.set(layout.buildDirectory.file("reports/detekt/shared.sarif"))
+    }
+}
+
+// The existing local command and CI quality gate now cover both modules.
+tasks.named("detekt") { dependsOn(detektShared) }
 
 tasks.withType<Detekt>().configureEach {
     jvmTarget = "17"
@@ -440,6 +457,7 @@ androidComponents {
         if ("play" in channels || "website" in channels) {
             variant.sources.java?.addStaticSourceDirectory("src/billing/kotlin")
             variant.sources.kotlin?.addStaticSourceDirectory("src/billing/kotlin")
+            variant.sources.res?.addStaticSourceDirectory("src/billing/res")
         }
     }
 

@@ -81,7 +81,7 @@ abstract class LogDatabase : RoomDatabase() {
 
     fun dnsLogRepository() = DnsLogRepository(dnsLogDAO())
 
-    fun ipInfoRepository() = IpInfoRepository(ipInfoDao())
+    fun ipInfoRepository() = IpInfoRepository(this)
 
     fun eventRepository() = EventRepository(eventDao())
 }

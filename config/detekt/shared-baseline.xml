@@ -1,0 +1,296 @@
+<?xml version="1.0" ?>
+<!-- Existing shared production debt at dd8c387e4ec1b92edb731262aa407c28f872e580; never add new findings. -->
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>ComplexCondition:RethinkCustomRulesScreen.kt$!selecting &amp;&amp; effectiveMode == RethinkRulesMode.SELECTED_UID &amp;&amp; (rules.isLoading || rules.itemCount &gt; 0)</ID>
+    <ID>ComplexCondition:RethinkNavShell.kt$constraints.hasBoundedWidth &amp;&amp; constraints.hasBoundedHeight &amp;&amp; constraints.maxWidth &gt; 0 &amp;&amp; constraints.maxHeight &gt; 0</ID>
+    <ID>ComplexCondition:RethinkSummaryStatisticsScreen.kt$canToggleCountries || (!isCountrySection &amp;&amp; section.canSeeMore &amp;&amp; section.onSeeMore != null)</ID>
+    <ID>ConstructorParameterNaming:AppInfo.kt$AppInfo$_unused: Any?</ID>
+    <ID>ConstructorParameterNaming:StripeModels.kt$Price$val unit_amount: Long</ID>
+    <ID>CyclomaticComplexMethod:AppInfoViewModel.kt$AppInfoViewModel$private fun matchesFirewallFilter(app: AppInfo, filter: RethinkFirewallFilter): Boolean</ID>
+    <ID>CyclomaticComplexMethod:LogsPagingViewModels.kt$ConnectionTrackerViewModel$private fun fetchNetworkLogs(state: ConnectionQuery): Flow&lt;PagingData&lt;ConnectionTracker&gt;&gt;</ID>
+    <ID>CyclomaticComplexMethod:LogsPagingViewModels.kt$DnsLogViewModel$private fun fetchDnsLogs(state: DnsLogQuery): Flow&lt;PagingData&lt;DnsLog&gt;&gt;</ID>
+    <ID>CyclomaticComplexMethod:RethinkAppNavigation.kt$@Composable fun RethinkAppNavigation( destinations: List&lt;RethinkNavigationItem&gt;, startRoute: RethinkRoute = RethinkRoute.Home, pendingRoute: RethinkRoute? = null, onRouteNavigated: () -&gt; Unit = {}, modifier: Modifier = Modifier, background: @Composable (current: RethinkRoute?) -&gt; Unit = {}, snackbar: @Composable () -&gt; Unit = {}, entryBuilder: EntryProviderScope&lt;NavKey&gt;.(RethinkNavOps) -&gt; Unit, )</ID>
+    <ID>CyclomaticComplexMethod:RethinkAppearanceSettingsCard.kt$@Composable private fun RethinkThemeColorSwatch( preset: RethinkAppearancePreset, selected: Boolean, enabled: Boolean, dynamicColor: Color, onClick: () -&gt; Unit, )</ID>
+    <ID>CyclomaticComplexMethod:RethinkConnectedChoiceGroup.kt$@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable fun &lt;T&gt; RethinkConnectedChoiceGroup( options: List&lt;RethinkChoiceOption&lt;T&gt;&gt;, selected: T?, onSelect: (T) -&gt; Unit, modifier: Modifier = Modifier, fillWidth: Boolean = true, iconOnly: Boolean = false, onDeselect: (() -&gt; Unit)? = null, labels: RethinkChoiceLabels = RethinkChoiceLabels.Always, /** Lift this one tone when the group sits on a surfaceContainerLow card. */ unselectedContainerColor: Color = MaterialTheme.colorScheme.surfaceContainerLow, )</ID>
+    <ID>CyclomaticComplexMethod:RethinkCustomRulesScreen.kt$@Composable fun RethinkCustomRulesScreen( uid: Int, selectedTab: RethinkRulesTab, selectedMode: RethinkRulesMode, query: String, rules: RethinkFirewallRulesFeed, strings: RethinkCustomRulesStrings, onTabChange: (RethinkRulesTab) -&gt; Unit, onModeChange: (RethinkRulesMode) -&gt; Unit, onQueryChange: (String) -&gt; Unit, onAddRule: (RethinkRulesTab, String) -&gt; RethinkRulesAddResult, onDeleteRule: (RethinkRulesTab, RethinkFirewallRule) -&gt; Unit, onRuleOwnerVisible: (Int) -&gt; Unit = {}, onBackClick: (() -&gt; Unit)? = null, modifier: Modifier = Modifier, )</ID>
+    <ID>CyclomaticComplexMethod:RethinkCustomRulesScreen.kt$@Composable private fun RethinkRulesContent( rules: RethinkFirewallRulesFeed, selectedTab: RethinkRulesTab, selectedMode: RethinkRulesMode, strings: RethinkCustomRulesStrings, selection: Set&lt;String&gt;, onRuleClick: (RethinkFirewallRule) -&gt; Unit, onRuleLongClick: (RethinkFirewallRule) -&gt; Unit, onRequestDelete: (RethinkFirewallRule) -&gt; Unit, onRuleOwnerVisible: (Int) -&gt; Unit, onAddRule: (() -&gt; Unit)?, modifier: Modifier = Modifier, )</ID>
+    <ID>CyclomaticComplexMethod:RethinkDemoLogsAndFirewallScreens.kt$@Composable internal fun DemoAppInfoScreen(modifier: Modifier, app: RethinkFirewallApp?, onBack: () -&gt; Unit)</ID>
+    <ID>CyclomaticComplexMethod:RethinkDemoLogsAndFirewallScreens.kt$@Composable internal fun DemoFirewallAppListScreen( modifier: Modifier, onBack: () -&gt; Unit, onAppInfo: (RethinkFirewallApp) -&gt; Unit, )</ID>
+    <ID>CyclomaticComplexMethod:RethinkDemoNetworkingScreens.kt$@Composable internal fun DemoWireguardScreen(modifier: Modifier, onBack: () -&gt; Unit)</ID>
+    <ID>CyclomaticComplexMethod:RethinkEventsScreen.kt$@Composable private fun RethinkEventControls( query: String, filters: RethinkEventFilters, strings: RethinkEventsStrings, sourceLabel: (RethinkEventSource) -&gt; String, onQueryChange: (String) -&gt; Unit, onFiltersChange: (RethinkEventFilters) -&gt; Unit, )</ID>
+    <ID>CyclomaticComplexMethod:RethinkFastScroller.kt$@Composable fun RethinkIndexedFastScroller( marks: List&lt;RethinkFastScrollerMark&gt;, listState: LazyListState, modifier: Modifier = Modifier, minMarkCount: Int = 4, onInteractionStart: () -&gt; Unit = {}, onInteractionEnd: () -&gt; Unit = {}, )</ID>
+    <ID>CyclomaticComplexMethod:RethinkFirewallAppListScreen.kt$@Composable fun RethinkFirewallNetworkToggle( blocked: Boolean, allowedIcon: ImageVector, blockedIcon: ImageVector, contentDescription: String, onClick: () -&gt; Unit, )</ID>
+    <ID>CyclomaticComplexMethod:RethinkFirewallAppListScreen.kt$@Composable private fun RethinkFirewallAppRow( app: RethinkFirewallApp, query: String, statusLabel: String, position: CardPosition, appIcon: @Composable () -&gt; Unit, onClick: () -&gt; Unit, onWifiToggle: () -&gt; Unit, onMobileToggle: () -&gt; Unit, proxyLabel: String, wifiActionLabel: String, mobileActionLabel: String, )</ID>
+    <ID>CyclomaticComplexMethod:RethinkListComponents.kt$@Composable fun RethinkListItem( modifier: Modifier = Modifier, headline: String, headlineAnnotated: AnnotatedString? = null, supporting: String? = null, supportingAnnotated: AnnotatedString? = null, contentOffset: Modifier = Modifier, leadingIcon: ImageVector? = null, /** * Destructive action row (delete, reset, sign out): error-toned icon well and headline. * Overrides [leadingIconTint]/[leadingIconContainerColor]. */ destructive: Boolean = false, leadingIconTint: Color = if (destructive) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.primary, leadingIconContainerColor: Color = if (destructive) MaterialTheme.colorScheme.errorContainer else RethinkIconWellContainerColor, leadingIconContainerShape: Shape = RoundedCornerShape(SharedDimensions.iconContainerRadius), leadingContent: (@Composable () -&gt; Unit)? = null, trailing: (@Composable () -&gt; Unit)? = null, position: CardPosition = CardPosition.Middle, enabled: Boolean = true, highlighted: Boolean = false, defaultContainerColor: Color = LocalRethinkListContainerColor.current ?: MaterialTheme.colorScheme.surfaceContainerLow, highlightContainerColor: Color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.56f), showTrailingChevron: Boolean = false, selection: RethinkListSelection? = null, /** * For identifiers (IPs, hosts, keys): keep the headline on one line and elide the middle, so * both the start and the meaningful tail (port, TLD) stay visible. */ singleLineHeadline: Boolean = false, /** Secondary gesture (e.g. enter multi-select). Requires [onClick]. */ onLongClick: (() -&gt; Unit)? = null, onClick: (() -&gt; Unit)? = null, )</ID>
+    <ID>CyclomaticComplexMethod:RethinkLogRow.kt$@Composable fun RethinkLogRow( model: RethinkLogRowModel, index: Int, itemCount: Int, modifier: Modifier = Modifier, selected: Boolean = false, onSelect: (() -&gt; Unit)? = null, )</ID>
+    <ID>CyclomaticComplexMethod:RethinkLogRow.kt$@Composable internal fun LogDetailsPanel(model: RethinkLogRowModel, inPane: Boolean = false)</ID>
+    <ID>CyclomaticComplexMethod:RethinkPreviewEntries.kt$fun EntryProviderScope&lt;NavKey&gt;.rethinkPreviewEntries( nav: RethinkNavOps, demoDependencies: RethinkWebDemoDependencies, vpnOn: MutableState&lt;Boolean&gt;, statisticsWindow: MutableState&lt;RethinkStatisticsWindow&gt;, configureSearchOpen: MutableState&lt;Boolean&gt;, configureQuery: MutableState&lt;String&gt;, appearanceContent: @Composable () -&gt; Unit, )</ID>
+    <ID>CyclomaticComplexMethod:RethinkProxySettings.kt$@Composable private fun RethinkOrbotPanel( state: RethinkProxySettingsState, strings: RethinkProxySettingsStrings, highlightedKey: String?, onMainClick: () -&gt; Unit, onCheckedChange: (Boolean) -&gt; Unit, onAppsClick: (() -&gt; Unit)?, onOpenAppClick: () -&gt; Unit, onInfoClick: () -&gt; Unit, )</ID>
+    <ID>CyclomaticComplexMethod:RethinkSummaryStatisticsScreen.kt$@Composable private fun RethinkSummaryStatisticsSectionCard( section: RethinkSummaryStatisticsSection, strings: RethinkSummaryStatisticsStrings, )</ID>
+    <ID>CyclomaticComplexMethod:RethinkWireguardHopPicker.kt$@Composable private fun RethinkWireguardHopRow( item: RethinkWireguardHopItem, checked: Boolean, inProgress: Boolean, strings: RethinkWireguardHopPickerStrings, onCheckedChange: (Boolean) -&gt; Unit, )</ID>
+    <ID>CyclomaticComplexMethod:RethinkWireguardSsidEditor.kt$@Composable fun RethinkWireguardSsidEditor( initialRules: List&lt;RethinkWireguardSsidRule&gt;, strings: RethinkWireguardSsidEditorStrings, onSave: (List&lt;RethinkWireguardSsidRule&gt;) -&gt; Unit, onDismiss: () -&gt; Unit, onValidationError: (String) -&gt; Unit, modifier: Modifier = Modifier, )</ID>
+    <ID>CyclomaticComplexMethod:WgInterface.kt$WgInterface$fun toWgQuickString(): String</ID>
+    <ID>CyclomaticComplexMethod:WgInterface.kt$WgInterface$override fun equals(obj: Any?): Boolean</ID>
+    <ID>CyclomaticComplexMethod:WgInterface.kt$WgInterface.Companion$@Throws(BadConfigException::class) fun parse(lines: Iterable&lt;CharSequence?&gt;): WgInterface</ID>
+    <ID>DestructuringDeclarationWithTooManyEntries:ProtectionFlowBackground.wasm.kt$val (a, s, f, bg) = frame.colors</ID>
+    <ID>EmptyWhileBlock:Room3SqliteHelpers.kt${ }</ID>
+    <ID>ExplicitItLambdaParameter:RethinkBubbleScreen.kt${ _, it -&gt; "allowed_${it.id}" }</ID>
+    <ID>ExplicitItLambdaParameter:RethinkBubbleScreen.kt${ _, it -&gt; "blocked_${it.id}" }</ID>
+    <ID>ExplicitItLambdaParameter:RethinkWireguardSsidEditor.kt${ _, it -&gt; "${it.name}_${it.type.name}" }</ID>
+    <ID>ForbiddenComment:Constants.kt$Constants.Companion$// FIXME: Avoid usage of these parameters, map to POJO instead</ID>
+    <ID>ForbiddenComment:Constants.kt$Constants.Companion$// TODO: have two different response versions for blocklist update and app update</ID>
+    <ID>FunctionOnlyReturningConstant:DnsProxyEndpoint.kt$DnsProxyEndpoint$fun isInternal(): Boolean</ID>
+    <ID>FunctionOnlyReturningConstant:Themes.kt$Themes.Companion$fun isFrostTheme(id: Int): Boolean</ID>
+    <ID>InvalidPackageDeclaration:AboutViewModel.kt$package com.bernaferrari.bravedns.ui.compose.about</ID>
+    <ID>InvalidPackageDeclaration:RethinkDemoFixtures.kt$package com.bernaferrari.bravedns.ui.compose</ID>
+    <ID>InvalidPackageDeclaration:RethinkDemoLogsAndFirewallScreens.kt$package com.bernaferrari.bravedns.ui.compose</ID>
+    <ID>InvalidPackageDeclaration:RethinkDemoNetworkingScreens.kt$package com.bernaferrari.bravedns.ui.compose</ID>
+    <ID>InvalidPackageDeclaration:RethinkDemoSettingsScreens.kt$package com.bernaferrari.bravedns.ui.compose</ID>
+    <ID>LargeClass:KnownPorts.kt$KnownPorts$Companion</ID>
+    <ID>LongMethod:KnownPorts.kt$KnownPorts.Companion$private fun initPortMap(): HashMap&lt;Int, String&gt;</ID>
+    <ID>LongMethod:RethinkDemoLogsAndFirewallScreens.kt$@Composable internal fun DemoLogsScreen(modifier: Modifier, onBack: () -&gt; Unit)</ID>
+    <ID>LongMethod:RethinkDemoNetworkingScreens.kt$@Composable internal fun DemoWireguardScreen(modifier: Modifier, onBack: () -&gt; Unit)</ID>
+    <ID>LongMethod:RethinkDemoSettingsScreens.kt$@Composable internal fun DemoTunnelSettingsScreen(modifier: Modifier, onBack: () -&gt; Unit)</ID>
+    <ID>LongMethod:RethinkDnsSettingsScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun RethinkDnsSettingsScreen( state: RethinkDnsSettingsState, strings: RethinkDnsSettingsStrings, onRefresh: () -&gt; Unit, onSystemDns: () -&gt; Unit, onSystemDnsInfo: () -&gt; Unit, onCustomDns: () -&gt; Unit, onRethinkDns: () -&gt; Unit, onSmartDns: () -&gt; Unit, onSmartDnsInfo: () -&gt; Unit, onLocalBlocklists: () -&gt; Unit, onCustomDownloaderChange: (Boolean) -&gt; Unit, onPeriodicUpdateChange: (Boolean) -&gt; Unit, onDnsAlgChange: (Boolean) -&gt; Unit, onSplitDnsChange: (Boolean) -&gt; Unit, onRulesAsFirewallChange: (Boolean) -&gt; Unit, onRecordTypes: () -&gt; Unit, onFaviconsChange: (Boolean) -&gt; Unit, onDnsCacheChange: (Boolean) -&gt; Unit, onProxyDnsChange: (Boolean) -&gt; Unit, onUndelegatedDomainsChange: (Boolean) -&gt; Unit, onFallbackDnsChange: (Boolean) -&gt; Unit, onBlockFreeModeChange: (RethinkBlockFreeDnsMode) -&gt; Unit, onTrustedEndpoint: () -&gt; Unit, onPreventLeaksChange: (Boolean) -&gt; Unit, onBackClick: (() -&gt; Unit)? = null, focusedSettingId: String? = null, modifier: Modifier = Modifier, )</ID>
+    <ID>LongMethod:RethinkFastScroller.kt$@Composable fun RethinkIndexedFastScroller( marks: List&lt;RethinkFastScrollerMark&gt;, listState: LazyListState, modifier: Modifier = Modifier, minMarkCount: Int = 4, onInteractionStart: () -&gt; Unit = {}, onInteractionEnd: () -&gt; Unit = {}, )</ID>
+    <ID>LongMethod:RethinkFirewallAppListScreen.kt$@Composable fun RethinkFirewallNetworkToggle( blocked: Boolean, allowedIcon: ImageVector, blockedIcon: ImageVector, contentDescription: String, onClick: () -&gt; Unit, )</ID>
+    <ID>LongMethod:RethinkListComponents.kt$@Composable fun RethinkListItem( modifier: Modifier = Modifier, headline: String, headlineAnnotated: AnnotatedString? = null, supporting: String? = null, supportingAnnotated: AnnotatedString? = null, contentOffset: Modifier = Modifier, leadingIcon: ImageVector? = null, /** * Destructive action row (delete, reset, sign out): error-toned icon well and headline. * Overrides [leadingIconTint]/[leadingIconContainerColor]. */ destructive: Boolean = false, leadingIconTint: Color = if (destructive) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.primary, leadingIconContainerColor: Color = if (destructive) MaterialTheme.colorScheme.errorContainer else RethinkIconWellContainerColor, leadingIconContainerShape: Shape = RoundedCornerShape(SharedDimensions.iconContainerRadius), leadingContent: (@Composable () -&gt; Unit)? = null, trailing: (@Composable () -&gt; Unit)? = null, position: CardPosition = CardPosition.Middle, enabled: Boolean = true, highlighted: Boolean = false, defaultContainerColor: Color = LocalRethinkListContainerColor.current ?: MaterialTheme.colorScheme.surfaceContainerLow, highlightContainerColor: Color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.56f), showTrailingChevron: Boolean = false, selection: RethinkListSelection? = null, /** * For identifiers (IPs, hosts, keys): keep the headline on one line and elide the middle, so * both the start and the meaningful tail (port, TLD) stay visible. */ singleLineHeadline: Boolean = false, /** Secondary gesture (e.g. enter multi-select). Requires [onClick]. */ onLongClick: (() -&gt; Unit)? = null, onClick: (() -&gt; Unit)? = null, )</ID>
+    <ID>LongMethod:RethinkPreviewEntries.kt$fun EntryProviderScope&lt;NavKey&gt;.rethinkPreviewEntries( nav: RethinkNavOps, demoDependencies: RethinkWebDemoDependencies, vpnOn: MutableState&lt;Boolean&gt;, statisticsWindow: MutableState&lt;RethinkStatisticsWindow&gt;, configureSearchOpen: MutableState&lt;Boolean&gt;, configureQuery: MutableState&lt;String&gt;, appearanceContent: @Composable () -&gt; Unit, )</ID>
+    <ID>LongMethod:RethinkRpnCountriesScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun RethinkRpnCountriesScreen( countries: List&lt;RethinkRpnCountry&gt;, busyKey: String?, errorMessage: String?, strings: RethinkRpnCountriesStrings, onBackClick: () -&gt; Unit, onServerDetails: (String) -&gt; Unit, onSettings: () -&gt; Unit, onRefresh: () -&gt; Unit, onReset: () -&gt; Unit, onEnabledChange: (RethinkRpnCountry, Boolean) -&gt; Unit, onFavouriteClick: (RethinkRpnCountry) -&gt; Unit, modifier: Modifier = Modifier, )</ID>
+    <ID>LongParameterList:RethinkAppInfoScreen.kt$( state: RethinkAppInfoState, strings: RethinkAppInfoStrings, onBackClick: () -&gt; Unit, onWifiClick: () -&gt; Unit, onMobileClick: () -&gt; Unit, onIsolateClick: () -&gt; Unit, onBypassDnsClick: () -&gt; Unit, onBypassUniversalClick: () -&gt; Unit, onExcludeClick: () -&gt; Unit, onProxyExcludedChange: (Boolean) -&gt; Unit, onTempAllowChange: (Boolean) -&gt; Unit, onSystemAppInfo: () -&gt; Unit, onIpRules: () -&gt; Unit, onDomainRules: () -&gt; Unit, onActiveConnections: (() -&gt; Unit)?, onDomains: (() -&gt; Unit)?, onIps: (() -&gt; Unit)?, onActiveEntry: ((RethinkAppInfoLogItem) -&gt; Unit)?, onDomainEntry: ((RethinkAppInfoLogItem) -&gt; Unit)?, onIpEntry: ((RethinkAppInfoLogItem) -&gt; Unit)?, titleLeading: (@Composable () -&gt; Unit)? = null, modifier: Modifier = Modifier, )</ID>
+    <ID>LongParameterList:RethinkBlocklistEditor.kt$( packs: RethinkBlocklistFeed&lt;RethinkBlocklistPack&gt;, fileTags: RethinkBlocklistFeed&lt;RethinkBlocklistFileTag&gt;, activeView: RethinkBlocklistEditorView, query: String, selectionFilter: RethinkBlocklistSelectionFilter, selectedSubgroups: Set&lt;String&gt;, availableSubgroups: List&lt;String&gt;, showDownload: Boolean, showEditor: Boolean, isDownloading: Boolean, strings: RethinkBlocklistEditorStrings, onViewChange: (RethinkBlocklistEditorView) -&gt; Unit, onQueryChange: (String) -&gt; Unit, onSelectionFilterChange: (RethinkBlocklistSelectionFilter) -&gt; Unit, onSubgroupsChange: (Set&lt;String&gt;) -&gt; Unit, onDownload: () -&gt; Unit, onCancelDownload: () -&gt; Unit, onPackToggle: (RethinkBlocklistPack, Boolean) -&gt; Unit, onFileTagToggle: (RethinkBlocklistFileTag, Boolean) -&gt; Unit, onOpenUrl: (String) -&gt; Unit, onApply: () -&gt; Unit, onDiscard: () -&gt; Unit, modifier: Modifier = Modifier, )</ID>
+    <ID>LongParameterList:RethinkDnsSettingsScreen.kt$( state: RethinkDnsSettingsState, strings: RethinkDnsSettingsStrings, onRefresh: () -&gt; Unit, onSystemDns: () -&gt; Unit, onSystemDnsInfo: () -&gt; Unit, onCustomDns: () -&gt; Unit, onRethinkDns: () -&gt; Unit, onSmartDns: () -&gt; Unit, onSmartDnsInfo: () -&gt; Unit, onLocalBlocklists: () -&gt; Unit, onCustomDownloaderChange: (Boolean) -&gt; Unit, onPeriodicUpdateChange: (Boolean) -&gt; Unit, onDnsAlgChange: (Boolean) -&gt; Unit, onSplitDnsChange: (Boolean) -&gt; Unit, onRulesAsFirewallChange: (Boolean) -&gt; Unit, onRecordTypes: () -&gt; Unit, onFaviconsChange: (Boolean) -&gt; Unit, onDnsCacheChange: (Boolean) -&gt; Unit, onProxyDnsChange: (Boolean) -&gt; Unit, onUndelegatedDomainsChange: (Boolean) -&gt; Unit, onFallbackDnsChange: (Boolean) -&gt; Unit, onBlockFreeModeChange: (RethinkBlockFreeDnsMode) -&gt; Unit, onTrustedEndpoint: () -&gt; Unit, onPreventLeaksChange: (Boolean) -&gt; Unit, onBackClick: (() -&gt; Unit)? = null, focusedSettingId: String? = null, modifier: Modifier = Modifier, )</ID>
+    <ID>LongParameterList:RethinkListComponents.kt$( modifier: Modifier = Modifier, headline: String, headlineAnnotated: AnnotatedString? = null, supporting: String? = null, supportingAnnotated: AnnotatedString? = null, contentOffset: Modifier = Modifier, leadingIcon: ImageVector? = null, /** * Destructive action row (delete, reset, sign out): error-toned icon well and headline. * Overrides [leadingIconTint]/[leadingIconContainerColor]. */ destructive: Boolean = false, leadingIconTint: Color = if (destructive) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.primary, leadingIconContainerColor: Color = if (destructive) MaterialTheme.colorScheme.errorContainer else RethinkIconWellContainerColor, leadingIconContainerShape: Shape = RoundedCornerShape(SharedDimensions.iconContainerRadius), leadingContent: (@Composable () -&gt; Unit)? = null, trailing: (@Composable () -&gt; Unit)? = null, position: CardPosition = CardPosition.Middle, enabled: Boolean = true, highlighted: Boolean = false, defaultContainerColor: Color = LocalRethinkListContainerColor.current ?: MaterialTheme.colorScheme.surfaceContainerLow, highlightContainerColor: Color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.56f), showTrailingChevron: Boolean = false, selection: RethinkListSelection? = null, /** * For identifiers (IPs, hosts, keys): keep the headline on one line and elide the middle, so * both the start and the meaningful tail (port, TLD) stay visible. */ singleLineHeadline: Boolean = false, /** Secondary gesture (e.g. enter multi-select). Requires [onClick]. */ onLongClick: (() -&gt; Unit)? = null, onClick: (() -&gt; Unit)? = null, )</ID>
+    <ID>LoopWithTooManyJumpStatements:StatsMaterializer.kt$for</ID>
+    <ID>MatchingDeclarationName:DiagonalWipeIcon.kt$DiagonalWipeIconDefaults</ID>
+    <ID>MatchingDeclarationName:NetworkTimeProvider.kt$NetworkUptimeProvider</ID>
+    <ID>MatchingDeclarationName:NotificationActions.kt$NotificationActionType</ID>
+    <ID>MatchingDeclarationName:RethinkAdvancedSettingsScreen.kt$RethinkAdvancedSettingsStrings</ID>
+    <ID>MatchingDeclarationName:RethinkAlertsScreen.kt$RethinkAlertsStrings</ID>
+    <ID>MatchingDeclarationName:RethinkConsoleLogsScreen.kt$RethinkConsoleLogStrings</ID>
+    <ID>MatchingDeclarationName:RethinkDomainConnectionsScreen.kt$DomainConnectionsInputType</ID>
+    <ID>MatchingDeclarationName:RethinkFastScroller.kt$RethinkFastScrollerMark</ID>
+    <ID>MatchingDeclarationName:RethinkFirewallSettingsScreen.kt$RethinkFirewallSettingsStrings</ID>
+    <ID>MatchingDeclarationName:RethinkIncludeAppRow.kt$RethinkIncludeAppState</ID>
+    <ID>MatchingDeclarationName:RethinkLogDetailsSheet.kt$RethinkLogDetailEntry</ID>
+    <ID>MatchingDeclarationName:RethinkNavigationChrome.kt$RethinkNavigationItem</ID>
+    <ID>MatchingDeclarationName:RethinkOverflowMenu.kt$RethinkOverflowItem</ID>
+    <ID>MatchingDeclarationName:RethinkRpnSupportSheet.kt$RethinkRpnSupportStrings</ID>
+    <ID>MatchingDeclarationName:RethinkSelectionDialog.kt$RethinkSelectionOption</ID>
+    <ID>MatchingDeclarationName:RethinkTcpProxyScreen.kt$RethinkTcpProxyStrings</ID>
+    <ID>MatchingDeclarationName:RethinkUsageOverviewCard.kt$RethinkUsageOverview</ID>
+    <ID>MayBeConst:Constants.kt$Constants.Companion$// file names which are downloaded as part of on-device blocklists val ONDEVICE_BLOCKLIST_FILE_TAG = "/" + FILE_TAG</ID>
+    <ID>MayBeConst:Constants.kt$Constants.Companion$// on-device blocklist download path val ONDEVICE_BLOCKLIST_DOWNLOAD_PATH = "/" + "downloads" + "/"</ID>
+    <ID>MayBeConst:Constants.kt$Constants.Companion$val ONDEVICE_BLOCKLIST_FILE_BASIC_CONFIG = "/" + "basicconfig.json"</ID>
+    <ID>MayBeConst:Constants.kt$Constants.Companion$val ONDEVICE_BLOCKLIST_FILE_RD = "/" + "rd.txt"</ID>
+    <ID>MayBeConst:Constants.kt$Constants.Companion$val ONDEVICE_BLOCKLIST_FILE_TD = "/" + "td.txt"</ID>
+    <ID>MayBeConst:Constants.kt$Constants.Companion$val ONDEVICE_GEOIP_IPV4 = "/" + "dbip.v4"</ID>
+    <ID>MayBeConst:Constants.kt$Constants.Companion$val ONDEVICE_GEOIP_IPV6 = "/" + "dbip.v6"</ID>
+    <ID>NestedBlockDepth:RethinkFileSystem.kt$RethinkFileSystem$fun md5Hex(path: String): String</ID>
+    <ID>NestedBlockDepth:WgInterface.kt$WgInterface.Builder$@Throws(BadConfigException::class) fun parseDnsServers(dnsServers: CharSequence?): Builder</ID>
+    <ID>NewLineAtEndOfFile:Converters.kt$com.bernaferrari.bravedns.database.Converters.kt</ID>
+    <ID>NewLineAtEndOfFile:IpInfo.kt$com.bernaferrari.bravedns.database.IpInfo.kt</ID>
+    <ID>NewLineAtEndOfFile:IpInfoApi.kt$com.bernaferrari.bravedns.network.IpInfoApi.kt</ID>
+    <ID>NewLineAtEndOfFile:JsonHelper.kt$com.bernaferrari.bravedns.util.JsonHelper.kt</ID>
+    <ID>NewLineAtEndOfFile:RpnProxy.kt$com.bernaferrari.bravedns.database.RpnProxy.kt</ID>
+    <ID>NewLineAtEndOfFile:StripeApi.kt$com.bernaferrari.bravedns.network.StripeApi.kt</ID>
+    <ID>NewLineAtEndOfFile:StripeModels.kt$com.bernaferrari.bravedns.iab.stripe.StripeModels.kt</ID>
+    <ID>NewLineAtEndOfFile:TcpProxyApi.kt$com.bernaferrari.bravedns.network.TcpProxyApi.kt</ID>
+    <ID>NewLineAtEndOfFile:WgHopMap.kt$com.bernaferrari.bravedns.database.WgHopMap.kt</ID>
+    <ID>SwallowedException:Converters.kt$Converters$e: IllegalArgumentException</ID>
+    <ID>ThrowsCount:Config.kt$Config.Companion$@Throws(BadConfigException::class) fun parse(lines: Iterable&lt;String&gt;): Config</ID>
+    <ID>ThrowsCount:InetEndpoint.kt$InetEndpoint.Companion$@Throws(ParseException::class) fun parse(endpoint: String): InetEndpoint</ID>
+    <ID>TooGenericExceptionCaught:AllowedAppsBubbleViewModel.kt$AllowedAppsBubbleViewModel$error: Exception</ID>
+    <ID>TooGenericExceptionCaught:BlockedAppsBubbleViewModel.kt$BlockedAppsBubbleViewModel$error: Exception</ID>
+    <ID>TooGenericExceptionCaught:BlocklistApi.kt$BlocklistApi$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:IpInfoApi.kt$IpInfoApi$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:Peer.kt$Peer.Builder$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SubscriptionStatusRepository.kt$SubscriptionStatusRepository$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:TcpProxyApi.kt$TcpProxyApi$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:WgInterface.kt$WgInterface.Builder$e: Exception</ID>
+    <ID>TooManyFunctions:AppConnectionsViewModel.kt$AppConnectionsViewModel : ViewModel</ID>
+    <ID>TooManyFunctions:AppDatabase.kt$AppDatabase : RoomDatabase</ID>
+    <ID>TooManyFunctions:AppInfoDAO.kt$AppInfoDAO</ID>
+    <ID>TooManyFunctions:AppInfoRepository.kt$AppInfoRepository</ID>
+    <ID>TooManyFunctions:AppInfoViewModel.kt$AppInfoViewModel : ViewModel</ID>
+    <ID>TooManyFunctions:ConnectionTrackerDAO.kt$ConnectionTrackerDAO</ID>
+    <ID>TooManyFunctions:ConnectionTrackerRepository.kt$ConnectionTrackerRepository</ID>
+    <ID>TooManyFunctions:CountryConfigDAO.kt$CountryConfigDAO</ID>
+    <ID>TooManyFunctions:CountryConfigRepository.kt$CountryConfigRepository</ID>
+    <ID>TooManyFunctions:CustomDomainDAO.kt$CustomDomainDAO</ID>
+    <ID>TooManyFunctions:CustomDomainRepository.kt$CustomDomainRepository</ID>
+    <ID>TooManyFunctions:CustomIpDao.kt$CustomIpDao</ID>
+    <ID>TooManyFunctions:CustomIpRepository.kt$CustomIpRepository</ID>
+    <ID>TooManyFunctions:DailyStatsDao.kt$DailyStatsDao</ID>
+    <ID>TooManyFunctions:DnsCryptEndpointDAO.kt$DnsCryptEndpointDAO</ID>
+    <ID>TooManyFunctions:DnsCryptRelayEndpointDAO.kt$DnsCryptRelayEndpointDAO</ID>
+    <ID>TooManyFunctions:DnsLogDAO.kt$DnsLogDAO</ID>
+    <ID>TooManyFunctions:DnsLogRepository.kt$DnsLogRepository</ID>
+    <ID>TooManyFunctions:DnsProxyEndpointDAO.kt$DnsProxyEndpointDAO</ID>
+    <ID>TooManyFunctions:DoHEndpointDAO.kt$DoHEndpointDAO</ID>
+    <ID>TooManyFunctions:DoTEndpointDAO.kt$DoTEndpointDAO</ID>
+    <ID>TooManyFunctions:EventDao.kt$EventDao</ID>
+    <ID>TooManyFunctions:LogDatabase.kt$LogDatabase : RoomDatabase</ID>
+    <ID>TooManyFunctions:ODoHEndpointDAO.kt$ODoHEndpointDAO</ID>
+    <ID>TooManyFunctions:Peer.kt$Peer$Builder</ID>
+    <ID>TooManyFunctions:PreferencesStore.android.kt$AndroidPreferencesStore : PreferencesStore</ID>
+    <ID>TooManyFunctions:ProxyAppMappingRepository.kt$ProxyAppMappingRepository</ID>
+    <ID>TooManyFunctions:ProxyApplicationMappingDAO.kt$ProxyApplicationMappingDAO</ID>
+    <ID>TooManyFunctions:ProxyEndpointDAO.kt$ProxyEndpointDAO</ID>
+    <ID>TooManyFunctions:ProxyEndpointRepository.kt$ProxyEndpointRepository</ID>
+    <ID>TooManyFunctions:RethinkAboutScreen.kt$com.bernaferrari.bravedns.ui.compose.about.RethinkAboutScreen.kt</ID>
+    <ID>TooManyFunctions:RethinkAppInfoScreen.kt$com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoScreen.kt</ID>
+    <ID>TooManyFunctions:RethinkConfigureScreen.kt$com.bernaferrari.bravedns.ui.compose.configure.RethinkConfigureScreen.kt</ID>
+    <ID>TooManyFunctions:RethinkCustomRulesScreen.kt$com.bernaferrari.bravedns.ui.compose.firewall.RethinkCustomRulesScreen.kt</ID>
+    <ID>TooManyFunctions:RethinkDemoSettingsScreens.kt$com.bernaferrari.bravedns.ui.compose.RethinkDemoSettingsScreens.kt</ID>
+    <ID>TooManyFunctions:RethinkDnsEndpointDao.kt$RethinkDnsEndpointDao</ID>
+    <ID>TooManyFunctions:RethinkDnsEndpointRepository.kt$RethinkDnsEndpointRepository</ID>
+    <ID>TooManyFunctions:RethinkDnsSettingsScreen.kt$com.bernaferrari.bravedns.ui.compose.dns.RethinkDnsSettingsScreen.kt</ID>
+    <ID>TooManyFunctions:RethinkEventsScreen.kt$com.bernaferrari.bravedns.ui.compose.events.RethinkEventsScreen.kt</ID>
+    <ID>TooManyFunctions:RethinkFirewallAppListScreen.kt$com.bernaferrari.bravedns.ui.compose.firewall.RethinkFirewallAppListScreen.kt</ID>
+    <ID>TooManyFunctions:RethinkHomeScreen.kt$com.bernaferrari.bravedns.ui.compose.home.RethinkHomeScreen.kt</ID>
+    <ID>TooManyFunctions:RethinkLocalFileTagDao.kt$RethinkLocalFileTagDao</ID>
+    <ID>TooManyFunctions:RethinkLocalFileTagRepository.kt$RethinkLocalFileTagRepository</ID>
+    <ID>TooManyFunctions:RethinkLogDao.kt$RethinkLogDao</ID>
+    <ID>TooManyFunctions:RethinkLogRow.kt$com.bernaferrari.bravedns.ui.compose.logs.RethinkLogRow.kt</ID>
+    <ID>TooManyFunctions:RethinkRemoteFileTagDao.kt$RethinkRemoteFileTagDao</ID>
+    <ID>TooManyFunctions:SubscriptionStatusDao.kt$SubscriptionStatusDao</ID>
+    <ID>TooManyFunctions:SubscriptionStatusRepository.kt$SubscriptionStatusRepository</ID>
+    <ID>TooManyFunctions:WgConfigFilesDAO.kt$WgConfigFilesDAO</ID>
+    <ID>TooManyFunctions:WgConfigFilesRepository.kt$WgConfigFilesRepository</ID>
+    <ID>TooManyFunctions:WgInterface.kt$WgInterface</ID>
+    <ID>TooManyFunctions:WgInterface.kt$WgInterface$Builder</ID>
+    <ID>TopLevelPropertyNaming:AddIcon.kt$internal var _filledAdd: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:AppsIcon.kt$internal var _filledApps: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:ArrowBackIcon.kt$internal var _filledArrowBack: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:ArrowForwardIcon.kt$internal var _filledArrowForward: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:ArticleIcon.kt$internal var _filledArticle: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:AutoStoriesIcon.kt$internal var _filledAutoStories: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:BackupIcon.kt$internal var _filledBackup: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:BarChartIcon.kt$internal var _filledBarChart: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:BlockIcon.kt$internal var _filledBlock: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:BrightnessAutoIcon.kt$internal var _filledBrightnessAuto: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:BugReportIcon.kt$internal var _filledBugReport: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:BuildIcon.kt$internal var _filledBuild: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:BusinessCenterIcon.kt$internal var _filledBusinessCenter: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:CalendarMonthIcon.kt$internal var _filledCalendarMonth: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:CameraAltIcon.kt$internal var _filledCameraAlt: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:CancelIcon.kt$internal var _filledCancel: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:CellTowerIcon.kt$internal var _filledCellTower: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:ChatBubbleIcon.kt$internal var _filledChatBubble: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:ChatIcon.kt$internal var _filledChat: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:CheckCircleIcon.kt$internal var _filledCheckCircle: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:CheckIcon.kt$internal var _filledCheck: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:ClearIcon.kt$internal var _filledClear: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:CloseIcon.kt$internal var _filledClose: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:CloudIcon.kt$internal var _filledCloud: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:CodeIcon.kt$internal var _filledCode: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:ContentCopyIcon.kt$internal var _filledContentCopy: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:DarkModeIcon.kt$internal var _filledDarkMode: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:DeleteIcon.kt$internal var _filledDelete: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:DeleteOutlineIcon.kt$internal var _filledDeleteOutline: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:DnsIcon.kt$internal var _filledDns: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:DownloadIcon.kt$internal var _filledDownload: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:EditIcon.kt$internal var _filledEdit: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:EditLocationAltIcon.kt$internal var _filledEditLocationAlt: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:EmailIcon.kt$internal var _filledEmail: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:EventNoteIcon.kt$internal var _filledEventNote: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:FilterListIcon.kt$internal var _filledFilterList: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:ForumIcon.kt$internal var _filledForum: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:GavelIcon.kt$internal var _filledGavel: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:GppBadIcon.kt$internal var _filledGppBad: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:GroupIcon.kt$internal var _filledGroup: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:HeadsetIcon.kt$internal var _filledHeadset: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:HelpOutlineIcon.kt$internal var _filledHelpOutline: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:HomeIcon.kt$internal var _filledHome: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:HomeIcon.kt$internal var _outlinedHome: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:HttpIcon.kt$internal var _filledHttp: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:InfoIcon.kt$internal var _filledInfo: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:InfoIcon.kt$internal var _outlinedInfo: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:KeyboardArrowDownIcon.kt$internal var _filledKeyboardArrowDown: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:KeyboardArrowRightIcon.kt$internal var _filledKeyboardArrowRight: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:LanguageIcon.kt$internal var _filledLanguage: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:LightModeIcon.kt$internal var _filledLightMode: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:LocalTaxiIcon.kt$internal var _filledLocalTaxi: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:LockIcon.kt$internal var _filledLock: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:MapIcon.kt$internal var _filledMap: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:MobileOffIcon.kt$internal var _filledMobileOff: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:MobiledataArrowsIcon.kt$internal var _filledMobiledataArrows: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:MobiledataArrowsIcon.kt$internal var _outlinedMobiledataArrows: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:MobiledataOffIcon.kt$internal var _filledMobiledataOff: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:MobiledataOffIcon.kt$internal var _outlinedMobiledataOff: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:MoreHorizIcon.kt$internal var _filledMoreHoriz: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:MoreVertIcon.kt$internal var _filledMoreVert: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:MovieIcon.kt$internal var _filledMovie: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:MusicNoteIcon.kt$internal var _filledMusicNote: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:NetworkCheckIcon.kt$internal var _filledNetworkCheck: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:NetworkPingIcon.kt$internal var _filledNetworkPing: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:NewReleasesIcon.kt$internal var _filledNewReleases: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:NotificationsIcon.kt$internal var _filledNotifications: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:NotificationsOffIcon.kt$internal var _filledNotificationsOff: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:PaletteIcon.kt$internal var _filledPalette: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:PhoneAndroidIcon.kt$internal var _filledPhoneAndroid: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:PhotoLibraryIcon.kt$internal var _filledPhotoLibrary: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:PlayArrowIcon.kt$internal var _filledPlayArrow: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:PolicyIcon.kt$internal var _filledPolicy: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:PublicIcon.kt$internal var _filledPublic: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:RadioButtonCheckedIcon.kt$internal var _filledRadioButtonChecked: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:RadioButtonUncheckedIcon.kt$internal var _filledRadioButtonUnchecked: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:RefreshIcon.kt$internal var _filledRefresh: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:RemoveIcon.kt$internal var _filledRemove: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:RestartAltIcon.kt$internal var _filledRestartAlt: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:RestoreIcon.kt$internal var _filledRestore: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:SearchIcon.kt$internal var _filledSearch: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:SecurityIcon.kt$internal var _filledSecurity: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:SendIcon.kt$internal var _filledSend: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:SettingsIcon.kt$internal var _filledSettings: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:SettingsIcon.kt$internal var _outlinedSettings: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:ShareIcon.kt$internal var _filledShare: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:ShieldIcon.kt$internal var _filledShield: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:ShieldMoonIcon.kt$internal var _filledShieldMoon: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:ShopIcon.kt$internal var _filledShop: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:ShoppingCartIcon.kt$internal var _filledShoppingCart: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:SignalCellularAltIcon.kt$internal var _filledSignalCellularAlt: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:StarBorderIcon.kt$internal var _filledStarBorder: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:StarBorderIcon.kt$internal var _outlinedStarBorder: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:StarIcon.kt$internal var _filledStar: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:StarIcon.kt$internal var _outlinedStar: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:StopIcon.kt$internal var _filledStop: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:StorageIcon.kt$internal var _filledStorage: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:SubjectIcon.kt$internal var _filledSubject: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:SystemUpdateAltIcon.kt$internal var _filledSystemUpdateAlt: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:SystemUpdateIcon.kt$internal var _filledSystemUpdate: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:TimerIcon.kt$internal var _filledTimer: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:TuneIcon.kt$internal var _filledTune: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:VpnKeyIcon.kt$internal var _filledVpnKey: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:WarningAmberIcon.kt$internal var _filledWarningAmber: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:WarningIcon.kt$internal var _filledWarning: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:WbSunnyIcon.kt$internal var _filledWbSunny: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:WifiIcon.kt$internal var _filledWifi: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:WifiOffIcon.kt$internal var _filledWifiOff: ImageVector? = null</ID>
+    <ID>TopLevelPropertyNaming:WorkIcon.kt$internal var _filledWork: ImageVector? = null</ID>
+    <ID>UnusedParameter:Peer.kt$Peer$isAmz: Boolean = false</ID>
+    <ID>UnusedParameter:RethinkAboutScreen.kt$accent: Color</ID>
+    <ID>UnusedParameter:RethinkConfigureScreen.kt$index: Int</ID>
+    <ID>UnusedParameter:RethinkLocalFileTagRepository.kt$RethinkLocalFileTagRepository$id: Int</ID>
+    <ID>UnusedParameter:Themes.kt$Themes.Companion$id: Int</ID>
+    <ID>UnusedPrivateMember:RethinkDnsSettingsScreen.kt$@Composable private fun latencyTone(latency: String): Color</ID>
+    <ID>UnusedPrivateProperty:AboutViewModel.kt$AboutViewModel$@Provided private val tokenGenerator: AboutTokenGenerator</ID>
+    <ID>UnusedPrivateProperty:AlertsViewModel.kt$AlertsViewModel$@Provided private val connectionTrackerDao: ConnectionTrackerDAO</ID>
+    <ID>UnusedPrivateProperty:AlertsViewModel.kt$AlertsViewModel$@Provided private val dnsLogDao: DnsLogDAO</ID>
+    <ID>UnusedPrivateProperty:AlertsViewModel.kt$AlertsViewModel$private val appLogList = MutableStateFlow("")</ID>
+    <ID>UnusedPrivateProperty:AlertsViewModel.kt$AlertsViewModel$private val domainLogList = MutableStateFlow("")</ID>
+    <ID>UnusedPrivateProperty:AlertsViewModel.kt$AlertsViewModel$private val fromTime = MutableStateFlow(currentTimeMillis() - ALERT_WINDOW_MILLIS)</ID>
+    <ID>UnusedPrivateProperty:AlertsViewModel.kt$AlertsViewModel$private val ipLogList = MutableStateFlow("")</ID>
+    <ID>UnusedPrivateProperty:AlertsViewModel.kt$AlertsViewModel$private val toTime = MutableStateFlow(currentTimeMillis())</ID>
+    <ID>UnusedPrivateProperty:AppInfo.kt$AppInfo$_unused: Any?</ID>
+    <ID>UnusedPrivateProperty:EventRepository.kt$EventRepository$private val eventDao: EventDao</ID>
+    <ID>UnusedPrivateProperty:InetEndpoint.kt$InetEndpoint$private val lock = Any()</ID>
+    <ID>UtilityClassWithPublicConstructor:Constants.kt$Constants</ID>
+    <ID>UtilityClassWithPublicConstructor:DownloadConstants.kt$DownloadConstants</ID>
+    <ID>UtilityClassWithPublicConstructor:KnownPorts.kt$KnownPorts</ID>
+    <ID>VariableNaming:ConnectionTrackerRepository.kt$ConnectionTrackerRepository$private val BLOCKED_WINDOW_MS = 5 * 60 * 1000L // 5 minutes</ID>
+  </CurrentIssues>
+</SmellBaseline>

@@ -25,12 +25,10 @@ class TempAllowExpiryWorker(
     params: WorkerParameters
 ) : CoroutineWorker(appContext, params), KoinComponent {
 
-    private val db by inject<AppInfoRepository>()
-
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         val now = System.currentTimeMillis()
         try {
-            val cleared = db.clearAllExpiredTempAllowsBlocking(now)
+            val cleared = FirewallManager.expireTemporaryAllows(now)
             if (cleared > 0) {
                 Logger.i(LOG_TAG_FIREWALL, "TempAllowExpiryWorker cleared $cleared expired temp-allow entries")
             }

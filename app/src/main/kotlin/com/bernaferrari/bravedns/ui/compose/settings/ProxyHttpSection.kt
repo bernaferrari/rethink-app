@@ -46,18 +46,7 @@ internal fun ProxyHttpDialogHost(
     HttpDialog(
         state = state,
         onStateChange = { onStateChange(it) },
-        onCancel = {
-            scope.launch {
-                withContext(Dispatchers.IO) {
-                    appConfig.removeProxy(
-                        AppConfig.ProxyType.HTTP,
-                        AppConfig.ProxyProvider.CUSTOM
-                    )
-                }
-                onStateChange(null)
-                onReloadUi()
-            }
-        },
+        onCancel = { onStateChange(null) },
         onConfirm = {
             scope.launch {
                 if (state.host.isBlank()) {

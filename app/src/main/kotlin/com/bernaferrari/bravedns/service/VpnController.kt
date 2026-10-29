@@ -38,6 +38,7 @@ import com.celzero.firestack.backend.RouterStats
 import com.celzero.firestack.backend.RpnEntitlement
 import com.celzero.firestack.backend.RpnServers
 import com.celzero.firestack.intra.Controller
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -53,7 +54,9 @@ import kotlin.coroutines.cancellation.CancellationException
 
 object VpnController : KoinComponent {
 
-    private var braveVpnService: BraveVPNService? = null
+    @Volatile private var braveVpnService: BraveVPNService? = null
+    @Volatile private var stoppingService: BraveVPNService? = null
+    private val startGate = VpnStartGate(CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate))
     private var connectionState: BraveVPNService.State? = null
     private var lastConnectedServerName: String? = null
     private var isLastConnectionEch = false
@@ -118,6 +121,7 @@ object VpnController : KoinComponent {
     }
 
     fun onVpnDestroyed() {
+        stoppingService = braveVpnService
         braveVpnService = null
         states?.cancel()
         vpnStartElapsedTime = SystemClock.elapsedRealtime()
@@ -129,6 +133,21 @@ object VpnController : KoinComponent {
         } catch (e: IllegalStateException) {
             Logger.w(LOG_TAG_VPN, "VPNController; scope cancel failed: ${e.message}")
         }
+    }
+
+    fun onVpnTeardownComplete(service: BraveVPNService) {
+        if (stoppingService === service) stoppingService = null
+    }
+
+    /** Waits for native disconnect and queued database writes before backup/restore proceeds. */
+    suspend fun stopAndAwait(reason: String, context: Context) {
+        startGate.cancelPending()
+        val service = braveVpnService ?: stoppingService ?: return
+        Logger.i(LOG_TAG_VPN, "VPN Controller stop and await with context: $context")
+        connectionState = null
+        onConnectionStateChanged(null)
+        service.signalStopService(reason, userInitiated = true)
+        service.awaitStopped()
     }
 
     @Suppress("DEPRECATION")
@@ -160,6 +179,12 @@ object VpnController : KoinComponent {
     }
 
     fun start(context: Context, autoAttempt: Boolean = false) {
+        val previous = stoppingService ?: braveVpnService?.takeIf { it.isStopping() }
+        if (previous != null) {
+            val appContext = context.applicationContext
+            startGate.afterStopped(previous::awaitStopped) { start(appContext, autoAttempt) }
+            return
+        }
         // if the tunnel has the go-adapter then there's nothing to do
         if (hasTunnel()) {
             Logger.w(LOG_TAG_VPN, "braveVPNService is already on, resending vpn enabled state")
@@ -195,6 +220,7 @@ object VpnController : KoinComponent {
     }
 
     fun stop(reason: String, context: Context) {
+        startGate.cancelPending()
         Logger.i(LOG_TAG_VPN, "VPN Controller stop with context: $context")
         connectionState = null
         onConnectionStateChanged(null)

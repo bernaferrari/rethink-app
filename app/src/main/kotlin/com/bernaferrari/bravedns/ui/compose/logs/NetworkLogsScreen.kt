@@ -730,21 +730,30 @@ private fun LogsDeleteDialog(
     onDelete: suspend () -> Unit,
     onRefresh: () -> Unit
 ) {
-    if (!show) return
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val refreshCompleteText = stringResource(R.string.refresh_complete)
+    val failureText = stringResource(R.string.blocklist_update_check_failure)
+    if (!show) return
     ConfirmClearLogsDialog(
         onDismiss = onDismiss,
         onConfirm = {
             onDismiss()
-            scope.launch(Dispatchers.IO) { onDelete() }
-            Utilities.showToastUiCentered(
-                context,
-                refreshCompleteText,
-                Toast.LENGTH_SHORT
-            )
-            onRefresh()
+            scope.launch {
+                try {
+                    withContext(Dispatchers.IO) { onDelete() }
+                    onRefresh()
+                    Utilities.showToastUiCentered(context, refreshCompleteText, Toast.LENGTH_SHORT)
+                } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                    throw cancelled
+                } catch (error: android.database.SQLException) {
+                    Logger.e(Logger.LOG_TAG_UI, "Failed to clear logs", error)
+                    Utilities.showToastUiCentered(context, failureText, Toast.LENGTH_LONG)
+                } catch (error: IllegalStateException) {
+                    Logger.e(Logger.LOG_TAG_UI, "Log database unavailable", error)
+                    Utilities.showToastUiCentered(context, failureText, Toast.LENGTH_LONG)
+                }
+            }
         }
     )
 }

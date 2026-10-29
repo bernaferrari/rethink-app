@@ -688,6 +688,8 @@ class PersistentState(context: Context) {
 
     fun snapshotPreferences(): Map<String, Any?> = store.snapshot()
 
+    suspend fun restorePreferencesAndAwait(snapshot: Map<String, Any?>) = store.restoreAndAwait(snapshot)
+
     fun restorePreferences(snapshot: Map<String, Any?>) = store.restore(snapshot)
 
     init {
