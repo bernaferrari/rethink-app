@@ -61,9 +61,28 @@ header p{margin:26px 0 0;font-size:40px;line-height:1.28;font-weight:420;color:v
 .tablet10 .duo .secondary{left:1000px;top:500px;width:1060px}
 
 /* README art: wide and wordless, on the same field, with the stream running between the phones. */
-.readme .hero .left{left:270px;top:300px;width:540px}
-.readme .hero .center{left:890px;top:140px;width:620px;z-index:3}
-.readme .hero .right{left:1590px;top:300px;width:540px}
+/* Name card: the icon, name and line centred above the three phones. */
+.readme .identity{position:absolute;z-index:5;left:0;right:0;top:70px;display:grid;grid-template-columns:auto auto;justify-content:center;align-items:center;column-gap:40px}
+.readme .identity img{grid-row:span 2;width:168px;height:168px;border-radius:50%;box-shadow:0 20px 60px -14px #ff6f6180}
+.readme .identity span{font-size:136px;font-weight:760;letter-spacing:-.03em;line-height:1;font-variation-settings:'opsz' 144,'ROND' 40}
+.readme .identity small{font-size:44px;font-weight:460;color:var(--muted);margin-top:12px}
+.readme .identity small em{font-style:normal;color:var(--coral)}
+.readme .hero .left{left:270px;top:440px;width:540px}
+.readme .hero .center{left:890px;top:360px;width:620px;z-index:3}
+.readme .hero .right{left:1590px;top:440px;width:540px}
+/* Trio: three phones under short captions; the stream runs between them. */
+.readme .trio .device{width:560px;top:200px}
+.readme .trio .one{left:170px}
+.readme .trio .two{left:920px}
+.readme .trio .three{left:1670px}
+.readme .trio .device-label{transform:translateY(calc(-100% - 24px));display:flex;justify-content:center;white-space:nowrap;font-size:52px;line-height:1;font-weight:560;letter-spacing:-.01em;color:var(--ink)}
+.readme .trio .device-label em{font-style:normal;color:var(--coral)}
+/* Spread: the headline on the left, a landscape tablet, and a phone in dark mode in front of it. */
+.readme .spread header{left:110px;right:auto;top:200px;width:640px}
+.readme .spread h1{font-size:104px}
+.readme .spread header p{font-size:38px}
+.readme .spread .slate{left:960px;top:150px;width:1380px}
+.readme .spread .front{left:636px;top:450px;width:400px;z-index:4}
 /* Before and after: the same phone, one sheet per pair. The original keeps a thin, quiet ring;
    Re-Rethink steps forward in a coral frame with a warm glow, its name in the headline coral. */
 .readme .compare .device{width:450px;top:110px}

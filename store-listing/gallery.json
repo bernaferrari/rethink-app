@@ -148,7 +148,7 @@
   ],
   "readme": [
     {
-      "feature": "readme-hero",
+      "feature": "readme-identity",
       "layout": "hero",
       "file": "readme/hero.jpg",
       "alt": "Re-Rethink Home, the network log and the app list",
@@ -164,6 +164,45 @@
         {
           "raw": "phone/03-apps.png",
           "role": "right"
+        }
+      ],
+      "identity": true
+    },
+    {
+      "feature": "readme-tools",
+      "layout": "trio",
+      "file": "readme/tools.jpg",
+      "devices": [
+        {
+          "raw": "phone/07-app-detail.png",
+          "role": "one",
+          "label": "Cut *any app* off"
+        },
+        {
+          "raw": "phone/09-dns.png",
+          "role": "two",
+          "label": "*Encrypted* DNS"
+        },
+        {
+          "raw": "phone/06-blocked-apps.png",
+          "role": "three",
+          "label": "What got *blocked*"
+        }
+      ]
+    },
+    {
+      "feature": "readme-big-screen",
+      "layout": "spread",
+      "file": "readme/big-screen.jpg",
+      "devices": [
+        {
+          "raw": "tablet10/02-logs.png",
+          "role": "slate",
+          "frame": "tablet"
+        },
+        {
+          "raw": "phone/11-home-dark.png",
+          "role": "front"
         }
       ]
     },

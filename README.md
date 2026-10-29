@@ -1,10 +1,8 @@
-<p align="center">
-  <img src="store-listing/brand/icon.png" width="88" alt="Re-Rethink icon">
-</p>
+<h1 align="center">
+  <img src="store-listing/en-US/readme/hero.jpg" width="100%" alt="Re-Rethink: the network log, Home with protection on, and the app list with Wi-Fi and mobile data switches">
+</h1>
 
-<h1 align="center">Re-Rethink</h1>
-
-<p align="center"><strong>Every app, on your terms.</strong></p>
+<p align="center"><strong>See every connection. Stop the ones you didn't ask for.</strong></p>
 
 <p align="center">A no-root firewall, encrypted DNS and VPN for Android. Block apps on Wi-Fi or mobile data, stop trackers before they connect, and see every connection your phone makes.</p>
 
@@ -12,20 +10,11 @@
   <a href="https://play.google.com/store/apps/details?id=com.bernaferrari.bravedns"><img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" height="80" alt="Get it on Google Play"></a>
 </p>
 
-<p align="center">
-  <img src="store-listing/en-US/readme/hero.jpg" width="100%" alt="Re-Rethink's network log, Home with protection on, and the app list with Wi-Fi and mobile data switches">
-</p>
-
 ## Your network, app by app
 
-<table>
-  <tr>
-    <td width="25%"><img src="store-listing/en-US/phone/phone-03-apps.jpg" alt="Cut an app off with one tap: Wi-Fi and mobile data switches per app"></td>
-    <td width="25%"><img src="store-listing/en-US/phone/phone-04-detail.jpg" alt="Your clock stays offline: the Clock app blocked on Wi-Fi and mobile data"></td>
-    <td width="25%"><img src="store-listing/en-US/phone/phone-05-trackers.jpg" alt="Trackers stop at the DNS: ad and analytics queries stopped by blocklists"></td>
-    <td width="25%"><img src="store-listing/en-US/phone/phone-06-stats.jpg" alt="Who called, who got through: data, connections and the most active apps"></td>
-  </tr>
-</table>
+<p align="center">
+  <img src="store-listing/en-US/readme/tools.jpg" width="100%" alt="Clock cut off on Wi-Fi and mobile data, Rethink DNS in use with its live lookup time, and the apps with the most blocked connections">
+</p>
 
 - **A firewall for every app.** Block Wi-Fi, mobile data or both with one tap, isolate an app, or add IP and domain rules. Universal rules cover apps in the background, with the screen off, or freshly installed.
 - **Encrypted DNS that blocks trackers.** Use Rethink DNS with on-device blocklists, or your own resolver over DNS-over-HTTPS, DNS-over-TLS, DNSCrypt or ODoH.
@@ -43,14 +32,16 @@ Re-Rethink is a fork of [Rethink DNS + Firewall + VPN](https://github.com/celzer
 
 ## On a bigger screen
 
-On tablets and foldables the logs open beside the details of the entry you pick, with a navigation rail beside them.
-
 <p align="center">
-  <img src="store-listing/en-US/tablet10/tablet10-01-logs.jpg" width="80%" alt="The Re-Rethink network log on a landscape tablet, beside the details of the selected connection">
+  <img src="store-listing/en-US/readme/big-screen.jpg" width="100%" alt="The network log on a landscape tablet beside the details of the selected connection, and Home in dark mode on a phone in front">
 </p>
 
 ## Private by design
 
-Re-Rethink filters on the device through Android's `VpnService`. Connections go straight to where they were headed, unless you route them through a WireGuard peer or proxy of your own; DNS goes to the resolver you pick, Rethink DNS by default. Logs stay on the phone and can be turned off, and there are no ads. Android allows one VPN at a time, so Re-Rethink takes the place of any other VPN app.
+- **It all happens on your phone.** Re-Rethink filters through Android's `VpnService`; connections go straight to where they were headed, unless you route them through a WireGuard peer or proxy of your own.
+- **DNS goes where you choose.** Rethink DNS by default, or any resolver you pick.
+- **Your logs stay yours.** They never leave the phone, you can turn them off, and there are no ads.
+
+Android allows one VPN at a time, so Re-Rethink takes the place of any other VPN app.
 
 <sub>Building from source or contributing? See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).</sub>

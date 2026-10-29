@@ -53,5 +53,18 @@
     "title": "Trackers stop\n*at the DNS.*",
     "body": "See which blocklist caught each one, and which apps asked for it.",
     "alt": "Blocked DNS queries beside the apps that looked up an analytics host"
+  },
+  "readme-identity": {
+    "title": "Re-Rethink",
+    "alt": "Re-Rethink: the network log, Home with protection on, and the app list with Wi-Fi and mobile data switches"
+  },
+  "readme-tools": {
+    "title": "",
+    "alt": "Clock cut off on Wi-Fi and mobile data, Rethink DNS in use with its live lookup time, and the apps with the most blocked connections"
+  },
+  "readme-big-screen": {
+    "title": "Room for\n*the details.*",
+    "body": "Every log entry opens beside\nthe list on tablets and foldables.",
+    "alt": "The network log on a landscape tablet beside the details of the selected connection, and Home in dark mode on a phone in front"
   }
 }
