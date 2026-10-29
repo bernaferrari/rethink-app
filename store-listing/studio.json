@@ -63,5 +63,29 @@
         "locales": "default"
       }
     ]
+  },
+  "frames": {
+    "fixed": [
+      "compare"
+    ]
+  },
+  "bounds": {
+    "layouts": {
+      "tablet10": {
+        "right": 0.22
+      },
+      "hang": {
+        "top": true
+      },
+      "compare": false
+    }
+  },
+  "fastlane": {
+    "screenshots": {
+      "phone": "phoneScreenshots"
+    },
+    "locales": {
+      "ru-RU": "ru"
+    }
   }
 }

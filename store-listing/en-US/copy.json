@@ -56,7 +56,8 @@
   },
   "readme-identity": {
     "title": "Keepout",
-    "alt": "Keepout: the network log, Home with protection on, and the app list with Wi-Fi and mobile data switches"
+    "alt": "Keepout: the network log, Home with protection on, and the app list with Wi-Fi and mobile data switches",
+    "tagline": "Every app, *on your terms.*"
   },
   "readme-tools": {
     "title": "",
