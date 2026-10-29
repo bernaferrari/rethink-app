@@ -4,7 +4,7 @@
 
 <p align="center"><strong>See every connection. Stop the ones you didn't ask for.</strong></p>
 
-<p align="center">A no-root firewall, encrypted DNS and VPN for Android. Block apps on Wi-Fi or mobile data, stop trackers before they connect, and see every connection your phone makes.</p>
+<p align="center">A no-root firewall, encrypted DNS and VPN for Android. Block any app on Wi-Fi or mobile data, stop trackers before they connect, and read where each app went.</p>
 
 <p align="center">
   <a href="https://play.google.com/store/apps/details?id=com.bernaferrari.bravedns"><img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" height="80" alt="Get it on Google Play"></a>
@@ -22,7 +22,7 @@
 
 ## From Rethink to Re-Rethink
 
-Rethink and Re-Rethink side by side. Home trades four mode cards for one clear state, one action and what the firewall did today, and the app list trades its icon strip and filter chips for search, sections and a Wi-Fi and mobile data switch pair on every app.
+Home trades four mode cards for one clear state, one action and what the firewall did today. The app list trades its icon strip and filter chips for search, sections and a Wi-Fi and mobile data switch pair on every app.
 
 <p align="center">
   <img src="store-listing/en-US/readme/before-after.jpg" width="100%" alt="Rethink's home with mode cards and its app list beside Re-Rethink's Home and app list">
