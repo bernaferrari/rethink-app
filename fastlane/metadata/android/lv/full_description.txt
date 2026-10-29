@@ -1,0 +1,25 @@
+Keepout ir ugunsmūris bez root, šifrēts DNS un VPN Android ierīcēm. Izlemiet, kuras lietotnes var piekļūt internetam, apturiet reklāmas un izsekotājus, pirms tie izveido savienojumu, un redziet katru savienojumu, ko veic jūsu tālrunis.
+
+UGUNSMŪRIS
+• Bloķējiet jebkuru lietotni Wi-Fi tīklā, mobilajos datos vai abos ar vienu pieskārienu.
+• Izolējiet lietotni, ļaujiet tai apiet noteikumus vai izslēdziet to no tuneļa.
+• Universālie noteikumi: bloķējiet lietotnes fonā, kad ekrāns ir izslēgts vai kad instalēta jauna lietotne.
+• IP, portu un domēnu noteikumi vienai lietotnei vai visām lietotnēm.
+
+ŠIFRĒTS DNS
+• Rethink DNS ar ierīcē glabātiem reklāmu, izsekotāju un ļaunprogrammatūras bloķēšanas sarakstiem.
+• Vai izvēlieties savu DNS serveri, izmantojot DNS-over-HTTPS, DNS-over-TLS, DNSCrypt vai ODoH.
+• DNS atbildes tiek pārbaudītas lokāli, kas palīdz apiet arī uz DNS balstītu cenzūru.
+
+REDZIET, KO DARA JŪSU LIETOTNES
+• Tīkla un DNS žurnāli: kura lietotne, kurš serveris, kura valsts, atļauts vai bloķēts.
+• Statistika par pēdējo stundu, dienu vai nedēļu: aktīvākās lietotnes, bloķētās lietotnes, valstis, tīkli un domēni.
+
+VPN UN STARPNIEKSERVERI
+• Novirziet lietotņu datplūsmu caur WireGuard, SOCKS5 vai HTTP starpniekserveriem ar dalītu tunelēšanu katrai lietotnei.
+• Tor ar vienu pieskārienu, izmantojot Orbot.
+
+PRIVĀTUMS JAU PĒC BŪTĪBAS
+Filtrēšana notiek jūsu ierīcē, izmantojot Android VPN pakalpojumu. Žurnāli paliek tālrunī, tos var izslēgt, un reklāmu nav.
+
+Keepout ir Celzero lietotnes Rethink DNS + Firewall atvērtā pirmkoda atzarojums, pārveidots Material 3 Expressive stilā. Licence: Apache 2.0.

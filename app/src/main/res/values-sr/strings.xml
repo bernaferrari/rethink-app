@@ -8,7 +8,7 @@
     <string name="title_settings" translatable="true">Подешавања</string>
     <string name="title_statistics" translatable="true">Статистика</string>
     <string name="txt_home" translatable="true">Почетна</string>
-    <string name="accessibility_service_description" translatable="true">Rethink користи сервисе приступачности да открије и блокира апликације у позадини. Rethink не сакупља нити продаје никакве информације.</string>
+    <string name="accessibility_service_description" translatable="true">Keepout користи сервисе приступачности да открије и блокира апликације у позадини. Keepout не сакупља нити продаје никакве информације.</string>
     <string name="finish" translatable="true">Заврши</string>
     <string name="lbl_apply" translatable="true">Примени</string>
     <string name="lbl_dismiss" translatable="true">Одбаци</string>
@@ -55,7 +55,7 @@
     <string name="lbl_secure" translatable="true">безбедно</string>
     <string name="lbl_split" translatable="true">Подели</string>
     <string name="lbl_unselected" translatable="true">Неизабрано</string>
-    <string name="memory_notification_text">Rethink-у недостаје меморије. Системске радње могу бити ограничене.</string>
+    <string name="memory_notification_text">Keepout-у недостаје меморије. Системске радње могу бити ограничене.</string>
     <string name="allow" translatable="true">дозволи</string>
     <string name="block" translatable="true">блокирај</string>
     <string name="bypass_universal" translatable="true">заобиђи универзално</string>
@@ -80,11 +80,11 @@
     <string name="conn_track_clear_logs_message" translatable="true">Ово брише само мрежне записе али не и правила заштитног зида. Ова радња је неопозива. Да ли желите да наставите?</string>
     <string name="bsct_app_info" translatable="true">Информације о апликацији</string>
     <string name="bsct_block_domain" translatable="true">Блокирај, веруј <u>доменима</u> за <u>ову апликацију</u></string>
-    <string name="always_on_dialog" translatable="true">\"Увек активан VPN\" је омогућен на овом уређају. Да би сте покренули Rethink, молим вас идите у подешавања и онемогућите \"Увек активан VPN\".</string>
+    <string name="always_on_dialog" translatable="true">\"Увек активан VPN\" је омогућен на овом уређају. Да би сте покренули Keepout, молим вас идите у подешавања и онемогућите \"Увек активан VPN\".</string>
     <string name="always_on_dialog_heading" translatable="true">Онемогући Увек активан VPN</string>
     <string name="always_on_dialog_positive_btn" translatable="true">Иди на подешавања</string>
     <string name="always_on_dialog_stop_heading" translatable="true">Увек активан VPN</string>
-    <string name="always_on_dialog_stop_message" translatable="true">Увек активан VPN је омогућен за Rethink. Да ли заиста желите да зауставите Rethink?</string>
+    <string name="always_on_dialog_stop_message" translatable="true">Увек активан VPN је омогућен за Keepout. Да ли заиста желите да зауставите Keepout?</string>
     <string name="always_on_dialog_positive" translatable="true">Заустави</string>
     <string name="always_on_dialog_neutral" translatable="true">Подешавања</string>
     <string name="notification_action_dns_firewall_mode" translatable="true">DNS + заштитни зид</string>
@@ -112,7 +112,7 @@
     <string name="http_proxy_dialog_desc" translatable="true">URL формулара подешавања, &lt;протокол&gt;://&lt;корисничко-име&gt;:&lt;лозинка&gt;@&lt;домен-или-ip&gt;:&lt;порт&gt;&lt;путања&gt;. Пример: http://proksi.primer.com:8080/</string>
     <string name="download_update_dialog_title" translatable="true">Ново издање!</string>
     <string name="download_update_dialog_message_ok_title" translatable="true">Ажурна је!</string>
-    <string name="private_dns_dialog_desc" translatable="true">Rethink-ова DNS подешавања су преписана Андроидовим приватним DNS-ом.\n\nДа би сте користили Rethink-ов DNS идите на Андроид подешавања и искључите \"Приватни DNS\".</string>
+    <string name="private_dns_dialog_desc" translatable="true">Keepout-ова DNS подешавања су преписана Андроидовим приватним DNS-ом.\n\nДа би сте користили Keepout-ов DNS идите на Андроид подешавања и искључите \"Приватни DNS\".</string>
     <string name="http_proxy_dialog_heading" translatable="true">Подеси HTTP(S) CONNECT прокси</string>
     <string name="download_update_dialog_message_success" translatable="true">Успешно преузимање блоклисте.</string>
     <string name="download_update_dialog_failure_title" translatable="true">Нешто је пошло по злу!</string>
@@ -151,11 +151,11 @@
     <string name="orbot_bs_status_3" translatable="true">Прослеђивање %1$s Orbot-у, HTTP прокси је такође подешен.</string>
     <string name="orbot_bs_status_4" translatable="true">Један-клик Tor-као-прокси (Orbot) подешавање.</string>
     <string name="orbot_bs_status_trying_connect" translatable="true">Подешавање Orbot-а…</string>
-    <string name="orbot_stop_dialog_dns_message" translatable="true">Rethink је подешен да прослеђује DNS упите Orbot-у. Промените ако је потребно.</string>
+    <string name="orbot_stop_dialog_dns_message" translatable="true">Keepout је подешен да прослеђује DNS упите Orbot-у. Промените ако је потребно.</string>
     <string name="orbot_stop_dialog_negative" translatable="true">Заустави Orbot</string>
     <string name="orbot_title" translatable="true">Orbot и проксији</string>
     <string name="orbot_install_dialog_title" translatable="true">Инсталирати Orbot?</string>
-    <string name="settings_socks5_vpn_disabled_error" translatable="true">Покрените Rethink да би сте наставили.</string>
+    <string name="settings_socks5_vpn_disabled_error" translatable="true">Покрените Keepout да би сте наставили.</string>
     <string name="settings_general_header" translatable="true">опште</string>
     <string name="settings_general_customize" translatable="true">прилагоди</string>
     <string name="settings_autostart_bootup_heading" translatable="true">Аутоматски покрени при покретању телефона (експериментално)</string>
@@ -193,14 +193,14 @@
     <string name="firewall_status_whitelisted" translatable="true">Заобилази универзална правила заштитног зида</string>
     <string name="firewall_status_bypass_dns_firewall" translatable="true">Заобилази правила DNS-а и заштитног зида</string>
     <string name="firewall_status_unknown" translatable="true">Непознато</string>
-    <string name="hs_biometeric_title" translatable="true">Откључај Rethink</string>
-    <string name="hs_biometeric_desc" translatable="true">Користи биометријску потврду да би сте откључали Rethink</string>
+    <string name="hs_biometeric_title" translatable="true">Откључај Keepout</string>
+    <string name="hs_biometeric_desc" translatable="true">Користи биометријску потврду да би сте откључали Keepout</string>
     <string name="hs_biometeric_error" translatable="true">Грешка биометријске потврде</string>
     <string name="logs_card_duration" translatable="true">од %1$s</string>
     <string name="hsf_vpn_dialog_header" translatable="true">Пажња!</string>
     <string name="hsf_vpn_prepare_failure" translatable="true">Или недостају VPN дозволе, или је друга апликација у увек укљученом VPN моду.</string>
     <string name="hsf_notification_permission_failure" translatable="true">Омогућите дозволе за обавештења у екрану подешавања</string>
-    <string name="hsf_pause_vpn_failure" translatable="true">Није могуће паузирање: Rethink није активан</string>
+    <string name="hsf_pause_vpn_failure" translatable="true">Није могуће паузирање: Keepout није активан</string>
     <string name="dc_block_heading" translatable="true">Правила</string>
     <string name="dc_other_dns_heading" translatable="true">Врста</string>
     <string name="dc_custom_dns_radio" translatable="true">Други DNS</string>
@@ -211,7 +211,7 @@
     <string name="dc_dns_website_heading" translatable="true">Прикажи икону веб сајта у DNS записима (експериментално)</string>
     <string name="dc_dns_website_desc" translatable="true">Покупи икону веб сајта са <i>nextdns.io</i> и <i>duckduckgo.com</i>. Заузима до 350 mb простора складишта</string>
     <string name="dc_dns_leaks_heading" translatable="true">Спречи DNS цурења</string>
-    <string name="dc_dns_leaks_desc" translatable="true">Када је омогућено, Rethink хвата све пакете на порту 53 и прослеђује их ка кориснички подешеној DNS крајњој тачки</string>
+    <string name="dc_dns_leaks_desc" translatable="true">Када је омогућено, Keepout хвата све пакете на порту 53 и прослеђује их ка кориснички подешеној DNS крајњој тачки</string>
     <string name="dc_check_update_heading" translatable="true">Питај при освежењу блок листе</string>
     <string name="dc_proxy_dns_heading" translatable="true">Никада не проксуј DNS</string>
     <string name="dc_proxy_dns_desc" translatable="true">Не проксуј DNS преко увек укљученог WireGuard-а, SOCKS5, HTTP проксија.</string>
@@ -324,7 +324,7 @@
     <string name="settings_local_blocklist_in_use" translatable="true">%1$s блок листи је у употреби</string>
     <string name="settings_local_blocklist_dialog_positive" translatable="true">Преузми</string>
     <string name="settings_local_blocklist_version" translatable="true">Верзија: v%1$s</string>
-    <string name="accessibility_notification_content" translatable="true">Rethink-ов сервис за приступачност је заустављен или има проблем. Више не блокира апликације у позадини. Додирните да поново омогућите.</string>
+    <string name="accessibility_notification_content" translatable="true">Keepout-ов сервис за приступачност је заустављен или има проблем. Више не блокира апликације у позадини. Додирните да поново омогућите.</string>
     <string name="toast_allow_bypass_disabled" translatable="true">%1$s је онемогућен јер се проксији активни</string>
     <string name="pause_text" translatable="true">паузирано</string>
     <string name="pause_desc" translatable="true">Напомена: %1$s блокираних апликација ће наставити да буде под заштитним зидом.</string>
@@ -370,8 +370,8 @@
     <string name="firewall_rule_domain_blocked_univ_desc" translatable="true">Ова конекција је блокирана јер је <i>домен</i> подешен као блокиран у Универзалним правилима домена.<br/><br/> За промену овог правила иди на картицу <i>подеси DNS</i>.</string>
     <string name="firewall_rule_domain_trusted_univ_desc" translatable="true">Ова конекција је дозвољена јер је <i>домен</i> подешен као од поверења у Универзалним правилима домена.<br/><br/> За промену овог понашања иди на картицу <i>подеси DNS</i>.</string>
     <string name="new_app_bulk_notification_title" translatable="true">Пажња</string>
-    <string name="new_app_bulk_notification_content" translatable="true">Rethink је блокирао %1$s нових апликација. Додирни за преглед или измену.</string>
-    <string name="new_app_notification_content" translatable="true">Rethink је блокирао недавно инсталирану апликацију %1$s.</string>
+    <string name="new_app_bulk_notification_content" translatable="true">Keepout је блокирао %1$s нових апликација. Додирни за преглед или измену.</string>
+    <string name="new_app_notification_content" translatable="true">Keepout је блокирао недавно инсталирану апликацију %1$s.</string>
     <string name="new_app_notification_action_deny" translatable="true">Настави блокирање</string>
     <string name="new_app_notification_action_toast_allow" translatable="true">Мрежна конекција је дозвољена за ову апликацију</string>
     <string name="notif_dialog_pause_dialog_positive" translatable="true">Активирај</string>
@@ -379,7 +379,7 @@
     <string name="notif_channel_vpn_failure" translatable="true">Неактивни VPN</string>
     <string name="notif_channel_firewall_alerts" translatable="true">Упозорења заштитног зида</string>
     <string name="notif_channel_proxy_failure" translatable="true">Упозорења проксија</string>
-    <string name="notif_channel_desc_vpn_notification" translatable="true">Обавести када је Rethink активан и покренут у позадини</string>
+    <string name="notif_channel_desc_vpn_notification" translatable="true">Обавести када је Keepout активан и покренут у позадини</string>
     <string name="notif_channel_desc_firewall_alerts" translatable="true">Упозори при грешкама и аномалијама заштитног зида</string>
     <string name="notif_channed_desc_download" translatable="true">Упозори при напретку преузимања за блок листе на уређају</string>
     <string name="category_name_sys_apps" translatable="true">Апликације система</string>
@@ -460,7 +460,7 @@
     <string name="rethink_sky_desc" translatable="true">280+ локација; висока поузданост; разрешивач се извршава на cloudflare.com</string>
     <string name="dc_setting_dns_cache_desc" translatable="true">Спаја захтеве, кешира одговоре, отпорно решавање грешака</string>
     <string name="ssv_most_contacted_ips_heading" description="This label will appear on the stats screen as a header for most visited ips" translatable="true">Највише контактираних ip-јева</string>
-    <string name="ssv_toast_start_rethink" description="This label will appear on the stats screen as toast to start Rethink app" translatable="true">Покрени Rethink за наставак</string>
+    <string name="ssv_toast_start_rethink" description="This label will appear on the stats screen as toast to start Rethink app" translatable="true">Покрени Keepout за наставак</string>
     <string name="ssv_see_more" translatable="true">Прикажи све</string>
     <string name="bad_config_reason_invalid_key" translatable="true">Неисправан кључ</string>
     <string name="bad_config_reason_invalid_number" translatable="true">Неисправан број</string>
@@ -524,9 +524,9 @@
     <string name="lbl_overall" translatable="true">Опште</string>
     <string name="lbl_idle" translatable="true">Мирује</string>
     <string name="lbl_anonymous" translatable="true">анонимно</string>
-    <string name="slide_2_desc" translatable="true">Rethink је најлакши начин да надгледате активност мреже, заобиђете цензуру интернета, и блокирате апликације на вашем андроид уређају.</string>
+    <string name="slide_2_desc" translatable="true">Keepout је најлакши начин да надгледате активност мреже, заобиђете цензуру интернета, и блокирате апликације на вашем андроид уређају.</string>
     <string name="untracked" translatable="true">непраћен</string>
-    <string name="warning_title" description="Status indicator text shown in a warning notification." translatable="true">Упозорење: Rethink је деактивиран</string>
+    <string name="warning_title" description="Status indicator text shown in a warning notification." translatable="true">Упозорење: Keepout је деактивиран</string>
     <string name="isolate" translatable="true">изолуј</string>
     <string name="dns_mode_notification_title" translatable="true">Заштићени! Повезани са брзим и безбедним DNS-ом.</string>
     <string name="pause_mode_notification_title" translatable="true">Паузирано! Блокиране апликације ће наставити да буду надгледане.</string>
@@ -537,9 +537,9 @@
     <string name="notification_action_stop_vpn" translatable="true">ЗАУСТАВИ</string>
     <string name="notification_action_dns_mode" translatable="true">DNS</string>
     <string name="dns_mode_info_title" translatable="true">DNS</string>
-    <string name="alert_firewall_accessibility_explanation" translatable="true">Rethink користи сервисе приступачности да прати које апликације су у употреби за разлику од оних које нису у употреби.\n\nRethink не сакупља никакве информације нити вас шпијунира на било који начин.</string>
-    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Rethink сервиси приступачности су престали да функционишу.<i><b>Иди у подешавања и насилно заустави</b></i> Rethink и покрени га поново да би користио <i>Блокирај било коју апликацију која није у употреби</i> функционалност.\n\nRethink користи сервисе приступачности да би пратио које апликације су у употреби за разлику од оних које нису у употреби.</string>
-    <string name="always_on_dialog_lockdown_stop_message" translatable="true">Rethink је покренуо VPN у <i>Lockdown</i> моду. Његово заустављање ће резултовати губитком интернет конекције на овом корисничком профилу. Да ли желите да наставите?</string>
+    <string name="alert_firewall_accessibility_explanation" translatable="true">Keepout користи сервисе приступачности да прати које апликације су у употреби за разлику од оних које нису у употреби.\n\nKeepout не сакупља никакве информације нити вас шпијунира на било који начин.</string>
+    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Keepout сервиси приступачности су престали да функционишу.<i><b>Иди у подешавања и насилно заустави</b></i> Keepout и покрени га поново да би користио <i>Блокирај било коју апликацију која није у употреби</i> функционалност.\n\nKeepout користи сервисе приступачности да би пратио које апликације су у употреби за разлику од оних које нису у употреби.</string>
+    <string name="always_on_dialog_lockdown_stop_message" translatable="true">Keepout је покренуо VPN у <i>Lockdown</i> моду. Његово заустављање ће резултовати губитком интернет конекције на овом корисничком профилу. Да ли желите да наставите?</string>
     <string name="private_dns_dialog_heading" translatable="true">Искључи приватни DNS</string>
     <string name="firewall_act_universal_tab" translatable="true">универзално</string>
     <string name="dot_custom_url_remove_dialog_message" translatable="true">Обрисати DNS путем TLS крајње тачке из сачуване конфигурације.</string>
@@ -547,20 +547,20 @@
     <string name="dns_proxy_remove_success" translatable="true">DNS прокси је обрисан.</string>
     <string name="settings_enable_logs_desc" translatable="true">Чувај записе DNS-а и заштитног зида на уређају.</string>
     <string name="settings_connectivity_checks_desc" translatable="true">Провере повезивости се шаљу за утврђивање доступности.</string>
-    <string name="settings_allow_lan_desc" translatable="true">Изузми LAN, loopback, multicast, link-local руте из Rethink-овог VPN тунела.</string>
-    <string name="settings_allow_bypass_desc" translatable="true">Дозволи захтеваним апликацијама приступ свим доступним мрежама. Ове апликације могу да заобиђу Rethink-ов VPN тунел на захтев. Неке аудио/видео конференцијсле апликације попут Zoom-а и Meet-а можда захтевају ово за исправно функционисање.</string>
+    <string name="settings_allow_lan_desc" translatable="true">Изузми LAN, loopback, multicast, link-local руте из Keepout-овог VPN тунела.</string>
+    <string name="settings_allow_bypass_desc" translatable="true">Дозволи захтеваним апликацијама приступ свим доступним мрежама. Ове апликације могу да заобиђу Keepout-ов VPN тунел на захтев. Неке аудио/видео конференцијсле апликације попут Zoom-а и Meet-а можда захтевају ово за исправно функционисање.</string>
     <string name="settings_https_desc" translatable="true">Прослеђуј конекције ка HTTP(S) CONNECT крајњој тачки.</string>
     <string name="settings_socks5_disabled_error" translatable="true">Повезан са %1$s. Искључите га да би сте наставили.</string>
     <string name="settings_https_disabled_error" translatable="true">Повезан са %1$s. Искључите га да би сте наставили.</string>
-    <string name="settings_autostart_bootup_desc" translatable="true">При покретању уређаја, покрени Rethink ако је био покренут пре гашења.</string>
-    <string name="settings_network_all_networks_desc" translatable="true">Када је омогућено, Rethink користи све доступне мреже да се повеже на интернет. У супротном, користи ону означену као <i>активну</i> од стране Андроида.</string>
+    <string name="settings_autostart_bootup_desc" translatable="true">При покретању уређаја, покрени Keepout ако је био покренут пре гашења.</string>
+    <string name="settings_network_all_networks_desc" translatable="true">Када је омогућено, Keepout користи све доступне мреже да се повеже на интернет. У супротном, користи ону означену као <i>активну</i> од стране Андроида.</string>
     <string name="settings_socks_forwarding_desc_no_app" translatable="true">Прослеђује се на %1$s:%2$s</string>
     <string name="settings_theme_dialog_themes_2" translatable="true">Светла</string>
     <string name="settings_theme_dialog_themes_3" translatable="true">Тамна</string>
     <string name="settings_default_dns_heading" translatable="true">Изабери резервни DNS</string>
     <string name="firewall_status_excluded" translatable="true">Изузето из DNS-а и заштитног зида</string>
     <string name="firewall_rule_bypass_universal_ip_desc" translatable="true">Ова конекција је дозвољена јер је &lt;i&gt;одредишна IP&lt;/i&gt; подешена да заобиђе сва универзална правила заштитног зида.&lt;br/&gt;&lt;br/&gt; За промену иди на &lt;i&gt;IP правила&lt;i&gt; на картици &lt;i&gt;универзално&lt;/i&gt;.</string>
-    <string name="hsf_vpn_dialog_message" translatable="true">Rethink-у су потребне дозволе да подеси локални VPN за енкрипцију DNS захтева уређаја, имплементацију монитора мреже, и приморавање правила заштитног зида.\n\nRethink не сакупља никакве информације нити вас шпијунира ни на који начин.</string>
+    <string name="hsf_vpn_dialog_message" translatable="true">Keepout-у су потребне дозволе да подеси локални VPN за енкрипцију DNS захтева уређаја, имплементацију монитора мреже, и приморавање правила заштитног зида.\n\nKeepout не сакупља никакве информације нити вас шпијунира ни на који начин.</string>
     <string name="about_bug_no_log_dialog_positive_btn" translatable="true">Пошаљи е-поруку</string>
     <string name="about_connect" translatable="true">Контактирај</string>
     <string name="cd_dnscrypt_relay_heading" translatable="true">Релеји</string>
@@ -614,10 +614,10 @@
     <string name="firewall_rule_trusted_ip_desc" translatable="true">Конекција је дозвољена јер је <i>одредишна IP</i> подешена као IP од поверења.<br/><br/> За промену иди на екран <i>заштитни зид по апликацији</i>.</string>
     <string name="whats_new_version_update" translatable="true">&lt;b&gt;Не паничите 2&lt;/b&gt;&lt;br/&gt;&lt;br/&gt; 1. Ново: Хватање грешака мрежног енџина у корисничким извештајима о грешки.&lt;br/&gt; 2. Ново: користи системски DNS за неделегиране називе домена уколико је укључен Спречи DNS цурења.&lt;br/&gt; 3. Унапређење: Двострука (IPv4 + IPv6) WireGuard повезивост.&lt;br/&gt; 4. Унапређење: Избегавај блокирање UI елемената када је мрежни енџин нереспонзиван.&lt;br/&gt; 5. Исправка: истицање времена повезивања са укљученим Напредним DNS филтрирањем.&lt;br/&gt; 6. Исправка: WireGuard peer крајње тачке са називима домена висе при променама мреже.&lt;br/&gt;&lt;br/&gt; &lt;a href=https://svc.rethinkdns.com/r/translate&gt;Помозите у превођењу ове апликације&lt;/a&gt;</string>
     <string name="settings_exclude_proxy_apps_heading" translatable="true">Пошаљи прокси прослеђујуће апликације на повратну петљу</string>
-    <string name="settings_exclude_proxy_apps_desc" translatable="true">Када је онемогућено, изузима прокси (SOCKS5, HTTP, DNS) прослеђујуће апликације из Rethink-овог VPN тунела.</string>
-    <string name="orbot_stop_dialog_message" translatable="true">Rethink је престао да прослеђује конекције Orbot-у, али Orbot је можда покренут у позадини.</string>
+    <string name="settings_exclude_proxy_apps_desc" translatable="true">Када је онемогућено, изузима прокси (SOCKS5, HTTP, DNS) прослеђујуће апликације из Keepout-овог VPN тунела.</string>
+    <string name="orbot_stop_dialog_message" translatable="true">Keepout је престао да прослеђује конекције Orbot-у, али Orbot је можда покренут у позадини.</string>
     <string name="orbot_app_issue" translatable="true">Нисмо могли покренути Orbot. Да ли је инсталиран?</string>
-    <string name="orbot_explanation" translatable="true">Orbot је бесплатна прокси апликација која оснажава остале апликације да користе интернет <u>безбедније</u>.\nOrbot користи <u>Tor</u> да енкриптује ваш интернет саобраћај што Вам помаже да <u>заобиђете цензуру</u> и одбраните се против облика <u>надгледања мреже</u> која прете личним слободама и приватношћу.\n<u>TCP прокси</u>: Rethink прослеђује само TCP конекције <i>обухваћених</i> апликација Orbot-у.\n<u>HTTP прокси</u>: Rethink <i>успоставља</i> HTTP CONNECT тунел ка Orbot-у и прослеђује само TCP конекције <i>обухваћених</i> апликација.</string>
+    <string name="orbot_explanation" translatable="true">Orbot је бесплатна прокси апликација која оснажава остале апликације да користе интернет <u>безбедније</u>.\nOrbot користи <u>Tor</u> да енкриптује ваш интернет саобраћај што Вам помаже да <u>заобиђете цензуру</u> и одбраните се против облика <u>надгледања мреже</u> која прете личним слободама и приватношћу.\n<u>TCP прокси</u>: Keepout прослеђује само TCP конекције <i>обухваћених</i> апликација Orbot-у.\n<u>HTTP прокси</u>: Keepout <i>успоставља</i> HTTP CONNECT тунел ка Orbot-у и прослеђује само TCP конекције <i>обухваћених</i> апликација.</string>
     <string name="orbot_install_dialog_message" translatable="true">Orbot доноси могућности и функционалности Tor-а Андроиду.</string>
     <string name="settings_orbot_notification_content" translatable="true">Несупело покретање Tor-као-прокси. Отворите Orbot апликацију да би сте је ручно покренули.</string>
     <string name="rethink_max_desc" translatable="true">50+ локација; већа приватност; рекурзивни разрешивач се извршава на fly.io</string>
@@ -626,7 +626,7 @@
     <string name="firewall_rule_proxied_desc" translatable="true">Ова конекција је прослеђена кориснички пожељном проксију.<br/><br/> За промену иди на <i>Прокси</i> у екрану <i>Подеси</i>.</string>
     <string name="new_app_notification_action_toast_deny" translatable="true">Мрежна конекција је одбијена за ову апликацију</string>
     <string name="notif_channel_vpn_notification" translatable="true">Активни VPN</string>
-    <string name="notif_channel_desc_vpn_failure" translatable="true">Обавести када је Rethink заустављен од стране Андроида или друге VPN апликације</string>
+    <string name="notif_channel_desc_vpn_failure" translatable="true">Обавести када је Keepout заустављен од стране Андроида или друге VPN апликације</string>
     <string name="notif_channel_download" translatable="true">Упозорења преузимања</string>
     <string name="notif_channel_desc_proxy_failure" translatable="true">Упозори при грешкама и аномалијама проксија</string>
     <string name="category_name_sys_components" translatable="true">Компоненте система</string>

@@ -3,7 +3,7 @@
     <string name="title_settings" translatable="true">Setări</string>
     <string name="title_statistics" translatable="true">Statistici</string>
     <string name="txt_home" translatable="true">Acasă</string>
-    <string name="accessibility_service_description" translatable="true">Rethink utilizează serviciul de accesibilitate pentru a detecta și proteja aplicațiile care rulează în fundal. Rethink nu colectează și nu vinde nici o informație.</string>
+    <string name="accessibility_service_description" translatable="true">Keepout utilizează serviciul de accesibilitate pentru a detecta și proteja aplicațiile care rulează în fundal. Keepout nu colectează și nu vinde nici o informație.</string>
     <string name="finish" translatable="true">Termină</string>
     <string name="lbl_cancel" translatable="true">Anulează</string>
     <string name="lbl_blocked" translatable="true">Blocate</string>
@@ -63,7 +63,7 @@
     <string name="lbl_anonymous" translatable="true">anonim</string>
     <string name="untracked" translatable="true">neurmărit</string>
     <string name="bypass_dns_firewall" translatable="true">ocolește dns și firewall</string>
-    <string name="warning_title" description="Status indicator text shown in a warning notification." translatable="true">Atentie: Rethink a fost dezactivat</string>
+    <string name="warning_title" description="Status indicator text shown in a warning notification." translatable="true">Atentie: Keepout a fost dezactivat</string>
     <string name="notification_content" description="Indicates what will happen if the user taps the notification." translatable="true">Apasă aici pentru a schimba setările protecției</string>
     <string name="dns_mode_notification_title" translatable="true">Protejat! Conectat la un DNS rapid și securizat.</string>
     <string name="firewall_mode_notification_title" translatable="true">Protejat! Conectat la Firewall.</string>
@@ -91,8 +91,8 @@
     <string name="lbl_peer" translatable="true">Pereche</string>
     <string name="lbl_split" translatable="true">Ramificat</string>
     <string name="lbl_unselected" translatable="true">Neselectat</string>
-    <string name="memory_notification_text">Rethink nu dispune de suficientă memorie. Operațiunile sistemului ar putea fi limitate.</string>
-    <string name="slide_2_desc" translatable="true">Rethink e cea mai ușoară cale pentru monitorizarea activității din rețea, ocolirea cenzurii pe internet și protejarea aplicațiilor pe dispozitivul tău Android.</string>
+    <string name="memory_notification_text">Keepout nu dispune de suficientă memorie. Operațiunile sistemului ar putea fi limitate.</string>
+    <string name="slide_2_desc" translatable="true">Keepout e cea mai ușoară cale pentru monitorizarea activității din rețea, ocolirea cenzurii pe internet și protejarea aplicațiilor pe dispozitivul tău Android.</string>
     <string name="allow" translatable="true">permite</string>
     <string name="block" translatable="true">blochează</string>
     <string name="bypass_universal" translatable="true">ocolire universală</string>
@@ -145,15 +145,15 @@
     <string name="notification_action_stop_vpn" translatable="true">STOP</string>
     <string name="notification_action_dns_firewall_mode" translatable="true">DNS + Firewall</string>
     <string name="alert_permission_accessibility" translatable="true">Permisiuni - Accesibilitate</string>
-    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Serviciul de accesibilitate al Rethink s-a oprit sau s-a blocat. <i><b>Mergeți la Setări și Oprire Forțată</b></i> apoi reporniți Rethink pentru <i>Blocare aplicații care rulează în fundal</i>.\n\nRethink utilizează serviciul de accesibilitate pentru a diferenția aplicațiile care rulează la vedere față de cele care rulează în fundal.</string>
-    <string name="alert_firewall_accessibility_explanation" translatable="true">Rethink utilizează serviciul de accesibilitate pentru a diferenția aplicațiile care rulează la vedere față de cele care rulează în fundal.\n\nRethink nu colectează nici o informație și nu vă spionează în nici un fel.</string>
+    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Serviciul de accesibilitate al Keepout s-a oprit sau s-a blocat. <i><b>Mergeți la Setări și Oprire Forțată</b></i> apoi reporniți Keepout pentru <i>Blocare aplicații care rulează în fundal</i>.\n\nKeepout utilizează serviciul de accesibilitate pentru a diferenția aplicațiile care rulează la vedere față de cele care rulează în fundal.</string>
+    <string name="alert_firewall_accessibility_explanation" translatable="true">Keepout utilizează serviciul de accesibilitate pentru a diferenția aplicațiile care rulează la vedere față de cele care rulează în fundal.\n\nKeepout nu colectează nici o informație și nu vă spionează în nici un fel.</string>
     <string name="default_dns_name" translatable="true">RDNS prestabilit</string>
     <string name="conn_track_clear_logs_title" translatable="true">Ștergi toate jurnalele de rețea?</string>
     <string name="conn_track_clear_logs_message" translatable="true">Vor fi eliminate toate jurnalele de rețea, dar nu și regulile Firewall-ului. Acțiunea este ireversibilă. Vrei să continui?</string>
     <string name="bsct_block_ip" translatable="true">Blochează, autorizează <u>aceasta adresă IP</u> pentru <u>această aplicație</u></string>
     <string name="bsct_block_domain" translatable="true">Blochează, autorizează <u>domeniul</u> pentru <u>această aplicație</u></string>
     <string name="always_on_dialog_heading" translatable="true">Dezactivează VPN Permanent</string>
-    <string name="always_on_dialog" translatable="true">\"VPN Permanent\" este activat pe acest dispozitiv. Pentru a porni Rethink, mergi la setările aplicației și dezactivează \"VPN Permanent\".</string>
+    <string name="always_on_dialog" translatable="true">\"VPN Permanent\" este activat pe acest dispozitiv. Pentru a porni Keepout, mergi la setările aplicației și dezactivează \"VPN Permanent\".</string>
     <string name="always_on_dialog_stop_heading" translatable="true">VPN Permanent</string>
     <string name="firewall_act_universal_tab" translatable="true">universal</string>
     <string name="download_update_dialog_trylater_message" translatable="true">Nu se poate actualiza acum, încearcă din nou mai târziu.</string>
@@ -166,9 +166,9 @@
     <string name="info_dialog_rethink_toast_msg" translatable="true">Copiat ca URL RDNS + DNS-peste-HTTPS</string>
     <string name="settings_enable_logs_desc" translatable="true">Păstrează jurnalele DNS și Firewall local, pe dispozitiv.</string>
     <string name="settings_enable_logs" translatable="true">Activează jurnalele pe dispozitiv</string>
-    <string name="private_dns_dialog_desc" translatable="true">Setările DNS-ului Rethink sunt suprascrise de DNS-ul privat din Android.\n\nPentru a utiliza DNS-ul Rethink, mergi la Setări și oprește \"DNS privat\".</string>
+    <string name="private_dns_dialog_desc" translatable="true">Setările DNS-ului Keepout sunt suprascrise de DNS-ul privat din Android.\n\nPentru a utiliza DNS-ul Keepout, mergi la Setări și oprește \"DNS privat\".</string>
     <string name="doh_custom_url_remove_dialog_title" translatable="true">Elimini endpoint-ul DoH?</string>
-    <string name="always_on_dialog_stop_message" translatable="true">VPN Permanent este activ. Sigur vrei să oprești Rethink?</string>
+    <string name="always_on_dialog_stop_message" translatable="true">VPN Permanent este activ. Sigur vrei să oprești Keepout?</string>
     <string name="private_dns_dialog_heading" translatable="true">Oprește DNS privat</string>
     <string name="doh_custom_url_remove_dialog_message" translatable="true">Elimină endpoint-ul DNS over HTTPS din configurația salvată.</string>
     <string name="doh_custom_url_remove_success" translatable="true">Endpoint eliminat.</string>
@@ -200,10 +200,10 @@
     <string name="settings_connectivity_checks" translatable="true">Execută verificări de conectivitate</string>
     <string name="settings_connectivity_checks_desc" translatable="true">Sunt trimise verificări de conectivitate pentru a determina disponibilitatea.</string>
     <string name="settings_allow_lan_heading" translatable="true">Nu direcționa IP-urile private (experimental)</string>
-    <string name="settings_allow_lan_desc" translatable="true">Exclude direcționările LAN, loopback, multicast și link-local din tunelul VPN al Rethink.</string>
-    <string name="settings_exclude_proxy_apps_desc" translatable="true">Când este dezactivat, exclude aplicațiile proxy (SOCKS5, HTTP, DNS) din tunelul VPN al Rethink.</string>
+    <string name="settings_allow_lan_desc" translatable="true">Exclude direcționările LAN, loopback, multicast și link-local din tunelul VPN al Keepout.</string>
+    <string name="settings_exclude_proxy_apps_desc" translatable="true">Când este dezactivat, exclude aplicațiile proxy (SOCKS5, HTTP, DNS) din tunelul VPN al Keepout.</string>
     <string name="settings_allow_bypass_heading" translatable="true">Activează vizibilitatea rețelei</string>
-    <string name="settings_allow_bypass_desc" translatable="true">Permite aplicațiilor să acceseze toate rețelele disponibile. La nevoie, aceste aplicații pot ocoli tunelul VPN Rethink. Unele aplicații de audio/video conferință precum Zoom și Meet au nevoie de asta pentru a funcționa corespunzător.</string>
+    <string name="settings_allow_bypass_desc" translatable="true">Permite aplicațiilor să acceseze toate rețelele disponibile. La nevoie, aceste aplicații pot ocoli tunelul VPN Keepout. Unele aplicații de audio/video conferință precum Zoom și Meet au nevoie de asta pentru a funcționa corespunzător.</string>
     <string name="settings_lock_down_mode_desc" translatable="true">Anumite opțiuni sunt dezactivate când VPN e în modul lockdown. <u>Vezi setările VPN</u>.</string>
     <string name="settings_lock_down_proxy_desc" translatable="true">Nu pot fi setate proxy-uri când VPN rulează în modul DNS-only.</string>
     <string name="settings_socks5_heading" translatable="true">Setări Proxy SOCKS5</string>
@@ -219,16 +219,16 @@
     <string name="orbot_app_issue" translatable="true">Orbot nu poate fi deschis. Este instalat?</string>
     <string name="orbot_bs_status_trying_connect" translatable="true">Orbot se instalează…</string>
     <string name="orbot_stop_dialog_title" translatable="true">E nevoie de intervenție manuală</string>
-    <string name="orbot_stop_dialog_dns_message" translatable="true">Rethink este setat să transmită cererile DNS la Orbot. Modifică dacă e necesar.</string>
+    <string name="orbot_stop_dialog_dns_message" translatable="true">Keepout este setat să transmită cererile DNS la Orbot. Modifică dacă e necesar.</string>
     <string name="local_blocklist_download_desc" translatable="true">Descarc listele de blocat (în jur de 60Mb) pentru a utiliza această opțiune?</string>
     <string name="dns_proxy_remove_dialog_title" translatable="true">Elimini DNS Proxy?</string>
-    <string name="always_on_dialog_lockdown_stop_message" translatable="true">Rethink rulează VPN în modul <i>Lockdown</i>. Oprirea acestuia va duce la pierderea conexiunii internet pe acest profil de utilizator. Vrei să continui?</string>
+    <string name="always_on_dialog_lockdown_stop_message" translatable="true">Keepout rulează VPN în modul <i>Lockdown</i>. Oprirea acestuia va duce la pierderea conexiunii internet pe acest profil de utilizator. Vrei să continui?</string>
     <string name="refresh_complete" translatable="true"><!-- use dc_refresh_toast -->Lista aplicațiilor reactualizată.</string>
     <string name="orbot_bs_status_4" translatable="true">Setare Tor-ca-Proxy (Orbot) dintr-un singur click.</string>
-    <string name="orbot_stop_dialog_message" translatable="true">Rethink a oprit transmiterea conexiunilor prin Orbot, dar e posibil ca Orbot să ruleze încă în fundal.</string>
+    <string name="orbot_stop_dialog_message" translatable="true">Keepout a oprit transmiterea conexiunilor prin Orbot, dar e posibil ca Orbot să ruleze încă în fundal.</string>
     <string name="orbot_no_app_toast" translatable="true">Pentru activarea Orbot adăugă cel puțin o aplicație</string>
     <string name="settings_socks5_disabled_error" translatable="true">Conectat la %1$s. Închide pentru a continua.</string>
-    <string name="settings_socks5_vpn_disabled_error" translatable="true">Pornește Rethink pentru a continua.</string>
+    <string name="settings_socks5_vpn_disabled_error" translatable="true">Pornește Keepout pentru a continua.</string>
     <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">Nu funcționează</string>
     <string name="settings_exclude_proxy_apps_heading" translatable="true">Aplicații proxy cu loopback</string>
     <string name="orbot_stop_dialog_negative" translatable="true">Oprește Orbot</string>
@@ -240,10 +240,10 @@
     <string name="settings_orbot_disabled_error" translatable="true">Inchide proxy-ul HTTP(S) și/sau SOCKS5 pentru a continua instalarea Tor-ca-proxy.</string>
     <string name="settings_orbot_notification_action" translatable="true">Deschide Orbot</string>
     <string name="settings_autostart_bootup_heading" translatable="true">Auto-start la pornirea dispozitivului (experimental)</string>
-    <string name="settings_autostart_bootup_desc" translatable="true">La pornirea dispozitivului, startează Rethink dacă rula înainte de închidere.</string>
-    <string name="orbot_explanation" translatable="true">Orbot este o aplicație proxy gratuită care permite altor aplicații să folosească internetul mult mai <u>sigur</u>.\nOrbot folosește <u>Tor</u> pentru a cripta traficul tău de internet și astfel te ajută să <u>ocolești cenzura</u> și să eviți diferitele forme de <u>supraveghere în rețea</u> care pun în pericol libertatea și intimitatea personală\n<u>TCP Proxy</u>: Rethink direcționează numai conexiunile TCP ale aplicațiilor <i>adăugate</i> la Orbot.\n<u>HTTP Proxy</u>: Rethink <i>instalează</i> tunelul HTTP CONNECT la Orbot și direcționează numai conexiunile TCP ale aplicațiilor <i>adăugate</i>.</string>
+    <string name="settings_autostart_bootup_desc" translatable="true">La pornirea dispozitivului, startează Keepout dacă rula înainte de închidere.</string>
+    <string name="orbot_explanation" translatable="true">Orbot este o aplicație proxy gratuită care permite altor aplicații să folosească internetul mult mai <u>sigur</u>.\nOrbot folosește <u>Tor</u> pentru a cripta traficul tău de internet și astfel te ajută să <u>ocolești cenzura</u> și să eviți diferitele forme de <u>supraveghere în rețea</u> care pun în pericol libertatea și intimitatea personală\n<u>TCP Proxy</u>: Keepout direcționează numai conexiunile TCP ale aplicațiilor <i>adăugate</i> la Orbot.\n<u>HTTP Proxy</u>: Keepout <i>instalează</i> tunelul HTTP CONNECT la Orbot și direcționează numai conexiunile TCP ale aplicațiilor <i>adăugate</i>.</string>
     <string name="settings_network_all_networks" translatable="true">Folosește toate rețelele disponibile (experimental)</string>
-    <string name="settings_network_all_networks_desc" translatable="true">Când este activat, Rethink folosește toate rețelele disponibile pentru conectarea la internet. Dacă nu, folosește orice rețea indicată ca <i>activă</i> de Android.</string>
+    <string name="settings_network_all_networks_desc" translatable="true">Când este activat, Keepout folosește toate rețelele disponibile pentru conectarea la internet. Dacă nu, folosește orice rețea indicată ca <i>activă</i> de Android.</string>
     <string name="settings_check_update_desc" translatable="true">Verifică automat pentru actualizări săptămânal.</string>
     <string name="settings_custom_downloader_heading" translatable="true">Folosește downloader-ul aplicației</string>
     <string name="settings_custom_downloader_desc" translatable="true">Dacă e dezactivat, se folosește <i>Download Manager</i> al Android</string>
@@ -262,8 +262,8 @@
     <string name="firewall_status_whitelisted" translatable="true">Ocolesc regulile generale ale firewall-ului</string>
     <string name="firewall_status_bypass_dns_firewall" translatable="true">Ocolesc regulile dns și firewall</string>
     <string name="hs_biometeric_error" translatable="true">Eroare la autentificarea biometrică</string>
-    <string name="hs_biometeric_title" translatable="true">Deblochează Rethink</string>
-    <string name="hs_biometeric_desc" translatable="true">Folosește autentificarea biometrică pentru a debloca Rethink</string>
+    <string name="hs_biometeric_title" translatable="true">Deblochează Keepout</string>
+    <string name="hs_biometeric_desc" translatable="true">Folosește autentificarea biometrică pentru a debloca Keepout</string>
     <string name="settings_http_proxy_desc" translatable="true">Trimitere la %1$s</string>
     <string name="settings_http_proxy_error_text1" translatable="true">Porturile trebuie să fie în intervalul 1024–65535</string>
     <string name="settings_http_proxy_error_text3" translatable="true">Numele gazdei nu e completat</string>
@@ -284,7 +284,7 @@
     <string name="dc_rethink_dns_radio" translatable="true">Rethink DNS</string>
     <string name="dc_entries" translatable="true">%1$s intrări »</string>
     <string name="dc_local_block_heading" translatable="true">Liste de blocat de pe dispozitiv</string>
-    <string name="hsf_pause_vpn_failure" translatable="true">Rethink nu poate fi pus în pauză deoarece e inactiv</string>
+    <string name="hsf_pause_vpn_failure" translatable="true">Keepout nu poate fi pus în pauză deoarece e inactiv</string>
     <string name="dc_dns_website_heading" translatable="true">Arată icon-urile website-urilor în jurnalul DNS (experimental)</string>
     <string name="dc_dns_website_desc" translatable="true">Colectează icon-uri de website de la <i>nextdns.io</i> și <i>duckduckgo.com</i>. Consumă până la 350Mb spațiu memorie</string>
     <string name="dc_proxy_dns_heading" translatable="true">Niciodată Proxy DNS</string>
@@ -324,9 +324,9 @@
     <string name="cd_custom_doh_url_name_default" translatable="true">DoH</string>
     <string name="cd_custom_doh_url_name" translatable="true">DoH %1$s</string>
     <string name="hsf_vpn_dialog_header" translatable="true">Atenție!</string>
-    <string name="hsf_vpn_dialog_message" translatable="true">Rethink cere permisiunea de a stabili o VPN locală pentru a cripta cererile DNS ale dispozitivului, a implementa monitorizarea rețelei și a impune regulile Firewall-ului.\n\nRethink nu colectează informații și nu vă spionează în nici un fel.</string>
+    <string name="hsf_vpn_dialog_message" translatable="true">Keepout cere permisiunea de a stabili o VPN locală pentru a cripta cererile DNS ale dispozitivului, a implementa monitorizarea rețelei și a impune regulile Firewall-ului.\n\nKeepout nu colectează informații și nu vă spionează în nici un fel.</string>
     <string name="dc_local_block_desc_1" translatable="true">Alege din peste 195 liste de blocat. Click aici pentru descărcarea sau configurarea lor.</string>
-    <string name="dc_dns_leaks_desc" translatable="true">Când este activat, Rethink capturează toate pachetele la portul 53 și le înaintează la un endpoint setat de utilizator</string>
+    <string name="dc_dns_leaks_desc" translatable="true">Când este activat, Keepout capturează toate pachetele la portul 53 și le înaintează la un endpoint setat de utilizator</string>
     <string name="about_bug_report" translatable="true">Raportare bug</string>
     <string name="about_bug_report_dialog_positive_btn" translatable="true">Trimite e-mail</string>
     <string name="about_bug_no_log_dialog_message" translatable="true">Nu am reușit să colectez jurnalele de erori. Dorești să raportezi manual un bug?</string>
@@ -414,7 +414,7 @@
     <string name="fapps_unmetered_block_dialog_message" translatable="true">Blochezi conexiunile în rețele necontorizate (WiFi) pentru aplicațiile <i>din listă</i>\?</string>
     <string name="rules_load_failure_heading" translatable="true">Notă</string>
     <string name="network_log_app_name_unknown" translatable="true">Necunoscut</string>
-    <string name="accessibility_notification_content" translatable="true">Serviciul de accesibilitate Rethink s-a oprit sau blocat. Ca urmare, aplicațiile în fundal nu mai sunt blocate. Tap pentru a reactiva.</string>
+    <string name="accessibility_notification_content" translatable="true">Serviciul de accesibilitate Keepout s-a oprit sau blocat. Ca urmare, aplicațiile în fundal nu mai sunt blocate. Tap pentru a reactiva.</string>
     <string name="other_dns_list_tab3" translatable="true">Proxy Dns</string>
     <string name="firewall_rule_block_app_exception" translatable="true">Eroare</string>
     <string name="firewall_rule_block_ip_desc" translatable="true"><![CDATA[O regulă firewall setată de utilizator blochează <i>IP-ul destinație</i>.<br/><br/> Pentru a schimba, mergi la tab-ul <i>Firewall per Aplicație</i>.]]></string>
@@ -507,14 +507,14 @@
     <string name="firewall_rule_dns_blocked_desc" translatable="true"><![CDATA[Această conexiune a fost blocată pentru că <i>domeniul</i> este blocat de DNS-ul preferat de utilizator.<br/><br/> Pentru modificare, mergi la tab-ul <i>Configurare DNS</i>.]]></string>
     <string name="firewall_rule_domain_blocked_univ_desc" translatable="true"><![CDATA[Această conexiune a fost blocată pentru că <i>domeniul</i> este blocat de regulile Universale de domeniu.<br/><br/> Pentru modificare, mergi la tab-ul <i>Configurare DNS</i>.]]></string>
     <string name="firewall_rule_proxied_desc" translatable="true"><![CDATA[Această conexiune a fost înaintată la Proxy-ul preferat de utilizator.<br/><br/> Pentru modificare, mergi la <i>Proxy</i> în ecranul <i>Configurare</i>.]]></string>
-    <string name="new_app_bulk_notification_content" translatable="true">Rethink a blocat %1$s aplicații noi. Tap pentru a vizualiza și modifica.</string>
-    <string name="new_app_notification_content" translatable="true">Rethink a blocat aplicația instalată recent, %1$s.</string>
+    <string name="new_app_bulk_notification_content" translatable="true">Keepout a blocat %1$s aplicații noi. Tap pentru a vizualiza și modifica.</string>
+    <string name="new_app_notification_content" translatable="true">Keepout a blocat aplicația instalată recent, %1$s.</string>
     <string name="new_app_notification_action_deny" translatable="true">Continuă blocarea</string>
     <string name="new_app_notification_action_toast_allow" translatable="true">Conexiune de rețea permisă pentru aplicație</string>
     <string name="notif_dialog_pause_dialog_positive" translatable="true">Continuă</string>
     <string name="notif_channel_vpn_notification" translatable="true">VPN activă</string>
-    <string name="notif_channel_desc_vpn_notification" translatable="true">Notificare când Rethink este activ și rulează în fundal</string>
-    <string name="notif_channel_desc_vpn_failure" translatable="true">Notificare când Rethink este oprit de Android sau de alte aplicații VPN</string>
+    <string name="notif_channel_desc_vpn_notification" translatable="true">Notificare când Keepout este activ și rulează în fundal</string>
+    <string name="notif_channel_desc_vpn_failure" translatable="true">Notificare când Keepout este oprit de Android sau de alte aplicații VPN</string>
     <string name="notif_channed_desc_download" translatable="true">Notificare cu progresul descărcării pentru listele de blocat pe dispozitiv</string>
     <string name="notif_channel_desc_proxy_failure" translatable="true">Notificare la erori și anomalii ale Proxy-ului</string>
     <string name="notif_channel_download" translatable="true">Descarcă Alerte</string>
@@ -634,7 +634,7 @@
     <string name="ssv_most_blocked_domain_heading" description="This label will appear on the stats screen as a header for most blocked domains" translatable="true">Cele mai blocate domenii</string>
     <string name="ssv_most_contacted_ips_heading" description="This label will appear on the stats screen as a header for most visited ips" translatable="true">Cele mai contactate IP-uri</string>
     <string name="ssv_most_blocked_ips_heading" description="This label will appear on the stats screen as a header for most blocked ips" translatable="true">Cele mai blocate IP-uri</string>
-    <string name="ssv_toast_start_rethink" description="This label will appear on the stats screen as toast to start Rethink app" translatable="true">Pornește Rethink pentru a începe</string>
+    <string name="ssv_toast_start_rethink" description="This label will appear on the stats screen as toast to start Rethink app" translatable="true">Pornește Keepout pentru a începe</string>
     <string name="bad_config_reason_invalid_value" translatable="true">Valoarea nu e validă</string>
     <string name="bad_config_reason_invalid_number" translatable="true">Numărul nu e valid</string>
     <string name="bad_config_reason_invalid_key" translatable="true">Cheia nu e validă</string>
@@ -725,7 +725,7 @@
     <string name="wg_setting_use_on_mobile_desc" translatable="true">Utilizează acest VPN WireGuard cu date mobile.</string>
     <string name="hop_add_remove_title" translatable="true">Adaugă / Elimină releu</string>
     <string name="about_terms_of_service" translatable="true">Termeni serviciu</string>
-    <string name="bypasses_network_restrictions" translatable="true">Verificările de accesibilitate ocolesc toate restricțiile de rețea. În modul <i>Auto</i>, Rethink utilizează la întâmplare IP-uri și nume-gazdă conectate anterior.</string>
+    <string name="bypasses_network_restrictions" translatable="true">Verificările de accesibilitate ocolesc toate restricțiile de rețea. În modul <i>Auto</i>, Keepout utilizează la întâmplare IP-uri și nume-gazdă conectate anterior.</string>
     <string name="most_contacted_asn" translatable="true">Cei mai contactați ISP</string>
     <string name="most_blocked_asn" translatable="true">Cei mai blocați ISP</string>
     <string name="download_ip_info_title" translatable="true">Arată informații despre ISP</string>
@@ -735,7 +735,7 @@
     <string name="close_conns_dialog_desc" translatable="true">Închizi toate conexiunile pentru %1$s?</string>
     <string name="local_blocklist_delete_desc" translatable="true">Ștergi listele de blocat de pe dispozitiv?</string>
     <string name="fail_open_network_title" translatable="true">Blocaj la pierderea rețelei</string>
-    <string name="fail_open_network_desc" translatable="true">Când este activat, Rethink blochează toate datele când conectivitatea este întreruptă, ca în <i>Modul Avion</i>.</string>
+    <string name="fail_open_network_desc" translatable="true">Când este activat, Keepout blochează toate datele când conectivitatea este întreruptă, ca în <i>Modul Avion</i>.</string>
     <string name="about_license" translatable="true">Licențiat sub Apache-2.0</string>
     <string name="smart_dns" translatable="true">Smart DNS</string>
     <string name="smart_dns_desc" translatable="true"><i>Smart DNS</i> utilizează la întâmplare oricare din acești rezolvatori DNS:</string>
@@ -758,7 +758,7 @@
     <string name="vpn_policy_fixed_desc" translatable="true">Reacționează minim la schimbările rețelei.</string>
     <string name="wg_setting_ssid_title" translatable="true">Numai Wi-Fi</string>
     <string name="wg_setting_ssid_desc" translatable="true">Activează acest VPN Wireguard numai la conexiunile Wi-Fi sau anumiți identificatori Wi-Fi (%1$s).</string>
-    <string name="ssid_permission_explanation" translatable="true">Rethink are nevoie de permisiune pentru locație pentru a accesa identificatori Wi-Fi (%1$s).</string>
+    <string name="ssid_permission_explanation" translatable="true">Keepout are nevoie de permisiune pentru locație pentru a accesa identificatori Wi-Fi (%1$s).</string>
     <string name="location_enable_explanation" translatable="true">Pentru accesarea identificatorilor Wi-Fi (%1$s), pornește serviciul Locație.</string>
     <string name="wg_ssid_dialog_description" translatable="true">%1$s această VPN Wireguard când este <i>activ</i> identificatorul Wi-Fi (%2$s) %3$s.</string>
     <string name="wg_ssid_type_exact" translatable="true">Precis</string>
@@ -770,10 +770,10 @@
     <string name="tombstone_app_desc" translatable="true">Dacă este activat, păstrează regulile pe aplicații timp de 7 zile.</string>
     <string name="settings_allow_incoming_wg_packets" translatable="true">WireGuard P2P</string>
     <string name="settings_allow_incoming_wg_packets_desc" translatable="true">Odată activate, permite intrarea conexiunile inițiate de perechile Wireguard.</string>
-    <string name="lockdown_download_message" translatable="true">E posibil ca <i>Download Manager-ul</i> din Android să nu poată funcționa când VPN este în modul <i>Lockdown</i>. Activezi downloader-ul Rethink\'s în loc?</string>
+    <string name="lockdown_download_message" translatable="true">E posibil ca <i>Download Manager-ul</i> din Android să nu poată funcționa când VPN este în modul <i>Lockdown</i>. Activezi downloader-ul Keepout\'s în loc?</string>
     <string name="lockdown_download_enable_inapp" translatable="true">Activează Downloader-ul</string>
     <string name="settings_jumbo_packets" translatable="true">Extindere lățime de bandă</string>
-    <string name="settings_jumbo_packets_desc" translatable="true">Folosește <i>pachete jumbo</i> în tunelul VPN al Rethink.</string>
+    <string name="settings_jumbo_packets_desc" translatable="true">Folosește <i>pachete jumbo</i> în tunelul VPN al Keepout.</string>
     <string name="stability_program_toast" translatable="true">Înscris în <i>programul de stabilitate</i> pentru <i>caracteristici experimentale</i>.</string>
     <string name="home_last_24_hours">Ultimele 24 de ore</string>
     <plurals name="home_stopped_at_dns_count">

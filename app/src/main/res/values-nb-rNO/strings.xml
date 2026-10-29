@@ -17,10 +17,10 @@
     <string name="orbot_status_arg_2">TCP</string>
     <string name="notification_action_dns_mode">DNS</string>
     <string name="notification_action_resume_vpn">Fortsett</string>
-    <string name="accessibility_service_description">Rethink bruker tilgjengelighetstjenesten for å oppdage og legge til brannmur for bakgrunnsprogrammer. Rethink hverken samler inn eller selger info.</string>
+    <string name="accessibility_service_description">Keepout bruker tilgjengelighetstjenesten for å oppdage og legge til brannmur for bakgrunnsprogrammer. Keepout hverken samler inn eller selger info.</string>
     <string name="always_on_dialog_neutral">Innstillinger</string>
     <string name="orbot_status_arg_3">DNS og TCP</string>
-    <string name="slide_2_desc">Rethink lar deg holde øye med din nettverksaktivitet, omgå sensur på Internett, og legge til brannmur for programmer.</string>
+    <string name="slide_2_desc">Keepout lar deg holde øye med din nettverksaktivitet, omgå sensur på Internett, og legge til brannmur for programmer.</string>
     <string name="rdns_plus">RDNS Plus</string>
     <string name="notification_action_stop_vpn">Stopp</string>
     <string name="notification_action_dns_firewall_mode">DNS og brannmur</string>
@@ -54,7 +54,7 @@
     <string name="orbot_website_link">https://guardianproject.info/apps/org.torproject.android/</string>
     <string name="orbot_download_link_website">https://github.com/guardianproject/orbot/releases</string>
     <string name="orbot_install_activity_error">Noe gikk galt. Prøv igjen senere.</string>
-    <string name="settings_socks5_vpn_disabled_error">Start Rethink for å fortsette.</string>
+    <string name="settings_socks5_vpn_disabled_error">Start Keepout for å fortsette.</string>
     <string name="settings_orbot_notification_action">Åpne Orbot</string>
     <string name="settings_general_header">Generelt</string>
     <string name="settings_theme_heading">Utseende</string>
@@ -212,7 +212,7 @@
     <string name="firewall_rule_exempt_app_bypass_univ">Omgått program</string>
     <string name="build__flavor_website">website</string>
     <string name="vpn_profile_error">Kunne ikke igangsette VPN-profil.</string>
-    <string name="warning_title" description="Status indicator text shown in a warning notification.">Advarsel: Rethink har blitt avslått</string>
+    <string name="warning_title" description="Status indicator text shown in a warning notification.">Advarsel: Keepout har blitt avslått</string>
     <string name="notification_content" description="Indicates what will happen if the user taps the notification.">Trykk for å endre beskyttelsesinstilling</string>
     <string name="status_no_internet">Ingen internett</string>
     <string name="dns_crypt_url_remove_dialog_message">Slett DNSCrypt-utlederen fra lagret oppsett.</string>
@@ -261,7 +261,7 @@
     <string name="dc_local_block_enabled">Påskrudd</string>
     <string name="brbs_restore_dialog_failure_title">Gjenoppretting mislyktes</string>
     <string name="ada_app_unmetered">Fri bruk</string>
-    <string name="orbot_stop_dialog_dns_message">Rethink er satt opp til å videresende DNS-spørringer til Orbot. Endre som du vil.</string>
+    <string name="orbot_stop_dialog_dns_message">Keepout er satt opp til å videresende DNS-spørringer til Orbot. Endre som du vil.</string>
     <string name="univ_firewall_rule_9">Blokker på kvotebasert (mobil-) nettverk</string>
     <string name="univ_accessibility_dialog_negative">Nekt</string>
     <string name="rbl_security">Sikkerhet</string>
@@ -274,12 +274,12 @@
     <string name="univ_firewall_rule_8">Blokker port 80 (usikker HTTP-) trafikk</string>
     <string name="radio_max_btn">🪂 Maks</string>
     <string name="brbs_restore_complete_toast">Gjenoppretting fullført. Starter programmet igjen …</string>
-    <string name="always_on_dialog">«Alltid påslått VPN» er påskrudd på enheten. Start Rethink ved å skru av «Alltid påslått VPN» i innstillingene.</string>
+    <string name="always_on_dialog">«Alltid påslått VPN» er påskrudd på enheten. Start Keepout ved å skru av «Alltid påslått VPN» i innstillingene.</string>
     <string name="settings_allow_bypass_heading">Tillat omgåelse</string>
-    <string name="orbot_stop_dialog_message">Rethink har sluttet å videresende tilkoblinger til Orbot, men kanskje Orbot kjører i bakgrunnen.</string>
+    <string name="orbot_stop_dialog_message">Keepout har sluttet å videresende tilkoblinger til Orbot, men kanskje Orbot kjører i bakgrunnen.</string>
     <string name="fapps_unmetered_unblock_dialog_title">Tillat for fri bruk</string>
     <string name="brbs_backup_dialog_failure_message">Kunne ikke sikkerhetskopiere. Prøv igjen\?</string>
-    <string name="always_on_dialog_stop_message">«Alltid påslått VPN» er påslått for Rethink. Vil du stoppe Rethink likevel\?</string>
+    <string name="always_on_dialog_stop_message">«Alltid påslått VPN» er påslått for Keepout. Vil du stoppe Keepout likevel\?</string>
     <string name="fapps_firewall_filter_bypass_universal">Omgått</string>
     <string name="firewall_act_universal_tab">Universell</string>
     <string name="orbot_install_dialog_message">Orbot gir Tor-rutingsfunksjonalitet.</string>
@@ -324,13 +324,13 @@
     <string name="orbot_socks5">Kun-TCP-mellomtjener</string>
     <string name="dc_local_block_desc_1">Velg mellom 185+ svartelister. Klikk her for å laste ned eller sette opp svartelister.</string>
     <string name="firewall_rule_block_unmetered">Ikke kvotebasert (Wi-Fi)</string>
-    <string name="new_app_notification_content">Rethink blokkerte et nylig installert program, %1$s,</string>
+    <string name="new_app_notification_content">Keepout blokkerte et nylig installert program, %1$s,</string>
     <string name="cd_custom_dns_proxy_name">Proxy %1$s</string>
     <string name="refresh_complete">Programliste resynkronisert.</string>
     <string name="network_dns">System-DNS</string>
     <string name="alert_permission_accessibility">Tilgang</string>
     <string name="about_bug_report_desc">Send krasjlogg på e-post</string>
-    <string name="new_app_bulk_notification_content">Rethink blokkerte %1$s nye programmer. Trykk for å vise eller endre.</string>
+    <string name="new_app_bulk_notification_content">Keepout blokkerte %1$s nye programmer. Trykk for å vise eller endre.</string>
     <string name="ctbs_app_other_apps">%1$s og %2$s program(mer) til</string>
     <string name="download_update_dialog_message_ok">Du har allerede nyeste versjon.</string>
     <string name="firewall_rule_block_app_desc">En brukervalgt brannmursregel blokkerte dette <i>programmet</i>.<br/><br/> Endre dette fra <i>Alle programmer</i>-fanen.</string>

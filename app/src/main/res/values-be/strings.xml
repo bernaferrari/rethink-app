@@ -4,7 +4,7 @@
     <string name="title_settings" translatable="true">Налады</string>
     <string name="title_statistics" translatable="true">Статыстыка</string>
     <string name="txt_home" translatable="true">Галоўная</string>
-    <string name="accessibility_service_description" translatable="true">Rethink выкарыстоўвае службу спецыяльных магчымасцей для выяўлення фонавых праграм і брандмаўэра. Rethink не збірае і не прадае ніякай інфармацыі.</string>
+    <string name="accessibility_service_description" translatable="true">Keepout выкарыстоўвае службу спецыяльных магчымасцей для выяўлення фонавых праграм і брандмаўэра. Keepout не збірае і не прадае ніякай інфармацыі.</string>
     <string name="finish" translatable="true">Завяршыць</string>
     <string name="lbl_cancel" translatable="true">Скасаваць</string>
     <string name="lbl_apply" translatable="true">Прымяніць</string>

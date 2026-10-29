@@ -1,1 +1,1 @@
-Rethink: DNS + Firewall + VPN
+Keepout: файрвол, DNS, VPN

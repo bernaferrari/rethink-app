@@ -1,0 +1,25 @@
+Keepout on palomuuri, salattu DNS ja VPN Androidille ilman roottausta. Päätä, mitkä sovellukset pääsevät internetiin, pysäytä mainokset ja seuraimet ennen kuin ne muodostavat yhteyden, ja näe jokainen puhelimesi yhteys.
+
+PALOMUURI
+• Estä mikä tahansa sovellus Wi-Fi-yhteydellä, mobiilidatalla tai molemmilla yhdellä napautuksella.
+• Eristä sovellus, anna sen ohittaa säännöt tai jätä se tunnelin ulkopuolelle.
+• Yleiset säännöt: estä sovellukset taustalla, näytön ollessa pois päältä tai kun uusi sovellus asennetaan.
+• IP-, portti- ja verkkotunnussäännöt yhdelle sovellukselle tai kaikille.
+
+SALATTU DNS
+• Rethink DNS ja laitteella toimivat estolistat mainoksia, seuraimia ja haittaohjelmia vastaan.
+• Tai valitse oma DNS-palvelimesi: DNS-over-HTTPS, DNS-over-TLS, DNSCrypt tai ODoH.
+• DNS-vastaukset tarkistetaan paikallisesti, mikä kiertää myös DNS-pohjaisen sensuurin.
+
+NÄE, MITÄ SOVELLUKSESI TEKEVÄT
+• Verkko- ja DNS-lokit: mikä sovellus, mikä palvelin, mikä maa, sallittu vai estetty.
+• Tilastot viimeiseltä tunnilta, päivältä tai viikolta: kärkisovellukset, estetyt sovellukset, maat, verkot ja verkkotunnukset.
+
+VPN JA VÄLITYSPALVELIMET
+• Ohjaa sovelluksia WireGuardin, SOCKS5:n tai HTTP-välityspalvelimen kautta, sovelluskohtaisella jaetulla tunneloinnilla.
+• Tor yhdellä napautuksella Orbotin kautta.
+
+YKSITYINEN JO SUUNNITTELULTAAN
+Suodatus toimii laitteellasi Androidin VPN-palvelun kautta. Lokit pysyvät puhelimessa, voit poistaa ne käytöstä, eikä sovelluksessa ole mainoksia.
+
+Keepout on Celzeron Rethink DNS + Firewall -sovelluksen avoimen lähdekoodin haara, uudistettu Material 3 Expressive -tyylillä. Lisenssi: Apache 2.0.

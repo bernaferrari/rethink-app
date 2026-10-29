@@ -1,1 +1,1 @@
-Firewall, VPN Wireguard, monitor de rede, bloqueio de malware, alteração de DNS.
+Firewall por app, bloqueio de rastreadores com DNS criptografado e conexões.

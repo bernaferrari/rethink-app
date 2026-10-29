@@ -1,31 +1,25 @@
-Köszöntjük egy biztonságosabb, átláthatóbb és védettebb Android világában.
+A Keepout root nélküli tűzfal, titkosított DNS és VPN Androidra. Döntsd el, mely appok érhetik el az internetet, állítsd meg a hirdetéseket és követőket, mielőtt csatlakoznának, és lásd a telefonod minden kapcsolatát.
 
-VPN: Csatlakozhat több, Ön által választott WireGuard VPN-hez.
+TŰZFAL
+• Bármely app letiltása Wi-Fin, mobiladaton vagy mindkettőn, egyetlen koppintással.
+• Különíts el egy appot, engedd megkerülni a szabályokat, vagy zárd ki az alagútból.
+• Univerzális szabályok: appok tiltása a háttérben, kikapcsolt képernyőnél vagy új app telepítésekor.
+• IP-, port- és domainszabályok egy appra vagy az összesre.
 
-Biztonság: Megjeleníti a telepített alkalmazások hálózati tevékenységét, és lehetővé teszi azok letiltását, eltávolítását vagy tűzfalazását.
+TITKOSÍTOTT DNS
+• Rethink DNS eszközön tárolt blokkolólistákkal hirdetések, követők és kártevők ellen.
+• Vagy válassz saját feloldót DNS-over-HTTPS, DNS-over-TLS, DNSCrypt vagy ODoH protokollon.
+• A DNS-válaszok ellenőrzése helyben történik, így a DNS-alapú cenzúra is megkerülhető.
 
-Védelem: Az első védelmi vonal a kémprogramok, zsarolóvírusok és egyéb kártékony szoftverek ellen, amelyek személyes adatokat lopnak, vagy fiókokat vesznek át. Védelmet nyújt a DNS-manipuláció ellen is, amelyet gyakran alkalmaznak weboldalak, közösségi oldalak és üzenetküldő alkalmazások cenzúrázására.
+LÁSD, MIT CSINÁLNAK AZ APPJAID
+• Hálózati és DNS-naplók: melyik app, melyik szerver, melyik ország, engedélyezve vagy blokkolva.
+• Statisztikák az elmúlt óráról, napról vagy hétről: top appok, blokkolt appok, országok, hálózatok és domainek.
 
-Gyorsaság: DNS-szervereink több mint 300 helyszínen érhetők el világszerte, hogy az internetkapcsolata a lehető leggyorsabb és legmegbízhatóbb legyen.
+VPN ÉS PROXYK
+• Appok átirányítása WireGuard, SOCKS5 vagy HTTP proxyn keresztül, appokénti osztott alagúttal.
+• Tor egy koppintással az Orbot segítségével.
 
-Nyitottság: Nyílt forráskódú, és nem tartalmaz semmilyen követőt.
+ADATVÉDELEM AZ ALAPOKTÓL
+A szűrés az eszközödön fut, az Android VPN-szolgáltatásán keresztül. A naplók a telefonon maradnak, kikapcsolhatod őket, és nincsenek hirdetések.
 
-Funkciók
-
-Tűzfal: Megakadályozza, hogy az alkalmazások csatlakozzanak az internethez. Blokkolja a kémprogramokat, kártékony szoftvereket, zsarolóvírusokat és még sok mást.
-
-A tűzfal megakadályozza, hogy bármely alkalmazás WiFi-n vagy mobilhálózaton keresztül csatlakozzon az internethez. Mivel a legtöbb megfigyelési forma adatküldést igényel egy szerver felé, a tűzfal hatékonyan csökkenti a fenyegetést (például: fájlkezelők, ébresztőóra, számológép – ezek működéséhez nincs szükség internetkapcsolatra). A tűzfal funkció az akadálymentesítési szolgáltatást használja a háttérben futó alkalmazások felismeréséhez és szűréséhez.
-
-Monitorozás: Kövesse nyomon a bejövő és kimenő internetes forgalmat.
-
-Ha engedélyezi, a kapcsolati naplók gyűjtésre és elemzésre kerülnek. Az automatikus jelentések ismeretlen vagy gyanús kapcsolatokat jelölnek meg, és feltárják, milyen mértékben próbálják kémprogram-hálózatok ellopni az adatokat. Tesztjeink szerint a forgalom mintegy 60%-a ismert kémprogramokhoz köthető. A naplók szinte valós időben elérhetők a felhasználó számára saját elemzés céljából.
-
-WireGuard: Titkosítja a kimenő internetes forgalmat.
-
-Az alkalmazás gyors, modern, könnyű és biztonságos WireGuard protokollt használ a kimenő kapcsolatok titkosítására, bármely kompatibilis VPN-szolgáltatóval.
-
-Cenzúra elleni védelem:
-
-Az alkalmazás titkosítja az internetkapcsolatot a Rethink által üzemeltetett Domain Name System (DNS) szerver felé, amely több mint 300 helyszínen érhető el világszerte. A DNS-szerver az internet címjegyzéke: pontos címeket biztosít weboldalak vagy alkalmazások eléréséhez.
-
-Adatfigyelő: Kövesse nyomon alkalmazásonként és kapcsolatonként a mobil- vagy WiFi-adathasználatot.
+A Keepout a Celzero Rethink DNS + Firewall nyílt forráskódú forkja, Material 3 Expressive stílusban újratervezve. Licenc: Apache 2.0.

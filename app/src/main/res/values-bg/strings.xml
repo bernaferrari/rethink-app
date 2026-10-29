@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name" translatable="false">Keepout</string>
-    <string name="accessibility_service_description">Rethink използва услуга за достъпност, за да открива и защитава фонови приложения. Rethink не събира и не продава никаква информация.</string>
-    <string name="slide_2_desc">Rethink е най-лесният начин да наблюдавате мрежовата активност, да заобикаляте интернет цензурата и приложенията за защитна стена на вашето устройство с Android.</string>
+    <string name="accessibility_service_description">Keepout използва услуга за достъпност, за да открива и защитава фонови приложения. Keepout не събира и не продава никаква информация.</string>
+    <string name="slide_2_desc">Keepout е най-лесният начин да наблюдавате мрежовата активност, да заобикаляте интернет цензурата и приложенията за защитна стена на вашето устройство с Android.</string>
     <string name="notification_content" description="Indicates what will happen if the user taps the notification.">Натисни за промяна на настройките за защита</string>
     <string name="pause_mode_notification_title">На пауза! Блокираните приложения ще продължат да бъдат защитени със защитна стена.</string>
     <string name="dns_mode_notification_title">Защитен! Свързан към Бърз и Сигурен DNS.</string>
@@ -11,9 +11,9 @@
     <string name="universal_firewall_explanation">Прилагайте правила за защитна стена за всички приложения въз основа на събития в устройството, например защитна стена, когато устройството е заключено или когато дадено приложение не се използва.</string>
     <string name="notification_action_stop_vpn">STOP</string>
     <string name="firewall_mode_info_title">Защитна стена</string>
-    <string name="alert_firewall_accessibility_explanation">Rethink използва услуга за достъпност, за да проследява кои приложения се използват (на преден план) спрямо тези, които не се използват (на заден план).
+    <string name="alert_firewall_accessibility_explanation">Keepout използва услуга за достъпност, за да проследява кои приложения се използват (на преден план) спрямо тези, които не се използват (на заден план).
 \n
-\nRethink не събира никаква информация и не ви шпионира по никакъв начин.</string>
+\nKeepout не събира никаква информация и не ви шпионира по никакъв начин.</string>
     <string name="title_about">За Rethink</string>
     <string name="title_settings">Настройки</string>
     <string name="title_statistics">Статистики</string>
@@ -26,7 +26,7 @@
     <string name="exclude">изключение</string>
     <string name="isolate">изолирай</string>
     <string name="untracked">без следи</string>
-    <string name="warning_title" description="Status indicator text shown in a warning notification.">Внимание: Rethink бе деактивиран</string>
+    <string name="warning_title" description="Status indicator text shown in a warning notification.">Внимание: Keepout бе деактивиран</string>
     <string name="firewall_mode_notification_title">Защитен! Свързан към Firewall.</string>
     <string name="hybrid_mode_notification_title">Защитен! Свързан към DNS + Firewall.</string>
     <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">Чакане</string>
@@ -52,9 +52,9 @@
     <string name="failed_using_default" translatable="true">Неуспешно: използване на резервен DNS</string>
     <string name="bsct_block_domain" translatable="true">Блокирайте, доверете се на <u>домейн(и)</u> за <u>това приложение</u></string>
     <string name="always_on_dialog_heading" translatable="true">Деактивиране на винаги включената VPN услуга</string>
-    <string name="always_on_dialog" translatable="true">\"Always-On VPN\" е активирана на това устройство. За да стартирате Rethink, моля, отидете в приложението \"Настройки\" и деактивирайте \"Always-on VPN\".</string>
+    <string name="always_on_dialog" translatable="true">\"Always-On VPN\" е активирана на това устройство. За да стартирате Keepout, моля, отидете в приложението \"Настройки\" и деактивирайте \"Always-on VPN\".</string>
     <string name="always_on_dialog_positive_btn" translatable="true">Отидете в настройките</string>
-    <string name="always_on_dialog_stop_message" translatable="true">Винаги включената VPN услуга е активирана за Rethink. Сигурни ли сте, че все пак искате да спрете Rethink?</string>
+    <string name="always_on_dialog_stop_message" translatable="true">Винаги включената VPN услуга е активирана за Keepout. Сигурни ли сте, че все пак искате да спрете Keepout?</string>
     <string name="private_dns_dialog_heading" translatable="true">Изключване на Private DNS</string>
     <string name="firewall_act_universal_tab" translatable="true">Универсален</string>
     <string name="firewall_act_network_monitor_tab" translatable="true">Мрежови дневници</string>
@@ -126,9 +126,9 @@
     <string name="lbl_fast" translatable="true">бързо</string>
     <string name="default_dns_name" translatable="true">RDNS по подразбиране</string>
     <string name="always_on_dialog_lockdown_stop_message" translatable="true">RethinkDNS работи с VPN в режим <i>Lockdown</i>. Спирането му ще доведе до загуба на интернет свързаност на този потребителски профил. Искате ли все пак да продължите?</string>
-    <string name="private_dns_dialog_desc" translatable="true">DNS настройките на Rethink са заменени от Private DNS на Android.
+    <string name="private_dns_dialog_desc" translatable="true">DNS настройките на Keepout са заменени от Private DNS на Android.
 \n
-\nЗа да използвате DNS на Rethink, отидете в Настройки на Android и изключете \"Private DNS\".</string>
+\nЗа да използвате DNS на Keepout, отидете в Настройки на Android и изключете \"Private DNS\".</string>
     <string name="doh_custom_url_remove_success" translatable="true">Крайната точка е изтрита.</string>
     <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Услугата за достъпност RethinkDNS е спряна или се е сринала. <i><b>Влезте в Настройки и Насилствено спрете</b></i> RethinkDNS и го стартирайте отново, за да използвате <i>Блокирайте всяко приложение, което не се използва</i> функция.
 \n
@@ -141,7 +141,7 @@
     <string name="orbot" translatable="true">Орбот</string>
     <string name="download_update_dialog_failure_message" translatable="true">Нашите сървъри са повредени или връзката не може да бъде установена. Моля, опитайте отново след известно време.</string>
     <string name="download_update_dialog_trylater_title" translatable="true">Не мога да актуализирам точно сега</string>
-    <string name="settings_allow_lan_desc" translatable="true">Изключете маршрутите LAN, loopback и link-local от VPN тунела на Rethink.</string>
+    <string name="settings_allow_lan_desc" translatable="true">Изключете маршрутите LAN, loopback и link-local от VPN тунела на Keepout.</string>
     <string name="info_dialog_url_copy_toast_msg" translatable="true">Копиран URL адрес</string>
     <string name="orbot_status_arg_3" translatable="true">DNS и TCP</string>
     <string name="settings_allow_bypass_heading" translatable="true">Активирайте видимостта на мрежата</string>
@@ -185,11 +185,11 @@
     <string name="local_blocklist_redownload" translatable="true">В крак с времето!</string>
     <string name="settings_enable_logs" translatable="true">Активиране на регистрацията на устройството</string>
     <string name="orbot_none" translatable="true">Няма (по подразбиране)</string>
-    <string name="memory_notification_text">Rethink има недостатъчна памет. Системните действия може да са ограничени.</string>
+    <string name="memory_notification_text">Keepout има недостатъчна памет. Системните действия може да са ограничени.</string>
     <string name="dns_proxy_remove_dialog_title" translatable="true">Изтриване на DNS прокси?</string>
     <string name="search_custom_domains" translatable="true"><font size="12">Търсене на имена на домейни</font></string>
     <string name="settings_enable_logs_desc" translatable="true">Съхранявайте логовете на DNS и защитната стена локално в устройството.</string>
-    <string name="settings_exclude_proxy_apps_desc" translatable="true">Когато е деактивирано, изключва прокси (SOCKS5, HTTP, DNS) пренасочващи приложения от VPN тунела на Rethink.</string>
+    <string name="settings_exclude_proxy_apps_desc" translatable="true">Когато е деактивирано, изключва прокси (SOCKS5, HTTP, DNS) пренасочващи приложения от VPN тунела на Keepout.</string>
     <string name="settings_proxy_header" translatable="true">прокси</string>
     <string name="settings_socks5_heading" translatable="true">Настройка на прокси сървър SOCKS5</string>
     <string name="settings_https_heading" translatable="true">Настройка на прокси сървър HTTP(S)</string>

@@ -1,31 +1,25 @@
-Maak kennis met een veiliger, transparanter en veiliger Android.
+Keepout is een firewall, versleutelde DNS en VPN voor Android, zonder root. Bepaal welke apps het internet op mogen, stop advertenties en trackers voordat ze verbinding maken, en zie elke verbinding die je telefoon maakt.
 
-VPN: Maakt verbinding met meerdere WireGuard VPN's naar keuze.
+FIREWALL
+• Blokkeer elke app op wifi, mobiele data of allebei, met één tik.
+• Isoleer een app, laat hem de regels omzeilen of sluit hem uit van de tunnel.
+• Universele regels: blokkeer apps op de achtergrond, als het scherm uit is of als er een nieuwe app wordt geïnstalleerd.
+• IP-, poort- en domeinregels voor één app of voor alle apps.
 
-Veilig: Geeft de netwerkactiviteit van geïnstalleerde apps weer en laat je deze uitschakelen, verwijderen of firewallen.
+VERSLEUTELDE DNS
+• Rethink DNS met blocklists op het apparaat tegen advertenties, trackers en malware.
+• Of kies je eigen resolver via DNS-over-HTTPS, DNS-over-TLS, DNSCrypt of ODoH.
+• DNS-antwoorden worden lokaal gecontroleerd, wat ook DNS-censuur omzeilt.
 
-Beveiligd: Eerste verdedigingslinie tegen spyware, ransomware en malware die persoonlijke informatie stelen en accounts overnemen. Beschermt tegen DNS-manipulatie die doorgaans wordt gebruikt om websites, sociale media en berichten-apps te censureren.
+ZIE WAT JE APPS DOEN
+• Netwerk- en DNS-logs: welke app, welke server, welk land, toegestaan of geblokkeerd.
+• Statistieken over het afgelopen uur, de afgelopen dag of week: top-apps, geblokkeerde apps, landen, netwerken en domeinen.
 
-Snel: DNS-servers zijn wereldwijd op meer dan 300 locaties geïmplementeerd om ervoor te zorgen dat je internet zo snel en beschikbaar mogelijk is.
+VPN EN PROXY'S
+• Stuur apps via WireGuard-, SOCKS5- of HTTP-proxy's, met split tunneling per app.
+• Tor met één tik via Orbot.
 
-Open: Open source en vrij van trackers.
+PRIVÉ VANAF HET ONTWERP
+Het filteren gebeurt op je apparaat via de VPN-service van Android. Logs blijven op je telefoon, je kunt ze uitzetten, en er zijn geen advertenties.
 
-***Functies***
-
-Firewall: Voorkom dat apps verbinding maken met internet. Blokkeer spyware, malware, ransomware en meer.
-
-Een firewall blokkeert elke app die verbinding maakt met internet via wifi of mobiele data. Omdat de meeste vormen van surveillance vereisen dat de gegevens via het netwerk naar een server worden verzonden, kan een firewall de dreiging effectief beperken (bestandsbeheerders, wekkers en rekenmachines zijn enkele voorbeelden van apps die geen internettoegang nodig hebben om te functioneren). De firewallfunctie maakt gebruik van de toegankelijkheidsservice om achtergrondapplicaties te detecteren en te firewallen.
-
-Monitoring: Houd het inkomende en uitgaande internetverkeer in de gaten.
-
-Indien ingeschakeld, worden de verbindingslogs verzameld en geanalyseerd. Geautomatiseerde rapporten markeren voorheen onbekende of verdachte verbindingen en onthullen de omvang van pogingen tot gegevensdiefstal door spywarenetwerken. In onze tests wordt ongeveer 60% van het verkeer gemarkeerd en gerapporteerd als afkomstig van bekende spyware. De gegenereerde logs worden bijna realtime beschikbaar gesteld aan de gebruiker voor eigen analyse.
-
-WireGuard: Beveilig uitgaand internetverkeer.
-
-De app maakt gebruik van het snelle, moderne, lichtgewicht en veilige WireGuard-protocol om uitgaande verbindingen naar elke compatibele VPN-provider van uw keuze te versleutelen.
-
-Anticensuur:
-
-De app versleutelt je internetverbinding met een Domain Name System (DNS)-server die wordt beheerd door Rethink en die aanwezig is op meer dan 300 locaties wereldwijd. DNS-servers zijn het adresboek van het internet: een DNS-server geeft je de exacte adressen die je nodig hebt om een website te bezoeken of een app te openen.
-
-Data Monitor: Volg het mobiele of wifi-dataverbruik per app en per verbinding.
+Keepout is een opensource-fork van Rethink DNS + Firewall van Celzero, opnieuw ontworpen met Material 3 Expressive. Gelicentieerd onder Apache 2.0.

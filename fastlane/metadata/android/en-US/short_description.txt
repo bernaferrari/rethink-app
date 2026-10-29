@@ -1,1 +1,1 @@
-Firewall apps, use WireGuard VPN, monitor network, block malware, change DNS.
+Firewall apps, block trackers with encrypted DNS, and see every connection.

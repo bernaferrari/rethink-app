@@ -1,1 +1,1 @@
-Tűzfal, WireGuard VPN, hálózatfigyelés, kártevőblokkolás, DNS-csere.
+Tűzfal appokhoz, titkosított DNS a követők ellen, minden kapcsolat egy helyen.

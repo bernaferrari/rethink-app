@@ -82,7 +82,7 @@
     <string name="lbl_select_all" translatable="true">전체 선택</string>
     <string name="rdns_plus" translatable="true">RDNS Plus</string>
     <string name="lbl_create" translatable="true">만들기</string>
-    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Rethink 접근성 서비스가 중지되었거나 충돌이 발생했습니다.
+    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Keepout 접근성 서비스가 중지되었거나 충돌이 발생했습니다.
 \n<i><b>설정으로 이동하여 Rethink를 강제 종료</b></i>한 후 다시 시작하면 <i>사용하지 않는 앱을 차단하는 기능</i>을 사용할 수 있습니다.
 \nRethink는 접근성 서비스를 사용하여 사용 중인 앱(포그라운드)과 사용하지 않는 앱(백그라운드)을 구분하고 있습니다.</string>
     <string name="lbl_logs" translatable="true">로그</string>
@@ -186,7 +186,7 @@
     <string name="info_dialog_url_copy_toast_msg" translatable="true">URL 복사됨</string>
     <string name="info_dialog_copy_toast_msg" translatable="true">IP 주소 복사됨.</string>
     <string name="public_key_copy_toast_msg" translatable="true">공개 키 복사됨.</string>
-    <string name="settings_allow_lan_desc" translatable="true">LAN, 루프백, 멀티캐스트, 링크 로컬 라우팅을 Rethink\'s VPN 터널에서 제외합니다.</string>
+    <string name="settings_allow_lan_desc" translatable="true">LAN, 루프백, 멀티캐스트, 링크 로컬 라우팅을 Keepout\'s VPN 터널에서 제외합니다.</string>
     <string name="settings_https_heading" translatable="true">HTTP(S) 연결 프록시 설정</string>
     <string name="settings_lock_down_proxy_desc" translatable="true">VPN이 DNS 전용 모드에서 작동 중일때는 프록시를 설정할 수 없습니다.</string>
     <string name="orbot_bs_status_3" translatable="true">%1$s를 Orbot으로 포워딩하며, HTTP 프록시도 설정됐습니다.</string>
@@ -290,8 +290,8 @@
     <string name="firewall_status_excluded" translatable="true">DNS 및 방화벽에서 제외됨</string>
     <string name="firewall_status_isolate" translatable="true">격리됨</string>
     <string name="firewall_status_bypass_dns_firewall" translatable="true">DNS 및 방화벽 규칙 우회</string>
-    <string name="hs_biometeric_title" translatable="true">Rethink 잠금 해제</string>
-    <string name="hs_biometeric_desc" translatable="true">생체 인증을 사용하여 Rethink 잠금 해제</string>
+    <string name="hs_biometeric_title" translatable="true">Keepout 잠금 해제</string>
+    <string name="hs_biometeric_desc" translatable="true">생체 인증을 사용하여 Keepout 잠금 해제</string>
     <string name="firewall_status_unknown" translatable="true">알 수 없음</string>
     <string name="settings_connectivity_checks" translatable="true">연결 체크 수행</string>
     <string name="settings_connectivity_checks_desc" translatable="true">연결성 검사는 ascertain Reachability에 보내집니다.</string>
@@ -356,7 +356,7 @@
     <string name="firewall_rule_block_univ_ip" translatable="true">IP / 포트(범용)</string>
     <string name="fapps_info_exclude_msg" translatable="true">DNS + 방화벽 모두에서 제외합니다.</string>
     <string name="fapps_bypass_block_dialog_message" translatable="true"><i>나열된</i> 앱에 대한 범용 방화벽 규칙을 우회하시겠습니까?</string>
-    <string name="accessibility_notification_content" translatable="true">Rethink 접근성 서비스가 중지되었거나 충돌했습니다. 더 이상 백그라운드 앱을 차단하지 않습니다. 다시 활성화하려면 탭하세요.</string>
+    <string name="accessibility_notification_content" translatable="true">Keepout 접근성 서비스가 중지되었거나 충돌했습니다. 더 이상 백그라운드 앱을 차단하지 않습니다. 다시 활성화하려면 탭하세요.</string>
     <string name="fapps_bypass_dns_firewall_dialog_title" translatable="true">앱 우회</string>
     <string name="firewall_rule_device_lock" translatable="true">장치 잠김</string>
     <string name="firewall_rule_block_unmetered" translatable="true">무제한(WiFi)</string>

@@ -1,1 +1,1 @@
-Thiết lập tường lửa ứng dụng, sử dụng VPN WireGuard, giám sát mạng, chặn phần mềm độc hại, thay đổi DNS.
+Tường lửa cho từng ứng dụng, chặn theo dõi bằng DNS mã hóa, xem mọi kết nối.

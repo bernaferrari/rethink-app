@@ -1,1 +1,1 @@
-Firewall používající WireGuard VPN, monitoruje síť, blokuje malware a mění DNS.
+Firewall pro aplikace, šifrované DNS proti trackerům a přehled všech připojení.

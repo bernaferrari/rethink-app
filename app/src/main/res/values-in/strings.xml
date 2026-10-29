@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="always_on_dialog">\"VPN Selalu-Menyala\" telah dinyalakan di perangkat ini. Untuk menjalankan Rethink, silakan masuk ke Pengaturan dan matikan \"VPN Selalu-Menyala\".</string>
+    <string name="always_on_dialog">\"VPN Selalu-Menyala\" telah dinyalakan di perangkat ini. Untuk menjalankan Keepout, silakan masuk ke Pengaturan dan matikan \"VPN Selalu-Menyala\".</string>
     <string name="always_on_dialog_neutral">Pengaturan</string>
     <string name="blocklist_update_check_failure">Terjadi kesalahan. Coba beberapa saat lagi!</string>
     <string name="info_dialog_copy_toast_msg">Alamat IP telah disalin.</string>
@@ -12,7 +12,7 @@
     <string name="orbot_bs_status_trying_connect">Menyiapkan Orbot…</string>
     <string name="orbot_stop_dialog_neutral">Ubah DNS</string>
     <string name="finish">Selesai</string>
-    <string name="orbot_stop_dialog_message">Rethink telah berhenti meneruskan koneksi ke Orbot, tapi mungkin Orbot masih berjalan di latar belakang.</string>
+    <string name="orbot_stop_dialog_message">Keepout telah berhenti meneruskan koneksi ke Orbot, tapi mungkin Orbot masih berjalan di latar belakang.</string>
     <string name="download_update_dialog_trylater_title">Tidak dapat memperbaharui saat ini</string>
     <string name="orbot_install_dialog_title">Pasang Orbot\?</string>
     <string name="always_on_dialog_heading">Matikan VPN Selalu-Menyala</string>
@@ -35,10 +35,10 @@
     <string name="orbot_install_dialog_positive">Pasang</string>
     <string name="settings_socks5_disabled_error">Terhubung ke %1$s. Silahkan tutup dulu.</string>
     <string name="download_update_dialog_failure_title">Terjadi kesalahan!</string>
-    <string name="always_on_dialog_stop_message">Rethink diatur sebagai VPN Selalu-Menyala. Apakah Anda yakin untuk menghentikan Rethink\?</string>
+    <string name="always_on_dialog_stop_message">Keepout diatur sebagai VPN Selalu-Menyala. Apakah Anda yakin untuk menghentikan Keepout\?</string>
     <string name="download_update_dialog_message">Versi baru tersedia untuk diunduh dari situs web. Apakah Anda ingin melanjutkan\?</string>
     <string name="search_universal_ips"><font size="12">Cari IP</font></string>
-    <string name="orbot_stop_dialog_dns_message">Rethink disiapkan untuk meneruskan permintaan DNS ke Orbot. Silahkan ubah sesuai kebutuhan.</string>
+    <string name="orbot_stop_dialog_dns_message">Keepout disiapkan untuk meneruskan permintaan DNS ke Orbot. Silahkan ubah sesuai kebutuhan.</string>
     <string name="orbot_bs_status_1">Meneruskan koneksi %1$s ke Orbot.</string>
     <string name="orbot_website_link">https://guardianproject.info/apps/org.torproject.android/</string>
     <string name="orbot_install_dialog_neutral">laman</string>
@@ -54,7 +54,7 @@
     <string name="allow">izinkan</string>
     <string name="dns_mode_notification_title">Terlindungi! Terhubung dengan DNS Cepat dan Aman.</string>
     <string name="firewall_mode_notification_title">Terlindungi! Terhubung dengan Firewall.</string>
-    <string name="warning_title" description="Status indicator text shown in a warning notification.">Peringatan: Rethink telah dihentikan</string>
+    <string name="warning_title" description="Status indicator text shown in a warning notification.">Peringatan: Keepout telah dihentikan</string>
     <string name="notification_content" description="Indicates what will happen if the user taps the notification.">Sentuh untuk merubah pengaturan keamanan</string>
     <string name="status_no_internet">Tidak ada internet</string>
     <string name="txt_home">Halaman muka</string>
@@ -142,9 +142,9 @@
     <string name="about_website_link">https://www.rethinkdns.com/</string>
     <string name="settings_protocol_translation_dns_inactive">Beralih ke mode DNS/DNS+Firewall untuk mengaktifkan pengaturan ini</string>
     <string name="about_docs_link">https://docs.rethinkdns.com/</string>
-    <string name="new_app_bulk_notification_content">Rethink memblokir %1$s aplikasi baru. Ketuk untuk melihat atau mengubah.</string>
+    <string name="new_app_bulk_notification_content">Keepout memblokir %1$s aplikasi baru. Ketuk untuk melihat atau mengubah.</string>
     <string name="firewall_rule_block_app_desc"><![CDATA[Aturan firewall yang ditetapkan pengguna memblokir <i>aplikasi</i> ini.<br/><br/> Untuk mengubah, buka tab <i>Semua Aplikasi</i>.]]></string>
-    <string name="dc_dns_leaks_desc">Saat diaktifkan, Rethink menangkap semua paket pada port 53 dan meneruskannya ke titik akhir DNS yang ditetapkan pengguna</string>
+    <string name="dc_dns_leaks_desc">Saat diaktifkan, Keepout menangkap semua paket pada port 53 dan meneruskannya ke titik akhir DNS yang ditetapkan pengguna</string>
     <string name="firewall_rule_block_ip_univ_desc"><![CDATA[Aturan firewall yang ditetapkan pengguna telah memblokir <i>IP / Port tujuan</i>.<br/><br/> Untuk mengubahnya, buka tab <i>Universal</i>.]]></string>
     <string name="dns_info_neutral">Salin</string>
     <string name="dns_proxy_desc">%1$s:%2$s, %3$s</string>
@@ -212,7 +212,7 @@
     <string name="system_dns_connection_failure">Tidak dapat menentukan server DNS saat ini</string>
     <string name="lbbs_search">Cari domain di dalam daftar blokir</string>
     <string name="notif_download_content_title">Mengunduh Daftar Blokir Lokal</string>
-    <string name="slide_2_desc">Rethink adalah cara termudah untuk memantau aktivitas jaringan, melewati penyensoran jaringan, dan mem-firewall aplikasi di perangkat Anda.</string>
+    <string name="slide_2_desc">Keepout adalah cara termudah untuk memantau aktivitas jaringan, melewati penyensoran jaringan, dan mem-firewall aplikasi di perangkat Anda.</string>
     <string name="settings_ip_text_ipv46">Otomatis</string>
     <string name="hs_download_negative_default">Ingatkan saya nanti</string>
     <string name="univ_firewall_rule_10">Blokir semua kecuali aplikasi dan IP yang dipintaskan (di-bypass)</string>
@@ -231,9 +231,9 @@
     <string name="dns_proxy_name">Nama Proksi</string>
     <string name="brbs_backup_dialog_failure_title">Gagal mencadangkan</string>
     <string name="dns_connected_rethink_plus">Terhubung. %1$s daftar blokir yang digunakan</string>
-    <string name="alert_firewall_accessibility_regrant_explanation">Layanan aksesibilitas Rethink terhenti atau mengalami kegagalan. <i><b>Masuk ke Pengaturan dan Hentikan Paksa</b></i> dan mulai ulang untuk menggunakan fitur<i>Blokir aplikasi apapun yang tidak digunakan</i>.
+    <string name="alert_firewall_accessibility_regrant_explanation">Layanan aksesibilitas Keepout terhenti atau mengalami kegagalan. <i><b>Masuk ke Pengaturan dan Hentikan Paksa</b></i> dan mulai ulang untuk menggunakan fitur<i>Blokir aplikasi apapun yang tidak digunakan</i>.
 \n
-\nRethink menggunakan layanan aksesibilitas untuk mengawasi aplikasi yang sedang digunakan (latar depan) dan aplikasi yang tidak digunakan (latar belakang).</string>
+\nKeepout menggunakan layanan aksesibilitas untuk mengawasi aplikasi yang sedang digunakan (latar depan) dan aplikasi yang tidak digunakan (latar belakang).</string>
     <string name="firewall_act_universal_tab">universal</string>
     <string name="settings_theme_dialog_themes_3">Gelap</string>
     <string name="lbl_proceed">Lanjutkan</string>
@@ -266,12 +266,12 @@
 \n
 \nNomor port: %2$s</string>
     <string name="dc_block_heading">Aturan-aturan</string>
-    <string name="new_app_notification_content">Rethink memblokir aplikasi yang baru dipasang, %1$s.</string>
+    <string name="new_app_notification_content">Keepout memblokir aplikasi yang baru dipasang, %1$s.</string>
     <string name="firewall_status_whitelisted">Melewati aturan firewall universal</string>
     <string name="vpn_profile_error">Tidak dapat membuka konfigurasi profil VPN.</string>
     <string name="settings_socks_forwarding_desc">Meneruskan ke %1$s:%2$s, %3$s</string>
     <string name="refresh_complete"><!-- use dc_refresh_toast -->Sinkronisasi ulang daftar aplikasi selesai.</string>
-    <string name="settings_socks5_vpn_disabled_error">Mulai Rethink untuk melanjutkan.</string>
+    <string name="settings_socks5_vpn_disabled_error">Mulai Keepout untuk melanjutkan.</string>
     <string name="settings_http_proxy_desc">Meneruskan ke %1$s</string>
     <string name="about_connect">Kontak</string>
     <string name="cd_dns_proxy_mode_internal">Dalam</string>
@@ -284,7 +284,7 @@
     <string name="firewall_rule_block_ip">IP / Port (Aplikasi)</string>
     <string name="ada_noapp_dialog_title">Tidak ada aplikasi yang dimaksud</string>
     <string name="local_blocklist_redownload_desc">Daftar blokir di perangkat sudah dalam versi terbaru v%1$s.</string>
-    <string name="accessibility_service_description">Rethink menggunakan layanan aksesibilitas untuk mendeteksi dan melakukan firewall pada aplikasi latar belakang. Rethink tidak mengumpulkan atau menjual informasi apapun.</string>
+    <string name="accessibility_service_description">Keepout menggunakan layanan aksesibilitas untuk mendeteksi dan melakukan firewall pada aplikasi latar belakang. Keepout tidak mengumpulkan atau menjual informasi apapun.</string>
     <string name="orbot_socks5">Proksi Khusus TCP</string>
     <string name="settings_theme_dialog_themes_1">Diatur Sistem</string>
     <string name="univ_firewall_rule_8">Blokir lalu lintas di port 80 (HTTP tidak aman)</string>
@@ -309,9 +309,9 @@
     <string name="brbs_backup_dialog_failure_message">Tidak dapat mencadangkan. Coba lagi\?</string>
     <string name="rt_re_download">Unduh ulang daftar-daftar blokir</string>
     <string name="download_update_dialog_message_success">Daftar blokir berhasil terunduh.</string>
-    <string name="alert_firewall_accessibility_explanation">Rethink menggunakan layanan aksesibilitas untuk mengawasi aplikasi yang sedang digunakan (latar depan) dan aplikasi yang tidak digunakan (latar belakang)
+    <string name="alert_firewall_accessibility_explanation">Keepout menggunakan layanan aksesibilitas untuk mengawasi aplikasi yang sedang digunakan (latar depan) dan aplikasi yang tidak digunakan (latar belakang)
 \n
-\nRethink tidak mengumpulkan data apa pun dan tidak memata-matai Anda dengan cara apa pun.</string>
+\nKeepout tidak mengumpulkan data apa pun dan tidak memata-matai Anda dengan cara apa pun.</string>
     <string name="doh_custom_url_remove_success">Titik-akhir telah terhapus.</string>
     <string name="settings_orbot_notification_action">Buka Orbot</string>
     <string name="settings_ip_dialog_title">Pilih versi IP</string>
@@ -336,7 +336,7 @@
     <string name="dns_query_latency">%1$s mili-detik</string>
     <string name="settings_orbot_disabled_error">Matikan proksi HTTP(S) dan/atau proksi SOCKS5 untuk melanjutkan penyetelan Tor-sebagai-proksi.</string>
     <string name="orbot_install_dialog_message">Orbot membawa fitur-fitur dan fungsionalitas Tor ke Android.</string>
-    <string name="notif_channel_desc_vpn_notification">Informasikan ketika Rethink sedang aktif dan bekerja di latar belakang</string>
+    <string name="notif_channel_desc_vpn_notification">Informasikan ketika Keepout sedang aktif dan bekerja di latar belakang</string>
     <string name="settings_orbot_notification_content">Gagal menjalankan Tor-sebagai-Proksi. Buka aplikasi Orbot untuk menjalankannya secara manual.</string>
     <string name="ada_noapp_dialog_message">Informasi aplikasi tidak ada. Mungkin, aplikasi sudah di hapus \'uninstall\' \?</string>
     <string name="bsac_title_desc">Aturan hanya berlaku untuk aplikasi ini.</string>
@@ -404,15 +404,15 @@
     <string name="brbs_restore_dialog_positive">Pulihkan</string>
     <string name="brbs_restore_dialog_title">Pulihkan cadangan</string>
     <string name="brbs_restore_dialog_failure_title">Pemulihan gagal</string>
-    <string name="private_dns_dialog_desc">Pengaturan DNS Rethink ditimpa oleh DNS Pribadi Android.
+    <string name="private_dns_dialog_desc">Pengaturan DNS Keepout ditimpa oleh DNS Pribadi Android.
 \n
-\nUntuk menggunakan DNS Rethink, buka Pengaturan Android dan matikan \"DNS Pribadi\".</string>
+\nUntuk menggunakan DNS Keepout, buka Pengaturan Android dan matikan \"DNS Pribadi\".</string>
     <string name="untracked">tidak terlacak</string>
     <string name="private_dns_dialog_heading">Matikan DNS Pribadi</string>
     <string name="private_dns_dialog_positive">Masuk ke Pengaturan</string>
     <string name="universal_firewall_explanation">Terapkan aturan firewall berdasarkan aktivitas perangkat, seperti pemblokiran saat perangkat terkunci atau aplikasi tertentu yang tidak digunakan.</string>
     <string name="notification_action_resume_vpn">LANJUTKAN</string>
-    <string name="always_on_dialog_lockdown_stop_message">Rethink menjalankan VPN pada mode <i>Penguncian penuh</i>. Menghentikannya akan mengakibatkan hilangnya konektivitas Internet pada profil pengguna ini. Apakah anda masih ingin melanjutkan\?</string>
+    <string name="always_on_dialog_lockdown_stop_message">Keepout menjalankan VPN pada mode <i>Penguncian penuh</i>. Menghentikannya akan mengakibatkan hilangnya konektivitas Internet pada profil pengguna ini. Apakah anda masih ingin melanjutkan\?</string>
     <string name="cd_dns_crypt_dialog_stamp">Cap</string>
     <string name="univ_firewall_rule_6">Blokir aplikasi yang baru saja diinstal secara default</string>
     <string name="ada_ip_no_connection">Tidak ada log jaringan untuk kategori ini.</string>
@@ -425,7 +425,7 @@
     <string name="update_complete_action_snack">MULAI ULANG</string>
     <string name="dns_proxy_connection_failure">Gagal terhubung ke server Proksi DNS.</string>
     <string name="notif_channel_desc_proxy_failure">Peringatan error dan anomali pada Proksi</string>
-    <string name="notif_channel_desc_vpn_failure">Beritahu saat Rethink dihentikan oleh Android atau aplikasi VPN lain</string>
+    <string name="notif_channel_desc_vpn_failure">Beritahu saat Keepout dihentikan oleh Android atau aplikasi VPN lain</string>
     <string name="notif_channel_desc_firewall_alerts">Peringatan error dan anomali pada Firewall</string>
     <string name="notif_channed_desc_download">Peringatan pada proses unduh untuk daftar blokir perangkat</string>
     <string name="rt_filter_parent_selected">Dipilih</string>
@@ -444,20 +444,20 @@
     <string name="download_update_dialog_failure_message">Entah server kami sedang down atau koneksi tidak dapat dibuat. Silakan coba lagi setelah beberapa saat.</string>
     <string name="settings_lock_down_mode_desc">Opsi tertentu dinonaktifkan saat VPN dalam mode kuncian. <u>Lihat setelan VPN</u>.</string>
     <string name="orbot_bs_status_4">Menyetel Tor-sebagai-Proksi (Orbot) sekali klik.</string>
-    <string name="settings_network_all_networks_desc">Bila diaktifkan, Rethink menggunakan semua jaringan yang tersedia untuk terhubung ke Internet. Jika tidak, aplikasi RethinkDNS akan menggunakan jaringan mana pun yang dianggap <i>aktif</i> oleh Android.</string>
-    <string name="hsf_vpn_dialog_message">Rethink memerlukan izin untuk menyiapkan VPN lokal guna mengenkripsi permintaan DNS perangkat, mengimplementasikan monitor jaringan, dan menegakkan aturan firewall.
+    <string name="settings_network_all_networks_desc">Bila diaktifkan, Keepout menggunakan semua jaringan yang tersedia untuk terhubung ke Internet. Jika tidak, aplikasi RethinkDNS akan menggunakan jaringan mana pun yang dianggap <i>aktif</i> oleh Android.</string>
+    <string name="hsf_vpn_dialog_message">Keepout memerlukan izin untuk menyiapkan VPN lokal guna mengenkripsi permintaan DNS perangkat, mengimplementasikan monitor jaringan, dan menegakkan aturan firewall.
 \n
-\nRethink tidak mengumpulkan informasi apa pun atau memata-matai Anda dengan cara apa pun.</string>
+\nKeepout tidak mengumpulkan informasi apa pun atau memata-matai Anda dengan cara apa pun.</string>
     <string name="about_mail_bugreport_subject">[Rethink]: Laporan bug</string>
     <string name="fapps_info_dialog_positive_btn">Oke</string>
-    <string name="orbot_explanation">Orbot adalah aplikasi proksi gratis yang memungkinkan sambungan internet pada aplikasi menjadi tempat yang<u>lebih aman</u>. \nOrbot menggunakan<u>Tor</u> untuk mengenkripsi lalu lintas internet anda, juga membantu <u>melewati penyensoran</u>dan sebagai bentuk pertahanan diri dari berbagai macam<u>pengawasan jaringan</u> yang bisa membahayakan kebebasan pribadi dan privasi. \n<u>Proksi TCP</u>: Rethink hanya meneruskan koneksi TCP untuk aplikasi <i>yang ada</i> menuju Orbot. \n<u>Proksi HTTP</u>: Rethink<i>membangun</i> terowongan HTTP CONNECT ke Orbot dan hanya meneruskan sambungan TCP untuk aplikasi <i>yang ada</i>.</string>
+    <string name="orbot_explanation">Orbot adalah aplikasi proksi gratis yang memungkinkan sambungan internet pada aplikasi menjadi tempat yang<u>lebih aman</u>. \nOrbot menggunakan<u>Tor</u> untuk mengenkripsi lalu lintas internet anda, juga membantu <u>melewati penyensoran</u>dan sebagai bentuk pertahanan diri dari berbagai macam<u>pengawasan jaringan</u> yang bisa membahayakan kebebasan pribadi dan privasi. \n<u>Proksi TCP</u>: Keepout hanya meneruskan koneksi TCP untuk aplikasi <i>yang ada</i> menuju Orbot. \n<u>Proksi HTTP</u>: Keepout<i>membangun</i> terowongan HTTP CONNECT ke Orbot dan hanya meneruskan sambungan TCP untuk aplikasi <i>yang ada</i>.</string>
     <string name="settings_autostart_bootup_heading">Mulai otomatis saat device dinyalakan (eksperimental)</string>
     <string name="settings_app_list_default_app">Tidak ada</string>
-    <string name="settings_autostart_bootup_desc">Pada saat perangkat dihidupkan, Rethink akan memulai sendiri jika aplikasi ini sebelumnya tidak dimatikan.</string>
+    <string name="settings_autostart_bootup_desc">Pada saat perangkat dihidupkan, Keepout akan memulai sendiri jika aplikasi ini sebelumnya tidak dimatikan.</string>
     <string name="rbl_parental_control" description="The text appears as part of the blocklist setup screen as categories or headlines">Kontrol Orang Tua</string>
     <string name="hsf_vpn_prepare_failure">Antara perizinan VPN menghilang, atau aplikasi lain berjalan pada mode VPN yang Selalu-Menyala.</string>
     <string name="ada_noapp_dialog_positive">Oke</string>
-    <string name="settings_allow_bypass_desc">Izinkan aplikasi yang meminta untuk mengakses semua jaringan yang tersedia. Aplikasi ini dapat mem-bypass terowongan VPN Rethink sesuai permintaan. Beberapa aplikasi konferensi audio/video seperti Zoom dan Meet mungkin memerlukan ini agar berfungsi dengan baik.</string>
+    <string name="settings_allow_bypass_desc">Izinkan aplikasi yang meminta untuk mengakses semua jaringan yang tersedia. Aplikasi ini dapat mem-bypass terowongan VPN Keepout sesuai permintaan. Beberapa aplikasi konferensi audio/video seperti Zoom dan Meet mungkin memerlukan ini agar berfungsi dengan baik.</string>
     <string name="settings_https_desc">Meneruskan koneksi ke titik akhir KONEKSI HTTP(S) .</string>
     <string name="settings_custom_downloader_desc">Jika dinonaktifkan, <i>Pengelola Unduhan</i> bawaan Android digunakan</string>
     <string name="about_bug_report">Laporkan Bug</string>
@@ -473,7 +473,7 @@
     <string name="dc_check_update_heading">Ingatkan untuk memperbarui daftar blokir</string>
     <string name="cd_custom_dns_proxy_default_app">Tidak ada</string>
     <string name="about_bug_no_log_dialog_title">Laporan bug</string>
-    <string name="accessibility_notification_content">layanan aksesibilitas Rethink telah berhenti atau macet. Tidak lagi memblokir aplikasi latar belakang. Ketuk untuk mengaktifkan kembali.</string>
+    <string name="accessibility_notification_content">layanan aksesibilitas Keepout telah berhenti atau macet. Tidak lagi memblokir aplikasi latar belakang. Ketuk untuk mengaktifkan kembali.</string>
     <string name="firewall_rule_block_dns_bypass_desc"><![CDATA[Koneksi ini diblokir karena <i>source app</i> melewati DNS yang dipilih pengguna.<br/><br/> Untuk mengubah perilaku ini, buka tab Universal.]]></string>
     <string name="hs_download_positive_default">oke</string>
     <string name="fapps_unmetered_block_dialog_message">Blokir koneksi pada jaringan yang tidak terukur (WiFi) untuk <i>aplikasi</i> yang terdaftar\?</string>
@@ -505,7 +505,7 @@
     <string name="firewall_rule_exempt_orbot_setup_desc"><![CDATA[Koneksi ini diizinkan karena pengaturan <i>one-click Tor-as-a-proxy</i> melalui Orbot sedang berlangsung.]]></string>
     <string name="title_statistics">Statistik</string>
     <string name="hs_biometeric_error">Kesalahan otentikasi biometrik</string>
-    <string name="hs_biometeric_title">Buka Rethink</string>
+    <string name="hs_biometeric_title">Buka Keepout</string>
     <string name="fapps_info_unmetered_msg">Izinkan / Blokir pada jaringan yang tidak terukur (WiFi).</string>
     <string name="fapps_isolate_block_dialog_title">Mengisolasi aplikasi</string>
     <string name="ssv_most_contacted_ips_heading" description="This label will appear on the stats screen as a header for most visited ips" translatable="true">IP yang paling banyak terhubung</string>
@@ -513,7 +513,7 @@
     <string name="fapps_info_bypass_msg">Mengabaikan (Bypass) aturan firewall universal.</string>
     <string name="fapps_firewall_filter_isolate">Diisolasi</string>
     <string name="ada_app_status_isolate">Diisolasi: hanya IP dan domain tepercaya yang diizinkan</string>
-    <string name="hs_biometeric_desc">Gunakan otentikasi biometrik untuk membuka kunci Rethink</string>
+    <string name="hs_biometeric_desc">Gunakan otentikasi biometrik untuk membuka kunci Keepout</string>
     <string name="fapps_info_metered_msg">Izinkan / Blokir pada jaringan terukur (Data Seluler).</string>
     <string name="fapps_bypass_block_dialog_message">Lewati (Bypass) aturan firewall universal untuk aplikasi yang <i>terdaftar</i> \?</string>
     <string name="fapps_info_exclude_msg">Kecualikan dari keduanya, DNS + Firewall.</string>
@@ -526,7 +526,7 @@
     <string name="fapps_unblock_dialog_message">Izinkan koneksi untuk aplikasi yang <i>terdaftar</i>\?</string>
     <string name="fapps_exclude_block_dialog_message">Kecualikan <i>aplikasi</i> yang terdaftar dari DNS dan Firewall\?</string>
     <string name="fapps_isolate_block_dialog_message">Mengisolasi <i>aplikasi</i> yang terdaftar\?</string>
-    <string name="ssv_toast_start_rethink" description="This label will appear on the stats screen as toast to start Rethink app">Mulai Rethink untuk melanjutkan</string>
+    <string name="ssv_toast_start_rethink" description="This label will appear on the stats screen as toast to start Rethink app">Mulai Keepout untuk melanjutkan</string>
     <string name="ssv_see_more">Tampilkan Semua</string>
     <string name="fapps_exclude_block_dialog_title">Aplikasi yang dikecualikan</string>
     <string name="fapps_bypass_block_dialog_title">Lewati aplikasi</string>
@@ -573,7 +573,7 @@
     <string name="firewall_rule_dns_blocked_desc" translatable="true"><![CDATA[Koneksi ini diblokir karena <i>domain</i> diblokir oleh DNS yang dipilih pengguna.<br/><br/> Untuk mengubah perilaku ini, buka tab <i>Konfigurasi DNS</i>.]]></string>
     <string name="lbl_network" translatable="true">jaringan</string>
     <string name="settings_allow_lan_heading" translatable="true">Jangan merutekan IP Pribadi (eksperimental)</string>
-    <string name="settings_allow_lan_desc" translatable="true">Kecualikan rute LAN, loopback, multicast, dan link-lokal dari terowongan VPN Rethink.</string>
+    <string name="settings_allow_lan_desc" translatable="true">Kecualikan rute LAN, loopback, multicast, dan link-lokal dari terowongan VPN Keepout.</string>
     <string name="fapps_bypass_dns_firewall_dialog_message" translatable="true">Abaikan DNS &amp; aturan firewall untuk aplikasi <i>tercantum</i>\?</string>
     <string name="firewall_rule_bypass_dns_firewall_desc" translatable="true"><![CDATA[Koneksi ini diizinkan karena <i>source app</i> telah diatur untuk <i>melewati DNS dan firewall</i>.<br/><br/> Untuk mengubah pengaturan, buka layar <i>App-specific Firewall</i>.]]></string>
     <string name="firewall_rule_domain_trusted_univ_desc" translatable="true"><![CDATA[Koneksi ini diizinkan karena <i>domain</i> ditetapkan sebagai tepercaya dalam aturan domain Universal.<br/><br/> Untuk mengubah perilaku ini, buka tab <i>Konfigurasi DNS</i>.]]></string>
@@ -709,10 +709,10 @@
     <string name="dc_proxy_dns_heading" translatable="true">Jangan pernah melakukan proksi DNS</string>
     <string name="lbl_unselected" translatable="true">Tidak dipilih</string>
     <string name="settings_exclude_proxy_apps_heading" translatable="true">Aplikasi penerus putar-balik proksi</string>
-    <string name="settings_exclude_proxy_apps_desc" translatable="true">Ketika dimatikan, kecualikan aplikasi penerus proksi (SOCKS5, HTTP, DNS) dari terowongan VPN Rethink.</string>
+    <string name="settings_exclude_proxy_apps_desc" translatable="true">Ketika dimatikan, kecualikan aplikasi penerus proksi (SOCKS5, HTTP, DNS) dari terowongan VPN Keepout.</string>
     <string name="exclude_apps_from_proxy">Lewati aplikasi dari semua proksi</string>
     <string name="exclude_apps_from_proxy_failure_toast">Aplikasi ini melewati proksi</string>
-    <string name="memory_notification_text">Rethink mengalami memori rendah. Tindakan sistem mungkin terbatas.</string>
+    <string name="memory_notification_text">Keepout mengalami memori rendah. Tindakan sistem mungkin terbatas.</string>
     <string name="lbl_test" translatable="true">uji coba</string>
     <string name="lbl_experimental" translatable="true">(pengujian)</string>
     <string name="lbl_service_providers" translatable="true">Penyedia Layanan</string>
@@ -749,12 +749,12 @@
     <string name="exclude_no_package_err_toast" translatable="true">Mengecualikan aplikasi memerlukan nama paket.</string>
     <string name="blocklist_not_available_toast" translatable="true">Untuk memperbarui daftar blokir, unduh versi aplikasi terbaru.</string>
     <string name="about_terms_of_service" translatable="true">Ketentuan Layanan</string>
-    <string name="bypasses_network_restrictions" translatable="true">Pemeriksaan jangkauan melewati semua batasan jaringan. Dalam mode <i>Otomatis</i>, Rethink secara acak menggunakan IP dan nama host yang terhubung sebelumnya.</string>
+    <string name="bypasses_network_restrictions" translatable="true">Pemeriksaan jangkauan melewati semua batasan jaringan. Dalam mode <i>Otomatis</i>, Keepout secara acak menggunakan IP dan nama host yang terhubung sebelumnya.</string>
     <string name="most_contacted_asn" translatable="true">Penyedia yang paling banyak dihubungi</string>
     <string name="download_ip_info_desc" translatable="true">Mengambil detail penyedia layanan untuk situs web dari <i>rethinkdns.com</i>, didukung oleh <i>%1$s</i></string>
     <string name="close_conns_dialog_desc" translatable="true">Tutup semua koneksi untuk %1$s?</string>
     <string name="local_blocklist_delete_desc" translatable="true">Hapus daftar blokir pada perangkat?</string>
-    <string name="fail_open_network_desc" translatable="true">Ketika diaktifkan, Rethink akan menghentikan semua data saat tidak ada konektivitas yang tersedia, seperti pada <i>Mode Pesawat</i>.</string>
+    <string name="fail_open_network_desc" translatable="true">Ketika diaktifkan, Keepout akan menghentikan semua data saat tidak ada konektivitas yang tersedia, seperti pada <i>Mode Pesawat</i>.</string>
     <string name="smart_dns" translatable="true">DNS Pintar</string>
     <string name="smart_dns_desc" translatable="true"><i>Smart DNS</i> secara acak menggunakan salah satu di antara resolver DNS berikut:</string>
     <string name="vpn_policy_auto_desc" translatable="true">Bereaksi terhadap perubahan jaringan dan konektivitas yang penting.</string>
@@ -798,7 +798,7 @@
     <string name="vpn_policy_fixed_desc" translatable="true">Menanggapi perubahan jaringan dengan minimal.</string>
     <string name="wg_setting_ssid_title" translatable="true">Hanya Wi-Fi</string>
     <string name="wg_setting_ssid_desc" translatable="true">Aktifkan VPN WireGuard ini hanya saat terhubung ke Wi-Fi atau identifikasi Wi-Fi yang ditentukan (%1$s).</string>
-    <string name="ssid_permission_explanation" translatable="true">Rethink memerlukan izin lokasi untuk mengakses identifikasi Wi-Fi (%1$s).</string>
+    <string name="ssid_permission_explanation" translatable="true">Keepout memerlukan izin lokasi untuk mengakses identifikasi Wi-Fi (%1$s).</string>
     <string name="location_enable_explanation" translatable="true">Untuk mengakses identifikasi Wi-Fi (%1$s), aktifkan Layanan Lokasi.</string>
     <string name="wg_ssid_dialog_description" translatable="true">%1$s VPN WireGuard ini saat <i>aktif</i> Identifikasi Wi-Fi (%2$s) %3$s.</string>
     <string name="wg_ssid_type_exact" translatable="true">Tepat</string>
@@ -810,10 +810,10 @@
     <string name="tombstone_app_desc" translatable="true">Saat diaktifkan, simpan aturan aplikasi selama 7 hari.</string>
     <string name="settings_allow_incoming_wg_packets" translatable="true">WireGuard P2P</string>
     <string name="settings_allow_incoming_wg_packets_desc" translatable="true">Saat diaktifkan, izinkan koneksi masuk yang diinisialisasi oleh mitra WireGuard.</string>
-    <string name="lockdown_download_message" translatable="true"><i>&gt;Manajer Unduhan</i> bawaan Android mungkin gagal karena VPN berada dalam mode <i>Lockdown</i>. Apakah Anda ingin mengaktifkan pengunduh Rethink sebagai gantinya?</string>
+    <string name="lockdown_download_message" translatable="true"><i>&gt;Manajer Unduhan</i> bawaan Android mungkin gagal karena VPN berada dalam mode <i>Lockdown</i>. Apakah Anda ingin mengaktifkan pengunduh Keepout sebagai gantinya?</string>
     <string name="lockdown_download_enable_inapp" translatable="true">Aktifkan Pengunduh</string>
     <string name="settings_jumbo_packets" translatable="true">Peningkat bandwidth</string>
-    <string name="settings_jumbo_packets_desc" translatable="true">Menggunakan <i>paket jumbo</i> dalam terowongan VPN Rethink.</string>
+    <string name="settings_jumbo_packets_desc" translatable="true">Menggunakan <i>paket jumbo</i> dalam terowongan VPN Keepout.</string>
     <string name="stability_program_toast" translatable="true">Daftar ke <i>program stabilitas</i> untuk <i>fitur eksperimental</i>.</string>
     <string name="home_last_24_hours">24 jam terakhir</string>
     <plurals name="home_stopped_at_dns_count">

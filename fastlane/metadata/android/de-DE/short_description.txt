@@ -1,1 +1,1 @@
-Firewall, Netzwerküberwachung, DNS, WireGuard VPN & Blockieren schädl. Websites.
+App-Firewall, Tracker per verschlüsseltem DNS blocken, jede Verbindung sehen.

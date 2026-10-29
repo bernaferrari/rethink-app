@@ -1,1 +1,1 @@
-Rethink: DNS + חומת אש + VPN
+Keepout: חומת אש, DNS, VPN

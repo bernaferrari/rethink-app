@@ -1,1 +1,1 @@
-Rethink: DNS+Cortafuegos+VPN
+Keepout: Firewall, DNS, VPN

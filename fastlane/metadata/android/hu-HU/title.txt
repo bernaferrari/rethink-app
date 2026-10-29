@@ -1,1 +1,1 @@
-Rethink: DNS + Tűzfal + VPN
+Keepout: Tűzfal, DNS, VPN

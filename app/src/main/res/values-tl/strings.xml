@@ -3,7 +3,7 @@
     <string name="txt_home" translatable="true">Tahanan</string>
     <string name="title_about" translatable="true">Tungkol sa</string>
     <string name="title_statistics" translatable="true">Mga Estadistika</string>
-    <string name="accessibility_service_description" translatable="true">Ang Rethink ay gumagamit ng serbisyong pang-accessibility upang malaman at i-firewall ang mga aplikasyon sa background. Hindi nangongolekta o nagbebenta ng anumang impormasyon ang Rethink.</string>
+    <string name="accessibility_service_description" translatable="true">Ang Keepout ay gumagamit ng serbisyong pang-accessibility upang malaman at i-firewall ang mga aplikasyon sa background. Hindi nangongolekta o nagbebenta ng anumang impormasyon ang Keepout.</string>
     <string name="finish" translatable="true">Tapusin</string>
     <string name="lbl_cancel" translatable="true">Ikansela</string>
     <string name="lbl_apply" translatable="true">Maglapat</string>
@@ -19,7 +19,7 @@
     <string name="lbl_logs" translatable="true">tala</string>
     <string name="lbl_ip_rules" translatable="true">Mga Patakaran sa IP</string>
     <string name="lbl_domain_rules" translatable="true">Mga Patakaran sa Domain</string>
-    <string name="slide_2_desc" translatable="true">Ang Rethink ay ang pinakamadaling paraan upang magmonitor ng network activity, mag-bypass ng Internet censorship, at firewall apps sa iyong Android device.</string>
+    <string name="slide_2_desc" translatable="true">Ang Keepout ay ang pinakamadaling paraan upang magmonitor ng network activity, mag-bypass ng Internet censorship, at firewall apps sa iyong Android device.</string>
     <string name="rdns_plus" translatable="true">RDNS Plus</string>
     <string name="allow" translatable="true">pahintulutan</string>
     <string name="block" translatable="true">harangan</string>
@@ -70,9 +70,9 @@
 \nGinagamit ng RethinkDNS ang serbisyong pang-accessibility upang ma-track kung aling mga app ang ginagamit (foreground) at kung alin ang hindi (background).</string>
     <string name="always_on_dialog_neutral" translatable="true">Mga Settings</string>
     <string name="private_dns_dialog_heading" translatable="true">I-off ang Pribadong DNS</string>
-    <string name="private_dns_dialog_desc" translatable="true">Ang mga setting ng DNS ng Rethink ay na-override ng Pribadong DNS ng Android.
+    <string name="private_dns_dialog_desc" translatable="true">Ang mga setting ng DNS ng Keepout ay na-override ng Pribadong DNS ng Android.
 \n
-\nPara gamitin ang Rethink\'s DNS pumunta sa Android Settings at i-off ang \"Private DNS.\"</string>
+\nPara gamitin ang Keepout\'s DNS pumunta sa Android Settings at i-off ang \"Private DNS.\"</string>
     <string name="private_dns_dialog_positive" translatable="true">Pumunta sa Mga Setting</string>
     <string name="firewall_act_network_monitor_tab" translatable="true">Network</string>
     <string name="doh_custom_url_remove_dialog_title" translatable="true">I-delete ang endpoint ng DoH\?</string>

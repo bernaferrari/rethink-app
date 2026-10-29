@@ -13,7 +13,7 @@
     <string name="firewall_act_network_monitor_tab" translatable="true">เครือข่าย</string>
     <string name="dns_crypt_url_remove_success" translatable="true">ลบตัวแก้ไข DNSCrypt แล้ว</string>
     <string name="download_update_dialog_title" translatable="true">อัปเดตใหม่!</string>
-    <string name="orbot_stop_dialog_dns_message" translatable="true">Rethink ได้รับการตั้งค่าให้ส่งต่อคำขอ DNS ไปยัง Orbot เปลี่ยนแปลงตามต้องการ</string>
+    <string name="orbot_stop_dialog_dns_message" translatable="true">Keepout ได้รับการตั้งค่าให้ส่งต่อคำขอ DNS ไปยัง Orbot เปลี่ยนแปลงตามต้องการ</string>
     <string name="about_bug_no_log_dialog_title" translatable="true">รายงานจุดบกพร่อง</string>
     <string name="about_connect" translatable="true">ติดต่อ</string>
     <string name="about_mail_subject" translatable="true">[คิดใหม่]:</string>
@@ -36,7 +36,7 @@
     <string name="status_no_internet" translatable="true">ไม่มีอินเทอร์เน็ต</string>
     <string name="apps_info_title" translatable="true">แอปพลิเคชั่น</string>
     <string name="public_key_copy_toast_msg" translatable="true">คัดลอกคีย์สาธารณะแล้ว</string>
-    <string name="settings_allow_lan_desc" translatable="true">ไม่รวม LAN, loopback, multicast, เส้นทางลิงก์ท้องถิ่นจากอุโมงค์ VPN ของ Rethink</string>
+    <string name="settings_allow_lan_desc" translatable="true">ไม่รวม LAN, loopback, multicast, เส้นทางลิงก์ท้องถิ่นจากอุโมงค์ VPN ของ Keepout</string>
     <string name="orbot" translatable="true">ผูกพัน</string>
     <string name="orbot_status_arg_3" translatable="true">DNS และ TCP</string>
     <string name="orbot_bs_status_trying_connect" translatable="true">การตั้งค่า Orbot…</string>
@@ -47,7 +47,7 @@
     <string name="settings_orbot_disabled_error" translatable="true">ปิดพร็อกซี HTTP(S) และ/หรือ SOCKS5 เพื่อดำเนินการตั้งค่า Tor-as-a-proxy ต่อไป</string>
     <string name="settings_https_disabled_error" translatable="true">เชื่อมต่อกับ %1$s แล้ว ปิดเพื่อดำเนินการต่อ</string>
     <string name="about_join_telegram" translatable="true">Telegram</string>
-    <string name="dc_dns_leaks_desc" translatable="true">เมื่อเปิดใช้งาน Rethink จะจับแพ็กเก็ตทั้งหมดบนพอร์ต 53 และส่งต่อไปยังจุดสิ้นสุด DNS ที่ผู้ใช้ตั้งค่า</string>
+    <string name="dc_dns_leaks_desc" translatable="true">เมื่อเปิดใช้งาน Keepout จะจับแพ็กเก็ตทั้งหมดบนพอร์ต 53 และส่งต่อไปยังจุดสิ้นสุด DNS ที่ผู้ใช้ตั้งค่า</string>
     <string name="dc_check_update_heading" translatable="true">แจ้งเตือนการอัพเดตรายการบล็อค</string>
     <string name="cd_custom_doh_url_name_default" translatable="true">DoH</string>
     <string name="dns_proxy_name" translatable="true">ชื่อพร็อกซี</string>
@@ -161,17 +161,17 @@
     <string name="firewall_rule_proxied_desc" translatable="true">This connection was forwarded to user-preferred Proxy.<br/><br/> To change go to <i>Proxy</i> from <i>Configure</i> screen.</string>
     <string name="new_app_bulk_notification_title" translatable="true">ความสนใจ</string>
     <string name="new_app_notification_action_toast_allow" translatable="true">การเชื่อมต่อเครือข่ายได้รับอนุญาตสำหรับแอป</string>
-    <string name="new_app_bulk_notification_content" translatable="true">Rethink บล็อกแอปใหม่ %1$s แตะเพื่อดูหรือแก้ไข</string>
-    <string name="new_app_notification_content" translatable="true">Rethink บล็อคแอปที่ติดตั้งล่าสุด %1$s</string>
+    <string name="new_app_bulk_notification_content" translatable="true">Keepout บล็อกแอปใหม่ %1$s แตะเพื่อดูหรือแก้ไข</string>
+    <string name="new_app_notification_content" translatable="true">Keepout บล็อคแอปที่ติดตั้งล่าสุด %1$s</string>
     <string name="new_app_notification_action_toast_deny" translatable="true">ปฏิเสธการเชื่อมต่อเครือข่ายสำหรับแอป</string>
     <string name="notif_dialog_pause_dialog_negative" translatable="true">ทิ้ง</string>
     <string name="notif_channel_vpn_notification" translatable="true">VPN ที่ใช้งานอยู่</string>
     <string name="notif_channel_vpn_failure" translatable="true">VPN ที่ไม่ได้ใช้งาน</string>
     <string name="notif_channel_proxy_failure" translatable="true">การแจ้งเตือนพร็อกซี</string>
     <string name="notif_channel_desc_proxy_failure" translatable="true">การแจ้งเตือนเกี่ยวกับข้อผิดพลาดและความผิดปกติเกี่ยวกับพร็อกซี</string>
-    <string name="notif_channel_desc_vpn_notification" translatable="true">แจ้งให้ทราบเมื่อ Rethink กำลังใช้งานและทำงานอยู่เบื้องหลัง</string>
+    <string name="notif_channel_desc_vpn_notification" translatable="true">แจ้งให้ทราบเมื่อ Keepout กำลังใช้งานและทำงานอยู่เบื้องหลัง</string>
     <string name="notif_channel_download" translatable="true">ดาวน์โหลดการแจ้งเตือน</string>
-    <string name="notif_channel_desc_vpn_failure" translatable="true">แจ้งให้ทราบเมื่อ Rethink ถูกหยุดโดย Android หรือโดยแอป VPN อื่น</string>
+    <string name="notif_channel_desc_vpn_failure" translatable="true">แจ้งให้ทราบเมื่อ Keepout ถูกหยุดโดย Android หรือโดยแอป VPN อื่น</string>
     <string name="notif_channed_desc_download" translatable="true">แจ้งเตือนความคืบหน้าการดาวน์โหลดสำหรับรายการบล็อกบนอุปกรณ์</string>
     <string name="category_name_sys_apps" translatable="true">แอประบบ</string>
     <string name="category_name_sys_components" translatable="true">ส่วนประกอบของระบบ</string>
@@ -222,7 +222,7 @@
     <string name="crypt_relay_sweden" translatable="true">รีเลย์ DNS ที่ไม่เปิดเผยตัวตนซึ่งโฮสต์ในสวีเดน จัดทำโดย https://cryptostrom.is/</string>
     <string name="crypt_relay_netherlands" translatable="true">รีเลย์ DNS ที่ไม่ระบุตัวตนที่โฮสต์ในเนเธอร์แลนด์</string>
     <string name="settings_default_dns_desc" translatable="true">ในกรณีที่หายากที่ไม่สามารถระบุ DNS ที่ผู้ใช้ต้องการได้ จะมีการใช้ DNS สำรองแทน</string>
-    <string name="hs_biometeric_desc" translatable="true">ใช้การตรวจสอบข้อมูลชีวภาพเพื่อปลดล็อก Rethink</string>
+    <string name="hs_biometeric_desc" translatable="true">ใช้การตรวจสอบข้อมูลชีวภาพเพื่อปลดล็อก Keepout</string>
     <string name="about_github" translatable="true">มีส่วนร่วมบน GitHub</string>
     <string name="about_app_update_check" translatable="true">ตรวจสอบการอัปเดตแอป</string>
     <string name="univ_accessibility_dialog_negative" translatable="true">ปฏิเสธ</string>
@@ -247,7 +247,7 @@
     <string name="isolate" translatable="true">แยกตัว</string>
     <string name="untracked" translatable="true">ไม่ได้ติดตาม</string>
     <string name="bypass_dns_firewall" translatable="true">ข้าม DNS และไฟร์วอลล์</string>
-    <string name="warning_title" description="Status indicator text shown in a warning notification." translatable="true">คำเตือน: Rethink ถูกปิดใช้งานแล้ว</string>
+    <string name="warning_title" description="Status indicator text shown in a warning notification." translatable="true">คำเตือน: Keepout ถูกปิดใช้งานแล้ว</string>
     <string name="notification_content" description="Indicates what will happen if the user taps the notification." translatable="true">แตะเพื่อเปลี่ยนการตั้งค่าการป้องกัน</string>
     <string name="firewall_mode_notification_title" translatable="true">ได้รับการป้องกัน! เชื่อมต่อกับไฟร์วอลล์แล้ว</string>
     <string name="pause_mode_notification_title" translatable="true">หยุดชั่วคราว! แอปที่ถูกบล็อคจะยังคงถูกไฟร์วอลล์ต่อไป</string>
@@ -299,7 +299,7 @@
     <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit." translatable="true">ไม่ได้รับการป้องกัน</string>
     <string name="download_update_dialog_message_ok" translatable="true">คุณใช้เวอร์ชั่นล่าสุดแล้ว</string>
     <string name="settings_proxy_header" translatable="true">พร็อกซี</string>
-    <string name="settings_autostart_bootup_desc" translatable="true">เมื่อเปิดเครื่องอุปกรณ์ ให้เริ่ม Rethink หากกำลังทำงานอยู่ก่อนที่จะปิดเครื่อง</string>
+    <string name="settings_autostart_bootup_desc" translatable="true">เมื่อเปิดเครื่องอุปกรณ์ ให้เริ่ม Keepout หากกำลังทำงานอยู่ก่อนที่จะปิดเครื่อง</string>
     <string name="settings_check_update_desc" translatable="true">ตรวจสอบการอัปเดตแอปโดยอัตโนมัติสัปดาห์ละครั้ง</string>
     <string name="settings_custom_downloader_heading" translatable="true">ใช้ตัวดาวน์โหลดในแอป</string>
     <string name="settings_custom_downloader_desc" translatable="true">หากปิดใช้งาน ตัวจัดการการดาวน์โหลด <i>ในตัวของ Android </i>จะถูกใช้</string>
@@ -360,7 +360,7 @@
     <string name="add_remove_apps" translatable="true">เพิ่ม / ลบ (%1$s แอป)</string>
     <string name="cloudflare_dns_desc" translatable="true">ไม่บล็อกคำขอ DNS ใดๆ ใช้จุดสิ้นสุด DNS 1.1.1.1 ของ Cloudflare</string>
     <string name="txt_home" translatable="true">บ้าน</string>
-    <string name="accessibility_service_description" translatable="true">Rethink ใช้บริการการเข้าถึงเพื่อตรวจจับและไฟร์วอลล์แอปพลิเคชันพื้นหลัง Rethink ไม่รวบรวมหรือขายข้อมูลใดๆ</string>
+    <string name="accessibility_service_description" translatable="true">Keepout ใช้บริการการเข้าถึงเพื่อตรวจจับและไฟร์วอลล์แอปพลิเคชันพื้นหลัง Keepout ไม่รวบรวมหรือขายข้อมูลใดๆ</string>
     <string name="lbl_blocked" translatable="true">ถูกบล็อค</string>
     <string name="lbl_disabled" translatable="true">พิการ</string>
     <string name="lbl_domain" translatable="true">โดเมน</string>
@@ -407,7 +407,7 @@
     <string name="dc_entries" translatable="true">%1$s รายการ »</string>
     <string name="fapps_bypass_block_dialog_message" translatable="true">ข้ามกฎไฟร์วอลล์สากลสำหรับแอปที่<i>อยู่ในรายการ</i>หรือไม่?</string>
     <string name="config_add_success_toast" translatable="true">เสร็จแล้ว</string>
-    <string name="memory_notification_text">Rethink กำลังประสบปัญหาหน่วยความจำต่ำ การดำเนินการของระบบอาจมีจำกัด</string>
+    <string name="memory_notification_text">Keepout กำลังประสบปัญหาหน่วยความจำต่ำ การดำเนินการของระบบอาจมีจำกัด</string>
     <string name="allow" translatable="true">อนุญาต</string>
     <string name="dns_mode_notification_title" translatable="true">ได้รับการป้องกัน! เชื่อมต่อกับ DNS ที่รวดเร็วและปลอดภัย</string>
     <string name="hybrid_mode_with_proxy_notification_title" translatable="true">ได้รับการป้องกัน! เชื่อมต่อกับ DNS + ไฟร์วอลล์ + พร็อกซีแล้ว</string>
@@ -416,9 +416,9 @@
     <string name="custom_url_error_invalid_url" translatable="true">URL ไม่ถูกต้อง</string>
     <string name="conn_track_clear_logs_message" translatable="true">การดำเนินการนี้จะลบเฉพาะบันทึกเครือข่ายเท่านั้น แต่จะไม่ลบกฎไฟร์วอลล์ การดำเนินการนี้ไม่สามารถย้อนกลับได้ คุณต้องการดำเนินการต่อหรือไม่</string>
     <string name="always_on_dialog_stop_heading" translatable="true">VPN ที่เปิดตลอดเวลา</string>
-    <string name="always_on_dialog" translatable="true">อุปกรณ์นี้เปิดใช้งาน \"Always-On VPN\" แล้ว หากต้องการเริ่ม Rethink โปรดไปที่แอปการตั้งค่าและปิดใช้งาน \"Always-on VPN\"</string>
-    <string name="always_on_dialog_stop_message" translatable="true">VPN แบบเปิดตลอดเวลาเปิดใช้งานสำหรับ Rethink แล้ว คุณแน่ใจหรือไม่? ว่าต้องการหยุด Rethink</string>
-    <string name="always_on_dialog_lockdown_stop_message" translatable="true">Rethink กำลังรัน VPN ในโหมด <i>Lockdown</i> หากหยุดการทำงาน จะส่งผลให้สูญเสียการเชื่อมต่ออินเทอร์เน็ตบนโปรไฟล์ผู้ใช้รายนี้ คุณต้องการดำเนินการต่อหรือไม่ ?</string>
+    <string name="always_on_dialog" translatable="true">อุปกรณ์นี้เปิดใช้งาน \"Always-On VPN\" แล้ว หากต้องการเริ่ม Keepout โปรดไปที่แอปการตั้งค่าและปิดใช้งาน \"Always-on VPN\"</string>
+    <string name="always_on_dialog_stop_message" translatable="true">VPN แบบเปิดตลอดเวลาเปิดใช้งานสำหรับ Keepout แล้ว คุณแน่ใจหรือไม่? ว่าต้องการหยุด Keepout</string>
+    <string name="always_on_dialog_lockdown_stop_message" translatable="true">Keepout กำลังรัน VPN ในโหมด <i>Lockdown</i> หากหยุดการทำงาน จะส่งผลให้สูญเสียการเชื่อมต่ออินเทอร์เน็ตบนโปรไฟล์ผู้ใช้รายนี้ คุณต้องการดำเนินการต่อหรือไม่ ?</string>
     <string name="always_on_dialog_positive" translatable="true">หยุด</string>
     <string name="always_on_dialog_neutral" translatable="true">การตั้งค่า</string>
     <string name="private_dns_dialog_heading" translatable="true">ปิดการใช้งาน DNS ส่วนตัว</string>
@@ -456,7 +456,7 @@
     <string name="settings_orbot_notification_content" translatable="true">ความล้มเหลวในการเริ่ม Tor-as-a-Proxy เปิดแอป Orbot เพื่อเริ่มใช้งานด้วยตนเอง</string>
     <string name="settings_general_header" translatable="true">ทั่วไป</string>
     <string name="settings_general_customize" translatable="true">ปรับแต่ง</string>
-    <string name="settings_network_all_networks_desc" translatable="true">เมื่อเปิดใช้งาน Rethink จะใช้เครือข่ายทั้งหมดที่มีเพื่อเชื่อมต่ออินเทอร์เน็ต หากไม่เป็นเช่นนั้น จะใช้เครือข่ายใดก็ตามที่ Android ถือว่า <i>ใช้งานอยู่</i></string>
+    <string name="settings_network_all_networks_desc" translatable="true">เมื่อเปิดใช้งาน Keepout จะใช้เครือข่ายทั้งหมดที่มีเพื่อเชื่อมต่ออินเทอร์เน็ต หากไม่เป็นเช่นนั้น จะใช้เครือข่ายใดก็ตามที่ Android ถือว่า <i>ใช้งานอยู่</i></string>
     <string name="settings_check_update_heading" translatable="true">ตรวจสอบการอัปเดตแอป</string>
     <string name="settings_import_export_desc" translatable="true">สำรองหรือกู้คืนข้อมูลแอปและการตั้งค่าด้วยตนเอง</string>
     <string name="settings_autostart_bootup_heading" translatable="true">เริ่มการทำงานอัตโนมัติเมื่อเปิดเครื่อง (ทดลอง)</string>
@@ -540,7 +540,7 @@
     <string name="copy_clipboard_label" translatable="true">URL</string>
     <string name="update_complete_snack_message" translatable="true">ดาวน์โหลดเวอร์ชันใหม่แล้ว</string>
     <string name="settings_local_blocklist_version" translatable="true">เวอร์ชัน: v%1$s</string>
-    <string name="accessibility_notification_content" translatable="true">บริการ Rethink Accessibility หยุดทำงานหรือขัดข้อง ไม่สามารถบล็อกแอปที่ทำงานอยู่เบื้องหลังได้อีกต่อไป แตะเพื่อเปิดใช้งานอีกครั้ง</string>
+    <string name="accessibility_notification_content" translatable="true">บริการ Keepout Accessibility หยุดทำงานหรือขัดข้อง ไม่สามารถบล็อกแอปที่ทำงานอยู่เบื้องหลังได้อีกต่อไป แตะเพื่อเปิดใช้งานอีกครั้ง</string>
     <string name="pause_text" translatable="true">หยุดชั่วคราว</string>
     <string name="firewall_rule_block_ip" translatable="true">IP / พอร์ต (แอป)</string>
     <string name="firewall_rule_bypass_universal_ip" translatable="true">ข้าม IP</string>
@@ -629,7 +629,7 @@
     <string name="lbl_persistent_keepalive" translatable="true">การรักษาข้อมูลอย่างต่อเนื่อง</string>
     <string name="lbl_allowed_ips" translatable="true">IP ที่ได้รับอนุญาต</string>
     <string name="lbl_optional" translatable="true">(ไม่จำเป็น)</string>
-    <string name="slide_2_desc" translatable="true">Rethink เป็นวิธีที่ง่ายที่สุดในการตรวจสอบกิจกรรมเครือข่าย หลีกเลี่ยงการเซ็นเซอร์อินเทอร์เน็ตและแอปไฟร์วอลล์บนอุปกรณ์ Android ของคุณ</string>
+    <string name="slide_2_desc" translatable="true">Keepout เป็นวิธีที่ง่ายที่สุดในการตรวจสอบกิจกรรมเครือข่าย หลีกเลี่ยงการเซ็นเซอร์อินเทอร์เน็ตและแอปไฟร์วอลล์บนอุปกรณ์ Android ของคุณ</string>
     <string name="rethink_max_desc" translatable="true">มากกว่า 50 ตำแหน่ง เป็นส่วนตัวมากขึ้น ตัวแก้ไขแบบวนซ้ำทำงานบน fly.io</string>
     <string name="exclude_apps_from_proxy">ข้ามแอปจากพร็อกซีทั้งหมด</string>
     <string name="exclude_apps_from_proxy_failure_toast">แอปนี้ข้ามพร็อกซี</string>
@@ -637,32 +637,32 @@
     <string name="rt_filter_hint" translatable="true">กำลังแสดงรายการบล็อค<u>ทั้งหมด</u></string>
     <string name="no_configs_error" translatable="true">ไม่พบการกำหนดค่า</string>
     <string name="dc_setting_dns_cache_desc" translatable="true">การรวมคำขอ การตอบสนองแคช การจัดการข้อผิดพลาดที่ยืดหยุ่น</string>
-    <string name="private_dns_dialog_desc" translatable="true">การตั้งค่า DNS ของ Rethink จะถูกแทนที่ด้วย DNS ส่วนตัวของ Android
+    <string name="private_dns_dialog_desc" translatable="true">การตั้งค่า DNS ของ Keepout จะถูกแทนที่ด้วย DNS ส่วนตัวของ Android
 \n
-\nหากต้องการใช้ DNS ของ Rethink ให้ไปที่การตั้งค่า Android แล้วปิด \"DNS ส่วนตัว\"</string>
-    <string name="alert_firewall_accessibility_explanation" translatable="true">Rethink ใช้บริการการเข้าถึงเพื่อติดตามว่าแอปใดใช้งานอยู่ (เบื้องหน้า) และแอปใดไม่ได้ใช้งาน (เบื้องหลัง)
+\nหากต้องการใช้ DNS ของ Keepout ให้ไปที่การตั้งค่า Android แล้วปิด \"DNS ส่วนตัว\"</string>
+    <string name="alert_firewall_accessibility_explanation" translatable="true">Keepout ใช้บริการการเข้าถึงเพื่อติดตามว่าแอปใดใช้งานอยู่ (เบื้องหน้า) และแอปใดไม่ได้ใช้งาน (เบื้องหลัง)
 \n
-\nRethink ไม่รวบรวมข้อมูลหรือสอดส่องคุณในทางใดทางหนึ่ง</string>
-    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">บริการการเข้าถึง Rethink หยุดทำงานหรือขัดข้อง <i><b>ไปที่การตั้งค่าและบังคับหยุด</b></i> Rethink และเริ่มใหม่อีกครั้งเพื่อใช้ฟีเจอร์ <i>บล็อกแอปใดๆ ที่ไม่ได้ใช้งาน</i>
+\nKeepout ไม่รวบรวมข้อมูลหรือสอดส่องคุณในทางใดทางหนึ่ง</string>
+    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">บริการการเข้าถึง Keepout หยุดทำงานหรือขัดข้อง <i><b>ไปที่การตั้งค่าและบังคับหยุด</b></i> Keepout และเริ่มใหม่อีกครั้งเพื่อใช้ฟีเจอร์ <i>บล็อกแอปใดๆ ที่ไม่ได้ใช้งาน</i>
 \n
-\nRethink ใช้บริการการเข้าถึงเพื่อติดตามว่าแอปใดใช้งานอยู่ (เบื้องหน้า) เทียบกับแอปที่ไม่ได้ใช้งาน (เบื้องหลัง)</string>
+\nKeepout ใช้บริการการเข้าถึงเพื่อติดตามว่าแอปใดใช้งานอยู่ (เบื้องหน้า) เทียบกับแอปที่ไม่ได้ใช้งาน (เบื้องหลัง)</string>
     <string name="firewall_act_universal_tab" translatable="true">สากล</string>
     <string name="dns_crypt_url_remove_dialog_message" translatable="true">ลบตัวแก้ไข DNSCrypt จากการกำหนดค่าที่บันทึกไว้</string>
     <string name="download_update_dialog_message" translatable="true">สามารถดาวน์โหลดแอปพลิเคชันเวอร์ชันใหม่ได้จากเว็บไซต์ คุณต้องการดำเนินการต่อหรือไม่?</string>
     <string name="download_update_dialog_message_success" translatable="true">ดาวน์โหลดรายการบล็อคสำเร็จแล้ว</string>
     <string name="whats_new_version_update" translatable="true">&lt;b&gt;Don\'t Panic 2&lt;/b&gt;&lt;br/&gt;&lt;br/&gt; 1. ใหม่: จับข้อผิดพลาดของกลไกเครือข่ายในรายงานจุดบกพร่องของผู้ใช้&lt;br/&gt; 2. ใหม่: ใช้ System DNS สำหรับชื่อโดเมนที่ไม่ได้รับการมอบหมายก็ต่อเมื่อ Prevent DNS leaks เปิดอยู่&lt;br/&gt; 3. การปรับปรุง: การเชื่อมต่อ WireGuard แบบ Dual-stack (IPv4 + IPv6)&lt;br/&gt; 4. การปรับปรุง: หลีกเลี่ยงการบล็อกองค์ประกอบ UI เมื่อกลไกเครือข่ายไม่มีการตอบสนอง&lt;br/&gt; 5. แก้ไข: หมดเวลาการเชื่อมต่อเมื่อเปิดการกรอง DNS ขั้นสูง&lt;br/&gt; 6. แก้ไข: จุดสิ้นสุดของเพียร์ WireGuard ที่มีชื่อโดเมนค้างเมื่อมีการเปลี่ยนแปลงเครือข่าย&lt;br/&gt;&lt;br/&gt; &lt;a href=https://svc.rethinkdns.com/r/translate&gt;ช่วยแปลแอปนี้&lt;/a&gt;</string>
-    <string name="settings_exclude_proxy_apps_desc" translatable="true">เมื่อปิดใช้งาน จะไม่รวมแอปส่งต่อพร็อกซี (SOCKS5, HTTP, DNS) จากอุโมงค์ VPN ของ Rethink</string>
-    <string name="settings_allow_bypass_desc" translatable="true">อนุญาตให้แอปร้องขอการเข้าถึงเครือข่ายที่มีอยู่ทั้งหมด แอปเหล่านี้อาจข้ามอุโมงค์ VPN ของ Rethink ได้ตามต้องการ แอปการประชุมทางเสียง/วิดีโอบางแอป เช่น Zoom และ Meet อาจต้องใช้สิ่งนี้เพื่อให้ทำงานได้อย่างถูกต้อง</string>
-    <string name="orbot_stop_dialog_message" translatable="true">Rethink หยุดการส่งต่อการเชื่อมต่อไปยัง Orbot แล้ว แต่ Orbot อาจยังคงทำงานอยู่เบื้องหลัง</string>
+    <string name="settings_exclude_proxy_apps_desc" translatable="true">เมื่อปิดใช้งาน จะไม่รวมแอปส่งต่อพร็อกซี (SOCKS5, HTTP, DNS) จากอุโมงค์ VPN ของ Keepout</string>
+    <string name="settings_allow_bypass_desc" translatable="true">อนุญาตให้แอปร้องขอการเข้าถึงเครือข่ายที่มีอยู่ทั้งหมด แอปเหล่านี้อาจข้ามอุโมงค์ VPN ของ Keepout ได้ตามต้องการ แอปการประชุมทางเสียง/วิดีโอบางแอป เช่น Zoom และ Meet อาจต้องใช้สิ่งนี้เพื่อให้ทำงานได้อย่างถูกต้อง</string>
+    <string name="orbot_stop_dialog_message" translatable="true">Keepout หยุดการส่งต่อการเชื่อมต่อไปยัง Orbot แล้ว แต่ Orbot อาจยังคงทำงานอยู่เบื้องหลัง</string>
     <string name="settings_socks5_vpn_disabled_error" translatable="true">เริ่มคิดใหม่เพื่อดำเนินการต่อ</string>
     <string name="orbot_explanation" translatable="true">Orbot เป็นแอปพร็อกซีฟรีที่ช่วยให้แอปอื่นใช้อินเทอร์เน็ตได้ &lt;u&gt;ปลอดภัยยิ่งขึ้น&lt;/u&gt;
 \nOrbot ใช้ &lt;u&gt;Tor&lt;/u&gt; เพื่อเข้ารหัสการรับส่งข้อมูลทางอินเทอร์เน็ตของคุณ ซึ่งช่วยให้คุณ &lt;u&gt;หลีกเลี่ยงการเซ็นเซอร์&lt;/u&gt; และป้องกันการเฝ้าติดตามเครือข่าย&lt;/u&gt; ในรูปแบบต่างๆ ที่คุกคามเสรีภาพและความเป็นส่วนตัวของบุคคล
-\n&lt;u&gt;TCP Proxy&lt;/u&gt;: Rethink ส่งต่อเฉพาะการเชื่อมต่อ TCP ของแอป &lt;i&gt;ที่รวมอยู่&lt;/i&gt; ไปยัง Orbot
-\n&lt;u&gt;HTTP Proxy&lt;/u&gt;: Rethink &lt;i&gt;สร้าง&lt;/i&gt;อุโมงค์ HTTP CONNECT ไปยัง Orbot และส่งต่อเฉพาะการเชื่อมต่อ TCP ของแอป &lt;i&gt;ที่รวมอยู่&lt;/i&gt;</string>
+\n&lt;u&gt;TCP Proxy&lt;/u&gt;: Keepout ส่งต่อเฉพาะการเชื่อมต่อ TCP ของแอป &lt;i&gt;ที่รวมอยู่&lt;/i&gt; ไปยัง Orbot
+\n&lt;u&gt;HTTP Proxy&lt;/u&gt;: Keepout &lt;i&gt;สร้าง&lt;/i&gt;อุโมงค์ HTTP CONNECT ไปยัง Orbot และส่งต่อเฉพาะการเชื่อมต่อ TCP ของแอป &lt;i&gt;ที่รวมอยู่&lt;/i&gt;</string>
     <string name="settings_dns_proxy_dialog_header" translatable="true">ตั้งค่าพร็อกซี SOCKS5</string>
-    <string name="hsf_vpn_dialog_message" translatable="true">Rethink ต้องได้รับอนุญาตในการตั้งค่า VPN ในพื้นที่เพื่อเข้ารหัสคำขอ DNS ของอุปกรณ์ ดำเนินการตรวจสอบเครือข่าย และบังคับใช้กฎไฟร์วอลล์
+    <string name="hsf_vpn_dialog_message" translatable="true">Keepout ต้องได้รับอนุญาตในการตั้งค่า VPN ในพื้นที่เพื่อเข้ารหัสคำขอ DNS ของอุปกรณ์ ดำเนินการตรวจสอบเครือข่าย และบังคับใช้กฎไฟร์วอลล์
 \n
-\nRethink จะไม่รวบรวมข้อมูลหรือสอดส่องคุณในทางใดทางหนึ่ง</string>
+\nKeepout จะไม่รวบรวมข้อมูลหรือสอดส่องคุณในทางใดทางหนึ่ง</string>
     <string name="about_bug_no_log_dialog_message" translatable="true">ไม่สามารถดึงข้อมูลบันทึกข้อผิดพลาดได้ คุณต้องการรายงานข้อผิดพลาดด้วยตนเองหรือไม่?</string>
     <string name="rt_filter_desc" translatable="true">กำลังแสดง <u>%1$s</u> รายการบล็อค</string>
     <string name="about_mail_bugreport_subject" translatable="true">[คิดใหม่]: รายงานจุดบกพร่อง</string>

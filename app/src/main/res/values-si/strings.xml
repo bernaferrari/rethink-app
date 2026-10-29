@@ -47,7 +47,7 @@
     <string name="lbl_socks5" translatable="true">SOCKS5</string>
     <string name="lbl_http" translatable="true">HTTP</string>
     <string name="lbl_http_socks5" translatable="true">HTTPS &amp; SOCKS5</string>
-    <string name="accessibility_service_description" translatable="true">පසුබිම් (Background) යෙදුම් හඳුනා ගැනීමට සහ firewall කිරීමට Rethink, accessibility සේවාව භාවිතා කරයි. Rethink කිසිදු තොරතුරක් රැස් කරන්නේ හෝ විකුණන්නේ නැත.</string>
+    <string name="accessibility_service_description" translatable="true">පසුබිම් (Background) යෙදුම් හඳුනා ගැනීමට සහ firewall කිරීමට Keepout, accessibility සේවාව භාවිතා කරයි. Keepout කිසිදු තොරතුරක් රැස් කරන්නේ හෝ විකුණන්නේ නැත.</string>
     <string name="lbl_dismiss" translatable="true">නොසලකන්න</string>
     <string name="lbl_save" translatable="true">සුරකින්න</string>
     <string name="lbl_status" translatable="true">තත්වය</string>
@@ -71,8 +71,8 @@
     <string name="lbl_action" translatable="true">ක්‍රියාව</string>
     <string name="lbl_connect" translatable="true">සම්බන්ධ</string>
     <string name="lbl_criteria" translatable="true">නිර්ණායක</string>
-    <string name="memory_notification_text">Rethink විසින් අඩු memory තත්ත්වයක් experience කරමින් ඇති නිසා පද්ධති ක්‍රියාවන් සීමිත විය හැක.</string>
-    <string name="slide_2_desc" translatable="true">ඔබගේ Android උපාංගයේ apps firewall කිරීමට, අන්තර්ජාල වාරණ bypass කිරීමට හා network ක්‍රියාකාරකම් ලේසියෙන්ම බලාගැනීමට ඇති ක්‍රමය වන්නේ Rethink යෙදුමයි.</string>
+    <string name="memory_notification_text">Keepout විසින් අඩු memory තත්ත්වයක් experience කරමින් ඇති නිසා පද්ධති ක්‍රියාවන් සීමිත විය හැක.</string>
+    <string name="slide_2_desc" translatable="true">ඔබගේ Android උපාංගයේ apps firewall කිරීමට, අන්තර්ජාල වාරණ bypass කිරීමට හා network ක්‍රියාකාරකම් ලේසියෙන්ම බලාගැනීමට ඇති ක්‍රමය වන්නේ Keepout යෙදුමයි.</string>
     <string name="dns_desc" translatable="true">Malware, trackers හා ads පාලනයට ඇති 190+ ලිස්ට් ප්‍රමාණයකින් ඔබට කැමති ආකාරයක් තෝරාගත හැක.</string>
     <string name="allow" translatable="true">අවසර දෙන්න</string>
     <string name="block" translatable="true">අවහිරය</string>
@@ -81,7 +81,7 @@
     <string name="isolate" translatable="true">හුදකලා කරන්න</string>
     <string name="untracked" translatable="true">Track නොවූ</string>
     <string name="bypass_dns_firewall" translatable="true">DNS හා Firewall bypass</string>
-    <string name="warning_title" description="Status indicator text shown in a warning notification." translatable="true">අනතුරු ඇගවීම: Rethink අක්‍රිය කර ඇත</string>
+    <string name="warning_title" description="Status indicator text shown in a warning notification." translatable="true">අනතුරු ඇගවීම: Keepout අක්‍රිය කර ඇත</string>
     <string name="notification_content" description="Indicates what will happen if the user taps the notification." translatable="true">ආරක්ෂක සැකසුම් වෙනස් කිරීමට ටැප් කරන්න</string>
     <string name="dns_mode_notification_title" translatable="true">ආරක්ෂිතයි! ඉක්මන් හා සුරක්ෂිත DNS එකකට සම්බන්ධ වි ඇත.</string>
     <string name="firewall_mode_notification_title" translatable="true">ආරක්ෂිතයි! Firewall එකකට සම්බන්ධ වී ඇත.</string>

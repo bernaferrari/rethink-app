@@ -1,1 +1,1 @@
-Firewall, WireGuard VPN ඇතුළුව network නිරීක්ෂණය, malware අවහිරය, DNS හැසිරවීම.
+යෙදුම්වලට firewall, සංකේතිත DNS මගින් trackers අවහිර, සෑම සම්බන්ධතාවක්ම බලන්න.

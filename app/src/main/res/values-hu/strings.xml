@@ -46,8 +46,8 @@
     <string name="conn_track_clear_logs_title" translatable="true">Törli az összes hálózati naplót?</string>
     <string name="bsct_block_domain" translatable="true">Blokkolja vagy engedélyezi a(z) <u>domain(eke)t</u> ehhez az <u>alkalmazáshoz</u></string>
     <string name="always_on_dialog_heading" translatable="true">Az „Always-on VPN” kikapcsolása</string>
-    <string name="always_on_dialog_stop_message" translatable="true">Az „Always-on VPN” engedélyezve van a Rethink számára. Biztosan le szeretné állítani a Rethink-et ennek ellenére?</string>
-    <string name="always_on_dialog_lockdown_stop_message" translatable="true">A Rethink VPN-t futtat <i>Zárolt</i> módban. Ha leállítja, internetkapcsolat elvesztéséhez vezet ezen a felhasználói profilon. Biztosan folytatni szeretné?</string>
+    <string name="always_on_dialog_stop_message" translatable="true">Az „Always-on VPN” engedélyezve van a Keepout számára. Biztosan le szeretné állítani a Keepout-et ennek ellenére?</string>
+    <string name="always_on_dialog_lockdown_stop_message" translatable="true">A Keepout VPN-t futtat <i>Zárolt</i> módban. Ha leállítja, internetkapcsolat elvesztéséhez vezet ezen a felhasználói profilon. Biztosan folytatni szeretné?</string>
     <string name="firewall_act_universal_tab" translatable="true">univerzális</string>
     <string name="firewall_act_network_monitor_tab" translatable="true">Hálózat</string>
     <string name="dot_custom_url_remove_dialog_title" translatable="true">Törölje a DoT végpontját?</string>
@@ -66,14 +66,14 @@
     <string name="settings_ip_dialog_ipv6" translatable="true">IPv6 (kísérleti)</string>
     <string name="settings_ip_text_ipv46" translatable="true">Automatikus</string>
     <string name="logs_card_duration" translatable="true">%1$s óta</string>
-    <string name="hsf_vpn_dialog_message" translatable="true">AA Rethink engedélyt kér egy helyi VPN létrehozására, hogy titkosítsa az eszköz DNS-kéréseit, lehetővé tegye a hálózati forgalom megfigyelését, valamint érvényesítse a tűzfalszabályokat.\n\nA Rethink nem gyűjt semmilyen adatot Önnel kapcsolatban, és semmilyen módon nem figyeli vagy követi Önt.</string>
+    <string name="hsf_vpn_dialog_message" translatable="true">AA Keepout engedélyt kér egy helyi VPN létrehozására, hogy titkosítsa az eszköz DNS-kéréseit, lehetővé tegye a hálózati forgalom megfigyelését, valamint érvényesítse a tűzfalszabályokat.\n\nA Keepout nem gyűjt semmilyen adatot Önnel kapcsolatban, és semmilyen módon nem figyeli vagy követi Önt.</string>
     <string name="bsct_app_info" translatable="true">Alkalmazás információ</string>
     <string name="download_update_dialog_failure_message" translatable="true">Vagy a szervereink nem elérhetők, vagy a kapcsolat nem jött létre. Kérjük, próbálja meg később.</string>
     <string name="whats_new_version_update" translatable="true"><b>Ne pánikoljon 2</b><b>Új:</b> A hálózati motor hibáinak rögzítése a felhasználói hibajelentésekben.<b>Új:</b> A rendszer DNS használata nem delegált domain nevekhez, <b>ha</b> a „DNS-szivárgás megelőzése” <b>be van kapcsolva</b>.<b>Fejlesztés:</b> Dual-stack (IPv4 + IPv6) WireGuard kapcsolat.<b>Fejlesztés:</b> A felhasználói felület elemei nem blokkolódnak, ha a hálózati motor nem válaszol.<b>Javítás:</b> Kapcsolati időtúllépés, ha az „Advanced DNS filtering” be van kapcsolva.<b>Javítás:</b> A WireGuard partner végpontok, amelyek domain nevet használnak, lefagynak hálózati váltáskor.<a href="https://svc.rethinkdns.com/r/translate">Segítsen az alkalmazás fordításában</a></string>
     <string name="connection_http3" translatable="true">HTTP3</string>
     <string name="settings_connectivity_checks_desc" translatable="true">Kapcsolódási ellenőrzések elküldésre kerülnek a hozzáférhetőség megállapítására.</string>
-    <string name="settings_allow_bypass_desc" translatable="true">Engedélyezze a kérelmező alkalmazásoknak, hogy hozzáférjenek az összes elérhető hálózathoz. Ezek az alkalmazások szükség szerint kikerülhetik a Rethink VPN alagútját. Néhány audio/video konferencia alkalmazás, mint a Zoom és a Meet, szükségelheti ezt a megfelelő működéshez.</string>
-    <string name="settings_allow_lan_desc" translatable="true">Zárja ki a helyi hálózati (LAN), visszacsatolási (loopback), multicast és helyi (link-local) útvonalakat a Rethink VPN-alagútjából.</string>
+    <string name="settings_allow_bypass_desc" translatable="true">Engedélyezze a kérelmező alkalmazásoknak, hogy hozzáférjenek az összes elérhető hálózathoz. Ezek az alkalmazások szükség szerint kikerülhetik a Keepout VPN alagútját. Néhány audio/video konferencia alkalmazás, mint a Zoom és a Meet, szükségelheti ezt a megfelelő működéshez.</string>
+    <string name="settings_allow_lan_desc" translatable="true">Zárja ki a helyi hálózati (LAN), visszacsatolási (loopback), multicast és helyi (link-local) útvonalakat a Keepout VPN-alagútjából.</string>
     <string name="orbot_bs_status_1" translatable="true">A %1$s kapcsolatok továbbítása az Orbot-hoz.</string>
     <string name="orbot_bs_status_4" translatable="true">Egy-kattintásos \"Tor, mint Proxy\" (Orbot) beállítás.</string>
     <string name="orbot_status_arg_2" translatable="true">TCP</string>
@@ -138,7 +138,7 @@
     <string name="dns_crypt_relay_remove_success" translatable="true">A DNSCrypt átjátszó törölve.</string>
     <string name="notification_action_dns_firewall_mode" translatable="true">DNS + tűzfal</string>
     <string name="alert_firewall_accessibility_explanation" translatable="true">A RethinkDNS az kisegítő szolgáltatást használja, annak nyomon követésére, hogy mely alkalmazások vannak használatban, (előtérben) és melyek nem a (háttérben).\n\nA RethinkDNS nem gyűjt semmilyen információt, és nem kémkedik Ön után semmilyen módon.</string>
-    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">A Rethink kisegítő szolgáltatása leállt vagy összeomlott. <i><b>Menj a Beállításokba és kényszerített leállítást végezve</b></i> állítsd le a Rethink alkalmazást, majd indítsd újra, hogy használhasd a <i>Blokkolja az alkalmazásokat, amelyek nincsenek használatban</i> funkciót.\n\nA Rethink a kisegítő szolgáltatást használ, annak követésére, hogy mely alkalmazások vannak használatban (előtérben) és melyek nem (háttérben).</string>
+    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">A Keepout kisegítő szolgáltatása leállt vagy összeomlott. <i><b>Menj a Beállításokba és kényszerített leállítást végezve</b></i> állítsd le a Keepout alkalmazást, majd indítsd újra, hogy használhasd a <i>Blokkolja az alkalmazásokat, amelyek nincsenek használatban</i> funkciót.\n\nA Keepout a kisegítő szolgáltatást használ, annak követésére, hogy mely alkalmazások vannak használatban (előtérben) és melyek nem (háttérben).</string>
     <string name="lbl_listen_port" translatable="true">Figyelő port</string>
     <string name="lbl_mtu" translatable="true">MTU</string>
     <string name="lbl_auto" translatable="true">(auto)</string>
@@ -166,10 +166,10 @@
     <string name="orbot_http" translatable="true">HTTP Proxy</string>
     <string name="always_on_dialog_stop_heading" translatable="true">Mindig bekapcsolt VPN</string>
     <string name="settings_enable_logs" translatable="true">Az eszközön belüli naplózás engedélyezése</string>
-    <string name="settings_autostart_bootup_desc" translatable="true">A készülék bekapcsolásakor, indítsa el a Rethink alkalmazást, ha a leállítás előtt futott.</string>
+    <string name="settings_autostart_bootup_desc" translatable="true">A készülék bekapcsolásakor, indítsa el a Keepout alkalmazást, ha a leállítás előtt futott.</string>
     <string name="settings_http_proxy_error_text3" translatable="true">Hostnév üres</string>
-    <string name="memory_notification_text">A Rethink alacsony memóriát észlel. Előfordulhat, hogy a rendszer műveletei korlátozottak lesznek.</string>
-    <string name="slide_2_desc" translatable="true">A Rethink a legkönnyebb módja a hálózati aktivitás figyelésének, az internetes cenzúra megkerülésének és az alkalmazások tűzfalának kezelésére Android eszközön.</string>
+    <string name="memory_notification_text">A Keepout alacsony memóriát észlel. Előfordulhat, hogy a rendszer műveletei korlátozottak lesznek.</string>
+    <string name="slide_2_desc" translatable="true">A Keepout a legkönnyebb módja a hálózati aktivitás figyelésének, az internetes cenzúra megkerülésének és az alkalmazások tűzfalának kezelésére Android eszközön.</string>
     <string name="allow" translatable="true">engedélyez</string>
     <string name="block" translatable="true">blokk</string>
     <string name="bypass_universal" translatable="true">univerzális megkerülés(bypass)</string>
@@ -191,7 +191,7 @@
     <string name="custom_url_error_invalid_url" translatable="true">Érvénytelen URL</string>
     <string name="conn_track_clear_logs_message" translatable="true">Ez csak a hálózati naplókat törli, a tűzfalszabályokat nem. Ez a művelet nem visszafordítható. Szeretné folytatni?</string>
     <string name="bsct_block_ip" translatable="true">Blokkolja, bízzon meg <u>ebben az IP-címben</u> <u>ehhez az alkalmazáshoz</u></string>
-    <string name="always_on_dialog" translatable="true">Az \"Always-On VPN\" engedélyezve van ezen az eszközön. A Rethink elindításához kérjük, lépjen a Beállítások alkalmazásba, és tiltsa le az \"Always-on VPN\" opciót.</string>
+    <string name="always_on_dialog" translatable="true">Az \"Always-On VPN\" engedélyezve van ezen az eszközön. A Keepout elindításához kérjük, lépjen a Beállítások alkalmazásba, és tiltsa le az \"Always-on VPN\" opciót.</string>
     <string name="always_on_dialog_positive_btn" translatable="true">Beállítások megnyitása</string>
     <string name="private_dns_dialog_positive" translatable="true">Beállítások megnyitása</string>
     <string name="doh_custom_url_remove_dialog_title" translatable="true">DoH végpont törlése?</string>
@@ -211,7 +211,7 @@
     <string name="settings_connectivity_checks" translatable="true">Kapcsolódási ellenőrzések végrehajtása</string>
     <string name="settings_allow_lan_heading" translatable="true">Ne irányítson privát IP-ket (kísérleti)</string>
     <string name="settings_exclude_proxy_apps_heading" translatable="true">Visszacsatolási (loopback) proxy továbbító alkalmazások</string>
-    <string name="settings_exclude_proxy_apps_desc" translatable="true">Ha le van tiltva, kizárja a proxy (SOCKS5, HTTP, DNS) továbbító alkalmazásokat a Rethink VPN alagútjából.</string>
+    <string name="settings_exclude_proxy_apps_desc" translatable="true">Ha le van tiltva, kizárja a proxy (SOCKS5, HTTP, DNS) továbbító alkalmazásokat a Keepout VPN alagútjából.</string>
     <string name="settings_allow_bypass_heading" translatable="true">Hálózati láthatóság engedélyezése</string>
     <string name="settings_lock_down_proxy_desc" translatable="true">Nem lehet proxykat beállítani, amikor a VPN csak DNS módba van állítva.</string>
     <string name="settings_proxy_header" translatable="true">proxy</string>
@@ -243,7 +243,7 @@
     <string name="settings_ip_text_ipv6" translatable="true">IPv6</string>
     <string name="firewall_status_isolate" translatable="true">Elkülönítve</string>
     <string name="firewall_status_whitelisted" translatable="true">Megkerüli az univerzális tűzfalszabályokat</string>
-    <string name="hs_biometeric_title" translatable="true">Rethink feloldása</string>
+    <string name="hs_biometeric_title" translatable="true">Keepout feloldása</string>
     <string name="hs_biometeric_desc" translatable="true">Használja a biometrikus hitelesítést a RethinkDNS feloldásához</string>
     <string name="hsf_vpn_prepare_failure" translatable="true">Hiányzik a VPN engedély, vagy egy másik alkalmazás „Mindig bekapcsolt VPN” (Always-on VPN) módban fut.</string>
     <string name="hsf_vpn_dialog_header" translatable="true">Figyelem!</string>
@@ -257,7 +257,7 @@
     <string name="info_dialog_url_copy_toast_msg" translatable="true">URL másolva</string>
     <string name="dns_crypt_relay_remove_dialog_message" translatable="true">A DNSCrypt átjáró törlése a mentett konfigurációból.</string>
     <string name="refresh_complete" translatable="true"><!-- use dc_refresh_toast --> Alkalmazáslista újraszinkronizálása befejeződött.</string>
-    <string name="orbot_explanation" translatable="true">Orbot egy ingyenes proxy alkalmazás, amely lehetővé teszi más alkalmazások számára, hogy <u>biztonságosabban</u> használják az internetet.\nAz Orbot a <u>Tor</u> hálózatot használja az internetes forgalmad titkosítására, ami segít <u>megkerülni a cenzúrát</u>, és védelmet nyújt a <u>hálózati megfigyelés</u> különböző formái ellen, amelyek veszélyeztetik a személyes szabadságot és a magánéletet.\n<u>TCP proxy</u>: A Rethink csak az <i>kiválasztott</i> alkalmazások TCP kapcsolatait továbbítja az Orbot felé.\n<u>HTTP proxy</u>: A Rethink <i>HTTP CONNECT alagutat hoz létre</i> az Orbot felé, és csak az <i>kiválasztott</i> alkalmazások TCP kapcsolatait továbbítja.</string>
+    <string name="orbot_explanation" translatable="true">Orbot egy ingyenes proxy alkalmazás, amely lehetővé teszi más alkalmazások számára, hogy <u>biztonságosabban</u> használják az internetet.\nAz Orbot a <u>Tor</u> hálózatot használja az internetes forgalmad titkosítására, ami segít <u>megkerülni a cenzúrát</u>, és védelmet nyújt a <u>hálózati megfigyelés</u> különböző formái ellen, amelyek veszélyeztetik a személyes szabadságot és a magánéletet.\n<u>TCP proxy</u>: A Keepout csak az <i>kiválasztott</i> alkalmazások TCP kapcsolatait továbbítja az Orbot felé.\n<u>HTTP proxy</u>: A Keepout <i>HTTP CONNECT alagutat hoz létre</i> az Orbot felé, és csak az <i>kiválasztott</i> alkalmazások TCP kapcsolatait továbbítja.</string>
     <string name="hsf_notification_permission_failure" translatable="true">Értesítési engedély engedélyezése a Beállítások képernyőn</string>
     <string name="hsf_pause_vpn_failure" translatable="true">Nem lehet szüneteltetni: RethinkDNS nem aktív</string>
     <string name="dc_block_heading" translatable="true">Szabályok</string>
@@ -270,7 +270,7 @@
     <string name="dc_dns_website_heading" translatable="true">Weboldal ikon megjelenítése a DNS-naplókban (kísérleti funkció)</string>
     <string name="dc_dns_website_desc" translatable="true">Weboldal ikonokat hív le a <i>nextdns.com</i> és a <i>duckduckgo.com</i> oldalról. Legfeljebb 350 MB lemezterületet foglal el</string>
     <string name="dc_dns_leaks_heading" translatable="true">DNS-szivárgások megakadályozása</string>
-    <string name="dc_dns_leaks_desc" translatable="true">Amikor ez a funkció engedélyezve van, a Rethink minden, 53-as porton érkező csomagot rögzít, és azokat az Ön által beállított DNS-végpontra továbbítja</string>
+    <string name="dc_dns_leaks_desc" translatable="true">Amikor ez a funkció engedélyezve van, a Keepout minden, 53-as porton érkező csomagot rögzít, és azokat az Ön által beállított DNS-végpontra továbbítja</string>
     <string name="dc_check_update_heading" translatable="true">Prompt a blokklista frissítésekre</string>
     <string name="dc_proxy_dns_heading" translatable="true">Soha ne használd proxyként a DNS-t</string>
     <string name="dc_proxy_dns_desc" translatable="true">Ne továbbítsa a DNS-forgalmat proxy-n keresztül, ha folyamatosan aktív WireGuard, SOCKS5 vagy HTTP proxy-t használ.</string>
@@ -419,7 +419,7 @@
     <string name="settings_local_blocklist_in_use" translatable="true">%1$s használatban lévő tiltólisták</string>
     <string name="settings_local_blocklist_dialog_positive" translatable="true">Letöltés</string>
     <string name="settings_local_blocklist_version" translatable="true">Verzió: %1$s</string>
-    <string name="accessibility_notification_content" translatable="true">A Rethink kisegítő szolgáltatás leállt vagy összeomlott. A háttérben futó alkalmazások blokkolása már nem aktív. Koppintson ide az újbóli engedélyezéshez.</string>
+    <string name="accessibility_notification_content" translatable="true">A Keepout kisegítő szolgáltatás leállt vagy összeomlott. A háttérben futó alkalmazások blokkolása már nem aktív. Koppintson ide az újbóli engedélyezéshez.</string>
     <string name="toast_allow_bypass_disabled" translatable="true">A(z) %1$s nem érhető el, amíg a proxyk aktívak</string>
     <string name="pause_text" translatable="true">szüneteltetve</string>
     <string name="pause_desc" translatable="true">Megjegyzés: a(z) %1$s által blokkolt alkalmazások továbbra is tűzfal mögött maradnak.</string>
@@ -483,7 +483,7 @@
     <string name="firewall_rule_domain_trusted_univ_desc" translatable="true"><![CDATA[Ez a kapcsolat engedélyezve lett, mert a <i>tartomány</i> megbízhatóként van beállítva az univerzális tartományszabályokban.<br/><br/> A viselkedés módosításához lépj a <i>DNS konfigurálása</i> fülre.]]></string>
     <string name="firewall_rule_proxied_desc" translatable="true"><![CDATA[Ez a kapcsolat továbbítva lett a felhasználó által preferált proxyhoz.<br/><br/> A módosításhoz lépj a <i>Proxy</i> részhez a <i>Konfiguráció</i> képernyőn.]]></string>
     <string name="new_app_bulk_notification_title" translatable="true">Figyelem</string>
-    <string name="new_app_bulk_notification_content" translatable="true">A Rethink blokkolt %1$s új alkalmazást. Koppintson a megtekintéshez vagy módosításhoz.</string>
+    <string name="new_app_bulk_notification_content" translatable="true">A Keepout blokkolt %1$s új alkalmazást. Koppintson a megtekintéshez vagy módosításhoz.</string>
     <string name="new_app_notification_content" translatable="true">A RethinkDNS blokkolta a nemrég telepített alkalmazást, %1$s.</string>
     <string name="new_app_notification_action_deny" translatable="true">Tartsa blokkolva</string>
     <string name="new_app_notification_action_toast_allow" translatable="true">Az alkalmazás számára engedélyezve lett a hálózati kapcsolat</string>
@@ -495,8 +495,8 @@
     <string name="notif_channel_firewall_alerts" translatable="true">Tűzfal értesítések</string>
     <string name="notif_channel_proxy_failure" translatable="true">Proxy értesítések</string>
     <string name="notif_channel_download" translatable="true">Letöltési értesítések</string>
-    <string name="notif_channel_desc_vpn_notification" translatable="true">Értesítsen, amikor a Rethink aktív és a háttérben fut</string>
-    <string name="notif_channel_desc_vpn_failure" translatable="true">Értesítsen, amikor a Rethink leállításra kerül, az Android, vagy egy másik VPN alkalmazás által</string>
+    <string name="notif_channel_desc_vpn_notification" translatable="true">Értesítsen, amikor a Keepout aktív és a háttérben fut</string>
+    <string name="notif_channel_desc_vpn_failure" translatable="true">Értesítsen, amikor a Keepout leállításra kerül, az Android, vagy egy másik VPN alkalmazás által</string>
     <string name="notif_channel_desc_firewall_alerts" translatable="true">Értesítés tűzfal hibákról és rendellenességekről</string>
     <string name="notif_channel_desc_proxy_failure" translatable="true">Értesítés Proxy hibákról és rendellenességekről</string>
     <string name="notif_channed_desc_download" translatable="true">Értesítés az eszközön tárolt tiltólisták letöltési folyamatáról</string>
@@ -607,7 +607,7 @@
     <string name="ssv_most_blocked_domain_heading" description="This label will appear on the stats screen as a header for most blocked domains" translatable="true">Leggyakrabban blokkolt domainek</string>
     <string name="ssv_most_contacted_ips_heading" description="This label will appear on the stats screen as a header for most visited ips" translatable="true">Leggyakrabban elért IP-címek</string>
     <string name="ssv_most_blocked_ips_heading" description="This label will appear on the stats screen as a header for most blocked ips" translatable="true">Leggyakrabban blokkolt IP-címek</string>
-    <string name="ssv_toast_start_rethink" description="This label will appear on the stats screen as toast to start Rethink app" translatable="true">Indítsa el a Rethink-et a folytatáshoz</string>
+    <string name="ssv_toast_start_rethink" description="This label will appear on the stats screen as toast to start Rethink app" translatable="true">Indítsa el a Keepout-et a folytatáshoz</string>
     <string name="ssv_see_more" translatable="true">Összes megjelenítése</string>
     <string name="bad_config_reason_invalid_key" translatable="true">Érvénytelen kulcs</string>
     <string name="bad_config_reason_invalid_number" translatable="true">Érvénytelen szám</string>
@@ -724,7 +724,7 @@
     <string name="wg_setting_use_on_mobile" translatable="true">Csak mobilos használat</string>
     <string name="wg_setting_use_on_mobile_desc" translatable="true">Ennek a WireGuard-kapcsolatnak a használata kizárólag mobiladat-hálózaton történjen.</string>
     <string name="hop_add_remove_title" translatable="true">Közvetítő hozzáadása / eltávolítása</string>
-    <string name="bypasses_network_restrictions" translatable="true">Az elérhetőségi ellenőrzések megkerülik az összes hálózati korlátozást. Az <i>Automatikus</i> módban a Rethink véletlenszerűen használja a korábban csatlakozott IP-címeket és hosztneveket.</string>
+    <string name="bypasses_network_restrictions" translatable="true">Az elérhetőségi ellenőrzések megkerülik az összes hálózati korlátozást. Az <i>Automatikus</i> módban a Keepout véletlenszerűen használja a korábban csatlakozott IP-címeket és hosztneveket.</string>
     <string name="most_contacted_asn" translatable="true">Legutóbb elért szolgáltatók</string>
     <string name="most_blocked_asn" translatable="true">Leggyakrabban blokkolt szolgáltatók</string>
     <string name="download_ip_info_title" translatable="true">Szolgáltató információinak megjelenítése</string>
@@ -734,7 +734,7 @@
     <string name="close_conns_dialog_desc" translatable="true">Bezárja az összes kapcsolatot ehhez: %1$s?</string>
     <string name="local_blocklist_delete_desc" translatable="true">Törli az eszközön tárolt tiltólistákat?</string>
     <string name="fail_open_network_title" translatable="true">A hálózati kapcsolat elvesztése esetén megállítás</string>
-    <string name="fail_open_network_desc" translatable="true">Ha engedélyezve van, a Rethink minden adatforgalmat leállít, amikor nincs elérhető hálózati kapcsolat, például <i>repülőgép üzemmódban</i>.</string>
+    <string name="fail_open_network_desc" translatable="true">Ha engedélyezve van, a Keepout minden adatforgalmat leállít, amikor nincs elérhető hálózati kapcsolat, például <i>repülőgép üzemmódban</i>.</string>
     <string name="about_license" translatable="true">Licencelve Apache-2.0 alatt</string>
     <string name="smart_dns" translatable="true">Smart DNS</string>
     <string name="smart_dns_desc" translatable="true">A <i>Smart DNS</i> véletlenszerűen használja az alábbi DNS feloldók valamelyikét:</string>

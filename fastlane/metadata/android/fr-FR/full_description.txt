@@ -1,31 +1,25 @@
-Découvrez un Android plus sûr, transparent et sécurisé.
+Keepout est un pare-feu, un DNS chiffré et un VPN pour Android, sans root. Choisissez quelles apps accèdent à Internet, arrêtez pubs et traqueurs avant qu’ils ne se connectent, et voyez chaque connexion de votre téléphone.
 
-VPN : se connecte à plusieurs VPN WireGuard de votre choix.
+PARE-FEU
+• Bloquez n’importe quelle app en Wi-Fi, sur les données mobiles ou les deux, d’un seul appui.
+• Isolez une app, laissez-la contourner les règles ou excluez-la du tunnel.
+• Règles universelles : bloquez les apps en arrière-plan, écran éteint ou dès qu’une nouvelle app est installée.
+• Règles d’IP, de port et de domaine pour une app ou pour toutes.
 
-Sûr : révèle l'activité réseau des applications installées et vous permet de les désactiver, de les désinstaller ou de les bloquer par un pare-feu.
+DNS CHIFFRÉ
+• Rethink DNS avec des listes de blocage sur l’appareil contre les pubs, les traqueurs et les logiciels malveillants.
+• Ou choisissez votre propre résolveur en DNS-over-HTTPS, DNS-over-TLS, DNSCrypt ou ODoH.
+• Les réponses DNS sont vérifiées localement, ce qui permet aussi de contourner la censure par DNS.
 
-Sécurisé : première ligne de défense contre les logiciels espions, les ransomwares et les logiciels malveillants qui volent des informations personnelles et prennent le contrôle des comptes. Protège contre la manipulation DNS généralement utilisée pour censurer les sites web, les réseaux sociaux et les applications de messagerie.
+VOYEZ CE QUE FONT VOS APPS
+• Journaux réseau et DNS : quelle app, quel serveur, quel pays, autorisée ou bloquée.
+• Statistiques de la dernière heure, du jour ou de la semaine : apps principales, apps bloquées, pays, réseaux et domaines.
 
-Rapide : serveurs DNS déployés dans plus de 300 emplacements à travers le monde pour garantir que votre connexion Internet est aussi rapide et disponible que possible.
+VPN ET PROXYS
+• Faites passer vos apps par WireGuard ou des proxys SOCKS5 ou HTTP, avec tunnel partagé par app.
+• Tor en un appui via Orbot.
 
-Ouvert : open source et sans aucun traceur.
+PRIVÉ PAR CONCEPTION
+Le filtrage s’effectue sur votre appareil via le service VPN d’Android. Les journaux restent sur le téléphone, vous pouvez les désactiver, et il n’y a aucune publicité.
 
-***Fonctionnalités***
-
-Pare-feu : empêche les applications de se connecter à Internet. Bloque les logiciels espions, les logiciels malveillants, les ransomwares et plus encore.
-     
-Un pare-feu bloque toute application se connectant à Internet via le Wi-Fi ou les données mobiles. Étant donné que la plupart des formes de surveillance nécessitent que les données soient envoyées au réseau vers un serveur, le pare-feu atténue efficacement la menace (les gestionnaires de fichiers, les réveils, les calculatrices sont quelques exemples d'applications qui ne nécessitent pas d'accès à Internet pour fonctionner). La fonctionnalité de pare-feu utilise le service d'accessibilité pour détecter et bloquer les applications en arrière-plan.
-
-Surveillance : surveillez le trafic Internet entrant et sortant. 
-
-Si cette fonction est activée, les journaux de connectivité sont collectés et analysés. Des rapports automatisés signalent les connexions inconnues ou suspectes et révèlent l'ampleur des tentatives de vol de données par les réseaux de logiciels espions. Lors de nos tests, environ 60 % du trafic a été signalé comme provenant de logiciels espions connus. Les journaux générés sont mis à la disposition de l'utilisateur en temps quasi réel pour qu'il puisse les analyser.
-
-WireGuard : sécurisez le trafic Internet sortant.
-
-L'application utilise le protocole WireGuard, rapide, moderne, léger et sécurisé, pour crypter les connexions sortantes vers n'importe quel fournisseur VPN compatible de votre choix.
-
-Anti-censure : 
-
-L'application crypte votre connexion Internet vers le serveur DNS (Domain Name System) géré par Rethink et présent dans plus de 300 sites à travers le monde. Les serveurs DNS sont le carnet d'adresses d'Internet : un serveur DNS fournit les adresses exactes dont vous avez besoin pour visiter un site web ou ouvrir une application.
-
-Data Monitor : Suivez l'utilisation des données mobiles ou WiFi par application et par connexion.
+Keepout est un fork open source de Rethink DNS + Firewall de Celzero, repensé avec Material 3 Expressive. Sous licence Apache 2.0.

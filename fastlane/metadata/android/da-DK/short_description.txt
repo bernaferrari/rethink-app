@@ -1,1 +1,1 @@
-Firewall apps, brug WireGuard VPN, overvåg netværk, blokér malware, ændr DNS.
+Firewall til apps, bloker trackere med krypteret DNS, og se hver forbindelse.

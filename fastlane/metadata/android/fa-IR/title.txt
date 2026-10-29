@@ -1,1 +1,1 @@
-بازنگری کنید: DNS + فایروال + VPNRethink: DNS + Firewall + VPN
+Keepout: فایروال، DNS، VPN

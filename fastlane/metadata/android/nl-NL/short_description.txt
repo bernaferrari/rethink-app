@@ -1,1 +1,1 @@
-Firewall-apps, WireGuard VPN gebruiken, netwerk monitoren, malware blokkeren, DNS wijzigen.
+Firewall voor apps, blokkeer trackers met versleutelde DNS, zie elke verbinding.

@@ -1,1 +1,1 @@
-Rethink: DNS + Palomuuri + Vpn
+Keepout: Palomuuri/DNS/VPN

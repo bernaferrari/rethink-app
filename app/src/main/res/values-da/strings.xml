@@ -4,7 +4,7 @@
     <string name="title_settings" translatable="true">Indstillinger</string>
     <string name="title_statistics" translatable="true">Statistik</string>
     <string name="txt_home" translatable="true">Hjem</string>
-    <string name="accessibility_service_description" translatable="true">Rethink bruger tilgængelighedstjenester til at opdage baggrundsapplikationer og sætte en firewall op. Rethink indsamler eller sælger ingen oplysninger.</string>
+    <string name="accessibility_service_description" translatable="true">Keepout bruger tilgængelighedstjenester til at opdage baggrundsapplikationer og sætte en firewall op. Keepout indsamler eller sælger ingen oplysninger.</string>
     <string name="finish" translatable="true">Fuldfør</string>
     <string name="lbl_cancel" translatable="true">Annullér</string>
     <string name="lbl_apply" translatable="true">Anvend</string>
@@ -70,8 +70,8 @@
     <string name="lbl_action" translatable="true">Handling</string>
     <string name="lbl_connect" translatable="true">Tilslut</string>
     <string name="lbl_criteria" translatable="true">Kriterier</string>
-    <string name="memory_notification_text">Rethink oplever lav hukommelse. Systemhandlinger kan være begrænsede.</string>
-    <string name="slide_2_desc" translatable="true">Rethink er den nemmeste måde at overvåge netværksaktivitet, omgå internetcensur og beskyt apps med en firewall på din Android-enhed.</string>
+    <string name="memory_notification_text">Keepout oplever lav hukommelse. Systemhandlinger kan være begrænsede.</string>
+    <string name="slide_2_desc" translatable="true">Keepout er den nemmeste måde at overvåge netværksaktivitet, omgå internetcensur og beskyt apps med en firewall på din Android-enhed.</string>
     <string name="dns_desc" translatable="true">Vælg mellem 190+ lister for at stoppe annoncer, trackere og malware.</string>
     <string name="allow" translatable="true">tillad</string>
     <string name="block" translatable="true">blokér</string>
@@ -80,7 +80,7 @@
     <string name="isolate" translatable="true">isolér</string>
     <string name="untracked" translatable="true">ikke tracket</string>
     <string name="bypass_dns_firewall" translatable="true">omgå dns &amp; firewall</string>
-    <string name="warning_title" description="Status indicator text shown in a warning notification." translatable="true">Advarsel: Rethink er blevet deaktiveret</string>
+    <string name="warning_title" description="Status indicator text shown in a warning notification." translatable="true">Advarsel: Keepout er blevet deaktiveret</string>
     <string name="notification_content" description="Indicates what will happen if the user taps the notification." translatable="true">Tryk for at ændre beskyttelsesindstilling</string>
     <string name="dns_mode_notification_title" translatable="true">Beskyttet! Tilsluttet hurtig og sikker DNS.</string>
     <string name="firewall_mode_notification_title" translatable="true">Beskyttet! Tilsluttet firewall.</string>
@@ -104,8 +104,8 @@
     <string name="firewall_mode_info_title" translatable="true">Firewall</string>
     <string name="apps_info_title" translatable="true">Apps</string>
     <string name="alert_permission_accessibility" translatable="true">Tilladelse - tilgængelighed</string>
-    <string name="alert_firewall_accessibility_explanation" translatable="true">Rethink bruger tilgængelighedstjenester til at spore, hvilke apps der er i brug (i forgrunden) mod dem, der ikke er i brug (i baggrunden).\n\nRethink indsamler ikke oplysninger eller spionerer på dig på nogen som helst måde.</string>
-    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Rethink tilgængelighedstjeneste er stoppet eller brudt sammen. <i><b>Gå til indstillinger og gennemtving et stop</b></i> Rethink og opstart igen for at bruge <i>Blokér alle apps, der ikke er i brug</i>-funktionen.\n\nRethink bruger tilgængelighedstjenester til at spore, hvilke apps der er i brug (i forgrunden) mod dem, der ikke er i brug (i baggrunden).</string>
+    <string name="alert_firewall_accessibility_explanation" translatable="true">Keepout bruger tilgængelighedstjenester til at spore, hvilke apps der er i brug (i forgrunden) mod dem, der ikke er i brug (i baggrunden).\n\nKeepout indsamler ikke oplysninger eller spionerer på dig på nogen som helst måde.</string>
+    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Keepout tilgængelighedstjeneste er stoppet eller brudt sammen. <i><b>Gå til indstillinger og gennemtving et stop</b></i> Keepout og opstart igen for at bruge <i>Blokér alle apps, der ikke er i brug</i>-funktionen.\n\nKeepout bruger tilgængelighedstjenester til at spore, hvilke apps der er i brug (i forgrunden) mod dem, der ikke er i brug (i baggrunden).</string>
     <string name="default_dns_name" translatable="true">RDNS standard</string>
     <string name="custom_url_error_invalid_url" translatable="true">Ugyldig URL</string>
     <string name="conn_track_clear_logs_title" translatable="true">Slet alle netværkslogfiler?</string>
@@ -114,7 +114,7 @@
     <string name="bsct_block_ip" translatable="true">Blokér, stol på <u>denne IP</u> for <u>denne app</u></string>
     <string name="bsct_block_domain" translatable="true">Blokér, stol på <u>domæne(r)</u> for <u>denne app</u></string>
     <string name="always_on_dialog_heading" translatable="true">Deaktivér \"Altid på-VPN\"</string>
-    <string name="always_on_dialog" translatable="true">\"Altid på-VPN\" er aktiveret på denne enhed. For at starte Rethink skal du gå til indstillinger og deaktivere \"Altid på-VPN\".</string>
+    <string name="always_on_dialog" translatable="true">\"Altid på-VPN\" er aktiveret på denne enhed. For at starte Keepout skal du gå til indstillinger og deaktivere \"Altid på-VPN\".</string>
     <string name="always_on_dialog_positive_btn" translatable="true">Gå til indstillinger</string>
     <string name="home_last_24_hours">Seneste 24 timer</string>
     <plurals name="home_stopped_at_dns_count">

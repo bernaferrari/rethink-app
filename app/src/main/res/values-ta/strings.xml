@@ -31,7 +31,7 @@
     <string name="custom_url_error_invalid_url">சரியில்லாத முகவரி</string>
     <string name="always_on_dialog">இந்தச் சாதனத்தில் \"எப்போதும் இயங்கு VPN\" இயக்கப்பட்டுள்ளது. மறுசிந்தனையைத் தொடங்க, அமைப்புகள் பயன்பாட்டிற்குச் சென்று, \"எப்போதும் VPN ஆன்\" என்பதை முடக்கவும்.</string>
     <string name="private_dns_dialog_heading">தனிப்பட்ட DNS ஐ முடக்கு</string>
-    <string name="private_dns_dialog_desc">Rethink இன் DNS அமைப்புகள் ஆண்ட்ராய்டு இன் தனியார் DNS மூலம் மேலெழுதப்படுகின்றன.\n\nRethink\'s DNS ஐப் பயன்படுத்த, ஆண்ட்ராய்டு அமைப்புகளுக்குச் சென்று \"தனியார் DNS\"ஐ முடக்கவும்.</string>
+    <string name="private_dns_dialog_desc">Keepout இன் DNS அமைப்புகள் ஆண்ட்ராய்டு இன் தனியார் DNS மூலம் மேலெழுதப்படுகின்றன.\n\nKeepout\'s DNS ஐப் பயன்படுத்த, ஆண்ட்ராய்டு அமைப்புகளுக்குச் சென்று \"தனியார் DNS\"ஐ முடக்கவும்.</string>
     <string name="dns_crypt_url_remove_dialog_message">சேமிக்கப்பட்ட உள்ளமைவிலிருந்து DNSCrypt தீர்வை நீக்கவும்.</string>
     <string name="firewall_act_network_monitor_tab">பிணையம்</string>
     <string name="bypass_universal">உலகளாவிய பைபாச்</string>

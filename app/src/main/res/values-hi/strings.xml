@@ -347,7 +347,7 @@
     <string name="orbot_bs_status_3" translatable="true">%1$s को ऑर्बोट पे फोरवर्ड कर रहे है, एचटीटीपी प्रॉक्सी भी सेट है।</string>
     <string name="orbot_stop_dialog_message" translatable="true">रीथिंक ने ऑर्बोट को कनेक्शन फॉरवर्ड करना बंद कर दिया है, लेकिन ऑर्बोट शायद बैकग्राउंड में चल रहा है।</string>
     <string name="orbot_stop_dialog_negative" translatable="true">ऑर्बोट बंद करे</string>
-    <string name="orbot_explanation" translatable="true">Orbot एक निःशुल्क प्रॉक्सी ऐप है जो अन्य ऐप्स को इंटरनेट का अधिक <u>सुरक्षित</u> उपयोग करने में सक्षम बनाता है।\nOrbot आपके इंटरनेट ट्रैफ़िक को एन्क्रिप्ट करने के लिए <u>Tor</u> का उपयोग करता है जो आपको <u>सेंसरशिप को बायपास</u> करने और <u>नेटवर्क निगरानी</u> के उन रूपों से बचाव करने में मदद करता है जो व्यक्तिगत स्वतंत्रता और गोपनीयता को ख़तरे में डालते हैं।\n<u>TCP प्रॉक्सी</u>: Rethink Orbot को केवल <i>शामिल</i> ऐप्स के TCP कनेक्शन को अग्रेषित करता है।\n<u>HTTP प्रॉक्सी</u>: Rethink Orbot को HTTP CONNECT सुरंग <i>स्थापित</i> करता है और <i>शामिल</i> ऐप्स के केवल TCP कनेक्शन को अग्रेषित करता है।</string>
+    <string name="orbot_explanation" translatable="true">Orbot एक निःशुल्क प्रॉक्सी ऐप है जो अन्य ऐप्स को इंटरनेट का अधिक <u>सुरक्षित</u> उपयोग करने में सक्षम बनाता है।\nOrbot आपके इंटरनेट ट्रैफ़िक को एन्क्रिप्ट करने के लिए <u>Tor</u> का उपयोग करता है जो आपको <u>सेंसरशिप को बायपास</u> करने और <u>नेटवर्क निगरानी</u> के उन रूपों से बचाव करने में मदद करता है जो व्यक्तिगत स्वतंत्रता और गोपनीयता को ख़तरे में डालते हैं।\n<u>TCP प्रॉक्सी</u>: Keepout Orbot को केवल <i>शामिल</i> ऐप्स के TCP कनेक्शन को अग्रेषित करता है।\n<u>HTTP प्रॉक्सी</u>: Keepout Orbot को HTTP CONNECT सुरंग <i>स्थापित</i> करता है और <i>शामिल</i> ऐप्स के केवल TCP कनेक्शन को अग्रेषित करता है।</string>
     <string name="orbot_install_dialog_positive" translatable="true">स्थापित करें</string>
     <string name="settings_dns_proxy_dialog_header" translatable="true">सॉक्स5 प्रॉक्सी सेट करें</string>
     <string name="cd_doh_dialog_resolver_url" translatable="true">रिजॉल्वर यूआरएल</string>
@@ -621,9 +621,9 @@
     <string name="logs_card_duration" translatable="true">%1$s से</string>
     <string name="bad_config_reason_invalid_value" translatable="true">अमान्य मान</string>
     <string name="crypt_quad9_security_desc" translatable="true">क्वाड9 (एनीकास्ट) dnssec/no–log/filter 9.9.9.9 – 149.112.112.9 – 149.112.112.112</string>
-    <string name="memory_notification_text">Rethink में मेमोरी कम हो रही है। सिस्टम क्रियाएँ सीमित हो सकती हैं।</string>
+    <string name="memory_notification_text">Keepout में मेमोरी कम हो रही है। सिस्टम क्रियाएँ सीमित हो सकती हैं।</string>
     <string name="settings_exclude_proxy_apps_heading" translatable="true">लूपबैक प्रॉक्सी फ़ॉरवर्डर ऐप्स</string>
-    <string name="settings_exclude_proxy_apps_desc" translatable="true">अक्षम होने पर, यह प्रॉक्सी (SOCKS5, HTTP, DNS) फॉरवर्डर ऐप्स को Rethink के VPN टनल से बाहर कर देता है।</string>
+    <string name="settings_exclude_proxy_apps_desc" translatable="true">अक्षम होने पर, यह प्रॉक्सी (SOCKS5, HTTP, DNS) फॉरवर्डर ऐप्स को Keepout के VPN टनल से बाहर कर देता है।</string>
     <string name="orbot_no_app_toast" translatable="true">Orbot को सक्षम करने के लिए कम से कम एक ऐप जोड़ें</string>
     <string name="dc_proxy_dns_heading" translatable="true">कभी भी DNS प्रॉक्सी न करें</string>
     <string name="cd_doh_dialog_checkbox_desc" translatable="true">सर्वर TLS प्रमाणपत्रों को मान्य न करें (केवल तभी सक्षम करें जब आपको पता हो कि आप क्या कर रहे हैं)</string>

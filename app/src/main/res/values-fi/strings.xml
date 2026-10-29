@@ -5,7 +5,7 @@
     <string name="title_statistics" translatable="true">Tilastot</string>
     <string name="txt_home" translatable="true">Koti</string>
     <string name="title_about" translatable="true">Tietoja</string>
-    <string name="accessibility_service_description" translatable="true">Rethink käyttää esteettömyyspalvelua taustasovellusten tunnistamiseen ja palomuuriin. Rethink ei kerää tai myy mitään tietoa.</string>
+    <string name="accessibility_service_description" translatable="true">Keepout käyttää esteettömyyspalvelua taustasovellusten tunnistamiseen ja palomuuriin. Keepout ei kerää tai myy mitään tietoa.</string>
     <string name="title_settings" translatable="true">Asetukset</string>
     <string name="lbl_allowed_ips" translatable="true">Sallitut IP:t</string>
     <string name="lbl_socks5" translatable="true">SOCKS5</string>
@@ -53,7 +53,7 @@
     <string name="lbl_status" translatable="true">Tila</string>
     <string name="lbl_starting" translatable="true">Käynnistetään</string>
     <string name="lbl_overall" translatable="true">Kaiken kaikkiaan</string>
-    <string name="slide_2_desc" translatable="true">Rethink on helpoin tapa seurata verkkotoimintaa, ohittaa Internet-sensuuri ja asettaa palomuuri Android-laitteesi sovelluksille.</string>
+    <string name="slide_2_desc" translatable="true">Keepout on helpoin tapa seurata verkkotoimintaa, ohittaa Internet-sensuuri ja asettaa palomuuri Android-laitteesi sovelluksille.</string>
     <string name="lbl_action_required" translatable="true">Vaatii toimenpide</string>
     <string name="lbl_domain_rules" translatable="true">Toimialueen säännöt</string>
     <string name="lbl_listen_port" translatable="true">Kuunteluportti</string>
@@ -81,7 +81,7 @@
     <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">Ei toimi</string>
     <string name="hybrid_mode_notification_title" translatable="true">Suojattu! Yhteys DNS + palomuuriin.</string>
     <string name="status_waiting" description="This text appears during the connection process if Rethink needs user permission or the phone is offline." translatable="true">Odottaa</string>
-    <string name="warning_title" description="Status indicator text shown in a warning notification." translatable="true">Varoitus: Rethink on poistettu käytöstä</string>
+    <string name="warning_title" description="Status indicator text shown in a warning notification." translatable="true">Varoitus: Keepout on poistettu käytöstä</string>
     <string name="firewall_mode_notification_title" translatable="true">Suojattu! Yhteys palomuuriin.</string>
     <string name="universal_firewall_explanation" translatable="true">Käytä palomuurisääntöjä kaikissa sovelluksissa laitteen tapahtumien perusteella, esimerkiksi kun laite on lukittu tai kun tietty sovellus ei ole käytössä.</string>
     <string name="dns_mode_info_title" translatable="true">DNS</string>
@@ -94,23 +94,23 @@
     <string name="notification_action_dns_mode" translatable="true">DNS</string>
     <string name="notification_action_dns_firewall_mode" translatable="true">DNS + palomuuri</string>
     <string name="alert_permission_accessibility" translatable="true">Käyttöoikeus – Esteettömyys</string>
-    <string name="alert_firewall_accessibility_explanation" translatable="true">Rethink käyttää esteettömyyspalvelua seuratakseen, mitkä sovellukset ovat käytössä (etualalla) ja mitkä sovellukset eivät ole käytössä (taustalla).
+    <string name="alert_firewall_accessibility_explanation" translatable="true">Keepout käyttää esteettömyyspalvelua seuratakseen, mitkä sovellukset ovat käytössä (etualalla) ja mitkä sovellukset eivät ole käytössä (taustalla).
 \n
-\nRethink ei kerää tietoja tai vakoile sinua millään tavalla.</string>
+\nKeepout ei kerää tietoja tai vakoile sinua millään tavalla.</string>
     <string name="status_no_internet" translatable="true">Ei internetiä</string>
     <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit." translatable="true">Ei suojattu</string>
     <string name="firewall_mode_info_title" translatable="true">Palomuuri</string>
     <string name="apps_info_title" translatable="true">Sovellukset</string>
     <string name="ada_noapp_dialog_positive" translatable="true">Hyvä on</string>
     <string name="fapps_info_dialog_positive_btn" translatable="true">Hyvä on</string>
-    <string name="memory_notification_text">Rethink kokee alhaista muistin määrää. Järjestelmä toimet saattaa rajoittua.</string>
+    <string name="memory_notification_text">Keepout kokee alhaista muistin määrää. Järjestelmä toimet saattaa rajoittua.</string>
     <string name="default_dns_name" translatable="true">Oletusarvoinen RDNS</string>
     <string name="custom_url_error_invalid_url" translatable="true">Epäkelpo osoite</string>
     <string name="conn_track_clear_logs_title" translatable="true">Poista kaikki verkkotoiminnan lokit?</string>
     <string name="conn_track_clear_logs_message" translatable="true">Tämä poistaa vain verkkotoiminnan lokit, ei palomuurisääntöjä. Tätä ei voi kumota. Haluatko jatkaa?</string>
     <string name="bsct_app_info" translatable="true">Tietoa sovelluksesta</string>
     <string name="bsct_block_ip" translatable="true">Estä, luota <u>tähän IP-osoitteeseen</u> <u>tälle sovellukselle</u></string>
-    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Käytettävyyspalvelu on pysähtynyt tai kaatunut. <i><b>Mene asetuksiin ja pakota Rethinkin lopetus</b></i> \u0020ja käynnistä se uudelleen <i>Estä mikä tahansa sovellus, jota ei käytetä.</i>\n\nRethink käyttää saavutettavuuspalvelua seuraamaan, mitkä sovellukset ovat käytössä (etualalla) verrattuna niihin, jotka eivät ole käytössä (taustalla).</string>
+    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Käytettävyyspalvelu on pysähtynyt tai kaatunut. <i><b>Mene asetuksiin ja pakota Rethinkin lopetus</b></i> \u0020ja käynnistä se uudelleen <i>Estä mikä tahansa sovellus, jota ei käytetä.</i>\n\nKeepout käyttää saavutettavuuspalvelua seuraamaan, mitkä sovellukset ovat käytössä (etualalla) verrattuna niihin, jotka eivät ole käytössä (taustalla).</string>
     <string name="home_last_24_hours">Viimeiset 24 tuntia</string>
     <plurals name="home_stopped_at_dns_count">
         <item quantity="one">%d haku pysäytetty jo DNS:ssä</item>

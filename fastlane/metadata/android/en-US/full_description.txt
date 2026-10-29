@@ -1,31 +1,25 @@
-Say hello to a safer, transparent, and secure Android.
+Keepout is a no-root firewall, encrypted DNS and VPN for Android. Decide which apps reach the internet, stop ads and trackers before they connect, and see every connection your phone makes.
 
-VPN: Connects to multiple WireGuard VPNs of your choice.
+FIREWALL
+• Block any app on Wi-Fi, mobile data or both, with one tap.
+• Isolate an app, let it bypass the rules, or exclude it from the tunnel.
+• Universal rules: block apps in the background, when the screen is off, or when a new app is installed.
+• IP, port and domain rules for one app or for every app.
 
-Safe: Reveals network activity of installed apps and lets you disable, uninstall, or firewall them.
+ENCRYPTED DNS
+• Rethink DNS with on-device blocklists for ads, trackers and malware.
+• Or choose your own resolver over DNS-over-HTTPS, DNS-over-TLS, DNSCrypt or ODoH.
+• DNS answers are checked locally, which also gets around DNS-based censorship.
 
-Secure: First line of defense against spyware, ransomware, and malware that steal personal information and takeover accounts. Protects from DNS manipulation typically employed to censor websites, social media, and messaging apps.
+SEE WHAT YOUR APPS DO
+• Network and DNS logs: which app, which server, which country, allowed or blocked.
+• Statistics for the last hour, day or week: top apps, blocked apps, countries, networks and domains.
 
-Fast: DNS Servers deployed to 300+ locations world-wide to ensure your internet is as fast and highly available as it can be.
+VPN AND PROXIES
+• Route apps through WireGuard, SOCKS5 or HTTP proxies, with split tunneling per app.
+• One-tap Tor through Orbot.
 
-Open: Open source and free of any trackers.
+PRIVATE BY DESIGN
+Filtering runs on your device through Android's VPN service. Logs stay on the phone, you can turn them off, and there are no ads.
 
-***Features***
-
-Firewall: Prevent apps from connecting to the Internet. Block spyware, malware, ransomware and more.
-     
-A firewall blocks any app connecting to the Internet over WiFi or Mobile data. Since most forms of surveillance require the data to be sent the network to a server, firewalling them effectively mitigates the threat (File Managers, Alarm Clock, Calculator are few such examples of apps that do not require any Internet access to function). The firewall feature uses Accessibility Service to detect and firewall background applications.
-
-Monitoring: Keep tabs on incoming and outgoing Internet traffic. 
-
-If enabled, the connectivity logs are collected and analyzed. Automated reports flag previously unknown or suspicious connections, and reveal the extent of attempt to steal data by spyware networks. In our tests, around 60% of the traffic is flagged and reported as being initiated by known spyware. Logs generated are made available in near-real time to the user for their own analysis.
-
-WireGuard: Secure outgoing Internet traffic.
-
-The app uses fast, modern, light-weight, and secure WireGuard protocol to encrypt outgoing connections to any compatible VPN provider of your choice.
-
-Anti-censorship: 
-
-The app encrypts your internet connection to Domain Name System (DNS) server run by Rethink with presence in our 300+ locations world-wide. DNS servers are the address book of the internet: A DNS server provides the exact addresses you need to visit a website or open an app.
-
-Data Monitor: Track per-app and per-connection Mobile or WiFi data usage.
+Keepout is an open-source fork of Rethink DNS + Firewall by Celzero, redesigned with Material 3 Expressive. Licensed under Apache 2.0.

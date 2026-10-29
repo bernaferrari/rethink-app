@@ -3,7 +3,7 @@
     <string name="title_settings" translatable="true">Mipangilio</string>
     <string name="title_statistics" translatable="true">Takwimu</string>
     <string name="txt_home" translatable="true">Nyumbani</string>
-    <string name="accessibility_service_description" translatable="true">Rethink hutumia huduma inayofikika (accessibility service) ili kugundua na kuzuia programu zinazofanya kazi kwa nyuma (background applications). Rethink haikusanyi wala kuuza taarifa yoyote.</string>
+    <string name="accessibility_service_description" translatable="true">Keepout hutumia huduma inayofikika (accessibility service) ili kugundua na kuzuia programu zinazofanya kazi kwa nyuma (background applications). Keepout haikusanyi wala kuuza taarifa yoyote.</string>
     <string name="finish" translatable="true">Maliza</string>
     <string name="lbl_cancel" translatable="true">Hairisha</string>
     <string name="lbl_all" translatable="true">Yote</string>

@@ -9,7 +9,7 @@
     <string name="block">bloquer</string>
     <string name="isolate">confiner</string>
     <string name="notification_content" description="Indicates what will happen if the user taps the notification.">Appuyez sur pour modifier le paramètre de protection</string>
-    <string name="warning_title" description="Status indicator text shown in a warning notification.">Attention : Rethink a été désactivé</string>
+    <string name="warning_title" description="Status indicator text shown in a warning notification.">Attention : Keepout a été désactivé</string>
     <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">En échec</string>
     <string name="pause_mode_notification_title">En pause ! Les applications bloquées continueront à être soumises au pare-feu.</string>
     <string name="firewall_mode_notification_title">Protégé ! Connecté via un pare-feu.</string>
@@ -18,12 +18,12 @@
     <string name="universal_firewall_explanation">Appliquer des règles de pare-feu à toutes les applications en fonction des événements survenant sur l’appareil, par exemple, lorsque l’appareil est verrouillé ou lorsqu’une application particulière n’est pas utilisée.</string>
     <string name="notification_action_dns_mode">DNS</string>
     <string name="firewall_mode_info_title">Pare-feu</string>
-    <string name="alert_firewall_accessibility_explanation">Rethink utilise un service d’accessibilité pour savoir quelles sont les applications en cours d’utilisation (avant-plan) et celles qui ne le sont pas (arrière-plan).
+    <string name="alert_firewall_accessibility_explanation">Keepout utilise un service d’accessibilité pour savoir quelles sont les applications en cours d’utilisation (avant-plan) et celles qui ne le sont pas (arrière-plan).
 \n
-\nRethink ne collecte aucune information et ne vous espionne en aucune façon.</string>
-    <string name="alert_firewall_accessibility_regrant_explanation">Le service d’accessibilité de Rethink s’est arrêté ou a dysfonctionné. <i><b>Allez dans Paramètres puis forcer l’arrêt</b></i> de Rethink et redémarrez-le pour utiliser la fonctionnalité <i>Bloquer les applications non utilisées.</i>
+\nKeepout ne collecte aucune information et ne vous espionne en aucune façon.</string>
+    <string name="alert_firewall_accessibility_regrant_explanation">Le service d’accessibilité de Keepout s’est arrêté ou a dysfonctionné. <i><b>Allez dans Paramètres puis forcer l’arrêt</b></i> de Keepout et redémarrez-le pour utiliser la fonctionnalité <i>Bloquer les applications non utilisées.</i>
 \n
-\nRethink utilise le service d’accessibilité pour savoir quelles sont les applications en cours d’utilisation (avant-plan) et celles qui ne le sont pas (arrière-plan).</string>
+\nKeepout utilise le service d’accessibilité pour savoir quelles sont les applications en cours d’utilisation (avant-plan) et celles qui ne le sont pas (arrière-plan).</string>
     <string name="bsct_block_ip">Bloquer, tolérer <u>cette IP</u> pour <u>cette appli</u></string>
     <string name="always_on_dialog">L’option \"VPN permanent\" est déjà activée sur cet appareil. Pour lancer RethinkDNS, allez dans les paramètres de l’application et désactivez \"VPN permanent\".</string>
     <string name="allow">autoriser</string>
@@ -51,8 +51,8 @@
     <string name="notification_action_dns_firewall_mode">DNS + Pare-feu</string>
     <string name="always_on_dialog_stop_message">Le paramètre VPN permanent est activé pour RethinkDNS. Êtes-vous sûr de vouloir arrêter RethinkDNS \?</string>
     <string name="finish">Finir</string>
-    <string name="slide_2_desc">Rethink est le moyen le plus simple pour surveiller l’activité réseau, contourner la censure sur Internet et mettre en place un pare-feu sur votre appareil Android.</string>
-    <string name="accessibility_service_description">Rethink utilise le service d’accessibilité pour détecter et filtrer les applications en arrière-plan. Rethink ne collecte ni ne vend aucune information.</string>
+    <string name="slide_2_desc">Keepout est le moyen le plus simple pour surveiller l’activité réseau, contourner la censure sur Internet et mettre en place un pare-feu sur votre appareil Android.</string>
+    <string name="accessibility_service_description">Keepout utilise le service d’accessibilité pour détecter et filtrer les applications en arrière-plan. Keepout ne collecte ni ne vend aucune information.</string>
     <string name="doh_custom_url_remove_dialog_title">Supprimer le point de terminaison DoH \?</string>
     <string name="refresh_complete"><!-- use dc_refresh_toast --> Resynchronisation de la liste des applications terminée.</string>
     <string name="doh_custom_url_remove_dialog_message">Supprimer le point de terminaison DNS over HTTPS de la configuration sauvegardée.</string>
@@ -63,12 +63,12 @@
     <string name="download_update_dialog_trylater_message">La mise à jour ne peut être appliquée pour le moment, veuillez réessayer plus tard.</string>
     <string name="settings_enable_logs">Activer la journalisation embarquée sur l’appareil</string>
     <string name="whats_new_version_update">&lt;b&gt;Ne paniquez pas 2&lt;/b&gt;&lt;br/&gt;&lt;br/&gt; 1. Nouveau : capturez les erreurs du moteur réseau dans les rapports de bugs des utilisateurs.&lt;br/&gt; 2. Nouveau : utilisez le DNS système pour les noms de domaine non délégués si empêcher les fuites DNS sont activées.&lt;br/&gt; 3. Amélioration : connectivité WireGuard à double pile (IPv4 + IPv6).&lt;br/&gt; 4. Amélioration : évitez de bloquer les éléments de l\'interface utilisateur lorsque le moteur réseau ne répond pas.&lt;br/&gt; 5. Correction : les délais d\'expiration de connexion avec le filtrage DNS avancé sont activés.&lt;br/&gt; 6. Correction : les points de terminaison homologues WireGuard avec des noms de domaine se bloquent lors des modifications du réseau.&lt;br/&gt;&lt;br/&gt; &lt;a href=https://svc.rethinkdns.com/r/translate&gt;Aidez à traduire cette application&lt;/a&gt;</string>
-    <string name="settings_allow_bypass_desc">Autorisez les applications requérantes à accéder à tous les réseaux disponibles. Ces applications peuvent contourner le tunnel VPN de Rethink à la demande. Certaines applications de conférence audio/vidéo comme Zoom et Meet peuvent en avoir besoin pour fonctionner correctement.</string>
+    <string name="settings_allow_bypass_desc">Autorisez les applications requérantes à accéder à tous les réseaux disponibles. Ces applications peuvent contourner le tunnel VPN de Keepout à la demande. Certaines applications de conférence audio/vidéo comme Zoom et Meet peuvent en avoir besoin pour fonctionner correctement.</string>
     <string name="settings_lock_down_mode_desc">Certaines options sont désactivées lorsque le VPN est en mode de verrouillage. <u>Voir les paramètres VPN</u>.</string>
     <string name="settings_https_desc">Transférer les connexions vers le point de connexion HTTP(S).</string>
     <string name="orbot_bs_status_2">Le proxy HTTP est défini.</string>
     <string name="orbot_stop_dialog_title">Intervention manuelle requise</string>
-    <string name="orbot_stop_dialog_message">Rethink a cessé de transmettre les connexions à Orbot, mais Orbot peut fonctionner en arrière-plan.</string>
+    <string name="orbot_stop_dialog_message">Keepout a cessé de transmettre les connexions à Orbot, mais Orbot peut fonctionner en arrière-plan.</string>
     <string name="orbot_title">Orbot et Proxys</string>
     <string name="orbot_website_link">https://guardianproject.info/apps/org.torproject.android/</string>
     <string name="orbot_install_dialog_title">Installer Orbot \?</string>
@@ -77,10 +77,10 @@
     <string name="settings_socks_forwarding_default_desc">Transférer les connexions vers le point de terminaison SOCKS5.</string>
     <string name="settings_orbot_notification_action">Ouvrir Orbot</string>
     <string name="settings_socks5_disabled_error">Connecté via %1$s. Désactivez-le pour continuer.</string>
-    <string name="settings_socks5_vpn_disabled_error">Lancez Rethink pour continuer.</string>
+    <string name="settings_socks5_vpn_disabled_error">Lancez Keepout pour continuer.</string>
     <string name="settings_orbot_notification_content">Échec du démarrage de Tor-as-a-Proxy. Ouvrez l’application Orbot pour le lancer manuellement.</string>
     <string name="settings_general_header">général</string>
-    <string name="settings_autostart_bootup_desc">À la mise sous tension de l’appareil, lancez Rethink s’il était en cours d’exécution avant l’arrêt.</string>
+    <string name="settings_autostart_bootup_desc">À la mise sous tension de l’appareil, lancez Keepout s’il était en cours d’exécution avant l’arrêt.</string>
     <string name="settings_network_all_networks">Utiliser tous les réseaux disponibles (expérimental)</string>
     <string name="settings_orbot_disabled_error">Désactivez le proxy HTTP(S) et/ou SOCKS5 pour continuer avec la configuration de Tor-as-a-proxy.</string>
     <string name="settings_autostart_bootup_heading">Démarrage automatique à la mise sous tension (expérimental)</string>
@@ -126,9 +126,9 @@
     <string name="brbs_restore_dialog_failure_message">Impossible de restaurer. Essayez à nouveau \?</string>
     <string name="orbot_explanation">Orbot est une application proxy gratuite qui permet à d’autres applications d’utiliser Internet de manière plus <u>sûre</u> .
 \nOrbot utilise <u>Tor</u> pour chiffrer votre trafic Internet, ce qui vous aide à <u>contourner la censure</u> et à vous défendre contre les formes de <u>surveillance du réseau</u> qui menacent les libertés individuelles et la vie privée.
-\n<u>Proxy TCP</u> : Rethink transmet à Orbot les connexions TCP de toutes les applications sauf celles qui sont exclues.
-\n<u>Proxy HTTP</u> : Rethink <i>établit</i> un proxy HTTP mais n’oblige pas les applications à l’utiliser. En général, les navigateurs comme Chrome et Firefox l’utilisent. Les applications qui utilisent le proxy HTTP(S) contournent les règles du pare-feu et du DNS.</string>
-    <string name="settings_network_all_networks_desc">Si activé, Rethink utilisera tous les réseaux disponibles pour se connecter à Internet. Sinon, il utilisera le réseau jugé <i>actif</i> par Android.</string>
+\n<u>Proxy TCP</u> : Keepout transmet à Orbot les connexions TCP de toutes les applications sauf celles qui sont exclues.
+\n<u>Proxy HTTP</u> : Keepout <i>établit</i> un proxy HTTP mais n’oblige pas les applications à l’utiliser. En général, les navigateurs comme Chrome et Firefox l’utilisent. Les applications qui utilisent le proxy HTTP(S) contournent les règles du pare-feu et du DNS.</string>
+    <string name="settings_network_all_networks_desc">Si activé, Keepout utilisera tous les réseaux disponibles pour se connecter à Internet. Sinon, il utilisera le réseau jugé <i>actif</i> par Android.</string>
     <string name="settings_check_update_heading">Vérifiez l’existence de mises à jour</string>
     <string name="settings_check_update_desc">Vérifiez automatiquement l’existence de mises à jour une fois par semaine.</string>
     <string name="dns_proxy_port">Numéro de port</string>
@@ -172,9 +172,9 @@
     <string name="cd_custom_dns_proxy_default_ip">127.0.0.1</string>
     <string name="cd_custom_dns_proxy_default_app">Aucun</string>
     <string name="ctbs_app_info_not_available_toast">Les paramètres de l’application sont introuvables</string>
-    <string name="hsf_vpn_dialog_message">Rethink a besoin de l’autorisation de mettre en place un VPN local pour chiffrer les requêtes DNS de l’appareil, mettre en œuvre un moniteur réseau et appliquer des règles de pare-feu.
+    <string name="hsf_vpn_dialog_message">Keepout a besoin de l’autorisation de mettre en place un VPN local pour chiffrer les requêtes DNS de l’appareil, mettre en œuvre un moniteur réseau et appliquer des règles de pare-feu.
 \n
-\nRethink ne collecte aucune information et ne vous espionne en aucune façon.</string>
+\nKeepout ne collecte aucune information et ne vous espionne en aucune façon.</string>
     <string name="firewall_rule_block_app_new_install">Nouvelle appli</string>
     <string name="firewall_rule_block_udp_ntp">UDP bloqué</string>
     <string name="firewall_rule_exempt_dns_proxied">DNS redirigé</string>
@@ -192,7 +192,7 @@
     <string name="univ_view_blocked_ip">règles IP &amp; Port</string>
     <string name="univ_accessibility_dialog_negative">Refuser</string>
     <string name="fapps_firewall_filter_excluded">Exclues</string>
-    <string name="accessibility_notification_content">Le service d’accessibilité Rethink s’est arrêté ou a planté. Il ne bloque plus les applications en arrière-plan. Appuyez pour le réactiver.</string>
+    <string name="accessibility_notification_content">Le service d’accessibilité Keepout s’est arrêté ou a planté. Il ne bloque plus les applications en arrière-plan. Appuyez pour le réactiver.</string>
     <string name="other_dns_list_tab1">DoH</string>
     <string name="firewall_rule_global_lockdown_desc"><![CDATA[Cette connexion a été bloquée car le confinement global est activé.<br/><br/> Pour modifier cela, allez sur l’onglet <i>Global</i>.]]></string>
     <string name="network_dns">DNS du système</string>
@@ -201,8 +201,8 @@
     <string name="brbs_restore_title">Restaurer</string>
     <string name="brbs_backup_dialog_title">Faire une sauvegarde</string>
     <string name="orbot_bs_status_trying_connect">Configuration d’Orbot…</string>
-    <string name="always_on_dialog_lockdown_stop_message">Rethink exécute le VPN en mode <i>Confinement</i>. L’arrêter entraînerait une perte de connectivité Internet sur ce profil utilisateur. Voulez-vous continuer malgré tout \?</string>
-    <string name="orbot_stop_dialog_dns_message">Rethink est configuré pour transmettre les requêtes DNS à Orbot. Modifiez-le si nécessaire.</string>
+    <string name="always_on_dialog_lockdown_stop_message">Keepout exécute le VPN en mode <i>Confinement</i>. L’arrêter entraînerait une perte de connectivité Internet sur ce profil utilisateur. Voulez-vous continuer malgré tout \?</string>
+    <string name="orbot_stop_dialog_dns_message">Keepout est configuré pour transmettre les requêtes DNS à Orbot. Modifiez-le si nécessaire.</string>
     <string name="orbot_none">Aucun (par défaut)</string>
     <string name="about_email">Nous envoyer un courriel</string>
     <string name="cd_custom_doh_url_name">DoH %1$s</string>
@@ -213,7 +213,7 @@
     <string name="firewall_rule_exempt_app_bypass_univ">Appli avec exception(s)</string>
     <string name="firewall_rule_foreground_desc"><![CDATA[Cette connexion était protégée par un pare-feu car l’application source <i>n’était pas au premier plan</i> .<br/><br/> Pour modifier cela, allez sur l’onglet <i>Global</i>.]]></string>
     <string name="firewall_rule_exempt_dns_proxied_desc"><![CDATA[Cette connexion DNS a été redirigée et transmise au point de terminaison DNS spécifié par l’utilisateur.<br/><br/> Pour modifier cela, désactivez <i>Empêcher les fuites DNS</i> de l’écran DNS <i>Configurer</i>.]]></string>
-    <string name="notif_channel_desc_vpn_failure">Informer lorsque Rethink est arrêté par Android ou par une autre application de VPN</string>
+    <string name="notif_channel_desc_vpn_failure">Informer lorsque Keepout est arrêté par Android ou par une autre application de VPN</string>
     <string name="ada_ip_no_connection">Pas de journaux réseau pour cette catégorie.</string>
     <string name="ada_app_status_exclude">Exclue du DNS et du pare-feu</string>
     <string name="notif_download_content_title">Téléchargement des listes de blocage sur l’appareil</string>
@@ -324,7 +324,7 @@
     <string name="radio_sky_btn">⛅ Sky</string>
     <string name="brbs_backup_dialog_positive">Sauvegarder</string>
     <string name="brbs_restore_no_uri_toast">La restauration a échoué ; réessayez</string>
-    <string name="hsf_pause_vpn_failure">Impossible de mettre en pause : Rethink n’est pas actif</string>
+    <string name="hsf_pause_vpn_failure">Impossible de mettre en pause : Keepout n’est pas actif</string>
     <string name="dns_crypt_relay_remove_success">Relais DNSCrypt supprimé.</string>
     <string name="download_update_dialog_failure_title">Il y a eu un problème !</string>
     <string name="search_custom_domains"><font size="12">Recherche de noms de domaine</font></string>
@@ -380,7 +380,7 @@
     <string name="fapps_firewall_filter_isolate">Confinées</string>
     <string name="firewall_rule_no_rule">Aucune règle</string>
     <string name="firewall_rule_new_app_desc"><![CDATA[Cette application a établi la connexion pour la <i>première fois</i>.<br/><br/> Pour la modifier, allez sur l’onglet <i>Global</i>.]]></string>
-    <string name="new_app_bulk_notification_content">Rethink a bloqué %1$s nouvelles applications. Appuyez pour afficher ou modifier.</string>
+    <string name="new_app_bulk_notification_content">Keepout a bloqué %1$s nouvelles applications. Appuyez pour afficher ou modifier.</string>
     <string name="notif_channed_desc_download">Alerte sur la progression du téléchargement des listes de blocage embarquées</string>
     <string name="build__flavor_fdroid">fdroid</string>
     <string name="bsac_title_desc">Les règles ne s’appliquent qu’à cette application.</string>
@@ -402,12 +402,12 @@
     <string name="new_app_notification_action_toast_deny">Connexion réseau refusée pour l’application</string>
     <string name="notif_dialog_pause_dialog_negative">Abandonner</string>
     <string name="notif_channel_firewall_alerts">Alertes du pare-feu</string>
-    <string name="notif_channel_desc_vpn_notification">Informer lorsque Rethink est actif et fonctionne en arrière-plan</string>
+    <string name="notif_channel_desc_vpn_notification">Informer lorsque Keepout est actif et fonctionne en arrière-plan</string>
     <string name="notif_channel_desc_firewall_alerts">Alerte sur les erreurs et anomalies du pare-feu</string>
     <string name="ada_app_status_whitelist">Contourne les règles universelles du pare-feu</string>
     <string name="lbl_advanced">avancé</string>
     <string name="cd_dns_crypt_dialog_stamp">Tampon</string>
-    <string name="dc_dns_leaks_desc">Si activé, Rethink capturera tous les paquets sur le port 53 et les transmettra à un point de terminaison DNS défini par l’utilisateur</string>
+    <string name="dc_dns_leaks_desc">Si activé, Keepout capturera tous les paquets sur le port 53 et les transmettra à un point de terminaison DNS défini par l’utilisateur</string>
     <string name="dns_crypt_relay_remove_dialog_title">Supprimer le relais DNSCrypt \?</string>
     <string name="settings_socks5_heading">Configuration du proxy SOCKS5</string>
     <string name="orbot_socks5">Proxy en mode TCP uniquement</string>
@@ -457,7 +457,7 @@
     <string name="firewall_rule_trusted_ip">IP avec exception (Appli)</string>
     <string name="firewall_rule_device_lock_desc"><![CDATA[Cette connexion était protégée par un pare-feu car <i>l’appareil était verrouillé</i> à ce moment-là.<br/><br/> Pour modifier cela, allez sur l’onglet <i>Global</i>.]]></string>
     <string name="dc_dns_leaks_heading">Empêcher les fuites DNS</string>
-    <string name="new_app_notification_content">Rethink a bloqué l’application récemment installée, %1$s.</string>
+    <string name="new_app_notification_content">Keepout a bloqué l’application récemment installée, %1$s.</string>
     <string name="notif_channel_download">Alertes de téléchargement</string>
     <string name="ci_no_rule">Aucune règle</string>
     <string name="ada_app_status_allow">Autorisée</string>
@@ -498,9 +498,9 @@
     <string name="rt_filter_parent_selected">Sélectionnées</string>
     <string name="rt_filter_hint">Affichage de <u>toutes</u> les listes de blocage</string>
     <string name="private_dns_dialog_heading">Désactiver le DNS privé</string>
-    <string name="private_dns_dialog_desc">Les paramètres DNS de Rethink sont écrasés par le DNS privé d’Android.
+    <string name="private_dns_dialog_desc">Les paramètres DNS de Keepout sont écrasés par le DNS privé d’Android.
 \n
-\nPour utiliser le DNS de Rethink, allez dans les paramètres d’Android et désactivez le \"DNS privé\".</string>
+\nPour utiliser le DNS de Keepout, allez dans les paramètres d’Android et désactivez le \"DNS privé\".</string>
     <string name="private_dns_dialog_positive">Aller dans les paramètres d’Android</string>
     <string name="ada_delete_logs_dialog_title" description="Appears as dialog title to clear the logs in app specific screen">Effacer les journaux</string>
     <string name="ada_delete_logs_dialog_desc" description="Appears as dialog description to clear the logs in app specific screen">Effacer les journaux de cette application.</string>
@@ -509,8 +509,8 @@
     <string name="rbl_security_desc" description="The text appears as blocklists description in configure screen">Bloquer les logiciels malveillants, les rançongiciels, les hameçonneurs et autres menaces.</string>
     <string name="rsv_blocklist_count_text" description="This label will appear in rethink configure simple view screen which shows number of blocklists for each category">%1$s listes de blocage</string>
     <string name="title_statistics">Stats</string>
-    <string name="hs_biometeric_title">Déverrouillez Rethink</string>
-    <string name="hs_biometeric_desc">Utilisez l\'authentification biométrique pour déverrouiller Rethink</string>
+    <string name="hs_biometeric_title">Déverrouillez Keepout</string>
+    <string name="hs_biometeric_desc">Utilisez l\'authentification biométrique pour déverrouiller Keepout</string>
     <string name="fapps_info_unmetered_msg">Autoriser/Bloquer les connexions sur réseau sans abonnement (Wi-Fi).</string>
     <string name="fapps_info_bypass_msg">Contourner les règles du pare-feu global.</string>
     <string name="fapps_info_exclude_msg">Exclure à la fois du DNS et du pare-feu.</string>
@@ -529,7 +529,7 @@
     <string name="ssv_most_contacted_domain_heading" description="This label will appear on the stats screen as a header for most visited domains" translatable="true">Domaines les plus contactés</string>
     <string name="ssv_most_blocked_domain_heading" description="This label will appear on the stats screen as a header for most blocked domains" translatable="true">Domaines les plus bloqués</string>
     <string name="ssv_most_contacted_ips_heading" description="This label will appear on the stats screen as a header for most visited ips" translatable="true">IP les plus contactées</string>
-    <string name="ssv_toast_start_rethink" description="This label will appear on the stats screen as toast to start Rethink app">Lancer Rethink pour procéder</string>
+    <string name="ssv_toast_start_rethink" description="This label will appear on the stats screen as toast to start Rethink app">Lancer Keepout pour procéder</string>
     <string name="ssv_most_blocked_ips_heading" description="This label will appear on the stats screen as a header for most blocked ips" translatable="true">IP les plus bloquées</string>
     <string name="ssv_app_network_activity_heading" description="This label will appear on the stats screen as a header for allowed apps." translatable="true">Applications les plus autorisées</string>
     <string name="hs_biometeric_error">Erreur lors de l\'authentification biométrique</string>
@@ -580,7 +580,7 @@
     <string name="ada_app_status_bypass_dns_firewall" translatable="true">Contourne les règles universelles du DNS et du pare-feu</string>
     <string name="lbl_network" translatable="true">réseau</string>
     <string name="settings_allow_lan_heading" translatable="true">Ne pas acheminer les IP privées (expérimental)</string>
-    <string name="settings_allow_lan_desc" translatable="true">Exclure les routes LAN, loopback, multicast, link-local du tunnel VPN de Rethink.</string>
+    <string name="settings_allow_lan_desc" translatable="true">Exclure les routes LAN, loopback, multicast, link-local du tunnel VPN de Keepout.</string>
     <string name="bad_config_reason_invalid_key" translatable="true">Clé invalide</string>
     <string name="parse_error_inet_network" translatable="true">Réseau IP</string>
     <string name="parse_error_inet_address" translatable="true">Adresse IP</string>
@@ -712,13 +712,13 @@
     <string name="lbl_split" translatable="true">Séparer</string>
     <string name="dc_proxy_dns_heading" translatable="true">Ne jamais utiliser de proxy pour DNS</string>
     <string name="settings_exclude_proxy_apps_heading" translatable="true">Applications de transit proxy</string>
-    <string name="settings_exclude_proxy_apps_desc" translatable="true">Lorsque désactivé, exclut les applications de redirecteur proxy (SOCKS5, HTTP, DNS) du tunnel VPN de Rethink.</string>
+    <string name="settings_exclude_proxy_apps_desc" translatable="true">Lorsque désactivé, exclut les applications de redirecteur proxy (SOCKS5, HTTP, DNS) du tunnel VPN de Keepout.</string>
     <string name="exclude_apps_from_proxy">Contourner l\'application de tous les proxys</string>
     <string name="exclude_apps_from_proxy_failure_toast">Cette application contourne tous les proxys</string>
-    <string name="memory_notification_text">Rethink connaît une mémoire insuffisante. Les actions du système peuvent être limitées.</string>
+    <string name="memory_notification_text">Keepout connaît une mémoire insuffisante. Les actions du système peuvent être limitées.</string>
     <string name="lbl_test" translatable="true">test</string>
     <string name="settings_jumbo_packets" translatable="true">Amplificateur de bande passante</string>
-    <string name="settings_jumbo_packets_desc" translatable="true">Utilise des <i>paquets jumbo</i> dans le tunnel VPN de Rethink.</string>
+    <string name="settings_jumbo_packets_desc" translatable="true">Utilise des <i>paquets jumbo</i> dans le tunnel VPN de Keepout.</string>
     <string name="stability_program_toast" translatable="true">Inscrit au <i>programme de stabilité</i> pour les <i>fonctionnalités expérimentales</i>.</string>
     <string name="lbl_experimental" translatable="true">(expérimental)</string>
     <string name="lbl_service_providers" translatable="true">Fournisseurs de service</string>
@@ -776,7 +776,7 @@
     <string name="wg_setting_use_on_mobile" translatable="true">Mobile uniquement</string>
     <string name="wg_setting_use_on_mobile_desc" translatable="true">Utiliser ce VPN WireGuard via les données mobiles.</string>
     <string name="hop_add_remove_title" translatable="true">Ajouter/Supprimer un relais</string>
-    <string name="bypasses_network_restrictions" translatable="true">Les tests d\'accessibilité contournent toutes les restrictions réseau. En mode <i>Auto</i>, Rethink utilise aléatoirement les adresses IP et les noms d\'hôte précédemment utilisés.</string>
+    <string name="bypasses_network_restrictions" translatable="true">Les tests d\'accessibilité contournent toutes les restrictions réseau. En mode <i>Auto</i>, Keepout utilise aléatoirement les adresses IP et les noms d\'hôte précédemment utilisés.</string>
     <string name="most_contacted_asn" translatable="true">Fournisseurs les plus contactés</string>
     <string name="most_blocked_asn" translatable="true">Fournisseurs les plus bloqués</string>
     <string name="download_ip_info_title" translatable="true">Afficher les informations du fournisseur</string>
@@ -786,7 +786,7 @@
     <string name="close_conns_dialog_desc" translatable="true">Fermer toutes les connexions pour %1$s ?</string>
     <string name="local_blocklist_delete_desc" translatable="true">Supprimer les listes de blocage sur l\'appareil ?</string>
     <string name="fail_open_network_title" translatable="true">Blocage dû à une perte de réseau</string>
-    <string name="fail_open_network_desc" translatable="true">Lorsqu\'il est activé, Rethink bloque toutes les données lorsqu\'aucune connectivité n\'est disponible, comme en <i>mode avion</i>.</string>
+    <string name="fail_open_network_desc" translatable="true">Lorsqu\'il est activé, Keepout bloque toutes les données lorsqu\'aucune connectivité n\'est disponible, comme en <i>mode avion</i>.</string>
     <string name="about_license" translatable="true">Licence Apache-2.0</string>
     <string name="smart_dns" translatable="true">DNS intelligent</string>
     <string name="smart_dns_desc" translatable="true"><i>Smart DNS</i> utilise aléatoirement l\'un de ces résolveurs DNS :</string>
@@ -803,7 +803,7 @@
     <string name="title_database_dump" translatable="true">Base de données</string>
     <string name="wg_setting_ssid_title" translatable="true">Wi-Fi uniquement</string>
     <string name="wg_setting_ssid_desc" translatable="true">Activez ce VPN WireGuard uniquement lorsque vous êtes connecté au Wi-Fi ou aux identifiants Wi-Fi spécifiés (%1$s).</string>
-    <string name="ssid_permission_explanation" translatable="true">Rethink a besoin de l’autorisation de localisation pour accéder aux identifiants Wi-Fi (%1$s).</string>
+    <string name="ssid_permission_explanation" translatable="true">Keepout a besoin de l’autorisation de localisation pour accéder aux identifiants Wi-Fi (%1$s).</string>
     <string name="location_enable_explanation" translatable="true">Pour accéder aux identifiants Wi-Fi (%1$s), activez le service de localisation.</string>
     <string name="wg_ssid_dialog_description" translatable="true">%1$s ce VPN WireGuard lorsque <i>actif</i> Identifiant Wi-Fi (%2$s) %3$s.</string>
     <string name="wg_ssid_type_exact" translatable="true">Exactement</string>
@@ -815,7 +815,7 @@
     <string name="tombstone_app_desc" translatable="true">Lorsque cette option est activée, conserver les règles de l\'application pendant 7 jours.</string>
     <string name="settings_allow_incoming_wg_packets" translatable="true">WireGuard P2P</string>
     <string name="settings_allow_incoming_wg_packets_desc" translatable="true">Lorsqu\'elle est activée, cette option autorise les connexions entrantes initiées par les pairs WireGuard.</string>
-    <string name="lockdown_download_message" translatable="true"><i>Le gestionnaire de téléchargement</i> intégré d\'Android peut rencontrer des problèmes lorsque le VPN est en mode <i>Verrouillage</i>. Souhaitez-vous activer le gestionnaire de téléchargement de Rethink à la place ?</string>
+    <string name="lockdown_download_message" translatable="true"><i>Le gestionnaire de téléchargement</i> intégré d\'Android peut rencontrer des problèmes lorsque le VPN est en mode <i>Verrouillage</i>. Souhaitez-vous activer le gestionnaire de téléchargement de Keepout à la place ?</string>
     <string name="lockdown_download_enable_inapp" translatable="true">Activer le téléchargeur</string>
     <string name="lbl_action" translatable="true">Action</string>
     <string name="home_last_24_hours">Dernières 24 heures</string>

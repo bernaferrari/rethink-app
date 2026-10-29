@@ -4,7 +4,7 @@
     <string name="title_settings" translatable="true">Ашәахәқәрақәа</string>
     <string name="title_statistics" translatable="true">Астатистика</string>
     <string name="txt_home" translatable="true">Абаза\"}</string>
-    <string name="accessibility_service_description" translatable="true">Rethink adgla a-хәажәлар a-хықәкы ахыҧхәра ашьаҭаҟаҵоит а background a a-қәыларақәа рыԥикразы. Rethink а информация аахәымлаӡакәым, аԥыхылааым.</string>
+    <string name="accessibility_service_description" translatable="true">Keepout adgla a-хәажәлар a-хықәкы ахыҧхәра ашьаҭаҟаҵоит а background a a-қәыларақәа рыԥикразы. Keepout а информация аахәымлаӡакәым, аԥыхылааым.</string>
     <string name="finish" translatable="true">Аламрыш йахъхъахъащ</string>
     <string name="lbl_cancel" translatable="true">АҞәырԥ</string>
     <string name="lbl_apply" translatable="true">Аҭапылара</string>
@@ -21,7 +21,7 @@
     <string name="lbl_network" translatable="true">жәлар</string>
     <string name="lbl_ip_rules" translatable="true">IP А kebijakanқəа</string>
     <string name="lbl_domain_rules" translatable="true">Адомеинқәа рԥынаҵқәқәа</string>
-    <string name="slide_2_desc" translatable="true">Rethink ащхъа цәааракны иҟоуп аnetwork activity ашәашәаларц, Internet censorship агьежьцәаларц, насгьы аphone\'s applications ашәашәаларц.</string>
+    <string name="slide_2_desc" translatable="true">Keepout ащхъа цәааракны иҟоуп аnetwork activity ашәашәаларц, Internet censorship агьежьцәаларц, насгьы аphone\'s applications ашәашәаларц.</string>
     <string name="allow" translatable="true">Аишьамшьа</string>
     <string name="block" translatable="true">Алакьаҧшра</string>
     <string name="bypass_universal" translatable="true">Универсалтәи ашәашәынтәҵәаҟынтәи ацәынтәалара</string>
@@ -29,7 +29,7 @@
     <string name="isolate" translatable="true">еиҧшулара</string>
     <string name="untracked" translatable="true">Ауиымҧшәааит</string>
     <string name="bypass_dns_firewall" translatable="true">DNS &amp; Firewall аҧсыуа</string>
-    <string name="warning_title" description="Status indicator text shown in a warning notification." translatable="true">Ашәахәыҟәыҟә: Rethink ашьапыламҩақәҵра аамҭа ахьеиҧшхеит</string>
+    <string name="warning_title" description="Status indicator text shown in a warning notification." translatable="true">Ашәахәыҟәыҟә: Keepout ашьапыламҩақәҵра аамҭа ахьеиҧшхеит</string>
     <string name="notification_content" description="Indicates what will happen if the user taps the notification." translatable="true">Ажәыла хара хащәақәра аҟынтә иахьаҧшра аиҭакразы</string>
     <string name="dns_mode_notification_title" translatable="true">Ихьыхьуп! Ашьапылази ашәыхьыжьала DNS аҿы.</string>
     <string name="firewall_mode_notification_title" translatable="true">Шьахәыла! Firewall-раҟны имҩасуа иазааргәылшьоит.</string>
@@ -59,11 +59,11 @@
     <string name="bsct_block_ip" translatable="true">Ашәахә, адгәаҭа <u>ацымԥс</u> <u>ацымԥс</u> азы</string>
     <string name="bsct_block_domain" translatable="true">Иашьа, адгылара <u>адоменқәа</u> <u>ашәахәыҟәаҵәа</u> ишаҟоу</string>
     <string name="always_on_dialog_heading" translatable="true">VPN агәыпҟрала аанхәаратә мч ахыхьӡеит</string>
-    <string name="always_on_dialog" translatable="true">Ацы документ аҿы «Агәны-иасыз VPN» ашәҟәы иашьҭоуп. Rethink аиҭамҵарц азы, Settings ашәҟәы аҿы аҭаацәара, уаҟа «Агәны-иасыз VPN» аанкылара иаҿцәашәҟәылаа.</string>
+    <string name="always_on_dialog" translatable="true">Ацы документ аҿы «Агәны-иасыз VPN» ашәҟәы иашьҭоуп. Keepout аиҭамҵарц азы, Settings ашәҟәы аҿы аҭаацәара, уаҟа «Агәны-иасыз VPN» аанкылара иаҿцәашәҟәылаа.</string>
     <string name="always_on_dialog_positive_btn" translatable="true">Ашәахәахәтәқәа рахь дaa\"}</string>
     <string name="always_on_dialog_stop_heading" translatable="true">Амшын-жәышы А VPN</string>
-    <string name="always_on_dialog_stop_message" translatable="true">Аҿада-иҟәу VPN ашәыхыуп Rethink ашәыхыуп. Даҽа кодала уанцаланы уаанкрала уигәы дгәанырхуа?</string>
-    <string name="always_on_dialog_lockdown_stop_message" translatable="true">Rethink VPN афацәа «Афатәра» ашәылараҟны иҟоуп. Уара уахымҧшәырлара, уи аус ҳуашаҧма аинтернет аҿы аҿаҧшыра ацәымҧшәырлара ануҧшәыуп. Уара ушаҧшәырлара?</string>
+    <string name="always_on_dialog_stop_message" translatable="true">Аҿада-иҟәу VPN ашәыхыуп Keepout ашәыхыуп. Даҽа кодала уанцаланы уаанкрала уигәы дгәанырхуа?</string>
+    <string name="always_on_dialog_lockdown_stop_message" translatable="true">Keepout VPN афацәа «Афатәра» ашәылараҟны иҟоуп. Уара уахымҧшәырлара, уи аус ҳуашаҧма аинтернет аҿы аҿаҧшыра ацәымҧшәырлара ануҧшәыуп. Уара ушаҧшәырлара?</string>
     <string name="always_on_dialog_positive" translatable="true">Иашьаҟа</string>
     <string name="always_on_dialog_neutral" translatable="true">Ашәашәақәа</string>
     <string name="private_dns_dialog_heading" translatable="true">А privada DNS ахыжь</string>
@@ -106,7 +106,7 @@
     <string name="settings_enable_logs_desc" translatable="true">ДНС-и аиҭамлара ваиҭамлара еиҭамлара аҩныҵҟа, аусбарҭа аҿы.</string>
     <string name="settings_enable_logs" translatable="true">Аҿыцлантәи ацхыцқәа рҟаҵара ашьақәыргылара</string>
     <string name="connection_http3" translatable="true">HTTP3</string>
-    <string name="settings_allow_lan_desc" translatable="true">Rethink\'s VPN tunnel-иҟнынтә иахкныжь АЛАН, loopback, multicast, link-local маршрутқәа.</string>
+    <string name="settings_allow_lan_desc" translatable="true">Keepout\'s VPN tunnel-иҟнынтә иахкныжь АЛАН, loopback, multicast, link-local маршрутқәа.</string>
     <string name="settings_allow_bypass_heading" translatable="true">Аҿыцәқәа ргәаҭа арацәшәажь аиҭнархәа</string>
     <string name="settings_allow_bypass_desc" translatable="true">Азшәахра аԥҟыдақәлақә рзы аус алгӡара иадҵоит зегьы иазку аус рыбжьгара. Уи азшәахрақәа ириашаны имҩаԥыргоим а VPN ашәахәҭақәа. Аудио/видео аиԥыларақәа ирзынаԥшуа Microsoft Teams Microsoft Teams and Google Meet аҟны ишаҭахыу аҟынтә, урҭ а аушьҭыра аҟынтә имҩаԥыргоим.</string>
     <string name="settings_lock_down_mode_desc" translatable="true">VPN-им рыхәтныла урхәҵаит ахыҵхәақәа рымчалара. <u>VPN ашәҟәы азыр</u>.</string>
@@ -128,7 +128,7 @@
     <string name="orbot_app_issue" translatable="true">Иахәаԥшрала иалаганмыжьит Orbot. Иашьаҭахыуазар иԥшьаауамызло?</string>
     <string name="orbot_bs_status_trying_connect" translatable="true">АҞәаҵәарала Orbot…</string>
     <string name="orbot_stop_dialog_title" translatable="true">Аҿацәалатә ашара аҭахыу</string>
-    <string name="orbot_stop_dialog_message" translatable="true">Rethink Orbot-м еиуиажьра ацәымсуаит, аха Orbot агәаҧхьала аусу еиулыршоит.</string>
+    <string name="orbot_stop_dialog_message" translatable="true">Keepout Orbot-м еиуиажьра ацәымсуаит, аха Orbot агәаҧхьала аусу еиулыршоит.</string>
     <string name="orbot_stop_dialog_dns_message" translatable="true">RethinkOrbot-и иҧшьныҟа DBD ауҭакрақәа шхәыцрала ирхынҳәуеит. Ахаҭа ицәыуаан.</string>
     <string name="orbot_stop_dialog_negative" translatable="true">Иацәыжьыршә Орбот</string>
     <string name="orbot_stop_dialog_neutral" translatable="true">DNS аиҭашәашәар</string>
@@ -139,7 +139,7 @@
     <string name="orbot_install_dialog_positive" translatable="true">Шәынтәиала</string>
     <string name="orbot_install_dialog_neutral" translatable="true">асасаат</string>
     <string name="settings_socks5_disabled_error" translatable="true">%1$s-нтәи аихәаԥш аамҭақәа рҿы иааиларц азы, уи аловонт.</string>
-    <string name="settings_socks5_vpn_disabled_error" translatable="true">Rethink дрыжьраа шəаа, аҧхьаӡа ашьаҧыжьыр.</string>
+    <string name="settings_socks5_vpn_disabled_error" translatable="true">Keepout дрыжьраа шəаа, аҧхьаӡа ашьаҧыжьыр.</string>
     <string name="settings_orbot_disabled_error" translatable="true">HTTP(S) anS SOCKS5 proxy-қәа анцәаитәит Tor-as-a-proxy-и амҵәышәшьаразы.</string>
     <string name="settings_https_disabled_error" translatable="true">%1$s-eиҧшны иоухааит. Шәахәахәҭышә, ари аҧыхрала.</string>
     <string name="settings_orbot_notification_content" translatable="true">Тор-аҧхьаҧырҧшра алагалара ашәахәара. Иааирти ҳәа иашьҭаҵаны Orbot аԥшьынк алагаларц.</string>
@@ -184,13 +184,13 @@
     <string name="firewall_status_whitelisted" translatable="true">Ауниверсалтә ҳәалтрақәа рыхы данахьлеит</string>
     <string name="firewall_status_bypass_dns_firewall" translatable="true">Dns-иркабала, firewall-иркабала аҟынтә иналацәахоит</string>
     <string name="firewall_status_unknown" translatable="true">Addling</string>
-    <string name="hs_biometeric_title" translatable="true">Rethink аишьҭахылар</string>
-    <string name="hs_biometeric_desc" translatable="true">Rethink аишьшәаашәоит абиометриатә ашьаҭҝырала</string>
+    <string name="hs_biometeric_title" translatable="true">Keepout аишьҭахылар</string>
+    <string name="hs_biometeric_desc" translatable="true">Keepout аишьшәаашәоит абиометриатә ашьаҭҝырала</string>
     <string name="hs_biometeric_error" translatable="true">Биомеиутрик ауадацахьхəарак</string>
     <string name="hsf_vpn_dialog_header" translatable="true">Ашәахьа!</string>
     <string name="hsf_vpn_prepare_failure" translatable="true">VPN анбоу идаҿуп, мамза сценари, даҽа программа «Абжьыжьатә VPN» ашәҟәышәҟәы акьыҟәаны.</string>
     <string name="hsf_notification_permission_failure" translatable="true">Ашәаҳәара шрылазгараз «Ашәаҳәара» адәаҿ</string>
-    <string name="hsf_pause_vpn_failure" translatable="true">Cannot pause: Rethink not active</string>
+    <string name="hsf_pause_vpn_failure" translatable="true">Cannot pause: Keepout not active</string>
     <string name="dc_block_heading" translatable="true">Ашәақәа</string>
     <string name="dc_other_dns_heading" translatable="true">Ашҟа</string>
     <string name="dc_custom_dns_radio" translatable="true">Аҧсуа DNS</string>
@@ -201,7 +201,7 @@
     <string name="dc_dns_website_heading" translatable="true">Аархәоит аwebsite аиашьатә еиқәыршара DNS ақәышарақәа рҿы (адәаҿы иҟоуп)</string>
     <string name="dc_dns_website_desc" translatable="true">Аҧсуа бызшәаҿ ииажьуеит а веб-саитқәа ргәаҿыреиқәҵәрақәа <i>nextdns.io</i>, <i>duckduckgo.com</i>. Адиск аҿы иццоит 350 МБ аҟынӡа</string>
     <string name="dc_dns_leaks_heading" translatable="true">DNS маицәаажьра ҳәа иахәаԥшлам</string>
-    <string name="dc_dns_leaks_desc" translatable="true">УПС! Иашьаҭырҵәара адырра аиура иахәҭоуп.\nАжәабжьҳәаҩ:\nЕрыцәҟәоуп, Rethink иаанахәоит 53-тәи амҩаҿы зегьы реисмозгьы, насгьы ақәырҧшра абеиаҩцәа ирынаҵы шьҭыхаауеит.</string>
+    <string name="dc_dns_leaks_desc" translatable="true">УПС! Иашьаҭырҵәара адырра аиура иахәҭоуп.\nАжәабжьҳәаҩ:\nЕрыцәҟәоуп, Keepout иаанахәоит 53-тәи амҩаҿы зегьы реисмозгьы, насгьы ақәырҧшра абеиаҩцәа ирынаҵы шьҭыхаауеит.</string>
     <string name="dc_check_update_heading" translatable="true">Аблок хьыжьра амшәала</string>
     <string name="about_bug_report_desc" translatable="true">e-mail-тәи амшьахәқәа рыхәшәтәра</string>
     <string name="about_join_telegram" translatable="true">Telegram</string>
@@ -395,8 +395,8 @@
     <string name="firewall_rule_dns_blocked_desc" translatable="true"><![CDATA[Ари уахтныҧлаӡа ашьапынҵәы ахыҧхәаҧсныжьҭоит, уи адоунеи ашәҟәы рацәала ахархәҩы иҧшныбжьжьыжьҭоит.<br/><br/> Ари аҧсахра апаҧха азнадаразы аиҧшныжьҭазы а konfiguracia аганахьала ашаҧха ашәҟәӡ ашәҟәала.]]></string>
     <string name="firewall_rule_domain_blocked_univ_desc" translatable="true"><![CDATA[Ари акәыланахара ашьхараз еидыркылеит, мамзақьтәи адомен ауниверсалтә адоменқәа рҿы ашьхаракыраҟны ишьҭаҵоуп.<br/><br/> Ари аҟәылара аԥсахразы, "Аконфигурациа DNS" ахыбра ахь ииажьыр шә امکان.]]></string>
     <string name="new_app_bulk_notification_title" translatable="true">Аслым\"}\nGagz`a rk`az`a</string>
-    <string name="new_app_bulk_notification_content" translatable="true">Rethink лымкьыу %1$s а-хъацәа апсқьала. Уагәырхътә, мамзакәи уи ааныржь.</string>
-    <string name="new_app_notification_content" translatable="true">Rethink аднахара адбыта izəхə, %1$s.</string>
+    <string name="new_app_bulk_notification_content" translatable="true">Keepout лымкьыу %1$s а-хъацәа апсқьала. Уагәырхътә, мамзакәи уи ааныржь.</string>
+    <string name="new_app_notification_content" translatable="true">Keepout аднахара адбыта izəхə, %1$s.</string>
     <string name="new_app_notification_action_deny" translatable="true">Ашәахьыхылара иацӡат</string>
     <string name="new_app_notification_action_toast_allow" translatable="true">Аусурыла аусура лхъазла апсуара</string>
     <string name="new_app_notification_action_toast_deny" translatable="true">Аупхыралара ахыҧшәыхра аахыҧхьит аусура амҩаԥгаразы</string>
@@ -407,8 +407,8 @@
     <string name="notif_channel_firewall_alerts" translatable="true">Ашәақәшьрақәа</string>
     <string name="notif_channel_proxy_failure" translatable="true">Прокси егьалхъабалар</string>
     <string name="notif_channel_download" translatable="true">Ашәахәалара ашәахәаларақәа</string>
-    <string name="notif_channel_desc_vpn_notification" translatable="true">Rethink ахәаԥшра аамҭазы, иаҳасаблоуп ашьҭшьаҟны</string>
-    <string name="notif_channel_desc_vpn_failure" translatable="true">Ауеи «Rethink» ашьапылара Аиҭаижьра ашәахымҭала мамзаргьы иагьшәаны егьынтәvp ақәымшәшьыжьра</string>
+    <string name="notif_channel_desc_vpn_notification" translatable="true">Keepout ахәаԥшра аамҭазы, иаҳасаблоуп ашьҭшьаҟны</string>
+    <string name="notif_channel_desc_vpn_failure" translatable="true">Ауеи «Keepout» ашьапылара Аиҭаижьра ашәахымҭала мамзаргьы иагьшәаны егьынтәvp ақәымшәшьыжьра</string>
     <string name="notif_channel_desc_firewall_alerts" translatable="true">Ашәахәаҧшра ашәахәаҧшра ашәахәаҧшра ашәахәаҧшра ашәахәаҧшра ашәахәаҧшра ашәахәаҧшра ашәахәаҧшра ашәахәаҧшра ашәахәаҧшра ашәахәаҧшра ашәахәаҧшра ашәахәаҧшра</string>
     <string name="notif_channel_desc_proxy_failure" translatable="true">Фыцәахаракқәа рымҩаԥгара азгәаҭареи аԥырҧшәрақәа рзы аклцәажәара</string>
     <string name="notif_channed_desc_download" translatable="true">"Ашәашәра Алхыҵхәа  Ҭнышәашәашәашәашәа Оn-Dеvіcе Blocklists Ашәашәашәашәа"</string>
@@ -514,7 +514,7 @@
     <string name="ssv_most_blocked_domain_heading" description="This label will appear on the stats screen as a header for most blocked domains" translatable="true">Ицәыхәыххом доменқәа рацәаны</string>
     <string name="ssv_most_contacted_ips_heading" description="This label will appear on the stats screen as a header for most visited ips" translatable="true">Ҭыҟәымҩаԥгааз IPқәа</string>
     <string name="ssv_most_blocked_ips_heading" description="This label will appear on the stats screen as a header for most blocked ips" translatable="true">Ишәҟәажәаз IP-қәа зеиԥшкәу</string>
-    <string name="ssv_toast_start_rethink" description="This label will appear on the stats screen as toast to start Rethink app" translatable="true">Rethink ацашьаха, аҧҵы аиҭашәашәаразы</string>
+    <string name="ssv_toast_start_rethink" description="This label will appear on the stats screen as toast to start Rethink app" translatable="true">Keepout ацашьаха, аҧҵы аиҭашәашәаразы</string>
     <string name="ssv_see_more" translatable="true">Иҭабужь Аҭабужь</string>
     <string name="lbl_create" translatable="true">Аишьҭра</string>
     <string name="lbl_qr_code" translatable="true">QR код</string>
@@ -640,10 +640,10 @@
     <string name="toast_allow_bypass_disabled" translatable="true">%1$s аҿацәажәаҩцәа реиҧшра шрыму азы ашьҭаҟаҵоуп</string>
     <string name="lbl_unselected" translatable="true">Ахацәажәам</string>
     <string name="settings_exclude_proxy_apps_heading" translatable="true">Аҧсуа бызшәала Loopback proxy forwarder apps</string>
-    <string name="settings_exclude_proxy_apps_desc" translatable="true">Амшәыхча усураамҭа иаҵанакуа, адгьылҵысра (SOCKS5, HTTP, DNS) аҵыхратә программақәа Rethink-и амҩаду ажәларқәа рахь мап анацәыхә.</string>
+    <string name="settings_exclude_proxy_apps_desc" translatable="true">Амшәыхча усураамҭа иаҵанакуа, адгьылҵысра (SOCKS5, HTTP, DNS) аҵыхратә программақәа Keepout-и амҩаду ажәларқәа рахь мап анацәыхә.</string>
     <string name="exclude_apps_from_proxy">Ашәахәыла адҵәыуааит апроксиқәк зегьы инаркны</string>
     <string name="exclude_apps_from_proxy_failure_toast">Ари апшьыжьшьәқәра проксиқәа ашьапынтә алаҟәит</string>
-    <string name="memory_notification_text">Rethink- implementação ашәашәрала ацәымҵыра амҩаԥгара. Асистема аҟны амҩаԥгарақәа ры mulighed ашәашәрала иаҳа иаазбан.</string>
+    <string name="memory_notification_text">Keepout- implementação ашәашәрала ацәымҵыра амҩаԥгара. Асистема аҟны амҩаԥгарақәа ры mulighed ашәашәрала иаҳа иаазбан.</string>
     <string name="lbl_test" translatable="true">тест</string>
     <string name="lbl_experimental" translatable="true">(аҧсуа)</string>
     <string name="lbl_service_providers" translatable="true">А služибаҳәатқәа</string>
@@ -692,7 +692,7 @@
     <string name="wg_setting_use_on_mobile_desc" translatable="true">Ако́ќа́р Ҟ́ап́а́ра аб́а́с́ы́ А́а́рќас́ам́ ако́у́п́ит́.</string>
     <string name="hop_add_remove_title" translatable="true">Иацәакра / Ишымхра Аишьамҭан</string>
     <string name="about_terms_of_service" translatable="true">А políticas de serviço</string>
-    <string name="bypasses_network_restrictions" translatable="true">Аҿышәара азыртәқәа зегьы амҩақәа рҿы ашьапынҵәра шрызхымкьацәаны иҟаиҵоит. Ахатәモード аҿы, Rethink акасоура шьаҭаху ажьылацәа змам а IP-қәа рыцәҟәыратә мҩала акрааҩыра аӡәыуааҵәа, мамзацә аҿы аԥыла аусшәа, унҵәа аԥыла аусшәа, унҵәа рҿы аус ауеит.</string>
+    <string name="bypasses_network_restrictions" translatable="true">Аҿышәара азыртәқәа зегьы амҩақәа рҿы ашьапынҵәра шрызхымкьацәаны иҟаиҵоит. Ахатәモード аҿы, Keepout акасоура шьаҭаху ажьылацәа змам а IP-қәа рыцәҟәыратә мҩала акрааҩыра аӡәыуааҵәа, мамзацә аҿы аԥыла аусшәа, унҵәа аԥыла аусшәа, унҵәа рҿы аус ауеит.</string>
     <string name="most_contacted_asn" translatable="true">Еиҧшумзааиу амҵәышьҭахаҩцәа</string>
     <string name="most_blocked_asn" translatable="true">Уадыла еикулра ауытлацәа</string>
     <string name="download_ip_info_title" translatable="true">Аҿыхгаҩ идыртәқәа ирбоит</string>

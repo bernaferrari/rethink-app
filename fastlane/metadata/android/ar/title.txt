@@ -1,1 +1,1 @@
-Rethink: DNS + جدار حماية وVPN
+Keepout: جدار حماية وDNS

@@ -30,14 +30,14 @@
     <string name="orbot_install_dialog_positive">Установить</string>
     <string name="rdns_plus">RDNS Plus</string>
     <string name="isolate">изолировать</string>
-    <string name="warning_title" description="Status indicator text shown in a warning notification.">Предупреждение: Rethink был деактивирован</string>
+    <string name="warning_title" description="Status indicator text shown in a warning notification.">Предупреждение: Keepout был деактивирован</string>
     <string name="notification_action_dns_firewall_mode">DNS + Брандмауэр</string>
     <string name="settings_theme_heading">Внешний вид</string>
     <string name="dc_other_dns_heading">Используемый DNS</string>
     <string name="settings_app_list_default_app">Ничего</string>
     <string name="untracked">неотслеживаемый</string>
     <string name="local_blocklist_redownload">Актуально!</string>
-    <string name="accessibility_service_description">Rethink использует службу специальных возможностей для обнаружения и блокирования фоновых приложений. Rethink не собирает и не продает какую-либо информацию.</string>
+    <string name="accessibility_service_description">Keepout использует службу специальных возможностей для обнаружения и блокирования фоновых приложений. Keepout не собирает и не продает какую-либо информацию.</string>
     <string name="slide_2_desc">RethinkDNS — это самый простой способ обходить интернет-цензуру, отслеживать и блокировать сетевую активность приложений на вашем Android устройстве.</string>
     <string name="title_about">О приложении</string>
     <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">Ожидание</string>
@@ -62,12 +62,12 @@
     <string name="orbot_download_link_website">https://github.com/guardianproject/orbot/releases</string>
     <string name="connection_http3">Протокол HTTP3</string>
     <string name="settings_proxy_header">прокси</string>
-    <string name="always_on_dialog">На этом устройстве включен \"Постоянный VPN\". Чтобы запустить Rethink, перейдите в настройки устройства и отключите \"Постоянный VPN\".</string>
-    <string name="alert_firewall_accessibility_regrant_explanation">Служба доступности Rethink остановилась или произошел сбой. <i><b>Перейдите Настройки и принудительно остановите</b></i> Rethink и запустите его снова, чтобы использовать функцию <i>Блокировки любого неиспользуемого приложения</i>.
+    <string name="always_on_dialog">На этом устройстве включен \"Постоянный VPN\". Чтобы запустить Keepout, перейдите в настройки устройства и отключите \"Постоянный VPN\".</string>
+    <string name="alert_firewall_accessibility_regrant_explanation">Служба доступности Keepout остановилась или произошел сбой. <i><b>Перейдите Настройки и принудительно остановите</b></i> Keepout и запустите его снова, чтобы использовать функцию <i>Блокировки любого неиспользуемого приложения</i>.
 \n
-\nRethink использует службу доступности для отслеживания того, какие приложения используются (открыты), а какие не используются (в фоне).</string>
+\nKeepout использует службу доступности для отслеживания того, какие приложения используются (открыты), а какие не используются (в фоне).</string>
     <string name="bsct_block_ip">Блокировать, доверять <u>этому IP</u> для <u>этого приложения</u></string>
-    <string name="always_on_dialog_stop_message">Для Rethink включен постоянный VPN. Вы уверены, что хотите остановить Rethink в любом случае\?</string>
+    <string name="always_on_dialog_stop_message">Для Keepout включен постоянный VPN. Вы уверены, что хотите остановить Keepout в любом случае\?</string>
     <string name="doh_custom_url_remove_success">Конечная точка удалена.</string>
     <string name="dc_rethink_dns_radio">Rethink DNS</string>
     <string name="doh_custom_url_remove_dialog_message">Удалите конечную точку DNS через Https из сохраненной конфигурации.</string>
@@ -79,22 +79,22 @@
     <string name="settings_ip_text_ipv6">IPv6</string>
     <string name="firewall_status_isolate">Изолировано</string>
     <string name="settings_selected_ip_desc">%1$s</string>
-    <string name="settings_network_all_networks_desc">Если функция включена, Rethink использует все доступные сети для подключения к интернету. Если нет, то используется та сеть, которая считается <i>активной</i> в Android.</string>
+    <string name="settings_network_all_networks_desc">Если функция включена, Keepout использует все доступные сети для подключения к интернету. Если нет, то используется та сеть, которая считается <i>активной</i> в Android.</string>
     <string name="hsf_vpn_dialog_header">Внимание!</string>
     <string name="about_mail_to_string">почта:</string>
     <string name="cd_dns_crypt_name_default">DNSCrypt</string>
     <string name="cd_dns_crypt_dialog_name">Имя</string>
     <string name="hs_download_positive_default">ok</string>
-    <string name="settings_allow_bypass_desc">Разрешить запрашивающим приложениям доступ ко всем доступным сетям. Эти приложения смогут обходить VPN-туннель Rethink по требованию. Некоторым приложениям для аудио/видеоконференций, таким как Zoom и Meet, это может потребоваться для правильной работы.</string>
+    <string name="settings_allow_bypass_desc">Разрешить запрашивающим приложениям доступ ко всем доступным сетям. Эти приложения смогут обходить VPN-туннель Keepout по требованию. Некоторым приложениям для аудио/видеоконференций, таким как Zoom и Meet, это может потребоваться для правильной работы.</string>
     <string name="build__flavor_fdroid">fdroid</string>
     <string name="ada_noapp_dialog_positive">ОК</string>
     <string name="rt_edit_dialog_positive">Изменить</string>
     <string name="dc_dns_crypt">DNSCrypt</string>
     <string name="collecting_logs_progress_text">Захват…</string>
-    <string name="orbot_explanation">Orbot - это бесплатное прокси-приложение, которое позволяет другим приложениям использовать интернет более <u>безопасно</u>. \nOrbot использует <u>Tor</u> для шифрования вашего интернет-трафика, что помогает вам <u>обойти цензуру</u> и защититься от форм <u>сетевого наблюдения</u>, которые угрожают личной свободе и конфиденциальности. \n<u>TCP Proxy</u>: Rethink перенаправляет в Orbot только TCP-соединения <i>включенных</i> приложений. \n<u>HTTP-прокси</u>: Rethink <i>создает</i> HTTP CONNECT туннель в Orbot и перенаправляет только TCP-соединения <i>включенных</i> приложений.</string>
-    <string name="hsf_vpn_dialog_message">Rethink требуется разрешение на настройку локальной VPN для шифрования DNS-запросов устройства, внедрение сетевого монитора и применение правил брандмауэра.
+    <string name="orbot_explanation">Orbot - это бесплатное прокси-приложение, которое позволяет другим приложениям использовать интернет более <u>безопасно</u>. \nOrbot использует <u>Tor</u> для шифрования вашего интернет-трафика, что помогает вам <u>обойти цензуру</u> и защититься от форм <u>сетевого наблюдения</u>, которые угрожают личной свободе и конфиденциальности. \n<u>TCP Proxy</u>: Keepout перенаправляет в Orbot только TCP-соединения <i>включенных</i> приложений. \n<u>HTTP-прокси</u>: Keepout <i>создает</i> HTTP CONNECT туннель в Orbot и перенаправляет только TCP-соединения <i>включенных</i> приложений.</string>
+    <string name="hsf_vpn_dialog_message">Keepout требуется разрешение на настройку локальной VPN для шифрования DNS-запросов устройства, внедрение сетевого монитора и применение правил брандмауэра.
 \n
-\nRethink не собирает никакой информации и не шпионит за вами каким-либо образом.</string>
+\nKeepout не собирает никакой информации и не шпионит за вами каким-либо образом.</string>
     <string name="conn_track_clear_logs_message">Это приведет к удалению только сетевых журналов, но не правил брандмауэра. Эта операция является необратимой. Хотите продолжить\?</string>
     <string name="other_dns_list_tab1">DoH</string>
     <string name="settings_theme_dialog_themes_3">Темная</string>
@@ -124,16 +124,16 @@
     <string name="firewall_status_unknown">Неизвестно</string>
     <string name="lbl_proceed">Продолжить</string>
     <string name="blocklist_update_check_not_required">Списки блокировки уже обновлены до последней версии.</string>
-    <string name="alert_firewall_accessibility_explanation">Rethink использует службу доступности для отслеживания того, какие приложения используются (открыты), а какие не используются (в фоне).
+    <string name="alert_firewall_accessibility_explanation">Keepout использует службу доступности для отслеживания того, какие приложения используются (открыты), а какие не используются (в фоне).
 \n
-\nRethink не собирает никакой информации и не шпионит за вами каким-либо образом.</string>
+\nKeepout не собирает никакой информации и не шпионит за вами каким-либо образом.</string>
     <string name="dns_crypt_relay_remove_dialog_title">Удалить ретранслятор DNSCrypt\?</string>
     <string name="dns_crypt_relay_remove_success">Ретранслятор DNSCrypt удален.</string>
     <string name="local_blocklist_download">Скачать списки блокировки</string>
     <string name="firewall_rule_block_app_exception">Ошибка</string>
     <string name="alert_permission_accessibility">Разрешение - Универсальный доступ</string>
     <string name="custom_url_error_invalid_url">Неверный URL</string>
-    <string name="always_on_dialog_lockdown_stop_message">Rethink запускает VPN в режиме <i>Изоляция</i>. Его остановка приведет к потере подключения к интернету для этого профиля пользователя. Продолжить в любом случае\?</string>
+    <string name="always_on_dialog_lockdown_stop_message">Keepout запускает VPN в режиме <i>Изоляция</i>. Его остановка приведет к потере подключения к интернету для этого профиля пользователя. Продолжить в любом случае\?</string>
     <string name="settings_ip_text_ipv46">Авто</string>
     <string name="bsct_app_info">Информация о приложении</string>
     <string name="always_on_dialog_stop_heading">Постоянный VPN</string>
@@ -184,7 +184,7 @@
     <string name="settings_local_blocklist_version">Версия: %1$s</string>
     <string name="pause_text">пауза</string>
     <string name="update_complete_action_snack">ПЕРЕЗАПУСТИТЬ</string>
-    <string name="accessibility_notification_content">Служба доступности Rethink остановилась или завершилась сбоем. Блокировка фоновых приложений больше не выполняется. Нажмите для повторного включения.</string>
+    <string name="accessibility_notification_content">Служба доступности Keepout остановилась или завершилась сбоем. Блокировка фоновых приложений больше не выполняется. Нажмите для повторного включения.</string>
     <string name="pause_desc">Примечание: %1$s заблокированные приложения будут продолжать блокироваться.</string>
     <string name="firewall_rule_block_ip">IP / Порт</string>
     <string name="firewall_rule_block_app_new_install">Новое приложение</string>
@@ -221,9 +221,9 @@
     <string name="bsac_title_desc">Правила применяются только к этому приложению.</string>
     <string name="firewall_rule_exempt_orbot_setup_desc"><![CDATA[Это соединение было разрешено, потому что <i>Tor-как-прокси</i> был настроен через Orbot.]]></string>
     <string name="firewall_rule_block_http_desc"><![CDATA[Это соединение было заблокировано, потому что оно, вероятно, использовало <i>небезопасный HTTP</i>.<br/><br/> Для изменения перейдите на вкладку <i>Universal</i>.]]></string>
-    <string name="new_app_notification_content">Rethink заблокировал недавно установленное приложение, %1$s.</string>
-    <string name="new_app_bulk_notification_content">Rethink заблокировал новые приложения: %1$s. Нажмите для просмотра или изменения.</string>
-    <string name="notif_channel_desc_vpn_failure">Информировать, когда Rethink остановлен Android или другим приложением VPN</string>
+    <string name="new_app_notification_content">Keepout заблокировал недавно установленное приложение, %1$s.</string>
+    <string name="new_app_bulk_notification_content">Keepout заблокировал новые приложения: %1$s. Нажмите для просмотра или изменения.</string>
+    <string name="notif_channel_desc_vpn_failure">Информировать, когда Keepout остановлен Android или другим приложением VPN</string>
     <string name="category_name_sys_components">Компоненты системы</string>
     <string name="notif_channel_vpn_notification">Активная VPN</string>
     <string name="notif_channel_proxy_failure">Оповещения о прокси-серверах</string>
@@ -289,7 +289,7 @@
     <string name="dc_local_block_heading">Списки блокировки на устройстве</string>
     <string name="dc_dns_leaks_heading">Предотвращение утечек DNS</string>
     <string name="about_bug_no_log_dialog_positive_btn">Отправить письмо</string>
-    <string name="dc_dns_leaks_desc">При включении этой функции, Rethink перехватывает все пакеты на 53-м порту и перенаправляет их на заданную пользователем конечную точку DNS</string>
+    <string name="dc_dns_leaks_desc">При включении этой функции, Keepout перехватывает все пакеты на 53-м порту и перенаправляет их на заданную пользователем конечную точку DNS</string>
     <string name="about_website">Посетите rethinkdns.com</string>
     <string name="about_faq">Просмотреть часто задаваемые вопросы</string>
     <string name="about_email">Отправьте нам электронное письмо</string>
@@ -367,7 +367,7 @@
     <string name="settings_ip_dialog_ipv6">IPv6 (экспериментально)</string>
     <string name="firewall_status_excluded">Исключено из DNS и брандмауэра</string>
     <string name="hsf_vpn_prepare_failure">Либо отсутствует разрешение VPN, либо другое приложение находится в режиме постоянного VPN.</string>
-    <string name="hsf_pause_vpn_failure">Невозможно сделать паузу: Rethink не активен</string>
+    <string name="hsf_pause_vpn_failure">Невозможно сделать паузу: Keepout не активен</string>
     <string name="dc_custom_dns_radio">Другие DNS</string>
     <string name="dc_entries">%1$s строк »</string>
     <string name="dc_local_block_desc_1">Выбирайте из 195+ списков блокировок. Нажмите здесь, чтобы загрузить их или настроить.</string>
@@ -430,17 +430,17 @@
     <string name="notif_channel_vpn_failure">Неактивный VPN</string>
     <string name="notif_channel_firewall_alerts">Предупреждения брандмауэра</string>
     <string name="notif_channel_download">Скачать оповещения</string>
-    <string name="notif_channel_desc_vpn_notification">Информировать, когда Rethink активен и работает в фоновом режиме</string>
+    <string name="notif_channel_desc_vpn_notification">Информировать, когда Keepout активен и работает в фоновом режиме</string>
     <string name="notif_channel_desc_firewall_alerts">Оповещение об ошибках и аномалиях брандмауэра</string>
     <string name="notif_channel_desc_proxy_failure">Оповещение об ошибках и аномалиях в прокси-серверах</string>
     <string name="category_name_installed">Установленные приложения</string>
     <string name="orbot_socks5">Прокси-сервер только для TCP</string>
     <string name="univ_accessibility_dialog_negative">Отклонить</string>
     <string name="orbot_app_issue">Не удалось запустить Orbot. Он установлен\?</string>
-    <string name="orbot_stop_dialog_dns_message">Rethink настроен на пересылку DNS-запросов в Orbot. Измените по мере необходимости.</string>
+    <string name="orbot_stop_dialog_dns_message">Keepout настроен на пересылку DNS-запросов в Orbot. Измените по мере необходимости.</string>
     <string name="settings_https_disabled_error">Подключен к %1$s. Выключите его, чтобы продолжить.</string>
     <string name="settings_orbot_notification_action">Открыть Orbot</string>
-    <string name="settings_autostart_bootup_desc">Запустить Rethink при включении устройства, если он был запущен до выключения.</string>
+    <string name="settings_autostart_bootup_desc">Запустить Keepout при включении устройства, если он был запущен до выключения.</string>
     <string name="orbot_title">Orbot и прокси</string>
     <string name="orbot_stop_dialog_neutral">Изменить DNS</string>
     <string name="settings_https_desc">Направлять соединения на конечную точку HTTP(S) CONNECT.</string>
@@ -454,7 +454,7 @@
     <string name="settings_autostart_bootup_heading">Автозапуск приложения при включении устройства (экспериментально)</string>
     <string name="orbot_install_activity_error">Что-то пошло не так, попробуйте через некоторое время</string>
     <string name="orbot_bs_status_3">Переадресация %1$s на Orbot, HTTP-прокси также установлен.</string>
-    <string name="orbot_stop_dialog_message">Rethink прекратил перенаправлять соединения в Orbot, но Orbot может работать в фоновом режиме.</string>
+    <string name="orbot_stop_dialog_message">Keepout прекратил перенаправлять соединения в Orbot, но Orbot может работать в фоновом режиме.</string>
     <string name="settings_network_all_networks">Использовать все доступные сети (экспериментально)</string>
     <string name="orbot_none">Нет (по умолчанию)</string>
     <string name="orbot_bs_status_1">Переадресация соединений %1$s на Orbot.</string>
@@ -472,7 +472,7 @@
 \n%2$s</string>
     <string name="settings_check_update_heading">Проверять наличие обновлений</string>
     <string name="orbot_install_dialog_title">Установить Orbot\?</string>
-    <string name="settings_socks5_vpn_disabled_error">Запустите Rethink, чтобы продолжить работу.</string>
+    <string name="settings_socks5_vpn_disabled_error">Запустите Keepout, чтобы продолжить работу.</string>
     <string name="settings_orbot_notification_content">Сбой при запуске Tor-as-a-Proxy. Откройте приложение Orbot, чтобы запустить его вручную.</string>
     <string name="cd_custom_doh_url_name">DoH %1$s</string>
     <string name="cd_custom_dns_proxy_name">Прокси %1$s</string>
@@ -498,7 +498,7 @@
     <string name="private_dns_dialog_heading">Отключить приватный DNS</string>
     <string name="private_dns_dialog_desc">Настройки Rethink DNS переопределяются настройками персонального DNS в Android.
 \n
-\nДля использования DNS Rethink, перейдите в настройки Android и отключите персональный DNS в разделе Сеть и интернет.</string>
+\nДля использования DNS Keepout, перейдите в настройки Android и отключите персональный DNS в разделе Сеть и интернет.</string>
     <string name="ada_delete_logs_dialog_desc" description="Appears as dialog description to clear the logs in app specific screen">Очистить все журналы, связанные с этим приложением.</string>
     <string name="rbl_parental_control_desc" description="The text appears as blocklists description in configure screen">Блокировка пиратского и контента для взрослых, азартных игр, онлайн знакомств, а также социальных сетей.</string>
     <string name="rbl_security_desc" description="The text appears as blocklists description in configure screen">Блокировка вредоносного ПО, фишинга, программ-вымогателей, криптософта и прочих угроз.</string>
@@ -506,8 +506,8 @@
     <string name="rsv_blocklist_count_text" description="This label will appear in rethink configure simple view screen which shows number of blocklists for each category">Списков блокировок: %1$s</string>
     <string name="ada_delete_logs_dialog_title" description="Appears as dialog title to clear the logs in app specific screen">Очистить журналы</string>
     <string name="title_statistics">Статистика</string>
-    <string name="hs_biometeric_title">Разблокировать Rethink</string>
-    <string name="hs_biometeric_desc">Используйте биометрическую аутентификацию для разблокировки Rethink</string>
+    <string name="hs_biometeric_title">Разблокировать Keepout</string>
+    <string name="hs_biometeric_desc">Используйте биометрическую аутентификацию для разблокировки Keepout</string>
     <string name="hs_biometeric_error">Ошибка биометрической аутентификации</string>
     <string name="fapps_info_unmetered_msg">Разрешить / заблокировать работу через сети (Wi-Fi).</string>
     <string name="fapps_info_metered_msg">Разрешить/ запретить работу через мобильную сеть.</string>
@@ -527,7 +527,7 @@
     <string name="ssv_app_blocked_heading" description="This label will appear on the stats screen as a header for blocked applications." translatable="true">Самые блокируемые приложения</string>
     <string name="ssv_most_contacted_domain_heading" description="This label will appear on the stats screen as a header for most visited domains" translatable="true">Самые посещаемые домены</string>
     <string name="ssv_most_blocked_domain_heading" description="This label will appear on the stats screen as a header for most blocked domains" translatable="true">Самые блокируемые домены</string>
-    <string name="ssv_toast_start_rethink" description="This label will appear on the stats screen as toast to start Rethink app">Запустите Rethink, чтобы продолжить</string>
+    <string name="ssv_toast_start_rethink" description="This label will appear on the stats screen as toast to start Rethink app">Запустите Keepout, чтобы продолжить</string>
     <string name="ssv_see_more">Показать все</string>
     <string name="ssv_most_blocked_ips_heading" description="This label will appear on the stats screen as a header for most blocked ips" translatable="true">Самые блокируемые IP</string>
     <string name="ssv_most_contacted_ips_heading" description="This label will appear on the stats screen as a header for most visited ips" translatable="true">Самые встречающиеся IP</string>
@@ -577,7 +577,7 @@
     <string name="brbs_backup_restore_desc" translatable="true">Не работает в разных версиях приложения</string>
     <string name="lbl_network" translatable="true">Cеть</string>
     <string name="settings_allow_lan_heading" translatable="true">Не маршрутизировать частные IP-адреса (экспериментально)</string>
-    <string name="settings_allow_lan_desc" translatable="true">Исключить маршруты LAN, loopback, multicast, link-local из VPN-туннеля Rethink.</string>
+    <string name="settings_allow_lan_desc" translatable="true">Исключить маршруты LAN, loopback, multicast, link-local из VPN-туннеля Keepout.</string>
     <string name="crypt_relay_france" translatable="true">Анонимный ретранслятор DNS от https://cryptostrom.is/, размещенный в Париже, Франция.</string>
     <string name="crypt_relay_sweden" translatable="true">Анонимный ретранслятор DNS от https://cryptostrom.is/, размещенный в Швеции.</string>
     <string name="crypt_relay_us" translatable="true">Анонимный ретранслятор DNS от https://cryptostrom.is/, размещенный в США - Лос-Анджелес, CA.</string>
@@ -708,10 +708,10 @@
     <string name="wireguard_disable_title" translatable="true">Остановить WireGuard</string>
     <string name="wireguard_disable_message" translatable="true">Остановите все активные WireGuard VPN?</string>
     <string name="settings_exclude_proxy_apps_heading" translatable="true">Приложения для переадресации прокси-серверов с обратной связью</string>
-    <string name="settings_exclude_proxy_apps_desc" translatable="true">Когда этот параметр отключен, приложения для пересылки прокси-серверов (SOCKS5, HTTP, DNS) исключаются из VPN-туннеля Rethink.</string>
+    <string name="settings_exclude_proxy_apps_desc" translatable="true">Когда этот параметр отключен, приложения для пересылки прокси-серверов (SOCKS5, HTTP, DNS) исключаются из VPN-туннеля Keepout.</string>
     <string name="exclude_apps_from_proxy">Обход приложения со всех прокси-серверов</string>
     <string name="exclude_apps_from_proxy_failure_toast">Это приложение обходит прокси-серверы</string>
-    <string name="memory_notification_text">Rethink испытывает нехватку памяти. Системные действия могут быть ограничены.</string>
+    <string name="memory_notification_text">Keepout испытывает нехватку памяти. Системные действия могут быть ограничены.</string>
     <string name="lbl_unselected" translatable="true">Невыбранный</string>
     <string name="lbl_test" translatable="true">тест</string>
     <string name="lbl_experimental" translatable="true">(эксперементально)</string>
@@ -762,7 +762,7 @@
     <string name="wg_setting_use_on_mobile_desc" translatable="true">Использовать этот VPN WireGuard только при передаче по мобильной связи.</string>
     <string name="hop_add_remove_title" translatable="true">Добавить / Удалить relay</string>
     <string name="about_terms_of_service" translatable="true">Условия использования</string>
-    <string name="bypasses_network_restrictions" translatable="true">Проверки доступности обходят все сетевые ограничения. В режиме <i>Авто</i> Rethink случайным образом использует ранее подключенные IP-адреса и имена хостов.</string>
+    <string name="bypasses_network_restrictions" translatable="true">Проверки доступности обходят все сетевые ограничения. В режиме <i>Авто</i> Keepout случайным образом использует ранее подключенные IP-адреса и имена хостов.</string>
     <string name="most_contacted_asn" translatable="true">Самые соеденяемые провайдеры</string>
     <string name="most_blocked_asn" translatable="true">Самые блокируемые провайдеры</string>
     <string name="download_ip_info_title" translatable="true">Показать информацию о провайдере</string>
@@ -772,7 +772,7 @@
     <string name="close_conns_dialog_desc" translatable="true">Закрыть все соединения за %1$s?</string>
     <string name="local_blocklist_delete_desc" translatable="true">Удалить черные списки на устройстве?</string>
     <string name="fail_open_network_title" translatable="true">Останавливать при потере сети</string>
-    <string name="fail_open_network_desc" translatable="true">Когда включено, Rethink блокирует все данные при отсутствии подключения, как в режиме <i> В самолёте</i>.</string>
+    <string name="fail_open_network_desc" translatable="true">Когда включено, Keepout блокирует все данные при отсутствии подключения, как в режиме <i> В самолёте</i>.</string>
     <string name="about_license" translatable="true">Лицензировано под Apache-2.0</string>
     <string name="smart_dns" translatable="true">Умный DNS</string>
     <string name="smart_dns_desc" translatable="true"><i>Smart DNS</i> случайным образом использует любой из этих DNS-преобразователей:</string>
@@ -798,7 +798,7 @@
     <string name="vpn_policy_fixed_desc" translatable="true">Наименее зависит от изменений сети.</string>
     <string name="wg_setting_ssid_title" translatable="true">Только Wi‑Fi</string>
     <string name="wg_setting_ssid_desc" translatable="true">Использовать этот VPN WireGuard только при подключении к Wi-Fi или указанным сетям Wi-Fi (%1$s).</string>
-    <string name="ssid_permission_explanation" translatable="true">Для Rethink нужно разрешение местоположения чтобы видеть названия Wi-Fi сетей (%1$s).</string>
+    <string name="ssid_permission_explanation" translatable="true">Для Keepout нужно разрешение местоположения чтобы видеть названия Wi-Fi сетей (%1$s).</string>
     <string name="location_enable_explanation" translatable="true">Чтобы узнать названия Wi-Fi сетей (%1$s), включите службу определения местоположения.</string>
     <string name="wg_ssid_dialog_description" translatable="true"><i>Включено</i> когда сеть Wi-Fi (%2$s) равен %3$s, тогда этот VPN WireGuard %1$s.</string>
     <string name="wg_ssid_type_exact" translatable="true">Точно</string>
@@ -810,10 +810,10 @@
     <string name="tombstone_app_desc" translatable="true">Если включено, сохраняет правила приложений ещё 7 дней.</string>
     <string name="settings_allow_incoming_wg_packets" translatable="true">WireGuard P2P (напрямую между участниками)</string>
     <string name="settings_allow_incoming_wg_packets_desc" translatable="true">Если включено, пропускает входящие подключения от клиентов Wireguard.</string>
-    <string name="lockdown_download_message" translatable="true">Встроенный в Android <i>Менеджер Загрузок</i> может не работать, если VPN настроен в режиме <i>Блокировки</i>. Использовать собственный менеджер загрузок Rethink?</string>
+    <string name="lockdown_download_message" translatable="true">Встроенный в Android <i>Менеджер Загрузок</i> может не работать, если VPN настроен в режиме <i>Блокировки</i>. Использовать собственный менеджер загрузок Keepout?</string>
     <string name="lockdown_download_enable_inapp" translatable="true">Включить Менеджер Загрузок</string>
     <string name="settings_jumbo_packets" translatable="true">Расширение пропускной способности</string>
-    <string name="settings_jumbo_packets_desc" translatable="true">Использовать <i>jumbo-фреймы</i> внутри VPN-туннеля Rethink.</string>
+    <string name="settings_jumbo_packets_desc" translatable="true">Использовать <i>jumbo-фреймы</i> внутри VPN-туннеля Keepout.</string>
     <string name="stability_program_toast" translatable="true">Теперь вы участник <i>программы тестирования</i><i> экспериментальных функций</i>.</string>
     <string name="home_last_24_hours">Последние 24 часа</string>
     <plurals name="home_stopped_at_dns_count">

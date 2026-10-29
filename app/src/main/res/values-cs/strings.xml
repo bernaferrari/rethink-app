@@ -28,10 +28,10 @@
     <string name="lbl_fast" translatable="true">rychlé</string>
     <string name="lbl_add" translatable="true">přidat</string>
     <string name="lbl_save" translatable="true">uložit</string>
-    <string name="slide_2_desc" translatable="true">Rethink je nejjednodušší způsob, jak monitorovat síťovou aktivitu, obejít internetovou cenzuru a firewallovat aplikace na vašem zařízení Android.</string>
+    <string name="slide_2_desc" translatable="true">Keepout je nejjednodušší způsob, jak monitorovat síťovou aktivitu, obejít internetovou cenzuru a firewallovat aplikace na vašem zařízení Android.</string>
     <string name="lbl_status" translatable="true">Stav</string>
     <string name="lbl_remove" translatable="true">Odebrat</string>
-    <string name="accessibility_service_description" translatable="true">Rethink používá službu zpřístupnění (Accessibility service) k detekci a firewallování aplikací běžících na pozadí. Rethink neshromažďuje ani neprodává žádné informace.</string>
+    <string name="accessibility_service_description" translatable="true">Keepout používá službu zpřístupnění (Accessibility service) k detekci a firewallování aplikací běžících na pozadí. Keepout neshromažďuje ani neprodává žádné informace.</string>
     <string name="lbl_all" translatable="true">Vše</string>
     <string name="lbl_domain" translatable="true">Doména</string>
     <string name="lbl_action_required" translatable="true">Je vyžadována akce</string>
@@ -72,7 +72,7 @@
     <string name="notification_action_dns_mode" translatable="true">DNS</string>
     <string name="notification_action_dns_firewall_mode" translatable="true">DNS + Firewall</string>
     <string name="allow" translatable="true">povolit</string>
-    <string name="warning_title" description="Status indicator text shown in a warning notification." translatable="true">Upozornění: Rethink byl deaktivován</string>
+    <string name="warning_title" description="Status indicator text shown in a warning notification." translatable="true">Upozornění: Keepout byl deaktivován</string>
     <string name="isolate" translatable="true">izolovat</string>
     <string name="untracked" translatable="true">nesledováno</string>
     <string name="status_dns_error" translatable="true">Chyba DNS</string>
@@ -83,7 +83,7 @@
     <string name="lbl_unselected" translatable="true">Neoznačeno</string>
     <string name="lbl_split" translatable="true">Rozdělit</string>
     <string name="lbl_mtu" translatable="true">MTU</string>
-    <string name="memory_notification_text">Rethink zaznamenává nízkou dostupnou paměť. Systémové akce mohou být omezeny.</string>
+    <string name="memory_notification_text">Keepout zaznamenává nízkou dostupnou paměť. Systémové akce mohou být omezeny.</string>
     <string name="bypass_dns_firewall" translatable="true">obejít dns &amp; firewall</string>
     <string name="bypass_universal" translatable="true">univerzální obcházení</string>
     <string name="hybrid_mode_notification_title" translatable="true">Chráněno! Připojeno k DNS + Firewallu.</string>
@@ -96,8 +96,8 @@
     <string name="failed_using_default" translatable="true">Selhalo: používá se záložní DNS</string>
     <string name="apps_info_title" translatable="true">Aplikace</string>
     <string name="universal_firewall_explanation" translatable="true">Použijte firewallová pravidla pro všechny aplikace na základě událostí zařízení, například firewall při uzamčení zařízení nebo pokud aplikace není používána.</string>
-    <string name="alert_firewall_accessibility_explanation" translatable="true">Rethink využívá službu Zpřístupnění (Accessibility), aby sledoval, které aplikace jsou používány (v popředí) a které běží na pozadí.\n\nRethink neshromažďuje žádné informace ani vás nešpehuje.</string>
-    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Služba Rethink Accessibility přestala fungovat nebo došlo k pádu. <i><b>Jděte do Nastavení a Vynuceně zastavte</b></i> Rethink a spusťte jej znovu pro využití funkce <i>Blokovat aplikaci, která není používána</i>.\n\nRethink využívá službu Zpřístupnění ke sledování, které aplikace jsou v popředí a které běží na pozadí.</string>
+    <string name="alert_firewall_accessibility_explanation" translatable="true">Keepout využívá službu Zpřístupnění (Accessibility), aby sledoval, které aplikace jsou používány (v popředí) a které běží na pozadí.\n\nKeepout neshromažďuje žádné informace ani vás nešpehuje.</string>
+    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Služba Keepout Accessibility přestala fungovat nebo došlo k pádu. <i><b>Jděte do Nastavení a Vynuceně zastavte</b></i> Keepout a spusťte jej znovu pro využití funkce <i>Blokovat aplikaci, která není používána</i>.\n\nKeepout využívá službu Zpřístupnění ke sledování, které aplikace jsou v popředí a které běží na pozadí.</string>
     <string name="firewall_mode_info_title" translatable="true">Firewall</string>
     <string name="alert_permission_accessibility" translatable="true">Oprávnění – Zpřístupnění</string>
     <string name="lbl_peer" translatable="true">Peer</string>
@@ -107,7 +107,7 @@
     <string name="bsct_app_info" translatable="true">Info o aplikaci</string>
     <string name="bsct_block_ip" translatable="true">Blokovat, důvěřovat <u>tomuto IP</u> pro <u>tuto app</u></string>
     <string name="bsct_block_domain" translatable="true">Blokovat, důvěřovat <u>doméně/doménám</u> pro <u>tuto app</u></string>
-    <string name="always_on_dialog" translatable="true">Funkce „Always-On VPN“ je na tomto zařízení aktivní. Chcete-li spustit Rethink, přejděte do Nastavení a vypněte „Always-on VPN“.</string>
+    <string name="always_on_dialog" translatable="true">Funkce „Always-On VPN“ je na tomto zařízení aktivní. Chcete-li spustit Keepout, přejděte do Nastavení a vypněte „Always-on VPN“.</string>
     <string name="always_on_dialog_heading" translatable="true">Vypnout funkci Always-on VPN</string>
     <string name="conn_track_clear_logs_title" translatable="true">Smazat všechny síťové záznamy?</string>
     <string name="conn_track_clear_logs_message" translatable="true">Tímto smažete pouze síťové záznamy, nikoli firewallová pravidla. Tato akce je nevratná. Chcete pokračovat?</string>
@@ -139,7 +139,7 @@
     <string name="fapps_unblock_dialog_title" translatable="true">Povolit aplikace</string>
     <string name="fapps_exclude_block_dialog_message" translatable="true">Vyloučit <i>vybrané</i> aplikace z DNS i Firewallu?</string>
     <string name="notif_channel_download" translatable="true">Upozornění ke stažení</string>
-    <string name="always_on_dialog_stop_message" translatable="true">Always-on VPN je zapnuto pro Rethink. Opravdu chcete Rethink zastavit?</string>
+    <string name="always_on_dialog_stop_message" translatable="true">Always-on VPN je zapnuto pro Keepout. Opravdu chcete Keepout zastavit?</string>
     <string name="firewall_act_network_monitor_tab" translatable="true">Síť</string>
     <string name="dot_custom_url_remove_dialog_message" translatable="true">Smazat DNS over TLS endpoint z uložené konfigurace.</string>
     <string name="blocklist_update_check_failure" translatable="true">Něco se pokazilo. Zkuste to prosím později!</string>
@@ -165,7 +165,7 @@
     <string name="ada_delete_logs_dialog_title" description="Appears as dialog title to clear the logs in app specific screen" translatable="true">Vymazat záznamy</string>
     <string name="always_on_dialog_stop_heading" translatable="true">Always-on VPN</string>
     <string name="private_dns_dialog_heading" translatable="true">Vypnout Private DNS</string>
-    <string name="private_dns_dialog_desc" translatable="true">Nastavení DNS v Rethink je přepsáno Androidím Private DNS.\n\nChcete-li používat DNS z Rethink, přejděte do Nastavení systému Android a vypněte „Private DNS“.</string>
+    <string name="private_dns_dialog_desc" translatable="true">Nastavení DNS v Keepout je přepsáno Androidím Private DNS.\n\nChcete-li používat DNS z Keepout, přejděte do Nastavení systému Android a vypněte „Private DNS“.</string>
     <string name="firewall_act_universal_tab" translatable="true">univerzální</string>
     <string name="dns_crypt_relay_remove_dialog_message" translatable="true">Smazat DNSCrypt relay z uložené konfigurace.</string>
     <string name="dns_proxy_remove_dialog_title" translatable="true">Smazat DNS Proxy?</string>
@@ -193,9 +193,9 @@
     <string name="settings_enable_logs" translatable="true">Povolit logování v zařízení</string>
     <string name="connection_http3" translatable="true">HTTP3</string>
     <string name="settings_allow_lan_heading" translatable="true">Neroutovat privátní IP (experimentální)</string>
-    <string name="settings_allow_lan_desc" translatable="true">Vynechat LAN, loopback, multicast, link-local z tunelu Rethink VPN.</string>
-    <string name="settings_exclude_proxy_apps_desc" translatable="true">Je-li vypnuto, vyjímá proxy (SOCKS5, HTTP, DNS) forwarder aplikace z VPN tunelu Rethink.</string>
-    <string name="settings_allow_bypass_desc" translatable="true">Povolit aplikacím, které to vyžadují, přístup ke všem dostupným sítím a možnost obejít tunel Rethink VPN na vyžádání. Některé konferenční aplikace (např. Zoom či Meet) to mohou potřebovat pro správnou funkci.</string>
+    <string name="settings_allow_lan_desc" translatable="true">Vynechat LAN, loopback, multicast, link-local z tunelu Keepout VPN.</string>
+    <string name="settings_exclude_proxy_apps_desc" translatable="true">Je-li vypnuto, vyjímá proxy (SOCKS5, HTTP, DNS) forwarder aplikace z VPN tunelu Keepout.</string>
+    <string name="settings_allow_bypass_desc" translatable="true">Povolit aplikacím, které to vyžadují, přístup ke všem dostupným sítím a možnost obejít tunel Keepout VPN na vyžádání. Některé konferenční aplikace (např. Zoom či Meet) to mohou potřebovat pro správnou funkci.</string>
     <string name="settings_lock_down_proxy_desc" translatable="true">Nelze nastavit proxy, pokud VPN běží pouze v režimu DNS.</string>
     <string name="settings_proxy_header" translatable="true">proxy</string>
     <string name="settings_socks5_heading" translatable="true">Nastavit SOCKS5 Proxy</string>
@@ -213,8 +213,8 @@
     <string name="orbot_app_issue" translatable="true">Nepodařilo se spustit Orbot. Je nainstalován?</string>
     <string name="orbot_bs_status_trying_connect" translatable="true">Nastavuji Orbot…</string>
     <string name="orbot_stop_dialog_title" translatable="true">Je nutný ruční zásah</string>
-    <string name="orbot_stop_dialog_message" translatable="true">Rethink přestal přesměrovávat připojení do Orbotu, ale Orbot může dál běžet na pozadí.</string>
-    <string name="orbot_stop_dialog_dns_message" translatable="true">Rethink je nastaven k přesměrování DNS dotazů do Orbotu. Změňte to dle potřeby.</string>
+    <string name="orbot_stop_dialog_message" translatable="true">Keepout přestal přesměrovávat připojení do Orbotu, ale Orbot může dál běžet na pozadí.</string>
+    <string name="orbot_stop_dialog_dns_message" translatable="true">Keepout je nastaven k přesměrování DNS dotazů do Orbotu. Změňte to dle potřeby.</string>
     <string name="orbot_stop_dialog_negative" translatable="true">Zastavit Orbot</string>
     <string name="orbot_stop_dialog_neutral" translatable="true">Změnit DNS</string>
     <string name="orbot_title" translatable="true">Orbot a Proxy</string>
@@ -223,13 +223,13 @@
     <string name="orbot_install_dialog_neutral" translatable="true">web</string>
     <string name="orbot_no_app_toast" translatable="true">Přidejte alespoň jednu aplikaci pro povolení Orbotu</string>
     <string name="settings_socks5_disabled_error" translatable="true">Připojeno k %1$s. Vypněte jej pro pokračování.</string>
-    <string name="settings_socks5_vpn_disabled_error" translatable="true">Spusťte Rethink pro pokračování.</string>
+    <string name="settings_socks5_vpn_disabled_error" translatable="true">Spusťte Keepout pro pokračování.</string>
     <string name="settings_orbot_disabled_error" translatable="true">Vypněte HTTP(S) a/nebo SOCKS5 proxy pro pokračování v nastavení Toru jako proxy.</string>
     <string name="settings_general_customize" translatable="true">přizpůsobit</string>
     <string name="settings_autostart_bootup_heading" translatable="true">Automatický start po zapnutí (experimentální)</string>
-    <string name="settings_autostart_bootup_desc" translatable="true">Po zapnutí zařízení spustí Rethink, pokud běžel před vypnutím.</string>
+    <string name="settings_autostart_bootup_desc" translatable="true">Po zapnutí zařízení spustí Keepout, pokud běžel před vypnutím.</string>
     <string name="settings_network_all_networks" translatable="true">Využívat všechny dostupné sítě (experimentální)</string>
-    <string name="settings_network_all_networks_desc" translatable="true">Je-li zapnuto, Rethink používá všechny dostupné sítě k připojení k internetu. Jinak použije tu, kterou Android označí za „aktivní“.</string>
+    <string name="settings_network_all_networks_desc" translatable="true">Je-li zapnuto, Keepout používá všechny dostupné sítě k připojení k internetu. Jinak použije tu, kterou Android označí za „aktivní“.</string>
     <string name="settings_check_update_desc" translatable="true">Automaticky vyhledávat aktualizace jednou týdně.</string>
     <string name="settings_import_export_desc" translatable="true">Ruční záloha nebo obnova dat a nastavení aplikace.</string>
     <string name="settings_http_proxy_desc" translatable="true">Přesměrování na %1$s</string>
@@ -250,7 +250,7 @@
     <string name="settings_protocol_translation_dns_inactive" translatable="true">Přepněte do režimu DNS/DNS+Firewall pro povolení této volby</string>
     <string name="settings_default_dns_desc" translatable="true">Ve vzácných případech, kdy nelze určit uživatelsky preferované DNS, se použije záložní DNS.</string>
     <string name="firewall_status_unknown" translatable="true">Neznámé</string>
-    <string name="hs_biometeric_title" translatable="true">Odemkněte Rethink</string>
+    <string name="hs_biometeric_title" translatable="true">Odemkněte Keepout</string>
     <string name="firewall_status_isolate" translatable="true">Izolováno</string>
     <string name="firewall_status_whitelisted" translatable="true">Obchází univerzální firewallová pravidla</string>
     <string name="firewall_status_bypass_dns_firewall" translatable="true">Obchází pravidla DNS a firewallu</string>
@@ -260,7 +260,7 @@
     <string name="hsf_vpn_dialog_header" translatable="true">Pozor!</string>
     <string name="hsf_vpn_prepare_failure" translatable="true">Chybí oprávnění VPN nebo jiná aplikace běží v režimu Always-on VPN.</string>
     <string name="hsf_notification_permission_failure" translatable="true">Povolte přístup k oznámením v Nastavení</string>
-    <string name="hsf_pause_vpn_failure" translatable="true">Nelze pozastavit: Rethink není aktivní</string>
+    <string name="hsf_pause_vpn_failure" translatable="true">Nelze pozastavit: Keepout není aktivní</string>
     <string name="dc_block_heading" translatable="true">Pravidla</string>
     <string name="dc_other_dns_heading" translatable="true">Typ</string>
     <string name="dc_custom_dns_radio" translatable="true">Jiné DNS</string>
@@ -271,7 +271,7 @@
     <string name="dc_proxy_dns_desc" translatable="true">Nepoužívat proxy pro DNS při Always-on WireGuard, SOCKS5, HTTP proxyně.</string>
     <string name="dc_dns_website_desc" translatable="true">Stahuje ikony webů z <i>nextdns.io</i> a <i>duckduckgo.com</i>. Může spotřebovat až 350 MB diskového prostoru</string>
     <string name="dc_dns_leaks_heading" translatable="true">Zamezit únikům DNS</string>
-    <string name="dc_dns_leaks_desc" translatable="true">Je-li zapnuto, Rethink zachytává všechny pakety na portu 53 a přesměrovává je na uživatelsky zvolené DNS</string>
+    <string name="dc_dns_leaks_desc" translatable="true">Je-li zapnuto, Keepout zachytává všechny pakety na portu 53 a přesměrovává je na uživatelsky zvolené DNS</string>
     <string name="dc_check_update_heading" translatable="true">Upozornit na aktualizaci blokovacích seznamů</string>
     <string name="about_bug_report_desc" translatable="true">poslat crash log emailem</string>
     <string name="about_join_telegram" translatable="true">Telegram</string>
@@ -370,7 +370,7 @@
     <string name="settings_local_blocklist_in_use" translatable="true">Používá se %1$s blokovacích seznamů</string>
     <string name="settings_local_blocklist_dialog_positive" translatable="true">Stáhnout</string>
     <string name="settings_local_blocklist_version" translatable="true">Verze: v%1$s</string>
-    <string name="accessibility_notification_content" translatable="true">Služba zpřístupnění Rethink se zastavila nebo spadla. Už neblokuje aplikace na pozadí. Klepněte pro opětovné zapnutí.</string>
+    <string name="accessibility_notification_content" translatable="true">Služba zpřístupnění Keepout se zastavila nebo spadla. Už neblokuje aplikace na pozadí. Klepněte pro opětovné zapnutí.</string>
     <string name="toast_allow_bypass_disabled" translatable="true">%1$s je vypnuto, protože jsou aktivní proxy</string>
     <string name="pause_desc" translatable="true">Poznámka: %1$s blokovaných aplikací bude nadále firewallováno.</string>
     <string name="other_dns_list_tab1" translatable="true">DoH</string>
@@ -407,8 +407,8 @@
     <string name="notif_channel_vpn_failure" translatable="true">Neaktivní VPN</string>
     <string name="notif_channel_firewall_alerts" translatable="true">Upozornění Firewall</string>
     <string name="notif_channel_proxy_failure" translatable="true">Upozornění Proxy</string>
-    <string name="notif_channel_desc_vpn_notification" translatable="true">Informovat, když Rethink běží na pozadí</string>
-    <string name="notif_channel_desc_vpn_failure" translatable="true">Informovat, když je Rethink ukončen Androidem nebo jinou VPN aplikací</string>
+    <string name="notif_channel_desc_vpn_notification" translatable="true">Informovat, když Keepout běží na pozadí</string>
+    <string name="notif_channel_desc_vpn_failure" translatable="true">Informovat, když je Keepout ukončen Androidem nebo jinou VPN aplikací</string>
     <string name="notif_channel_desc_firewall_alerts" translatable="true">Upozorňovat na chyby a anomálie Firewallu</string>
     <string name="notif_channel_desc_proxy_failure" translatable="true">Upozorňovat na chyby a anomálie Proxy</string>
     <string name="notif_channed_desc_download" translatable="true">Upozorňovat na průběh stahování On-device blokovacích seznamů</string>
@@ -520,7 +520,7 @@
     <string name="firewall_rule_device_lock" translatable="true">Zařízení uzamčeno</string>
     <string name="firewall_rule_foreground" translatable="true">Aplikace není v popředí</string>
     <string name="rt_filter_hint" translatable="true">Zobrazuji <u>všechny</u> blokovací seznamy</string>
-    <string name="always_on_dialog_lockdown_stop_message" translatable="true">Rethink běží v režimu VPN Lockdown. Pokud jej zastavíte, ztratíte připojení k internetu v tomto uživatelském profilu. Opravdu chcete pokračovat?</string>
+    <string name="always_on_dialog_lockdown_stop_message" translatable="true">Keepout běží v režimu VPN Lockdown. Pokud jej zastavíte, ztratíte připojení k internetu v tomto uživatelském profilu. Opravdu chcete pokračovat?</string>
     <string name="always_on_dialog_neutral" translatable="true">Nastavení</string>
     <string name="doh_custom_url_remove_dialog_title" translatable="true">Smazat DoH endpoint?</string>
     <string name="doh_custom_url_remove_dialog_message" translatable="true">Smazat DNS over HTTPS endpoint z uložené konfigurace.</string>
@@ -528,7 +528,7 @@
     <string name="dns_crypt_url_remove_dialog_message" translatable="true">Smazat DNSCrypt resolver z uložené konfigurace.</string>
     <string name="settings_connectivity_checks" translatable="true">Provádět kontroly připojení</string>
     <string name="settings_connectivity_checks_desc" translatable="true">Ke zjištění dosažitelnosti jsou odesílány testy připojení.</string>
-    <string name="orbot_explanation" translatable="true">Orbot je bezplatná proxy aplikace, která umožňuje ostatním aplikacím používat internet více <u>bezpečně</u>.<br/>\nOrbot využívá <u>Tor</u> k šifrování vašeho internetového provozu, což pomáhá <u>obejít cenzuru</u> a chránit před formami <u>sledování sítě</u>, které ohrožují osobní svobodu a soukromí.<br/>\n<u>TCP Proxy</u>: Rethink přeposílá pouze TCP spojení <i>zahrnutých</i> aplikací do Orbotu.\n<u>HTTP Proxy</u>: Rethink <i>vytváří</i> HTTP CONNECT tunel do Orbotu a přeposílá pouze TCP spojení <i>zahrnutých</i> aplikací.</string>
+    <string name="orbot_explanation" translatable="true">Orbot je bezplatná proxy aplikace, která umožňuje ostatním aplikacím používat internet více <u>bezpečně</u>.<br/>\nOrbot využívá <u>Tor</u> k šifrování vašeho internetového provozu, což pomáhá <u>obejít cenzuru</u> a chránit před formami <u>sledování sítě</u>, které ohrožují osobní svobodu a soukromí.<br/>\n<u>TCP Proxy</u>: Keepout přeposílá pouze TCP spojení <i>zahrnutých</i> aplikací do Orbotu.\n<u>HTTP Proxy</u>: Keepout <i>vytváří</i> HTTP CONNECT tunel do Orbotu a přeposílá pouze TCP spojení <i>zahrnutých</i> aplikací.</string>
     <string name="settings_https_disabled_error" translatable="true">Připojeno k %1$s. Vypněte jej pro pokračování.</string>
     <string name="settings_orbot_notification_content" translatable="true">Nepodařilo se spustit Tor jako proxy. Otevřete aplikaci Orbot a spusťte ji ručně.</string>
     <string name="settings_custom_downloader_heading" translatable="true">Použít vestavěný stahovač</string>
@@ -538,7 +538,7 @@
     <string name="settings_ip_dialog_ipv6" translatable="true">IPv6 (experimentální)</string>
     <string name="settings_ip_text_ipv46" translatable="true">Auto</string>
     <string name="firewall_status_excluded" translatable="true">Vyloučeno z DNS a firewallu</string>
-    <string name="hsf_vpn_dialog_message" translatable="true">Rethink potřebuje oprávnění k nastavení místní VPN, aby šifroval DNS požadavky zařízení, implementoval monitorování sítě a prosazoval pravidla firewallu.\n\nRethink neshromažďuje žádné informace ani vás nijak nesleduje.</string>
+    <string name="hsf_vpn_dialog_message" translatable="true">Keepout potřebuje oprávnění k nastavení místní VPN, aby šifroval DNS požadavky zařízení, implementoval monitorování sítě a prosazoval pravidla firewallu.\n\nKeepout neshromažďuje žádné informace ani vás nijak nesleduje.</string>
     <string name="about_email" translatable="true">Napište nám e-mail</string>
     <string name="about_settings_app_info" translatable="true">Info o aplikaci</string>
     <string name="cd_dns_proxy_mode_internal" translatable="true">Interní</string>
@@ -565,8 +565,8 @@
     <string name="firewall_rule_domain_trusted_univ" translatable="true">Důvěryhodná doména (Univ)</string>
     <string name="firewall_rule_proxied" translatable="true">Proxy</string>
     <string name="new_app_bulk_notification_title" translatable="true">Pozor</string>
-    <string name="new_app_bulk_notification_content" translatable="true">Rethink zablokoval %1$s nových aplikací. Klepněte pro zobrazení nebo úpravu.</string>
-    <string name="new_app_notification_content" translatable="true">Rethink zablokoval nedávno nainstalovanou aplikaci, %1$s.</string>
+    <string name="new_app_bulk_notification_content" translatable="true">Keepout zablokoval %1$s nových aplikací. Klepněte pro zobrazení nebo úpravu.</string>
+    <string name="new_app_notification_content" translatable="true">Keepout zablokoval nedávno nainstalovanou aplikaci, %1$s.</string>
     <string name="new_app_notification_action_deny" translatable="true">Pokračovat v blokování</string>
     <string name="build__flavor_fdroid" translatable="true">fdroid</string>
     <string name="category_name_installed" translatable="true">Nainstalované aplikace</string>
@@ -618,7 +618,7 @@
     <string name="brbs_restore_dialog_title" translatable="true">Obnovit zálohu</string>
     <string name="brbs_restore_dialog_message" translatable="true">Obnoví nastavení aplikace, síťové a DNS logy ze souboru zálohy. Aplikace se poté restartuje.</string>
     <string name="rsv_blocklist_count_text" description="This label will appear in rethink configure simple view screen which shows number of blocklists for each category" translatable="true">%1$s blokovacích seznamů</string>
-    <string name="ssv_toast_start_rethink" description="This label will appear on the stats screen as toast to start Rethink app" translatable="true">Spusťte Rethink pro pokračování</string>
+    <string name="ssv_toast_start_rethink" description="This label will appear on the stats screen as toast to start Rethink app" translatable="true">Spusťte Keepout pro pokračování</string>
     <string name="bad_config_reason_invalid_number" translatable="true">Neplatné číslo</string>
     <string name="bad_config_reason_invalid_value" translatable="true">Neplatná hodnota</string>
     <string name="bad_config_reason_missing_attribute" translatable="true">Chybějící atribut</string>

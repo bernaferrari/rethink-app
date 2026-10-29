@@ -2,10 +2,10 @@
 <resources>
     <string name="title_about">Hakkında</string>
     <string name="txt_home">Ana sayfa</string>
-    <string name="accessibility_service_description">Rethink, arka plan uygulamalarını algılamak ve güvenlik duvarına almak için erişilebilirlik hizmetini kullanır. Rethink herhangi bir bilgi toplamaz veya satmaz.</string>
+    <string name="accessibility_service_description">Keepout, arka plan uygulamalarını algılamak ve güvenlik duvarına almak için erişilebilirlik hizmetini kullanır. Keepout herhangi bir bilgi toplamaz veya satmaz.</string>
     <string name="finish">Bitir</string>
     <string name="untracked">izlenmiyor</string>
-    <string name="warning_title" description="Status indicator text shown in a warning notification.">Uyarı: Rethink devre dışı bırakıldı</string>
+    <string name="warning_title" description="Status indicator text shown in a warning notification.">Uyarı: Keepout devre dışı bırakıldı</string>
     <string name="notification_content" description="Indicates what will happen if the user taps the notification.">Koruma ayarını değiştirmek için dokunun</string>
     <string name="dns_mode_notification_title">Korunuyor! Hızlı ve Güvenli DNS\'e Bağlandı.</string>
     <string name="firewall_mode_notification_title">Korunuyor! Güvenlik Duvarına Bağlandı.</string>
@@ -17,7 +17,7 @@
     <string name="isolate">koru</string>
     <string name="rdns_plus">RDNS Plus</string>
     <string name="exclude">hariç tut</string>
-    <string name="slide_2_desc">Rethink, Android aygıtınızda ağ etkinliğini izlemenin, İnternet sansürünü ve güvenlik duvarı uygulamalarını atlamanın en kolay yoludur.</string>
+    <string name="slide_2_desc">Keepout, Android aygıtınızda ağ etkinliğini izlemenin, İnternet sansürünü ve güvenlik duvarı uygulamalarını atlamanın en kolay yoludur.</string>
     <string name="allow">izin ver</string>
     <string name="pause_mode_notification_title">Duraklatıldı! Engellenen uygulamalar güvenlik duvarıyla korunmaya devam edecek.</string>
     <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">Bekliyor</string>
@@ -45,7 +45,7 @@
     <string name="settings_custom_downloader_desc">Devre dışı bırakılırsa, Android\'in yerleşik <i>İndirme Yöneticisi</i> kullanılır</string>
     <string name="firewall_status_unknown">Bilinmiyor</string>
     <string name="univ_view_blocked_ip_desc">Engellenen veya güvenilen Etki Alanı, IP / Port kurallarını değiştirin.</string>
-    <string name="notif_channel_desc_vpn_failure">Rethink Android veya başka bir VPN uygulaması tarafından durdurulduğunda bilgilendirin</string>
+    <string name="notif_channel_desc_vpn_failure">Keepout Android veya başka bir VPN uygulaması tarafından durdurulduğunda bilgilendirin</string>
     <string name="settings_dns_proxy_dialog_app">Uygulama</string>
     <string name="about_email">Bize e-posta gönderin</string>
     <string name="settings_custom_downloader_heading">Uygulama içi indiriciyi kullanın</string>
@@ -79,7 +79,7 @@
     <string name="brbs_backup_dialog_positive">Yedekle</string>
     <string name="bsct_app_info">Uygulama Bilgisi</string>
     <string name="settings_enable_logs_desc">DNS ve Güvenlik Duvarı günlüklerini aygıt üzerinde yerel olarak depolayın.</string>
-    <string name="orbot_stop_dialog_dns_message">Rethink, DNS sorgularını Orbot\'a iletecek şekilde ayarlanmıştır. Gerektiği gibi değiştirin.</string>
+    <string name="orbot_stop_dialog_dns_message">Keepout, DNS sorgularını Orbot\'a iletecek şekilde ayarlanmıştır. Gerektiği gibi değiştirin.</string>
     <string name="settings_autostart_bootup_heading">Açılışta otomatik başlatma (deneysel)</string>
     <string name="settings_ip_text_ipv4">IPv4</string>
     <string name="firewall_status_excluded">DNS ve güvenlik duvarı dışında</string>
@@ -139,7 +139,7 @@
     <string name="orbot_stop_dialog_neutral">DNS Değiştir</string>
     <string name="orbot_title">Orbot ve Proxy\'ler</string>
     <string name="orbot_install_dialog_message">Orbot, Tor\'un özelliklerini ve işlevselliğini Android\'e getiriyor.</string>
-    <string name="settings_socks5_vpn_disabled_error">Devam etmek için Rethink’i başlatın.</string>
+    <string name="settings_socks5_vpn_disabled_error">Devam etmek için Keepout’i başlatın.</string>
     <string name="settings_socks_forwarding_default_desc">Bağlantıları SOCKS5 uç noktasına yönlendirin.</string>
     <string name="dc_dns_website_heading">DNS günlüklerinde web sitesi simgesini göster (deneysel)</string>
     <string name="cd_dns_proxy_error_text_3">Kapı Geçersiz</string>
@@ -148,7 +148,7 @@
     <string name="network_log_app_name_unnamed">İsimsiz (%1$s)</string>
     <string name="firewall_rule_isolate">İzole et</string>
     <string name="notif_channel_vpn_failure">Etkin Olmayan VPN</string>
-    <string name="notif_channel_desc_vpn_notification">Rethink aktif olduğunda ve arka planda çalıştığında bilgilendirin</string>
+    <string name="notif_channel_desc_vpn_notification">Keepout aktif olduğunda ve arka planda çalıştığında bilgilendirin</string>
     <string name="about_mail_to">hello@celzero.com</string>
     <string name="about_twitter_handle">https://twitter.com/rethinkdns</string>
     <string name="brbs_restore_dialog_message">Uygulama ayarlarını, ağ, ve dns günlüklerini bir yedekleme dosyasından geri yükleyin. Bu, uygulamayı yeniden başlatacaktır.</string>
@@ -193,14 +193,14 @@
     <string name="settings_http_proxy_error_text3">Ana bilgisayar adı boş</string>
     <string name="settings_selected_ip_desc">%1$s</string>
     <string name="hsf_vpn_dialog_header">Dikkat!</string>
-    <string name="dc_dns_leaks_desc">Etkinleştirildiğinde, Rethink 53 numaralı bağlantı noktasındaki tüm paketleri yakalar ve kullanıcı tarafından ayarlanan bir DNS uç noktasına iletir</string>
+    <string name="dc_dns_leaks_desc">Etkinleştirildiğinde, Keepout 53 numaralı bağlantı noktasındaki tüm paketleri yakalar ve kullanıcı tarafından ayarlanan bir DNS uç noktasına iletir</string>
     <string name="about_dialog_neutral_button">Özellik önerin</string>
     <string name="cd_custom_dns_proxy_default_app">Hiçbiri</string>
     <string name="cd_dns_proxy_mode_internal">Dahili</string>
     <string name="hs_download_positive_default">tamam</string>
     <string name="system_dns_connection_failure">Geçerli DNS sunucusu belirlenemiyor</string>
     <string name="copy_clipboard_label">Adres</string>
-    <string name="new_app_bulk_notification_content">Rethink %1$s yeni uygulamaları engelledi. Görüntülemek veya değiştirmek için dokunun.</string>
+    <string name="new_app_bulk_notification_content">Keepout %1$s yeni uygulamaları engelledi. Görüntülemek veya değiştirmek için dokunun.</string>
     <string name="notif_channel_desc_proxy_failure">Proxy hataları ve anomalileri hakkında uyarı</string>
     <string name="rt_download_desc">Bu özelliği kullanmak için blok listelerini (yaklaşık 60MB) indirin.</string>
     <string name="brbs_restore_title">Geri Yükle</string>
@@ -208,7 +208,7 @@
     <string name="brbs_restore_dialog_title">Yedeği geri yükle</string>
     <string name="dns_proxy_desc">%1$s:%2$s, %3$s</string>
     <string name="default_dns_name">RDNS Varsayılan</string>
-    <string name="always_on_dialog_stop_message">Rethink için her zaman açık VPN etkinleştirildi. Yine de Rethink\'i durdurmak istediğinizden emin misiniz\?</string>
+    <string name="always_on_dialog_stop_message">Keepout için her zaman açık VPN etkinleştirildi. Yine de Keepout\'i durdurmak istediğinizden emin misiniz\?</string>
     <string name="firewall_act_network_monitor_tab">Ağ</string>
     <string name="dns_crypt_custom_url_remove_dialog_title">DNSCrypt çözümleyicisi silinsin mi\?</string>
     <string name="dns_crypt_relay_remove_success">DNSCrypt Aktarıcısı silindi.</string>
@@ -302,7 +302,7 @@
     <string name="settings_enable_logs">Aygıt üzerinde günlük kaydını etkinleştirme</string>
     <string name="connection_http3">HTTP3</string>
     <string name="settings_lock_down_mode_desc">VPN kilitlenme modundayken bazı ayarlar devre dışıdır. <u>VPN ayarlarına gidin</u>.</string>
-    <string name="orbot_stop_dialog_message">Rethink, bağlantıları Orbot\'a yönlendirmeyi durdurdu, ancak Orbot arka planda çalışıyor olabilir.</string>
+    <string name="orbot_stop_dialog_message">Keepout, bağlantıları Orbot\'a yönlendirmeyi durdurdu, ancak Orbot arka planda çalışıyor olabilir.</string>
     <string name="settings_ip_dialog_ipv6">IPv6 (deneysel)</string>
     <string name="dc_rethink_dns_radio">Rethink DNS</string>
     <string name="dc_local_block_heading">Cihaz üzerinde blok listeleri</string>
@@ -335,7 +335,7 @@
     <string name="cd_doh_dialog_resolver_name">Çözümleyici Adı</string>
     <string name="fapps_metered_block_dialog_message"><i>Listelenen</i> uygulamalar için kotalı (mobil) ağda bağlantılar engellensin mi\?</string>
     <string name="update_complete_action_snack">YENİDEN BAŞLAT</string>
-    <string name="new_app_notification_content">Rethink son yüklenen %1$s uygulamasını engelledi.</string>
+    <string name="new_app_notification_content">Keepout son yüklenen %1$s uygulamasını engelledi.</string>
     <string name="category_name_others">Diğer</string>
     <string name="ada_noapp_dialog_title">Böyle bir uygulama yok</string>
     <string name="lbbs_update_check">Güncellemeleri denetle</string>
@@ -350,14 +350,14 @@
     <string name="ctbs_app_other_apps">%1$s + %2$s diğer uygulama(lar)</string>
     <string name="univ_firewall_rule_4">DNS ve NTP dışında UDP\'yi engelleyin</string>
     <string name="rules_load_failure_desc">Güvenlik duvarı kuralı bulunamadı</string>
-    <string name="accessibility_notification_content">Rethink erişilebilirlik hizmeti durdu veya çöktü. Artık arka plandaki uygulamaları engellemiyor. Yeniden etkinleştirmek için dokunun.</string>
+    <string name="accessibility_notification_content">Keepout erişilebilirlik hizmeti durdu veya çöktü. Artık arka plandaki uygulamaları engellemiyor. Yeniden etkinleştirmek için dokunun.</string>
     <string name="firewall_rule_block_app_desc"><![CDATA[Kullanıcı tarafından belirlenen güvenlik duvarı kuralı bu <i>uygulamayı</i> engelledi. Değiştirmek için <i>Tüm Uygulamalar</i> sekmesine gidin.]]></string>
     <string name="notif_dialog_pause_dialog_positive">Devam ettir</string>
     <string name="build__flavor_website">web sitesi</string>
     <string name="dc_doh">HTTPS üzerinden Dns</string>
     <string name="cd_dns_crypt_relay_name">DNSRelay %1$s</string>
     <string name="lbl_add">ekle</string>
-    <string name="hsf_pause_vpn_failure">Duraklatılamıyor: Rethink etkin değil</string>
+    <string name="hsf_pause_vpn_failure">Duraklatılamıyor: Keepout etkin değil</string>
     <string name="about_docs">Dokümanları okuyun</string>
     <string name="about_settings_notification">Bildirim ayarları</string>
     <string name="dns_connected">Bağlandı</string>
@@ -372,19 +372,19 @@
     <string name="brbs_restore_no_uri_toast">Geri yükleme başarısız oldu; tekrar deneyin</string>
     <string name="apps_info_title">Uygulamalar</string>
     <string name="alert_permission_accessibility">İzin - Erişilebilirlik</string>
-    <string name="alert_firewall_accessibility_regrant_explanation">Rethink erişilebilirlik hizmeti durdu veya çöktü. <i><b>Ayarlar\'a gidip Rethink\'i Durdurmaya Zorlayın</b></i> ve <i>Kullanılmayan herhangi bir uygulamayı engelle</i> özelliğini kullanmak için tekrar başlatın.
+    <string name="alert_firewall_accessibility_regrant_explanation">Keepout erişilebilirlik hizmeti durdu veya çöktü. <i><b>Ayarlar\'a gidip Keepout\'i Durdurmaya Zorlayın</b></i> ve <i>Kullanılmayan herhangi bir uygulamayı engelle</i> özelliğini kullanmak için tekrar başlatın.
 \n
-\nRethink, hangi uygulamaların kullanımda olduğunu (ön plan) ve hangilerinin kullanımda olmadığını (arka plan) izlemek için erişilebilirlik hizmetini kullanır.</string>
+\nKeepout, hangi uygulamaların kullanımda olduğunu (ön plan) ve hangilerinin kullanımda olmadığını (arka plan) izlemek için erişilebilirlik hizmetini kullanır.</string>
     <string name="always_on_dialog_heading">Her Zaman Açık VPN\'i Devre Dışı Bırak</string>
     <string name="conn_track_clear_logs_message">Bu işlem yalnızca ağ günlüklerini siler ancak güvenlik duvarı kurallarını silmez. Bu işlem geri döndürülemez. Devam etmek istiyor musunuz\?</string>
-    <string name="alert_firewall_accessibility_explanation">Rethink, hangi uygulamaların kullanımda olduğunu (ön plan) ve hangilerinin kullanımda olmadığını (arka plan) izlemek için erişilebilirlik hizmetini kullanır.
+    <string name="alert_firewall_accessibility_explanation">Keepout, hangi uygulamaların kullanımda olduğunu (ön plan) ve hangilerinin kullanımda olmadığını (arka plan) izlemek için erişilebilirlik hizmetini kullanır.
 \n
-\nRethink herhangi bir şekilde bilgi toplamaz veya sizi gözetlemez.</string>
+\nKeepout herhangi bir şekilde bilgi toplamaz veya sizi gözetlemez.</string>
     <string name="custom_url_error_invalid_url">Geçersiz URL</string>
     <string name="always_on_dialog_neutral">Ayarlar</string>
     <string name="bsct_block_ip">Engelle, <u>bu IP\'ye</u> <u>bu uygulama</u> için güven</string>
-    <string name="always_on_dialog">Bu cihazda \"Her Zaman Açık VPN\" etkinleştirilmiştir. Rethink\'i başlatmak için lütfen Ayarlar uygulamasına gidin ve \"Her Zaman Açık VPN \"i devre dışı bırakın.</string>
-    <string name="always_on_dialog_lockdown_stop_message">Rethink, VPN\'i <i>Lockdown</i> modunda çalıştırıyor. Durdurulması, bu kullanıcı profilinde İnternet bağlantısının kaybına neden olur. Yine de devam etmek istiyor musunuz\?</string>
+    <string name="always_on_dialog">Bu cihazda \"Her Zaman Açık VPN\" etkinleştirilmiştir. Keepout\'i başlatmak için lütfen Ayarlar uygulamasına gidin ve \"Her Zaman Açık VPN \"i devre dışı bırakın.</string>
+    <string name="always_on_dialog_lockdown_stop_message">Keepout, VPN\'i <i>Lockdown</i> modunda çalıştırıyor. Durdurulması, bu kullanıcı profilinde İnternet bağlantısının kaybına neden olur. Yine de devam etmek istiyor musunuz\?</string>
     <string name="dns_crypt_url_remove_dialog_message">DNSCrypt çözümleyicisini kayıtlı yapılandırmadan silin.</string>
     <string name="doh_custom_url_remove_dialog_title">DoH uç noktası silinsin mi\?</string>
     <string name="doh_custom_url_remove_dialog_message">Https uç noktasındaki DNS\'yi kayıtlı yapılandırmadan silin.</string>
@@ -393,7 +393,7 @@
     <string name="dns_crypt_url_remove_success">DNSCrypt çözümleyici silindi.</string>
     <string name="local_blocklist_download_desc">Bu özelliği kullanmak için gereken engelleme listeleri (~60MB) indirilsin mi\?</string>
     <string name="dc_other_dns_heading">Tür</string>
-    <string name="settings_allow_bypass_desc">İsteyen uygulamaların bütün kullanılabilir ağlara bağlanmasına izin verin. Bu uygulamalar Rethink’in VPN tünelini isteğe bağlı olarak atlayabilir. Zoom ve Meet gibi bazı sesli/görüntülü konferans uygulamalarının düzgün çalışması için gerekebilir.</string>
+    <string name="settings_allow_bypass_desc">İsteyen uygulamaların bütün kullanılabilir ağlara bağlanmasına izin verin. Bu uygulamalar Keepout’in VPN tünelini isteğe bağlı olarak atlayabilir. Zoom ve Meet gibi bazı sesli/görüntülü konferans uygulamalarının düzgün çalışması için gerekebilir.</string>
     <string name="download_update_dialog_message">Uygulamanın yeni sürümü web sitesinden indirilebilir. Devam etmek istiyor musunuz\?</string>
     <string name="download_update_dialog_message_ok">Zaten en son sürümü kullanıyorsunuz.</string>
     <string name="info_dialog_url_copy_toast_msg">URL kopyalandı</string>
@@ -403,15 +403,15 @@
     <string name="orbot_stop_dialog_title">Manuel müdahale gerekli</string>
     <string name="orbot_app_issue">Orbot başlatılamadı. Yüklü mü\?</string>
     <string name="orbot_bs_status_trying_connect">Orbot kurulumu…</string>
-    <string name="orbot_explanation">Orbot, diğer uygulamaların İnterneti daha <u>güvenli</u> kullanmasını sağlayan ücretsiz bir proxy uygulamasıdır.\nOrbot, İnternet trafiğinizi şifrelemek için <u>Tor</u> kullanır ve böylece <u>sansürü aşmanıza</u> yardımcı olur ve kişisel özgürlük ile mahremiyeti tehdit eden <u>ağ gözetimi</u> türlerine karşı savunma sağlar.\n<u>TCP Proxy</u>: Rethink, yalnızca <i>dahil edilen</i> uygulamaların TCP bağlantılarını Orbot\'a yönlendirir.\n<u>HTTP Proxy</u>: Rethink, Orbot\'a <i>HTTP CONNECT tüneli kurar</i> ve yalnızca <i>dahil edilen</i> uygulamaların TCP bağlantılarını yönlendirir.</string>
+    <string name="orbot_explanation">Orbot, diğer uygulamaların İnterneti daha <u>güvenli</u> kullanmasını sağlayan ücretsiz bir proxy uygulamasıdır.\nOrbot, İnternet trafiğinizi şifrelemek için <u>Tor</u> kullanır ve böylece <u>sansürü aşmanıza</u> yardımcı olur ve kişisel özgürlük ile mahremiyeti tehdit eden <u>ağ gözetimi</u> türlerine karşı savunma sağlar.\n<u>TCP Proxy</u>: Keepout, yalnızca <i>dahil edilen</i> uygulamaların TCP bağlantılarını Orbot\'a yönlendirir.\n<u>HTTP Proxy</u>: Keepout, Orbot\'a <i>HTTP CONNECT tüneli kurar</i> ve yalnızca <i>dahil edilen</i> uygulamaların TCP bağlantılarını yönlendirir.</string>
     <string name="orbot_status_arg_3">DNS ve TCP</string>
-    <string name="settings_autostart_bootup_desc">Cihaz açıldığında, kapatılmadan önce çalışıyorsa Rethink’i başlatın.</string>
+    <string name="settings_autostart_bootup_desc">Cihaz açıldığında, kapatılmadan önce çalışıyorsa Keepout’i başlatın.</string>
     <string name="settings_http_proxy_error_text2">Kapı Geçersiz</string>
-    <string name="settings_network_all_networks_desc">Etkinleştirildiğinde, Rethink internete bağlanmak için mevcut tüm ağları kullanır. Değilse, Android tarafından <i>aktif</i> olarak kabul edilen ağı kullanır.</string>
+    <string name="settings_network_all_networks_desc">Etkinleştirildiğinde, Keepout internete bağlanmak için mevcut tüm ağları kullanır. Değilse, Android tarafından <i>aktif</i> olarak kabul edilen ağı kullanır.</string>
     <string name="firewall_status_whitelisted">Evrensel güvenlik duvarı kurallarını atlar</string>
-    <string name="hsf_vpn_dialog_message">Rethink, cihazın DNS isteklerini şifrelemek, bir ağ izleyicisi uygulamak ve güvenlik duvarı kurallarını uygulamak için yerel bir VPN kurma iznine ihtiyaç duyar.
+    <string name="hsf_vpn_dialog_message">Keepout, cihazın DNS isteklerini şifrelemek, bir ağ izleyicisi uygulamak ve güvenlik duvarı kurallarını uygulamak için yerel bir VPN kurma iznine ihtiyaç duyar.
 \n
-\nRethink herhangi bir şekilde bilgi toplamaz veya sizi gözetlemez.</string>
+\nKeepout herhangi bir şekilde bilgi toplamaz veya sizi gözetlemez.</string>
     <string name="dc_dns_website_desc">Web sitesi simgelerini <i>nextdns.io</i> ve <i>duckduckgo.com</i> adresinden alır. 350 mb\'a kadar disk alanı tüketir</string>
     <string name="about_bug_no_log_dialog_message">Kilitlenme günlükleri alınamadı. Hatanızı manuel olarak bildirmek ister misiniz\?</string>
     <string name="about_faq">SSS\'leri Görüntüle</string>
@@ -502,9 +502,9 @@
     <string name="rt_filter_desc"><![CDATA[<u>%1$s</u> engelleme listesi gösteriliyor]]></string>
     <string name="rt_filter_desc_subgroups"><![CDATA[<u>%1$s</u> engelleme listesi gösteriliyor, grup: %2$s ve alt grup: %3$s]]></string>
     <string name="private_dns_dialog_heading">Özel DNS\'yi kapatın</string>
-    <string name="private_dns_dialog_desc">Rethink\'in DNS ayarları Android\'in Özel DNS\'i tarafından geçersiz kılınır.
+    <string name="private_dns_dialog_desc">Keepout\'in DNS ayarları Android\'in Özel DNS\'i tarafından geçersiz kılınır.
 \n
-\nRethink\'in DNS\'sini kullanmak için Android Ayarları\'na gidin ve \"Özel DNS \"yi kapatın.</string>
+\nKeepout\'in DNS\'sini kullanmak için Android Ayarları\'na gidin ve \"Özel DNS \"yi kapatın.</string>
     <string name="private_dns_dialog_positive">Ayarlara git</string>
     <string name="ada_delete_logs_dialog_title" description="Appears as dialog title to clear the logs in app specific screen">Günlükleri temizleyin</string>
     <string name="ada_delete_logs_dialog_desc" description="Appears as dialog description to clear the logs in app specific screen">Bu uygulamayla ilgili tüm günlükleri temizleyin.</string>
@@ -571,7 +571,7 @@
     <string name="dc_setting_dns_cache_heading" translatable="true">DNS güçlendirici (deneysel)</string>
     <string name="lbl_optional" translatable="true">(opsiyonel)</string>
     <string name="cleanbrowsing_family_dns_desc" translatable="true">Aile filtresi, tüm yetişkin, pornografik ve açık sitelere erişimi engeller. Ayrıca filtrelerimizi atlamak için kullanılabilecek proxy ve VPN alan adlarını da engeller. Karışık içerikli siteler (örneğin Reddit) de engellenir. Google, Bing ve Youtube Güvenli Mod\'a ayarlanmıştır.</string>
-    <string name="ssv_toast_start_rethink" description="This label will appear on the stats screen as toast to start Rethink app" translatable="true">Devam etmek için Rethink\'i başlatın</string>
+    <string name="ssv_toast_start_rethink" description="This label will appear on the stats screen as toast to start Rethink app" translatable="true">Devam etmek için Keepout\'i başlatın</string>
     <string name="public_key_copy_toast_msg" translatable="true">Ortak anahtar kopyalandı.</string>
     <string name="ssv_app_network_activity_heading" description="This label will appear on the stats screen as a header for allowed apps." translatable="true">En çok izin verilmiş uygulamalar</string>
     <string name="import_error" translatable="true">Tünel içe aktarılamıyor: %s</string>
@@ -610,7 +610,7 @@
     <string name="bad_config_explanation_udp_port" translatable="true">: Geçerli bir UDP bağlantı noktası numarası olmalıdır</string>
     <string name="lbl_slow" translatable="true">yavaş</string>
     <string name="google_dns_desc" translatable="true">Herhangi bir DNS isteğini engellemez. Google\'ın DNS uç noktasını kullanır.</string>
-    <string name="settings_allow_lan_desc" translatable="true">LAN, geri döngü, çok noktaya yayın, bağlantı yerel yollarını Rethink\'in VPN tünelinden hariç tutun.</string>
+    <string name="settings_allow_lan_desc" translatable="true">LAN, geri döngü, çok noktaya yayın, bağlantı yerel yollarını Keepout\'in VPN tünelinden hariç tutun.</string>
     <string name="bad_config_reason_invalid_value" translatable="true">Geçersiz değer</string>
     <string name="firewall_rule_trusted_domain_desc" translatable="true"><![CDATA[Bu bağlantıya izin verildi çünkü <i>alan adı</i> Güvenilir alan adı olarak ayarlandı. Değiştirmek için <i>Uygulamaya Özel Güvenlik Duvarı</i> ekranına gidin.]]></string>
     <string name="ssv_most_contacted_domain_heading" description="This label will appear on the stats screen as a header for most visited domains" translatable="true">En çok iletişim kurulan alan adları</string>
@@ -642,7 +642,7 @@
     <string name="lbl_preshared_key" translatable="true">Önceden paylaşılmış anahtar</string>
     <string name="firewall_rule_domain_trusted_univ_desc" translatable="true"><![CDATA[Bu bağlantıya izin verildi çünkü <i>alan adı</i> Evrensel alan adı kurallarında güvenilir olarak ayarlandı. Bu davranışı değiştirmek için <i>DNS Yapılandır</i> sekmesine gidin.]]></string>
     <string name="bad_config_reason_unknown_section" translatable="true">Bilinmeyen Bölüm</string>
-    <string name="hs_biometeric_title" translatable="true">Rethink\'in Kilidini Açın</string>
+    <string name="hs_biometeric_title" translatable="true">Keepout\'in Kilidini Açın</string>
     <string name="crypt_relay_netherlands" translatable="true">Hollanda\'da barındırılan anonimleştirilmiş DNS aktarıcısı</string>
     <string name="invalid_file_error" translatable="true">geçersiz dosya</string>
     <string name="fapps_info_metered_msg" translatable="true">Ölçülü (Mobil) ağda İzin Ver / Engelle.</string>
@@ -710,10 +710,10 @@
     <string name="lbl_split" translatable="true">Böl</string>
     <string name="hybrid_mode_with_proxy_notification_title" translatable="true">Koruma sağlandı! DNS + Güvenlik Duvarı + Proxy\'e bağlı.</string>
     <string name="settings_connectivity_checks" translatable="true">Bağlantı kontrollerini gerçekleştir</string>
-    <string name="settings_exclude_proxy_apps_desc" translatable="true">Devre dışı bırakıldığında, Rethink\'in VPN tünelinden proxy (SOCKS5, HTTP, DNS) yönlendirme uygulamaları hariç tutulur.</string>
+    <string name="settings_exclude_proxy_apps_desc" translatable="true">Devre dışı bırakıldığında, Keepout\'in VPN tünelinden proxy (SOCKS5, HTTP, DNS) yönlendirme uygulamaları hariç tutulur.</string>
     <string name="dc_proxy_dns_heading" translatable="true">DNS\'i asla proxy üzerinden yönlendirme</string>
     <string name="dc_proxy_dns_desc" translatable="true">Her Zaman Açık WireGuard, SOCKS5, HTTP proxy\'leri üzerinden DNS proxy\'si oluşturmayın.</string>
-    <string name="memory_notification_text">Rethink düşük bellekle çalışıyor. Sistem eylemleri sınırlı olabilir.</string>
+    <string name="memory_notification_text">Keepout düşük bellekle çalışıyor. Sistem eylemleri sınırlı olabilir.</string>
     <string name="settings_exclude_proxy_apps_heading" translatable="true">Loopback proxy yönlendirme uygulamaları</string>
     <string name="settings_connectivity_checks_desc" translatable="true">Bağlantı kontrolleri, erişilebilirliği doğrulamak için gönderilir.</string>
     <string name="toast_allow_bypass_disabled" translatable="true">%1$s, proxy\'ler aktif olduğu için devre dışı bırakıldı.</string>
@@ -777,7 +777,7 @@
     <string name="wg_setting_use_on_mobile_desc" translatable="true">Bu WireGuard VPN\'ini mobil veri üzerinden kullan.</string>
     <string name="hop_add_remove_title" translatable="true">Aktarım Ekle / Kaldır</string>
     <string name="about_terms_of_service" translatable="true">Hizmet Şartları</string>
-    <string name="bypasses_network_restrictions" translatable="true">Erişilebilirlik kontrolleri tüm ağ kısıtlamalarını atlar. <i>Otomatik</i> modda, Rethink daha önce bağlandığı IP\'leri ve ana bilgisayar adlarını rastgele kullanır.</string>
+    <string name="bypasses_network_restrictions" translatable="true">Erişilebilirlik kontrolleri tüm ağ kısıtlamalarını atlar. <i>Otomatik</i> modda, Keepout daha önce bağlandığı IP\'leri ve ana bilgisayar adlarını rastgele kullanır.</string>
     <string name="most_contacted_asn" translatable="true">En çok iletişime geçilen sağlayıcılar</string>
     <string name="most_blocked_asn" translatable="true">En çok engellenen sağlayıcılar</string>
     <string name="download_ip_info_title" translatable="true">Sağlayıcı bilgilerini göster</string>
@@ -787,7 +787,7 @@
     <string name="close_conns_dialog_desc" translatable="true">%1$s için tüm bağlantıları kapatmak ister misiniz?</string>
     <string name="local_blocklist_delete_desc" translatable="true">Cihazdaki engelleme listelerini silmek ister misiniz?</string>
     <string name="fail_open_network_title" translatable="true">Ağ kaybında durma</string>
-    <string name="fail_open_network_desc" translatable="true">Etkinleştirildiğinde, Rethink <i>Uçak Modu</i>\'nda olduğu gibi bağlantı bulunmadığında tüm veriyi durdurur.</string>
+    <string name="fail_open_network_desc" translatable="true">Etkinleştirildiğinde, Keepout <i>Uçak Modu</i>\'nda olduğu gibi bağlantı bulunmadığında tüm veriyi durdurur.</string>
     <string name="about_license" translatable="true">Apache-2.0 altında lisanslanmıştır</string>
     <string name="smart_dns" translatable="true">Akıllı DNS</string>
     <string name="smart_dns_desc" translatable="true"><i>Akıllı DNS</i>, bu DNS çözümleyicilerinden herhangi birini rastgele kullanır:</string>
@@ -805,7 +805,7 @@
     <string name="copied_clipboard" translatable="true">Kopyalandı</string>
     <string name="wg_setting_ssid_title" translatable="true">Yalnızca Wi-Fi</string>
     <string name="wg_setting_ssid_desc" translatable="true">Bu WireGuard VPN\'ini yalnızca Wi-Fi\'ye veya belirtilen WiFi tanımlayıcılarına (%1$s) bağlıyken etkinleştir.</string>
-    <string name="ssid_permission_explanation" translatable="true">Rethink\'in Wi‑Fi tanımlayıcılarına (%1$s) erişmek için konum iznine ihtiyacı var.</string>
+    <string name="ssid_permission_explanation" translatable="true">Keepout\'in Wi‑Fi tanımlayıcılarına (%1$s) erişmek için konum iznine ihtiyacı var.</string>
     <string name="location_enable_explanation" translatable="true">Wi‑Fi tanımlayıcılarına (%1$s) erişmek için Konum servisini açın.</string>
     <string name="wg_ssid_dialog_description" translatable="true"><i>Etkin</i> Wi-Fi Tanımlayıcısı (%2$s) %3$s olduğunda bu WireGuard VPN\'ini %1$s.</string>
     <string name="wg_ssid_type_exact" translatable="true">Tam olarak</string>
@@ -817,10 +817,10 @@
     <string name="tombstone_app_desc" translatable="true">Etkinleştirildiğinde, uygulama kurallarını 7 gün boyunca saklayın.</string>
     <string name="settings_allow_incoming_wg_packets" translatable="true">WireGuard P2P</string>
     <string name="settings_allow_incoming_wg_packets_desc" translatable="true">Etkinleştirildiğinde, WireGuard eşleri tarafından başlatılan gelen bağlantılara izin ver.</string>
-    <string name="lockdown_download_message" translatable="true">VPN <i>Kilitleme</i> modunda olduğu için Android\'in yerleşik <i>İndirme Yöneticisi</i> başarısız olabilir. Bunun yerine Rethink\'in indirici özelliğini etkinleştir?</string>
+    <string name="lockdown_download_message" translatable="true">VPN <i>Kilitleme</i> modunda olduğu için Android\'in yerleşik <i>İndirme Yöneticisi</i> başarısız olabilir. Bunun yerine Keepout\'in indirici özelliğini etkinleştir?</string>
     <string name="lockdown_download_enable_inapp" translatable="true">İndiriciyi Etkinleştir</string>
     <string name="settings_jumbo_packets" translatable="true">Bant genişliği güçlendirici</string>
-    <string name="settings_jumbo_packets_desc" translatable="true">Rethink\'in VPN tüneli içinde <i>jumbo paketleri</i> kullanır.</string>
+    <string name="settings_jumbo_packets_desc" translatable="true">Keepout\'in VPN tüneli içinde <i>jumbo paketleri</i> kullanır.</string>
     <string name="stability_program_toast" translatable="true"><i>Deneysel özellikler</i> için <i>kararlılık programına</i> kaydolundu.</string>
     <string name="home_last_24_hours">Son 24 saat</string>
     <plurals name="home_stopped_at_dns_count">

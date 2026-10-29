@@ -250,7 +250,7 @@
     <string name="lbbs_update_check">Tikrinti, ar yra atnaujinimų</string>
     <string name="lbbs_heading">Konfigūruoti 185+ blokavimo sąrašus</string>
     <string name="brbs_title">Atsarginė kopija ir atkūrimas</string>
-    <string name="always_on_dialog">Šiame įrenginyje įjungtas „Nuolatinis VPN“. Norėdami paleisti Rethink, eikite į programėlę „Nustatymai“ ir išjunkite „Nuolatinis VPN“.</string>
+    <string name="always_on_dialog">Šiame įrenginyje įjungtas „Nuolatinis VPN“. Norėdami paleisti Keepout, eikite į programėlę „Nustatymai“ ir išjunkite „Nuolatinis VPN“.</string>
     <string name="brbs_backup_title">Atsarginė kopija</string>
     <string name="brbs_backup_desc">Programėlės nustatymų, tinklo ir DNS žurnalų atsarginės kopijos</string>
     <string name="brbs_restore_title">Atkurti</string>
@@ -469,7 +469,7 @@
     <string name="download_update_dialog_trylater_message">Atnaujinimo šiuo metu negalima atlikti, bandykite vėliau.</string>
     <string name="settings_dns_proxy_dialog_app_desc">Pasirinkta programėlė bus išskirta iš VPN, kad ji galėtų prisijungti prie įgaliotojo serverio jūsų vardu.</string>
     <string name="settings_socks_forwarding_default_desc">Peradresuoti ryšius į SOCKS5 galinį punktą.</string>
-    <string name="always_on_dialog_stop_message">Rethink skirtas nuolatinis VPN yra įjungtas. Ar vis tiek norite sustabdyti Rethink\?</string>
+    <string name="always_on_dialog_stop_message">Keepout skirtas nuolatinis VPN yra įjungtas. Ar vis tiek norite sustabdyti Keepout\?</string>
     <string name="firewall_status_excluded">Išskirta iš DNS ir ugniasienės</string>
     <string name="dc_dns_leaks_desc">Kai įjungta, RethinkDNS užfiksuoja visus paketus 53 prievade ir persiunčia juos į vartotojo nustatytą DNS galinį punktą</string>
     <string name="univ_firewall_rule_10">Blokuoti viską, išskyrus apeinančias programėles ir IP adresus</string>

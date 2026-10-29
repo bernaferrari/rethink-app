@@ -1,1 +1,1 @@
-Rethink: DNS + Tường lửa + VPN
+Keepout: Firewall, DNS, VPN

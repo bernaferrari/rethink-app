@@ -1,31 +1,25 @@
-Sambut Android yang lebih aman, transparan, dan terlindungi.
+Keepout adalah firewall tanpa root, DNS terenkripsi, dan VPN untuk Android. Tentukan aplikasi mana yang boleh mengakses internet, hentikan iklan dan pelacak sebelum terhubung, dan lihat setiap koneksi yang dibuat ponsel Anda.
 
-VPN: Terhubung ke beberapa VPN WireGuard pilihan Anda.
+FIREWALL
+• Blokir aplikasi apa pun di Wi-Fi, data seluler, atau keduanya, dengan sekali ketuk.
+• Isolasi aplikasi, biarkan melewati aturan, atau kecualikan dari tunnel.
+• Aturan universal: blokir aplikasi di latar belakang, saat layar mati, atau saat aplikasi baru diinstal.
+• Aturan IP, port, dan domain untuk satu aplikasi atau semua aplikasi.
 
-Aman: Menampilkan aktivitas jaringan aplikasi yang terpasang dan memungkinkan Anda menonaktifkan, menghapus, atau memblokirnya.
+DNS TERENKRIPSI
+• Rethink DNS dengan daftar blokir di perangkat untuk iklan, pelacak, dan malware.
+• Atau pilih resolver sendiri melalui DNS-over-HTTPS, DNS-over-TLS, DNSCrypt, atau ODoH.
+• Jawaban DNS diperiksa secara lokal, sehingga juga menembus sensor berbasis DNS.
 
-Terlindungi: Garis pertahanan pertama melawan spyware, ransomware, dan malware yang mencuri informasi pribadi dan mengambil alih akun. Melindungi dari manipulasi DNS yang biasanya digunakan untuk memblokir situs web, media sosial, dan aplikasi pesan.
+LIHAT APA YANG DILAKUKAN APLIKASI ANDA
+• Log jaringan dan DNS: aplikasi mana, server mana, negara mana, diizinkan atau diblokir.
+• Statistik untuk jam, hari, atau minggu terakhir: aplikasi teratas, aplikasi yang diblokir, negara, jaringan, dan domain.
 
-Cepat: Server DNS yang dipasang di lebih dari 300 lokasi di seluruh dunia untuk memastikan internet Anda secepat dan seaman mungkin.
+VPN DAN PROXY
+• Arahkan aplikasi melalui proxy WireGuard, SOCKS5, atau HTTP, dengan split tunneling per aplikasi.
+• Tor sekali ketuk melalui Orbot.
 
-Terbuka: Sumber terbuka dan bebas dari pelacak.
+PRIVAT SEJAK AWAL
+Pemfilteran berjalan di perangkat Anda melalui layanan VPN Android. Log tetap di ponsel, Anda bisa menonaktifkannya, dan tidak ada iklan.
 
-***Fitur***
-
-Firewall: Mencegah aplikasi terhubung ke internet. Blokir spyware, malware, ransomware, dan lainnya.
-     
-Firewall memblokir aplikasi yang terhubung ke Internet melalui WiFi atau data seluler. Karena sebagian besar bentuk pengawasan memerlukan data dikirim ke server melalui jaringan, firewall secara efektif mengurangi ancaman (Pengelola Berkas, Jam Alarm, Kalkulator adalah contoh aplikasi yang tidak memerlukan akses Internet untuk berfungsi). Fitur firewall menggunakan Layanan Aksesibilitas untuk mendeteksi dan memblokir aplikasi latar belakang.
-
-Pemantauan: Pantau lalu lintas Internet masuk dan keluar. 
-
-Jika diaktifkan, catatan sambungan dikumpulkan dan dianalisis. Laporan otomatis menandai sambungan yang sebelumnya tidak dikenal atau mencurigakan, serta mengungkapkan sejauh mana upaya pencurian data oleh jaringan spyware. Dalam pengujian kami, sekitar 60% lalu lintas ditandai dan dilaporkan sebagai koneksi yang dimulai oleh spyware yang sudah dikenal. Catatan yang dihasilkan tersedia secara real-time bagi pengguna untuk analisis mereka sendiri.
-
-WireGuard: Amankan lalu lintas Internet keluar.  
-
-Aplikasi ini menggunakan protokol WireGuard yang cepat, modern, ringan, dan aman untuk mengenkripsi koneksi keluar ke penyedia VPN kompatibel pilihan Anda.
-
-Anti-sensor: 
-
-Aplikasi ini mengenkripsi koneksi internet Anda ke server Domain Name System (DNS) yang dijalankan oleh Rethink dengan kehadiran di lebih dari 300 lokasi di seluruh dunia. Server DNS adalah buku alamat internet: Server DNS menyediakan alamat tepat yang Anda butuhkan untuk mengunjungi situs web atau membuka aplikasi.
-
-Data Monitor: Pantau penggunaan data seluler atau WiFi per aplikasi dan per koneksi.
+Keepout adalah fork open source dari Rethink DNS + Firewall oleh Celzero, didesain ulang dengan Material 3 Expressive. Berlisensi Apache 2.0.

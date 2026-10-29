@@ -1,31 +1,25 @@
-Daha güvenli, şeffaf ve korunaklı bir Android cihaza merhaba deyin
+Keepout, Android için root gerektirmeyen bir güvenlik duvarı, şifreli DNS ve VPN'dir. Hangi uygulamaların internete çıkacağına siz karar verin, reklamları ve izleyicileri bağlanmadan durdurun, telefonunuzun yaptığı her bağlantıyı görün.
 
-VPN: Tercihinize göre birden fazla WireGuard VPN'e bağlanır.
+GÜVENLİK DUVARI
+• Herhangi bir uygulamayı Wi-Fi'da, mobil veride ya da ikisinde birden tek dokunuşla engelleyin.
+• Bir uygulamayı izole edin, kuralları atlamasına izin verin ya da tünelden hariç tutun.
+• Evrensel kurallar: uygulamaları arka planda, ekran kapalıyken ya da yeni bir uygulama yüklendiğinde engelleyin.
+• Tek bir uygulama ya da tüm uygulamalar için IP, bağlantı noktası ve alan adı kuralları.
 
-Güvenli: Yüklü uygulamaların internet ile etkileşimini görmenizi ve kapatmanızı, silmenizi ya da engellemenizi sağlar.
+ŞİFRELİ DNS
+• Reklamlar, izleyiciler ve kötü amaçlı yazılımlar için cihaz üzerinde engelleme listeleriyle Rethink DNS.
+• Ya da DNS-over-HTTPS, DNS-over-TLS, DNSCrypt veya ODoH üzerinden kendi çözümleyicinizi seçin.
+• DNS yanıtları cihazda doğrulanır; bu, DNS tabanlı sansürü aşmanıza da yardımcı olur.
 
-Korunaklı: Casus yazılımlara, fidye yazılımlara ve kişisel bilgilerinizi çalıp hesaplarınıza el koyabilecek art niyetli yazılımlara karşı ilk savunma hattı.
+UYGULAMALARINIZIN NE YAPTIĞINI GÖRÜN
+• Ağ ve DNS günlükleri: hangi uygulama, hangi sunucu, hangi ülke, izinli mi engelli mi.
+• Son saat, gün ya da hafta için istatistikler: en çok kullanan uygulamalar, engellenen uygulamalar, ülkeler, ağlar ve alan adları.
 
-Hızlı: İnternetinizin olabildiğince güvenli ve erişilebilir olabilmesi için dünya çapında 300'den fazla DNS sunucusu mevcut.
+VPN VE PROXY'LER
+• Uygulamaları WireGuard, SOCKS5 ya da HTTP proxy'leri üzerinden yönlendirin; uygulama bazında bölünmüş tünel desteğiyle.
+• Orbot ile tek dokunuşta Tor.
 
-Açık: Açık kaynak kodlu ve izleyicilerden uzak
+TASARIMDAN GİZLİ
+Filtreleme, Android'in VPN hizmeti aracılığıyla cihazınızda çalışır. Günlükler telefonda kalır, bunları kapatabilirsiniz ve reklam yoktur.
 
-**Özellikler**
-
-Güvenlik Duvarı: Uygulamaların internete erişmesini engelleyin. Art niyetli yazılımları ve daha fazlasını engelleyin.
-
-Bir güvenlik duvarı herhangi bir uygulamanın WiFi ya da mobil veri üzerinden internete erişmesini engeller. Çoğu gözlem tekniklerinin sunucuya ağ aracılığıyla veri gönderilmesine ihtiyaç duyduğundan dolayı, uygulamayı engellemek tehlikeyi azaltır (Dosya Yöneticileri, Saat, Hesap Makinesi çalışmak için internete hiç ihtiyaç duymayan uygulamalardan birkaç tanesidir).
-
-Denetim: Giden ve gelen internet alışverişini ölçün.
-
-Etkinleştirilirse tüm bağlantı günlükleri toplanır ve analize edilir. Otomatik raporlar bilinmeyen veya şüpheli bağlantıları saptar ve casus yazılımların ne noktaya kadar veri çalmaya çalıştığını gösterir. Testlerimizde, ağ alışverişinin yaklaşık %60'ı bilinen casus yazılımlar tarafından başlatılmış olarak algılanıp saptandı. Kullanıcının kendisi kontrol etmesi için neredeyse gerçek zamanlı günlükler mevcut hale getirilir.
-
-WireGuard: Korunaklı veri gönderimi.
-
-Uygulama, giden bağlantıları şifrelemek için tercihinizce herhangi uyumlu VPN sağlayıcısı ile hızlı, modern, hafif ve korunaklı Wireguard protokolünü kullanır.
-
-Sansür Karşıtı:
-
-Uygulama, internet bağlantınızı dünya çapında 300'den fazla konumda bulunan, Rethink tarafından yürütülen DNS sunucularına bağlar. DNS sunucuları internetin telefon rehberi gibidir; bir DNS sunucusu herhangi bir websiteye bağlanmak veya bir uygulama açarken bağlanmanız gereken spesifik "telefon numarası"nı sunar.
-
-Veri Denetleyicisi: Uygulama başı ve bağlantı başı mobil veri veya WiFi veri kullanımını denetle.
+Keepout, Celzero'nun Rethink DNS + Firewall uygulamasının Material 3 Expressive ile yeniden tasarlanmış açık kaynaklı bir çatalıdır. Apache 2.0 lisansı altındadır.

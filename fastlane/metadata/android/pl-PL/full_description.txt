@@ -1,0 +1,25 @@
+Keepout to zapora bez roota, szyfrowany DNS i VPN dla Androida. Zdecyduj, które aplikacje mają dostęp do internetu, zatrzymuj reklamy i trackery, zanim się połączą, i zobacz każde połączenie, jakie nawiązuje Twój telefon.
+
+ZAPORA
+• Zablokuj dowolną aplikację w Wi-Fi, sieci komórkowej lub w obu jednym dotknięciem.
+• Izoluj aplikację, pozwól jej omijać reguły albo wyklucz ją z tunelu.
+• Reguły uniwersalne: blokuj aplikacje w tle, przy wyłączonym ekranie lub po zainstalowaniu nowej aplikacji.
+• Reguły IP, portów i domen dla jednej aplikacji lub dla wszystkich.
+
+SZYFROWANY DNS
+• Rethink DNS z listami blokowania reklam, trackerów i złośliwego oprogramowania na urządzeniu.
+• Albo wybierz własny resolver przez DNS-over-HTTPS, DNS-over-TLS, DNSCrypt lub ODoH.
+• Odpowiedzi DNS są sprawdzane lokalnie, co pomaga też obejść cenzurę opartą na DNS.
+
+ZOBACZ, CO ROBIĄ TWOJE APLIKACJE
+• Dzienniki sieci i DNS: która aplikacja, który serwer, jaki kraj, zezwolono czy zablokowano.
+• Statystyki z ostatniej godziny, dnia lub tygodnia: najaktywniejsze aplikacje, zablokowane aplikacje, kraje, sieci i domeny.
+
+VPN I PROXY
+• Kieruj ruch aplikacji przez WireGuard, SOCKS5 lub proxy HTTP, z podziałem tunelu dla każdej aplikacji.
+• Tor jednym dotknięciem przez Orbot.
+
+PRYWATNOŚĆ OD PODSTAW
+Filtrowanie działa na Twoim urządzeniu przez usługę VPN Androida. Dzienniki zostają w telefonie, możesz je wyłączyć, a reklam nie ma.
+
+Keepout to fork open source aplikacji Rethink DNS + Firewall od Celzero, przeprojektowany w stylu Material 3 Expressive. Licencja Apache 2.0.

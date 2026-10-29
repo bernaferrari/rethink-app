@@ -1,1 +1,1 @@
-Cortafuegos, usa WireGuard VPN, monitoriza la red, bloquea malware, cambia DNS.
+Cortafuegos por app, bloqueo de rastreadores con DNS cifrado y cada conexión.

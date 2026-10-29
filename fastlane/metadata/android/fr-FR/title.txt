@@ -1,1 +1,1 @@
-Rethink : DNS + Pare-feu + VPN
+Keepout: Pare-feu, DNS, VPN

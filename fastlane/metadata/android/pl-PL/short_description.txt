@@ -1,0 +1,1 @@
+Blokuj aplikacje, zatrzymuj trackery szyfrowanym DNS i widź każde połączenie.

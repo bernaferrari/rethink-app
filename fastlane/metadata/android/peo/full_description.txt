@@ -1,7 +1,25 @@
-به دستگاهی امن تر، شفاف و سالم تر سلام کنید
+Keepout is a no-root firewall, encrypted DNS and VPN for Android. Decide which apps reach the internet, stop ads and trackers before they connect, and see every connection your phone makes.
 
-VPN:  به سرورهای وایرگارد خود متصل می‌شود. 
+FIREWALL
+• Block any app on Wi-Fi, mobile data or both, with one tap.
+• Isolate an app, let it bypass the rules, or exclude it from the tunnel.
+• Universal rules: block apps in the background, when the screen is off, or when a new app is installed.
+• IP, port and domain rules for one app or for every app.
 
-سالم: فعالیت های اینترنتی برنامه های نصب شده را آشکار می‌کند و به شما اجازه می‌دهد آن‌ها را متوقف، حذف یا در پس دیوار آتش قرار می‌دهد.
+ENCRYPTED DNS
+• Rethink DNS with on-device blocklists for ads, trackers and malware.
+• Or choose your own resolver over DNS-over-HTTPS, DNS-over-TLS, DNSCrypt or ODoH.
+• DNS answers are checked locally, which also gets around DNS-based censorship.
 
-امن: خط اول دفاع در مقابل ابزار های جاسوسی، باج‌افزار، و بدافزار هایی کهاطلاعات
+SEE WHAT YOUR APPS DO
+• Network and DNS logs: which app, which server, which country, allowed or blocked.
+• Statistics for the last hour, day or week: top apps, blocked apps, countries, networks and domains.
+
+VPN AND PROXIES
+• Route apps through WireGuard, SOCKS5 or HTTP proxies, with split tunneling per app.
+• One-tap Tor through Orbot.
+
+PRIVATE BY DESIGN
+Filtering runs on your device through Android's VPN service. Logs stay on the phone, you can turn them off, and there are no ads.
+
+Keepout is an open-source fork of Rethink DNS + Firewall by Celzero, redesigned with Material 3 Expressive. Licensed under Apache 2.0.
