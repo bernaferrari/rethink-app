@@ -13,7 +13,17 @@
  */
 package com.bernaferrari.bravedns.ui.compose.home
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -185,8 +195,12 @@ fun RethinkHomeScreen(
     onBlockedAppClick: ((String) -> Unit)? = null,
 ) {
     val visualState = uiState.visualState()
-    // The same large title as Stats and Settings, collapsing as the page scrolls; the status pill rides in its actions.
+    // The same large title as Stats and Settings, collapsing as the page scrolls. The hero says the
+    // state in display type, so the status pill only joins the bar once it has collapsed, beside the
+    // small title, instead of floating alone above the large one.
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val barCollapsed by remember { derivedStateOf { scrollBehavior.state.collapsedFraction > 0.9f } }
+    val reducedMotion = LocalRethinkMotion.current.reducedMotion
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.surface,
@@ -194,7 +208,15 @@ fun RethinkHomeScreen(
             RethinkLargeTopBar(
                 title = strings.productName,
                 scrollBehavior = scrollBehavior,
-                actions = { HomeStatus(strings, visualState, Modifier.padding(end = SharedDimensions.spacingMd)) },
+                actions = {
+                    AnimatedVisibility(
+                        visible = barCollapsed,
+                        enter = if (reducedMotion) EnterTransition.None else fadeIn() + scaleIn(initialScale = 0.9f),
+                        exit = if (reducedMotion) ExitTransition.None else fadeOut() + scaleOut(targetScale = 0.9f),
+                    ) {
+                        HomeStatus(strings, visualState, Modifier.padding(end = SharedDimensions.spacingMd))
+                    }
+                },
             )
         },
     ) { insets ->
@@ -268,8 +290,13 @@ private data class HeroColors(val container: Color, val content: Color, val mark
 private fun heroColors(state: ProtectionVisualState): HeroColors {
     val scheme = MaterialTheme.colorScheme
     val motion = LocalRethinkMotion.current
+    // The brand palette keeps primaryContainer at the seed's own bright tone in dark theme too; the
+    // secondary container is the same hue at a dark tone, so the hero dims with the rest of the UI.
+    val dark = scheme.surface.luminance() < 0.5f
+    val heroContainer = if (dark) scheme.secondaryContainer else scheme.primaryContainer
+    val onHeroContainer = if (dark) scheme.onSecondaryContainer else scheme.onPrimaryContainer
     val target = when (state) {
-        ProtectionVisualState.Protected -> HeroColors(scheme.primaryContainer, scheme.onPrimaryContainer, scheme.primary, scheme.onPrimary, scheme.onPrimaryContainer.copy(alpha = 0.12f))
+        ProtectionVisualState.Protected -> HeroColors(heroContainer, onHeroContainer, scheme.primary, scheme.onPrimary, onHeroContainer.copy(alpha = 0.12f))
         ProtectionVisualState.Recovering -> HeroColors(scheme.errorContainer, scheme.onErrorContainer, scheme.error, scheme.onError, scheme.onErrorContainer.copy(alpha = 0.12f))
         ProtectionVisualState.Off -> HeroColors(scheme.surfaceContainerHigh, scheme.onSurface, scheme.surfaceContainerHighest, scheme.onSurfaceVariant, scheme.outlineVariant.copy(alpha = 0.5f))
     }
@@ -304,15 +331,23 @@ private fun ProtectionHero(
         Column(
             Modifier.padding(if (expanded) SharedDimensions.spacing2xl else SharedDimensions.spacingXl),
         ) {
+            // The resolver in use reads as a caption, not a chip: it informs, it isn't a control.
             val dnsPill: @Composable () -> Unit = {
                 if (state != ProtectionVisualState.Off && uiState.dnsName.isNotBlank()) {
-                    RethinkPill(
-                        text = uiState.dnsName,
-                        colors = RethinkPillDefaults.onContainer(colors.content),
-                        size = RethinkPillSize.Large,
-                        leadingIcon = MaterialSymbols.Filled.Dns,
-                        modifier = Modifier.widthIn(max = 220.dp),
-                    )
+                    Row(
+                        Modifier.widthIn(max = 220.dp).semantics(mergeDescendants = true) {},
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
+                    ) {
+                        Icon(MaterialSymbols.Filled.Dns, null, tint = colors.content.copy(alpha = 0.82f), modifier = Modifier.size(SharedDimensions.iconSizeXs))
+                        Text(
+                            uiState.dnsName,
+                            style = MaterialTheme.typography.labelLarge,
+                            color = colors.content.copy(alpha = 0.82f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
                 }
             }
             if (expanded) {
@@ -471,17 +506,30 @@ private fun TodaySection(uiState: RethinkHomeUiState, strings: RethinkHomeString
         SectionHeader(strings.last24Hours, strings.seeStatistics, onActivityClick)
         Surface(shape = RoundedCornerShape(SharedDimensions.groupCornerRadius), color = MaterialTheme.colorScheme.surfaceContainerLow) {
             Column(Modifier.padding(SharedDimensions.spacingXl), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg)) {
+                Text(strings.connections, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg)) {
                     TodayMetric(formatGrouped(uiState.allowedToday), strings.allowed, RethinkStatusColors.allowed, MaterialSymbols.Filled.CheckCircle, Modifier.weight(1f))
                     TodayMetric(formatGrouped(uiState.blockedToday), strings.blocked, RethinkStatusColors.blocked, MaterialSymbols.Filled.Block, Modifier.weight(1f))
                 }
                 SplitBar(uiState.allowedToday, uiState.blockedToday)
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
+                // DNS lookups are a separate count from the connections above: its own labelled
+                // line, so "Blocked 122" over "259 stopped" doesn't read as a contradiction.
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                Row(
+                    Modifier.fillMaxWidth().semantics(mergeDescendants = true) {},
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
+                ) {
                     Icon(MaterialSymbols.Filled.Dns, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(SharedDimensions.iconSizeSm))
                     Text(
-                        strings.stoppedAtDns(uiState.dnsBlockedToday),
-                        style = MaterialTheme.typography.bodyMedium,
+                        strings.dnsQueries,
+                        style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.weight(1f),
+                    )
+                    RethinkPill(
+                        text = strings.blockedCount(uiState.dnsBlockedToday),
+                        colors = if (uiState.dnsBlockedToday > 0) RethinkPillDefaults.blocked() else RethinkPillDefaults.neutral(),
                     )
                 }
             }
@@ -556,9 +604,9 @@ private fun StoppedMostSection(apps: List<RethinkHomeBlockedApp>, strings: Rethi
 @Composable
 private fun QuickActions(strings: RethinkHomeStrings, onApps: (() -> Unit)?, onLogs: (() -> Unit)?, onDns: (() -> Unit)?) {
     val actions = listOfNotNull(
-        onApps?.let { QuickAction(strings.apps, strings.appsCaption, MaterialSymbols.Filled.Apps, MaterialShapes.Cookie9Sided, it) },
-        onLogs?.let { QuickAction(strings.logs, strings.logsCaption, MaterialSymbols.AutoMirrored.Filled.Subject, MaterialShapes.Pill, it) },
-        onDns?.let { QuickAction(strings.dns, strings.dnsCaption, MaterialSymbols.Filled.Dns, MaterialShapes.Clover4Leaf, it) },
+        onApps?.let { QuickAction(strings.apps, strings.appsCaption, MaterialSymbols.Filled.Apps, it) },
+        onLogs?.let { QuickAction(strings.logs, strings.logsCaption, MaterialSymbols.AutoMirrored.Filled.Subject, it) },
+        onDns?.let { QuickAction(strings.dns, strings.dnsCaption, MaterialSymbols.Filled.Dns, it) },
     )
     if (actions.isEmpty()) return
     Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile)) {
@@ -572,7 +620,6 @@ private class QuickAction(
     val label: String,
     val caption: String,
     val icon: ImageVector,
-    val shape: androidx.graphics.shapes.RoundedPolygon,
     val onClick: () -> Unit,
 )
 
@@ -585,15 +632,17 @@ private fun QuickTile(action: QuickAction, shape: Shape, modifier: Modifier = Mo
         contentColor = MaterialTheme.colorScheme.onSurface,
         modifier = modifier.heightIn(min = QuickTileHeight),
     ) {
-        Column(Modifier.padding(SharedDimensions.spacingLg), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
+        // Three tiles share a phone's width: a 16dp inset and three caption lines keep captions whole.
+        Column(Modifier.padding(SharedDimensions.spacingMd), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
+            // One well shape for all three, the shared icon-well radius.
             Box(
-                Modifier.size(SharedDimensions.iconContainerLg).background(MaterialTheme.colorScheme.secondaryContainer, action.shape.toShape()),
+                Modifier.size(SharedDimensions.iconContainerLg).background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(SharedDimensions.iconContainerRadius)),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(action.icon, null, tint = MaterialTheme.colorScheme.onSecondaryContainer, modifier = Modifier.size(SharedDimensions.iconSizeMd))
             }
             Text(action.label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, maxLines = 1)
-            Text(action.caption, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(action.caption, style = MaterialTheme.typography.bodySmall, maxLines = 3, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
