@@ -141,7 +141,9 @@ internal class WgHopSelector(
             }
 
             proxyIds.add(wgPrefix + oneWireGuardId)
-            if (default.isNotEmpty()) proxyIds.add(default)
+            if (mappings.find { it.id == oneWireGuardId }?.isSplitProxy == true && default.isNotEmpty()) {
+                proxyIds.add(default)
+            }
             Logger.i(LOG_TAG_PROXY, "one-wg enabled, return $proxyIds")
             return proxyIds
         }

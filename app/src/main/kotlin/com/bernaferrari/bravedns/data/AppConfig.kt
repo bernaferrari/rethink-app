@@ -295,7 +295,7 @@ internal constructor(
     enum class ProtoTranslationMode(val id: Int) {
         PTMODEAUTO(Settings.PtModeAuto),
         PTMODEFORCE64(Settings.PtModeForce64),
-        PTMODENO46(Settings.PtModeNo46)
+        PTMODENO46(Settings.PtModeNone)
     }
 
     fun stats(): String {

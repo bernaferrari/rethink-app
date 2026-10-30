@@ -92,6 +92,9 @@ import com.celzero.firestack.intra.DefaultDNS
 import com.celzero.firestack.intra.Intra
 import com.celzero.firestack.intra.Tunnel
 import com.celzero.firestack.settings.Settings
+import kotlinx.coroutines.async
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -119,6 +122,10 @@ class GoVpnAdapter(
 ) {
     // The Intra session object from go-tun2socks.  Initially null.
     private var tunnel: Tunnel
+
+    private val nativeProbes = NativeProbeRunner { error ->
+        Logger.w(LOG_TAG_VPN, "$TAG native reachability probe failed", error)
+    }
 
     private var dnsTransportsOrNull: GoDnsTransports? = null
 
@@ -219,7 +226,9 @@ class GoVpnAdapter(
         Logger.v(LOG_TAG_VPN, "$TAG initResolverProxiesPcap done")
     }
 
-    suspend fun setPcapMode(pcapFilePath: String) {
+    private val pcapMutex = kotlinx.coroutines.sync.Mutex()
+
+    suspend fun setPcapMode(pcapFilePath: String): Boolean = pcapMutex.withLock {
         Logger.v(LOG_TAG_VPN, "$TAG setPcapMode")
         if (!tunnel.isConnected) {
             Logger.e(LOG_TAG_VPN, "$TAG no tunnel, skip set pcap mode")
@@ -228,7 +237,7 @@ class GoVpnAdapter(
                 "set pcap mode error",
                 "no tunnel connected, cannot set pcap mode"
             )
-            return
+            return@withLock pcapFilePath.isEmpty()
         }
 
         // validate pcap file path before setting
@@ -236,7 +245,7 @@ class GoVpnAdapter(
             val file = File(pcapFilePath)
             if (!file.exists() || !file.canWrite()) {
                 Logger.e(LOG_TAG_VPN, "$TAG invalid pcap file path, file does not exist or not writable: $pcapFilePath")
-                return
+                return@withLock false
             }
         }
 
@@ -249,14 +258,17 @@ class GoVpnAdapter(
                 "pcap mode set with file path: $pcapFilePath"
             )
         } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e
             Logger.e(LOG_TAG_VPN, "$TAG err setting pcap($pcapFilePath): ${e.message}", e)
             logEvent(
                 Severity.HIGH,
                 "set pcap mode error",
                 "error setting pcap mode with file path: $pcapFilePath, reason: ${e.message}"
             )
+            return@withLock false
         }
         Logger.v(LOG_TAG_VPN, "$TAG setPcapMode done")
+        true
     }
 
     suspend fun addTransport() {
@@ -871,7 +883,7 @@ class GoVpnAdapter(
                 val useOnlyOnSsid = files?.ssidEnabled == true && !files.oneWireGuard
                 val configuredSsids = files?.ssids.orEmpty()
                 val ssidMatch = WireguardManager.matchesSsidList(configuredSsids, ssid) && ssid.isNotEmpty()
-                val canResumeSsidWg = useOnlyOnSsid && ssidMatch
+                val canResumeSsidWg = useOnlyOnSsid && ssidMatch && !isMobileActive
 
                 val canResume = canResumeMobileWg || canResumeSsidWg
 
@@ -911,7 +923,7 @@ class GoVpnAdapter(
                         "wireguard proxy paused",
                         "Wireguard proxy with id $id paused, reason: mobile data"
                     )
-                } else if (useOnlyOnSsid && !ssidMatch && !canResume) {
+                } else if (useOnlyOnSsid && (isMobileActive || !ssidMatch) && !canResume) {
                     // when the ssidEnabled is set and the ssid does not match
                     val res = pauseWireguard(id)
                     Logger.i(LOG_TAG_VPN, "$TAG paused proxy (ssid): $id, res: $res")
@@ -949,7 +961,7 @@ class GoVpnAdapter(
                 val useOnlyOnSsid = it.ssidBased
                 val configuredSsids = it.ssids
                 val ssidMatch = RpnProxyManager.matchesSsidList(configuredSsids, ssid) && ssid.isNotEmpty()
-                val canResumeSsidWg = useOnlyOnSsid && ssidMatch
+                val canResumeSsidWg = useOnlyOnSsid && ssidMatch && !isMobileActive
 
                 val canResume = canResumeMobileWg || canResumeSsidWg
                 val rpn = getWinByKey(key)
@@ -987,7 +999,7 @@ class GoVpnAdapter(
                         "rpn proxy paused",
                         "rpn proxy with id $key paused, reason: mobile data"
                     )
-                } else if (useOnlyOnSsid && !ssidMatch && !canResume) {
+                } else if (useOnlyOnSsid && (isMobileActive || !ssidMatch) && !canResume) {
                     // when the ssidEnabled is set and the ssid does not match
                     val res = rpn?.pause()
                     Logger.i(LOG_TAG_VPN, "$TAG paused proxy (ssid): $key, res: $res")
@@ -1214,6 +1226,7 @@ class GoVpnAdapter(
     }
 
     suspend fun closeTun() {
+        nativeProbes.close()
         try {
             if (tunnel.isConnected) {
                 // this is not the only place where tunnel is disconnected
@@ -1826,13 +1839,13 @@ class GoVpnAdapter(
             val res: Boolean =
                 if (pair.first && pair.second) {
                     // if the pair is true, check for both ipv4 and ipv6
-                    !router.contains(UNSPECIFIED_IP_IPV4) || !router.contains(
-                        UNSPECIFIED_IP_IPV6
+                    !router.contains(UNSPECIFIED_IP_IPV4, "") || !router.contains(
+                        UNSPECIFIED_IP_IPV6, ""
                     )
                 } else if (pair.first) {
-                    !router.contains(UNSPECIFIED_IP_IPV4)
+                    !router.contains(UNSPECIFIED_IP_IPV4, "")
                 } else if (pair.second) {
-                    !router.contains(UNSPECIFIED_IP_IPV6)
+                    !router.contains(UNSPECIFIED_IP_IPV6, "")
                 } else {
                     false
                 }
@@ -1857,23 +1870,45 @@ class GoVpnAdapter(
         }
     }
 
-    suspend fun getActiveProxiesIpAndMtu(): BraveVPNService.OverlayNetworks {
-        try {
-            val router = getProxies()?.router() ?: return BraveVPNService.OverlayNetworks()
-            val has4 = router.iP4()
-            val has6 = router.iP6()
-            val failOpen = !router.iP4() && !router.iP6()
-            val mtu = router.mtu().toInt()
-            Logger.i(
-                LOG_TAG_VPN,
-                "$TAG proxy ip version, has4? $has4, has6? $has6, failOpen? $failOpen"
-            )
-            return BraveVPNService.OverlayNetworks(has4, has6, failOpen, mtu)
-        } catch (e: Exception) {
-            // exceptions are expected only when the wireguard is not available
-            Logger.w(LOG_TAG_VPN, "$TAG err proxy ip version: ${e.message}")
+    private val proxyGeneration = java.util.concurrent.atomic.AtomicLong()
+
+    fun invalidateProxyProbes() { proxyGeneration.incrementAndGet() }
+
+    suspend fun getActiveProxiesIpAndMtu(): BraveVPNService.OverlayNetworks = kotlinx.coroutines.coroutineScope {
+        val generation = proxyGeneration.get()
+        val proxies = getProxies() ?: return@coroutineScope BraveVPNService.OverlayNetworks()
+        val mtu = try { proxies.router().mtu().toInt() } catch (error: Exception) {
+            if (error is kotlinx.coroutines.CancellationException) throw error
+            Logger.w(LOG_TAG_VPN, "$TAG cannot read proxy MTU", error)
+            Int.MAX_VALUE
         }
-        return BraveVPNService.OverlayNetworks()
+        val routers = mutableListOf<Pair<String, com.celzero.firestack.backend.Router>>()
+        WireguardManager.getActiveConfigs().forEach { config ->
+            val id = ID_WG_BASE + config.getId()
+            try { proxies.getProxy(id)?.router()?.let { routers.add(id to it) } } catch (error: Exception) {
+                if (error is kotlinx.coroutines.CancellationException) throw error
+                Logger.w(LOG_TAG_VPN, "$TAG missing active proxy $id", error)
+            }
+        }
+        if (RpnProxyManager.isRpnActive()) {
+            RpnProxyManager.getEnabledConfigs().forEach { config ->
+                val key = if (config.key.contains(AUTO_SERVER_ID, true)) "" else config.key
+                getWinByKey(key)?.router()?.let { routers.add("rpn:$key" to it) }
+            }
+        }
+        val active = WireguardManager.isAnyWgActive() || RpnProxyManager.isRpnActive()
+        if (!active) return@coroutineScope BraveVPNService.OverlayNetworks(failOpen = true, mtu = mtu)
+        val results = routers.map { (id, router) ->
+            async {
+                val v4 = async { nativeProbes.probe("$generation:$id:4") { router.reaches(persistentState.pingv4Ips) } }
+                val v6 = async { nativeProbes.probe("$generation:$id:6") { router.reaches(persistentState.pingv6Ips) } }
+                Pair(v4.await(), v6.await())
+            }
+        }.map { it.await() }
+        kotlinx.coroutines.currentCoroutineContext().ensureActive()
+        if (generation != proxyGeneration.get()) throw kotlinx.coroutines.CancellationException("Proxy changed during probe")
+        // The overlay is the union of capabilities; per-flow routing still fails closed.
+        BraveVPNService.OverlayNetworks(results.any { it.first }, results.any { it.second }, failOpen = false, mtu = mtu)
     }
 
     suspend fun onLowMemory() {
@@ -2091,7 +2126,10 @@ class GoVpnAdapter(
 
     }
 
-    suspend fun registerAndFetchWinIfNeeded(prevBytes: ByteArray? = null, deviceId: String): ByteArray? {
+    suspend fun registerAndFetchWinIfNeeded(prevBytes: ByteArray? = null, deviceId: String): ByteArray? =
+        registerAndFetchWinIfNeeded(prevBytes, null, deviceId)
+
+    suspend fun registerAndFetchWinIfNeeded(prevBytes: ByteArray?, stateBytes: ByteArray?, deviceId: String): ByteArray? {
         if (!tunnel.isConnected) {
             Logger.e(LOG_TAG_PROXY, "$TAG no tunnel, skip register win(rpn)")
             return null
@@ -2108,7 +2146,7 @@ class GoVpnAdapter(
             val rpn = tunnel.proxies.rpn()
             Logger.i(LOG_TAG_PROXY, "$TAG start win(rpn) reg, existing bytes size: ${prevBytes?.size}, device-len: ${deviceId.length}")
             if (DEBUG) Logger.i(LOG_TAG_PROXY, "$TAG win(rpn) reg bytes: ${prevBytes?.toString()}")
-            val bytes = rpn.registerWin(prevBytes, deviceId, constructRpnOps())
+            val bytes = rpn.registerWin(prevBytes, stateBytes, deviceId, constructRpnOps())
             Logger.i(LOG_TAG_PROXY, "$TAG win(rpn) registered, ${bytes?.size} bytes")
             logEvent(Severity.MEDIUM, "register win(rpn)", "win(rpn) registered, ${bytes?.size} bytes")
             bytes
@@ -2541,6 +2579,14 @@ class GoVpnAdapter(
         }
     }
 
+    suspend fun getActiveEntitlement(): RpnEntitlement? = try {
+        if (tunnel.isConnected) tunnel.proxies.rpn().win()?.entitlement() else null
+    } catch (error: Exception) {
+        if (error is kotlinx.coroutines.CancellationException) throw error
+        Logger.w(LOG_TAG_PROXY, "$TAG active entitlement unavailable", error)
+        null
+    }
+
     suspend fun unregisterWin(): Boolean {
         if (!tunnel.isConnected) {
             Logger.i(LOG_TAG_PROXY, "$TAG no tunnel, skip unregister win(rpn)")
@@ -2944,7 +2990,7 @@ class GoVpnAdapter(
         // Settings.PlusFilterSafest, Settings.PlusOrderFastest
         // default value for PlusStrategy is Safest, which is the safest strategy
         // fastest is another strategy, which is not used for now (v055n)
-        Settings.setPlusStrategy(Settings.PlusFilterSafest)
+        Settings.setPlusStrategy(option, Settings.PlusFilterAdblock)
         return tunnel
     }
 

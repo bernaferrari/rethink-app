@@ -113,7 +113,7 @@ class WgHopSelectorTest {
     }
 
     @Test
-    fun `one-wg short-circuits to that id plus default`() {
+    fun `full tunnel one-wg never falls back to direct`() {
         val ids = selector.collectProxyIds(
             uid = 10,
             ip = "1.1.1.1",
@@ -126,7 +126,21 @@ class WgHopSelectorTest {
             wgProxyIdsForApp = listOf(ID_WG_BASE + "1"),
             mappings = listOf(mapping(1), mapping(7)),
         )
+        assertEquals(listOf(ID_WG_BASE + "7"), ids)
+    }
+
+    @Test
+    fun `split one-wg allows configured default fallback`() {
+        val ids = selector.collectProxyIds(10, "1.1.1.1", 443, "example.com", false, "", "base", 7,
+            emptyList(), listOf(mapping(7).copy(isSplitProxy = true)))
         assertEquals(listOf(ID_WG_BASE + "7", "base"), ids)
+    }
+
+    @Test
+    fun `unknown one-wg split status fails closed`() {
+        val ids = selector.collectProxyIds(10, "1.1.1.1", 443, "example.com", false, "", "base", 7,
+            emptyList(), emptyList())
+        assertEquals(listOf(ID_WG_BASE + "7"), ids)
     }
 
     @Test

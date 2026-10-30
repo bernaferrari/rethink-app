@@ -66,7 +66,9 @@ data class ConnectionRequest(
     val app: AppFirewallSnapshot,
     val flags: FirewallFlags,
     val network: NetworkSnapshot,
-    val isMetered: (() -> Boolean)? = null
+    val isMetered: (() -> Boolean)? = null,
+    val isAlg: Boolean = false,
+    val forDnsAnswer: Boolean = false,
 )
 
 class ConnectionFirewall(
@@ -142,7 +144,7 @@ class ConnectionFirewall(
             }
         }
 
-        when (ipRule(uid, request.destIP, request.destPort)) {
+        when (ipRuleForRequest(uid, request)) {
             IpRulesManager.IpRuleStatus.BLOCK -> {
                 return block(FirewallRuleset.RULE2, logs, "firewall($connId): ip blocked, $uid", query)
             }
@@ -212,7 +214,7 @@ class ConnectionFirewall(
             }
         }
 
-        when (ipRule(UID_EVERYBODY, request.destIP, request.destPort)) {
+        when (ipRuleForRequest(UID_EVERYBODY, request)) {
             IpRulesManager.IpRuleStatus.BLOCK -> {
                 return block(
                     FirewallRuleset.RULE2D,
@@ -291,6 +293,18 @@ class ConnectionFirewall(
         return allow(FirewallRuleset.RULE0, logs, matchedQuery = query)
     }
 
+    private fun ipRuleForRequest(uid: Int, request: ConnectionRequest): IpRulesManager.IpRuleStatus {
+        val addresses = request.destIP.split(',').map(String::trim).filter(String::isNotEmpty)
+        val candidates = if (request.isAlg) addresses else addresses.take(1)
+        val rules = candidates.map { ipRule(uid, it, request.destPort) }
+        val trusted = if (uid == UID_EVERYBODY) IpRulesManager.IpRuleStatus.BYPASS_UNIVERSAL else IpRulesManager.IpRuleStatus.TRUST
+        return when {
+            trusted in rules -> trusted
+            IpRulesManager.IpRuleStatus.BLOCK in rules -> IpRulesManager.IpRuleStatus.BLOCK
+            else -> IpRulesManager.IpRuleStatus.NONE
+        }
+    }
+
     private fun unknownAppBlocked(request: ConnectionRequest): Boolean {
         return request.flags.blockUnknownConnections && request.app.isMissingOrInvalidUid
     }
@@ -323,7 +337,7 @@ class ConnectionFirewall(
     }
 
     private fun httpBlocked(request: ConnectionRequest): Boolean {
-        return request.destPort == KnownPorts.HTTP_PORT && request.flags.blockHttpConnections
+        return !request.forDnsAnswer && request.destPort == KnownPorts.HTTP_PORT && request.flags.blockHttpConnections
     }
 
     private fun deviceLocked(flags: FirewallFlags): Boolean {
@@ -331,7 +345,7 @@ class ConnectionFirewall(
     }
 
     private fun udpBlocked(request: ConnectionRequest, isUidSystemApp: Boolean): Boolean {
-        if (!request.flags.udpBlocked) return false
+        if (request.forDnsAnswer || !request.flags.udpBlocked) return false
         if (request.protocol != Protocol.UDP.protocolType) return false
         if (KnownPorts.isDns(request.destPort)) return false
         val isNtpFromSystemApp = KnownPorts.isNtp(request.destPort) && isUidSystemApp
@@ -339,13 +353,13 @@ class ConnectionFirewall(
     }
 
     private fun dnsProxied(request: ConnectionRequest): Boolean {
-        return request.flags.isDnsFirewallMode &&
+        return !request.forDnsAnswer && request.flags.isDnsFirewallMode &&
             request.flags.preventDnsLeaks &&
             KnownPorts.isDns(request.destPort)
     }
 
     private fun dnsBypassed(request: ConnectionRequest, query: String?): Boolean {
-        return request.flags.disallowDnsBypass && query.isNullOrEmpty()
+        return !request.forDnsAnswer && request.flags.disallowDnsBypass && query.isNullOrEmpty()
     }
 
     private fun allow(

@@ -33,6 +33,8 @@ import com.celzero.firestack.backend.IPMetadata
 import com.celzero.firestack.backend.RouterStats
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
@@ -137,6 +139,17 @@ object WireguardManager : KoinComponent {
         return config
     }
 
+    fun refreshSplitProxyInfo(proxyId: String) {
+        val id = proxyId.removePrefix(ID_WG_BASE).toIntOrNull() ?: return
+        val ips = registry.findConfig(id)?.getPeers().orEmpty().flatMap { it.getAllowedIps() }.map { it.toString() }
+        updateSplitProxyInfo(proxyId, WireguardRoutePolicy.isSplit(ips))
+    }
+
+    fun updateSplitProxyInfo(proxyId: String, isSplitProxy: Boolean) {
+        val id = proxyId.removePrefix(ID_WG_BASE).toIntOrNull() ?: return
+        registry.replaceMapping(id) { it.copy(isSplitProxy = isSplitProxy) }
+    }
+
     fun isAnyWgActive(): Boolean = registry.anyActive()
 
     fun isAdvancedWgActive(): Boolean = registry.anyAdvancedActive()
@@ -154,7 +167,13 @@ object WireguardManager : KoinComponent {
         return registry.isMappingActive(id)
     }
 
-    suspend fun enableConfig(unmapped: WgConfigFilesImmutable) {
+    private val activationMutex = Mutex()
+
+    suspend fun enableConfig(unmapped: WgConfigFilesImmutable) = activationMutex.withLock {
+        enableConfigLocked(unmapped)
+    }
+
+    private suspend fun enableConfigLocked(unmapped: WgConfigFilesImmutable) {
         val map = registry.findMapping(unmapped.id)
         if (map == null) {
             Logger.e(
@@ -170,6 +189,11 @@ object WireguardManager : KoinComponent {
             return
         }
 
+        if (getConflictingActiveConfigId(map.id) != null) {
+            Logger.w(LOG_TAG_PROXY, "refusing duplicate active WireGuard identity for config ${map.id}")
+            return
+        }
+        refreshSplitProxyInfo(ID_WG_BASE + map.id)
         val newMap = registry.replaceMapping(map.id) { it.copy(isActive = true) } ?: return
         val dbMap = WgConfigFiles.fromImmutable(newMap)
         db.update(dbMap)
@@ -179,6 +203,13 @@ object WireguardManager : KoinComponent {
         VpnController.addWireGuardProxy(ID_WG_BASE + map.id)
         Logger.i(LOG_TAG_PROXY, "enable wg config: ${map.id}, ${map.name}")
         return
+    }
+
+    fun getConflictingActiveConfigId(id: Int): Int? {
+        val candidate = registry.findConfig(id) ?: return null
+        return registry.activeConfigs().firstOrNull {
+            it.getId() != id && WireguardIdentity.conflicts(candidate, it)
+        }?.getId()
     }
 
     fun canEnableProxy(): Boolean {
@@ -517,6 +548,7 @@ object WireguardManager : KoinComponent {
             )
         }
         registry.putConfig(cfg)
+        refreshSplitProxyInfo(ID_WG_BASE + cfg.getId())
         if (result.existing?.isActive == true) {
             VpnController.addWireGuardProxy(id = ID_WG_BASE + cfg.getId(), force = true)
         }

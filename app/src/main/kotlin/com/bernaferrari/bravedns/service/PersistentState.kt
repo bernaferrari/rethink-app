@@ -300,6 +300,9 @@ class PersistentState(context: Context) {
     // perform connectivity checks
     var connectivityChecks by store.boolean("connectivity_check", Utilities.isPlayStoreFlavour())
 
+    // Explicit opt-in: captive login may use cleartext system DNS until validation succeeds.
+    var useSystemDnsOnCaptivePortal by store.boolean("use_system_dns_on_captive_portal", false)
+
     // proxy dns requests over proxy
     var proxyDns by store.boolean("proxy_dns", true)
 
