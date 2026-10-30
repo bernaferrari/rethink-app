@@ -269,7 +269,6 @@
     <ID>TooGenericExceptionCaught:CustomLanIpDialog.kt$error: Exception</ID>
     <ID>TooGenericExceptionCaught:Daemons.kt$CoFactory$e: Exception</ID>
     <ID>TooGenericExceptionCaught:DomainRulesManager.kt$DomainRulesManager$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:EncryptedFileManager.kt$EncryptedFileManager$e: Exception</ID>
     <ID>TooGenericExceptionCaught:EnhancedBugReport.kt$EnhancedBugReport$e: Exception</ID>
     <ID>TooGenericExceptionCaught:GlobalExceptionHandler.kt$GlobalExceptionHandler$e: Exception</ID>
     <ID>TooGenericExceptionCaught:GoDnsTransports.kt$GoDnsTransports$e: Exception</ID>
