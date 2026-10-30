@@ -38,6 +38,22 @@ import androidx.compose.ui.graphics.Color
 
 private val EmptyStateIconWell = 72.dp
 
+/*
+ * Loading vs empty: the contract every screen keeps.
+ *
+ * - Until the first load *completes*, show [RethinkLoadingState] (or nothing), never
+ *   [RethinkEmptyState] or [RethinkErrorState]. Copy that states a fact ("No apps found",
+ *   "This app is no longer installed", "Search 0 apps") is only true once the data says so.
+ * - Model the data so "not loaded yet" can't look like "loaded, nothing there": a nullable
+ *   list/value where null means loading, an explicit Loading/Loaded state, or a paging
+ *   LoadState. An initial `emptyList()` or a default object must never drive an empty or
+ *   missing state.
+ * - Counts in titles or hints ("Search %d apps") wait for the load too; show the count-less
+ *   copy, or nothing, until then.
+ * - A refresh after the first load keeps the current content (or empty state) on screen; only
+ *   the first load shows the loading state.
+ */
+
 /**
  * In-section state container: the grouped-list radius and row tone, so empty/loading/error states
  * that sit inside a section read as one more row group rather than a free-floating block.
@@ -56,6 +72,10 @@ private fun StateContainer(contained: Boolean, modifier: Modifier, content: @Com
     )
 }
 
+/**
+ * A section or screen with nothing to show. Only after a completed load returned nothing; see
+ * the loading-vs-empty contract above.
+ */
 @Composable
 fun RethinkEmptyState(
     title: String,
@@ -121,6 +141,7 @@ fun RethinkEmptyState(
     }
 }
 
+/** The first load of a section or screen, until it completes (see the contract above). */
 @Composable
 fun RethinkLoadingState(
     label: String,
