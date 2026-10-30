@@ -33,11 +33,11 @@
     <string name="conn_track_clear_logs_title">是否刪除所有網路日誌？</string>
     <string name="conn_track_clear_logs_message">這僅會刪除網路日誌，不會觸及防火牆規則。此行為不可逆。請問您是否想要繼續？</string>
     <string name="bsct_app_info">應用程式資訊</string>
-    <string name="bsct_block_ip">對<u>此應用程式</u>攔截、信任<u>此 IP</u></string>
+    <string name="bsct_block_ip">對此應用程式攔截、信任此 IP</string>
     <string name="always_on_dialog_heading">停用永久連線的 VPN</string>
     <string name="always_on_dialog_positive_btn">前往設定</string>
     <string name="always_on_dialog_stop_message">永久連線的 VPN 已對 Keepout 啟用。您是否仍想要停止 Keepout ？</string>
-    <string name="always_on_dialog_lockdown_stop_message">Keepout 正以<i>閉關</i>模式執行 VPN 。將其停止會致本使用者失去網路連線。您是否仍要繼續？</string>
+    <string name="always_on_dialog_lockdown_stop_message">Keepout 正以閉關模式執行 VPN 。將其停止會致本使用者失去網路連線。您是否仍要繼續？</string>
     <string name="always_on_dialog_positive">停止</string>
     <string name="always_on_dialog_neutral">設定</string>
     <string name="firewall_act_universal_tab">通用</string>
@@ -69,7 +69,7 @@
     <string name="download_update_dialog_failure_message">可能是我們的伺服器下線了，或者是網路問題。請稍後重試。</string>
     <string name="download_update_dialog_trylater_title">現在無法更新</string>
     <string name="download_update_dialog_trylater_message">現在無法更新，請稍後重試。</string>
-    <string name="search_universal_ips"><font size="12">搜尋 IP</font></string>
+    <string name="search_universal_ips">搜尋 IP</string>
     <string name="info_dialog_copy_toast_msg">已複製 IP 位址。</string>
     <string name="info_dialog_url_copy_toast_msg">已複製 URL</string>
     <string name="info_dialog_rethink_toast_msg">已作為 RDNS+ DNS-over-HTTPS URL 複製</string>
@@ -100,7 +100,7 @@
     <string name="settings_general_header">一般設定</string>
     <string name="settings_autostart_bootup_heading">裝置啟動時自啟（實驗性）</string>
     <string name="settings_autostart_bootup_desc">Keepout 若在關機前執行，開機時則自動啟動。</string>
-    <string name="settings_network_all_networks_desc">啟用時， Keepout 將使用所有可用的網路來連線至網路。若未啟用，則將使用 Android 認為<i>活躍</i>的網路。</string>
+    <string name="settings_network_all_networks_desc">啟用時， Keepout 將使用所有可用的網路來連線至網路。若未啟用，則將使用 Android 認為活躍的網路。</string>
     <string name="allow">放行</string>
     <string name="notification_content" description="Indicates what will happen if the user taps the notification.">輕觸以更改防護設定</string>
     <string name="warning_title" description="Status indicator text shown in a warning notification.">警告： Keepout 已被停用</string>
@@ -110,7 +110,7 @@
     <string name="apps_info_title">應用程式</string>
     <string name="dns_mode_notification_title">已保護！已連線至快速且安全的 DNS 。</string>
     <string name="alert_firewall_accessibility_explanation">Keepout 使用無障礙服務來追蹤正在使用的應用程式（前景）與未使用的應用程式（背景）。 \n \nKeepout 並不會收集任何資料，且不會以任何方式監視您。</string>
-    <string name="alert_firewall_accessibility_regrant_explanation">Keepout 的無障礙服務已停止或崩潰。<i><b>請至系統設定強制停止</b></i>並再次啟動 Keepout ，以繼續使用<i>攔截未使用應用程式</i>的功能。\n\nKeepout 使用無障礙服務來追蹤正在使用的應用程式（前景）與未使用的應用程式（背景）。</string>
+    <string name="alert_firewall_accessibility_regrant_explanation">Keepout 的無障礙服務已停止或崩潰。請至系統設定強制停止並再次啟動 Keepout ，以繼續使用攔截未使用應用程式的功能。\n\nKeepout 使用無障礙服務來追蹤正在使用的應用程式（前景）與未使用的應用程式（背景）。</string>
     <string name="always_on_dialog">「永久連線的 VPN 」已在此裝置上啟用。為啟動 Keepout ，請移步系統設定並停用「永久連線的 VPN 」。</string>
     <string name="always_on_dialog_stop_heading">永久連線的 VPN</string>
     <string name="doh_custom_url_remove_dialog_message">於已儲存的設定中刪除此 DNS over HTTPS 端點。</string>
@@ -120,7 +120,7 @@
     <string name="settings_allow_bypass_desc">允許應用程式請求訪問所有可用網路。這些應用程式可能按需繞過 RethinkDNS 的 VPN 隧道。一些如 Zoom 和 Meet 的音訊/視訊會議應用程式可能會需要此功能以正常執行。</string>
     <string name="settings_proxy_header">代理</string>
     <string name="settings_socks5_heading">設定 SOCKS5 代理</string>
-    <string name="settings_lock_down_mode_desc">某些選項在 VPN 處於閉關模式時不可用。<u>請移步 VPN 設定</u>。</string>
+    <string name="settings_lock_down_mode_desc">某些選項在 VPN 處於閉關模式時不可用。請移步 VPN 設定。</string>
     <string name="orbot_install_dialog_neutral">網站</string>
     <string name="settings_https_heading">設定 HTTP(S) CONNECT 代理</string>
     <string name="orbot_website_link">https://guardianproject.info/apps/org.torproject.android/</string>
@@ -133,7 +133,7 @@
     <string name="orbot_bs_status_trying_connect">正在設定 Orbot ……</string>
     <string name="orbot_status_arg_3">DNS 與 TCP</string>
     <string name="orbot_stop_dialog_neutral">更改 DNS</string>
-    <string name="orbot_explanation">Orbot 是一款能讓其他程式更<u>安全</u>地連線到互聯網的免費代理應用程式。 \nOrbot 使用 <u>Tor</u> 來加密您的網路流量，助您<u>突破網路審查</u>，並抵禦威脅個人自由及隱私的<u>網路監視</u>。 \n<u>TCP 代理</u>： Keepout 只將<i>已包含</i>應用程式的 TCP 連線轉送至 Orbot 。 \n<u>HTTP 代理</u>： Keepout 向 Orbot <i>建立</i> HTTP CONNECT 隧道，並僅轉送<i>包含的</i>應用程式的 TCP 連線。</string>
+    <string name="orbot_explanation">Orbot 是一款能讓其他程式更安全地連線到互聯網的免費代理應用程式。 \nOrbot 使用 Tor 來加密您的網路流量，助您突破網路審查，並抵禦威脅個人自由及隱私的網路監視。 \nTCP 代理： Keepout 只將已包含應用程式的 TCP 連線轉送至 Orbot 。 \nHTTP 代理： Keepout 向 Orbot 建立 HTTP CONNECT 隧道，並僅轉送包含的應用程式的 TCP 連線。</string>
     <string name="orbot_install_dialog_message">Orbot 將 Tor 的特性與功能帶入 Android 。</string>
     <string name="orbot_install_dialog_positive">安裝</string>
     <string name="orbot_install_activity_error">似乎出了一些問題，請稍後再試</string>
@@ -143,33 +143,31 @@
     <string name="settings_check_update_desc">每週一次自動檢查應用程式是否有可用更新。</string>
     <string name="hs_download_positive_website">瀏覽網站</string>
     <string name="dc_rethink_dns_radio">Rethink DNS</string>
-    <string name="firewall_rule_unknown_desc"><![CDATA[此連線因無法得知<i>來源應用程式</i>而被攔截。<br/><br/>若需更改，請至<i>全局</i>選項卡。]]></string>
+    <string name="firewall_rule_unknown_desc"><![CDATA[此連線因無法得知來源應用程式而被攔截。]]></string>
     <string name="new_app_bulk_notification_title">注意</string>
     <string name="ada_app_status_whitelist">繞過全域防火牆規則</string>
     <string name="brbs_title">備份與復原</string>
     <string name="brbs_backup_complete_toast">備份完畢</string>
     <string name="ada_noapp_dialog_message">缺少應用程式資訊。這個應用程式是不是已經解除安裝了呢？</string>
-    <string name="firewall_rule_exempt_orbot_setup_desc"><![CDATA[此連線因正在設定<i>一鍵 Tor 代理</i>而放行。]]></string>
-    <string name="build__flavor_fdroid">fdroid</string>
+    <string name="firewall_rule_exempt_orbot_setup_desc"><![CDATA[此連線因正在設定一鍵 Tor 代理而放行。]]></string>
     <string name="ci_no_rule">無規則</string>
     <string name="ci_block">攔截</string>
     <string name="ada_app_status_isolate">已隔離：僅允許受信任的 IP 和網域</string>
     <string name="lbbs_enabled">已啟用</string>
-    <string name="firewall_rule_block_ip_desc"><![CDATA[一項用戶定義的全局防火牆規則攔截了此<i>目標 IP </i>。<br/><br/>若需更改，請移步<i>分應用程式防火牆</i>區。]]></string>
-    <string name="firewall_rule_block_dns_bypass_desc"><![CDATA[此連線因<i>來源應用程式</i>繞過了用戶設定的 DNS 而被攔截。<br/><br/>若需更改，請移步<i>全局</i>選項卡。]]></string>
-    <string name="build__flavor_play_store">play</string>
+    <string name="firewall_rule_block_ip_desc"><![CDATA[一項用戶定義的全局防火牆規則攔截了此目標 IP 。]]></string>
+    <string name="firewall_rule_block_dns_bypass_desc"><![CDATA[此連線因來源應用程式繞過了用戶設定的 DNS 而被攔截。]]></string>
     <string name="ada_app_metered">計費網路</string>
     <string name="ada_app_bypass_univ">無條件放行</string>
     <string name="notif_download_content_text">正在下載……</string>
     <string name="brbs_backup_desc">備份應用程式設定、網路日誌與 DNS 日誌</string>
     <string name="brbs_backup_dialog_title">執行備份</string>
     <string name="brbs_backup_dialog_message">將應用程式設定、網路日誌與 DNS 日誌備份至單個檔案內。這將重啟 VPN 。</string>
-    <string name="search_custom_domains"><font size="12">搜尋網域</font></string>
-    <string name="firewall_rule_block_http_desc"><![CDATA[此連線因疑似使用<i>不安全 HTTP</i> 而被攔截。<br/><br/>若需更改，請至<i>全局</i>選項卡。]]></string>
+    <string name="search_custom_domains">搜尋網域</string>
+    <string name="firewall_rule_block_http_desc"><![CDATA[此連線因疑似使用不安全 HTTP 而被攔截。]]></string>
     <string name="category_name_non_app_sys">系統服務</string>
     <string name="bsac_title_desc">規則僅應用於此應用程式。</string>
     <string name="rt_chip_update_available">更新可用</string>
-    <string name="firewall_rule_isolate_desc"><![CDATA[一項用戶定義的防火牆規則在此<i>應用程式</i>嘗試連線至<i>已繞行 IP </i>外的位址時將其攔截。<br/><br/>若需更改，請移步<i>所有應用程式</i>選項卡。]]></string>
+    <string name="firewall_rule_isolate_desc"><![CDATA[一項用戶定義的防火牆規則在此應用程式嘗試連線至已繞行 IP 外的位址時將其攔截。]]></string>
     <string name="settings_http_proxy_error_text2">無效埠</string>
     <string name="notif_dialog_pause_dialog_positive">復原</string>
     <string name="notif_channel_desc_proxy_failure">在代理錯誤或異常時提醒我</string>
@@ -178,23 +176,22 @@
     <string name="rt_list_simple_btn_txt">簡單</string>
     <string name="rt_download_desc">請下載攔截清單（約 60 MB ）以使用此功能。</string>
     <string name="brbs_restore_desc">從備份檔中復原</string>
-    <string name="firewall_rule_block_ip_univ_desc"><![CDATA[一項用戶定義的全局防火牆規則攔截了此<i>目標 IP / 埠</i>。<br/><br/>若需更改，請移步<i>全局</i>選項卡。]]></string>
+    <string name="firewall_rule_block_ip_univ_desc"><![CDATA[一項用戶定義的全局防火牆規則攔截了此目標 IP / 埠。]]></string>
     <string name="ada_app_status_block">已攔截</string>
     <string name="rbl_parental_control">家長控制</string>
     <string name="lbbs_configure">設定</string>
     <string name="lbbs_heading">設定逾 195 個攔截清單</string>
-    <string name="firewall_rule_block_udp_ntp_desc"><![CDATA[一項用戶定義的防火牆規則攔截了此 <i>UDP</i> 連線。<br/><br/>若需更改，請移步<i>全局</i>選項卡。]]></string>
-    <string name="firewall_rule_exempt_app_bypass_univ_desc"><![CDATA[此連線因<i>來源應用程式</i>被設為<i>無條件放行</i>而放行。<br/><br/>若需更改，請移步<i>分應用程式防火牆</i>區。]]></string>
+    <string name="firewall_rule_block_udp_ntp_desc"><![CDATA[一項用戶定義的防火牆規則攔截了此 UDP 連線。]]></string>
+    <string name="firewall_rule_exempt_app_bypass_univ_desc"><![CDATA[此連線因來源應用程式被設為無條件放行而放行。]]></string>
     <string name="new_app_bulk_notification_content">Keepout 攔截了 %1$s 款新應用程式。輕觸以查看或更改。</string>
     <string name="new_app_notification_action_toast_allow">放行應用程式網路連線</string>
     <string name="notif_channel_desc_firewall_alerts">在防火牆錯誤與異常時提醒我</string>
-    <string name="build__flavor_website">網站</string>
     <string name="rt_dialog_message">您是否想要套用新設定的攔截清單？</string>
     <string name="dc_local_block_enabled">已啟用</string>
     <string name="lbbs_search">於攔截清單內尋找網域</string>
     <string name="brbs_restore_dialog_positive">復原</string>
     <string name="ada_noapp_dialog_title">未找到應用程式</string>
-    <string name="firewall_rule_exempt_dns_proxied_desc"><![CDATA[此 DNS 連線已代理並轉送至用戶選擇的 DNS 端點。<br/><br/>若需更改，請移步 DNS <i>配置</i>區，並停用<i>防止 DNS 洩漏</i>。]]></string>
+    <string name="firewall_rule_exempt_dns_proxied_desc"><![CDATA[此 DNS 連線已代理並轉送至用戶選擇的 DNS 端點。]]></string>
     <string name="notif_dialog_pause_dialog_negative">忽略</string>
     <string name="network_dns">系統 DNS</string>
     <string name="rbl_security">安全</string>
@@ -214,11 +211,11 @@
     <string name="rt_re_download">重新下載攔截清單</string>
     <string name="dc_doh">Dns over HTTPS</string>
     <string name="brbs_restore_no_uri_toast">復原失敗；請重試</string>
-    <string name="firewall_rule_device_lock_desc"><![CDATA[此連線因<i>裝置被鎖定</i>而被攔截。<br/><br/>若需更改，請至<i>全局</i>選項卡。]]></string>
+    <string name="firewall_rule_device_lock_desc"><![CDATA[此連線因裝置被鎖定而被攔截。]]></string>
     <string name="rt_chip_check_update">檢查更新</string>
     <string name="lbbs_copy">複製為 RDNS+ URL</string>
-    <string name="firewall_rule_block_app_univ_mobile_desc"><![CDATA[一項用戶定義的全局防火牆規則在此<i>應用程式</i>嘗試連線至<i>計費網路</i>（行動數據）時將其攔截。<br/><br/>若需更改，請移步<i>全局</i>選項卡。]]></string>
-    <string name="firewall_rule_global_lockdown_desc"><![CDATA[此連線因全局閉關模式而被攔截。<br/><br/>若需更改，請至<i>全局</i>選項卡。]]></string>
+    <string name="firewall_rule_block_app_univ_mobile_desc"><![CDATA[一項用戶定義的全局防火牆規則在此應用程式嘗試連線至計費網路（行動數據）時將其攔截。]]></string>
+    <string name="firewall_rule_global_lockdown_desc"><![CDATA[此連線因全局閉關模式而被攔截。]]></string>
     <string name="notif_channed_desc_download">提示本機攔截清單下載進度</string>
     <string name="ada_app_status_unknown">未知</string>
     <string name="rt_dialog_title">儲存更改</string>
@@ -230,7 +227,7 @@
     <string name="brbs_restore_dialog_title">復原備份</string>
     <string name="brbs_backup_dialog_failure_positive">重試備份</string>
     <string name="brbs_restore_dialog_failure_title">復原失敗</string>
-    <string name="firewall_rule_block_app_unmetered_desc"><![CDATA[一項用戶定義的防火牆規則在此<i>應用程式</i>嘗試連線至<i>非計費網路</i>時將其攔截。<br/><br/>若需更改，請移步<i>所有應用程式</i>選項卡。]]></string>
+    <string name="firewall_rule_block_app_unmetered_desc"><![CDATA[一項用戶定義的防火牆規則在此應用程式嘗試連線至非計費網路時將其攔截。]]></string>
     <string name="notif_channel_firewall_alerts">防火牆警報</string>
     <string name="notif_channel_download">下載警報</string>
     <string name="ada_ip_no_connection">此分類無網路日誌。</string>
@@ -240,8 +237,8 @@
     <string name="ada_app_exclude">排除</string>
     <string name="radio_max_btn">🪂 Max</string>
     <string name="brbs_restore_dialog_failure_message">目前無法復原。再來試一試嗎？</string>
-    <string name="firewall_rule_trusted_ip_desc"><![CDATA[此連線因此<i>目標 IP</i> 被設定為已信任 IP 而被放行。<br/><br/>若需更改，請移步<i>分應用程式防火牆</i>區。]]></string>
-    <string name="firewall_rule_bypass_universal_ip_desc"><![CDATA[此連線因此<i>目標 IP</i> 被設定為繞過所有全局規則而被放行。<br/><br/>若需更改，請移步<i>全局</i>選項卡。]]></string>
+    <string name="firewall_rule_trusted_ip_desc"><![CDATA[此連線因此目標 IP 被設定為已信任 IP 而被放行。]]></string>
+    <string name="firewall_rule_bypass_universal_ip_desc"><![CDATA[此連線因此目標 IP 被設定為繞過所有全局規則而被放行。]]></string>
     <string name="notif_channel_proxy_failure">代理警報</string>
     <string name="notif_channel_desc_vpn_failure">在 Keepout 被 Android 或其他 VPN 應用程式停止時提醒我</string>
     <string name="dc_dns_proxy">DNS 代理</string>
@@ -260,9 +257,9 @@
     <string name="new_app_notification_action_toast_deny">攔截應用程式網路連線</string>
     <string name="ada_app_status_block_md">已在行動數據下攔截</string>
     <string name="notif_download_failure_content">下載失敗。請重試。</string>
-    <string name="firewall_rule_block_app_mobile_desc"><![CDATA[一項用戶定義的防火牆規則在此<i>應用程式</i>嘗試連線至<i>計費網路</i>時將其攔截。<br/><br/>若需更改，請移步<i>所有應用程式</i>選項卡。]]></string>
+    <string name="firewall_rule_block_app_mobile_desc"><![CDATA[一項用戶定義的防火牆規則在此應用程式嘗試連線至計費網路時將其攔截。]]></string>
     <string name="settings_custom_downloader_heading">使用應用程式內附內下載器</string>
-    <string name="settings_custom_downloader_desc">若被停用，將使用 Android 內附的<i>下載管理器</i></string>
+    <string name="settings_custom_downloader_desc">若被停用，將使用 Android 內附的下載管理器</string>
     <string name="settings_import_export_desc">手動備份或復原應用程式資料與設定。</string>
     <string name="settings_theme_heading">外觀</string>
     <string name="settings_http_proxy_desc">正轉送至 %1$s</string>
@@ -299,7 +296,7 @@
     <string name="dc_local_block_heading">本機攔截清單</string>
     <string name="dc_local_block_desc_1">於逾 195 條攔截清單中選擇。輕觸此處以下載或設定攔截清單。</string>
     <string name="dc_dns_website_heading">於 DNS 日誌中展示網站圖示（實驗性）</string>
-    <string name="dc_dns_website_desc">從 <i>nextdns.io</i> 與 <i>duckduckgo.com</i> 獲取網站圖示。約佔用 350 MB 磁碟空間</string>
+    <string name="dc_dns_website_desc">從 nextdns.io 與 duckduckgo.com 獲取網站圖示。約佔用 350 MB 磁碟空間</string>
     <string name="dc_dns_leaks_desc">若啟用， Keepout 將捕獲埠 53 上的所有封包，並將其轉送至您設定的 DNS 端點</string>
     <string name="dc_check_update_heading">攔截清單更新時提示</string>
     <string name="about_bug_report_desc">寄出傳送崩潰日誌</string>
@@ -411,12 +408,12 @@
     <string name="fapps_info_dialog_positive_btn">瞭解</string>
     <string name="fapps_unmetered_unblock_dialog_title">於非計費網路放行</string>
     <string name="fapps_unmetered_block_dialog_title">於非計費網路攔截</string>
-    <string name="fapps_unmetered_block_dialog_message">是否於非計費網路（ WiFi ）攔截<i>所列出的</i>應用程式？</string>
-    <string name="fapps_unmetered_unblock_dialog_message">是否於非計費網路（ WiFi ）放行<i>所列出的</i>應用程式？</string>
+    <string name="fapps_unmetered_block_dialog_message">是否於非計費網路（ WiFi ）攔截所列出的應用程式？</string>
+    <string name="fapps_unmetered_unblock_dialog_message">是否於非計費網路（ WiFi ）放行所列出的應用程式？</string>
     <string name="fapps_metered_block_dialog_title">於計費網路攔截</string>
-    <string name="fapps_metered_block_dialog_message">是否於計費網路（行動數據）攔截<i>所列出的</i>應用程式？</string>
+    <string name="fapps_metered_block_dialog_message">是否於計費網路（行動數據）攔截所列出的應用程式？</string>
     <string name="fapps_metered_unblock_dialog_title">於計費網路放行</string>
-    <string name="fapps_metered_unblock_dialog_message">是否於計費網路放行<i>已列出</i>應用程式？</string>
+    <string name="fapps_metered_unblock_dialog_message">是否於計費網路放行已列出應用程式？</string>
     <string name="unicode_warning_sign">⚠</string>
     <string name="unicode_question_sign">❔</string>
     <string name="rules_load_failure_heading">注意</string>
@@ -460,11 +457,11 @@
     <string name="firewall_rule_block_http">不安全 HTTP</string>
     <string name="firewall_rule_global_lockdown">閉關模式</string>
     <string name="firewall_rule_no_rule_desc">此連線無匹配的防火牆規則。</string>
-    <string name="firewall_rule_block_app_desc"><![CDATA[一項用戶定義的防火牆規則攔截了此<i>應用程式</i>。<br/><br/>若需更改，請移步<i>所有應用程式</i>選項卡。]]></string>
-    <string name="firewall_rule_new_app_desc"><![CDATA[此應用程式是<i>首次</i>連線。<br/><br/>若需更改，請移步<i>全局</i>選項卡。]]></string>
+    <string name="firewall_rule_block_app_desc"><![CDATA[一項用戶定義的防火牆規則攔截了此應用程式。]]></string>
+    <string name="firewall_rule_new_app_desc"><![CDATA[此應用程式是首次連線。]]></string>
     <string name="category_name_sys_components">系統元件</string>
     <string name="rethink_sky_desc">逾 280 處地點；更長的線上時間；於 cloudflare.com 上執行的中間解析服務</string>
-    <string name="firewall_rule_foreground_desc"><![CDATA[此連線因來源應用程式<i>未處於前景</i>而被攔截。<br/><br/>若需更改，請至<i>全局</i>選項卡。]]></string>
+    <string name="firewall_rule_foreground_desc"><![CDATA[此連線因來源應用程式未處於前景而被攔截。]]></string>
     <string name="brbs_restore_dialog_message">從單個備份檔案中復原應用程式設定、網路日誌與 DNS 日誌。這將重啟應用程式。</string>
     <string name="dc_dns_leaks_heading">防止 DNS 洩漏</string>
     <string name="about_privacy_policy">閱覽隱私政策</string>
@@ -472,9 +469,9 @@
     <string name="ada_app_isolate">隔離</string>
     <string name="notif_download_cancel_content">下載已取消。</string>
     <string name="rt_filter_parent_selected">已選</string>
-    <string name="rt_filter_hint">正顯示<u>所有</u>攔截清單</string>
-    <string name="rt_filter_desc"><![CDATA[顯示 <u>%1$s</u> 個攔截清單]]></string>
-    <string name="rt_filter_desc_subgroups"><![CDATA[正顯示 <u>%1$s</u> 個攔截清單，位於組： %2$s 與子分組： %3$s]]></string>
+    <string name="rt_filter_hint">正顯示所有攔截清單</string>
+    <string name="rt_filter_desc"><![CDATA[顯示 %1$s 個攔截清單]]></string>
+    <string name="rt_filter_desc_subgroups"><![CDATA[正顯示 %1$s 個攔截清單，位於組： %2$s 與子分組： %3$s]]></string>
     <string name="about_privacy_policy_link">https://www.rethinkdns.com/privacy</string>
     <string name="notification_screen_error">無法開啟應用程式通知區。</string>
     <string name="intent_launch_error">無法開啟 %1$s</string>
@@ -507,13 +504,13 @@
     <string name="ssv_most_contacted_ips_heading" description="This label will appear on the stats screen as a header for most visited ips" translatable="true">連線最多的 IP</string>
     <string name="ssv_most_blocked_ips_heading" description="This label will appear on the stats screen as a header for most blocked ips" translatable="true">攔截最多的 IP</string>
     <string name="fapps_bypass_block_dialog_title">繞過應用程式</string>
-    <string name="fapps_bypass_block_dialog_message">是否對<i>已列出</i>應用程式繞過通用防火牆規則？</string>
+    <string name="fapps_bypass_block_dialog_message">是否對已列出應用程式繞過通用防火牆規則？</string>
     <string name="fapps_unblock_dialog_title">放行應用程式</string>
-    <string name="fapps_unblock_dialog_message">是否放行<i>已列出</i>應用程式的連線？</string>
+    <string name="fapps_unblock_dialog_message">是否放行已列出應用程式的連線？</string>
     <string name="fapps_exclude_block_dialog_title">排除應用程式</string>
-    <string name="fapps_exclude_block_dialog_message">是否從 DNS 與防火牆中排除<i>已列出</i>應用程式？</string>
+    <string name="fapps_exclude_block_dialog_message">是否從 DNS 與防火牆中排除已列出應用程式？</string>
     <string name="fapps_isolate_block_dialog_title">隔離應用程式</string>
-    <string name="fapps_isolate_block_dialog_message">是否隔離<i>已列出</i>應用程式？</string>
+    <string name="fapps_isolate_block_dialog_message">是否隔離已列出應用程式？</string>
     <string name="ci_trust_rule">信任</string>
     <string name="lbl_cancel" translatable="true">取消</string>
     <string name="lbl_apply" translatable="true">應用</string>
@@ -526,32 +523,32 @@
     <string name="lbl_ip_rules" translatable="true">IP 規則</string>
     <string name="lbl_domain_rules" translatable="true">網域規則</string>
     <string name="firewall_rule_trusted_domain" translatable="true">信任網域（應用程式）</string>
-    <string name="firewall_rule_trusted_domain_desc" translatable="true"><![CDATA[此連線因此<i>網域</i> 被設定為信任網域而被放行。<br/><br/>若需更改，請移步<i>分應用程式防火牆</i>區。]]></string>
+    <string name="firewall_rule_trusted_domain_desc" translatable="true"><![CDATA[此連線因此網域 被設定為信任網域而被放行。]]></string>
     <string name="lbl_disabled" translatable="true">停用</string>
     <string name="firewall_rule_block_domain" translatable="true">網域（應用程式）</string>
-    <string name="firewall_rule_block_domain_desc" translatable="true"><![CDATA[一項用戶定義的全局防火牆規則攔截了此<i>網域</i>。<br/><br/>若需更改，請移步<i>分應用程式防火牆</i>區。]]></string>
+    <string name="firewall_rule_block_domain_desc" translatable="true"><![CDATA[一項用戶定義的全局防火牆規則攔截了此網域。]]></string>
     <string name="cd_no_rules_text" translatable="true">無網域規則。</string>
     <string name="lbl_rules" translatable="true">規則</string>
     <string name="lbl_configure" translatable="true">設定</string>
     <string name="lbl_logs" translatable="true">日誌</string>
     <string name="bypass_dns_firewall" translatable="true">繞行 DNS 與防火牆</string>
-    <string name="bsct_block_domain" translatable="true">對<u>此應用程式</u>攔截、信任<u>此網域</u></string>
+    <string name="bsct_block_domain" translatable="true">對此應用程式攔截、信任此網域</string>
     <string name="fapps_bypass_dns_firewall_dialog_title" translatable="true">繞行應用程式</string>
     <string name="firewall_rule_domain_trusted_univ" translatable="true">信任網域（通用）</string>
     <string name="settings_lock_down_proxy_desc" translatable="true">VPN 處於僅 DNS 時無法設定代理。</string>
     <string name="settings_general_customize" translatable="true">自訂</string>
     <string name="settings_default_dns_desc" translatable="true">在極少數情況下，使用者偏好的 DNS 無法確定時，將使用後備 DNS 。</string>
     <string name="firewall_rule_bypass_dns_firewall" translatable="true">已繞行應用程式</string>
-    <string name="firewall_rule_domain_trusted_univ_desc" translatable="true"><![CDATA[此連線因<i>網域</i>被通用網域規則信任而被放行。<br/><br/>若需更改，請移步 <i>DNS 配置</i>選項卡。]]></string>
+    <string name="firewall_rule_domain_trusted_univ_desc" translatable="true"><![CDATA[此連線因網域被通用網域規則信任而被放行。]]></string>
     <string name="settings_default_dns_heading" translatable="true">選擇後備 DNS</string>
     <string name="cd_dns_alg_desc" translatable="true">為每個 DNS 請求分配唯一 IP 。</string>
     <string name="cd_dns_alg_heading" translatable="true">進階 DNS 過濾（實驗性）</string>
     <string name="firewall_rule_domain_blocked_univ" translatable="true">網域（通用）</string>
-    <string name="fapps_bypass_dns_firewall_dialog_message" translatable="true">是否為<i>已列出</i>的應用程式繞行通用 DNS 與防火牆規則？</string>
+    <string name="fapps_bypass_dns_firewall_dialog_message" translatable="true">是否為已列出的應用程式繞行通用 DNS 與防火牆規則？</string>
     <string name="firewall_rule_dns_blocked" translatable="true">DNS 已攔截</string>
-    <string name="firewall_rule_bypass_dns_firewall_desc" translatable="true"><![CDATA[此連線因<i>來源應用程式</i><i>繞行 DNS 及防火牆</i>規則而被放行。<br/><br/>若需更改，請移步<i>分應用程式防火牆</i>區。]]></string>
-    <string name="firewall_rule_dns_blocked_desc" translatable="true"><![CDATA[此連線的<i>網域</i>被用戶所偏好的 DNS 攔截。<br/><br/>若需更改，請移步 <i>DNS 配置</i>選項卡。]]></string>
-    <string name="firewall_rule_domain_blocked_univ_desc" translatable="true"><![CDATA[此連線因<i>網域</i>被通用網域規則攔截而被攔截。<br/><br/>若需更改，請移步 <i>DNS 配置</i>選項卡。]]></string>
+    <string name="firewall_rule_bypass_dns_firewall_desc" translatable="true"><![CDATA[此連線因來源應用程式繞行 DNS 及防火牆規則而被放行。]]></string>
+    <string name="firewall_rule_dns_blocked_desc" translatable="true"><![CDATA[此連線的網域被用戶所偏好的 DNS 攔截。]]></string>
+    <string name="firewall_rule_domain_blocked_univ_desc" translatable="true"><![CDATA[此連線因網域被通用網域規則攔截而被攔截。]]></string>
     <string name="ada_app_bypass_dns_firewall" translatable="true">繞過 DNS 與防火牆</string>
     <string name="ada_app_status_bypass_dns_firewall" translatable="true">繞過全域 DNS 與防火牆規則</string>
     <string name="dc_refresh_toast" translatable="true">重新整理完畢</string>
@@ -601,7 +598,7 @@
     <string name="app_ip_domain_rules_desc" translatable="true">修改個別應用程式的 IP / 網域規則。</string>
     <string name="app_ip_domain_rules" translatable="true">個別應用程式 IP / 網域規則</string>
     <string name="fapps_info_bypass_dns_firewall_msg" translatable="true">繞過 DNS 與防火牆規則。</string>
-    <string name="firewall_rule_proxied_desc" translatable="true"><![CDATA[此連線已代理並轉送至用戶選擇的代理。<br/><br/> 若需更改，請移步<i>配置</i>區下的<i>代理</i>。]]></string>
+    <string name="firewall_rule_proxied_desc" translatable="true"><![CDATA[此連線已代理並轉送至用戶選擇的代理。]]></string>
     <string name="firewall_rule_proxied" translatable="true">代理</string>
     <string name="ssv_most_contacted_countries_heading" description="This label will appear on the stats screen as a header for most visited domains by country" translatable="true">連線最多的國家</string>
     <string name="bad_config_reason_invalid_key" translatable="true">鍵無效</string>
@@ -690,12 +687,10 @@
     <string name="exclude_apps_from_proxy">為應用程式繞行所有代理</string>
     <string name="exclude_apps_from_proxy_failure_toast">此應用程式繞行代理</string>
     <string name="settings_connectivity_checks_desc" translatable="true">發送連線檢查以確保網路連通性。</string>
-    <string name="settings_exclude_proxy_apps_desc" translatable="true">停用後，將轉送代理（ SOCKS5、HTTP、DNS ）應用程式從 Keepout 的 VPN 隧道中排除。</string>
     <string name="settings_exclude_proxy_apps_heading" translatable="true">環回轉送代理應用程式</string>
     <string name="toast_allow_bypass_disabled" translatable="true">因已啟用代理， %1$s 已被停用</string>
     <string name="memory_notification_text">Keepout 目前可用記憶體空間過少。系統操作可能受限。</string>
     <string name="dc_proxy_dns_desc" translatable="true">勿由永久連線的 WireGuard 、 SOCKS5 、 HTTP 代理來代理 DNS 。</string>
-    <string name="lbl_unselected" translatable="true">未選</string>
     <string name="lbl_test" translatable="true">測試</string>
     <string name="lbl_experimental" translatable="true">（實驗性）</string>
     <string name="lbl_fallback" translatable="true">後備</string>
@@ -709,7 +704,7 @@
     <string name="lbl_criteria" translatable="true">條件</string>
     <string name="dns_desc" translatable="true">從逾 190 條攔截清單中選擇以攔截廣告、追蹤器與惡意軟體。</string>
     <string name="dc_use_sys_dns_undelegated_heading" translatable="true">對未委任網域使用系統 DNS</string>
-    <string name="dc_use_sys_dns_undelegated_desc" translatable="true">對如 <i>.lan</i> 、 <i>.internal</i> 等的未委任網域使用系統 DNS 。</string>
+    <string name="dc_use_sys_dns_undelegated_desc" translatable="true">對如 .lan 、 .internal 等的未委任網域使用系統 DNS 。</string>
     <string name="cd_split_dns_heading" translatable="true">DNS 分流（實驗性）</string>
     <string name="cd_treat_dns_rules_firewall_heading" translatable="true">將 DNS 規則視爲防火牆規則（實驗性）</string>
     <string name="cd_treat_dns_rules_firewall_desc" translatable="true">DNS 將在解析中繞過攔截；決定將在連線時作出。</string>
@@ -718,7 +713,7 @@
     <string name="firewall_rule_paused_app" translatable="true">應用程式已暫停</string>
     <string name="firewall_rule_lockdown_wg" translatable="true">閉關代理</string>
     <string name="firewall_rule_proxy_error" translatable="true">代理錯誤</string>
-    <string name="firewall_rule_private_dns_desc" translatable="true"><![CDATA[此連線正在尋找一個不存在的<i>私人 DNS</i> 伺服器。]]></string>
+    <string name="firewall_rule_private_dns_desc" translatable="true"><![CDATA[此連線正在尋找一個不存在的私人 DNS 伺服器。]]></string>
     <string name="home_last_24_hours">過去 24 小時</string>
     <plurals name="home_stopped_at_dns_count">
         <item quantity="other">%d 次查詢在 DNS 層被攔截</item>

@@ -3,7 +3,7 @@
     <string name="local_blocklist_redownload_desc" translatable="true">Блоклиста на уређају је већ на последњој верзији v%1$s.</string>
     <string name="download_update_dialog_message" translatable="true">Нова верзија апликације је доступна за преузимање са веб сајта. Да ли желите да наставите?</string>
     <string name="download_update_dialog_message_ok" translatable="true">Већ сте на последњој верзији.</string>
-    <string name="search_universal_ips" translatable="true"><font size="12">Претражи IP-јеве</font></string>
+    <string name="search_universal_ips" translatable="true">Претражи IP-јеве</string>
     <string name="title_about" translatable="true">О програму</string>
     <string name="title_settings" translatable="true">Подешавања</string>
     <string name="title_statistics" translatable="true">Статистика</string>
@@ -54,7 +54,6 @@
     <string name="lbl_private" translatable="true">приватно</string>
     <string name="lbl_secure" translatable="true">безбедно</string>
     <string name="lbl_split" translatable="true">Подели</string>
-    <string name="lbl_unselected" translatable="true">Неизабрано</string>
     <string name="memory_notification_text">Keepout-у недостаје меморије. Системске радње могу бити ограничене.</string>
     <string name="allow" translatable="true">дозволи</string>
     <string name="block" translatable="true">блокирај</string>
@@ -79,7 +78,7 @@
     <string name="conn_track_clear_logs_title" translatable="true">Обрисати све мрежне записе?</string>
     <string name="conn_track_clear_logs_message" translatable="true">Ово брише само мрежне записе али не и правила заштитног зида. Ова радња је неопозива. Да ли желите да наставите?</string>
     <string name="bsct_app_info" translatable="true">Информације о апликацији</string>
-    <string name="bsct_block_domain" translatable="true">Блокирај, веруј <u>доменима</u> за <u>ову апликацију</u></string>
+    <string name="bsct_block_domain" translatable="true">Блокирај, веруј доменима за ову апликацију</string>
     <string name="always_on_dialog" translatable="true">\"Увек активан VPN\" је омогућен на овом уређају. Да би сте покренули Keepout, молим вас идите у подешавања и онемогућите \"Увек активан VPN\".</string>
     <string name="always_on_dialog_heading" translatable="true">Онемогући Увек активан VPN</string>
     <string name="always_on_dialog_positive_btn" translatable="true">Иди на подешавања</string>
@@ -89,7 +88,7 @@
     <string name="always_on_dialog_neutral" translatable="true">Подешавања</string>
     <string name="notification_action_dns_firewall_mode" translatable="true">DNS + заштитни зид</string>
     <string name="custom_url_error_invalid_url" translatable="true">Неисправан URL</string>
-    <string name="bsct_block_ip" translatable="true">Блокирај, веруј <u>овој IP</u> за <u>ову апликацију</u></string>
+    <string name="bsct_block_ip" translatable="true">Блокирај, веруј овој IP за ову апликацију</string>
     <string name="private_dns_dialog_positive" translatable="true">Иди на подешавања</string>
     <string name="firewall_act_network_monitor_tab" translatable="true">Мрежа</string>
     <string name="doh_custom_url_remove_dialog_title" translatable="true">Обрисати DoH крајњу тачку?</string>
@@ -119,7 +118,7 @@
     <string name="download_update_dialog_failure_message" translatable="true">Или наши сервери нису доступни или конекција није могла бити успостављена. Молим вас покушајте поново после неког времена.</string>
     <string name="download_update_dialog_trylater_title" translatable="true">Надоградња није могућа у овом тренутку</string>
     <string name="download_update_dialog_trylater_message" translatable="true">Надоградња се тренутно не може извршити, молим вас покушајте поново касније.</string>
-    <string name="search_custom_domains" translatable="true"><font size="12">Претражи имена домена</font></string>
+    <string name="search_custom_domains" translatable="true">Претражи имена домена</string>
     <string name="search_proxy_add_apps" translatable="true">Претражи апликације по називу</string>
     <string name="info_dialog_copy_toast_msg" translatable="true">IP адреса је ископирана.</string>
     <string name="info_dialog_url_copy_toast_msg" translatable="true">URL је ископиран</string>
@@ -130,7 +129,7 @@
     <string name="settings_connectivity_checks" translatable="true">Изврши провере повезивости</string>
     <string name="settings_allow_lan_heading" translatable="true">Не рутирај приватне IP (експериментално)</string>
     <string name="settings_allow_bypass_heading" translatable="true">Омогући видљивост мреже</string>
-    <string name="settings_lock_down_mode_desc" translatable="true">Одређене опције су онемогућене када је VPN у закључаном моду. <u>Види VPN подешавања</u>.</string>
+    <string name="settings_lock_down_mode_desc" translatable="true">Одређене опције су онемогућене када је VPN у закључаном моду. Види VPN подешавања.</string>
     <string name="settings_lock_down_proxy_desc" translatable="true">Није могуће подешавање проксија када се VPN извршава у DNS само моду.</string>
     <string name="settings_proxy_header" translatable="true">прокси</string>
     <string name="settings_socks5_heading" translatable="true">Подеси SOCKS5 прокси</string>
@@ -163,7 +162,7 @@
     <string name="settings_check_update_heading" translatable="true">Провери надоградње апликације</string>
     <string name="settings_check_update_desc" translatable="true">Аутоматски проверавај за надоградње апликације једном недељно.</string>
     <string name="settings_custom_downloader_heading" translatable="true">Користи преузимач у апликацији</string>
-    <string name="settings_custom_downloader_desc" translatable="true">Уколико је онемогућено, користи се Андроидов уграђени <i>менаџер преузимања</i></string>
+    <string name="settings_custom_downloader_desc" translatable="true">Уколико је онемогућено, користи се Андроидов уграђени менаџер преузимања</string>
     <string name="settings_theme_heading" translatable="true">Изглед</string>
     <string name="orbot_no_app_toast" translatable="true">Додај најмање једну апликацију да би сте омогућили Orbot</string>
     <string name="settings_orbot_disabled_error" translatable="true">Искључи HTTP(S) и/или SOCKS5 прокси да би наставили са Tor-као-прокси подешавањем.</string>
@@ -207,7 +206,7 @@
     <string name="dc_local_block_heading" translatable="true">Блок листе на уређају</string>
     <string name="dc_local_block_desc_1" translatable="true">Изаберите међу 195+ блок листи. Кликните овде да преузмете или подесите блок листе.</string>
     <string name="dc_dns_website_heading" translatable="true">Прикажи икону веб сајта у DNS записима (експериментално)</string>
-    <string name="dc_dns_website_desc" translatable="true">Покупи икону веб сајта са <i>nextdns.io</i> и <i>duckduckgo.com</i>. Заузима до 350 mb простора складишта</string>
+    <string name="dc_dns_website_desc" translatable="true">Покупи икону веб сајта са nextdns.io и duckduckgo.com. Заузима до 350 mb простора складишта</string>
     <string name="dc_dns_leaks_heading" translatable="true">Спречи DNS цурења</string>
     <string name="dc_dns_leaks_desc" translatable="true">Када је омогућено, Keepout хвата све пакете на порту 53 и прослеђује их ка кориснички подешеној DNS крајњој тачки</string>
     <string name="dc_check_update_heading" translatable="true">Питај при освежењу блок листе</string>
@@ -303,17 +302,17 @@
     <string name="fapps_info_isolate_msg" translatable="true">Бокирај све осим IP-јеве од поверења.</string>
     <string name="fapps_info_dialog_positive_btn" translatable="true">Важи</string>
     <string name="fapps_unmetered_unblock_dialog_title" translatable="true">Дозволи на неограниченим</string>
-    <string name="fapps_unmetered_unblock_dialog_message">Дозволити конекције на неограниченим (WiFi) мрежама за апликације на <i>списку</i>\?</string>
+    <string name="fapps_unmetered_unblock_dialog_message">Дозволити конекције на неограниченим (WiFi) мрежама за апликације на списку\?</string>
     <string name="fapps_metered_block_dialog_title" translatable="true">Блокирај на ограниченим</string>
     <string name="fapps_metered_unblock_dialog_title" translatable="true">Дозволи на ограниченим</string>
     <string name="fapps_bypass_block_dialog_title" translatable="true">Заобиђи апликације</string>
-    <string name="fapps_bypass_block_dialog_message" translatable="true">Заобиђи унивезална правила заштитног зида за апликације на <i>списку</i>\?</string>
+    <string name="fapps_bypass_block_dialog_message" translatable="true">Заобиђи унивезална правила заштитног зида за апликације на списку\?</string>
     <string name="fapps_bypass_dns_firewall_dialog_title" translatable="true">Заобиђи апликације</string>
     <string name="fapps_unblock_dialog_title" translatable="true">Дозволи апликације</string>
-    <string name="fapps_unblock_dialog_message" translatable="true">Дозволити конекције за апликације на <i>списку</i>\?</string>
+    <string name="fapps_unblock_dialog_message" translatable="true">Дозволити конекције за апликације на списку\?</string>
     <string name="fapps_exclude_block_dialog_title" translatable="true">Изузми апликације</string>
     <string name="fapps_isolate_block_dialog_title" translatable="true">Изолуј апликације</string>
-    <string name="fapps_isolate_block_dialog_message" translatable="true">Изолуј апликације на <i>списку</i>\?</string>
+    <string name="fapps_isolate_block_dialog_message" translatable="true">Изолуј апликације на списку\?</string>
     <string name="rules_load_failure_heading" translatable="true">Белешка</string>
     <string name="system_dns_connection_failure" translatable="true">Не може се утврдити тренутни DNS сервер</string>
     <string name="copy_clipboard_label" translatable="true">URL</string>
@@ -351,22 +350,22 @@
     <string name="firewall_rule_domain_blocked_univ" translatable="true">Домен (универзално)</string>
     <string name="firewall_rule_domain_trusted_univ" translatable="true">Домен од поверења(универ)</string>
     <string name="firewall_rule_proxied" translatable="true">Проксован</string>
-    <string name="firewall_rule_new_app_desc" translatable="true">Ова плаикација је успоставила конекцију <i>први</i> пут.<br/><br/> За промену идите на картицу <i>Универзално</i>.</string>
-    <string name="firewall_rule_block_app_mobile_desc" translatable="true">Кориснички подешено правило је блокирало ову <i>апликацију</i> при покушају повезивања на <i>ограничену</i>мрежу.<br/><br/> За промену идите на картицу <i>Све апликације</i>.</string>
-    <string name="firewall_rule_isolate_desc" translatable="true">Кориснички подешено правило је блокирало ову <i>апликацију</i> при повезивању на другу од <i>заобиђене IP-јеве</i>.<br/><br/> За промену идите на картицу <i>Све апликације</i>.</string>
-    <string name="firewall_rule_block_ip_univ_desc" translatable="true">Кориснички подешено правило је блокирало <i>одредишни IP / порт</i>.<br/><br/> За промену идите на картицу <i>универзално</i>.</string>
-    <string name="firewall_rule_block_ip_desc" translatable="true">Кориснички подешено правило је блокирало <i>одредишну IP</i>.<br/><br/> За промену идите на екран <i>заштитни зид по апликацији</i>.</string>
-    <string name="firewall_rule_device_lock_desc" translatable="true">Ова конекција је ограничена заштитним зидом јер је <i>уређај био закључан</i> у том тренутку.<br/><br/> За промену овог понашања иди на картицу <i>универзално</i>.</string>
-    <string name="firewall_rule_foreground_desc" translatable="true">Ова конекција је ограничена заштитним зидом јер изворна апликација <i>није била у првом плану</i>.<br/><br/> За промену овог понашања иди на картицу <i>универзално</i>.</string>
-    <string name="firewall_rule_block_udp_ntp_desc" translatable="true">Кориснички дефинисано правило је блокирало ову <i>UDP</i> конекцију.<br/><br/> За промену иди на картицу <i>универзално</i>.</string>
-    <string name="firewall_rule_exempt_app_bypass_univ_desc" translatable="true">Ова конекција је дозвољена јер је <i>изворна апликација</i> подешена да <i>заобиђе универзална</i> правила заштитног зида.<br/><br/> За промену иди на екран <i>заштитни зид по апликацији</i>.</string>
-    <string name="firewall_rule_block_http_desc" translatable="true">Ова конекција је блокирана јер је вероватно користила <i>небезбедни HTTP</i>.<br/><br/> За промену иди на картицу <i>универзално</i>.</string>
-    <string name="firewall_rule_block_domain_desc" translatable="true">Кориснички подешено правило заштитног зида је блокирало <i>домен</i>.<br/><br/> За промену иди на екран <i>заштитни зид по апликацији</i>.</string>
-    <string name="firewall_rule_exempt_orbot_setup_desc" translatable="true">Ова конекција је дозвољена јер <i>један-клик Tor-као-прокси</i> подешавање путем Orbot-а је била у току.</string>
-    <string name="firewall_rule_trusted_domain_desc" translatable="true">Ова конекција је дозвољена јер је <i>домен</i> подешен као домен од поверења.<br/><br/> За промену иди на екран <i>заштитни зид по апликацији</i>.</string>
-    <string name="firewall_rule_dns_blocked_desc" translatable="true">Ова конекција је блокирана јер је <i>домен</i> блокиран од стране кориснички пожељног DNS-а.<br/><br/> За промену овог понашања иди на картицу <i>подеси DNS</i>.</string>
-    <string name="firewall_rule_domain_blocked_univ_desc" translatable="true">Ова конекција је блокирана јер је <i>домен</i> подешен као блокиран у Универзалним правилима домена.<br/><br/> За промену овог правила иди на картицу <i>подеси DNS</i>.</string>
-    <string name="firewall_rule_domain_trusted_univ_desc" translatable="true">Ова конекција је дозвољена јер је <i>домен</i> подешен као од поверења у Универзалним правилима домена.<br/><br/> За промену овог понашања иди на картицу <i>подеси DNS</i>.</string>
+    <string name="firewall_rule_new_app_desc" translatable="true">Ова плаикација је успоставила конекцију први пут.<br/><br/> За промену идите на картицу Универзално.</string>
+    <string name="firewall_rule_block_app_mobile_desc" translatable="true">Кориснички подешено правило је блокирало ову апликацију при покушају повезивања на ограниченумрежу.<br/><br/> За промену идите на картицу Све апликације.</string>
+    <string name="firewall_rule_isolate_desc" translatable="true">Кориснички подешено правило је блокирало ову апликацију при повезивању на другу од заобиђене IP-јеве.<br/><br/> За промену идите на картицу Све апликације.</string>
+    <string name="firewall_rule_block_ip_univ_desc" translatable="true">Кориснички подешено правило је блокирало одредишни IP / порт.<br/><br/> За промену идите на картицу универзално.</string>
+    <string name="firewall_rule_block_ip_desc" translatable="true">Кориснички подешено правило је блокирало одредишну IP.<br/><br/> За промену идите на екран заштитни зид по апликацији.</string>
+    <string name="firewall_rule_device_lock_desc" translatable="true">Ова конекција је ограничена заштитним зидом јер је уређај био закључан у том тренутку.<br/><br/> За промену овог понашања иди на картицу универзално.</string>
+    <string name="firewall_rule_foreground_desc" translatable="true">Ова конекција је ограничена заштитним зидом јер изворна апликација није била у првом плану.<br/><br/> За промену овог понашања иди на картицу универзално.</string>
+    <string name="firewall_rule_block_udp_ntp_desc" translatable="true">Кориснички дефинисано правило је блокирало ову UDP конекцију.<br/><br/> За промену иди на картицу универзално.</string>
+    <string name="firewall_rule_exempt_app_bypass_univ_desc" translatable="true">Ова конекција је дозвољена јер је изворна апликација подешена да заобиђе универзална правила заштитног зида.<br/><br/> За промену иди на екран заштитни зид по апликацији.</string>
+    <string name="firewall_rule_block_http_desc" translatable="true">Ова конекција је блокирана јер је вероватно користила небезбедни HTTP.<br/><br/> За промену иди на картицу универзално.</string>
+    <string name="firewall_rule_block_domain_desc" translatable="true">Кориснички подешено правило заштитног зида је блокирало домен.<br/><br/> За промену иди на екран заштитни зид по апликацији.</string>
+    <string name="firewall_rule_exempt_orbot_setup_desc" translatable="true">Ова конекција је дозвољена јер један-клик Tor-као-прокси подешавање путем Orbot-а је била у току.</string>
+    <string name="firewall_rule_trusted_domain_desc" translatable="true">Ова конекција је дозвољена јер је домен подешен као домен од поверења.<br/><br/> За промену иди на екран заштитни зид по апликацији.</string>
+    <string name="firewall_rule_dns_blocked_desc" translatable="true">Ова конекција је блокирана јер је домен блокиран од стране кориснички пожељног DNS-а.<br/><br/> За промену овог понашања иди на картицу подеси DNS.</string>
+    <string name="firewall_rule_domain_blocked_univ_desc" translatable="true">Ова конекција је блокирана јер је домен подешен као блокиран у Универзалним правилима домена.<br/><br/> За промену овог правила иди на картицу подеси DNS.</string>
+    <string name="firewall_rule_domain_trusted_univ_desc" translatable="true">Ова конекција је дозвољена јер је домен подешен као од поверења у Универзалним правилима домена.<br/><br/> За промену овог понашања иди на картицу подеси DNS.</string>
     <string name="new_app_bulk_notification_title" translatable="true">Пажња</string>
     <string name="new_app_bulk_notification_content" translatable="true">Keepout је блокирао %1$s нових апликација. Додирни за преглед или измену.</string>
     <string name="new_app_notification_content" translatable="true">Keepout је блокирао недавно инсталирану апликацију %1$s.</string>
@@ -383,9 +382,6 @@
     <string name="category_name_sys_apps" translatable="true">Апликације система</string>
     <string name="category_name_non_app_sys" translatable="true">Сервиси система</string>
     <string name="category_name_installed" translatable="true">Инсталиране апликације</string>
-    <string name="build__flavor_website" translatable="true">веб сајт</string>
-    <string name="build__flavor_play_store" translatable="true">репродукуј</string>
-    <string name="build__flavor_fdroid" translatable="true">fdroid</string>
     <string name="cd_toast_edit" translatable="true">Измењено</string>
     <string name="ci_dialog_error_invalid_ip" translatable="true">Неисправна IP адреса, подмрежа или порт.</string>
     <string name="ada_noapp_dialog_title" translatable="true">Нема такве апликације</string>
@@ -426,7 +422,7 @@
     <string name="rt_download_desc" translatable="true">Преузми блок листе (око 60MB) да би сте користили ову функционалност.</string>
     <string name="radio_sky_btn" translatable="true">⛅ Небо</string>
     <string name="radio_max_btn" translatable="true">🪂 Макс</string>
-    <string name="rt_filter_hint" translatable="true">Приказане <u>све</u> блок листе</string>
+    <string name="rt_filter_hint" translatable="true">Приказане све блок листе</string>
     <string name="rbl_privacy_desc" description="The text appears as blocklists description in configure screen" translatable="true">Блокирај attentionware, spyware, scareware.</string>
     <string name="rbl_security_desc" description="The text appears as blocklists description in configure screen" translatable="true">Блокирај malware, ransomware, cryptoware, phishers, и остале претње.</string>
     <string name="dc_local_block_enabled" translatable="true">Омогућено</string>
@@ -536,8 +532,8 @@
     <string name="notification_action_dns_mode" translatable="true">DNS</string>
     <string name="dns_mode_info_title" translatable="true">DNS</string>
     <string name="alert_firewall_accessibility_explanation" translatable="true">Keepout користи сервисе приступачности да прати које апликације су у употреби за разлику од оних које нису у употреби.\n\nKeepout не сакупља никакве информације нити вас шпијунира на било који начин.</string>
-    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Keepout сервиси приступачности су престали да функционишу.<i><b>Иди у подешавања и насилно заустави</b></i> Keepout и покрени га поново да би користио <i>Блокирај било коју апликацију која није у употреби</i> функционалност.\n\nKeepout користи сервисе приступачности да би пратио које апликације су у употреби за разлику од оних које нису у употреби.</string>
-    <string name="always_on_dialog_lockdown_stop_message" translatable="true">Keepout је покренуо VPN у <i>Lockdown</i> моду. Његово заустављање ће резултовати губитком интернет конекције на овом корисничком профилу. Да ли желите да наставите?</string>
+    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Keepout сервиси приступачности су престали да функционишу.Иди у подешавања и насилно заустави Keepout и покрени га поново да би користио Блокирај било коју апликацију која није у употреби функционалност.\n\nKeepout користи сервисе приступачности да би пратио које апликације су у употреби за разлику од оних које нису у употреби.</string>
+    <string name="always_on_dialog_lockdown_stop_message" translatable="true">Keepout је покренуо VPN у Lockdown моду. Његово заустављање ће резултовати губитком интернет конекције на овом корисничком профилу. Да ли желите да наставите?</string>
     <string name="private_dns_dialog_heading" translatable="true">Искључи приватни DNS</string>
     <string name="firewall_act_universal_tab" translatable="true">универзално</string>
     <string name="dot_custom_url_remove_dialog_message" translatable="true">Обрисати DNS путем TLS крајње тачке из сачуване конфигурације.</string>
@@ -551,12 +547,12 @@
     <string name="settings_socks5_disabled_error" translatable="true">Повезан са %1$s. Искључите га да би сте наставили.</string>
     <string name="settings_https_disabled_error" translatable="true">Повезан са %1$s. Искључите га да би сте наставили.</string>
     <string name="settings_autostart_bootup_desc" translatable="true">При покретању уређаја, покрени Keepout ако је био покренут пре гашења.</string>
-    <string name="settings_network_all_networks_desc" translatable="true">Када је омогућено, Keepout користи све доступне мреже да се повеже на интернет. У супротном, користи ону означену као <i>активну</i> од стране Андроида.</string>
+    <string name="settings_network_all_networks_desc" translatable="true">Када је омогућено, Keepout користи све доступне мреже да се повеже на интернет. У супротном, користи ону означену као активну од стране Андроида.</string>
     <string name="settings_socks_forwarding_desc_no_app" translatable="true">Прослеђује се на %1$s:%2$s</string>
     <string name="settings_theme_dialog_themes_2" translatable="true">Светла</string>
     <string name="settings_theme_dialog_themes_3" translatable="true">Тамна</string>
     <string name="settings_default_dns_heading" translatable="true">Изабери резервни DNS</string>
-    <string name="firewall_rule_bypass_universal_ip_desc" translatable="true">Ова конекција је дозвољена јер је &lt;i&gt;одредишна IP&lt;/i&gt; подешена да заобиђе сва универзална правила заштитног зида.&lt;br/&gt;&lt;br/&gt; За промену иди на &lt;i&gt;IP правила&lt;i&gt; на картици &lt;i&gt;универзално&lt;/i&gt;.</string>
+    <string name="firewall_rule_bypass_universal_ip_desc" translatable="true">Ова конекција је дозвољена јер је одредишна IP подешена да заобиђе сва универзална правила заштитног зида.&lt;br/&gt;&lt;br/&gt; За промену иди на IP правила на картици универзално.</string>
     <string name="hsf_vpn_dialog_message" translatable="true">Keepout-у су потребне дозволе да подеси локални VPN за енкрипцију DNS захтева уређаја, имплементацију монитора мреже, и приморавање правила заштитног зида.\n\nKeepout не сакупља никакве информације нити вас шпијунира ни на који начин.</string>
     <string name="about_bug_no_log_dialog_positive_btn" translatable="true">Пошаљи е-поруку</string>
     <string name="about_connect" translatable="true">Контактирај</string>
@@ -583,19 +579,19 @@
     <string name="fapps_filter_clear_btn" translatable="true">Очисти</string>
     <string name="fapps_info_dialog_message" translatable="true">Блокирај апликације од приступа интернету. Ограничавање приступа интернету помаже у спречавању нежељене потрошње података, као и потрошњи батерије.</string>
     <string name="fapps_unmetered_block_dialog_title" translatable="true">Блокирај на неограниченим</string>
-    <string name="fapps_unmetered_block_dialog_message" translatable="true">Блокирати конекције на неограниченим (WiFi) мрежама за апликације на<i>списку</i>\?</string>
-    <string name="fapps_metered_block_dialog_message" translatable="true">Блокирати конекције на ограниченим (мобилним) мрежама за апликације на<i>списку</i>\?</string>
-    <string name="fapps_metered_unblock_dialog_message" translatable="true">Дозволити конекције на ограниченим (мобилним) мрежама за апликације на<i>списку</i>\?</string>
-    <string name="fapps_bypass_dns_firewall_dialog_message" translatable="true">Заобиђи универзална DNS и правила заштитног зида за апликације на <i>списку</i>\?</string>
+    <string name="fapps_unmetered_block_dialog_message" translatable="true">Блокирати конекције на неограниченим (WiFi) мрежама за апликације насписку\?</string>
+    <string name="fapps_metered_block_dialog_message" translatable="true">Блокирати конекције на ограниченим (мобилним) мрежама за апликације насписку\?</string>
+    <string name="fapps_metered_unblock_dialog_message" translatable="true">Дозволити конекције на ограниченим (мобилним) мрежама за апликације насписку\?</string>
+    <string name="fapps_bypass_dns_firewall_dialog_message" translatable="true">Заобиђи универзална DNS и правила заштитног зида за апликације на списку\?</string>
     <string name="network_log_app_name_unnamed" translatable="true">Неименовано (%1$s)</string>
-    <string name="fapps_exclude_block_dialog_message" translatable="true">Изузети апликације на <i>списку</i> из DNS и заштитног зида?</string>
+    <string name="fapps_exclude_block_dialog_message" translatable="true">Изузети апликације на списку из DNS и заштитног зида?</string>
     <string name="rules_load_failure_desc" translatable="true">Нису пронађена правила заштитног зида</string>
     <string name="rules_load_failure_reload" translatable="true">учитај поново</string>
     <string name="network_log_app_name_unknown" translatable="true">Непознато</string>
     <string name="dns_proxy_connection_failure" translatable="true">Грешка при повезивању са DNS прокси сервером.</string>
     <string name="dns_crypt_connection_failure" translatable="true">Грешка при повезивању са DNSCrypt сервером.</string>
-    <string name="firewall_rule_unknown_desc" translatable="true">Ова конекција је ограничена заштитним зидом јер <i>изворна апликација</i> није могла бити утврђена.<br/><br/> За промену овог понашања иди на картицу <i>универзално</i>.</string>
-    <string name="firewall_rule_block_dns_bypass_desc" translatable="true">Ова конекција је блокирана јер је <i>изворна апликација</i> заобишла пожељни DNS корисника.<br/><br/> За промену овог понашања иди на картицу <i>универзално</i>.</string>
+    <string name="firewall_rule_unknown_desc" translatable="true">Ова конекција је ограничена заштитним зидом јер изворна апликација није могла бити утврђена.<br/><br/> За промену овог понашања иди на картицу универзално.</string>
+    <string name="firewall_rule_block_dns_bypass_desc" translatable="true">Ова конекција је блокирана јер је изворна апликација заобишла пожељни DNS корисника.<br/><br/> За промену овог понашања иди на картицу универзално.</string>
     <string name="other_dns_list_tab3" translatable="true">Dns прокси</string>
     <string name="firewall_rule_block_unmetered" translatable="true">Неограничана (WiFi)</string>
     <string name="firewall_rule_isolate" translatable="true">Изолуј</string>
@@ -603,24 +599,23 @@
     <string name="firewall_rule_unknown" translatable="true">Извор није познат</string>
     <string name="firewall_rule_trusted_domain" translatable="true">Домен од поверења (апликација)</string>
     <string name="firewall_rule_no_rule_desc" translatable="true">Ниједно правило заштитног зида се не поклапа са овом конекцијом.</string>
-    <string name="firewall_rule_block_app_desc" translatable="true">Кориснички подешено правило је блокирало ову <i>апликацију</i>.<br/><br/> За промену идите на картицу <i>Све апликације</i>.</string>
-    <string name="firewall_rule_block_app_unmetered_desc" translatable="true">Кориснички подешено правило је блокирало ову <i>апликацију</i> при покушају повезивања на <i>неограничену</i>мрежу.<br/><br/> За промену идите на картицу <i>Све апликације</i>.</string>
-    <string name="firewall_rule_block_app_univ_mobile_desc" translatable="true">Кориснички подешено правило је блокирало ову <i>апликацију</i> при покушају повезивања на <i>неограничену</i> (мобилну) мрежу.<br/><br/> За промену идите на картицу <i>универзална</i>.</string>
-    <string name="firewall_rule_exempt_dns_proxied_desc" translatable="true">Ова DNS конекција је проксована и прослеђена на пожељну DNS крајњу тачку корисника.<br/><br/> За промену онемогући <i>спречи DNS цурења</i> на екрану DNS <i>подешавања</i>.</string>
-    <string name="firewall_rule_bypass_dns_firewall_desc" translatable="true">Конекција је дозвољена јер је <i>изворна апликација</i> подешена да <i>заобиђе dns и правила заштитног зида</i>.<br/><br/> За промену идите на екран <i>заштитни зид по апликацији</i>.</string>
-    <string name="firewall_rule_trusted_ip_desc" translatable="true">Конекција је дозвољена јер је <i>одредишна IP</i> подешена као IP од поверења.<br/><br/> За промену иди на екран <i>заштитни зид по апликацији</i>.</string>
+    <string name="firewall_rule_block_app_desc" translatable="true">Кориснички подешено правило је блокирало ову апликацију.<br/><br/> За промену идите на картицу Све апликације.</string>
+    <string name="firewall_rule_block_app_unmetered_desc" translatable="true">Кориснички подешено правило је блокирало ову апликацију при покушају повезивања на неограниченумрежу.<br/><br/> За промену идите на картицу Све апликације.</string>
+    <string name="firewall_rule_block_app_univ_mobile_desc" translatable="true">Кориснички подешено правило је блокирало ову апликацију при покушају повезивања на неограничену (мобилну) мрежу.<br/><br/> За промену идите на картицу универзална.</string>
+    <string name="firewall_rule_exempt_dns_proxied_desc" translatable="true">Ова DNS конекција је проксована и прослеђена на пожељну DNS крајњу тачку корисника.<br/><br/> За промену онемогући спречи DNS цурења на екрану DNS подешавања.</string>
+    <string name="firewall_rule_bypass_dns_firewall_desc" translatable="true">Конекција је дозвољена јер је изворна апликација подешена да заобиђе dns и правила заштитног зида.<br/><br/> За промену идите на екран заштитни зид по апликацији.</string>
+    <string name="firewall_rule_trusted_ip_desc" translatable="true">Конекција је дозвољена јер је одредишна IP подешена као IP од поверења.<br/><br/> За промену иди на екран заштитни зид по апликацији.</string>
     <string name="whats_new_version_update" translatable="true">&lt;b&gt;Не паничите 2&lt;/b&gt;&lt;br/&gt;&lt;br/&gt; 1. Ново: Хватање грешака мрежног енџина у корисничким извештајима о грешки.&lt;br/&gt; 2. Ново: користи системски DNS за неделегиране називе домена уколико је укључен Спречи DNS цурења.&lt;br/&gt; 3. Унапређење: Двострука (IPv4 + IPv6) WireGuard повезивост.&lt;br/&gt; 4. Унапређење: Избегавај блокирање UI елемената када је мрежни енџин нереспонзиван.&lt;br/&gt; 5. Исправка: истицање времена повезивања са укљученим Напредним DNS филтрирањем.&lt;br/&gt; 6. Исправка: WireGuard peer крајње тачке са називима домена висе при променама мреже.&lt;br/&gt;&lt;br/&gt; &lt;a href=https://svc.rethinkdns.com/r/translate&gt;Помозите у превођењу ове апликације&lt;/a&gt;</string>
     <string name="settings_exclude_proxy_apps_heading" translatable="true">Пошаљи прокси прослеђујуће апликације на повратну петљу</string>
-    <string name="settings_exclude_proxy_apps_desc" translatable="true">Када је онемогућено, изузима прокси (SOCKS5, HTTP, DNS) прослеђујуће апликације из Keepout-овог VPN тунела.</string>
     <string name="orbot_stop_dialog_message" translatable="true">Keepout је престао да прослеђује конекције Orbot-у, али Orbot је можда покренут у позадини.</string>
     <string name="orbot_app_issue" translatable="true">Нисмо могли покренути Orbot. Да ли је инсталиран?</string>
-    <string name="orbot_explanation" translatable="true">Orbot је бесплатна прокси апликација која оснажава остале апликације да користе интернет <u>безбедније</u>.\nOrbot користи <u>Tor</u> да енкриптује ваш интернет саобраћај што Вам помаже да <u>заобиђете цензуру</u> и одбраните се против облика <u>надгледања мреже</u> која прете личним слободама и приватношћу.\n<u>TCP прокси</u>: Keepout прослеђује само TCP конекције <i>обухваћених</i> апликација Orbot-у.\n<u>HTTP прокси</u>: Keepout <i>успоставља</i> HTTP CONNECT тунел ка Orbot-у и прослеђује само TCP конекције <i>обухваћених</i> апликација.</string>
+    <string name="orbot_explanation" translatable="true">Orbot је бесплатна прокси апликација која оснажава остале апликације да користе интернет безбедније.\nOrbot користи Tor да енкриптује ваш интернет саобраћај што Вам помаже да заобиђете цензуру и одбраните се против облика надгледања мреже која прете личним слободама и приватношћу.\nTCP прокси: Keepout прослеђује само TCP конекције обухваћених апликација Orbot-у.\nHTTP прокси: Keepout успоставља HTTP CONNECT тунел ка Orbot-у и прослеђује само TCP конекције обухваћених апликација.</string>
     <string name="orbot_install_dialog_message" translatable="true">Orbot доноси могућности и функционалности Tor-а Андроиду.</string>
     <string name="settings_orbot_notification_content" translatable="true">Несупело покретање Tor-као-прокси. Отворите Orbot апликацију да би сте је ручно покренули.</string>
     <string name="rethink_max_desc" translatable="true">50+ локација; већа приватност; рекурзивни разрешивач се извршава на fly.io</string>
     <string name="crypt_quad9_desc" translatable="true">Quad9 (anycast) no–dnssec/no–log/no–filter/ecs 9.9.9.12 – 149.112.112.12</string>
-    <string name="firewall_rule_global_lockdown_desc" translatable="true">Ова конекција је блокирана јер је подешено универзално закључавање.<br/><br/> За промену иди на картицу <i>универзално</i>.</string>
-    <string name="firewall_rule_proxied_desc" translatable="true">Ова конекција је прослеђена кориснички пожељном проксију.<br/><br/> За промену иди на <i>Прокси</i> у екрану <i>Подеси</i>.</string>
+    <string name="firewall_rule_global_lockdown_desc" translatable="true">Ова конекција је блокирана јер је подешено универзално закључавање.<br/><br/> За промену иди на картицу универзално.</string>
+    <string name="firewall_rule_proxied_desc" translatable="true">Ова конекција је прослеђена кориснички пожељном проксију.<br/><br/> За промену иди на Прокси у екрану Подеси.</string>
     <string name="new_app_notification_action_toast_deny" translatable="true">Мрежна конекција је одбијена за ову апликацију</string>
     <string name="notif_channel_vpn_notification" translatable="true">Активни VPN</string>
     <string name="notif_channel_desc_vpn_failure" translatable="true">Обавести када је Keepout заустављен од стране Андроида или друге VPN апликације</string>
@@ -642,8 +637,8 @@
     <string name="rt_chip_check_update" translatable="true">Провери надоградње</string>
     <string name="rt_list_simple_btn_txt" translatable="true">једноставна</string>
     <string name="lbl_advanced" translatable="true">напредна</string>
-    <string name="rt_filter_desc" translatable="true">Приказано <u>%1$s</u> блок листи</string>
-    <string name="rt_filter_desc_subgroups" translatable="true">Приказано <u>%1$s</u> блок листи у групи: %2$s и подгрупама: %3$s</string>
+    <string name="rt_filter_desc" translatable="true">Приказано %1$s блок листи</string>
+    <string name="rt_filter_desc_subgroups" translatable="true">Приказано %1$s блок листи у групи: %2$s и подгрупама: %3$s</string>
     <string name="lbbs_configure" translatable="true">Подеси</string>
     <string name="lbbs_heading" translatable="true">Подеси 195+ блок листи</string>
     <string name="brbs_backup_dialog_title" translatable="true">Направи копију</string>

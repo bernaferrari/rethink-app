@@ -37,7 +37,7 @@
     <string name="download_update_dialog_failure_title">Terjadi kesalahan!</string>
     <string name="always_on_dialog_stop_message">Keepout diatur sebagai VPN Selalu-Menyala. Apakah Anda yakin untuk menghentikan Keepout\?</string>
     <string name="download_update_dialog_message">Versi baru tersedia untuk diunduh dari situs web. Apakah Anda ingin melanjutkan\?</string>
-    <string name="search_universal_ips"><font size="12">Cari IP</font></string>
+    <string name="search_universal_ips">Cari IP</string>
     <string name="orbot_stop_dialog_dns_message">Keepout disiapkan untuk meneruskan permintaan DNS ke Orbot. Silahkan ubah sesuai kebutuhan.</string>
     <string name="orbot_bs_status_1">Meneruskan koneksi %1$s ke Orbot.</string>
     <string name="orbot_website_link">https://guardianproject.info/apps/org.torproject.android/</string>
@@ -95,13 +95,11 @@
     <string name="about_mail_subject">[Rethink]:</string>
     <string name="about_mail_bugreport_share_title">Pilih penyedia email</string>
     <string name="cd_custom_dns_proxy_default_ip">127.0.0.1</string>
-    <string name="build__flavor_play_store">play</string>
     <string name="cd_dns_crypt_name_default">DNSCrypt</string>
-    <string name="build__flavor_website">laman</string>
     <string name="firewall_rule_block_app">Aplikasi Diblokir</string>
     <string name="firewall_rule_block_udp_ntp">UDP Diblokir</string>
     <string name="firewall_rule_exempt_orbot_setup">Pengaturan Orbot</string>
-    <string name="dc_dns_website_desc">Mengambil ikon situs web dari <i>nextdns.io</i> dan <i>duckduckgo.com</i>. Mengonsumsi ruang penyimpanan hingga 350 mb</string>
+    <string name="dc_dns_website_desc">Mengambil ikon situs web dari nextdns.io dan duckduckgo.com. Mengonsumsi ruang penyimpanan hingga 350 mb</string>
     <string name="bsct_app_info">Info Aplikasi</string>
     <string name="network_log_app_name_unknown">Tidak diketahui</string>
     <string name="category_name_non_app_sys">Layanan Sistem</string>
@@ -131,7 +129,6 @@
     <string name="about_twitter_handle">https://twitter.com/rethinkdns</string>
     <string name="about_dialog_neutral_button">Sarankan fitur</string>
     <string name="notification_action_dns_mode">DNS</string>
-    <string name="build__flavor_fdroid">fdroid</string>
     <string name="new_app_notification_action_toast_deny">Koneksi jaringan app diabaikan</string>
     <string name="dc_other_dns_heading">Tipe</string>
     <string name="cd_custom_doh_url_name_default">DoH</string>
@@ -142,9 +139,9 @@
     <string name="settings_protocol_translation_dns_inactive">Beralih ke mode DNS/DNS+Firewall untuk mengaktifkan pengaturan ini</string>
     <string name="about_docs_link">https://docs.rethinkdns.com/</string>
     <string name="new_app_bulk_notification_content">Keepout memblokir %1$s aplikasi baru. Ketuk untuk melihat atau mengubah.</string>
-    <string name="firewall_rule_block_app_desc"><![CDATA[Aturan firewall yang ditetapkan pengguna memblokir <i>aplikasi</i> ini.<br/><br/> Untuk mengubah, buka tab <i>Semua Aplikasi</i>.]]></string>
+    <string name="firewall_rule_block_app_desc"><![CDATA[Aturan firewall yang ditetapkan pengguna memblokir aplikasi ini.]]></string>
     <string name="dc_dns_leaks_desc">Saat diaktifkan, Keepout menangkap semua paket pada port 53 dan meneruskannya ke titik akhir DNS yang ditetapkan pengguna</string>
-    <string name="firewall_rule_block_ip_univ_desc"><![CDATA[Aturan firewall yang ditetapkan pengguna telah memblokir <i>IP / Port tujuan</i>.<br/><br/> Untuk mengubahnya, buka tab <i>Universal</i>.]]></string>
+    <string name="firewall_rule_block_ip_univ_desc"><![CDATA[Aturan firewall yang ditetapkan pengguna telah memblokir IP / Port tujuan.]]></string>
     <string name="dns_info_neutral">Salin</string>
     <string name="dns_proxy_desc">%1$s:%2$s, %3$s</string>
     <string name="hs_download_positive_website">Kunjungi situs web</string>
@@ -171,7 +168,7 @@
     <string name="dns_proxy_desc_no_app">%1$s:%2$s</string>
     <string name="about_docs">Baca documentasi</string>
     <string name="doh_custom_url_remove_dialog_message">Menghapus titik-akhir DNS melalui Https dari konfigurasi yang tersimpan.</string>
-    <string name="search_custom_domains"><font size="12">Mencari nama-nama domain</font></string>
+    <string name="search_custom_domains">Mencari nama-nama domain</string>
     <string name="cd_dns_proxy_error_text_2">Port harus dalam rentang 1024-65535</string>
     <string name="brbs_backup_title">Cadangkan</string>
     <string name="univ_view_blocked_ip">Aturan IP &amp; Port</string>
@@ -220,7 +217,7 @@
     <string name="dns_proxy_remove_dialog_title">Hapus Proksi DNS\?</string>
     <string name="about_email">Email kami</string>
     <string name="category_name_sys_components">Komponen-komponen Sistem</string>
-    <string name="firewall_rule_block_udp_ntp_desc"><![CDATA[Aturan firewall yang ditetapkan pengguna telah memblokir koneksi <i>UDP</i> ini.<br/><br/> Untuk mengubahnya, buka tab <i>Universal</i>.]]></string>
+    <string name="firewall_rule_block_udp_ntp_desc"><![CDATA[Aturan firewall yang ditetapkan pengguna telah memblokir koneksi UDP ini.]]></string>
     <string name="rt_chip_check_update">Periksa pembaruan</string>
     <string name="settings_check_update_desc">Secara otomatis memeriksa pembaruan setiap minggu.</string>
     <string name="settings_ip_dialog_ipv46">Otomatis (eksperimental)</string>
@@ -230,7 +227,7 @@
     <string name="dns_proxy_name">Nama Proksi</string>
     <string name="brbs_backup_dialog_failure_title">Gagal mencadangkan</string>
     <string name="dns_connected_rethink_plus">Terhubung. %1$s daftar blokir yang digunakan</string>
-    <string name="alert_firewall_accessibility_regrant_explanation">Layanan aksesibilitas Keepout terhenti atau mengalami kegagalan. <i><b>Masuk ke Pengaturan dan Hentikan Paksa</b></i> dan mulai ulang untuk menggunakan fitur<i>Blokir aplikasi apapun yang tidak digunakan</i>.
+    <string name="alert_firewall_accessibility_regrant_explanation">Layanan aksesibilitas Keepout terhenti atau mengalami kegagalan. Masuk ke Pengaturan dan Hentikan Paksa dan mulai ulang untuk menggunakan fiturBlokir aplikasi apapun yang tidak digunakan.
 \n
 \nKeepout menggunakan layanan aksesibilitas untuk mengawasi aplikasi yang sedang digunakan (latar depan) dan aplikasi yang tidak digunakan (latar belakang).</string>
     <string name="firewall_act_universal_tab">universal</string>
@@ -326,7 +323,7 @@
     <string name="notif_download_failure_content">Gagal mengunduh. Coba lagi.</string>
     <string name="settings_theme_heading">Tampilan</string>
     <string name="settings_ip_text_ipv6">IPv6</string>
-    <string name="bsct_block_ip">Blokir, percayakan <u>IP ini</u> untuk <u>aplikasi ini</u></string>
+    <string name="bsct_block_ip">Blokir, percayakan IP ini untuk aplikasi ini</string>
     <string name="dns_crypt_relay_remove_dialog_message">Menghapus jembatan penghubung (relay) dari konfigurasi yang tersimpan.</string>
     <string name="univ_view_blocked_ip_desc">Ubah aturan IP / Port, Domain yang diblokir atau dipercaya.</string>
     <string name="orbot_both">Proksi TCP + HTTP</string>
@@ -380,10 +377,10 @@
     <string name="orbot_stop_dialog_title">Dibutuhkan intervensi manual</string>
     <string name="dc_doh">Dns melalui HTTPS</string>
     <string name="brbs_backup_desc">Cadangkan setelan aplikasi, riwayat jaringan dan DNS</string>
-    <string name="firewall_rule_block_app_univ_mobile_desc"><![CDATA[Aturan firewall universal yang ditetapkan pengguna telah memblokir <i>app</i> ini saat mencoba terhubung ke jaringan <i>Metered</i> (Mobile).<br/><br/> Untuk mengubahnya, buka tab <i>Universal</i>.]]></string>
-    <string name="firewall_rule_block_app_mobile_desc"><![CDATA[Aturan firewall yang ditetapkan pengguna telah memblokir <i>aplikasi</i> ini saat mencoba terhubung ke jaringan <i>Metered</i>.<br/><br/> Untuk mengubahnya, buka tab <i>Semua Aplikasi</i>.]]></string>
+    <string name="firewall_rule_block_app_univ_mobile_desc"><![CDATA[Aturan firewall universal yang ditetapkan pengguna telah memblokir app ini saat mencoba terhubung ke jaringan Metered (Mobile).]]></string>
+    <string name="firewall_rule_block_app_mobile_desc"><![CDATA[Aturan firewall yang ditetapkan pengguna telah memblokir aplikasi ini saat mencoba terhubung ke jaringan Metered.]]></string>
     <string name="fapps_info_dialog_message">Blokir aplikasi agar tidak terhubung ke internet. Membatasi akses ke internet membantu menghindari penggunaan data yang tidak perlu dan juga membantu menghemat baterai.</string>
-    <string name="firewall_rule_block_app_unmetered_desc"><![CDATA[Aturan firewall yang ditetapkan pengguna memblokir <i>aplikasi</i> ini saat mencoba terhubung pada jaringan <i>Tidak Terukur</i>.<br/><br/> Untuk mengubahnya, buka tab <i>Semua Aplikasi</i>.]]></string>
+    <string name="firewall_rule_block_app_unmetered_desc"><![CDATA[Aturan firewall yang ditetapkan pengguna memblokir aplikasi ini saat mencoba terhubung pada jaringan Tidak Terukur.]]></string>
     <string name="whats_new_version_update">&lt;b&gt;Jangan Panik 2&lt;/b&gt;&lt;br/&gt;&lt;br/&gt; 1. Baru: Tangkap kesalahan mesin jaringan dalam laporan bug pengguna.&lt;br/&gt; 2. Baru: gunakan DNS Sistem untuk nama domain yang tidak didelegasikan jika cegah kebocoran DNS aktif.&lt;br/&gt; 3. Peningkatan: Dual-stack (IPv4 + IPv6) konektifitas WireGuard.&lt;br/&gt; 4. Peningkatan: Hindari pemblokiran elemen UI saat mesin jaringan tidak responsif.&lt;br/&gt; 5. Perbaikan: Batas waktu koneksi habis dengan pemfilteran DNS tingkat lanjut aktif.&lt;br/&gt; 6. Perbaikan: Titik akhir peer WireGuard dengan nama domain hang saat perubahan jaringan.&lt;br/&gt;&lt;br/&gt; &lt;a href=https://svc.rethinkdns.com/r/translate&gt;Bantu terjemahkan aplikasi ini&lt;/a&gt;</string>
     <string name="brbs_restore_dialog_failure_positive">Ulangi Pemulihan</string>
     <string name="brbs_restore_complete_toast">Pemulihan selesai, memulai ulang aplikasi…</string>
@@ -410,7 +407,7 @@
     <string name="private_dns_dialog_positive">Masuk ke Pengaturan</string>
     <string name="universal_firewall_explanation">Terapkan aturan firewall berdasarkan aktivitas perangkat, seperti pemblokiran saat perangkat terkunci atau aplikasi tertentu yang tidak digunakan.</string>
     <string name="notification_action_resume_vpn">LANJUTKAN</string>
-    <string name="always_on_dialog_lockdown_stop_message">Keepout menjalankan VPN pada mode <i>Penguncian penuh</i>. Menghentikannya akan mengakibatkan hilangnya konektivitas Internet pada profil pengguna ini. Apakah anda masih ingin melanjutkan\?</string>
+    <string name="always_on_dialog_lockdown_stop_message">Keepout menjalankan VPN pada mode Penguncian penuh. Menghentikannya akan mengakibatkan hilangnya konektivitas Internet pada profil pengguna ini. Apakah anda masih ingin melanjutkan\?</string>
     <string name="cd_dns_crypt_dialog_stamp">Cap</string>
     <string name="univ_firewall_rule_6">Blokir aplikasi yang baru saja diinstal secara default</string>
     <string name="ada_ip_no_connection">Tidak ada log jaringan untuk kategori ini.</string>
@@ -430,9 +427,9 @@
     <string name="notif_download_cancel_content">Unduh dibatalkan.</string>
     <string name="rbl_privacy_desc" description="The text appears as blocklists description in configure screen">Blokir attentionware, spyware, scareware.</string>
     <string name="ada_delete_logs_dialog_title" description="Appears as dialog title to clear the logs in app specific screen">Hapus log</string>
-    <string name="rt_filter_hint">Menampilkan <u>semua</u> daftar blokir</string>
+    <string name="rt_filter_hint">Menampilkan semua daftar blokir</string>
     <string name="dc_dns_crypt">DNSCrypt</string>
-    <string name="rt_filter_desc"><![CDATA[Menampilkan <u>%1$s</u> daftar blokir]]></string>
+    <string name="rt_filter_desc"><![CDATA[Menampilkan %1$s daftar blokir]]></string>
     <string name="rethink_sky_desc">280+ lokasi; dengan uptime yang tinggi; stub resolver yang berjalan pada server cloudflare.com</string>
     <string name="radio_max_btn">🪂 Max</string>
     <string name="rsv_blocklist_count_text" description="This label will appear in rethink configure simple view screen which shows number of blocklists for each category">%1$s daftar blokir</string>
@@ -440,15 +437,15 @@
     <string name="rethink_max_desc">50+ lokasi; lebih privat; penyelesai rekursif yang berjalan pada server fly.io</string>
     <string name="settings_dns_proxy_dialog_app">Aplikasi</string>
     <string name="download_update_dialog_failure_message">Entah server kami sedang down atau koneksi tidak dapat dibuat. Silakan coba lagi setelah beberapa saat.</string>
-    <string name="settings_lock_down_mode_desc">Opsi tertentu dinonaktifkan saat VPN dalam mode kuncian. <u>Lihat setelan VPN</u>.</string>
+    <string name="settings_lock_down_mode_desc">Opsi tertentu dinonaktifkan saat VPN dalam mode kuncian. Lihat setelan VPN.</string>
     <string name="orbot_bs_status_4">Menyetel Tor-sebagai-Proksi (Orbot) sekali klik.</string>
-    <string name="settings_network_all_networks_desc">Bila diaktifkan, Keepout menggunakan semua jaringan yang tersedia untuk terhubung ke Internet. Jika tidak, aplikasi RethinkDNS akan menggunakan jaringan mana pun yang dianggap <i>aktif</i> oleh Android.</string>
+    <string name="settings_network_all_networks_desc">Bila diaktifkan, Keepout menggunakan semua jaringan yang tersedia untuk terhubung ke Internet. Jika tidak, aplikasi RethinkDNS akan menggunakan jaringan mana pun yang dianggap aktif oleh Android.</string>
     <string name="hsf_vpn_dialog_message">Keepout memerlukan izin untuk menyiapkan VPN lokal guna mengenkripsi permintaan DNS perangkat, mengimplementasikan monitor jaringan, dan menegakkan aturan firewall.
 \n
 \nKeepout tidak mengumpulkan informasi apa pun atau memata-matai Anda dengan cara apa pun.</string>
     <string name="about_mail_bugreport_subject">[Rethink]: Laporan bug</string>
     <string name="fapps_info_dialog_positive_btn">Oke</string>
-    <string name="orbot_explanation">Orbot adalah aplikasi proksi gratis yang memungkinkan sambungan internet pada aplikasi menjadi tempat yang<u>lebih aman</u>. \nOrbot menggunakan<u>Tor</u> untuk mengenkripsi lalu lintas internet anda, juga membantu <u>melewati penyensoran</u>dan sebagai bentuk pertahanan diri dari berbagai macam<u>pengawasan jaringan</u> yang bisa membahayakan kebebasan pribadi dan privasi. \n<u>Proksi TCP</u>: Keepout hanya meneruskan koneksi TCP untuk aplikasi <i>yang ada</i> menuju Orbot. \n<u>Proksi HTTP</u>: Keepout<i>membangun</i> terowongan HTTP CONNECT ke Orbot dan hanya meneruskan sambungan TCP untuk aplikasi <i>yang ada</i>.</string>
+    <string name="orbot_explanation">Orbot adalah aplikasi proksi gratis yang memungkinkan sambungan internet pada aplikasi menjadi tempat yanglebih aman. \nOrbot menggunakanTor untuk mengenkripsi lalu lintas internet anda, juga membantu melewati penyensorandan sebagai bentuk pertahanan diri dari berbagai macampengawasan jaringan yang bisa membahayakan kebebasan pribadi dan privasi. \nProksi TCP: Keepout hanya meneruskan koneksi TCP untuk aplikasi yang ada menuju Orbot. \nProksi HTTP: Keepoutmembangun terowongan HTTP CONNECT ke Orbot dan hanya meneruskan sambungan TCP untuk aplikasi yang ada.</string>
     <string name="settings_autostart_bootup_heading">Mulai otomatis saat device dinyalakan (eksperimental)</string>
     <string name="settings_app_list_default_app">Tidak ada</string>
     <string name="settings_autostart_bootup_desc">Pada saat perangkat dihidupkan, Keepout akan memulai sendiri jika aplikasi ini sebelumnya tidak dimatikan.</string>
@@ -457,7 +454,7 @@
     <string name="ada_noapp_dialog_positive">Oke</string>
     <string name="settings_allow_bypass_desc">Izinkan aplikasi yang meminta untuk mengakses semua jaringan yang tersedia. Aplikasi ini dapat mem-bypass terowongan VPN Keepout sesuai permintaan. Beberapa aplikasi konferensi audio/video seperti Zoom dan Meet mungkin memerlukan ini agar berfungsi dengan baik.</string>
     <string name="settings_https_desc">Meneruskan koneksi ke titik akhir KONEKSI HTTP(S) .</string>
-    <string name="settings_custom_downloader_desc">Jika dinonaktifkan, <i>Pengelola Unduhan</i> bawaan Android digunakan</string>
+    <string name="settings_custom_downloader_desc">Jika dinonaktifkan, Pengelola Unduhan bawaan Android digunakan</string>
     <string name="about_bug_report">Laporkan Bug</string>
     <string name="dc_entries">%1$s entri »</string>
     <string name="intent_launch_error">Tidak dapat memulai %1$s</string>
@@ -472,35 +469,35 @@
     <string name="cd_custom_dns_proxy_default_app">Tidak ada</string>
     <string name="about_bug_no_log_dialog_title">Laporan bug</string>
     <string name="accessibility_notification_content">layanan aksesibilitas Keepout telah berhenti atau macet. Tidak lagi memblokir aplikasi latar belakang. Ketuk untuk mengaktifkan kembali.</string>
-    <string name="firewall_rule_block_dns_bypass_desc"><![CDATA[Koneksi ini diblokir karena <i>source app</i> melewati DNS yang dipilih pengguna.<br/><br/> Untuk mengubah perilaku ini, buka tab Universal.]]></string>
+    <string name="firewall_rule_block_dns_bypass_desc"><![CDATA[Koneksi ini diblokir karena source app melewati DNS yang dipilih pengguna.]]></string>
     <string name="hs_download_positive_default">oke</string>
-    <string name="fapps_unmetered_block_dialog_message">Blokir koneksi pada jaringan yang tidak terukur (WiFi) untuk <i>aplikasi</i> yang terdaftar\?</string>
-    <string name="fapps_unmetered_unblock_dialog_message">Izinkan koneksi pada jaringan tidak terukur (WiFi) untuk <i>aplikasi</i> yang terdaftar\?</string>
-    <string name="fapps_metered_block_dialog_message">Blokir koneksi jaringan terukur (data seluler) pada aplikasi <i>yang dipilih</i>\?</string>
-    <string name="fapps_metered_unblock_dialog_message">Izinkan koneksi jaringan terukur (data seluler) pada aplikasi <i>yang dipilih</i>\?</string>
+    <string name="fapps_unmetered_block_dialog_message">Blokir koneksi pada jaringan yang tidak terukur (WiFi) untuk aplikasi yang terdaftar\?</string>
+    <string name="fapps_unmetered_unblock_dialog_message">Izinkan koneksi pada jaringan tidak terukur (WiFi) untuk aplikasi yang terdaftar\?</string>
+    <string name="fapps_metered_block_dialog_message">Blokir koneksi jaringan terukur (data seluler) pada aplikasi yang dipilih\?</string>
+    <string name="fapps_metered_unblock_dialog_message">Izinkan koneksi jaringan terukur (data seluler) pada aplikasi yang dipilih\?</string>
     <string name="firewall_rule_block_univ_ip">IP / Port (Universal)</string>
-    <string name="firewall_rule_isolate_desc"><![CDATA[Aturan firewall yang ditetapkan pengguna telah memblokir <i>aplikasi</i>ini untuk terhubung selain <i>IP yang dilewati</i>.<br/><br/> Untuk mengubahnya, buka tab <i>Semua Aplikasi</i>.]]></string>
-    <string name="firewall_rule_block_ip_desc"><![CDATA[Aturan firewall yang ditetapkan pengguna telah memblokir <i>IP tujuan</i>.<br/><br/> Untuk mengubahnya, buka layar <i>Firewall Khusus Aplikasi</i>.]]></string>
-    <string name="firewall_rule_trusted_ip_desc"><![CDATA[Koneksi ini diizinkan karena alamat<i>IP tujuan</i> telah ditetapkan sebagai alamat IP tepercaya (Trusted IP).<br/><br/> Untuk mengubah pengaturan, buka layar <i>App-specific Firewall</i>.]]></string>
-    <string name="firewall_rule_bypass_universal_ip_desc"><![CDATA[Koneksi ini diizinkan karena alamat <i>IP tujuan</i> diatur untuk melewati semua aturan firewall universal.<br/><br/> Untuk mengubahnya, buka <i>Aturan IP</i> di tab <i>Universal</i>.]]></string>
-    <string name="firewall_rule_device_lock_desc"><![CDATA[Koneksi ini diblokir oleh firewall karena <i>perangkat terkunci</i> pada saat itu.<br/><br/> Untuk mengubah perilaku ini, buka tab <i>Universal</i>.]]></string>
+    <string name="firewall_rule_isolate_desc"><![CDATA[Aturan firewall yang ditetapkan pengguna telah memblokir aplikasiini untuk terhubung selain IP yang dilewati.]]></string>
+    <string name="firewall_rule_block_ip_desc"><![CDATA[Aturan firewall yang ditetapkan pengguna telah memblokir IP tujuan.]]></string>
+    <string name="firewall_rule_trusted_ip_desc"><![CDATA[Koneksi ini diizinkan karena alamatIP tujuan telah ditetapkan sebagai alamat IP tepercaya (Trusted IP).]]></string>
+    <string name="firewall_rule_bypass_universal_ip_desc"><![CDATA[Koneksi ini diizinkan karena alamat IP tujuan diatur untuk melewati semua aturan firewall universal.]]></string>
+    <string name="firewall_rule_device_lock_desc"><![CDATA[Koneksi ini diblokir oleh firewall karena perangkat terkunci pada saat itu.]]></string>
     <string name="ada_app_bypass_univ">Pintaskan (Bypass) secara Universal</string>
     <string name="ada_delete_logs_dialog_desc" description="Appears as dialog description to clear the logs in app specific screen">Hapus semua log yang terkait dengan aplikasi ini.</string>
     <string name="lbl_advanced">lanjutan</string>
-    <string name="rt_filter_desc_subgroups"><![CDATA[Menampilkan daftar blokir <u>%1$s</u> dalam grup: %2$s dan subgrup: %3$s]]></string>
+    <string name="rt_filter_desc_subgroups"><![CDATA[Menampilkan daftar blokir %1$s dalam grup: %2$s dan subgrup: %3$s]]></string>
     <string name="settings_dns_proxy_dialog_app_desc">Aplikasi yang dipilih akan dikecualikan dari VPN untuk memungkinkannya membuat koneksi proksi atas nama Anda.</string>
-    <string name="firewall_rule_unknown_desc"><![CDATA[Koneksi ini diblokir oleh firewall karena <i>source app</i> tidak dapat ditentukan.<br/><br/> Untuk mengubah perilaku ini, buka tab <i>Universal</i>.]]></string>
-    <string name="firewall_rule_block_http_desc"><![CDATA[Koneksi ini diblokir karena kemungkinan menggunakan <i>HTTP yang tidak aman</i>.<br/><br/> Untuk mengubahnya, buka tab <i>Universal</i>.]]></string>
+    <string name="firewall_rule_unknown_desc"><![CDATA[Koneksi ini diblokir oleh firewall karena source app tidak dapat ditentukan.]]></string>
+    <string name="firewall_rule_block_http_desc"><![CDATA[Koneksi ini diblokir karena kemungkinan menggunakan HTTP yang tidak aman.]]></string>
     <string name="firewall_rule_block_dns_bypass">DNS Dipintaskan/Di-Bypass</string>
     <string name="firewall_rule_exempt_app_bypass_univ">Aplikasi yang Dipintaskan/Di-Bypass</string>
-    <string name="firewall_rule_new_app_desc"><![CDATA[Aplikasi ini terhubung untuk <i>pertama</i> kalinya.<br/><br/> Untuk mengubah pengaturan, buka tab <i>Universal</i>.]]></string>
+    <string name="firewall_rule_new_app_desc"><![CDATA[Aplikasi ini terhubung untuk pertama kalinya.]]></string>
     <string name="about_bug_no_log_dialog_message">Tidak bisa mendapatkan log kerusakan. Apakah Anda ingin melaporkan bug Anda secara manual\?</string>
     <string name="firewall_rule_foreground">Aplikasi yang tidak digunakan</string>
-    <string name="firewall_rule_exempt_app_bypass_univ_desc"><![CDATA[Koneksi ini diizinkan karena <i>aplikasi sumber</i> telah diatur untuk aturan firewall <i>bypass universal</i>.<br/><br/> Untuk mengubah pengaturan, buka layar <i>Firewall Khusus Aplikasi</i>.]]></string>
-    <string name="firewall_rule_global_lockdown_desc"><![CDATA[Koneksi ini diblokir karena penguncian universal telah diaktifkan.<br/><br/> Untuk mengubahnya, buka tab <i>Universal</i>.]]></string>
-    <string name="firewall_rule_foreground_desc"><![CDATA[Koneksi ini diblokir oleh firewall karena aplikasi sumber <i>tidak berada di latar depan</i>.<br/><br/> Untuk mengubah perilaku ini, buka tab <i>Universal</i>.]]></string>
-    <string name="firewall_rule_exempt_dns_proxied_desc"><![CDATA[Koneksi DNS ini telah diproksi dan diteruskan ke titik akhir DNS yang dipilih pengguna.<br/><br/> Untuk mengubah atau menonaktifkan <i>Mencegah kebocoran DNS</i> dari layar <i>Konfigurasi</i> DNS.]]></string>
-    <string name="firewall_rule_exempt_orbot_setup_desc"><![CDATA[Koneksi ini diizinkan karena pengaturan <i>one-click Tor-as-a-proxy</i> melalui Orbot sedang berlangsung.]]></string>
+    <string name="firewall_rule_exempt_app_bypass_univ_desc"><![CDATA[Koneksi ini diizinkan karena aplikasi sumber telah diatur untuk aturan firewall bypass universal.]]></string>
+    <string name="firewall_rule_global_lockdown_desc"><![CDATA[Koneksi ini diblokir karena penguncian universal telah diaktifkan.]]></string>
+    <string name="firewall_rule_foreground_desc"><![CDATA[Koneksi ini diblokir oleh firewall karena aplikasi sumber tidak berada di latar depan.]]></string>
+    <string name="firewall_rule_exempt_dns_proxied_desc"><![CDATA[Koneksi DNS ini telah diproksi dan diteruskan ke titik akhir DNS yang dipilih pengguna.]]></string>
+    <string name="firewall_rule_exempt_orbot_setup_desc"><![CDATA[Koneksi ini diizinkan karena pengaturan one-click Tor-as-a-proxy melalui Orbot sedang berlangsung.]]></string>
     <string name="title_statistics">Statistik</string>
     <string name="hs_biometeric_error">Kesalahan otentikasi biometrik</string>
     <string name="hs_biometeric_title">Buka Keepout</string>
@@ -513,7 +510,7 @@
     <string name="ada_app_status_isolate">Diisolasi: hanya IP dan domain tepercaya yang diizinkan</string>
     <string name="hs_biometeric_desc">Gunakan otentikasi biometrik untuk membuka kunci Keepout</string>
     <string name="fapps_info_metered_msg">Izinkan / Blokir pada jaringan terukur (Data Seluler).</string>
-    <string name="fapps_bypass_block_dialog_message">Lewati (Bypass) aturan firewall universal untuk aplikasi yang <i>terdaftar</i> \?</string>
+    <string name="fapps_bypass_block_dialog_message">Lewati (Bypass) aturan firewall universal untuk aplikasi yang terdaftar \?</string>
     <string name="fapps_info_exclude_msg">Kecualikan dari keduanya, DNS + Firewall.</string>
     <string name="ssv_app_blocked_heading" description="This label will appear on the stats screen as a header for blocked applications." translatable="true">Aplikasi yang paling banyak diblokir</string>
     <string name="ssv_app_network_activity_heading" description="This label will appear on the stats screen as a header for allowed apps." translatable="true">Aplikasi yang paling banyak diizinkan</string>
@@ -521,9 +518,9 @@
     <string name="ssv_most_blocked_ips_heading" description="This label will appear on the stats screen as a header for most blocked ips" translatable="true">IP yang paling banyak diblokir</string>
     <string name="fapps_info_isolate_msg">Blokir semua kecuali IP tepercaya.</string>
     <string name="fapps_unblock_dialog_title">Izinkan aplikasi</string>
-    <string name="fapps_unblock_dialog_message">Izinkan koneksi untuk aplikasi yang <i>terdaftar</i>\?</string>
-    <string name="fapps_exclude_block_dialog_message">Kecualikan <i>aplikasi</i> yang terdaftar dari DNS dan Firewall\?</string>
-    <string name="fapps_isolate_block_dialog_message">Mengisolasi <i>aplikasi</i> yang terdaftar\?</string>
+    <string name="fapps_unblock_dialog_message">Izinkan koneksi untuk aplikasi yang terdaftar\?</string>
+    <string name="fapps_exclude_block_dialog_message">Kecualikan aplikasi yang terdaftar dari DNS dan Firewall\?</string>
+    <string name="fapps_isolate_block_dialog_message">Mengisolasi aplikasi yang terdaftar\?</string>
     <string name="ssv_toast_start_rethink" description="This label will appear on the stats screen as toast to start Rethink app">Mulai Keepout untuk melanjutkan</string>
     <string name="ssv_see_more">Tampilkan Semua</string>
     <string name="fapps_exclude_block_dialog_title">Aplikasi yang dikecualikan</string>
@@ -538,9 +535,9 @@
     <string name="firewall_rule_block_domain" translatable="true">Domain (Aplikasi)</string>
     <string name="lbl_disabled" translatable="true">Dimatikan</string>
     <string name="lbl_domain" translatable="true">Laman</string>
-    <string name="firewall_rule_block_domain_desc" translatable="true"><![CDATA[Aturan firewall yang ditetapkan pengguna telah memblokir <i>domain</i>.<br/><br/> Untuk mengubahnya, buka layar <i>App-specific Firewall</i>.]]></string>
+    <string name="firewall_rule_block_domain_desc" translatable="true"><![CDATA[Aturan firewall yang ditetapkan pengguna telah memblokir domain.]]></string>
     <string name="firewall_rule_trusted_domain" translatable="true">Domain Tepercaya (Aplikasi)</string>
-    <string name="firewall_rule_trusted_domain_desc" translatable="true"><![CDATA[Koneksi ini diizinkan karena <i>domain</i> telah ditetapkan sebagai domain tepercaya.<br/><br/> Untuk mengubah pengaturan, buka layar <i>App-specific Firewall</i>.]]></string>
+    <string name="firewall_rule_trusted_domain_desc" translatable="true"><![CDATA[Koneksi ini diizinkan karena domain telah ditetapkan sebagai domain tepercaya.]]></string>
     <string name="cd_no_rules_text" translatable="true">Tidak ada aturan domain.</string>
     <string name="lbl_action_required" translatable="true">Diperlukan Tindakan</string>
     <string name="lbl_ip_rules" translatable="true">Aturan IP</string>
@@ -553,7 +550,7 @@
     <string name="settings_general_customize" translatable="true">sesuaikan</string>
     <string name="settings_default_dns_heading" translatable="true">Pilih DNS cadangan</string>
     <string name="settings_default_dns_desc" translatable="true">Dalam kasus yang jarang terjadi ketika DNS pilihan pengguna tidak dapat dipastikan, DNS fallback akan digunakan.</string>
-    <string name="bsct_block_domain" translatable="true">Blokir, percayakan <u>domain</u> untuk <u>aplikasi ini</u></string>
+    <string name="bsct_block_domain" translatable="true">Blokir, percayakan domain untuk aplikasi ini</string>
     <string name="cd_dns_alg_heading" translatable="true">Pemfilteran DNS lanjutan (eksperimental)</string>
     <string name="cd_dns_alg_desc" translatable="true">Tetapkan IP unik di setiap permintaan DNS.</string>
     <string name="fapps_bypass_dns_firewall_dialog_title" translatable="true">Pintaskan (Bypass) Aplikasi</string>
@@ -567,14 +564,14 @@
     <string name="firewall_rule_bypass_dns_firewall" translatable="true">Aplikasi yang Dipintaskan/Di-Bypass</string>
     <string name="firewall_rule_dns_blocked" translatable="true">DNS Diblokir</string>
     <string name="firewall_rule_domain_blocked_univ" translatable="true">Domain (Universal)</string>
-    <string name="firewall_rule_dns_blocked_desc" translatable="true"><![CDATA[Koneksi ini diblokir karena <i>domain</i> diblokir oleh DNS yang dipilih pengguna.<br/><br/> Untuk mengubah perilaku ini, buka tab <i>Konfigurasi DNS</i>.]]></string>
+    <string name="firewall_rule_dns_blocked_desc" translatable="true"><![CDATA[Koneksi ini diblokir karena domain diblokir oleh DNS yang dipilih pengguna.]]></string>
     <string name="lbl_network" translatable="true">jaringan</string>
     <string name="settings_allow_lan_heading" translatable="true">Jangan merutekan IP Pribadi (eksperimental)</string>
     <string name="settings_allow_lan_desc" translatable="true">Kecualikan rute LAN, loopback, multicast, dan link-lokal dari terowongan VPN Keepout.</string>
-    <string name="fapps_bypass_dns_firewall_dialog_message" translatable="true">Abaikan DNS &amp; aturan firewall untuk aplikasi <i>tercantum</i>\?</string>
-    <string name="firewall_rule_bypass_dns_firewall_desc" translatable="true"><![CDATA[Koneksi ini diizinkan karena <i>source app</i> telah diatur untuk <i>melewati DNS dan firewall</i>.<br/><br/> Untuk mengubah pengaturan, buka layar <i>App-specific Firewall</i>.]]></string>
-    <string name="firewall_rule_domain_trusted_univ_desc" translatable="true"><![CDATA[Koneksi ini diizinkan karena <i>domain</i> ditetapkan sebagai tepercaya dalam aturan domain Universal.<br/><br/> Untuk mengubah perilaku ini, buka tab <i>Konfigurasi DNS</i>.]]></string>
-    <string name="firewall_rule_domain_blocked_univ_desc" translatable="true"><![CDATA[Koneksi ini diblokir karena <i>domain</i> ditetapkan sebagai diblokir dalam aturan domain Universal.<br/><br/> Untuk mengubah perilaku ini, buka tab <i>Konfigurasi DNS</i>.]]></string>
+    <string name="fapps_bypass_dns_firewall_dialog_message" translatable="true">Abaikan DNS &amp; aturan firewall untuk aplikasi tercantum\?</string>
+    <string name="firewall_rule_bypass_dns_firewall_desc" translatable="true"><![CDATA[Koneksi ini diizinkan karena source app telah diatur untuk melewati DNS dan firewall.]]></string>
+    <string name="firewall_rule_domain_trusted_univ_desc" translatable="true"><![CDATA[Koneksi ini diizinkan karena domain ditetapkan sebagai tepercaya dalam aturan domain Universal.]]></string>
+    <string name="firewall_rule_domain_blocked_univ_desc" translatable="true"><![CDATA[Koneksi ini diblokir karena domain ditetapkan sebagai diblokir dalam aturan domain Universal.]]></string>
     <string name="lbl_addresses" translatable="true">Alamat</string>
     <string name="lbl_dns_servers" translatable="true">Server DNS</string>
     <string name="lbl_delete" translatable="true">Hapus</string>
@@ -618,7 +615,7 @@
     <string name="quad9_dns_desc" translatable="true">Quad9 merutekan permintaan DNS Anda melalui jaringan server global yang aman.</string>
     <string name="univ_firewall_heading" translatable="true">Peraturan firewall universal</string>
     <string name="cloudflare_security_dns_desc" translatable="true">Memblokir konten berbahaya. Menggunakan titik akhir DNS Cloudflare 1.1.1.2.</string>
-    <string name="firewall_rule_proxied_desc" translatable="true"><![CDATA[Koneksi ini diteruskan ke Proxy pilihan pengguna.<br/><br/> Untuk mengubah, buka <i>Proxy</i> dari layar <i>Konfigurasi</i>.]]></string>
+    <string name="firewall_rule_proxied_desc" translatable="true"><![CDATA[Koneksi ini diteruskan ke Proxy pilihan pengguna.]]></string>
     <string name="bad_config_reason_invalid_number" translatable="true">Nomor tidak valid</string>
     <string name="parse_error_integer" translatable="true">nomor</string>
     <string name="fapps_info_bypass_dns_firewall_msg" translatable="true">Lewati aturan DNS &amp; Firewall.</string>
@@ -704,9 +701,7 @@
     <string name="settings_connectivity_checks" translatable="true">Melakukan pemeriksaan konektivitas</string>
     <string name="settings_connectivity_checks_desc" translatable="true">Pemeriksaan sambungan dikirim untuk memastikan jangkauan.</string>
     <string name="dc_proxy_dns_heading" translatable="true">Jangan pernah melakukan proksi DNS</string>
-    <string name="lbl_unselected" translatable="true">Tidak dipilih</string>
     <string name="settings_exclude_proxy_apps_heading" translatable="true">Aplikasi penerus putar-balik proksi</string>
-    <string name="settings_exclude_proxy_apps_desc" translatable="true">Ketika dimatikan, kecualikan aplikasi penerus proksi (SOCKS5, HTTP, DNS) dari terowongan VPN Keepout.</string>
     <string name="exclude_apps_from_proxy">Lewati aplikasi dari semua proksi</string>
     <string name="exclude_apps_from_proxy_failure_toast">Aplikasi ini melewati proksi</string>
     <string name="memory_notification_text">Keepout mengalami memori rendah. Tindakan sistem mungkin terbatas.</string>
@@ -717,7 +712,7 @@
     <string name="dns_desc" translatable="true">Pilih dari 190+ daftar untuk memblokir iklan, pelacak, dan malware.</string>
     <string name="status_no_network" translatable="true">Tidak ada jaringan</string>
     <string name="dc_use_sys_dns_undelegated_heading" translatable="true">Gunakan DNS Sistem untuk domain yang tidak didelegasikan</string>
-    <string name="dc_use_sys_dns_undelegated_desc" translatable="true">Gunakan DNS Sistem untuk domain yang tidak didelegasikan seperti <i>.lan</i>, <i>.internal</i>, dll.</string>
+    <string name="dc_use_sys_dns_undelegated_desc" translatable="true">Gunakan DNS Sistem untuk domain yang tidak didelegasikan seperti .lan, .internal, dll.</string>
     <string name="dc_filtering_heading" translatable="true">Penyaringan</string>
     <string name="cd_split_dns_heading" translatable="true">DNS Terpisah (pengujian)</string>
     <string name="cd_split_dns_desc" translatable="true">Meneruskan kueri DNS dari aplikasi yang diproksi ke server DNS proxy.</string>
@@ -727,10 +722,10 @@
     <string name="firewall_rule_bypass_proxy" translatable="true">Proksi Bypass</string>
     <string name="firewall_rule_paused_app" translatable="true">Aplikasi Dijeda</string>
     <string name="firewall_rule_lockdown_wg" translatable="true">Proksi Penguncian</string>
-    <string name="firewall_rule_private_dns_desc" translatable="true"><![CDATA[Sambungan ini mencari <i>DNS Pribadi</i> server tidak tersedia.]]></string>
-    <string name="firewall_rule_bypass_proxy_desc" translatable="true"><![CDATA[Sambungan ini diizinkan karena <i>aplikasi sumber</i> diatur ke aturan <i>proksi bypass</i>.<br/><br/> Untuk mengubahnya pergi ke layar <i>Aplikasi Firewall Spesifik</i>.]]></string>
-    <string name="firewall_rule_paused_app_desc" translatable="true"><![CDATA[Sambungan ini diizinkan karena <i>aplikasi</i> sedang dalam kondisi <i>dijeda</i>.]]></string>
-    <string name="firewall_rule_lockdown_wg_desc" translatable="true"><![CDATA[Sambungan ini diblokir karena WireGuard dalam mode <i>terkunci</i>.<br/><br/> Untuk mengubahnya pergi ke layar <i>WireGuard</i>.]]></string>
+    <string name="firewall_rule_private_dns_desc" translatable="true"><![CDATA[Sambungan ini mencari DNS Pribadi server tidak tersedia.]]></string>
+    <string name="firewall_rule_bypass_proxy_desc" translatable="true"><![CDATA[Sambungan ini diizinkan karena aplikasi sumber diatur ke aturan proksi bypass.]]></string>
+    <string name="firewall_rule_paused_app_desc" translatable="true"><![CDATA[Sambungan ini diizinkan karena aplikasi sedang dalam kondisi dijeda.]]></string>
+    <string name="firewall_rule_lockdown_wg_desc" translatable="true"><![CDATA[Sambungan ini diblokir karena WireGuard dalam mode terkunci.]]></string>
     <string name="wireguard_disable_failure_relay" translatable="true">\"Relay WireGuard\" tidak dapat dimatikan</string>
     <string name="config_invalid_desc" translatable="true">Konfigurasi WireGuard tidak valid</string>
     <string name="console_log_title" translatable="true">Catatan Aplikasi</string>
@@ -746,14 +741,14 @@
     <string name="exclude_no_package_err_toast" translatable="true">Mengecualikan aplikasi memerlukan nama paket.</string>
     <string name="blocklist_not_available_toast" translatable="true">Untuk memperbarui daftar blokir, unduh versi aplikasi terbaru.</string>
     <string name="about_terms_of_service" translatable="true">Ketentuan Layanan</string>
-    <string name="bypasses_network_restrictions" translatable="true">Pemeriksaan jangkauan melewati semua batasan jaringan. Dalam mode <i>Otomatis</i>, Keepout secara acak menggunakan IP dan nama host yang terhubung sebelumnya.</string>
+    <string name="bypasses_network_restrictions" translatable="true">Pemeriksaan jangkauan melewati semua batasan jaringan. Dalam mode Otomatis, Keepout secara acak menggunakan IP dan nama host yang terhubung sebelumnya.</string>
     <string name="most_contacted_asn" translatable="true">Penyedia yang paling banyak dihubungi</string>
-    <string name="download_ip_info_desc" translatable="true">Mengambil detail penyedia layanan untuk situs web dari <i>rethinkdns.com</i>, didukung oleh <i>%1$s</i></string>
+    <string name="download_ip_info_desc" translatable="true">Mengambil detail penyedia layanan untuk situs web dari rethinkdns.com, didukung oleh %1$s</string>
     <string name="close_conns_dialog_desc" translatable="true">Tutup semua koneksi untuk %1$s?</string>
     <string name="local_blocklist_delete_desc" translatable="true">Hapus daftar blokir pada perangkat?</string>
-    <string name="fail_open_network_desc" translatable="true">Ketika diaktifkan, Keepout akan menghentikan semua data saat tidak ada konektivitas yang tersedia, seperti pada <i>Mode Pesawat</i>.</string>
+    <string name="fail_open_network_desc" translatable="true">Ketika diaktifkan, Keepout akan menghentikan semua data saat tidak ada konektivitas yang tersedia, seperti pada Mode Pesawat.</string>
     <string name="smart_dns" translatable="true">DNS Pintar</string>
-    <string name="smart_dns_desc" translatable="true"><i>Smart DNS</i> secara acak menggunakan salah satu di antara resolver DNS berikut:</string>
+    <string name="smart_dns_desc" translatable="true">Smart DNS secara acak menggunakan salah satu di antara resolver DNS berikut:</string>
     <string name="vpn_policy_auto_desc" translatable="true">Bereaksi terhadap perubahan jaringan dan konektivitas yang penting.</string>
     <string name="vpn_policy_sensitive" translatable="true">Sensitif</string>
     <string name="vpn_policy_sensitive_desc" translatable="true">Bereaksi terhadap semua perubahan jaringan dan konektivitas.</string>
@@ -790,14 +785,14 @@
     <string name="lbl_connect" translatable="true">Hubungkan</string>
     <string name="lbl_criteria" translatable="true">Kriteria</string>
     <string name="firewall_rule_proxy_error" translatable="true">Kesalahan Proxy</string>
-    <string name="firewall_rule_proxy_error_desc" translatable="true"><![CDATA[Koneksi ini diblokir karena proxy yang dipilih untuk aplikasi tidak dipilih.<br/><br/> Untuk mengubahnya, pergi ke <i>Proxy</i> dari layar <i>Konfigurasi</i>.]]></string>
+    <string name="firewall_rule_proxy_error_desc" translatable="true"><![CDATA[Koneksi ini diblokir karena proxy yang dipilih untuk aplikasi tidak dipilih.]]></string>
     <string name="vpn_policy_fixed" translatable="true">Konservatif</string>
     <string name="vpn_policy_fixed_desc" translatable="true">Menanggapi perubahan jaringan dengan minimal.</string>
     <string name="wg_setting_ssid_title" translatable="true">Hanya Wi-Fi</string>
     <string name="wg_setting_ssid_desc" translatable="true">Aktifkan VPN WireGuard ini hanya saat terhubung ke Wi-Fi atau identifikasi Wi-Fi yang ditentukan (%1$s).</string>
     <string name="ssid_permission_explanation" translatable="true">Keepout memerlukan izin lokasi untuk mengakses identifikasi Wi-Fi (%1$s).</string>
     <string name="location_enable_explanation" translatable="true">Untuk mengakses identifikasi Wi-Fi (%1$s), aktifkan Layanan Lokasi.</string>
-    <string name="wg_ssid_dialog_description" translatable="true">%1$s VPN WireGuard ini saat <i>aktif</i> Identifikasi Wi-Fi (%2$s) %3$s.</string>
+    <string name="wg_ssid_dialog_description" translatable="true">%1$s VPN WireGuard ini saat aktif Identifikasi Wi-Fi (%2$s) %3$s.</string>
     <string name="wg_ssid_type_exact" translatable="true">Tepat</string>
     <string name="wg_ssid_type_wildcard" translatable="true">Sebagian</string>
     <string name="wg_ssid_invalid_error" translatable="true">Identifier Wi-Fi (%1$s) harus terdiri dari 32 karakter atau kurang.</string>
@@ -807,11 +802,11 @@
     <string name="tombstone_app_desc" translatable="true">Saat diaktifkan, simpan aturan aplikasi selama 7 hari.</string>
     <string name="settings_allow_incoming_wg_packets" translatable="true">WireGuard P2P</string>
     <string name="settings_allow_incoming_wg_packets_desc" translatable="true">Saat diaktifkan, izinkan koneksi masuk yang diinisialisasi oleh mitra WireGuard.</string>
-    <string name="lockdown_download_message" translatable="true"><i>&gt;Manajer Unduhan</i> bawaan Android mungkin gagal karena VPN berada dalam mode <i>Lockdown</i>. Apakah Anda ingin mengaktifkan pengunduh Keepout sebagai gantinya?</string>
+    <string name="lockdown_download_message" translatable="true">&gt;Manajer Unduhan bawaan Android mungkin gagal karena VPN berada dalam mode Lockdown. Apakah Anda ingin mengaktifkan pengunduh Keepout sebagai gantinya?</string>
     <string name="lockdown_download_enable_inapp" translatable="true">Aktifkan Pengunduh</string>
     <string name="settings_jumbo_packets" translatable="true">Peningkat bandwidth</string>
-    <string name="settings_jumbo_packets_desc" translatable="true">Menggunakan <i>paket jumbo</i> dalam terowongan VPN Keepout.</string>
-    <string name="stability_program_toast" translatable="true">Daftar ke <i>program stabilitas</i> untuk <i>fitur eksperimental</i>.</string>
+    <string name="settings_jumbo_packets_desc" translatable="true">Menggunakan paket jumbo dalam terowongan VPN Keepout.</string>
+    <string name="stability_program_toast" translatable="true">Daftar ke program stabilitas untuk fitur eksperimental.</string>
     <string name="home_last_24_hours">24 jam terakhir</string>
     <plurals name="home_stopped_at_dns_count">
         <item quantity="other">%d kueri dihentikan di DNS</item>

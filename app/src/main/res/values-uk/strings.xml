@@ -14,7 +14,7 @@
     <string name="always_on_dialog_positive">Зупинити</string>
     <string name="always_on_dialog_neutral">Налаштуваннях</string>
     <string name="app_name" translatable="false">Keepout</string>
-    <string name="always_on_dialog_lockdown_stop_message">Keepout запускає VPN у режимі <i>Блокування</i>. Його зупинка призведе до втрати підключення до Інтернету для цього профілю користувача. Ви все одно хочете продовжити\?</string>
+    <string name="always_on_dialog_lockdown_stop_message">Keepout запускає VPN у режимі Блокування. Його зупинка призведе до втрати підключення до Інтернету для цього профілю користувача. Ви все одно хочете продовжити\?</string>
     <string name="private_dns_dialog_heading">Вимкнути Приватний DNS</string>
     <string name="accessibility_service_description">Keepout використовує службу спеціальних можливостей для виявлення та блокування фонових застосунків. Keepout не збирає та не продає жодної інформації.</string>
     <string name="slide_2_desc">Keepout - це найпростіший спосіб моніторингу мережевої активності, обходу інтернет-цензури та брандмауерів на вашому Android пристрої.</string>
@@ -69,9 +69,9 @@
     <string name="fapps_firewall_filter_bypass_universal" translatable="true">Обійдені</string>
     <string name="fapps_firewall_filter_excluded" translatable="true">Виключені</string>
     <string name="fapps_unmetered_block_dialog_title" translatable="true">Блокувати на необмежених</string>
-    <string name="fapps_metered_block_dialog_message" translatable="true">Блокувати з\'єднання в мережі з обмеженням(мобільній мережі) для <i>перелічених</i> застосунків\?</string>
+    <string name="fapps_metered_block_dialog_message" translatable="true">Блокувати з\'єднання в мережі з обмеженням(мобільній мережі) для перелічених застосунків\?</string>
     <string name="fapps_metered_block_dialog_title" translatable="true">Блокувати на обмежених</string>
-    <string name="fapps_metered_unblock_dialog_message" translatable="true">Дозволити з’єднання в обмеженій (мобільній) мережі для <i>перелічених</i> застосунків\?</string>
+    <string name="fapps_metered_unblock_dialog_message" translatable="true">Дозволити з’єднання в обмеженій (мобільній) мережі для перелічених застосунків\?</string>
     <string name="network_log_app_name_unknown" translatable="true">Невідомо</string>
     <string name="network_log_app_name_unnamed" translatable="true">Без назви (%1$s)</string>
     <string name="accessibility_notification_content" translatable="true">Служба доступності RethinkDNS зупинилася або вийшла з ладу. Більше не блокує фонові застосунки. Натисніть, щоб увімкнути знову.</string>
@@ -79,12 +79,12 @@
     <string name="firewall_rule_block_app" translatable="true">Застосунок заблоковано</string>
     <string name="firewall_rule_foreground" translatable="true">Застосунок не використовується</string>
     <string name="firewall_rule_exempt_app_bypass_univ" translatable="true">Обхід фаєрвол</string>
-    <string name="firewall_rule_new_app_desc" translatable="true"><![CDATA[This app made connection for the <i>first</i> time.<br/><br/> Щоб змінити, перейдіть на вкладку <i>Універсальний</i>.]]></string>
-    <string name="firewall_rule_block_app_unmetered_desc" translatable="true"><![CDATA[A user-set firewall rule blocked this <i>додаток</i> під час спроби підключення до мережі <i>без ліміту</i>.<br/><br/> Щоб змінити, перейдіть на вкладку <i>Усі програми</i>.]]></string>
-    <string name="firewall_rule_block_app_mobile_desc" translatable="true"><![CDATA[A user-set firewall rule blocked this <i>додаток</i> під час спроби підключення до мережі <i>Metered</i>.<br/><br/> Щоб змінити, перейдіть на вкладку <i>Усі додатки</i>.]]></string>
-    <string name="firewall_rule_block_app_univ_mobile_desc" translatable="true"><![CDATA[A user-set universal firewall rule blocked this <i>додаток</i> під час спроби підключення до <i>лімітної</i> (мобільної) мережі.<br/><br/> Щоб змінити, перейдіть на вкладку <i>Універсальний</i>.]]></string>
-    <string name="firewall_rule_block_ip_desc" translatable="true"><![CDATA[A user-set firewall rule blocked the <i>IP-адреса призначення</i>.<br/><br/> Щоб змінити, перейдіть на екран <i>Брандмауер для конкретного додатка</i>.]]></string>
-    <string name="firewall_rule_unknown_desc" translatable="true"><![CDATA[This connection was firewalled because the <i>Не вдалося визначити вихідний додаток.<br/><br/> Щоб змінити цю поведінку, перейдіть на вкладку <i>Універсальний</i>.]]></string>
+    <string name="firewall_rule_new_app_desc" translatable="true"><![CDATA[This app made connection for the first time.]]></string>
+    <string name="firewall_rule_block_app_unmetered_desc" translatable="true"><![CDATA[A user-set firewall rule blocked this додаток під час спроби підключення до мережі без ліміту.]]></string>
+    <string name="firewall_rule_block_app_mobile_desc" translatable="true"><![CDATA[A user-set firewall rule blocked this додаток під час спроби підключення до мережі Metered.]]></string>
+    <string name="firewall_rule_block_app_univ_mobile_desc" translatable="true"><![CDATA[A user-set universal firewall rule blocked this додаток під час спроби підключення до лімітної (мобільної) мережі.]]></string>
+    <string name="firewall_rule_block_ip_desc" translatable="true"><![CDATA[A user-set firewall rule blocked the IP-адреса призначення.]]></string>
+    <string name="firewall_rule_unknown_desc" translatable="true"><![CDATA[This connection was firewalled because the Не вдалося визначити вихідний додаток.]]></string>
     <string name="new_app_notification_content" translatable="true">Keepout заблокував нещодавно встановлений застосунок, %1$s.</string>
     <string name="new_app_notification_action_deny" translatable="true">Продовжувати блокувати</string>
     <string name="new_app_notification_action_toast_deny" translatable="true">Відмовлено в підключенні до мережі для застосунку</string>
@@ -120,23 +120,23 @@
     <string name="fapps_info_metered_msg" translatable="true">Дозволити / Заблокувати в обмеженій (мобільній) мережі.</string>
     <string name="fapps_info_bypass_msg" translatable="true">Обхід універсальних правил брандмауера.</string>
     <string name="fapps_info_isolate_msg" translatable="true">Блокувати всі, крім довірених IP-адрес.</string>
-    <string name="fapps_unblock_dialog_message" translatable="true">Дозволити підключення для застосунків <i>зі списку</i>\?</string>
+    <string name="fapps_unblock_dialog_message" translatable="true">Дозволити підключення для застосунків зі списку\?</string>
     <string name="fapps_bypass_block_dialog_title" translatable="true">Обхідні застосунки</string>
-    <string name="fapps_bypass_block_dialog_message" translatable="true">Обійти універсальні правила брандмауера для <i>перелічених</i> застосунків\?</string>
+    <string name="fapps_bypass_block_dialog_message" translatable="true">Обійти універсальні правила брандмауера для перелічених застосунків\?</string>
     <string name="fapps_unblock_dialog_title" translatable="true">Дозволити застосунки</string>
     <string name="fapps_exclude_block_dialog_title" translatable="true">Виключення застосунків</string>
-    <string name="fapps_exclude_block_dialog_message" translatable="true">Виключити застосунки <i>зі списку</i> з DNS і Брандмауера\?</string>
+    <string name="fapps_exclude_block_dialog_message" translatable="true">Виключити застосунки зі списку з DNS і Брандмауера\?</string>
     <string name="fapps_isolate_block_dialog_title" translatable="true">Ізолювати застосунки</string>
-    <string name="fapps_isolate_block_dialog_message" translatable="true">Ізолювати <i>перелічені</i> застосунки\?</string>
+    <string name="fapps_isolate_block_dialog_message" translatable="true">Ізолювати перелічені застосунки\?</string>
     <string name="firewall_rule_block_app_new_install" translatable="true">Новий застосунок</string>
     <string name="firewall_rule_block_app_exception" translatable="true">Помилка</string>
     <string name="firewall_rule_block_ip" translatable="true">IP / Порт (Застосунок)</string>
-    <string name="firewall_rule_block_app_desc" translatable="true"><![CDATA[A user-set firewall rule blocked this <i>app</i>.<br/><br/> Щоб змінити, перейдіть до <i>Усі програми</i> вкладка.]]></string>
-    <string name="firewall_rule_isolate_desc" translatable="true"><![CDATA[A user-set firewall rule blocked this <i>додаток</i> підключається до інших IP-адрес, ніж <i>обійдені</i>.<br/><br/> Щоб змінити, перейдіть на вкладку <i>Усі додатки</i>.]]></string>
-    <string name="firewall_rule_trusted_ip_desc" translatable="true"><![CDATA[This connection was allowed because the <i>IP-адреса призначення</i> встановлена як довірена IP-адреса.<br/><br/> Щоб змінити, перейдіть на екран <i>Брандмауер для конкретного додатка</i>.]]></string>
-    <string name="firewall_rule_block_dns_bypass_desc" translatable="true"><![CDATA[This connection was blocked because the <i>Вихідний додаток обійшов користувацький DNS.<br/><br/> Щоб змінити цю поведінку, перейдіть на вкладку <i>Універсальний</i>.]]></string>
+    <string name="firewall_rule_block_app_desc" translatable="true"><![CDATA[A user-set firewall rule blocked this app.]]></string>
+    <string name="firewall_rule_isolate_desc" translatable="true"><![CDATA[A user-set firewall rule blocked this додаток підключається до інших IP-адрес, ніж обійдені.]]></string>
+    <string name="firewall_rule_trusted_ip_desc" translatable="true"><![CDATA[This connection was allowed because the IP-адреса призначення встановлена як довірена IP-адреса.]]></string>
+    <string name="firewall_rule_block_dns_bypass_desc" translatable="true"><![CDATA[This connection was blocked because the Вихідний додаток обійшов користувацький DNS.]]></string>
     <string name="new_app_bulk_notification_title" translatable="true">Увага</string>
-    <string name="firewall_rule_exempt_app_bypass_univ_desc" translatable="true"><![CDATA[This connection was allowed because the <i>Для програми-джерела</i> налаштовано <i>обхід універсальних</i> правил брандмауера.<br/><br/> Щоб змінити, перейдіть на екран <i>Брандмауер для конкретної програми</i>.]]></string>
+    <string name="firewall_rule_exempt_app_bypass_univ_desc" translatable="true"><![CDATA[This connection was allowed because the Для програми-джерела налаштовано обхід універсальних правил брандмауера.]]></string>
     <string name="category_name_non_app_sys" translatable="true">Системні служби</string>
     <string name="category_name_installed" translatable="true">Встановлені застосунки</string>
     <string name="ada_app_status_isolate" translatable="true">Ізольовано: дозволено лише довірені IP і домени</string>
@@ -146,14 +146,14 @@
     <string name="fapps_info_dialog_positive_btn" translatable="true">Добре</string>
     <string name="firewall_rule_trusted_domain" translatable="true">Довіряти домену застосунка</string>
     <string name="firewall_rule_block_domain" translatable="true">Домен (Застосунок)</string>
-    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Служба доступності Keepout зупинилася або вийшла з ладу. <i><b>Перейдіть до налаштувань і примусово зупиніть</b></i> Keepout і запустіть його знову, щоб використовувати <i>Блокування будь-якого застосунку, яка не використовується</i>.
+    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Служба доступності Keepout зупинилася або вийшла з ладу. Перейдіть до налаштувань і примусово зупиніть Keepout і запустіть його знову, щоб використовувати Блокування будь-якого застосунку, яка не використовується.
 \n
 \nKeepout використовує службу доступності, щоб відстежувати, які застосунки використовуються (на передньому плані) і які не використовуються (у фоновому режимі).</string>
     <string name="always_on_dialog" translatable="true">«Завжди увімкнений VPN» увімкнено на цьому пристрої. Щоб запустити Keepout, перейдіть до Налаштувань та вимкніть «Завжди увімкнений VPN».</string>
     <string name="settings_allow_bypass_desc" translatable="true">Дозволити застосункам, що запитують, доступ до всіх доступних мереж. Ці застосунки можуть обходити VPN тунель Keepout за вимогою. Деякі застосунки для аудіо чи відео конференцій, такі як Zoom та Meet, можуть потребувати цього для належної роботи.</string>
     <string name="settings_https_desc" translatable="true">Пересилати з\'єднання за протоколом HTTP(s).</string>
     <string name="whats_new_version_update" translatable="true">&lt;b&gt;Don\'t Panic 2&lt;/b&gt;&lt;br/&gt;&lt;br/&gt; 1. Нове: Фіксування помилок мережі у користувацьких звітах про помилки.&lt;br/&gt;2. Нове: використовуйте Системний DNS для неделегованих доменних імен, якщо провайдер застосовує політику Запобігання витоку DNS.&lt;br/&gt; 3. Покращення: підключення WireGuard з подвійним стеком (IPv4 + IPv6).&lt;br/&gt; 4. Покращення: уникайте блокування елементів інтерфейсу користувача, коли мережа не відповідає.&lt;br/&gt; 5. Виправлення: Час очікування з’єднання з увімкненою розширеною фільтрацією DNS.&lt;br/&gt; 6. Виправлення: Кінцеві точки вузлів WireGuard з доменними іменами залежать від змін у мережі.&lt;br/&gt;&lt;br/&gt; &lt;a href=https://svc.rethinkdns.com/r/translate&gt;Допоможіть перекласти цей застосунок&lt;/a&gt;</string>
-    <string name="orbot_explanation" translatable="true">Orbot – це безплатний застосунок-проксі, який дає змогу іншим застосункам <u>безпечніше</u> використовувати Інтернет. \nOrbot використовує <u>Tor</u> для шифрування вашого Інтернет-трафіку, що допомагає вам <u>обійти цензуру</u> та захиститися від форм <u>мережевого спостереження</u>, які загрожують особистій свободі та конфіденційності. \n<u>TCP Proxy</u>: Keepout пересилає до Orbot лише TCP-сегменти посилань <i>доданих</i> застосунків. \n<u>Http Proxy</u>; Keepout <i>встановлює</i> тунель HTTP ПІДКЛЮЧЕННЯ до Orbot і пересилає лише TCP-сегменти посилань <i>доданих</i> застосунків.</string>
+    <string name="orbot_explanation" translatable="true">Orbot – це безплатний застосунок-проксі, який дає змогу іншим застосункам безпечніше використовувати Інтернет. \nOrbot використовує Tor для шифрування вашого Інтернет-трафіку, що допомагає вам обійти цензуру та захиститися від форм мережевого спостереження, які загрожують особистій свободі та конфіденційності. \nTCP Proxy: Keepout пересилає до Orbot лише TCP-сегменти посилань доданих застосунків. \nHttp Proxy; Keepout встановлює тунель HTTP ПІДКЛЮЧЕННЯ до Orbot і пересилає лише TCP-сегменти посилань доданих застосунків.</string>
     <string name="settings_import_export_desc" translatable="true">Вручну створіть резервну копію або відновіть дані та налаштування застосунку.</string>
     <string name="settings_socks_forwarding_desc_no_app" translatable="true">Переадресація на %1$s:%2$s</string>
     <string name="univ_firewall_rule_6" translatable="true">Блокувати нові встановлені застосунки за замовчуванням</string>
@@ -164,18 +164,18 @@
     <string name="univ_firewall_rule_3" translatable="true">Блокувати, якщо джерело застосунку невідоме</string>
     <string name="fapps_info_dialog_message" translatable="true">Блокуйте підключення застосунків до Інтернету. Обмеження доступу до Інтернету допомагає запобігти невиправданому використанню даних, а також заощадити заряд акумулятора.</string>
     <string name="fapps_info_exclude_msg" translatable="true">Виключити з DNS + брандмауера.</string>
-    <string name="fapps_unmetered_unblock_dialog_message">Дозволити підключення до нелімітованої мережі (WiFi) для застосунків <i>зі списку</i>\?</string>
+    <string name="fapps_unmetered_unblock_dialog_message">Дозволити підключення до нелімітованої мережі (WiFi) для застосунків зі списку\?</string>
     <string name="fapps_metered_unblock_dialog_title" translatable="true">Дозволити в обмеженому режимі</string>
     <string name="fapps_unmetered_unblock_dialog_title" translatable="true">Дозволити в необмеженому режимі</string>
-    <string name="fapps_unmetered_block_dialog_message" translatable="true">Блокувати з\'єднання в нелімітованій мережі (WiFi) для <i>перелічених</i> застосунків\?</string>
-    <string name="firewall_rule_foreground_desc" translatable="true"><![CDATA[This connection was firewalled because the source app was <i>не на передньому плані</i>.<br/><br/> Щоб змінити цю поведінку, перейдіть на вкладку <i>Універсальний</i>.]]></string>
+    <string name="fapps_unmetered_block_dialog_message" translatable="true">Блокувати з\'єднання в нелімітованій мережі (WiFi) для перелічених застосунків\?</string>
+    <string name="firewall_rule_foreground_desc" translatable="true"><![CDATA[This connection was firewalled because the source app was не на передньому плані.]]></string>
     <string name="ada_app_isolate" translatable="true">Ізолювати</string>
     <string name="rt_dialog_message" translatable="true">Ви хочете застосувати нещодавно налаштовані списки блокування\?</string>
     <string name="brbs_restore_dialog_message" translatable="true">Відновіть налаштування застосунку, мережеві та dns журнали з файлу резервної копії. Це призведе до перезапуску застосунку.</string>
-    <string name="firewall_rule_block_domain_desc" translatable="true"><![CDATA[A user-set firewall rule blocked the <i>домен</i>.<br/><br/> Щоб змінити, перейдіть на екран <i>Брандмауер для конкретної програми</i>.]]></string>
+    <string name="firewall_rule_block_domain_desc" translatable="true"><![CDATA[A user-set firewall rule blocked the домен.]]></string>
     <string name="new_app_notification_action_toast_allow" translatable="true">Для застосунку дозволено підключення до мережі</string>
     <string name="bsac_title_desc" translatable="true">Правила застосовуються лише до цього застосунку.</string>
-    <string name="firewall_rule_trusted_domain_desc" translatable="true"><![CDATA[This connection was allowed because the <i>домен</i> встановлено як довірений домен.<br/><br/> Щоб змінити, перейдіть на екран <i>Брандмауер для конкретного додатка</i>.]]></string>
+    <string name="firewall_rule_trusted_domain_desc" translatable="true"><![CDATA[This connection was allowed because the домен встановлено як довірений домен.]]></string>
     <string name="new_app_bulk_notification_content" translatable="true">RethinkDNS заблокував новий застосунок %1$s . Натисніть, щоб переглянути або змінити.</string>
     <string name="ssv_app_network_activity_heading" description="This label will appear on the stats screen as a header for allowed apps." translatable="true">Найбільш дозволені застосунки</string>
     <string name="ssv_app_blocked_heading" description="This label will appear on the stats screen as a header for blocked applications." translatable="true">Найбільш заблоковані застосунки</string>
@@ -188,8 +188,8 @@
     <string name="doh_custom_url_remove_success" translatable="true">Кінцева точка видалена.</string>
     <string name="lbl_rules" translatable="true">правила</string>
     <string name="bypass_dns_firewall" translatable="true">обхід dns та брандмауера</string>
-    <string name="bsct_block_ip" translatable="true">Блокувати, довіряти <u>цю IP-адресу</u> для <u>цього застосунку</u></string>
-    <string name="bsct_block_domain" translatable="true">Блокувати, довіряти <u>домен(и)</u> для <u>цього застосунку</u></string>
+    <string name="bsct_block_ip" translatable="true">Блокувати, довіряти цю IP-адресу для цього застосунку</string>
+    <string name="bsct_block_domain" translatable="true">Блокувати, довіряти домен(и) для цього застосунку</string>
     <string name="local_blocklist_download" translatable="true">Завантажити списки блокування</string>
     <string name="lbl_network" translatable="true">мережа</string>
     <string name="default_dns_name" translatable="true">RDNS за замовчуванням</string>
@@ -303,10 +303,10 @@
     <string name="download_update_dialog_failure_title" translatable="true">Щось пішло не так!</string>
     <string name="download_update_dialog_failure_message" translatable="true">Або наші сервери не працюють, або не вдалося встановити з\'єднання. Будь ласка, спробуйте ще раз через деякий час.</string>
     <string name="download_update_dialog_trylater_message" translatable="true">Оновлення неможливо виконати зараз, будь ласка, спробуйте пізніше.</string>
-    <string name="search_custom_domains" translatable="true"><font size="12">Пошук доменів</font></string>
+    <string name="search_custom_domains" translatable="true">Пошук доменів</string>
     <string name="download_update_dialog_trylater_title" translatable="true">Неможливо оновити зараз</string>
     <string name="download_update_dialog_message_ok" translatable="true">Ви вже використовуєте останню версію.</string>
-    <string name="search_universal_ips" translatable="true"><font size="12">Пошук IP</font></string>
+    <string name="search_universal_ips" translatable="true">Пошук IP</string>
     <string name="download_update_dialog_message_ok_title" translatable="true">Актуально!</string>
     <string name="info_dialog_url_copy_toast_msg" translatable="true">URL-адреса скопійована</string>
     <string name="orbot_install_dialog_positive" translatable="true">Встановлення</string>
@@ -333,7 +333,7 @@
     <string name="orbot_install_dialog_neutral" translatable="true">веб-сторінка</string>
     <string name="settings_proxy_header" translatable="true">проксі</string>
     <string name="orbot_install_dialog_title" translatable="true">Встановити Orbot?</string>
-    <string name="settings_lock_down_mode_desc" translatable="true">Деякі параметри вимкнено, коли VPN знаходиться в режимі блокування. <u>Дивіться налаштування VPN</u>.</string>
+    <string name="settings_lock_down_mode_desc" translatable="true">Деякі параметри вимкнено, коли VPN знаходиться в режимі блокування. Дивіться налаштування VPN.</string>
     <string name="orbot_stop_dialog_negative" translatable="true">Зупинити Orbot</string>
     <string name="settings_socks5_heading" translatable="true">Налаштування проксі-сервера SOCKS5</string>
     <string name="settings_lock_down_proxy_desc" translatable="true">Не вдається налаштувати проксі-сервери, коли VPN працює в режимі \"Лише DNS\".</string>
@@ -367,7 +367,6 @@
     <string name="lbl_idle" translatable="true">Бездіяльність</string>
     <string name="lbl_secure" translatable="true">безпечний</string>
     <string name="lbl_private" translatable="true">приватний</string>
-    <string name="lbl_unselected" translatable="true">Не обрано</string>
     <string name="lbl_stopped" translatable="true">Зупинено</string>
     <string name="settings_connectivity_checks_desc" translatable="true">Перевірка зв\'язку надсилається, щоб переконатися в доступності.</string>
     <string name="settings_orbot_notification_action" translatable="true">Відкрити Orbot</string>
@@ -376,9 +375,9 @@
     <string name="settings_general_header" translatable="true">загальні</string>
     <string name="settings_general_customize" translatable="true">персоналізація</string>
     <string name="settings_autostart_bootup_heading" translatable="true">Автозапуск при увімкненні пристрою (експериментально)</string>
-    <string name="settings_custom_downloader_desc" translatable="true">Якщо вимкнено, використовуватиметься вбудований <i>Менеджер завантажень</i> Android</string>
+    <string name="settings_custom_downloader_desc" translatable="true">Якщо вимкнено, використовуватиметься вбудований Менеджер завантажень Android</string>
     <string name="settings_https_disabled_error" translatable="true">Підключено до %1$s. Вимкніть, щоб продовжити.</string>
-    <string name="settings_network_all_networks_desc" translatable="true">Коли ввімкнено, Keepout використовуватиме всі доступні мережі для підключення до Інтернету. Якщо вимкнено, він використовуватиме ту мережу, яка вважається <i>активною</i> операційною системою Android.</string>
+    <string name="settings_network_all_networks_desc" translatable="true">Коли ввімкнено, Keepout використовуватиме всі доступні мережі для підключення до Інтернету. Якщо вимкнено, він використовуватиме ту мережу, яка вважається активною операційною системою Android.</string>
     <string name="settings_socks5_disabled_error" translatable="true">Підключено до %1$s. Вимкніть, щоб продовжити.</string>
     <string name="settings_socks5_vpn_disabled_error" translatable="true">Запустіть Keepout, щоб продовжити.</string>
     <string name="settings_orbot_disabled_error" translatable="true">Вимкніть HTTP(S) та/або SOCKS5 проксі, щоб продовжити налаштування Tor як проксі.</string>
@@ -423,7 +422,6 @@
     <string name="settings_protocol_translation_dns_inactive" translatable="true">Перемикач режимів DNS/Фаєрвол+DNS, оберіть налаштування</string>
     <string name="about_mail_to_string" translatable="true">Посилання mailTO:</string>
     <string name="settings_exclude_proxy_apps_heading" translatable="true">Застосунки переадресації проксі-серверів зі зворотним зв\'язком</string>
-    <string name="settings_exclude_proxy_apps_desc" translatable="true">Коли цей параметр вимкнено, супроводження застосунків до проксі-серверів (SОСКS5, НТТР, DNS) виключається з VPN-тунелів Keepout\'s.</string>
     <string name="settings_ip_dialog_ipv4" translatable="true">IPv4 (стандарт)</string>
     <string name="about_bug_no_log_dialog_positive_btn" translatable="true">Надіслати email</string>
     <string name="about_settings_vpn_profile" translatable="true">Профіль VPN</string>
@@ -439,7 +437,7 @@
     <string name="hs_download_positive_default" translatable="true">Добре</string>
     <string name="ada_app_bypass_dns_firewall" translatable="true">Обходить DNS &amp; Firewall</string>
     <string name="http_proxy_dialog_desc" translatable="true">Налаштуйте URL-адресу форми, &lt;protocol&gt;://&lt;username&gt;:&lt;password&gt;@&lt;domain-or-ip&gt;:&lt;port&gt;&lt;path&gt;. Приклад: http://proxy.example.com:8080/</string>
-    <string name="firewall_rule_bypass_dns_firewall_desc" translatable="true"><![CDATA[This connection was allowed because the <i>Для програми-джерела</i> налаштовано <i>обхід правил DNS та брандмауера</i>.<br/><br/> Щоб змінити, перейдіть на екран <i>Брандмауер для конкретної програми</i>.]]></string>
+    <string name="firewall_rule_bypass_dns_firewall_desc" translatable="true"><![CDATA[This connection was allowed because the Для програми-джерела налаштовано обхід правил DNS та брандмауера.]]></string>
     <string name="cd_dns_proxy_mode_internal" translatable="true">Внутрішній</string>
     <string name="cd_dns_proxy_mode_external" translatable="true">Зовнішній</string>
     <string name="cd_dns_crypt_name" translatable="true">DNSCrypt %1$s</string>
@@ -493,10 +491,10 @@
     <string name="cd_dns_alg_heading" translatable="true">Розширена фільтрація DNS (експериментально)</string>
     <string name="cd_dns_alg_desc" translatable="true">Призначати унікальну IP-адресу на кожний запиту DNS.</string>
     <string name="hs_download_negative_default" translatable="true">Нагадати пізніше</string>
-    <string name="fapps_bypass_dns_firewall_dialog_message" translatable="true">Обійти універсальні правила DNS та фаєрвола для<i>перелічених</i>застосунків?</string>
+    <string name="fapps_bypass_dns_firewall_dialog_message" translatable="true">Обійти універсальні правила DNS та фаєрвола дляпереліченихзастосунків?</string>
     <string name="toast_allow_bypass_disabled" translatable="true">%1$s вимкнено, оскільки проксі-сервери активні</string>
     <string name="firewall_rule_bypass_dns_firewall" translatable="true">Обхід DNS&amp;Firewall</string>
-    <string name="firewall_rule_bypass_universal_ip_desc" translatable="true"><![CDATA[This connection was allowed because the <i>IP-адреса призначення</i> налаштована на обхід усіх правил універсального брандмауера.<br/><br/> Щоб змінити, перейдіть до <i>Правила IP<i> на вкладці <i>Універсальний</i>.]]></string>
+    <string name="firewall_rule_bypass_universal_ip_desc" translatable="true"><![CDATA[This connection was allowed because the IP-адреса призначення налаштована на обхід усіх правил універсального брандмауера.]]></string>
     <string name="exclude_apps_from_proxy_failure_toast">Цей застосунок обходить проксі</string>
     <string name="exclude_apps_from_proxy">Застосунок обходить усі проксі-сервери</string>
     <string name="ssv_toast_start_rethink" description="This label will appear on the stats screen as toast to start Rethink app" translatable="true">Щоб продовжити, вімкніть Keepout</string>
@@ -539,8 +537,8 @@
     <string name="rt_chip_update_available" translatable="true">Доступне оновлення</string>
     <string name="radio_sky_btn" translatable="true">⛅️ Хмара</string>
     <string name="radio_max_btn" translatable="true">🪂 Макс</string>
-    <string name="rt_filter_hint" translatable="true">Показати<u>усі списки</u> блокування</string>
-    <string name="rt_filter_desc" translatable="true"><![CDATA[Showing <u>%1$s</u> списки блокування]]></string>
+    <string name="rt_filter_hint" translatable="true">Показатиусі списки блокування</string>
+    <string name="rt_filter_desc" translatable="true"><![CDATA[Showing %1$s списки блокування]]></string>
     <string name="lbbs_enabled" translatable="true">Увімкнено</string>
     <string name="lbbs_update_check" translatable="true">Перевірити наявність оновлень</string>
     <string name="brbs_backup_dialog_failure_title" translatable="true">Невдале створення резервної копії</string>
@@ -555,9 +553,8 @@
     <string name="dc_local_block_heading" translatable="true">Блоклисти пристроя</string>
     <string name="cd_dns_crypt_title" translatable="true">розв\'язувач імен</string>
     <string name="dns_info_positive" translatable="true">прийняти</string>
-    <string name="firewall_rule_block_ip_univ_desc" translatable="true"><![CDATA[A user-set firewall rule blocked the <i>IP-адреса призначення / Порт</i>.<br/><br/> Щоб змінити, перейдіть на вкладку <i>Універсальний</i>.]]></string>
+    <string name="firewall_rule_block_ip_univ_desc" translatable="true"><![CDATA[A user-set firewall rule blocked the IP-адреса призначення / Порт.]]></string>
     <string name="notif_channel_desc_proxy_failure" translatable="true">Сповіщяти про помилки та аномалії проксі-сервера</string>
-    <string name="build__flavor_fdroid" translatable="true">F-droid</string>
     <string name="cd_no_rules_text" translatable="true">Немає правил домену.</string>
     <string name="cd_toast_edit" translatable="true">Змінено</string>
     <string name="ci_block" translatable="true">Блокувати</string>
@@ -577,8 +574,8 @@
     <string name="update_complete_snack_message" translatable="true">Завантажено нову версію.</string>
     <string name="firewall_rule_device_lock" translatable="true">Правило для блокування пристроя</string>
     <string name="firewall_rule_global_lockdown" translatable="true">Глобальний локдаун</string>
-    <string name="firewall_rule_exempt_dns_proxied_desc" translatable="true"><![CDATA[This DNS connection was proxied and forwarded to user-preferred DNS endpoint.<br/><br/> Щоб змінити, вимкніть опцію <i>Запобігання витокам DNS</i> на екрані <i>Налаштування</i> DNS.]]></string>
-    <string name="firewall_rule_global_lockdown_desc" translatable="true"><![CDATA[This connection was blocked because universal lockdown is set.<br/><br/> Щоб змінити, перейдіть на вкладку <i>Універсальний</i>.]]></string>
+    <string name="firewall_rule_exempt_dns_proxied_desc" translatable="true"><![CDATA[This DNS connection was proxied and forwarded to user-preferred DNS endpoint.]]></string>
+    <string name="firewall_rule_global_lockdown_desc" translatable="true"><![CDATA[This connection was blocked because universal lockdown is set.]]></string>
     <string name="notif_dialog_pause_dialog_negative" translatable="true">Відкинути</string>
     <string name="notif_channel_vpn_failure" translatable="true">Зупинити VPN</string>
     <string name="notif_download_content_text" translatable="true">Прогрес завантаження…</string>
@@ -603,7 +600,7 @@
     <string name="hsf_notification_permission_failure" translatable="true">Увімкніть дозволи на сповіщення у меню Налаштувань</string>
     <string name="dc_local_block_desc_1" translatable="true">Виберіть з 195+ блоклистів. Натисніть тут, щоб завантажити або налаштувати їх.</string>
     <string name="dc_dns_website_heading" translatable="true">Показувати іконки вебсайтів в журналах DNS (експериментально)</string>
-    <string name="dc_dns_website_desc" translatable="true">Отримання іконок вебсайтів з <i>nextdns.io</i> та <i>duckduckgo.com</i>. Займє до 350 Мб постійної пам\'яті пристрою</string>
+    <string name="dc_dns_website_desc" translatable="true">Отримання іконок вебсайтів з nextdns.io та duckduckgo.com. Займє до 350 Мб постійної пам\'яті пристрою</string>
     <string name="dc_dns_leaks_heading" translatable="true">Запобігання витоку DNS даних</string>
     <string name="dns_proxy_name" translatable="true">Ім\'я проксі</string>
     <string name="dns_proxy_ip_address" translatable="true">IP адреса</string>
@@ -626,7 +623,7 @@
     <string name="firewall_rule_domain_trusted_univ" translatable="true">Довіряти по домену (універлсальне)</string>
     <string name="firewall_rule_proxied" translatable="true">Правила по проксі</string>
     <string name="firewall_rule_no_rule_desc" translatable="true">Це з\'єднання не відповідає жодним правилам фаєрвола.</string>
-    <string name="firewall_rule_domain_trusted_univ_desc" translatable="true"><![CDATA[This connection was allowed because the <i>домен</i> встановлено як довірений у правилах універсального домену.<br/><br/> Щоб змінити цю поведінку, перейдіть на вкладку <i>Налаштування DNS</i>.]]></string>
+    <string name="firewall_rule_domain_trusted_univ_desc" translatable="true"><![CDATA[This connection was allowed because the домен встановлено як довірений у правилах універсального домену.]]></string>
     <string name="notif_channel_download" translatable="true">Сповіщення завантажень</string>
     <string name="notif_channel_vpn_notification" translatable="true">Активувати VPN</string>
     <string name="notif_channel_proxy_failure" translatable="true">Сповіщення Proxy</string>
@@ -643,7 +640,7 @@
     <string name="rt_chip_check_update" translatable="true">Перевірте наявність оновлень</string>
     <string name="lbl_advanced" translatable="true">розгорнутий лист</string>
     <string name="rt_download_desc" translatable="true">Завантажте блоклисти (приблизно 60 Мб).</string>
-    <string name="rt_filter_desc_subgroups" translatable="true"><![CDATA[Showing <u>%1$s</u> списки блокування в групі: %2$s та підгрупі: %3$s]]></string>
+    <string name="rt_filter_desc_subgroups" translatable="true"><![CDATA[Showing %1$s списки блокування в групі: %2$s та підгрупі: %3$s]]></string>
     <string name="rethink_sky_desc" translatable="true">280+ локацій серверів; вищий час безвідмовної роботи; розв\'язувач імен працює на cloudflare.com</string>
     <string name="dc_setting_dns_cache_heading" translatable="true">Прискорювач DNS</string>
     <string name="dc_setting_dns_cache_desc" translatable="true">Об’єднання запитів, кешування відповіді, стійка обробка помилок</string>
@@ -670,17 +667,15 @@
     <string name="firewall_rule_exempt_orbot_setup" translatable="true">Правило по Orbot</string>
     <string name="notif_dialog_pause_dialog_positive" translatable="true">Продовжити</string>
     <string name="rules_load_failure_reload" translatable="true">перезавантажити</string>
-    <string name="firewall_rule_exempt_orbot_setup_desc" translatable="true"><![CDATA[This connection was allowed because <i>Налаштування Tor-as-a-proxy одним кліком через Orbot тривало.]]></string>
-    <string name="firewall_rule_block_http_desc" translatable="true"><![CDATA[This connection was blocked because it likely used <i>незахищений HTTP</i>.<br/><br/> Щоб змінити, перейдіть на вкладку <i>Універсальний</i>.]]></string>
-    <string name="firewall_rule_dns_blocked_desc" translatable="true"><![CDATA[This connection was blocked because the <i>домен</i> заблоковано DNS-сервером, налаштованим користувачем.<br/><br/> Щоб змінити цю поведінку, перейдіть на вкладку <i>Налаштування DNS</i>.]]></string>
-    <string name="firewall_rule_proxied_desc" translatable="true"><![CDATA[This connection was forwarded to user-preferred Proxy.<br/><br/> Щоб змінити, перейдіть до розділу <i>Проксі</i> на екрані <i>Налаштування</i>.]]></string>
-    <string name="firewall_rule_domain_blocked_univ_desc" translatable="true"><![CDATA[This connection was blocked because the <i>Домен</i> встановлено як заблокований у правилах універсального домену.<br/><br/> Щоб змінити цю поведінку, перейдіть на вкладку <i>Налаштування DNS</i>.]]></string>
-    <string name="firewall_rule_device_lock_desc" translatable="true"><![CDATA[This connection was firewalled because <i>пристрій був заблокований</i> на той момент.<br/><br/> Щоб змінити цю поведінку, перейдіть на вкладку <i>Універсальний</i>.]]></string>
-    <string name="firewall_rule_block_udp_ntp_desc" translatable="true"><![CDATA[A user-set firewall rule blocked this <i>UDP</i> з’єднання.<br/><br/> Щоб змінити, перейдіть на вкладку <i>Універсальне</i>.]]></string>
+    <string name="firewall_rule_exempt_orbot_setup_desc" translatable="true"><![CDATA[This connection was allowed because Налаштування Tor-as-a-proxy одним кліком через Orbot тривало.]]></string>
+    <string name="firewall_rule_block_http_desc" translatable="true"><![CDATA[This connection was blocked because it likely used незахищений HTTP.]]></string>
+    <string name="firewall_rule_dns_blocked_desc" translatable="true"><![CDATA[This connection was blocked because the домен заблоковано DNS-сервером, налаштованим користувачем.]]></string>
+    <string name="firewall_rule_proxied_desc" translatable="true"><![CDATA[This connection was forwarded to user-preferred Proxy.]]></string>
+    <string name="firewall_rule_domain_blocked_univ_desc" translatable="true"><![CDATA[This connection was blocked because the Домен встановлено як заблокований у правилах універсального домену.]]></string>
+    <string name="firewall_rule_device_lock_desc" translatable="true"><![CDATA[This connection was firewalled because пристрій був заблокований на той момент.]]></string>
+    <string name="firewall_rule_block_udp_ntp_desc" translatable="true"><![CDATA[A user-set firewall rule blocked this UDP з’єднання.]]></string>
     <string name="notif_channel_firewall_alerts" translatable="true">Сповіщення фаєрвола</string>
     <string name="notif_channel_desc_firewall_alerts" translatable="true">Сповіщати про помилки та аномалії фаєрвола</string>
-    <string name="build__flavor_website" translatable="true">вебсайт</string>
-    <string name="build__flavor_play_store" translatable="true">грати</string>
     <string name="brbs_restore_dialog_failure_message" translatable="true">Не вдалося відновити. Спробувати знову?</string>
     <string name="brbs_backup_complete_toast" translatable="true">Резервне копіювання завершено</string>
     <string name="bad_config_reason_missing_attribute" translatable="true">Відсутній атрибут</string>
@@ -695,7 +690,7 @@
     <string name="dns_desc" translatable="true">Оберіть один із понад 190 списків, щоб зупинити рекламу, трекери та шкідливе програмне забезпечення.</string>
     <string name="status_no_network" translatable="true">Немає мережі</string>
     <string name="dc_use_sys_dns_undelegated_heading" translatable="true">Використовувати системний DNS для неделегованих доменів</string>
-    <string name="dc_use_sys_dns_undelegated_desc" translatable="true">Використовуйте системний DNS для неделегованих доменів, таких як <i>.lan</i>, <i>.internal</i>, тощо.</string>
+    <string name="dc_use_sys_dns_undelegated_desc" translatable="true">Використовуйте системний DNS для неделегованих доменів, таких як .lan, .internal, тощо.</string>
     <string name="dc_filtering_heading" translatable="true">Фільтрація</string>
     <string name="cd_split_dns_heading" translatable="true">Розділений DNS (експериментальний)</string>
     <string name="cd_split_dns_desc" translatable="true">Пересилати DNS-запити від проксі-програм на DNS-сервери проксі-сервера.</string>
@@ -705,10 +700,10 @@
     <string name="firewall_rule_bypass_proxy" translatable="true">Обхід проксі-сервера</string>
     <string name="firewall_rule_paused_app" translatable="true">Додаток призупинено</string>
     <string name="firewall_rule_lockdown_wg" translatable="true">Проксі-сервер блокування</string>
-    <string name="firewall_rule_private_dns_desc" translatable="true"><![CDATA[This connection is looking for a <i>Приватний DNS-сервер, якого не існує.]]></string>
-    <string name="firewall_rule_bypass_proxy_desc" translatable="true"><![CDATA[This connection was allowed because the <i>Для програми-джерела</i> налаштовано <i>обхід правил проксі-сервера</i>.<br/><br/> Щоб змінити, перейдіть на екран <i>Брандмауер для конкретної програми</i>.]]></string>
-    <string name="firewall_rule_paused_app_desc" translatable="true"><![CDATA[This connection was allowed because the <i>додаток перебуває у стані <i>призупиненого</i>.]]></string>
-    <string name="firewall_rule_lockdown_wg_desc" translatable="true"><![CDATA[This connection was blocked because WireGuard is in <i>режим блокування.<br/><br/> Щоб змінити, перейдіть на екран <i>WireGuard</i>.]]></string>
+    <string name="firewall_rule_private_dns_desc" translatable="true"><![CDATA[This connection is looking for a Приватний DNS-сервер, якого не існує.]]></string>
+    <string name="firewall_rule_bypass_proxy_desc" translatable="true"><![CDATA[This connection was allowed because the Для програми-джерела налаштовано обхід правил проксі-сервера.]]></string>
+    <string name="firewall_rule_paused_app_desc" translatable="true"><![CDATA[This connection was allowed because the додаток перебуває у стані призупиненого.]]></string>
+    <string name="firewall_rule_lockdown_wg_desc" translatable="true"><![CDATA[This connection was blocked because WireGuard is in режим блокування.]]></string>
     <string name="wireguard_disable_failure_relay" translatable="true">\"Relay WireGuard\" не можна вимкнути</string>
     <string name="config_invalid_desc" translatable="true">Недійсна конфігурація WireGuard</string>
     <string name="console_log_title" translatable="true">Журнали програм</string>
@@ -738,20 +733,20 @@
     <string name="wg_setting_use_on_mobile_desc" translatable="true">Використовуйте цей VPN WireGuard через мобільні дані.</string>
     <string name="hop_add_remove_title" translatable="true">Додати /Вилучити реле</string>
     <string name="about_terms_of_service" translatable="true">Умови надання послуг</string>
-    <string name="bypasses_network_restrictions" translatable="true">Перевірки досяжності обходять усі мережеві обмеження. В режимі <i>Auto</i> Keepout випадковим чином використовує раніше підключені IP-адреси та імена хостів.</string>
+    <string name="bypasses_network_restrictions" translatable="true">Перевірки досяжності обходять усі мережеві обмеження. В режимі Auto Keepout випадковим чином використовує раніше підключені IP-адреси та імена хостів.</string>
     <string name="most_contacted_asn" translatable="true">Найчастіше контактовані постачальники</string>
     <string name="most_blocked_asn" translatable="true">Більшість заблокованих провайдерів</string>
     <string name="download_ip_info_title" translatable="true">Показати інформацію про постачальника</string>
-    <string name="download_ip_info_desc" translatable="true">Отримує інформацію про постачальників послуг для веб-сайтів з <i>rethinkdns.com</i>, що працює на <i>%1$s</i></string>
+    <string name="download_ip_info_desc" translatable="true">Отримує інформацію про постачальників послуг для веб-сайтів з rethinkdns.com, що працює на %1$s</string>
     <string name="top_active_conns" translatable="true">Найактивніші з\'єднання</string>
     <string name="close_conns_dialog_title" translatable="true">Тісні зв\'язки</string>
     <string name="close_conns_dialog_desc" translatable="true">Закрити всі з’єднання для %1$s?</string>
     <string name="local_blocklist_delete_desc" translatable="true">Видалити списки блокування на пристрої?</string>
     <string name="fail_open_network_title" translatable="true">Зупинка через втрату мережі</string>
-    <string name="fail_open_network_desc" translatable="true">Коли функцію ввімкнено, Keepout зупиняє всі дані, коли немає з’єднання, наприклад, у режимі <i>У літаку</i>.</string>
+    <string name="fail_open_network_desc" translatable="true">Коли функцію ввімкнено, Keepout зупиняє всі дані, коли немає з’єднання, наприклад, у режимі У літаку.</string>
     <string name="about_license" translatable="true">Ліцензовано під Apache-2.0</string>
     <string name="smart_dns" translatable="true">Розумний DNS</string>
-    <string name="smart_dns_desc" translatable="true"><i>Smart DNS</i> випадковим чином використовує будь-який з цих DNS-резолверів:</string>
+    <string name="smart_dns_desc" translatable="true">Smart DNS випадковим чином використовує будь-який з цих DNS-резолверів:</string>
     <string name="hop_error_toast_msg_3" translatable="true">Вимкніть опцію \"Тільки мобільні пристрої\" або \"SSID\", щоб використовувати реле</string>
     <string name="lbl_fallback" translatable="true">Резервний варіант</string>
     <string name="vpn_policy_auto_desc" translatable="true">Реагує на важливі зміни в мережі та з\'єднанні.</string>
@@ -768,14 +763,14 @@
     <string name="lbl_connect" translatable="true">Підключитися</string>
     <string name="lbl_criteria" translatable="true">Критерії</string>
     <string name="firewall_rule_proxy_error" translatable="true">Помилка проксі-сервера</string>
-    <string name="firewall_rule_proxy_error_desc" translatable="true"><![CDATA[Це з’єднання було заблоковано, оскільки не вибрано <i>проксі</i>, вибраний для програми.<br/><br/> Щоб змінити, перейдіть до розділу <i>Проксі</i> на екрані <i>Налаштування</i>.]]></string>
+    <string name="firewall_rule_proxy_error_desc" translatable="true"><![CDATA[Це з’єднання було заблоковано, оскільки не вибрано проксі, вибраний для програми.]]></string>
     <string name="vpn_policy_fixed" translatable="true">Консервативний</string>
     <string name="vpn_policy_fixed_desc" translatable="true">Мінімально реагує на зміни в мережі.</string>
     <string name="wg_setting_ssid_title" translatable="true">Тільки Wi-Fi</string>
     <string name="wg_setting_ssid_desc" translatable="true">Увімкніть цю VPN WireGuard лише під час підключення до Wi-Fi або вказаних ідентифікаторів Wi-Fi (%1$s).</string>
     <string name="ssid_permission_explanation" translatable="true">Keepout потребує дозволу на геодані для доступу до ідентифікаторів Wi-Fi (%1$s).</string>
     <string name="location_enable_explanation" translatable="true">Щоб отримати доступ до ідентифікаторів Wi-Fi (%1$s), увімкніть службу визначення місцезнаходження.</string>
-    <string name="wg_ssid_dialog_description" translatable="true">%1$s ця VPN-мережа WireGuard, коли <i>активна</i>. Ідентифікатор Wi-Fi (%2$s) %3$s.</string>
+    <string name="wg_ssid_dialog_description" translatable="true">%1$s ця VPN-мережа WireGuard, коли активна. Ідентифікатор Wi-Fi (%2$s) %3$s.</string>
     <string name="wg_ssid_type_exact" translatable="true">Точно</string>
     <string name="wg_ssid_type_wildcard" translatable="true">Частково</string>
     <string name="wg_ssid_invalid_error" translatable="true">Ідентифікатори Wi-Fi (%1$s) повинні містити 32 символи або менше.</string>
@@ -785,11 +780,11 @@
     <string name="tombstone_app_desc" translatable="true">Якщо ввімкнено, зберігати правила програми протягом 7 днів.</string>
     <string name="settings_allow_incoming_wg_packets" translatable="true">WireGuard P2P</string>
     <string name="settings_allow_incoming_wg_packets_desc" translatable="true">Якщо ввімкнено, дозволяється вхідні з’єднання, ініційовані вузлами WireGuard.</string>
-    <string name="lockdown_download_message" translatable="true">Вбудований в Android <i>Менеджер завантажень</i> може не працювати, оскільки VPN перебуває в режимі <i>Блокування</i>. Увімкнути завантажувач Keepout?</string>
+    <string name="lockdown_download_message" translatable="true">Вбудований в Android Менеджер завантажень може не працювати, оскільки VPN перебуває в режимі Блокування. Увімкнути завантажувач Keepout?</string>
     <string name="lockdown_download_enable_inapp" translatable="true">Увімкнути завантажувач</string>
     <string name="settings_jumbo_packets" translatable="true">Підсилювач пропускної здатності</string>
-    <string name="settings_jumbo_packets_desc" translatable="true">Використовує <i>jumbo-пакети</i> в VPN-тунелі Keepout.</string>
-    <string name="stability_program_toast" translatable="true">Зареєстровано в <i>програмі стабільності</i> для <i>експериментальних функцій</i>.</string>
+    <string name="settings_jumbo_packets_desc" translatable="true">Використовує jumbo-пакети в VPN-тунелі Keepout.</string>
+    <string name="stability_program_toast" translatable="true">Зареєстровано в програмі стабільності для експериментальних функцій.</string>
     <string name="home_last_24_hours">Останні 24 години</string>
     <plurals name="home_stopped_at_dns_count">
         <item quantity="one">%d запит зупинено на рівні DNS</item>

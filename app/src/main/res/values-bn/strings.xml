@@ -2,7 +2,7 @@
 <resources>
     <string name="settings_allow_bypass_heading">বাইপাসের অনুমতি দিন</string>
     <string name="settings_allow_bypass_desc">রিথিঙ্কডিএনএস ফায়ারওয়াল অন-ডিমান্ড বাইপাস করার জন্য অনুরোধ করা অ্যাপগুলিকে অনুমতি দিন। জুম এবং হোয়াটসঅ্যাপের মতো কিছু অডিও/ভিডিও কনফারেন্স অ্যাপের সঠিকভাবে কাজ করার জন্য অন-ডিমান্ড বাইপাসের প্রয়োজন হতে পারে।</string>
-    <string name="settings_lock_down_mode_desc">VPN যখন লকডাউন মোডে চলছে তখন বাইপাস, বা সেটআপ প্রক্সিগুলিকে অনুমতি দেওয়া যাবে না৷ <u>VPN সেটিংসে যান</u>।</string>
+    <string name="settings_lock_down_mode_desc">VPN যখন লকডাউন মোডে চলছে তখন বাইপাস, বা সেটআপ প্রক্সিগুলিকে অনুমতি দেওয়া যাবে না৷ VPN সেটিংসে যান।</string>
     <string name="settings_proxy_header">প্রক্সি</string>
     <string name="orbot_stop_dialog_dns_message">RethinkDNS সেটআপ করা হয়েছে DNS প্রশ্নগুলি অরবটে ফরোয়ার্ড করার জন্য। প্রয়োজন অনুযায়ী পরিবর্তন করুন।</string>
     <string name="orbot_stop_dialog_negative">অরবট বন্ধ করুন</string>
@@ -10,7 +10,7 @@
     <string name="orbot_title">অরবট এবং প্রক্সি</string>
     <string name="orbot_stop_dialog_message">RethinkDNS অরবোটে সংযোগ ফরওয়ার্ড করা বন্ধ করেছে, কিন্তু অরবট হয়তো পটভূমিতে চলছে।</string>
     <string name="settings_dns_proxy_dialog_app_desc">নির্বাচিত অ্যাপটিকে আপনার পক্ষ থেকে প্রক্সি সংযোগ করতে দেওয়ার জন্য VPN থেকে বাদ দেওয়া হবে।</string>
-    <string name="always_on_dialog_lockdown_stop_message">RethinkDNS <i>লকডাউন</i> মোডে VPN চালাচ্ছে। এটি বন্ধ করার ফলে এই ব্যবহারকারীর প্রোফাইলে ইন্টারনেট সংযোগ নষ্ট হবে৷ আপনি কি যাইহোক চালিয়ে যেতে চান\?</string>
+    <string name="always_on_dialog_lockdown_stop_message">RethinkDNS লকডাউন মোডে VPN চালাচ্ছে। এটি বন্ধ করার ফলে এই ব্যবহারকারীর প্রোফাইলে ইন্টারনেট সংযোগ নষ্ট হবে৷ আপনি কি যাইহোক চালিয়ে যেতে চান\?</string>
     <string name="dns_crypt_url_remove_success">DNSCrypt সমাধানকারী মুছে ফেলা হয়েছে।</string>
     <string name="about_faq">FAQs দেখুন</string>
     <string name="doh_custom_url_remove_dialog_message">সংরক্ষিত কনফিগারেশন থেকে Https এন্ডপয়েন্টের উপরে DNS মুছুন।</string>
@@ -25,13 +25,13 @@
     <string name="dns_crypt_relay_remove_dialog_title">DNSCrypt রিলে মুছবেন\?</string>
     <string name="download_update_dialog_message_success">ব্লকলিস্ট ডাউনলোড সফল হয়েছে।</string>
     <string name="orbot_stop_dialog_title">ম্যানুয়াল হস্তক্ষেপ প্রয়োজন</string>
-    <string name="dc_dns_website_desc"><i>duckduckgo.com</i> থেকে ওয়েবসাইট আইকন নিয়ে আসে। ডিস্ক স্পেস 350 mb পর্যন্ত খরচ করে</string>
+    <string name="dc_dns_website_desc">duckduckgo.com থেকে ওয়েবসাইট আইকন নিয়ে আসে। ডিস্ক স্পেস 350 mb পর্যন্ত খরচ করে</string>
     <string name="about_bug_report">বাগ রিপোর্ট</string>
     <string name="about_telegram_link">https://telegram.me/rethinkdns</string>
     <string name="lbl_add">যোগ করুন</string>
     <string name="default_dns_name">RDNS ডিফল্ট</string>
     <string name="blocklist_update_check_not_required">ব্লকলিস্টগুলি ইতিমধ্যেই সর্বশেষ সংস্করণে রয়েছে৷</string>
-    <string name="search_custom_domains"><font size="12">ডোমেন নাম অনুসন্ধান করুন</font></string>
+    <string name="search_custom_domains">ডোমেন নাম অনুসন্ধান করুন</string>
     <string name="settings_dns_proxy_dialog_header">SOCKS5 (TCP) প্রক্সি সেট করুন</string>
     <string name="firewall_status_unknown">অজানা</string>
     <string name="lbl_proceed">আরম্ভ করুন</string>
@@ -54,7 +54,7 @@
     <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">ব্যর্থ</string>
     <string name="notification_action_pause_vpn">বিরতি</string>
     <string name="apps_info_title">অ্যাপস</string>
-    <string name="search_universal_ips"><font size="12">আইপি অনুসন্ধান করুন</font></string>
+    <string name="search_universal_ips">আইপি অনুসন্ধান করুন</string>
     <string name="info_dialog_rethink_toast_msg">RDNS+ DNS-over-HTTPS URL হিসেবে কপি করা হয়েছে</string>
     <string name="settings_orbot_disabled_error">Tor-as-a-proxy সেটআপ চালিয়ে যেতে HTTP(S) এবং/অথবা SOCKS5 প্রক্সি বন্ধ করুন।</string>
     <string name="settings_general_header">সাধারণ</string>
@@ -114,7 +114,7 @@
     <string name="dns_proxy_desc">%1$s:%2$s, %3$s</string>
     <string name="allow">অনুমতি</string>
     <string name="dns_mode_info_title">DNS</string>
-    <string name="bsct_block_ip"><u>এই অ্যাপের</u> জন্য <u>এই IP</u> ব্লক করুন, বাইপাস করুন</string>
+    <string name="bsct_block_ip">এই অ্যাপের জন্য এই IP ব্লক করুন, বাইপাস করুন</string>
     <string name="always_on_dialog_positive_btn">সেটিংস এ যান</string>
     <string name="dns_proxy_remove_success">DNS প্রক্সি মুছে ফেলা হয়েছে৷</string>
     <string name="orbot_bs_status_4">টর-এ-এ-প্রক্সি (অরবট) সেটআপে এক-ক্লিক করুন।</string>
@@ -165,7 +165,7 @@
     <string name="conn_track_clear_logs_message">এটি শুধুমাত্র নেটওয়ার্ক লগ মুছে দেয় কিন্তু ফায়ারওয়াল নিয়ম নয়। এই অপারেশন বিপরীত করা যায় না. আপনি কি এগিয়ে যেতে চান\?</string>
     <string name="dns_crypt_custom_url_remove_dialog_title">DNSCrypt সমাধানকারী মুছবেন\?</string>
     <string name="dns_proxy_remove_dialog_title">ডিএনএস প্রক্সি মুছবেন\?</string>
-    <string name="settings_network_all_networks_desc">সক্রিয় করা হলে, RethinkDNS ইন্টারনেটের সাথে সংযোগ করতে সমস্ত উপলব্ধ নেটওয়ার্ক ব্যবহার করে। যদি তা না হয়, তবে এটি Android দ্বারা <i>সক্রিয়</i> হিসাবে বিবেচিত যে কোনও নেটওয়ার্ক ব্যবহার করে৷</string>
+    <string name="settings_network_all_networks_desc">সক্রিয় করা হলে, RethinkDNS ইন্টারনেটের সাথে সংযোগ করতে সমস্ত উপলব্ধ নেটওয়ার্ক ব্যবহার করে। যদি তা না হয়, তবে এটি Android দ্বারা সক্রিয় হিসাবে বিবেচিত যে কোনও নেটওয়ার্ক ব্যবহার করে৷</string>
     <string name="settings_ip_dialog_title">আইপি সংস্করণ চয়ন করুন</string>
     <string name="settings_ip_dialog_ipv46">স্বয়ংক্রিয় (পরীক্ষামূলক)</string>
     <string name="settings_ip_text_ipv4">IPv4</string>
@@ -249,7 +249,7 @@
     <string name="doh_custom_url_remove_dialog_title">DoH এন্ডপয়েন্ট মুছবেন\?</string>
     <string name="dns_crypt_relay_remove_dialog_message">সংরক্ষিত কনফিগারেশন থেকে DNSCrypt রিলে মুছুন।</string>
     <string name="custom_url_error_invalid_url">অবৈধ ইউ আর এল</string>
-    <string name="alert_firewall_accessibility_regrant_explanation">RethinkDNS অ্যাক্সেসিবিলিটি পরিষেবা বন্ধ বা ক্র্যাশ হয়েছে৷ <i><b>সেটিংসে যান এবং ফোর্স স্টপ</b></i> রিথিঙ্কডিএনএসে যান এবং <i>ব্যবহৃত নয় এমন কোনো অ্যাপ ব্লক করুন</i> বৈশিষ্ট্যটি ব্যবহার করতে এটি আবার শুরু করুন।
+    <string name="alert_firewall_accessibility_regrant_explanation">RethinkDNS অ্যাক্সেসিবিলিটি পরিষেবা বন্ধ বা ক্র্যাশ হয়েছে৷ সেটিংসে যান এবং ফোর্স স্টপ রিথিঙ্কডিএনএসে যান এবং ব্যবহৃত নয় এমন কোনো অ্যাপ ব্লক করুন বৈশিষ্ট্যটি ব্যবহার করতে এটি আবার শুরু করুন।
 \n
 \nRethinkDNS অ্যাক্সেসিবিলিটি পরিষেবা ব্যবহার করে কোন অ্যাপগুলি ব্যবহার করা হচ্ছে (ফোরগ্রাউন্ড) বনাম যেগুলি ব্যবহারে নেই (পটভূমিতে) তা ট্র্যাক করতে।</string>
     <string name="conn_track_clear_logs_title">সমস্ত নেটওয়ার্ক লগ মুছবেন\?</string>
@@ -278,10 +278,10 @@
     <string name="settings_https_desc">এই সেটিংটি শুধুমাত্র একটি সুপারিশ এবং এটি সম্ভব যে অ্যাপগুলি এটিকে উপেক্ষা করবে৷ HTTP(S) প্রক্সি ব্যবহার করা অ্যাপগুলি ফায়ারওয়াল এবং DNS উভয় নিয়মকে বাইপাস করবে।</string>
     <string name="orbot_none">কোনটিই নয় (ডিফল্ট)</string>
     <string name="orbot_bs_status_1">অরবোটে %1$s সংযোগ ফরোয়ার্ড করা হচ্ছে।</string>
-    <string name="settings_custom_downloader_desc">অক্ষম থাকলে, Android এর বিল্ট-ইন <i>ডাউনলোড ম্যানেজার</i> ব্যবহার করা হয়।</string>
+    <string name="settings_custom_downloader_desc">অক্ষম থাকলে, Android এর বিল্ট-ইন ডাউনলোড ম্যানেজার ব্যবহার করা হয়।</string>
     <string name="firewall_status_whitelisted">সার্বজনীন ফায়ারওয়াল নিয়ম বাইপাস করে</string>
     <string name="orbot_install_dialog_message">অরবট অ্যান্ড্রয়েডে টরের বৈশিষ্ট্য এবং কার্যকারিতা নিয়ে আসে।</string>
-    <string name="orbot_explanation">Orbot হল একটি বিনামূল্যের প্রক্সি অ্যাপ যা অন্যান্য অ্যাপকে আরও বেশি <u>নিরাপদভাবে</u> ইন্টারনেট ব্যবহার করার ক্ষমতা দেয়।অরবট আপনার ইন্টারনেট ট্র্যাফিক এনক্রিপ্ট করতে <u>Tor</u> ব্যবহার করে যা আপনাকে <u>সেন্সরশিপ বাইপাস</u> করতে এবং ব্যক্তিগত স্বাধীনতা এবং গোপনীয়তাকে হুমকিস্বরূপ <u>নেটওয়ার্ক নজরদারি </u> এর রূপগুলি থেকে রক্ষা করতে সহায়তা করে৷ \n<u>TCP প্রক্সি</u>: RethinkDNS অরবোটে বাদ দেওয়া অ্যাপ ছাড়া শুধুমাত্র TCP কানেকশন ফরোয়ার্ড করে। \n<u>HTTP প্রক্সি</u>: RethinkDNS <i>সেট</i> HTTP প্রক্সি কিন্তু প্রয়োগ করে না যে অ্যাপগুলি এটি ব্যবহার করে। সাধারণত, Chrome এবং Firefox এর মতো ব্রাউজারগুলি এটি ব্যবহার করে। HTTP(S) প্রক্সি ব্যবহার করা অ্যাপগুলি ফায়ারওয়াল এবং DNS উভয় নিয়মকে বাইপাস করবে।</string>
+    <string name="orbot_explanation">Orbot হল একটি বিনামূল্যের প্রক্সি অ্যাপ যা অন্যান্য অ্যাপকে আরও বেশি নিরাপদভাবে ইন্টারনেট ব্যবহার করার ক্ষমতা দেয়।অরবট আপনার ইন্টারনেট ট্র্যাফিক এনক্রিপ্ট করতে Tor ব্যবহার করে যা আপনাকে সেন্সরশিপ বাইপাস করতে এবং ব্যক্তিগত স্বাধীনতা এবং গোপনীয়তাকে হুমকিস্বরূপ নেটওয়ার্ক নজরদারি  এর রূপগুলি থেকে রক্ষা করতে সহায়তা করে৷ \nTCP প্রক্সি: RethinkDNS অরবোটে বাদ দেওয়া অ্যাপ ছাড়া শুধুমাত্র TCP কানেকশন ফরোয়ার্ড করে। \nHTTP প্রক্সি: RethinkDNS সেট HTTP প্রক্সি কিন্তু প্রয়োগ করে না যে অ্যাপগুলি এটি ব্যবহার করে। সাধারণত, Chrome এবং Firefox এর মতো ব্রাউজারগুলি এটি ব্যবহার করে। HTTP(S) প্রক্সি ব্যবহার করা অ্যাপগুলি ফায়ারওয়াল এবং DNS উভয় নিয়মকে বাইপাস করবে।</string>
     <string name="settings_socks5_disabled_error">অরবোটের সাথে সংযুক্ত। চালিয়ে যেতে এটি বন্ধ করুন।</string>
     <string name="settings_socks_forwarding_desc_no_app">ফরোয়ার্ড করা হচ্ছে %1$s:%2$s</string>
     <string name="settings_orbot_notification_content">Tor-as-a-Proxy শুরু করতে ব্যর্থ হয়েছে৷ ম্যানুয়ালি শুরু করতে Orbot অ্যাপটি খুলুন।</string>
@@ -311,7 +311,7 @@
     <string name="dns_proxy_dialog_message_no_app">আইপি ঠিকানা: %1$s
 \n
 \nপোর্ট নম্বর: %2$s</string>
-    <string name="firewall_rule_block_app_desc">একটি ব্যবহারকারী-সেট ফায়ারওয়াল নিয়ম এই <i>অ্যাপ</i>কে ব্লক করেছে।<br/><br/> পরিবর্তন করতে <i>সমস্ত অ্যাপস</i> ট্যাবে যান।</string>
+    <string name="firewall_rule_block_app_desc">একটি ব্যবহারকারী-সেট ফায়ারওয়াল নিয়ম এই অ্যাপকে ব্লক করেছে।<br/><br/> পরিবর্তন করতে সমস্ত অ্যাপস ট্যাবে যান।</string>
     <string name="ada_app_unmetered">মিটারবিহীন</string>
     <string name="notif_channel_firewall_alerts">ফায়ারওয়াল সতর্কতা</string>
     <string name="category_name_others">অন্যান্য</string>
@@ -323,7 +323,7 @@
     <string name="firewall_rule_block_app_exception">ত্রুটি</string>
     <string name="firewall_rule_block_ip">আইপি / পোর্ট</string>
     <string name="firewall_rule_block_dns_bypass">DNS বাইপাস</string>
-    <string name="firewall_rule_global_lockdown_desc">এই সংযোগটি অবরুদ্ধ করা হয়েছে কারণ সর্বজনীন লকডাউন সেট করা হয়েছে।<br/><br/> পরিবর্তন করতে <i>ইউনিভার্সাল</i> ট্যাবে যান।</string>
+    <string name="firewall_rule_global_lockdown_desc">এই সংযোগটি অবরুদ্ধ করা হয়েছে কারণ সর্বজনীন লকডাউন সেট করা হয়েছে।<br/><br/> পরিবর্তন করতে ইউনিভার্সাল ট্যাবে যান।</string>
     <string name="dc_dns_crypt">DNSCrypt</string>
     <string name="dc_dns_proxy">DNS প্রক্সি</string>
     <string name="brbs_restore_dialog_message">একটি ব্যাকআপ ফাইল থেকে অ্যাপ সেটিংস, নেটওয়ার্ক এবং ডিএনএস লগ পুনরুদ্ধার করুন। এটি অ্যাপটি পুনরায় চালু করবে।</string>
@@ -331,8 +331,8 @@
     <string name="brbs_restore_dialog_failure_message">পুনরুদ্ধার করা যায়নি। আবার চেষ্টা করুন\?</string>
     <string name="copy_clipboard_label">ইউআরএল (URL)</string>
     <string name="firewall_rule_exempt_orbot_setup">অরবোট সেটআপ</string>
-    <string name="firewall_rule_bypass_universal_ip_desc">এই সংযোগের অনুমতি দেওয়া হয়েছিল কারণ &lt;i&gt;গন্তব্য আইপি&lt;/i&gt; সমস্ত সার্বজনীন ফায়ারওয়াল নিয়মগুলিকে বাইপাস করতে সেট করা হয়েছে৷&lt;br/&gt;&lt;br/&gt; পরিবর্তন করতে &lt;i&gt;ইউনিভার্সাল&lt;-এ &lt;i&gt;আইপি নিয়মে&lt;i&gt; যান &lt;/i&gt; ট্যাব।</string>
-    <string name="firewall_rule_device_lock_desc">এই সংযোগটি ফায়ারওয়াল করা হয়েছিল কারণ <i>ডিভাইসটি সেই সময়ে লক করা ছিল</i>।</string>
+    <string name="firewall_rule_bypass_universal_ip_desc">এই সংযোগের অনুমতি দেওয়া হয়েছিল কারণ গন্তব্য আইপি সমস্ত সার্বজনীন ফায়ারওয়াল নিয়মগুলিকে বাইপাস করতে সেট করা হয়েছে৷&lt;br/&gt;&lt;br/&gt; পরিবর্তন করতে ইউনিভার্সাল&lt;-এ আইপি নিয়মে যান  ট্যাব।</string>
+    <string name="firewall_rule_device_lock_desc">এই সংযোগটি ফায়ারওয়াল করা হয়েছিল কারণ ডিভাইসটি সেই সময়ে লক করা ছিল।</string>
     <string name="notif_channel_desc_proxy_failure">প্রক্সি ত্রুটি এবং অসঙ্গতির বিষয়ে সতর্কতা</string>
     <string name="network_dns">সিস্টেম DNS</string>
     <string name="lbbs_update_check">হালনাগাদ আছে কিনা দেখো</string>
@@ -347,19 +347,18 @@
     <string name="dns_proxy_connection_failure">DNS প্রক্সি সার্ভারের সাথে সংযোগ করতে ত্রুটি৷</string>
     <string name="new_app_notification_action_deny">প্রতিরোধ করে রাখা</string>
     <string name="new_app_notification_action_toast_deny">অ্যাপের জন্য নেটওয়ার্ক সংযোগ অস্বীকার করা হয়েছে</string>
-    <string name="build__flavor_website">ওয়েবসাইট</string>
     <string name="ada_app_bypass_univ">বাইপাস ইউনিভার্সাল</string>
     <string name="brbs_restore_title">পুনঃস্থাপন</string>
     <string name="brbs_backup_dialog_failure_title">ব্যাকআপ ব্যর্থ হয়েছে</string>
     <string name="network_log_app_name_unknown">অজ্ঞাত</string>
     <string name="firewall_rule_block_http">অনিরাপদ HTTP</string>
-    <string name="firewall_rule_block_app_unmetered_desc"><i>আনমিটারড</i> নেটওয়ার্কে সংযোগ করার চেষ্টা করার সময় একটি ব্যবহারকারী-সেট ফায়ারওয়াল নিয়ম এই <i>অ্যাপ</i> ব্লক করে।</string>
-    <string name="firewall_rule_exempt_app_bypass_univ_desc">এই সংযোগের অনুমতি দেওয়া হয়েছিল কারণ <i>সোর্স অ্যাপ</i> সেট করা হয়েছে <i>বাইপাস ইউনিভার্সাল</i> ফায়ারওয়াল নিয়মে।</string>
+    <string name="firewall_rule_block_app_unmetered_desc">আনমিটারড নেটওয়ার্কে সংযোগ করার চেষ্টা করার সময় একটি ব্যবহারকারী-সেট ফায়ারওয়াল নিয়ম এই অ্যাপ ব্লক করে।</string>
+    <string name="firewall_rule_exempt_app_bypass_univ_desc">এই সংযোগের অনুমতি দেওয়া হয়েছিল কারণ সোর্স অ্যাপ সেট করা হয়েছে বাইপাস ইউনিভার্সাল ফায়ারওয়াল নিয়মে।</string>
     <string name="brbs_backup_dialog_message">একটি ফাইলে অ্যাপ সেটিংস, নেটওয়ার্ক এবং ডিএনএস লগ ব্যাক আপ করে। এটি VPN পুনরায় চালু করবে।</string>
     <string name="firewall_rule_block_udp_ntp">UDP অবরুদ্ধ</string>
     <string name="firewall_rule_global_lockdown">তালাবদ্ধ</string>
     <string name="firewall_rule_no_rule_desc">কোন ফায়ারওয়াল নিয়ম এই সংযোগ মেলে না.</string>
-    <string name="firewall_rule_foreground_desc">এই সংযোগটি ফায়ারওয়াল করা হয়েছে কারণ সোর্স অ্যাপটি <i>ফোরগ্রাউন্ডে ছিল না</i>।</string>
+    <string name="firewall_rule_foreground_desc">এই সংযোগটি ফায়ারওয়াল করা হয়েছে কারণ সোর্স অ্যাপটি ফোরগ্রাউন্ডে ছিল না।</string>
     <string name="notif_dialog_pause_dialog_positive">পুনরারম্ভ</string>
     <string name="notif_channel_desc_vpn_notification">RethinkDNS সক্রিয় এবং ব্যাকগ্রাউন্ডে চলমান থাকলে তা জানান</string>
     <string name="ada_ip_no_connection">এই অ্যাপের জন্য কোনো নেটওয়ার্ক লগ নেই।</string>
@@ -379,10 +378,10 @@
     <string name="system_dns_connection_failure">বর্তমান DNS সার্ভার নির্ধারণ করা যাচ্ছে না</string>
     <string name="other_dns_list_tab3">ডিএনএস প্রক্সি</string>
     <string name="firewall_rule_univ_block_metered">মিটারযুক্ত (সর্বজনীন)</string>
-    <string name="firewall_rule_new_app_desc">এই অ্যাপটি <i>প্রথম</i> বারের জন্য সংযোগ তৈরি করেছে।<br/><br/> পরিবর্তন করতে <i>ইউনিভার্সাল</i> ট্যাবে যান।</string>
-    <string name="firewall_rule_block_app_mobile_desc"><i>Metered</i> নেটওয়ার্কে সংযোগ করার চেষ্টা করার সময় একটি ব্যবহারকারী-সেট ফায়ারওয়াল নিয়ম এই <i>অ্যাপ</i> ব্লক করে।</string>
-    <string name="firewall_rule_isolate_desc">একটি ব্যবহারকারী-সেট ফায়ারওয়াল নিয়ম এই <i>অ্যাপ</i>কে <i>বাইপাস করা IPs</i> ব্যতীত অন্যের সাথে সংযোগ ব্লক করেছে।<br/><br/> পরিবর্তন করতে <i>সমস্ত অ্যাপস</i> ট্যাবে যান।</string>
-    <string name="firewall_rule_block_http_desc">এই সংযোগটি ব্লক করা হয়েছে কারণ এটি সম্ভবত <i>অনিরাপদ HTTP</i> ব্যবহার করেছে।<br/><br/> পরিবর্তন করতে <i>ইউনিভার্সাল</i> ট্যাবে যান৷</string>
+    <string name="firewall_rule_new_app_desc">এই অ্যাপটি প্রথম বারের জন্য সংযোগ তৈরি করেছে।<br/><br/> পরিবর্তন করতে ইউনিভার্সাল ট্যাবে যান।</string>
+    <string name="firewall_rule_block_app_mobile_desc">Metered নেটওয়ার্কে সংযোগ করার চেষ্টা করার সময় একটি ব্যবহারকারী-সেট ফায়ারওয়াল নিয়ম এই অ্যাপ ব্লক করে।</string>
+    <string name="firewall_rule_isolate_desc">একটি ব্যবহারকারী-সেট ফায়ারওয়াল নিয়ম এই অ্যাপকে বাইপাস করা IPs ব্যতীত অন্যের সাথে সংযোগ ব্লক করেছে।<br/><br/> পরিবর্তন করতে সমস্ত অ্যাপস ট্যাবে যান।</string>
+    <string name="firewall_rule_block_http_desc">এই সংযোগটি ব্লক করা হয়েছে কারণ এটি সম্ভবত অনিরাপদ HTTP ব্যবহার করেছে।<br/><br/> পরিবর্তন করতে ইউনিভার্সাল ট্যাবে যান৷</string>
     <string name="notif_channel_vpn_failure">নিষ্ক্রিয় VPN</string>
     <string name="notif_channel_download">সতর্কতা ডাউনলোড করুন</string>
     <string name="ci_block">ব্লক</string>
@@ -405,11 +404,10 @@
     <string name="settings_local_blocklist_version">ভার্সন: v%1$s</string>
     <string name="firewall_rule_block_app_new_install">নতুন অ্যাপ</string>
     <string name="firewall_rule_device_lock">ডিভাইস লক করা হয়েছে</string>
-    <string name="firewall_rule_block_dns_bypass_desc">এই সংযোগটি ব্লক করা হয়েছে কারণ <i>সোর্স অ্যাপ</i> ব্যবহারকারী-পছন্দের DNS বাইপাস করেছে।</string>
+    <string name="firewall_rule_block_dns_bypass_desc">এই সংযোগটি ব্লক করা হয়েছে কারণ সোর্স অ্যাপ ব্যবহারকারী-পছন্দের DNS বাইপাস করেছে।</string>
     <string name="new_app_notification_content">RethinkDNS ব্লক করা হয়েছে সম্প্রতি ইনস্টল করা অ্যাপ, %1$s।</string>
     <string name="notif_channel_vpn_notification">সক্রিয় ভিপিএন</string>
     <string name="notif_channed_desc_download">অন-ডিভাইস ব্লকলিস্টের জন্য ডাউনলোডের অগ্রগতি সম্পর্কে সতর্কতা</string>
-    <string name="build__flavor_play_store">খেলা</string>
     <string name="ada_noapp_dialog_positive">ঠিক আছে</string>
     <string name="brbs_title">ব্যাকআপ এবং পুনরুদ্ধার করুন</string>
     <string name="brbs_restore_dialog_failure_positive">পুনরুদ্ধার পুনরায় চেষ্টা করুন</string>
@@ -432,9 +430,8 @@
     <string name="rt_download_desc">এই বৈশিষ্ট্যটি ব্যবহার করতে ব্লকলিস্ট ডাউনলোড করুন (প্রায় 60MB)।</string>
     <string name="settings_local_blocklist_in_use">%1$s ব্লকলিস্ট ব্যবহার করা হচ্ছে</string>
     <string name="firewall_rule_block_unmetered">মিটারবিহীন (ওয়াইফাই)</string>
-    <string name="firewall_rule_block_app_univ_mobile_desc"><i>Metered</i> (মোবাইল) নেটওয়ার্কে সংযোগ করার চেষ্টা করার সময় একটি ব্যবহারকারী-সেট ইউনিভার্সাল ফায়ারওয়াল নিয়ম এই <i>অ্যাপ</i> ব্লক করে। ট্যাব</string>
-    <string name="firewall_rule_block_udp_ntp_desc">একটি ব্যবহারকারী-সেট ফায়ারওয়াল নিয়ম এই <i>UDP</i> সংযোগ ব্লক করেছে।<br/><br/> পরিবর্তন করতে <i>ইউনিভার্সাল</i> ট্যাবে যান।</string>
-    <string name="build__flavor_fdroid">fdroid</string>
+    <string name="firewall_rule_block_app_univ_mobile_desc">Metered (মোবাইল) নেটওয়ার্কে সংযোগ করার চেষ্টা করার সময় একটি ব্যবহারকারী-সেট ইউনিভার্সাল ফায়ারওয়াল নিয়ম এই অ্যাপ ব্লক করে। ট্যাব</string>
+    <string name="firewall_rule_block_udp_ntp_desc">একটি ব্যবহারকারী-সেট ফায়ারওয়াল নিয়ম এই UDP সংযোগ ব্লক করেছে।<br/><br/> পরিবর্তন করতে ইউনিভার্সাল ট্যাবে যান।</string>
     <string name="ada_noapp_dialog_message">নির্দিষ্ট অ্যাপ্লিকেশনের জন্য অ্যাপ্লিকেশন তথ্য পাওয়া যায় নি.</string>
     <string name="ada_app_metered">মিটারযুক্ত</string>
     <string name="rbl_security">নিরাপত্তা</string>
@@ -444,8 +441,8 @@
     <string name="accessibility_notification_content">RethinkDNS অ্যাক্সেসিবিলিটি পরিষেবা বন্ধ বা ক্র্যাশ হয়েছে৷ ব্যাকগ্রাউন্ডেড অ্যাপসকে আর ব্লক করা হচ্ছে না। পুনরায় সক্ষম করতে আলতো চাপুন৷</string>
     <string name="firewall_rule_block_app">অ্যাপ ব্লক করা হয়েছে</string>
     <string name="firewall_rule_foreground">অ্যাপ ব্যবহারে নেই</string>
-    <string name="firewall_rule_block_ip_desc">একটি ব্যবহারকারী-সেট ফায়ারওয়াল নিয়ম <i>গন্তব্য আইপি</i> ব্লক করেছে।</string>
-    <string name="firewall_rule_exempt_orbot_setup_desc">এই সংযোগের অনুমতি দেওয়া হয়েছিল কারণ <i>এক-ক্লিক Tor-as-a-proxy</i> অরবোটের মাধ্যমে সেটআপ প্রক্রিয়াধীন ছিল৷</string>
+    <string name="firewall_rule_block_ip_desc">একটি ব্যবহারকারী-সেট ফায়ারওয়াল নিয়ম গন্তব্য আইপি ব্লক করেছে।</string>
+    <string name="firewall_rule_exempt_orbot_setup_desc">এই সংযোগের অনুমতি দেওয়া হয়েছিল কারণ এক-ক্লিক Tor-as-a-proxy অরবোটের মাধ্যমে সেটআপ প্রক্রিয়াধীন ছিল৷</string>
     <string name="new_app_bulk_notification_title">মনোযোগ</string>
     <string name="new_app_notification_action_toast_allow">অ্যাপের জন্য নেটওয়ার্ক সংযোগ অনুমোদিত</string>
     <string name="rt_dialog_message">আপনি কি নতুন কনফিগার করা ব্লকলিস্ট প্রয়োগ করতে চান\?</string>
@@ -454,14 +451,14 @@
     <string name="firewall_rule_isolate">লকডাউন (অ্যাপ)</string>
     <string name="firewall_rule_unknown">উৎস অজানা</string>
     <string name="firewall_rule_exempt_app_bypass_univ">বাইপাস অ্যাপ</string>
-    <string name="firewall_rule_unknown_desc">এই সংযোগটি ফায়ারওয়াল করা হয়েছে কারণ <i>সোর্স অ্যাপ</i> নির্ধারণ করা যায়নি।</string>
+    <string name="firewall_rule_unknown_desc">এই সংযোগটি ফায়ারওয়াল করা হয়েছে কারণ সোর্স অ্যাপ নির্ধারণ করা যায়নি।</string>
     <string name="category_name_sys_components">সিস্টেম উপাদান</string>
     <string name="rt_list_simple_btn_txt">সহজ</string>
     <string name="brbs_backup_dialog_failure_message">ব্যাকআপ করা যায়নি। আবার চেষ্টা করুন\?</string>
     <string name="update_complete_action_snack">আবার শুরু</string>
     <string name="firewall_rule_trusted_ip">বাইপাসড আইপি (অ্যাপ)</string>
-    <string name="firewall_rule_block_ip_univ_desc">একটি ব্যবহারকারী-সেট ফায়ারওয়াল নিয়ম <i>গন্তব্য আইপি / পোর্ট</i>কে ব্লক করেছে।<br/><br/> পরিবর্তন করতে <i>ইউনিভার্সাল</i> ট্যাবে যান</string>
-    <string name="firewall_rule_trusted_ip_desc">এই সংযোগের অনুমতি দেওয়া হয়েছিল কারণ <i>গন্তব্য IP</i> অ্যাপ-নির্দিষ্ট নিয়মগুলিকে বাইপাস করার জন্য সেট করা হয়েছে।<br/><br/> পরিবর্তন করতে <i>অ্যাপ-নির্দিষ্ট ফায়ারওয়াল</i> স্ক্রিনে যান।</string>
+    <string name="firewall_rule_block_ip_univ_desc">একটি ব্যবহারকারী-সেট ফায়ারওয়াল নিয়ম গন্তব্য আইপি / পোর্টকে ব্লক করেছে।<br/><br/> পরিবর্তন করতে ইউনিভার্সাল ট্যাবে যান</string>
+    <string name="firewall_rule_trusted_ip_desc">এই সংযোগের অনুমতি দেওয়া হয়েছিল কারণ গন্তব্য IP অ্যাপ-নির্দিষ্ট নিয়মগুলিকে বাইপাস করার জন্য সেট করা হয়েছে।<br/><br/> পরিবর্তন করতে অ্যাপ-নির্দিষ্ট ফায়ারওয়াল স্ক্রিনে যান।</string>
     <string name="notif_channel_desc_vpn_failure">Android বা অন্য VPN অ্যাপ দ্বারা RethinkDNS বন্ধ করা হলে জানান</string>
     <string name="lbbs_heading">185+ ব্লকলিস্ট কনফিগার করুন</string>
     <string name="brbs_restore_complete_toast">পুনরুদ্ধার সম্পন্ন হয়েছে, অ্যাপ পুনরায় চালু হচ্ছে…</string>
@@ -470,14 +467,14 @@
     <string name="fapps_firewall_filter_excluded">ছাঁটা</string>
     <string name="fapps_firewall_filter_isolate">তালাবদ্ধ</string>
     <string name="fapps_unmetered_unblock_dialog_title">আনমিটারে অনুমতি দিন</string>
-    <string name="fapps_unmetered_unblock_dialog_message"><i>তালিকাভুক্ত</i> অ্যাপগুলির জন্য মিটারবিহীন (ওয়াইফাই) নেটওয়ার্কে সংযোগের অনুমতি দেবেন\?</string>
+    <string name="fapps_unmetered_unblock_dialog_message">তালিকাভুক্ত অ্যাপগুলির জন্য মিটারবিহীন (ওয়াইফাই) নেটওয়ার্কে সংযোগের অনুমতি দেবেন\?</string>
     <string name="unicode_warning_sign">⚠</string>
     <string name="unicode_question_sign">❔</string>
     <string name="rules_load_failure_heading">বিঃদ্রঃ</string>
-    <string name="fapps_metered_block_dialog_message"><i>তালিকাভুক্ত</i> অ্যাপের জন্য মিটারযুক্ত (মোবাইল) নেটওয়ার্কে সংযোগ ব্লক করবেন\?</string>
-    <string name="fapps_metered_unblock_dialog_message"><i>তালিকাভুক্ত</i> অ্যাপের জন্য মিটারযুক্ত (মোবাইল) নেটওয়ার্কে সংযোগের অনুমতি দেবেন\?</string>
+    <string name="fapps_metered_block_dialog_message">তালিকাভুক্ত অ্যাপের জন্য মিটারযুক্ত (মোবাইল) নেটওয়ার্কে সংযোগ ব্লক করবেন\?</string>
+    <string name="fapps_metered_unblock_dialog_message">তালিকাভুক্ত অ্যাপের জন্য মিটারযুক্ত (মোবাইল) নেটওয়ার্কে সংযোগের অনুমতি দেবেন\?</string>
     <string name="fapps_firewall_filter_bypass_universal">বাইপাস</string>
-    <string name="fapps_unmetered_block_dialog_message"><i>তালিকাভুক্ত</i> অ্যাপের জন্য মিটারবিহীন (ওয়াইফাই) নেটওয়ার্কে সংযোগ ব্লক করবেন\?</string>
+    <string name="fapps_unmetered_block_dialog_message">তালিকাভুক্ত অ্যাপের জন্য মিটারবিহীন (ওয়াইফাই) নেটওয়ার্কে সংযোগ ব্লক করবেন\?</string>
     <string name="fapps_metered_block_dialog_title">মিটারে ব্লক</string>
     <string name="fapps_unmetered_block_dialog_title">আনমিটারে ব্লক করুন</string>
     <string name="fapps_metered_unblock_dialog_title">মিটারে অনুমতি দিন</string>
@@ -487,9 +484,9 @@
 \n
 \nমিটারযুক্ত (মোবাইল) / আনমিটারড (ওয়াইফাই) ফায়ারওয়াল নিয়ম মান্য করা হবে না যখন:
 \n
-\n1. VPN লকডাউন মোডে আছে (যেমন, <i>VPN ছাড়া সংযোগ ব্লক করুন</i> সক্ষম করা আছে)।
+\n1. VPN লকডাউন মোডে আছে (যেমন, VPN ছাড়া সংযোগ ব্লক করুন সক্ষম করা আছে)।
 \n
-\n2. <i>সমস্ত উপলব্ধ নেটওয়ার্ক ব্যবহার করুন</i> সেটিং সক্ষম করা আছে৷</string>
+\n2. সমস্ত উপলব্ধ নেটওয়ার্ক ব্যবহার করুন সেটিং সক্ষম করা আছে৷</string>
     <string name="lbl_status" translatable="true">স্ট্যাটাস</string>
     <string name="lbl_remove" translatable="true">সরান</string>
     <string name="lbl_last" translatable="true">শেষ</string>
@@ -542,7 +539,6 @@
     <string name="lbl_disabled" translatable="true">অক্ষম</string>
     <string name="lbl_action_required" translatable="true">কাজ করা দরকার</string>
     <string name="lbl_domain_rules" translatable="true">ডোমেইন এর নিয়মসমূহ</string>
-    <string name="lbl_unselected" translatable="true">অনির্বাচিত</string>
     <string name="lbl_idle" translatable="true">নিষ্ক্রিয়</string>
     <string name="home_last_24_hours">গত ২৪ ঘণ্টা</string>
     <plurals name="home_stopped_at_dns_count">

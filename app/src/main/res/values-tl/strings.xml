@@ -31,19 +31,19 @@
     <string name="bypass_universal" translatable="true">lusutan ang pangkalahatan</string>
     <string name="universal_firewall_explanation" translatable="true">Mag-apply ng mga patakaran ng firewall sa lahat ng mga aplikasyon batay sa mga pangyayari sa device, halimbawa, mag-apply ng firewall kapag nakalock ang device o kapag hindi ginagamit ang partikular na app.</string>
     <string name="firewall_act_universal_tab" translatable="true">pangkalahatan</string>
-    <string name="search_universal_ips" translatable="true"><font size="12">Maghanap ng mga IP</font></string>
+    <string name="search_universal_ips" translatable="true">Maghanap ng mga IP</string>
     <string name="firewall_rule_block_univ_ip" translatable="true">IP / Port (Pangkalahatan)</string>
-    <string name="fapps_bypass_dns_firewall_dialog_message" translatable="true">Malagpasan ba ang universal DNS &amp; firewall na mga patakaran para sa mga <i>nakalista</i> na mga apps\?</string>
+    <string name="fapps_bypass_dns_firewall_dialog_message" translatable="true">Malagpasan ba ang universal DNS &amp; firewall na mga patakaran para sa mga nakalista na mga apps\?</string>
     <string name="firewall_rule_bypass_universal_ip" translatable="true">Na-bypass ang IP</string>
     <string name="firewall_status_whitelisted" translatable="true">Lumalampas sa pangkalahatang patakaran ng firewall</string>
     <string name="fapps_firewall_filter_bypass_universal" translatable="true">Nalampasan</string>
     <string name="fapps_info_bypass_msg" translatable="true">Iwasan ang mga patakaran ng Universal na firewall.</string>
-    <string name="fapps_bypass_block_dialog_message" translatable="true">Mag-bypass ng universal firewall rules para sa <i>naka-lista</i> na mga apps\?</string>
+    <string name="fapps_bypass_block_dialog_message" translatable="true">Mag-bypass ng universal firewall rules para sa naka-lista na mga apps\?</string>
     <string name="firewall_rule_univ_block_metered" translatable="true">Naka-meter (Pangkalahatan)</string>
-    <string name="firewall_rule_new_app_desc" translatable="true">Ito ang <i>unang</i> pagkakataon na nagpakabit ang app na ito ng koneksyon.<br/><br/> Upang magbago, pumunta sa tab na <i>Universal</i>.</string>
-    <string name="firewall_rule_block_app_univ_mobile_desc" translatable="true">Ang isang universal na patakaran ng firewall na iniset ng user ay nag-block ng <i>app</i> na ito habang nagtatangka itong kumonekta sa <i>Metered</i> (Mobile) na network. <br/> <br/> Upang baguhin, pumunta sa tab na <i>Universal</i>.</string>
-    <string name="firewall_rule_block_ip_univ_desc" translatable="true">Isang user-set na firewall rule ang nag-block sa <i>destination IP / Port</i>.<br/><br/> Upang baguhin, pumunta sa tab na <i>Universal</i>.</string>
-    <string name="firewall_rule_bypass_universal_ip_desc" translatable="true">Pinapayagan ang koneksyong ito dahil ang <i>destination IP</i> ay nakatakda upang makaiwas sa lahat ng pangkalahatang patakaran ng firewall.<br/><br/> Upang baguhin, pumunta sa <i>IP Rules</i> sa tab na <i>Universal</i>.</string>
+    <string name="firewall_rule_new_app_desc" translatable="true">Ito ang unang pagkakataon na nagpakabit ang app na ito ng koneksyon.<br/><br/> Upang magbago, pumunta sa tab na Universal.</string>
+    <string name="firewall_rule_block_app_univ_mobile_desc" translatable="true">Ang isang universal na patakaran ng firewall na iniset ng user ay nag-block ng app na ito habang nagtatangka itong kumonekta sa Metered (Mobile) na network. <br/> <br/> Upang baguhin, pumunta sa tab na Universal.</string>
+    <string name="firewall_rule_block_ip_univ_desc" translatable="true">Isang user-set na firewall rule ang nag-block sa destination IP / Port.<br/><br/> Upang baguhin, pumunta sa tab na Universal.</string>
+    <string name="firewall_rule_bypass_universal_ip_desc" translatable="true">Pinapayagan ang koneksyong ito dahil ang destination IP ay nakatakda upang makaiwas sa lahat ng pangkalahatang patakaran ng firewall.<br/><br/> Upang baguhin, pumunta sa IP Rules sa tab na Universal.</string>
     <string name="hybrid_mode_notification_title" translatable="true">Nakaseguro! Nakakonekta sa DNS + Firewall.</string>
     <string name="untracked" translatable="true">hindi nasusundan</string>
     <string name="bypass_dns_firewall" translatable="true">Lusutan ang DNS at firewall</string>
@@ -65,7 +65,7 @@
     <string name="alert_firewall_accessibility_explanation" translatable="true">Ang RethinkDNS ay gumagamit ng accessibility service upang matukoy kung aling mga apps ang kasalukuyang ginagamit (foreground) at kung alin ang hindi ginagamit (background).
 \n
 \nHindi nagsusumikap ang RethinkDNS na mangolekta ng anumang impormasyon o maniktik sa inyo sa anumang paraan.</string>
-    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Nakapagpapahinto o bumagsak na ang serbisyong pang-accessibility ng RethinkDNS. <i><b>Pumunta sa Settings at Force Stop</b></i> RethinkDNS at simulan itong muli upang magamit ang feature na <i>I-block ang anumang app na hindi ginagamit</i>.
+    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Nakapagpapahinto o bumagsak na ang serbisyong pang-accessibility ng RethinkDNS. Pumunta sa Settings at Force Stop RethinkDNS at simulan itong muli upang magamit ang feature na I-block ang anumang app na hindi ginagamit.
 \n
 \nGinagamit ng RethinkDNS ang serbisyong pang-accessibility upang ma-track kung aling mga app ang ginagamit (foreground) at kung alin ang hindi (background).</string>
     <string name="always_on_dialog_neutral" translatable="true">Mga Settings</string>

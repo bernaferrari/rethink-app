@@ -62,7 +62,6 @@
     <string name="lbl_anonymous" translatable="true">නිර්නාමික</string>
     <string name="lbl_peer" translatable="true">පියර්</string>
     <string name="lbl_split" translatable="true">බෙදන්න</string>
-    <string name="lbl_unselected" translatable="true">තොරානොගත්</string>
     <string name="lbl_test" translatable="true">පරීක්ෂනය</string>
     <string name="lbl_experimental" translatable="true">(අත්හදා බැලීම)</string>
     <string name="lbl_service_providers" translatable="true">සේවා සපයන්නෝ</string>

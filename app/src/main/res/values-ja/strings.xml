@@ -28,7 +28,7 @@
     <string name="alert_permission_accessibility" translatable="true">権限 - ユーザー補助</string>
     <string name="conn_track_clear_logs_title" translatable="true">すべてのネットワークログを削除しますか？</string>
     <string name="bsct_app_info" translatable="true">アプリ情報</string>
-    <string name="bsct_block_ip" translatable="true"><u>この IP</u> を <u>このアプリ</u> に対してブロック・信頼</string>
+    <string name="bsct_block_ip" translatable="true">この IP を このアプリ に対してブロック・信頼</string>
     <string name="title_about" translatable="true">情報</string>
     <string name="title_settings" translatable="true">設定</string>
     <string name="title_statistics" translatable="true">統計</string>
@@ -79,11 +79,11 @@
     <string name="download_update_dialog_message_ok" translatable="true">すでに最新バージョンを使用しています。</string>
     <string name="download_update_dialog_message_success" translatable="true">ブロックリストのダウンロードに成功しました。</string>
     <string name="download_update_dialog_failure_title" translatable="true">何かの問題が発生しました!</string>
-    <string name="search_universal_ips" translatable="true"><font size="12">IPで検索</font></string>
-    <string name="search_custom_domains" translatable="true"><font size="12">ドメイン名で検索</font></string>
+    <string name="search_universal_ips" translatable="true">IPで検索</string>
+    <string name="search_custom_domains" translatable="true">ドメイン名で検索</string>
     <string name="info_dialog_rethink_toast_msg" translatable="true">RDNS+ DNS over HTTPS URL としてコピー</string>
     <string name="connection_http3" translatable="true">HTTP3</string>
-    <string name="settings_lock_down_proxy_desc" translatable="true">VPNがDNSのみモードまたはロックダウンモードで実行されている場合、プロキシを設定できません。<u>VPN設定に移動</u></string>
+    <string name="settings_lock_down_proxy_desc" translatable="true">VPNがDNSのみモードまたはロックダウンモードで実行されている場合、プロキシを設定できません。VPN設定に移動</string>
     <string name="settings_proxy_header" translatable="true">proxy</string>
     <string name="settings_socks5_heading" translatable="true">SOCKS5プロキシのセットアップ</string>
     <string name="settings_https_heading" translatable="true">HTTP(S)プロキシを設定する</string>
@@ -207,7 +207,7 @@
     <string name="orbot_install_dialog_message" translatable="true">Orbotは、Torの特徴と機能をAndroidにもたらします。</string>
     <string name="dns_proxy_remove_dialog_message" translatable="true">保存された構成から DNS プロキシを削除します。</string>
     <string name="always_on_dialog_stop_message" translatable="true">Keepout は現在常時接続 VPN が有効になっています。Keepout を停止してもよろしいですか\?</string>
-    <string name="always_on_dialog_lockdown_stop_message" translatable="true">RethinkはVPNを<i>ロックダウン</i>モードで実行しています。これを停止した場合、現在のインターネット接続が失われます。続行しますか\?</string>
+    <string name="always_on_dialog_lockdown_stop_message" translatable="true">RethinkはVPNをロックダウンモードで実行しています。これを停止した場合、現在のインターネット接続が失われます。続行しますか\?</string>
     <string name="private_dns_dialog_desc" translatable="true">Keepout の DNS 設定は、Android のプライベート DNS によって上書きされます。
 \n
 \nKeepout の DNS を使用するには、Android の設定にアクセスし、「プライベート DNS」をオフにしてください。</string>
@@ -230,7 +230,7 @@
     <string name="settings_http_proxy_toast_success" translatable="true">HTTP プロキシが設定されています</string>
     <string name="settings_allow_bypass_heading" translatable="true">バイパスを許可する</string>
     <string name="settings_allow_bypass_desc" translatable="true">リクエストアプリが必要に応じてRethinkDNSファイアウォールをバイパスできるようにします。ZoomやWhatsAppのような一部の音声/ビデオ会議アプリは、正しく機能するためにバイパスを必要とする場合があります。</string>
-    <string name="settings_lock_down_mode_desc" translatable="true">VPNがロックモードで動作している場合、バイパスを許可することはできません。<u>VPN設定</u> にアクセスしてください。</string>
+    <string name="settings_lock_down_mode_desc" translatable="true">VPNがロックモードで動作している場合、バイパスを許可することはできません。VPN設定 にアクセスしてください。</string>
     <string name="settings_protocol_translation_dns_inactive" translatable="true">DNS/DNS+ファイアウォールモードに切り替えると、この設定が有効になります</string>
     <string name="hsf_vpn_dialog_message" translatable="true">RethinkDNSは、デバイスのDNSリクエストを暗号化するローカルVPNのセットアップ、ネットワークモニターの実装、ファイアウォールルールの適用を許可する必要があります。
 \n
@@ -255,8 +255,8 @@
     <string name="settings_socks5_vpn_disabled_error" translatable="true">Rethinkを起動して始める。</string>
     <string name="settings_orbot_notification_action" translatable="true">Orbotを開く</string>
     <string name="settings_autostart_bootup_desc" translatable="true">デバイスの電源投入時に、シャットダウン前にRethinkDNSが動作していた場合は、RethinkDNSが自動的に起動します。</string>
-    <string name="settings_network_all_networks_desc" translatable="true">有効にすると、RethinkDNSは利用可能なすべてのネットワークを使用してインターネットに接続します。そうでない場合は、Androidによって<i>アクティブ</i>と見なされるネットワークを使用します。</string>
-    <string name="settings_custom_downloader_desc" translatable="true">無効の場合、Androidの組み込みの<i>ダウンロードマネージャー</i>が使用されます</string>
+    <string name="settings_network_all_networks_desc" translatable="true">有効にすると、RethinkDNSは利用可能なすべてのネットワークを使用してインターネットに接続します。そうでない場合は、Androidによってアクティブと見なされるネットワークを使用します。</string>
+    <string name="settings_custom_downloader_desc" translatable="true">無効の場合、Androidの組み込みのダウンロードマネージャーが使用されます</string>
     <string name="notification_screen_error" translatable="true">アプリの通知画面を起動できませんでした。</string>
     <string name="about_privacy_policy" translatable="true">プライバシーポリシーを確認</string>
     <string name="about_app" translatable="true">.app</string>
@@ -281,27 +281,27 @@
     <string name="dc_local_block_enabled" translatable="true">有効化</string>
     <string name="lbbs_enabled" translatable="true">有効化</string>
     <string name="lbbs_search" translatable="true">ブロックリストに含まれているドメインの検索</string>
-    <string name="orbot_explanation" translatable="true">Orbotは無料のプロキシアプリで、他のアプリがより<u>安全に</u>インターネットを利用できるようになります。 \nOrbotは<u>Tor</u>を使ってインターネットトラフィックを暗号化し、<u>検閲を回避し</u>個人の自由とプライバシーを脅かす<u>ネットワーク監視</u>形態からユーザーを守るのに役立ちます。 \n<u>TCPプロキシ</u>:RethinkDNSは、除外されたアプリを除くすべてのTCP接続のみをOrbotに転送する。 \n<u>HTTPプロキシ</u>:RethinkDNSはHTTPプロキシを<i>設定</i>するが、アプリがそれを使用することを強制されません。通常、ChromeやFirefoxのようなブラウザはそれを使用しています。HTTP(S)プロキシを使用するアプリは、ファイアウォールとDNSの両方のルールがバイパスされます。</string>
+    <string name="orbot_explanation" translatable="true">Orbotは無料のプロキシアプリで、他のアプリがより安全にインターネットを利用できるようになります。 \nOrbotはTorを使ってインターネットトラフィックを暗号化し、検閲を回避し個人の自由とプライバシーを脅かすネットワーク監視形態からユーザーを守るのに役立ちます。 \nTCPプロキシ:RethinkDNSは、除外されたアプリを除くすべてのTCP接続のみをOrbotに転送する。 \nHTTPプロキシ:RethinkDNSはHTTPプロキシを設定するが、アプリがそれを使用することを強制されません。通常、ChromeやFirefoxのようなブラウザはそれを使用しています。HTTP(S)プロキシを使用するアプリは、ファイアウォールとDNSの両方のルールがバイパスされます。</string>
     <string name="whats_new_version_update" translatable="true">&lt;b&gt;スーパーチャージ!&lt;/a&gt;&lt;br/&gt;&lt;br/&gt;1.&lt;i&gt;新機能&lt;/i&gt;:高度なDNSフィルタリング。アプリケーションの接続時にのみドメインルールを適用します。&lt;br/&gt;2.&lt;i&gt;新機能&lt;/i&gt;:アプリケーションごとにドメインを許可または拒否します。&lt;br/&gt;3.&lt;i&gt;新機能&lt;/i&gt;:すべてのアプリケーションに対してドメインを許可または拒否します。&lt;br/&gt;4.&lt;i&gt;新機能&lt;/i&gt;:アプリケーションごとにDNSとファイアウォールの両方のルールをバイパスします。&lt;br/&gt;5.&lt;i&gt;新機能&lt;/i&gt;:パケットキャプチャ(PCAP)。&lt;br/&gt;6.&lt;i&gt;新機能&lt;/i&gt;:DNSブースター。要求を結合し、応答をキャッシュします。&lt;br/&gt;7.&lt;i&gt;新機能&lt;/i&gt;:ドメインおよびIPルールを編集します。&lt;br/&gt;8.その他のマイナーなUI変更とバグ修正。&lt;br/&gt;Modulated Modulatedこのアプリケーションの翻訳を支援します英語のみ)。&lt;br/&gt;&lt;a href=https://svc.rethinkdns.com/r/translate&gt;</string>
-    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Keepout のユーザー補助サービスが停止またはクラッシュしました。<i><b>設定に移動して Keepout を強制終了</b></i>し、再度起動してください。<i>使用していないアプリをブロックする</i> 機能を使用してください。
+    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Keepout のユーザー補助サービスが停止またはクラッシュしました。設定に移動して Keepout を強制終了し、再度起動してください。使用していないアプリをブロックする 機能を使用してください。
 \n
 \nKeepout は、ユーザー補助サービスを使用して、使用中 (フォアグラウンド) のアプリと使用していない (バックグラウンド) のアプリを追跡しています。</string>
-    <string name="firewall_rule_bypass_universal_ip_desc" translatable="true"><i>宛先IP</i>がすべてのユニバーサルファイアウォールルールをバイパスするように設定されているため、この接続は許可されました。<br/><br/>変更するには、<i>ユニバーサル</i>の<i>IPルール</i>に移動してください。</string>
-    <string name="firewall_rule_domain_blocked_univ_desc" translatable="true"><i>ドメイン</i>がユニバーサルドメインルールでブロックされているため、この接続はブロックされました。<br/><br/>この動作を変更するには、<i>DNSの設定</i>タブに移動します。</string>
-    <string name="firewall_rule_domain_trusted_univ_desc" translatable="true">この接続が許可されたのは、<i>ドメイン</i>がユニバーサルドメインルールで信頼できるものとして設定されているためです。<br/><br/>この動作を変更するには、<i>DNSの設定</i>タブに移動します。</string>
-    <string name="firewall_rule_block_app_univ_mobile_desc" translatable="true"><i>従量制</i>（モバイル）ネットワークに接続しようとしたときに、ユーザーが設定したユニバーサルファイアウォール規則がこの<i>アプリ</i>をブロックしました。<br/><br/>変更するには、<i>ユニバーサル</i>タブに移動してください。</string>
-    <string name="firewall_rule_bypass_dns_firewall_desc" translatable="true">この接続は、接続元の<i>アプリ</i>がdnsと<i>ファイアウォールのルールを回避</i>するように設定されているため、許可されました。<br/><br/>変更するには、<i>アプリ固有のファイアウォール</i>画面に移動してください。</string>
-    <string name="firewall_rule_exempt_app_bypass_univ_desc" translatable="true">この接続は、接続元の<i>アプリ</i>がdnsと<i>ファイアウォールのルールを回避</i>するように設定されているため、許可されました。<br/><br/>変更するには、<i>アプリ固有のファイアウォール</i>画面に移動してください。</string>
-    <string name="firewall_rule_block_app_unmetered_desc" translatable="true">ユーザー設定のファイアウォール規則が<i>従量制</i>ネットワークに接続しようとしたため、この<i>アプリ</i>をブロックしました。<br/><br/>変更するには、<i>すべてのアプリ</i>タブに移動してください。</string>
-    <string name="firewall_rule_block_app_mobile_desc" translatable="true">ユーザー設定のファイアウォール規則が<i>従量制</i>ネットワークに接続しようとしたため、この<i>アプリ</i>をブロックしました。<br/><br/>変更するには、<i>すべてのアプリ</i>タブに移動してください。</string>
-    <string name="firewall_rule_foreground_desc" translatable="true">ソースアプリケーションが<i>フォアグラウンドにない</i>ため、この接続はファイアウォールで保護されました。<br/><br/>この動作を変更するには、<i>ユニバーサル</i>タブに移動します。</string>
-    <string name="firewall_rule_exempt_dns_proxied_desc" translatable="true">このDNS接続はプロキシ処理され、ユーザー優先のDNSエンドポイントに転送されました。<br/><br/> 変更するには、<i>DNS漏洩の防止</i> を <i>DNSの設定</i> から無効にします。</string>
-    <string name="firewall_rule_dns_blocked_desc" translatable="true"><i>ドメイン</i>がユーザー優先のDNSによってブロックされているため、この接続はブロックされました。<br/><br/>この動作を変更するには、<i>DNSの設定</i>タブに移動します。</string>
-    <string name="firewall_rule_isolate_desc" translatable="true">ユーザー設定のファイアウォール規則により、この<i>アプリ</i>が<i>バイパスされたIP</i>以外に接続したためブロックされました。<br/><br/>変更するには、<i>すべてのアプリ</i>タブに移動してください。</string>
-    <string name="firewall_rule_trusted_ip_desc" translatable="true"><i>送信先IPアドレス</i>が信頼できるIPアドレスに設定されているため、この接続は許可されました。<br/><br/>変更するには、<i>アプリ固有のファイアウォール</i>画面に移動します。</string>
-    <string name="firewall_rule_device_lock_desc" translatable="true"><i>デバイスがロックされていた</i>ため、この接続はファイアウォールで保護されていました。<br/><br/>この動作を変更するには、<i>ユニバーサル </i>タブに移動します。</string>
-    <string name="firewall_rule_unknown_desc" translatable="true"><i>ソースアプリケーション</i>を判別できなかったため、この接続はファイアウォールで保護されました。<br/><br/>この動作を変更するには、<i>ユニバーサル</i>タブに移動してください。</string>
-    <string name="firewall_rule_block_dns_bypass_desc" translatable="true"><i>ソースアプリケーション</i>がユーザー優先のDNSをバイパスしたため、この接続はブロックされました。<br/><br/>この動作を変更するには、<i>ユニバーサル</i>タブに移動してください。</string>
+    <string name="firewall_rule_bypass_universal_ip_desc" translatable="true">宛先IPがすべてのユニバーサルファイアウォールルールをバイパスするように設定されているため、この接続は許可されました。<br/><br/>変更するには、ユニバーサルのIPルールに移動してください。</string>
+    <string name="firewall_rule_domain_blocked_univ_desc" translatable="true">ドメインがユニバーサルドメインルールでブロックされているため、この接続はブロックされました。<br/><br/>この動作を変更するには、DNSの設定タブに移動します。</string>
+    <string name="firewall_rule_domain_trusted_univ_desc" translatable="true">この接続が許可されたのは、ドメインがユニバーサルドメインルールで信頼できるものとして設定されているためです。<br/><br/>この動作を変更するには、DNSの設定タブに移動します。</string>
+    <string name="firewall_rule_block_app_univ_mobile_desc" translatable="true">従量制（モバイル）ネットワークに接続しようとしたときに、ユーザーが設定したユニバーサルファイアウォール規則がこのアプリをブロックしました。<br/><br/>変更するには、ユニバーサルタブに移動してください。</string>
+    <string name="firewall_rule_bypass_dns_firewall_desc" translatable="true">この接続は、接続元のアプリがdnsとファイアウォールのルールを回避するように設定されているため、許可されました。<br/><br/>変更するには、アプリ固有のファイアウォール画面に移動してください。</string>
+    <string name="firewall_rule_exempt_app_bypass_univ_desc" translatable="true">この接続は、接続元のアプリがdnsとファイアウォールのルールを回避するように設定されているため、許可されました。<br/><br/>変更するには、アプリ固有のファイアウォール画面に移動してください。</string>
+    <string name="firewall_rule_block_app_unmetered_desc" translatable="true">ユーザー設定のファイアウォール規則が従量制ネットワークに接続しようとしたため、このアプリをブロックしました。<br/><br/>変更するには、すべてのアプリタブに移動してください。</string>
+    <string name="firewall_rule_block_app_mobile_desc" translatable="true">ユーザー設定のファイアウォール規則が従量制ネットワークに接続しようとしたため、このアプリをブロックしました。<br/><br/>変更するには、すべてのアプリタブに移動してください。</string>
+    <string name="firewall_rule_foreground_desc" translatable="true">ソースアプリケーションがフォアグラウンドにないため、この接続はファイアウォールで保護されました。<br/><br/>この動作を変更するには、ユニバーサルタブに移動します。</string>
+    <string name="firewall_rule_exempt_dns_proxied_desc" translatable="true">このDNS接続はプロキシ処理され、ユーザー優先のDNSエンドポイントに転送されました。<br/><br/> 変更するには、DNS漏洩の防止 を DNSの設定 から無効にします。</string>
+    <string name="firewall_rule_dns_blocked_desc" translatable="true">ドメインがユーザー優先のDNSによってブロックされているため、この接続はブロックされました。<br/><br/>この動作を変更するには、DNSの設定タブに移動します。</string>
+    <string name="firewall_rule_isolate_desc" translatable="true">ユーザー設定のファイアウォール規則により、このアプリがバイパスされたIP以外に接続したためブロックされました。<br/><br/>変更するには、すべてのアプリタブに移動してください。</string>
+    <string name="firewall_rule_trusted_ip_desc" translatable="true">送信先IPアドレスが信頼できるIPアドレスに設定されているため、この接続は許可されました。<br/><br/>変更するには、アプリ固有のファイアウォール画面に移動します。</string>
+    <string name="firewall_rule_device_lock_desc" translatable="true">デバイスがロックされていたため、この接続はファイアウォールで保護されていました。<br/><br/>この動作を変更するには、ユニバーサル タブに移動します。</string>
+    <string name="firewall_rule_unknown_desc" translatable="true">ソースアプリケーションを判別できなかったため、この接続はファイアウォールで保護されました。<br/><br/>この動作を変更するには、ユニバーサルタブに移動してください。</string>
+    <string name="firewall_rule_block_dns_bypass_desc" translatable="true">ソースアプリケーションがユーザー優先のDNSをバイパスしたため、この接続はブロックされました。<br/><br/>この動作を変更するには、ユニバーサルタブに移動してください。</string>
     <string name="dc_dns_leaks_desc" translatable="true">有効にすると、RethinkDNSはポート53上のすべてのパケットをキャプチャし、ユーザー設定のDNSエンドポイントに転送します</string>
     <string name="orbot_bs_status_4" translatable="true">ワンクリックでTor-as-a-Proxy（Orbot）を設定できます。</string>
     <string name="orbot_stop_dialog_message_combo" translatable="true">%1$s
@@ -341,13 +341,11 @@
     <string name="firewall_rule_block_http" translatable="true">安全でないHTTP</string>
     <string name="firewall_rule_trusted_domain" translatable="true">信頼できるドメイン (アプリ)</string>
     <string name="firewall_rule_no_rule_desc" translatable="true">この接続に一致するファイアウォール規則はありません。</string>
-    <string name="firewall_rule_trusted_domain_desc" translatable="true"><i>ドメイン</i>が信頼されたドメインとして設定されているため、この接続は許可されました。<br/><br/>変更するには、<i>アプリ固有のファイアウォール</i>画面に移動します。</string>
+    <string name="firewall_rule_trusted_domain_desc" translatable="true">ドメインが信頼されたドメインとして設定されているため、この接続は許可されました。<br/><br/>変更するには、アプリ固有のファイアウォール画面に移動します。</string>
     <string name="new_app_bulk_notification_title" translatable="true">注意</string>
     <string name="new_app_notification_content" translatable="true">RethinkDNSは最近インストールされたアプリ、%1$s をブロックしました。</string>
     <string name="notif_dialog_pause_dialog_positive" translatable="true">再開</string>
     <string name="notif_channel_desc_vpn_notification" translatable="true">RethinkDNS がアクティブでバックグラウンドで実行されている場合に通知する</string>
-    <string name="build__flavor_website" translatable="true">Webサイト</string>
-    <string name="build__flavor_fdroid" translatable="true">fdroid</string>
     <string name="ci_block" translatable="true">ブロック</string>
     <string name="radio_sky_btn" translatable="true">⛅ Sky</string>
     <string name="dc_dns_proxy" translatable="true">DNSプロキシ</string>
@@ -360,7 +358,7 @@
     <string name="settings_orbot_disabled_error" translatable="true">Tor-as-a-proxyの設定を続けるには、HTTP(S)とSOCKS5プロキシをオフにしてください。</string>
     <string name="firewall_rule_global_lockdown" translatable="true">ロックダウン</string>
     <string name="firewall_rule_trusted_ip" translatable="true">信頼できるIP</string>
-    <string name="firewall_rule_block_app_desc" translatable="true">ユーザーが設定したファイアウォールルールがこの<i>アプリ</i> をブロックしています。<br/><br/> 変更するには、<i>「すべてのアプリ」</i> タブに移動します。</string>
+    <string name="firewall_rule_block_app_desc" translatable="true">ユーザーが設定したファイアウォールルールがこのアプリ をブロックしています。<br/><br/> 変更するには、「すべてのアプリ」 タブに移動します。</string>
     <string name="firewall_rule_foreground" translatable="true">未使用のアプリ</string>
     <string name="firewall_rule_exempt_dns_proxied" translatable="true">DNSプロキシ</string>
     <string name="new_app_notification_action_toast_allow" translatable="true">アプリに許可されたネットワーク接続</string>
@@ -379,7 +377,7 @@
     <string name="category_name_installed" translatable="true">インストール済みのアプリ</string>
     <string name="cd_no_rules_text" translatable="true">ドメインルールはありません。</string>
     <string name="ci_no_rule" translatable="true">ルールなし</string>
-    <string name="rt_filter_hint" translatable="true"><u>すべての</u>ブロックリストを表示</string>
+    <string name="rt_filter_hint" translatable="true">すべてのブロックリストを表示</string>
     <string name="about_bug_no_log_dialog_positive_btn" translatable="true">メールを送信</string>
     <string name="radio_max_btn" translatable="true">🪂 Max</string>
     <string name="dc_rethink_dns_radio" translatable="true">RethinkDNS</string>
@@ -389,7 +387,7 @@
     <string name="about_bug_no_log_dialog_title" translatable="true">バグ報告</string>
     <string name="about_website" translatable="true">rethinkdns.comをご覧ください</string>
     <string name="lbl_network" translatable="true">ネットワーク</string>
-    <string name="bsct_block_domain" translatable="true"><u>このアプリ</u>の<u>ドメイン</u>をブロック、信頼します</string>
+    <string name="bsct_block_domain" translatable="true">このアプリのドメインをブロック、信頼します</string>
     <string name="firewall_act_universal_tab" translatable="true">ユニバーサル</string>
     <string name="local_blocklist_redownload" translatable="true">最新情報!</string>
     <string name="lbl_allowed_ips" translatable="true">許可された IP</string>

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="always_on_dialog_lockdown_stop_message">Hai impostato la VPN di Keepout in modalità <i>Obbligatoria</i> dalle impostazioni del dispositivo. Arrestarla potrebbe comportare la perdita della connessione a Internet su questo profilo utente. Vuoi continuare comunque\?</string>
+    <string name="always_on_dialog_lockdown_stop_message">Hai impostato la VPN di Keepout in modalità Obbligatoria dalle impostazioni del dispositivo. Arrestarla potrebbe comportare la perdita della connessione a Internet su questo profilo utente. Vuoi continuare comunque\?</string>
     <string name="dns_crypt_relay_remove_success">Relay DNSCrypt cancellato.</string>
     <string name="dns_proxy_remove_dialog_title">Eliminare il proxy DNS\?</string>
     <string name="blocklist_update_check_not_required">Le liste dei filtri sono già all\'ultima versione.</string>
     <string name="refresh_complete"><!-- use dc_refresh_toast -->Risincronizzazione dell\'elenco delle app completata.</string>
     <string name="whats_new_version_update">&lt;b&gt;Partecipazione alla LAN!&lt;/b&gt;&lt;br/&gt;&lt;br/&gt; 1. Nuovo: I log DNS e IP per ogni applicazione ora hanno una nuova vista meglio ordinata.&lt;br/&gt;2. Nuovo: Impostazione per &lt;i&gt;escludere&lt;/i&gt; opzionalmente le app che fanno da proxy forwarder.&lt;br/&gt; 3. Sistemato crash con &lt;i&gt;DNS Booster&lt;/i&gt; mentre si utilizza DNSCrypt.&lt;br/&gt; 4. Sistemata la traduzioneIPv6 to IPv4 in casi specifici.&lt;br/&gt; 5. Altre correzioni di bug e miglioramenti.&lt;br/&gt;&lt;br/&gt; &lt;a href=https://svc.rethinkdns.com/r/translate&gt;Aiutare a tradurre questa applicazione&lt;/a&gt;</string>
-    <string name="orbot_explanation">Orbot è un\'applicazione proxy gratuita che consente ad altre applicazioni di utilizzare Internet in modo più <u>sicuro</u>. \nOrbot utilizza <u>Tor</u> per crittografare il traffico Internet, aiutandoti a <u>aggirare la censura</u> e a difendersi dai vari tipi di <u>sorveglianza della rete</u> che minacciano la libertà personale e la privacy. \n<u>Proxy TCP</u>: Keepout inoltra a Orbot solo le connessioni TCP di tutte le applicazioni, tranne quelle escluse. \n<u>Proxy HTTP</u>: Keepout <i>imposta</i> la proxy HTTP, ma non impone alle app di utilizzarlo. Di solito, browser come Chrome e Firefox la utilizzano. Le applicazioni che utilizzano la proxy HTTP(S) aggirano sia le regole del Firewall che del DNS.</string>
+    <string name="orbot_explanation">Orbot è un\'applicazione proxy gratuita che consente ad altre applicazioni di utilizzare Internet in modo più sicuro. \nOrbot utilizza Tor per crittografare il traffico Internet, aiutandoti a aggirare la censura e a difendersi dai vari tipi di sorveglianza della rete che minacciano la libertà personale e la privacy. \nProxy TCP: Keepout inoltra a Orbot solo le connessioni TCP di tutte le applicazioni, tranne quelle escluse. \nProxy HTTP: Keepout imposta la proxy HTTP, ma non impone alle app di utilizzarlo. Di solito, browser come Chrome e Firefox la utilizzano. Le applicazioni che utilizzano la proxy HTTP(S) aggirano sia le regole del Firewall che del DNS.</string>
     <string name="block">blocca</string>
     <string name="status_dns_error">Errore DNS</string>
     <string name="app_name" translatable="false">Keepout</string>
@@ -40,7 +40,7 @@
     <string name="custom_url_error_invalid_url">URL non valido</string>
     <string name="conn_track_clear_logs_title">Cancellare il registro delle connessioni di rete\?</string>
     <string name="bsct_app_info">Informazioni sull\'app</string>
-    <string name="bsct_block_ip">Blocca, autorizza <u>questo IP</u> per <u>questa app</u></string>
+    <string name="bsct_block_ip">Blocca, autorizza questo IP per questa app</string>
     <string name="always_on_dialog_heading">Disabilita \"VPN sempre attiva\"</string>
     <string name="always_on_dialog">La funzione \"VPN sempre attiva\" è attivata su questo dispositivo. Per avviare Keepout, vai nell\'app Impostazioni e disattiva \"VPN sempre attiva\".</string>
     <string name="always_on_dialog_positive_btn">Vai alle impostazioni</string>
@@ -74,8 +74,8 @@
     <string name="download_update_dialog_failure_message">I nostri server potrebbero non funzionare al momento o non è stato possibile stabilire una connessione. Riprova più tardi.</string>
     <string name="download_update_dialog_trylater_title">Impossibile aggiornare ora</string>
     <string name="download_update_dialog_trylater_message">L\'aggiornamento non può essere eseguito al momento, riprova più tardi.</string>
-    <string name="search_universal_ips"><font size="12">Cerca IP</font></string>
-    <string name="search_custom_domains"><font size="12">Cerca nomi di dominio</font></string>
+    <string name="search_universal_ips">Cerca IP</string>
+    <string name="search_custom_domains">Cerca nomi di dominio</string>
     <string name="info_dialog_copy_toast_msg">Indirizzo IP copiato.</string>
     <string name="info_dialog_url_copy_toast_msg">URL copiato</string>
     <string name="info_dialog_rethink_toast_msg">Copiato come URL RDNS+ DNS-over-HTTPS</string>
@@ -84,7 +84,7 @@
     <string name="connection_http3">HTTP/3</string>
     <string name="settings_allow_bypass_heading">Attiva la visibilità rete</string>
     <string name="settings_allow_bypass_desc">Consentire alle app richiedenti di accedere a tutte le reti disponibili. Su richiesta queste app possono bypassare il tunnel VPN di Keepout. Alcune app per conferenze audio/video, come Zoom e Meet, potrebbero richiedere questa procedura per funzionare correttamente.</string>
-    <string name="settings_lock_down_mode_desc">Alcune opzioni sono disabilitate quando la VPN è in modalità di blocco. <u>Vai alle Impostazioni VPN</u>.</string>
+    <string name="settings_lock_down_mode_desc">Alcune opzioni sono disabilitate quando la VPN è in modalità di blocco. Vai alle Impostazioni VPN.</string>
     <string name="settings_proxy_header">proxy</string>
     <string name="settings_socks5_heading">Imposta Proxy SOCKS5</string>
     <string name="settings_https_heading">Imposta Proxy HTTP(S) CONNECT</string>
@@ -126,12 +126,12 @@
     <string name="settings_orbot_notification_action">Apri Orbot</string>
     <string name="settings_general_header">generali</string>
     <string name="settings_network_all_networks">Usa tutte le reti disponibili (sperimentale)</string>
-    <string name="settings_network_all_networks_desc">Se abilitato, Keepout utilizza tutte le reti disponibili per connettersi a Internet. Altrimenti, Keepout utilizza la rete indicata come <i>attiva</i> da Android.</string>
+    <string name="settings_network_all_networks_desc">Se abilitato, Keepout utilizza tutte le reti disponibili per connettersi a Internet. Altrimenti, Keepout utilizza la rete indicata come attiva da Android.</string>
     <string name="settings_autostart_bootup_heading">Avvio automatico all\'accensione (sperimentale)</string>
     <string name="settings_autostart_bootup_desc">Avvia automaticamente Keepout quando accendi il dispositivo, se questo era in esecuzione prima che venisse spento.</string>
     <string name="settings_check_update_heading">Controlla aggiornamenti dell\'app</string>
     <string name="settings_custom_downloader_heading">Scarica direttamente nell\'app</string>
-    <string name="settings_custom_downloader_desc">Se disabilitato, verrà utilizzato il <i>Gestore dei Download</i> di Android</string>
+    <string name="settings_custom_downloader_desc">Se disabilitato, verrà utilizzato il Gestore dei Download di Android</string>
     <string name="settings_check_update_desc">Controlla automaticamente se l\'app è aggiornata una volta a settimana.</string>
     <string name="settings_import_export_desc">Esegui manualmente il backup o il ripristino dei dati e delle impostazioni dell\'app.</string>
     <string name="settings_theme_heading">Aspetto</string>
@@ -142,7 +142,7 @@
     <string name="settings_http_proxy_toast_success">Proxy HTTP impostato</string>
     <string name="accessibility_service_description">Keepout utilizza i servizi di accessibilità per rilevare e filtrare le connessioni in background. Keepout non raccoglie ne vende alcuna informazione.</string>
     <string name="always_on_dialog_stop_message">Hai impostato Keepout come \"VPN sempre attiva\" dalle Impostazioni del dispositivo. Sei sicuro di voler comunque arrestare Keepout\?</string>
-    <string name="alert_firewall_accessibility_regrant_explanation">Il servizio di accessibilità Keepout si è arrestato o si è bloccato. <i><b>Andare in Impostazioni e forzare l\'arresto di</b></i> Keepout e avviarlo nuovamente per utilizzare la funzione <i>Blocca le app non in uso</i> .
+    <string name="alert_firewall_accessibility_regrant_explanation">Il servizio di accessibilità Keepout si è arrestato o si è bloccato. Andare in Impostazioni e forzare l\'arresto di Keepout e avviarlo nuovamente per utilizzare la funzione Blocca le app non in uso .
 \n
 \nKeepout utilizza il servizio di accessibilità per tenere traccia delle app in uso (in primo piano) e di quelle non in uso (in background).</string>
     <string name="conn_track_clear_logs_message">Ciò eliminerà solo il registro delle connessioni, ma non le regole del firewall. Questa operazione non è reversibile. Vuoi procedere\?</string>
@@ -185,10 +185,10 @@
     <string name="dns_proxy_port">Numero porta</string>
     <string name="fapps_metered_unblock_dialog_title">Consenti su rete a consumo</string>
     <string name="dns_crypt_connection_failure">Errore di connessione al server DNSCrypt.</string>
-    <string name="fapps_metered_unblock_dialog_message">Consentire le connessioni su rete a consumo (dati mobili) alle le applicazioni <i>elencate</i>\?</string>
+    <string name="fapps_metered_unblock_dialog_message">Consentire le connessioni su rete a consumo (dati mobili) alle le applicazioni elencate\?</string>
     <string name="unicode_question_sign">❔</string>
     <string name="unicode_warning_sign">⚠</string>
-    <string name="firewall_rule_trusted_ip_desc">Questa connessione è stata consentita perché l\'<i>IP di destinazione</i> è stato autorizzato.<br/><br/> Per modificare, vai alla schermata <i>del firewall specifica per l\'app</i>.</string>
+    <string name="firewall_rule_trusted_ip_desc">Questa connessione è stata consentita perché l\'IP di destinazione è stato autorizzato.<br/><br/> Per modificare, vai alla schermata del firewall specifica per l\'app.</string>
     <string name="notif_channel_desc_proxy_failure">Ti avvisa su errori e anomalie del Proxy</string>
     <string name="notif_channel_desc_vpn_notification">Ti informa quando Keepout è attivo e in esecuzione in background</string>
     <string name="notif_channel_desc_firewall_alerts">Ti avvisa su errori e anomalie del Firewall</string>
@@ -236,7 +236,7 @@
     <string name="dc_local_block_heading">Liste dei filtri sul dispositivo</string>
     <string name="dc_local_block_desc_1">Scegli tra più di 195 liste di filtri. Clicca qui per scaricarle o configurarle.</string>
     <string name="dc_dns_website_heading">Mostra l\'icona dei siti web nel registro DNS (sperimentale)</string>
-    <string name="dc_dns_website_desc">Recupera icone dei siti web da <i>nextdns.io</i> e <i>duckduckgo.com</i>. Utilizza fino a 350 MB di spazio su disco</string>
+    <string name="dc_dns_website_desc">Recupera icone dei siti web da nextdns.io e duckduckgo.com. Utilizza fino a 350 MB di spazio su disco</string>
     <string name="dc_dns_leaks_heading">Previeni aggiramenti del DNS</string>
     <string name="dc_dns_leaks_desc">Se abilitata, Keepout cattura i pacchetti sulla porta 53 e li invia invece all\'endpoint DNS scelto dall\'utente</string>
     <string name="dc_check_update_heading">Promemoria aggiornamenti liste dei filtri</string>
@@ -335,12 +335,12 @@
     <string name="fapps_firewall_filter_isolate">Isolate</string>
     <string name="fapps_info_dialog_message">Impedisci alle app di connettersi a Internet. Limitare l\'accesso a Internet aiuta a prevenire l\'uso eccessivo dei dati e a risparmiare batteria.</string>
     <string name="fapps_info_dialog_positive_btn">Okay</string>
-    <string name="fapps_unmetered_unblock_dialog_message">Consentire le connessioni su rete non a consumo (WiFi) alle le applicazioni <i>elencate</i>\?</string>
-    <string name="fapps_unmetered_block_dialog_message">Bloccare le connessioni su rete non a consumo (WiFi) alle le applicazioni <i>elencate</i>\?</string>
+    <string name="fapps_unmetered_unblock_dialog_message">Consentire le connessioni su rete non a consumo (WiFi) alle le applicazioni elencate\?</string>
+    <string name="fapps_unmetered_block_dialog_message">Bloccare le connessioni su rete non a consumo (WiFi) alle le applicazioni elencate\?</string>
     <string name="fapps_unmetered_unblock_dialog_title">Consenti su rete non a consumo</string>
     <string name="fapps_unmetered_block_dialog_title">Blocca su rete non a consumo</string>
     <string name="fapps_metered_block_dialog_title">Blocca su rete a consumo</string>
-    <string name="fapps_metered_block_dialog_message">Bloccare le connessioni sulla rete a consumo (dati mobili) delle le applicazioni <i>elencate</i>\?</string>
+    <string name="fapps_metered_block_dialog_message">Bloccare le connessioni sulla rete a consumo (dati mobili) delle le applicazioni elencate\?</string>
     <string name="rules_load_failure_heading">Nota</string>
     <string name="rules_load_failure_desc">Nessuna regola del firewall trovata</string>
     <string name="rules_load_failure_reload">Ricarica</string>
@@ -381,25 +381,25 @@
     <string name="firewall_rule_block_http">HTTP non sicuro</string>
     <string name="firewall_rule_global_lockdown">Quarantena</string>
     <string name="firewall_rule_no_rule_desc">Nessuna regola del firewall coincide con questa connessione.</string>
-    <string name="firewall_rule_block_app_desc">Una regola del firewall impostata dall\'utente ha bloccato quest\'<i>app</i>.<br/><br/> Per modificarla, vai a <i>Tutte le app</i>.</string>
-    <string name="firewall_rule_new_app_desc">Quest\'app si è connessa per la <i>prima</i> volta.<br/><br/> Per modificare vai a <i>Regole Universali</i>.</string>
-    <string name="firewall_rule_block_app_unmetered_desc">Una regola del firewall impostata dall\'utente ha bloccato quest\'<i>app</i> dal connettersi alla rete <i>Non a consumo</i>.<br/><br/> Per modificarla, vai a <i>Tutte le app</i>.</string>
-    <string name="firewall_rule_block_app_mobile_desc">Una regola del firewall impostata dall\'utente ha bloccato quest\'<i>app</i> dal connettersi alla rete <i>A consumo</i>.<br/><br/> Per modificarla, vai a <i>Tutte le app</i>.</string>
-    <string name="firewall_rule_isolate_desc">Una regola del firewall impostata dall\'utente consente a quest\'<i>app</i> di connettersi solo a <i>IP che aggirano il firewall</i>.<br/><br/> Per modificarla, vai a <i>Tutte le app</i>.</string>
-    <string name="firewall_rule_block_app_univ_mobile_desc">Una regola universale del firewall impostata dall\'utente ha bloccato quest\'<i>app</i> dal connettersi alla rete <i>A consumo (dati mobili)</i>.<br/><br/> Per modificarla, vai a <i>Tutte le app</i>.</string>
-    <string name="firewall_rule_block_ip_univ_desc">Una regola del firewall impostata dall\'utente ha bloccato quest\'<i>IP / Porta di destinazione</i>.<br/><br/> Per modificarla, vai a <i>Regole Universali</i>.</string>
-    <string name="firewall_rule_block_ip_desc">Una regola del firewall impostata dall\'utente ha bloccato quest\'<i>IP di destinazione</i>.<br/><br/> Per modificarla, vai a alla <i>schermata dell\'app specifica nel Firewall</i>.</string>
-    <string name="firewall_rule_bypass_universal_ip_desc">Questa connessione è stata consentita perché l\'&lt;i&gt;IP di destinazione&lt;/i&gt; è impostato in modo da aggirare tutte le regole universali del firewall.&lt;br/&gt;&lt;br/&gt; Per modificare, vai a &lt;i&gt;Regole IP&lt;i&gt; dalla scheda &lt;i&gt;Regole Universali&lt;/i&gt;.</string>
-    <string name="firewall_rule_device_lock_desc">Questa connessione è stata bloccata perché <i>il dispositivo era bloccato</i> in quel momento.<br/><br/> Per modificare questa impostazione, vai a <i>Regole Universali</i>.</string>
-    <string name="firewall_rule_unknown_desc">Questa connessione è stata bloccata perché non è stato possibile determinarne <i>l\'app d\'origine</i>.<br/><br/> Per modificare questa impostazione, vai a <i>Regole Universali</i>.</string>
-    <string name="firewall_rule_foreground_desc">Questa connessione è stata bloccata perché l\'app d\'origine <i>non era in primo piano</i>.<br/><br/> Per modificare questa impostazione, vai a <i>Regole Universali</i>.</string>
-    <string name="firewall_rule_block_udp_ntp_desc">Una regola del firewall impostata dall\'utente ha bloccato questa connessione <i>UDP</i>.<br/><br/> Per modificarla, vai a <i>Regole Universali</i>.</string>
-    <string name="firewall_rule_block_dns_bypass_desc">Questa connessione è stata bloccata perché <i>l\'app d\'origine</i> ha aggirato il DNS scelto dall\'utente.<br/><br/> Per modificare questa impostazione, vai a <i>Regole Universali</i>.</string>
-    <string name="firewall_rule_exempt_app_bypass_univ_desc">Questa connessione è stata consentita perché l\'<i>app d\'origine</i> è impostata su <i>aggirare le regole universali del firewall</i>.<br/><br/> Per modificarla, vai a alla <i>schermata dell\'app specifica nel Firewall</i>.</string>
-    <string name="firewall_rule_exempt_dns_proxied_desc">Questa connessione DNS è stata reindirizzata all\'endpoint DNS scelto dall\'utente.<br/><br/> Per modificare, disabilita <i>Previeni aggiramenti del DNS</i> dalla schermata <i>Configura</i> del DNS.</string>
-    <string name="firewall_rule_exempt_orbot_setup_desc">Questa connessione è stata consentita perché era in corso la configurazione in un click di <i> Tor-come-proxy</i> tramite Orbot.</string>
-    <string name="firewall_rule_block_http_desc">Questa connessione è stata bloccata perché probabilmente utilizzava <i>HTTP non sicuro</i>.<br/><br/> Per modificare, vai a <i>Regole Universali</i>.</string>
-    <string name="firewall_rule_global_lockdown_desc">Questa connessione è stata bloccata perché è attivata la quarantena universale.<br/><br/> Per modificare, vai a <i>Regole Universali</i>.</string>
+    <string name="firewall_rule_block_app_desc">Una regola del firewall impostata dall\'utente ha bloccato quest\'app.<br/><br/> Per modificarla, vai a Tutte le app.</string>
+    <string name="firewall_rule_new_app_desc">Quest\'app si è connessa per la prima volta.<br/><br/> Per modificare vai a Regole Universali.</string>
+    <string name="firewall_rule_block_app_unmetered_desc">Una regola del firewall impostata dall\'utente ha bloccato quest\'app dal connettersi alla rete Non a consumo.<br/><br/> Per modificarla, vai a Tutte le app.</string>
+    <string name="firewall_rule_block_app_mobile_desc">Una regola del firewall impostata dall\'utente ha bloccato quest\'app dal connettersi alla rete A consumo.<br/><br/> Per modificarla, vai a Tutte le app.</string>
+    <string name="firewall_rule_isolate_desc">Una regola del firewall impostata dall\'utente consente a quest\'app di connettersi solo a IP che aggirano il firewall.<br/><br/> Per modificarla, vai a Tutte le app.</string>
+    <string name="firewall_rule_block_app_univ_mobile_desc">Una regola universale del firewall impostata dall\'utente ha bloccato quest\'app dal connettersi alla rete A consumo (dati mobili).<br/><br/> Per modificarla, vai a Tutte le app.</string>
+    <string name="firewall_rule_block_ip_univ_desc">Una regola del firewall impostata dall\'utente ha bloccato quest\'IP / Porta di destinazione.<br/><br/> Per modificarla, vai a Regole Universali.</string>
+    <string name="firewall_rule_block_ip_desc">Una regola del firewall impostata dall\'utente ha bloccato quest\'IP di destinazione.<br/><br/> Per modificarla, vai a alla schermata dell\'app specifica nel Firewall.</string>
+    <string name="firewall_rule_bypass_universal_ip_desc">Questa connessione è stata consentita perché l\'IP di destinazione è impostato in modo da aggirare tutte le regole universali del firewall.&lt;br/&gt;&lt;br/&gt; Per modificare, vai a Regole IP dalla scheda Regole Universali.</string>
+    <string name="firewall_rule_device_lock_desc">Questa connessione è stata bloccata perché il dispositivo era bloccato in quel momento.<br/><br/> Per modificare questa impostazione, vai a Regole Universali.</string>
+    <string name="firewall_rule_unknown_desc">Questa connessione è stata bloccata perché non è stato possibile determinarne l\'app d\'origine.<br/><br/> Per modificare questa impostazione, vai a Regole Universali.</string>
+    <string name="firewall_rule_foreground_desc">Questa connessione è stata bloccata perché l\'app d\'origine non era in primo piano.<br/><br/> Per modificare questa impostazione, vai a Regole Universali.</string>
+    <string name="firewall_rule_block_udp_ntp_desc">Una regola del firewall impostata dall\'utente ha bloccato questa connessione UDP.<br/><br/> Per modificarla, vai a Regole Universali.</string>
+    <string name="firewall_rule_block_dns_bypass_desc">Questa connessione è stata bloccata perché l\'app d\'origine ha aggirato il DNS scelto dall\'utente.<br/><br/> Per modificare questa impostazione, vai a Regole Universali.</string>
+    <string name="firewall_rule_exempt_app_bypass_univ_desc">Questa connessione è stata consentita perché l\'app d\'origine è impostata su aggirare le regole universali del firewall.<br/><br/> Per modificarla, vai a alla schermata dell\'app specifica nel Firewall.</string>
+    <string name="firewall_rule_exempt_dns_proxied_desc">Questa connessione DNS è stata reindirizzata all\'endpoint DNS scelto dall\'utente.<br/><br/> Per modificare, disabilita Previeni aggiramenti del DNS dalla schermata Configura del DNS.</string>
+    <string name="firewall_rule_exempt_orbot_setup_desc">Questa connessione è stata consentita perché era in corso la configurazione in un click di  Tor-come-proxy tramite Orbot.</string>
+    <string name="firewall_rule_block_http_desc">Questa connessione è stata bloccata perché probabilmente utilizzava HTTP non sicuro.<br/><br/> Per modificare, vai a Regole Universali.</string>
+    <string name="firewall_rule_global_lockdown_desc">Questa connessione è stata bloccata perché è attivata la quarantena universale.<br/><br/> Per modificare, vai a Regole Universali.</string>
     <string name="new_app_bulk_notification_title">Attenzione</string>
     <string name="new_app_bulk_notification_content">Keepout ha bloccato %1$s nuove applicazioni. Tocca per visualizzare o modificare.</string>
     <string name="new_app_notification_content">Keepout ha bloccato l\'app installata di recente, %1$s.</string>
@@ -420,9 +420,6 @@
     <string name="category_name_others">Altro</string>
     <string name="category_name_non_app_sys">Servizi di sistema</string>
     <string name="category_name_installed">App installate</string>
-    <string name="build__flavor_website">sito web</string>
-    <string name="build__flavor_play_store">play</string>
-    <string name="build__flavor_fdroid">fdroid</string>
     <string name="ci_dialog_error_invalid_ip">Indirizzo IP, sottorete o porta non validi.</string>
     <string name="ci_no_rule">Nessuna regola</string>
     <string name="ci_block">Blocca</string>
@@ -498,9 +495,9 @@
     <string name="rbl_privacy_desc" description="The text appears as blocklists description in configure screen">Blocca attentionware, spyware, scareware.</string>
     <string name="rbl_security_desc" description="The text appears as blocklists description in configure screen">Blocca malware, ransomware, cryptoware, phisher e altre minacce.</string>
     <string name="rt_filter_parent_selected">Selezionati</string>
-    <string name="rt_filter_hint">Mostra <u>tutte</u> le blocklist</string>
-    <string name="rt_filter_desc">Liste dei filtri <u>%1$s</u> mostrate</string>
-    <string name="rt_filter_desc_subgroups">Liste dei filtri <u>%1$s</u> nel sottogruppo %3$s del gruppo %2$s mostrate</string>
+    <string name="rt_filter_hint">Mostra tutte le blocklist</string>
+    <string name="rt_filter_desc">Liste dei filtri %1$s mostrate</string>
+    <string name="rt_filter_desc_subgroups">Liste dei filtri %1$s nel sottogruppo %3$s del gruppo %2$s mostrate</string>
     <string name="rsv_blocklist_count_text" description="This label will appear in rethink configure simple view screen which shows number of blocklists for each category">%1$s blocklist</string>
     <string name="about_privacy_policy_link">https://www.rethinkdns.com/privacy</string>
     <string name="title_statistics">Statistiche</string>
@@ -515,16 +512,16 @@
     <string name="fapps_info_exclude_msg">Escludi da DNS e Firewall.</string>
     <string name="fapps_info_isolate_msg">Blocca tutti gli IP tranne quelli autorizzati.</string>
     <string name="fapps_info_bypass_msg">Aggira le regole del firewall universale.</string>
-    <string name="fapps_unblock_dialog_message">Consentire le connessioni per le app <i>elencate</i>\?</string>
+    <string name="fapps_unblock_dialog_message">Consentire le connessioni per le app elencate\?</string>
     <string name="ssv_most_blocked_ips_heading" description="This label will appear on the stats screen as a header for most blocked ips" translatable="true">IP più bloccati</string>
-    <string name="fapps_bypass_block_dialog_message">Aggirare le regole del firewall universale per le applicazioni <i>elencate</i>\?</string>
+    <string name="fapps_bypass_block_dialog_message">Aggirare le regole del firewall universale per le applicazioni elencate\?</string>
     <string name="fapps_bypass_block_dialog_title">Aggira app</string>
     <string name="fapps_exclude_block_dialog_title">Escludi app</string>
     <string name="ssv_most_contacted_ips_heading" description="This label will appear on the stats screen as a header for most visited ips" translatable="true">IP più contattati</string>
     <string name="ssv_app_blocked_heading" description="This label will appear on the stats screen as a header for blocked applications." translatable="true">App più bloccate</string>
-    <string name="fapps_exclude_block_dialog_message">Escludere le applicazioni <i>elencate</i> da DNS e Firewall\?</string>
+    <string name="fapps_exclude_block_dialog_message">Escludere le applicazioni elencate da DNS e Firewall\?</string>
     <string name="fapps_isolate_block_dialog_title">Isola app</string>
-    <string name="fapps_isolate_block_dialog_message">Isolare le applicazioni <i>elencate</i>\?</string>
+    <string name="fapps_isolate_block_dialog_message">Isolare le applicazioni elencate\?</string>
     <string name="ssv_app_network_activity_heading" description="This label will appear on the stats screen as a header for allowed apps." translatable="true">App più consentite</string>
     <string name="ssv_most_contacted_domain_heading" description="This label will appear on the stats screen as a header for most visited domains" translatable="true">Domini più contattati</string>
     <string name="ssv_most_blocked_domain_heading" description="This label will appear on the stats screen as a header for most blocked domains" translatable="true">Domini più bloccati</string>
@@ -533,8 +530,8 @@
     <string name="lbl_apply" translatable="true">Applica</string>
     <string name="firewall_rule_trusted_domain" translatable="true">Dominio attendibile (App)</string>
     <string name="firewall_rule_block_domain" translatable="true">Dominio (App)</string>
-    <string name="firewall_rule_block_domain_desc" translatable="true">Una regola del firewall impostata dall\'utente ha bloccato questo <i>dominio</i>.<br/><br/> Per modificarla, vai a alla schermata del <i>firewall specifico per le app</i>.</string>
-    <string name="firewall_rule_trusted_domain_desc" translatable="true">Questa connessione è stata consentita perché il <i>dominio</i> è impostato come attendibile.<br/><br/> Per modificarlo, accedere alla schermata del <i>firewall specifico per le app</i>.</string>
+    <string name="firewall_rule_block_domain_desc" translatable="true">Una regola del firewall impostata dall\'utente ha bloccato questo dominio.<br/><br/> Per modificarla, vai a alla schermata del firewall specifico per le app.</string>
+    <string name="firewall_rule_trusted_domain_desc" translatable="true">Questa connessione è stata consentita perché il dominio è impostato come attendibile.<br/><br/> Per modificarlo, accedere alla schermata del firewall specifico per le app.</string>
     <string name="cd_no_rules_text" translatable="true">Nessuna regola dominio.</string>
     <string name="lbl_dismiss" translatable="true">Chiudi</string>
     <string name="lbl_all" translatable="true">Tutti</string>
@@ -545,7 +542,7 @@
     <string name="lbl_action_required" translatable="true">Azione richiesta</string>
     <string name="lbl_ip_rules" translatable="true">Regole IP</string>
     <string name="lbl_domain_rules" translatable="true">Regole dominio</string>
-    <string name="firewall_rule_dns_blocked_desc" translatable="true">Questa connessione è stata bloccata perché il dominio <i/> è bloccato dal DNS preferito dall\'utente.<br/><br/> Per modificare questo comportamento, accedere alla scheda <i>Configura DNS</i>.</string>
+    <string name="firewall_rule_dns_blocked_desc" translatable="true">Questa connessione è stata bloccata perché il dominio <i/> è bloccato dal DNS preferito dall\'utente.<br/><br/> Per modificare questo comportamento, accedere alla scheda Configura DNS.</string>
     <string name="ada_app_bypass_dns_firewall" translatable="true">Aggira DNS e firewall</string>
     <string name="lbl_rules" translatable="true">Regole</string>
     <string name="lbl_network" translatable="true">rete</string>
@@ -569,12 +566,12 @@
     <string name="cd_dns_alg_desc" translatable="true">Applicare le regole del dominio solo quando le applicazioni si connettono</string>
     <string name="dc_setting_dns_cache_desc" translatable="true">Accorpare le richieste, memorizzare le risposte nella cache, gestire gli errori in modo resiliente</string>
     <string name="lbl_configure" translatable="true">Configura</string>
-    <string name="fapps_bypass_dns_firewall_dialog_message" translatable="true">Bypassare regole universale di DNS e firewall per le applicazioni <i>elencate</i>\?</string>
-    <string name="firewall_rule_domain_blocked_univ_desc" translatable="true">Questa connessione è stata bloccata perché il <i>dominio</i> è impostato come bloccato nelle regole del dominio universale.<br/><br/> Per modificare questo comportamento, accedere alla scheda <i>Configura DNS</i>.</string>
-    <string name="firewall_rule_domain_trusted_univ_desc" translatable="true">Questa connessione è stata consentita perché il <i>dominio</i> è impostato come attendibile nelle regole del dominio universale.<br/><br/> Per modificare questo comportamento, andare alla scheda <i>Configura DNS</i>.</string>
-    <string name="firewall_rule_bypass_dns_firewall_desc" translatable="true">Questa connessione è stata consentita perché l\'<i>app d\'origine</i> è impostata su <i>aggira DNS e firewall</i>.<br/><br/> Per modificarla, vai a alla schermata <i>Firewall specifico per app</i>.</string>
+    <string name="fapps_bypass_dns_firewall_dialog_message" translatable="true">Bypassare regole universale di DNS e firewall per le applicazioni elencate\?</string>
+    <string name="firewall_rule_domain_blocked_univ_desc" translatable="true">Questa connessione è stata bloccata perché il dominio è impostato come bloccato nelle regole del dominio universale.<br/><br/> Per modificare questo comportamento, accedere alla scheda Configura DNS.</string>
+    <string name="firewall_rule_domain_trusted_univ_desc" translatable="true">Questa connessione è stata consentita perché il dominio è impostato come attendibile nelle regole del dominio universale.<br/><br/> Per modificare questo comportamento, andare alla scheda Configura DNS.</string>
+    <string name="firewall_rule_bypass_dns_firewall_desc" translatable="true">Questa connessione è stata consentita perché l\'app d\'origine è impostata su aggira DNS e firewall.<br/><br/> Per modificarla, vai a alla schermata Firewall specifico per app.</string>
     <string name="brbs_backup_restore_desc" translatable="true">Non funziona per tutte le versioni dell\'app o per tutti i dispositivi</string>
-    <string name="bsct_block_domain" translatable="true">Blocca, autorizza <u>domini</u> per <u>questa app</u></string>
+    <string name="bsct_block_domain" translatable="true">Blocca, autorizza domini per questa app</string>
     <string name="lbl_allowed_ips" translatable="true">IP consentiti</string>
     <string name="lbl_socks5" translatable="true">SOCKS5</string>
     <string name="lbl_http" translatable="true">HTTP</string>
@@ -628,17 +625,15 @@
     <string name="settings_connectivity_checks" translatable="true">Esegui controlli di connettività</string>
     <string name="orbot_no_app_toast" translatable="true">Aggiungi almeno un\'app per abilitare Orbot</string>
     <string name="settings_connectivity_checks_desc" translatable="true">I controlli di connettività vengono inviati per accertare la raggiungibilità.</string>
-    <string name="lbl_unselected" translatable="true">Non selezionato</string>
     <string name="app_ip_domain_rules_desc" translatable="true">Modificare le regole IP/Dominio per applicazione.</string>
     <string name="dc_proxy_dns_heading" translatable="true">Mai fare proxy DNS</string>
     <string name="fapps_info_bypass_dns_firewall_msg" translatable="true">Bypassa le regole del DNS e del firewall.</string>
     <string name="cd_doh_dialog_checkbox_desc" translatable="true">Non convalidare i certificati TLS del server (abilita solo se si sa cosa si sta facendo)</string>
     <string name="app_ip_domain_rules" translatable="true">Regole IP/dominio per applicazione</string>
     <string name="univ_firewall_heading" translatable="true">Regole firewall universali</string>
-    <string name="settings_exclude_proxy_apps_desc" translatable="true">Se disattivato, esclude le applicazioni forwarder proxy (SOCKS5, HTTP, DNS) dal tunnel VPN di Keepout.</string>
     <string name="toast_allow_bypass_disabled" translatable="true">%1$s è disabilitato perché i proxy sono attivi</string>
     <string name="dc_proxy_dns_desc" translatable="true">Non fare mai proxy di DNS su proxy come Always-on WireGuard, SOCKS5, HTTP.</string>
-    <string name="firewall_rule_proxied_desc" translatable="true">Questa connessione è stata inoltrata al Proxy preferito dall\'utente.<br/><br/> Per cambiare, andare su <i>Proxy</i> dalla schermata <i>Configura</i>.</string>
+    <string name="firewall_rule_proxied_desc" translatable="true">Questa connessione è stata inoltrata al Proxy preferito dall\'utente.<br/><br/> Per cambiare, andare su Proxy dalla schermata Configura.</string>
     <string name="cd_toast_edit" translatable="true">Modificato</string>
     <string name="home_last_24_hours">Ultime 24 ore</string>
     <plurals name="home_stopped_at_dns_count">

@@ -50,7 +50,7 @@
     <string name="lbl_overall" translatable="true">Като цяло</string>
     <string name="lbl_anonymous" translatable="true">анонимен</string>
     <string name="failed_using_default" translatable="true">Неуспешно: използване на резервен DNS</string>
-    <string name="bsct_block_domain" translatable="true">Блокирайте, доверете се на <u>домейн(и)</u> за <u>това приложение</u></string>
+    <string name="bsct_block_domain" translatable="true">Блокирайте, доверете се на домейн(и) за това приложение</string>
     <string name="always_on_dialog_heading" translatable="true">Деактивиране на винаги включената VPN услуга</string>
     <string name="always_on_dialog" translatable="true">\"Always-On VPN\" е активирана на това устройство. За да стартирате Keepout, моля, отидете в приложението \"Настройки\" и деактивирайте \"Always-on VPN\".</string>
     <string name="always_on_dialog_positive_btn" translatable="true">Отидете в настройките</string>
@@ -64,7 +64,7 @@
     <string name="lbl_rules" translatable="true">правила</string>
     <string name="lbl_configure" translatable="true">Конфигуриране</string>
     <string name="lbl_logs" translatable="true">логове</string>
-    <string name="bsct_block_ip" translatable="true">Блокирайте, доверете се <u>този IP</u> за <u>това приложение</u></string>
+    <string name="bsct_block_ip" translatable="true">Блокирайте, доверете се този IP за това приложение</string>
     <string name="lbl_network" translatable="true">мрежа</string>
     <string name="bypass_dns_firewall" translatable="true">заобикаляне на DNS и защитна стена</string>
     <string name="private_dns_dialog_positive" translatable="true">Отидете в настройките</string>
@@ -125,19 +125,19 @@
     <string name="lbl_delete" translatable="true">Изтрий</string>
     <string name="lbl_fast" translatable="true">бързо</string>
     <string name="default_dns_name" translatable="true">RDNS по подразбиране</string>
-    <string name="always_on_dialog_lockdown_stop_message" translatable="true">RethinkDNS работи с VPN в режим <i>Lockdown</i>. Спирането му ще доведе до загуба на интернет свързаност на този потребителски профил. Искате ли все пак да продължите?</string>
+    <string name="always_on_dialog_lockdown_stop_message" translatable="true">RethinkDNS работи с VPN в режим Lockdown. Спирането му ще доведе до загуба на интернет свързаност на този потребителски профил. Искате ли все пак да продължите?</string>
     <string name="private_dns_dialog_desc" translatable="true">DNS настройките на Keepout са заменени от Private DNS на Android.
 \n
 \nЗа да използвате DNS на Keepout, отидете в Настройки на Android и изключете \"Private DNS\".</string>
     <string name="doh_custom_url_remove_success" translatable="true">Крайната точка е изтрита.</string>
-    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Услугата за достъпност RethinkDNS е спряна или се е сринала. <i><b>Влезте в Настройки и Насилствено спрете</b></i> RethinkDNS и го стартирайте отново, за да използвате <i>Блокирайте всяко приложение, което не се използва</i> функция.
+    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Услугата за достъпност RethinkDNS е спряна или се е сринала. Влезте в Настройки и Насилствено спрете RethinkDNS и го стартирайте отново, за да използвате Блокирайте всяко приложение, което не се използва функция.
 \n
 \nRethinkDNS използва услугата за достъпност, за да следи кои приложения се използват (на преден план) спрямо тези, които не се използват (на заден план).</string>
     <string name="connection_http3" translatable="true">HTTP3</string>
     <string name="settings_allow_bypass_desc" translatable="true">Позволете на заявяващите приложения да заобикалят защитната стена на RethinkDNS при поискване. Някои приложения за аудио/видеоконференции, като Zoom и WhatsApp, може да изискват заобикаляне при поискване, за да функционират правилно.</string>
     <string name="info_dialog_copy_toast_msg" translatable="true">Копиран IP адрес.</string>
     <string name="settings_connectivity_checks" translatable="true">Извършете проверки за свързаност</string>
-    <string name="settings_lock_down_mode_desc" translatable="true">Не може да се позволи заобикаляне или настройка на прокси сървъри, когато VPN работи в режим на блокиране. <u>Отидете в настройките на VPN</u>.</string>
+    <string name="settings_lock_down_mode_desc" translatable="true">Не може да се позволи заобикаляне или настройка на прокси сървъри, когато VPN работи в режим на блокиране. Отидете в настройките на VPN.</string>
     <string name="orbot" translatable="true">Орбот</string>
     <string name="download_update_dialog_failure_message" translatable="true">Нашите сървъри са повредени или връзката не може да бъде установена. Моля, опитайте отново след известно време.</string>
     <string name="download_update_dialog_trylater_title" translatable="true">Не мога да актуализирам точно сега</string>
@@ -161,7 +161,7 @@
     <string name="download_update_dialog_message_success" translatable="true">Изтеглянето на блоковия списък е успешно.</string>
     <string name="download_update_dialog_failure_title" translatable="true">Нещо се обърка!</string>
     <string name="download_update_dialog_trylater_message" translatable="true">Актуализацията не може да бъде изпълнена в момента, моля, опитайте отново по-късно.</string>
-    <string name="search_universal_ips" translatable="true"><font size="12">Търсене на IP адреси</font></string>
+    <string name="search_universal_ips" translatable="true">Търсене на IP адреси</string>
     <string name="search_proxy_add_apps" translatable="true">Търсене на приложения по име</string>
     <string name="info_dialog_rethink_toast_msg" translatable="true">Копиран като RDNS+ DNS-over-HTTPS URL</string>
     <string name="settings_connectivity_checks_desc" translatable="true">Проверките за свързаност се изпращат, за да се установи достъпността.</string>
@@ -187,9 +187,8 @@
     <string name="orbot_none" translatable="true">Няма (по подразбиране)</string>
     <string name="memory_notification_text">Keepout има недостатъчна памет. Системните действия може да са ограничени.</string>
     <string name="dns_proxy_remove_dialog_title" translatable="true">Изтриване на DNS прокси?</string>
-    <string name="search_custom_domains" translatable="true"><font size="12">Търсене на имена на домейни</font></string>
+    <string name="search_custom_domains" translatable="true">Търсене на имена на домейни</string>
     <string name="settings_enable_logs_desc" translatable="true">Съхранявайте логовете на DNS и защитната стена локално в устройството.</string>
-    <string name="settings_exclude_proxy_apps_desc" translatable="true">Когато е деактивирано, изключва прокси (SOCKS5, HTTP, DNS) пренасочващи приложения от VPN тунела на Keepout.</string>
     <string name="settings_proxy_header" translatable="true">прокси</string>
     <string name="settings_socks5_heading" translatable="true">Настройка на прокси сървър SOCKS5</string>
     <string name="settings_https_heading" translatable="true">Настройка на прокси сървър HTTP(S)</string>
@@ -198,7 +197,6 @@
     <string name="orbot_bs_status_3" translatable="true">Пренасочване %1$s към Orbot, зададено е и HTTP Proxy.</string>
     <string name="orbot_stop_dialog_dns_message" translatable="true">RethinkDNS е настроена да препраща DNS заявки към Orbot. Променете го, както е необходимо.</string>
     <string name="orbot_stop_dialog_negative" translatable="true">Спиране на Orbot</string>
-    <string name="lbl_unselected" translatable="true">Неизбрано</string>
     <string name="hybrid_mode_with_proxy_notification_title" translatable="true">Защитен! Свързан към DNS + Firewall.</string>
     <string name="lbl_idle" translatable="true">Неактивен</string>
     <string name="lbl_split" translatable="true">Разбивка</string>
