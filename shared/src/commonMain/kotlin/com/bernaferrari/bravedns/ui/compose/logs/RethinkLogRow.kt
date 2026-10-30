@@ -69,6 +69,8 @@ import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkLatencyTone
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkLatencyBand
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLatencyBand
+import androidx.compose.runtime.Immutable
+import androidx.compose.ui.graphics.vector.ImageVector
 
 data class RethinkLogDetail(
     val label: String,
@@ -114,10 +116,14 @@ data class RethinkLogRowModel(
     /** Network: the address and port. DNS: the first answer. */
     val endpoint: String? = null,
     /** Short readouts after the protocol (data moved, latency). */
-    val facts: List<String> = emptyList(),
+    val facts: List<RethinkLogFact> = emptyList(),
     /** DNS rows name the asking app on their last line, with this small icon. */
     val appIcon: (@Composable () -> Unit)? = null,
 )
+
+/** One quiet readout on a log row; [icon] is drawn (e.g. a download arrow), never a text glyph. */
+@Immutable
+data class RethinkLogFact(val text: String, val icon: ImageVector? = null)
 
 /**
  * Portable log card. Platform code supplies data, formatted copy, and real app/fav icons; the
@@ -262,7 +268,7 @@ private fun LogHeader(model: RethinkLogRowModel, cardColor: Color, chevron: Floa
                     )
                 }
                 RethinkPill(model.typeLabel, size = RethinkPillSize.Small, fontWeight = FontWeight.Bold)
-                model.facts.firstOrNull()?.let { RethinkPill(it, size = RethinkPillSize.Small) }
+                model.facts.firstOrNull()?.let { RethinkPill(it.text, size = RethinkPillSize.Small, leadingIcon = it.icon) }
             }
         }
     }

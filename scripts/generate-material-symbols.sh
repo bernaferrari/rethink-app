@@ -13,7 +13,7 @@ BASE_URL="https://fonts.gstatic.com/render/v1/Material+Symbols+Rounded/24dp"
 # Keep this list in sync with the commonMain usages. Variants share a source file:
 # filled is FILL=1, outlined is FILL=0, and the facade records auto-mirror intent.
 readonly FILLED_ICONS=(
-  add android apps arrow_back arrow_forward article auto_awesome auto_stories backup
+  add android apps arrow_back arrow_downward arrow_forward article auto_awesome auto_stories backup
   block brightness_auto bug_report business_center calendar_month call_split camera_alt
   cancel cell_tower chat chat_bubble check check_circle close cloud code content_copy
   conversion_path dark_mode database delete_outline dns do_not_disturb_on domino_mask

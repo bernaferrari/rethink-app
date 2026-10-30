@@ -14,6 +14,7 @@ object MaterialSymbols {
         val Android: ImageVector get() = filledAndroid
         val Apps: ImageVector get() = filledApps
         val ArrowBack: ImageVector get() = filledArrowBack
+        val ArrowDownward: ImageVector get() = filledArrowDownward
         val ArrowForward: ImageVector get() = filledArrowForward
         val Article: ImageVector get() = filledArticle
         val AutoAwesome: ImageVector get() = filledAutoAwesome
