@@ -263,15 +263,15 @@ private fun AdaptiveTileGrid(entries: List<RethinkConfigureEntry>, columns: Int)
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile),
             ) {
+                // A short last row stretches its tiles across, so an odd count never leaves a hole.
                 row.forEachIndexed { column, entry ->
                     GridTile(
                         entry,
-                        rethinkGroupedGridCellShape(column, columns, cardPositionFor(rowIndex, rows.lastIndex)),
+                        rethinkGroupedGridCellShape(column, row.size, cardPositionFor(rowIndex, rows.lastIndex)),
                         Modifier.weight(1f),
                         rowIndex * columns + column,
                     )
                 }
-                repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
             }
         }
     }
