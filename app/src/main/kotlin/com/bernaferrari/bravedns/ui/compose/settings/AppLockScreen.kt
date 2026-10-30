@@ -17,14 +17,13 @@ package com.bernaferrari.bravedns.ui.compose.settings
 
 import android.app.UiModeManager
 import android.content.Context
-import android.content.ContextWrapper
 import android.content.res.Configuration
 import android.os.SystemClock
 import android.widget.Toast
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -36,7 +35,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import com.bernaferrari.bravedns.R
@@ -46,6 +44,7 @@ import com.bernaferrari.bravedns.util.Utilities.showToastUiCentered
 import Logger
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
+import com.bernaferrari.bravedns.ui.compose.common.findActivity
 
 private const val TAG = "AppLockScreen"
 
@@ -102,7 +101,7 @@ fun AppLockScreen(
 
     // Set up biometric prompt when the composable is first composed
     DisposableEffect(context) {
-        val activity = context.findFragmentActivity()
+        val activity = context.findActivity<FragmentActivity>()
         val shouldShow = checkBiometricRequired(context, persistentState)
         if (activity == null) {
             if (shouldShow && authState == AppLockResult.Pending) {
@@ -197,7 +196,8 @@ private fun AppLockContent(
             Image(
                 painter = painterResource(id = R.drawable.ic_launcher),
                 contentDescription = appName,
-                modifier = Modifier.size(120.dp),
+                // The shared lock screen already sizes the brand-mark slot.
+                modifier = Modifier.fillMaxSize(),
             )
         },
     )
@@ -261,11 +261,4 @@ private fun isAppRunningOnTv(context: Context): Boolean {
     } catch (_: Exception) {
         false
     }
-}
-
-// LocalContext is often a themed ContextWrapper; BiometricPrompt needs the FragmentActivity.
-private tailrec fun Context.findFragmentActivity(): FragmentActivity? = when (this) {
-    is FragmentActivity -> this
-    is ContextWrapper -> baseContext.findFragmentActivity()
-    else -> null
 }

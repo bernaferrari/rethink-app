@@ -28,7 +28,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
@@ -40,7 +39,6 @@ import com.bernaferrari.bravedns.database.RefreshDatabase
 import com.bernaferrari.bravedns.database.ProxyApplicationMapping
 import com.bernaferrari.bravedns.service.FirewallManager
 import com.bernaferrari.bravedns.service.ProxyManager
-import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.wireguard.RethinkIncludeAppsFilter
 import com.bernaferrari.bravedns.ui.compose.wireguard.RethinkIncludeAppsPicker
 import com.bernaferrari.bravedns.ui.compose.wireguard.RethinkIncludeAppsPickerItem
@@ -92,20 +90,6 @@ fun WgIncludeAppsScreen(
 
 private const val REFRESH_TIMEOUT: Long = 4000
 
-enum class TopLevelFilter(val id: Int) {
-    ALL_APPS(0),
-    SELECTED_APPS(1),
-    UNSELECTED_APPS(2);
-
-    fun getLabelId(): Int {
-        return when (this) {
-            ALL_APPS -> R.string.lbl_all
-            SELECTED_APPS -> R.string.rt_filter_parent_selected
-            UNSELECTED_APPS -> R.string.lbl_unselected
-        }
-    }
-}
-
 @Composable
 private fun WgIncludeAppsDialogScreen(
     viewModel: ProxyAppsMappingViewModel,
@@ -120,7 +104,7 @@ private fun WgIncludeAppsDialogScreen(
     val refreshCompleteToast = stringResource(R.string.refresh_complete)
     val refreshDatabase = remember { RefreshDatabaseProvider.get() }
     var query by remember { mutableStateOf("") }
-    var selectedFilter by remember { mutableStateOf(TopLevelFilter.ALL_APPS) }
+    var selectedFilter by remember { mutableStateOf(RethinkIncludeAppsFilter.All) }
     val apps by viewModel.apps.collectAsState(initial = emptyList())
     val allApps by viewModel.allApps.collectAsState(initial = emptyList())
     var isDialogVisible by remember { mutableStateOf(true) }
@@ -254,7 +238,7 @@ private fun WgIncludeAppsDialogScreen(
             )
         },
         query = query,
-        selectedFilter = if (selectedFilter == TopLevelFilter.SELECTED_APPS) RethinkIncludeAppsFilter.Selected else RethinkIncludeAppsFilter.All,
+        selectedFilter = selectedFilter,
         allItemsSelected = allAppsSelected,
         isRefreshing = isRefreshing,
         strings = RethinkIncludeAppsPickerStrings(
@@ -272,9 +256,7 @@ private fun WgIncludeAppsDialogScreen(
         ),
         onBackClick = onDismiss,
         onQueryChange = { query = it },
-        onFilterChange = { filter ->
-            selectedFilter = if (filter == RethinkIncludeAppsFilter.Selected) TopLevelFilter.SELECTED_APPS else TopLevelFilter.ALL_APPS
-        },
+        onFilterChange = { selectedFilter = it },
         onRefresh = ::refreshApps,
         onToggleAll = { if (allAppsSelected) unselectAllApps() else selectAllApps() },
         onDone = onDismiss,
@@ -291,10 +273,9 @@ private fun WgIncludeAppsDialogScreen(
     )
 }
 
-private fun TopLevelFilter.toProxyAppsFilter(): ProxyAppsFilter = when (this) {
-    TopLevelFilter.ALL_APPS -> ProxyAppsFilter.All
-    TopLevelFilter.SELECTED_APPS -> ProxyAppsFilter.Selected
-    TopLevelFilter.UNSELECTED_APPS -> ProxyAppsFilter.Unselected
+private fun RethinkIncludeAppsFilter.toProxyAppsFilter(): ProxyAppsFilter = when (this) {
+    RethinkIncludeAppsFilter.All -> ProxyAppsFilter.All
+    RethinkIncludeAppsFilter.Selected -> ProxyAppsFilter.Selected
 }
 
 @Composable

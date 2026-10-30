@@ -64,6 +64,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.net.MalformedURLException
 import java.net.URL
+import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 
 enum class DnsScreenType(val index: Int) {
     DOH(0),
@@ -517,7 +518,7 @@ private fun DnsCryptListContent(
 
     Column(
         modifier = Modifier.fillMaxSize().padding(paddingValues),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd)
     ) {
         RethinkDnsCryptRelayShortcut(
             sectionTitle = stringResource(R.string.cd_dns_crypt_title),

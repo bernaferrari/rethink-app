@@ -17,8 +17,6 @@ package com.bernaferrari.bravedns.ui.compose.wireguard
 
 import Logger
 import android.app.Activity
-import android.content.Context
-import android.content.ContextWrapper
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.annotation.Keep
@@ -51,6 +49,7 @@ import com.celzero.firestack.backend.Backend
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.bernaferrari.bravedns.ui.compose.common.findActivity
 
 private const val CLIPBOARD_PUBLIC_KEY_LBL = "Public Key"
 private const val DEFAULT_MTU = "-1"
@@ -84,7 +83,7 @@ fun WgConfigEditorScreen(
     onSaveSuccess: () -> Unit,
 ) {
     val context = LocalContext.current
-    val activity = context.findActivity()
+    val activity = context.findActivity<Activity>()
     val scope = rememberCoroutineScope()
     val publicKeyCopyToast = stringResource(R.string.public_key_copy_toast_msg)
     val configAddSuccessToast = stringResource(R.string.config_add_success_toast)
@@ -194,10 +193,4 @@ fun WgConfigEditorScreen(
         onCopyPublicKey = ::copyPublicKey,
         onSaveClick = ::saveConfig,
     )
-}
-
-private tailrec fun Context.findActivity(): Activity? = when (this) {
-    is Activity -> this
-    is ContextWrapper -> baseContext.findActivity()
-    else -> null
 }

@@ -25,10 +25,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.service.FirewallManager
 import com.bernaferrari.bravedns.ui.compose.common.rememberAppIconPainter
+import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 
 internal data class ProxyDialogAppOption(
     val packageName: String,
@@ -102,7 +102,7 @@ internal fun ProxyDialogAppIcon(
             modifier =
                 Modifier
                     .size(size)
-                    .clip(RoundedCornerShape(8.dp))
+                    .clip(RoundedCornerShape(SharedDimensions.cornerRadiusSm))
         )
     } else {
         ProxyDialogIconPlaceholder(size = size)
@@ -112,9 +112,9 @@ internal fun ProxyDialogAppIcon(
 @Composable
 private fun ProxyDialogIconPlaceholder(size: androidx.compose.ui.unit.Dp) {
     Surface(
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(SharedDimensions.cornerRadiusSm),
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.72f),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.28f)),
+        border = BorderStroke(SharedDimensions.dividerThicknessBold, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.28f)),
         modifier = Modifier.size(size)
     ) {}
 }

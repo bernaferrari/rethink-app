@@ -18,7 +18,6 @@ package com.bernaferrari.bravedns.ui.compose.database
 
 import android.app.Activity
 import android.content.Context
-import android.content.ContextWrapper
 import android.content.Intent
 import android.content.pm.PackageInfo
 import android.net.Uri
@@ -48,7 +47,6 @@ import androidx.work.WorkManager
 import androidx.work.WorkRequest
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.backup.BackupAgent
-import com.bernaferrari.bravedns.backup.BackupHelper
 import com.bernaferrari.bravedns.backup.BackupHelper.Companion.BACKUP_FILE_EXTN
 import com.bernaferrari.bravedns.backup.BackupHelper.Companion.BACKUP_FILE_NAME
 import com.bernaferrari.bravedns.backup.BackupHelper.Companion.BACKUP_FILE_NAME_DATETIME
@@ -57,11 +55,7 @@ import com.bernaferrari.bravedns.backup.BackupHelper.Companion.DATA_BUILDER_REST
 import com.bernaferrari.bravedns.backup.BackupHelper.Companion.INTENT_TYPE_OCTET
 import com.bernaferrari.bravedns.backup.BackupHelper.Companion.INTENT_TYPE_XZIP
 import com.bernaferrari.bravedns.backup.RestoreAgent
-import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.ui.compose.settings.RethinkBackupRestoreDialogCopy
 import com.bernaferrari.bravedns.ui.compose.settings.RethinkBackupRestoreFailure
 import com.bernaferrari.bravedns.ui.compose.settings.RethinkBackupRestoreSheet
@@ -75,12 +69,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.TimeUnit
-
-private tailrec fun Context.findActivity(): ComponentActivity? = when (this) {
-    is ComponentActivity -> this
-    is ContextWrapper -> baseContext.findActivity()
-    else -> null
-}
+import com.bernaferrari.bravedns.ui.compose.common.findActivity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -88,7 +77,7 @@ fun BackupRestoreSheet(
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
-    val activity = remember(context) { context.findActivity() }
+    val activity = remember(context) { context.findActivity<ComponentActivity>() }
     val workManager = remember(context) { WorkManager.getInstance(context.applicationContext) }
     var versionText by remember { mutableStateOf("") }
     var failure by remember { mutableStateOf<RethinkBackupRestoreFailure?>(null) }

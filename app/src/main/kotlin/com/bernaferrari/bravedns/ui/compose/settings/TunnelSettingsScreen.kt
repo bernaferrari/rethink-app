@@ -17,37 +17,10 @@ package com.bernaferrari.bravedns.ui.compose.settings
 
 import android.content.Context
 import android.widget.Toast
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.NetworkCheck
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Tune
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Slider
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -56,16 +29,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.data.AppConfig
@@ -75,12 +41,6 @@ import com.bernaferrari.bravedns.database.Severity
 import com.bernaferrari.bravedns.service.EventLogger
 import com.bernaferrari.bravedns.service.PersistentState
 import com.bernaferrari.bravedns.service.VpnController
-import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
-import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
-import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.settings.CustomLanIpSheet
 import com.bernaferrari.bravedns.ui.compose.settings.NetworkReachabilitySheet
 import com.bernaferrari.bravedns.util.Constants
@@ -90,11 +50,9 @@ import com.bernaferrari.bravedns.util.Utilities
 import com.bernaferrari.bravedns.util.Utilities.isAtleastQ
 import com.bernaferrari.bravedns.util.Utilities.showToastUiCentered
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 private const val SECONDS_PER_MINUTE = 60
-private const val SECONDS_PER_HOUR = 3600
 private const val POLICY_AUTO = 0
 private const val POLICY_SENSITIVE = 1
 private const val POLICY_RELAXED = 2
@@ -260,17 +218,6 @@ fun TunnelSettingsScreen(
         eventLogger.log(EventType.TUN_ESTABLISHED, Severity.LOW, msg, EventSource.UI, false, details)
     }
 
-    fun formatTimeShort(totalSeconds: Int, disabledText: String): String {
-        val hours = totalSeconds / SECONDS_PER_HOUR
-        val minutes = (totalSeconds % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE
-        val seconds = totalSeconds % SECONDS_PER_MINUTE
-        val parts = mutableListOf<String>()
-        if (hours > 0) parts.add("${hours}h")
-        if (minutes > 0) parts.add("${minutes}m")
-        if (seconds > 0) parts.add("${seconds}s")
-        return if (parts.isEmpty()) disabledText else parts.joinToString(" ")
-    }
-
     val ipDesc = when (internetProtocol) {
         InternetProtocol.IPv4.id -> stringResource(R.string.settings_ip_text_ipv4)
         InternetProtocol.IPv6.id -> stringResource(R.string.settings_ip_text_ipv6)
@@ -287,7 +234,8 @@ fun TunnelSettingsScreen(
         else -> stringResource(R.string.settings_ip_text_ipv46)
     }
 
-    val dialTimeoutDesc = formatTimeShort(dialTimeoutMin * SECONDS_PER_MINUTE, disabledText)
+    val dialTimeoutDesc =
+        if (dialTimeoutMin > 0) UIUtils.getDurationInHumanReadableFormat(context, dialTimeoutMin * SECONDS_PER_MINUTE) else disabledText
     val topBarSubtitle =
         stringResource(
             R.string.two_argument_colon,
