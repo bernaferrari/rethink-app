@@ -39,7 +39,6 @@ import org.koin.test.KoinTest
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
-import kotlinx.coroutines.delay
 
 @ExperimentalCoroutinesApi
 @RunWith(RobolectricTestRunner::class)
@@ -79,8 +78,8 @@ class FirewallManagerTest : KoinTest {
         }
 
         // Initialize mocks
-        mockDb = mockk(relaxed = true)
-        mockPersistentState = mockk(relaxed = true)
+        mockDb = sharedRepository
+        mockPersistentState = sharedPreferences
         mockKeyguardManager = mockk(relaxed = true)
         context = RuntimeEnvironment.getApplication()
 
@@ -90,12 +89,6 @@ class FirewallManagerTest : KoinTest {
         // Setup database mock responses
         setupDatabaseMocks()
 
-        // Mock static methods
-        mockkObject(VpnController)
-        mockkObject(AndroidUidConfig)
-        every { VpnController.closeConnectionsIfNeeded(any(), any()) } just Runs
-        every { AndroidUidConfig.isUidAppRange(any()) } answers { firstArg<Int>() >= 10000 }
-
         // Install the graph before the singleton starts its initial repository load.
         startKoin {
             modules(module {
@@ -104,16 +97,21 @@ class FirewallManagerTest : KoinTest {
             })
         }
 
+        // Keep the singleton's initial and subsequent IO work inside the controlled fixture.
+        mockkStatic(Dispatchers::class)
+        every { Dispatchers.IO } returns testDispatcher
+
+        // Mock static methods
+        mockkObject(VpnController)
+        mockkObject(AndroidUidConfig)
+        every { VpnController.closeConnectionsIfNeeded(any(), any()) } just Runs
+        every { AndroidUidConfig.isUidAppRange(any()) } answers { firstArg<Int>() >= 10000 }
+
         clearFirewallManagerState()
 
-        // Populate test data into FirewallManager's internal state
-        runBlocking {
-            val appInfoList = listOf(testAppInfo1, testAppInfo2, systemAppInfo, tombstoneAppInfo, rethinkAppInfo)
-            appInfoList.forEach { appInfo ->
-                FirewallManager.GlobalVariable.appInfos.put(appInfo.uid, appInfo)
-            }
-            delay(50)
-        }
+        // Resolve the singleton's lazy dependencies while its graph is alive. Its initial
+        // background load may otherwise race teardown and fail after stopKoin().
+        runBlocking { FirewallManager.load() }
     }
 
     @After
@@ -368,12 +366,9 @@ class FirewallManagerTest : KoinTest {
         assertFalse(FirewallManager.ConnectionStatus.METERED.allow())
     }
 
-    // Test load method - modified to test what we can actually verify
     @Test
     fun testLoad_withApps() = runBlocking {
-        // Since dependency injection isn't working properly, test the manual setup
-        val result = FirewallManager.GlobalVariable.appInfos.values().size
-        assertTrue("Expected test data to be loaded", result > 0)
+        assertEquals(5, FirewallManager.load())
 
         // Verify apps are accessible through FirewallManager methods
         assertTrue(FirewallManager.hasUid(testUid1))
@@ -470,15 +465,14 @@ class FirewallManagerTest : KoinTest {
 
     // Test trackForegroundApp edge cases
     @Test
-    fun testTrackForegroundApp_nonExistentApp() = runBlocking {
+    fun testTrackForegroundApp_nonExistentApp() = runTest(testDispatcher) {
         clearFirewallManagerState()
         FirewallManager.load()
 
         val nonExistentUid = 99999
         FirewallManager.trackForegroundApp(nonExistentUid)
 
-        // Wait for async operations to complete
-        delay(200)
+        runCurrent()
 
         // Should not add non-existent app to foreground list
         assertFalse(FirewallManager.GlobalVariable.foregroundUids.contains(nonExistentUid))
@@ -492,13 +486,12 @@ class FirewallManagerTest : KoinTest {
     }
 
     @Test
-    fun testTrackForegroundApp_systemUid() = runBlocking {
+    fun testTrackForegroundApp_systemUid() = runTest(testDispatcher) {
         every { AndroidUidConfig.isUidAppRange(systemUid) } returns false
 
         FirewallManager.trackForegroundApp(systemUid)
 
-        // Wait for async operations to complete
-        delay(200)
+        runCurrent()
 
         assertFalse(FirewallManager.GlobalVariable.foregroundUids.contains(systemUid))
     }
@@ -840,4 +833,11 @@ class FirewallManagerTest : KoinTest {
         assertNotNull("connectionStatus should return a valid status", status2)
         assertEquals(FirewallManager.ConnectionStatus.ALLOW, statusInvalid) // Invalid UID should return ALLOW
     }
+
+    private companion object {
+        // Manager graph singletons retain their injected dependencies across test instances.
+        val sharedRepository = mockk<AppInfoRepository>(relaxed = true)
+        val sharedPreferences = mockk<PersistentState>(relaxed = true)
+    }
+
 }
