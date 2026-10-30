@@ -18,7 +18,7 @@
     <string name="about_connect" translatable="true">ติดต่อ</string>
     <string name="about_mail_subject" translatable="true">[คิดใหม่]:</string>
     <string name="fapps_unmetered_unblock_dialog_title" translatable="true">อนุญาตให้ใช้แบบไม่มีมิเตอร์</string>
-    <string name="firewall_rule_global_lockdown_desc" translatable="true">This connection was blocked because universal lockdown is set.<br/><br/> To change go to <i>Universal</i> tab.</string>
+    <string name="firewall_rule_global_lockdown_desc" translatable="true">This connection was blocked because universal lockdown is set.<br/><br/> To change go to Universal tab.</string>
     <string name="category_name_installed" translatable="true">แอปที่ติดตั้ง</string>
     <string name="brbs_backup_dialog_failure_positive" translatable="true">ลองสำรองข้อมูลอีกครั้ง</string>
     <string name="brbs_restore_dialog_failure_title" translatable="true">การคืนค่าล้มเหลว</string>
@@ -51,8 +51,8 @@
     <string name="dc_check_update_heading" translatable="true">แจ้งเตือนการอัพเดตรายการบล็อค</string>
     <string name="cd_custom_doh_url_name_default" translatable="true">DoH</string>
     <string name="dns_proxy_name" translatable="true">ชื่อพร็อกซี</string>
-    <string name="firewall_rule_block_app_univ_mobile_desc" translatable="true">A user-set universal firewall rule blocked this <i>app</i> when trying to connect on <i>Metered</i> (Mobile) network.<br/><br/> To change go to <i>Universal</i> tab.</string>
-    <string name="firewall_rule_isolate_desc" translatable="true">A user-set firewall rule blocked this <i>app</i> connecting to other than <i>bypassed IPs</i>.<br/><br/> To change go to <i>All Apps</i> tab.</string>
+    <string name="firewall_rule_block_app_univ_mobile_desc" translatable="true">A user-set universal firewall rule blocked this app when trying to connect on Metered (Mobile) network.<br/><br/> To change go to Universal tab.</string>
+    <string name="firewall_rule_isolate_desc" translatable="true">A user-set firewall rule blocked this app connecting to other than bypassed IPs.<br/><br/> To change go to All Apps tab.</string>
     <string name="new_app_notification_action_deny" translatable="true">บล็อคต่อไป</string>
     <string name="ada_noapp_dialog_title" translatable="true">ไม่มีแอพดังกล่าว</string>
     <string name="ada_app_status_isolate" translatable="true">แยกไว้: อนุญาตเฉพาะ IP และโดเมนที่เชื่อถือได้</string>
@@ -66,7 +66,7 @@
     <string name="ssv_most_blocked_domain_heading" description="This label will appear on the stats screen as a header for most blocked domains" translatable="true">โดเมนที่ถูกบล็อคมากที่สุด</string>
     <string name="conn_track_clear_logs_title" translatable="true">ลบบันทึกเครือข่ายทั้งหมดหรือไม่?</string>
     <string name="bsct_app_info" translatable="true">ข้อมูลแอป</string>
-    <string name="bsct_block_ip" translatable="true">บล็อค เชื่อถือ <u>IP</u> นี้สำหรับ <u>แอป</u> นี้</string>
+    <string name="bsct_block_ip" translatable="true">บล็อค เชื่อถือ IP นี้สำหรับ แอป นี้</string>
     <string name="bsct_block_domain" translatable="true">บล็อกและเชื่อถือโดเมนสำหรับแอปนี้</string>
     <string name="always_on_dialog_heading" translatable="true">ปิดใช้งาน VPN ที่เปิดตลอดเวลา</string>
     <string name="always_on_dialog_positive_btn" translatable="true">ไปที่การตั้งค่า</string>
@@ -78,7 +78,7 @@
     <string name="dns_proxy_remove_success" translatable="true">ลบพร็อกซี DNS แล้ว</string>
     <string name="blocklist_update_check_failure" translatable="true">มีบางอย่างผิดพลาด โปรดลองอีกครั้งในภายหลัง!</string>
     <string name="local_blocklist_redownload_desc" translatable="true">รายการบล็อคบนอุปกรณ์มีเวอร์ชันล่าสุดแล้ว v%1$s</string>
-    <string name="search_custom_domains" translatable="true"><font size="12">ค้นหาชื่อโดเมน</font></string>
+    <string name="search_custom_domains" translatable="true">ค้นหาชื่อโดเมน</string>
     <string name="search_proxy_add_apps" translatable="true">ค้นหาแอปตามชื่อ</string>
     <string name="info_dialog_url_copy_toast_msg" translatable="true">คัดลอก URL แล้ว</string>
     <string name="orbot_socks5" translatable="true">พร็อกซี TCP เท่านั้น</string>
@@ -89,7 +89,7 @@
     <string name="dc_block_heading" translatable="true">กฎ</string>
     <string name="dc_other_dns_heading" translatable="true">พิมพ์</string>
     <string name="dc_custom_dns_radio" translatable="true">DNS อื่น ๆ</string>
-    <string name="dc_dns_website_desc" translatable="true">ดึงไอคอนเว็บไซต์จาก <i>nextdns.io</i> และ <i>duckduckgo.com</i> ใช้พื้นที่ดิสก์สูงสุด 350 MB</string>
+    <string name="dc_dns_website_desc" translatable="true">ดึงไอคอนเว็บไซต์จาก nextdns.io และ duckduckgo.com ใช้พื้นที่ดิสก์สูงสุด 350 MB</string>
     <string name="about_mozilla" translatable="true">Rethink ได้รับการสนับสนุนโดย Mozilla Builders, FOSS United Foundation, OSOM Products Inc.</string>
     <string name="about_settings_vpn_profile" translatable="true">โปรไฟล์ VPN</string>
     <string name="about_twitter" translatable="true">ติดตามเราบน Twitter</string>
@@ -148,17 +148,17 @@
     <string name="firewall_rule_block_app_new_install" translatable="true">แอปใหม่</string>
     <string name="firewall_rule_block_app_exception" translatable="true">ข้อผิดพลาด</string>
     <string name="firewall_rule_exempt_app_bypass_univ" translatable="true">แอปที่ถูกข้ามไป</string>
-    <string name="firewall_rule_new_app_desc" translatable="true">แอป นี้สร้างการเชื่อมต่อเป็นครั้งแรก <br/><br/> หากต้องการเปลี่ยน ให้ไปที่แท็บ<i>สากล</i></string>
+    <string name="firewall_rule_new_app_desc" translatable="true">แอป นี้สร้างการเชื่อมต่อเป็นครั้งแรก <br/><br/> หากต้องการเปลี่ยน ให้ไปที่แท็บสากล</string>
     <string name="firewall_rule_dns_blocked" translatable="true">DNS ถูกบล็อค</string>
-    <string name="firewall_rule_trusted_ip_desc" translatable="true">This connection was allowed because the <i>destination IP</i> is set as Trusted IP.<br/><br/> To change go to <i>App-specific Firewall</i> screen.</string>
-    <string name="firewall_rule_bypass_universal_ip_desc" translatable="true">This connection was allowed because the &lt;i&gt;destination IP&lt;/i&gt; is set to bypass all universal firewall rules.&lt;br/&gt;&lt;br/&gt; To change go to &lt;i&gt;IP Rules&lt;i&gt; in &lt;i&gt;Universal&lt;/i&gt; tab.</string>
-    <string name="firewall_rule_device_lock_desc" translatable="true">This connection was firewalled because <i>device was locked</i> at the time.<br/><br/> To change this behaviour go to <i>Universal</i> tab.</string>
-    <string name="firewall_rule_foreground_desc" translatable="true">This connection was firewalled because the source app was <i>not in the foreground</i>.<br/><br/> To change this behaviour go to <i>Universal</i> tab.</string>
-    <string name="firewall_rule_block_udp_ntp_desc" translatable="true">A user-set firewall rule blocked this <i>UDP</i> connection.<br/><br/> To change go to <i>Universal</i> tab.</string>
-    <string name="firewall_rule_block_domain_desc" translatable="true">A user-set firewall rule blocked the <i>domain</i>.<br/><br/> To change go to <i>App-specific Firewall</i> screen.</string>
-    <string name="firewall_rule_trusted_domain_desc" translatable="true">This connection was allowed because the <i>domain</i> is set as Trusted domain.<br/><br/> To change go to <i>App-specific Firewall</i> screen.</string>
-    <string name="firewall_rule_domain_trusted_univ_desc" translatable="true">This connection was allowed because the <i>domain</i> is set as trusted in Universal domain rules.<br/><br/> To change this behaviour go to <i>Configure DNS</i> tab.</string>
-    <string name="firewall_rule_proxied_desc" translatable="true">This connection was forwarded to user-preferred Proxy.<br/><br/> To change go to <i>Proxy</i> from <i>Configure</i> screen.</string>
+    <string name="firewall_rule_trusted_ip_desc" translatable="true">This connection was allowed because the destination IP is set as Trusted IP.<br/><br/> To change go to App-specific Firewall screen.</string>
+    <string name="firewall_rule_bypass_universal_ip_desc" translatable="true">This connection was allowed because the destination IP is set to bypass all universal firewall rules.&lt;br/&gt;&lt;br/&gt; To change go to IP Rules in Universal tab.</string>
+    <string name="firewall_rule_device_lock_desc" translatable="true">This connection was firewalled because device was locked at the time.<br/><br/> To change this behaviour go to Universal tab.</string>
+    <string name="firewall_rule_foreground_desc" translatable="true">This connection was firewalled because the source app was not in the foreground.<br/><br/> To change this behaviour go to Universal tab.</string>
+    <string name="firewall_rule_block_udp_ntp_desc" translatable="true">A user-set firewall rule blocked this UDP connection.<br/><br/> To change go to Universal tab.</string>
+    <string name="firewall_rule_block_domain_desc" translatable="true">A user-set firewall rule blocked the domain.<br/><br/> To change go to App-specific Firewall screen.</string>
+    <string name="firewall_rule_trusted_domain_desc" translatable="true">This connection was allowed because the domain is set as Trusted domain.<br/><br/> To change go to App-specific Firewall screen.</string>
+    <string name="firewall_rule_domain_trusted_univ_desc" translatable="true">This connection was allowed because the domain is set as trusted in Universal domain rules.<br/><br/> To change this behaviour go to Configure DNS tab.</string>
+    <string name="firewall_rule_proxied_desc" translatable="true">This connection was forwarded to user-preferred Proxy.<br/><br/> To change go to Proxy from Configure screen.</string>
     <string name="new_app_bulk_notification_title" translatable="true">ความสนใจ</string>
     <string name="new_app_notification_action_toast_allow" translatable="true">การเชื่อมต่อเครือข่ายได้รับอนุญาตสำหรับแอป</string>
     <string name="new_app_bulk_notification_content" translatable="true">Keepout บล็อกแอปใหม่ %1$s แตะเพื่อดูหรือแก้ไข</string>
@@ -242,7 +242,7 @@
     <string name="firewall_rule_block_http" translatable="true">HTTP ที่ไม่ปลอดภัย</string>
     <string name="firewall_rule_domain_blocked_univ" translatable="true">โดเมน (มหาวิทยาลัย)</string>
     <string name="firewall_rule_domain_trusted_univ" translatable="true">โดเมนที่เชื่อถือได้ (Univ)</string>
-    <string name="firewall_rule_block_app_unmetered_desc" translatable="true">A user-set firewall rule blocked this <i>app</i> when trying to connect on <i>Unmetered</i> network.<br/><br/> To change go to <i>All Apps</i> tab.</string>
+    <string name="firewall_rule_block_app_unmetered_desc" translatable="true">A user-set firewall rule blocked this app when trying to connect on Unmetered network.<br/><br/> To change go to All Apps tab.</string>
     <string name="bypass_universal" translatable="true">บายพาสสากล</string>
     <string name="isolate" translatable="true">แยกตัว</string>
     <string name="untracked" translatable="true">ไม่ได้ติดตาม</string>
@@ -275,7 +275,7 @@
     <string name="settings_ip_text_ipv6" translatable="true">IPv6</string>
     <string name="settings_ip_text_ipv46" translatable="true">ออโต้</string>
     <string name="settings_default_dns_heading" translatable="true">เลือก DNS สำรอง</string>
-    <string name="firewall_rule_block_http_desc" translatable="true">This connection was blocked because it likely used <i>insecure HTTP</i>.<br/><br/> To change go to <i>Universal</i> tab.</string>
+    <string name="firewall_rule_block_http_desc" translatable="true">This connection was blocked because it likely used insecure HTTP.<br/><br/> To change go to Universal tab.</string>
     <string name="ci_block" translatable="true">ปิดกั้น</string>
     <string name="ci_trust_rule" translatable="true">เชื่อมั่น</string>
     <string name="ada_noapp_dialog_positive" translatable="true">ตกลง</string>
@@ -302,7 +302,7 @@
     <string name="settings_autostart_bootup_desc" translatable="true">เมื่อเปิดเครื่องอุปกรณ์ ให้เริ่ม Keepout หากกำลังทำงานอยู่ก่อนที่จะปิดเครื่อง</string>
     <string name="settings_check_update_desc" translatable="true">ตรวจสอบการอัปเดตแอปโดยอัตโนมัติสัปดาห์ละครั้ง</string>
     <string name="settings_custom_downloader_heading" translatable="true">ใช้ตัวดาวน์โหลดในแอป</string>
-    <string name="settings_custom_downloader_desc" translatable="true">หากปิดใช้งาน ตัวจัดการการดาวน์โหลด <i>ในตัวของ Android </i>จะถูกใช้</string>
+    <string name="settings_custom_downloader_desc" translatable="true">หากปิดใช้งาน ตัวจัดการการดาวน์โหลด ในตัวของ Android จะถูกใช้</string>
     <string name="settings_ip_dialog_ipv46" translatable="true">อัตโนมัติ (ทดลอง)</string>
     <string name="settings_ip_text_ipv4" translatable="true">IPv4</string>
     <string name="ctbs_app_info_not_available_toast" translatable="true">ไม่พบหน้าการตั้งค่าแอป</string>
@@ -352,7 +352,7 @@
     <string name="orbot_install_dialog_neutral" translatable="true">เว็บไซต์</string>
     <string name="settings_http_proxy_desc" translatable="true">กำลังส่งต่อไปยัง %1$s</string>
     <string name="cd_dns_crypt_relay_heading" translatable="true">รีเลย์</string>
-    <string name="fapps_metered_unblock_dialog_message" translatable="true">อนุญาตการเชื่อมต่อบนเครือข่ายแบบคิดค่าบริการตามปริมาณ (มือถือ) สำหรับแอปที่<i>อยู่ในรายการ</i>หรือไม่?</string>
+    <string name="fapps_metered_unblock_dialog_message" translatable="true">อนุญาตการเชื่อมต่อบนเครือข่ายแบบคิดค่าบริการตามปริมาณ (มือถือ) สำหรับแอปที่อยู่ในรายการหรือไม่?</string>
     <string name="univ_accessibility_crash_dialog_positive" translatable="true">ไปที่การตั้งค่า</string>
     <string name="firewall_rule_exempt_orbot_setup" translatable="true">การตั้งค่า Orbot</string>
     <string name="parse_error_reason" translatable="true">ไม่สามารถแยกวิเคราะห์ %1$s “%2$s” ได้</string>
@@ -385,18 +385,18 @@
     <string name="univ_firewall_rule_4" translatable="true">บล็อค UDP ยกเว้น DNS และ NTP</string>
     <string name="fapps_filter_clear_btn" translatable="true">ชัดเจน</string>
     <string name="fapps_metered_unblock_dialog_title" translatable="true">อนุญาตให้ใช้มิเตอร์</string>
-    <string name="fapps_isolate_block_dialog_message" translatable="true">แยกแอปที่<i>อยู่ใน</i>รายการหรือไม่?</string>
-    <string name="fapps_metered_block_dialog_message" translatable="true">บล็อกการเชื่อมต่อบนเครือข่ายแบบคิดค่าบริการตามปริมาณ (มือถือ) สำหรับแอปที่ <i>อยู่ในรายการ</i> หรือไม่?</string>
+    <string name="fapps_isolate_block_dialog_message" translatable="true">แยกแอปที่อยู่ในรายการหรือไม่?</string>
+    <string name="fapps_metered_block_dialog_message" translatable="true">บล็อกการเชื่อมต่อบนเครือข่ายแบบคิดค่าบริการตามปริมาณ (มือถือ) สำหรับแอปที่ อยู่ในรายการ หรือไม่?</string>
     <string name="other_dns_list_tab3" translatable="true">พร็อกซี DNS</string>
     <string name="firewall_rule_block_app" translatable="true">แอปถูกบล็อค</string>
     <string name="firewall_rule_device_lock" translatable="true">อุปกรณ์ถูกล็อค</string>
     <string name="firewall_rule_foreground" translatable="true">แอปไม่ได้ใช้งาน</string>
-    <string name="firewall_rule_exempt_orbot_setup_desc" translatable="true">This connection was allowed because <i>one-click Tor-as-a-proxy</i> setup via Orbot was in progress.</string>
+    <string name="firewall_rule_exempt_orbot_setup_desc" translatable="true">This connection was allowed because one-click Tor-as-a-proxy setup via Orbot was in progress.</string>
     <string name="notif_channel_firewall_alerts" translatable="true">การแจ้งเตือนไฟร์วอลล์</string>
     <string name="ada_app_unmetered" translatable="true">ไร้มิเตอร์</string>
     <string name="rbl_privacy" description="The text appears as part of the blocklist setup screen as categories or headlines" translatable="true">ความเป็นส่วนตัว</string>
     <string name="rt_download" translatable="true">ดาวน์โหลดรายการบล็อค</string>
-    <string name="rt_filter_desc_subgroups" translatable="true">กำลังแสดง <u>%1$s</u> รายการบล็อกในกลุ่ม: %2$s และกลุ่มย่อย: %3$s</string>
+    <string name="rt_filter_desc_subgroups" translatable="true">กำลังแสดง %1$s รายการบล็อกในกลุ่ม: %2$s และกลุ่มย่อย: %3$s</string>
     <string name="brbs_backup_dialog_message" translatable="true">สำรองข้อมูลการตั้งค่าแอป เครือข่าย และบันทึก DNS ลงในไฟล์ การดำเนินการนี้จะเริ่ม VPN ใหม่</string>
     <string name="brbs_backup_dialog_positive" translatable="true">การสำรองข้อมูล</string>
     <string name="lbbs_configure" translatable="true">การกำหนดค่า</string>
@@ -405,7 +405,7 @@
     <string name="brbs_backup_complete_toast" translatable="true">การสำรองข้อมูลเสร็จสิ้น</string>
     <string name="dc_rethink_dns_radio" translatable="true">Rethink DNS</string>
     <string name="dc_entries" translatable="true">%1$s รายการ »</string>
-    <string name="fapps_bypass_block_dialog_message" translatable="true">ข้ามกฎไฟร์วอลล์สากลสำหรับแอปที่<i>อยู่ในรายการ</i>หรือไม่?</string>
+    <string name="fapps_bypass_block_dialog_message" translatable="true">ข้ามกฎไฟร์วอลล์สากลสำหรับแอปที่อยู่ในรายการหรือไม่?</string>
     <string name="config_add_success_toast" translatable="true">เสร็จแล้ว</string>
     <string name="memory_notification_text">Keepout กำลังประสบปัญหาหน่วยความจำต่ำ การดำเนินการของระบบอาจมีจำกัด</string>
     <string name="allow" translatable="true">อนุญาต</string>
@@ -418,7 +418,7 @@
     <string name="always_on_dialog_stop_heading" translatable="true">VPN ที่เปิดตลอดเวลา</string>
     <string name="always_on_dialog" translatable="true">อุปกรณ์นี้เปิดใช้งาน \"Always-On VPN\" แล้ว หากต้องการเริ่ม Keepout โปรดไปที่แอปการตั้งค่าและปิดใช้งาน \"Always-on VPN\"</string>
     <string name="always_on_dialog_stop_message" translatable="true">VPN แบบเปิดตลอดเวลาเปิดใช้งานสำหรับ Keepout แล้ว คุณแน่ใจหรือไม่? ว่าต้องการหยุด Keepout</string>
-    <string name="always_on_dialog_lockdown_stop_message" translatable="true">Keepout กำลังรัน VPN ในโหมด <i>Lockdown</i> หากหยุดการทำงาน จะส่งผลให้สูญเสียการเชื่อมต่ออินเทอร์เน็ตบนโปรไฟล์ผู้ใช้รายนี้ คุณต้องการดำเนินการต่อหรือไม่ ?</string>
+    <string name="always_on_dialog_lockdown_stop_message" translatable="true">Keepout กำลังรัน VPN ในโหมด Lockdown หากหยุดการทำงาน จะส่งผลให้สูญเสียการเชื่อมต่ออินเทอร์เน็ตบนโปรไฟล์ผู้ใช้รายนี้ คุณต้องการดำเนินการต่อหรือไม่ ?</string>
     <string name="always_on_dialog_positive" translatable="true">หยุด</string>
     <string name="always_on_dialog_neutral" translatable="true">การตั้งค่า</string>
     <string name="private_dns_dialog_heading" translatable="true">ปิดการใช้งาน DNS ส่วนตัว</string>
@@ -435,13 +435,13 @@
     <string name="http_proxy_dialog_desc" translatable="true">ตั้งค่า URL ของฟอร์ม &lt;โปรโตคอล&gt;://&lt;ชื่อผู้ใช้&gt;:&lt;รหัสผ่าน&gt;@&lt;โดเมนหรือไอพี&gt;:&lt;พอร์ต&gt;&lt;เส้นทาง&gt; ตัวอย่าง: http://proxy.example.com:8080/</string>
     <string name="download_update_dialog_trylater_title" translatable="true">ไม่สามารถอัปเดตได้ในขณะนี้</string>
     <string name="download_update_dialog_trylater_message" translatable="true">ไม่สามารถดำเนินการอัปเดตได้ในขณะนี้ โปรดลองอีกครั้งในภายหลัง</string>
-    <string name="search_universal_ips" translatable="true"><font size="12">ค้นหา IP</font></string>
+    <string name="search_universal_ips" translatable="true">ค้นหา IP</string>
     <string name="info_dialog_copy_toast_msg" translatable="true">คัดลอกที่อยู่ IP แล้ว</string>
     <string name="connection_http3" translatable="true">HTTP3</string>
     <string name="settings_allow_lan_heading" translatable="true">อย่ากำหนดเส้นทาง IP ส่วนตัว (ทดลอง)</string>
     <string name="settings_exclude_proxy_apps_heading" translatable="true">แอปพลิเคชั่นส่งต่อพรอกซี Loopback</string>
     <string name="settings_allow_bypass_heading" translatable="true">เปิดใช้งานการมองเห็นเครือข่าย</string>
-    <string name="settings_lock_down_mode_desc" translatable="true">ตัวเลือกบางอย่างจะถูกปิดใช้งานเมื่อ VPN อยู่ในโหมดล็อคดาวน์ <u>ดูการตั้งค่า VPN</u></string>
+    <string name="settings_lock_down_mode_desc" translatable="true">ตัวเลือกบางอย่างจะถูกปิดใช้งานเมื่อ VPN อยู่ในโหมดล็อคดาวน์ ดูการตั้งค่า VPN</string>
     <string name="settings_lock_down_proxy_desc" translatable="true">ไม่สามารถตั้งค่าพร็อกซีได้เมื่อ VPN กำลังทำงานในโหมด DNS เท่านั้น</string>
     <string name="settings_https_heading" translatable="true">ตั้งค่าพร็อกซี HTTP(S) CONNECT</string>
     <string name="orbot_bs_status_1" translatable="true">กำลังส่งต่อการเชื่อมต่อ %1$s ไปยัง Orbot</string>
@@ -456,7 +456,7 @@
     <string name="settings_orbot_notification_content" translatable="true">ความล้มเหลวในการเริ่ม Tor-as-a-Proxy เปิดแอป Orbot เพื่อเริ่มใช้งานด้วยตนเอง</string>
     <string name="settings_general_header" translatable="true">ทั่วไป</string>
     <string name="settings_general_customize" translatable="true">ปรับแต่ง</string>
-    <string name="settings_network_all_networks_desc" translatable="true">เมื่อเปิดใช้งาน Keepout จะใช้เครือข่ายทั้งหมดที่มีเพื่อเชื่อมต่ออินเทอร์เน็ต หากไม่เป็นเช่นนั้น จะใช้เครือข่ายใดก็ตามที่ Android ถือว่า <i>ใช้งานอยู่</i></string>
+    <string name="settings_network_all_networks_desc" translatable="true">เมื่อเปิดใช้งาน Keepout จะใช้เครือข่ายทั้งหมดที่มีเพื่อเชื่อมต่ออินเทอร์เน็ต หากไม่เป็นเช่นนั้น จะใช้เครือข่ายใดก็ตามที่ Android ถือว่า ใช้งานอยู่</string>
     <string name="settings_check_update_heading" translatable="true">ตรวจสอบการอัปเดตแอป</string>
     <string name="settings_import_export_desc" translatable="true">สำรองหรือกู้คืนข้อมูลแอปและการตั้งค่าด้วยตนเอง</string>
     <string name="settings_autostart_bootup_heading" translatable="true">เริ่มการทำงานอัตโนมัติเมื่อเปิดเครื่อง (ทดลอง)</string>
@@ -526,10 +526,10 @@
     <string name="dns_query_latency" translatable="true">%1$sms</string>
     <string name="dns_proxy_port" translatable="true">หมายเลขพอร์ต</string>
     <string name="fapps_filter_parent_system" translatable="true">ระบบ</string>
-    <string name="fapps_unmetered_unblock_dialog_message">อนุญาตให้เชื่อมต่อบนเครือข่ายแบบไม่จำกัดปริมาณ (WiFi) สำหรับแอปที่ <i>อยู่ในรายการ</i> หรือไม่?</string>
+    <string name="fapps_unmetered_unblock_dialog_message">อนุญาตให้เชื่อมต่อบนเครือข่ายแบบไม่จำกัดปริมาณ (WiFi) สำหรับแอปที่ อยู่ในรายการ หรือไม่?</string>
     <string name="fapps_bypass_dns_firewall_dialog_title" translatable="true">ข้ามแอปพลิเคชั่น</string>
     <string name="fapps_unblock_dialog_title" translatable="true">อนุญาตแอป</string>
-    <string name="fapps_unblock_dialog_message" translatable="true">อนุญาตการเชื่อมต่อสำหรับแอปที่<i>อยู่ในรายการ</i>หรือไม่?</string>
+    <string name="fapps_unblock_dialog_message" translatable="true">อนุญาตการเชื่อมต่อสำหรับแอปที่อยู่ในรายการหรือไม่?</string>
     <string name="fapps_isolate_block_dialog_title" translatable="true">แยกแอป</string>
     <string name="rules_load_failure_heading" translatable="true">บันทึก</string>
     <string name="network_log_app_name_unknown" translatable="true">ไม่ทราบ</string>
@@ -549,20 +549,17 @@
     <string name="firewall_rule_trusted_domain" translatable="true">โดเมนที่เชื่อถือได้ (แอป)</string>
     <string name="firewall_rule_proxied" translatable="true">พร็อกซี</string>
     <string name="firewall_rule_no_rule_desc" translatable="true">ไม่มีกฎไฟร์วอลล์ที่ตรงกับการเชื่อมต่อนี้</string>
-    <string name="firewall_rule_block_app_desc" translatable="true">กฎไฟร์วอลล์ที่ผู้ใช้ตั้งไว้บล็อกแอปนี้&lt;i&gt;.&lt;br/&gt;&lt;br/&gt; หากต้องการเปลี่ยน ให้ไปที่แท็บ&lt;i&gt;แอปทั้งหมด&lt;/i&gt;</string>
-    <string name="firewall_rule_block_ip_univ_desc" translatable="true">A user-set firewall rule blocked the <i>destination IP / Port</i>.<br/><br/> To change go to <i>Universal</i> tab.</string>
-    <string name="firewall_rule_block_ip_desc" translatable="true">A user-set firewall rule blocked the <i>destination IP</i>.<br/><br/> To change go to <i>App-specific Firewall</i> screen.</string>
-    <string name="firewall_rule_bypass_dns_firewall_desc" translatable="true">This connection was allowed because the <i>source app</i> is set to <i>bypass dns and firewall</i> rules.<br/><br/> To change go to <i>App-specific Firewall</i> screen.</string>
-    <string name="firewall_rule_dns_blocked_desc" translatable="true">This connection was blocked because the <i>domain</i> is blocked by user-preferred DNS.<br/><br/> To change this behaviour go to <i>Configure DNS</i> tab.</string>
-    <string name="firewall_rule_exempt_dns_proxied_desc" translatable="true">This DNS connection was proxied and forwarded to user-preferred DNS endpoint.<br/><br/> To change disable <i>Prevent DNS leaks</i> from DNS <i>Configure</i> screen.</string>
+    <string name="firewall_rule_block_app_desc" translatable="true">กฎไฟร์วอลล์ที่ผู้ใช้ตั้งไว้บล็อกแอปนี้.&lt;br/&gt;&lt;br/&gt; หากต้องการเปลี่ยน ให้ไปที่แท็บแอปทั้งหมด</string>
+    <string name="firewall_rule_block_ip_univ_desc" translatable="true">A user-set firewall rule blocked the destination IP / Port.<br/><br/> To change go to Universal tab.</string>
+    <string name="firewall_rule_block_ip_desc" translatable="true">A user-set firewall rule blocked the destination IP.<br/><br/> To change go to App-specific Firewall screen.</string>
+    <string name="firewall_rule_bypass_dns_firewall_desc" translatable="true">This connection was allowed because the source app is set to bypass dns and firewall rules.<br/><br/> To change go to App-specific Firewall screen.</string>
+    <string name="firewall_rule_dns_blocked_desc" translatable="true">This connection was blocked because the domain is blocked by user-preferred DNS.<br/><br/> To change this behaviour go to Configure DNS tab.</string>
+    <string name="firewall_rule_exempt_dns_proxied_desc" translatable="true">This DNS connection was proxied and forwarded to user-preferred DNS endpoint.<br/><br/> To change disable Prevent DNS leaks from DNS Configure screen.</string>
     <string name="notif_dialog_pause_dialog_positive" translatable="true">ประวัติย่อ</string>
     <string name="notif_channel_desc_firewall_alerts" translatable="true">การแจ้งเตือนเกี่ยวกับข้อผิดพลาดและสิ่งผิดปกติของไฟร์วอลล์</string>
-    <string name="firewall_rule_exempt_app_bypass_univ_desc" translatable="true">This connection was allowed because the <i>source app</i> is set to <i>bypass universal</i> firewall rules.<br/><br/> To change go to <i>App-specific Firewall</i> screen.</string>
+    <string name="firewall_rule_exempt_app_bypass_univ_desc" translatable="true">This connection was allowed because the source app is set to bypass universal firewall rules.<br/><br/> To change go to App-specific Firewall screen.</string>
     <string name="category_name_others" translatable="true">อื่น</string>
-    <string name="build__flavor_play_store" translatable="true">เล่น</string>
     <string name="category_name_non_app_sys" translatable="true">การบริการระบบ</string>
-    <string name="build__flavor_website" translatable="true">เว็บไซต์</string>
-    <string name="build__flavor_fdroid" translatable="true">เอฟดรอยด์</string>
     <string name="ada_noapp_dialog_message" translatable="true">ข้อมูลแอปหายไป บางทีแอปนี้อาจถูกถอนการติดตั้งไปแล้ว?</string>
     <string name="ada_app_bypass_univ" translatable="true">บายพาสสากล</string>
     <string name="ada_app_bypass_dns_firewall" translatable="true">ข้าม DNS และไฟร์วอลล์</string>
@@ -621,7 +618,6 @@
     <string name="crypt_relay_france" translatable="true">รีเลย์ DNS ที่ไม่เปิดเผยตัวตนซึ่งโฮสต์อยู่ในปารีส ประเทศฝรั่งเศส จัดทำโดย https://cryptostrom.is/</string>
     <string name="about_whats_new" translatable="true">มีอะไรใหม่ใน %1$s</string>
     <string name="network_dns" translatable="true">ระบบ DNS</string>
-    <string name="lbl_unselected" translatable="true">ไม่ได้เลือก</string>
     <string name="firewall_rule_block_domain" translatable="true">โดเมน (แอพ)</string>
     <string name="lbl_persistent_keepalive" translatable="true">การรักษาข้อมูลอย่างต่อเนื่อง</string>
     <string name="lbl_allowed_ips" translatable="true">IP ที่ได้รับอนุญาต</string>
@@ -631,7 +627,7 @@
     <string name="exclude_apps_from_proxy">ข้ามแอปจากพร็อกซีทั้งหมด</string>
     <string name="exclude_apps_from_proxy_failure_toast">แอปนี้ข้ามพร็อกซี</string>
     <string name="rt_filter_parent_selected" translatable="true">เลือกแล้ว</string>
-    <string name="rt_filter_hint" translatable="true">กำลังแสดงรายการบล็อค<u>ทั้งหมด</u></string>
+    <string name="rt_filter_hint" translatable="true">กำลังแสดงรายการบล็อคทั้งหมด</string>
     <string name="no_configs_error" translatable="true">ไม่พบการกำหนดค่า</string>
     <string name="dc_setting_dns_cache_desc" translatable="true">การรวมคำขอ การตอบสนองแคช การจัดการข้อผิดพลาดที่ยืดหยุ่น</string>
     <string name="private_dns_dialog_desc" translatable="true">การตั้งค่า DNS ของ Keepout จะถูกแทนที่ด้วย DNS ส่วนตัวของ Android
@@ -640,7 +636,7 @@
     <string name="alert_firewall_accessibility_explanation" translatable="true">Keepout ใช้บริการการเข้าถึงเพื่อติดตามว่าแอปใดใช้งานอยู่ (เบื้องหน้า) และแอปใดไม่ได้ใช้งาน (เบื้องหลัง)
 \n
 \nKeepout ไม่รวบรวมข้อมูลหรือสอดส่องคุณในทางใดทางหนึ่ง</string>
-    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">บริการการเข้าถึง Keepout หยุดทำงานหรือขัดข้อง <i><b>ไปที่การตั้งค่าและบังคับหยุด</b></i> Keepout และเริ่มใหม่อีกครั้งเพื่อใช้ฟีเจอร์ <i>บล็อกแอปใดๆ ที่ไม่ได้ใช้งาน</i>
+    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">บริการการเข้าถึง Keepout หยุดทำงานหรือขัดข้อง ไปที่การตั้งค่าและบังคับหยุด Keepout และเริ่มใหม่อีกครั้งเพื่อใช้ฟีเจอร์ บล็อกแอปใดๆ ที่ไม่ได้ใช้งาน
 \n
 \nKeepout ใช้บริการการเข้าถึงเพื่อติดตามว่าแอปใดใช้งานอยู่ (เบื้องหน้า) เทียบกับแอปที่ไม่ได้ใช้งาน (เบื้องหลัง)</string>
     <string name="firewall_act_universal_tab" translatable="true">สากล</string>
@@ -648,20 +644,19 @@
     <string name="download_update_dialog_message" translatable="true">สามารถดาวน์โหลดแอปพลิเคชันเวอร์ชันใหม่ได้จากเว็บไซต์ คุณต้องการดำเนินการต่อหรือไม่?</string>
     <string name="download_update_dialog_message_success" translatable="true">ดาวน์โหลดรายการบล็อคสำเร็จแล้ว</string>
     <string name="whats_new_version_update" translatable="true">&lt;b&gt;Don\'t Panic 2&lt;/b&gt;&lt;br/&gt;&lt;br/&gt; 1. ใหม่: จับข้อผิดพลาดของกลไกเครือข่ายในรายงานจุดบกพร่องของผู้ใช้&lt;br/&gt; 2. ใหม่: ใช้ System DNS สำหรับชื่อโดเมนที่ไม่ได้รับการมอบหมายก็ต่อเมื่อ Prevent DNS leaks เปิดอยู่&lt;br/&gt; 3. การปรับปรุง: การเชื่อมต่อ WireGuard แบบ Dual-stack (IPv4 + IPv6)&lt;br/&gt; 4. การปรับปรุง: หลีกเลี่ยงการบล็อกองค์ประกอบ UI เมื่อกลไกเครือข่ายไม่มีการตอบสนอง&lt;br/&gt; 5. แก้ไข: หมดเวลาการเชื่อมต่อเมื่อเปิดการกรอง DNS ขั้นสูง&lt;br/&gt; 6. แก้ไข: จุดสิ้นสุดของเพียร์ WireGuard ที่มีชื่อโดเมนค้างเมื่อมีการเปลี่ยนแปลงเครือข่าย&lt;br/&gt;&lt;br/&gt; &lt;a href=https://svc.rethinkdns.com/r/translate&gt;ช่วยแปลแอปนี้&lt;/a&gt;</string>
-    <string name="settings_exclude_proxy_apps_desc" translatable="true">เมื่อปิดใช้งาน จะไม่รวมแอปส่งต่อพร็อกซี (SOCKS5, HTTP, DNS) จากอุโมงค์ VPN ของ Keepout</string>
     <string name="settings_allow_bypass_desc" translatable="true">อนุญาตให้แอปร้องขอการเข้าถึงเครือข่ายที่มีอยู่ทั้งหมด แอปเหล่านี้อาจข้ามอุโมงค์ VPN ของ Keepout ได้ตามต้องการ แอปการประชุมทางเสียง/วิดีโอบางแอป เช่น Zoom และ Meet อาจต้องใช้สิ่งนี้เพื่อให้ทำงานได้อย่างถูกต้อง</string>
     <string name="orbot_stop_dialog_message" translatable="true">Keepout หยุดการส่งต่อการเชื่อมต่อไปยัง Orbot แล้ว แต่ Orbot อาจยังคงทำงานอยู่เบื้องหลัง</string>
     <string name="settings_socks5_vpn_disabled_error" translatable="true">เริ่มคิดใหม่เพื่อดำเนินการต่อ</string>
-    <string name="orbot_explanation" translatable="true">Orbot เป็นแอปพร็อกซีฟรีที่ช่วยให้แอปอื่นใช้อินเทอร์เน็ตได้ &lt;u&gt;ปลอดภัยยิ่งขึ้น&lt;/u&gt;
-\nOrbot ใช้ &lt;u&gt;Tor&lt;/u&gt; เพื่อเข้ารหัสการรับส่งข้อมูลทางอินเทอร์เน็ตของคุณ ซึ่งช่วยให้คุณ &lt;u&gt;หลีกเลี่ยงการเซ็นเซอร์&lt;/u&gt; และป้องกันการเฝ้าติดตามเครือข่าย&lt;/u&gt; ในรูปแบบต่างๆ ที่คุกคามเสรีภาพและความเป็นส่วนตัวของบุคคล
-\n&lt;u&gt;TCP Proxy&lt;/u&gt;: Keepout ส่งต่อเฉพาะการเชื่อมต่อ TCP ของแอป &lt;i&gt;ที่รวมอยู่&lt;/i&gt; ไปยัง Orbot
-\n&lt;u&gt;HTTP Proxy&lt;/u&gt;: Keepout &lt;i&gt;สร้าง&lt;/i&gt;อุโมงค์ HTTP CONNECT ไปยัง Orbot และส่งต่อเฉพาะการเชื่อมต่อ TCP ของแอป &lt;i&gt;ที่รวมอยู่&lt;/i&gt;</string>
+    <string name="orbot_explanation" translatable="true">Orbot เป็นแอปพร็อกซีฟรีที่ช่วยให้แอปอื่นใช้อินเทอร์เน็ตได้ ปลอดภัยยิ่งขึ้น
+\nOrbot ใช้ Tor เพื่อเข้ารหัสการรับส่งข้อมูลทางอินเทอร์เน็ตของคุณ ซึ่งช่วยให้คุณ หลีกเลี่ยงการเซ็นเซอร์ และป้องกันการเฝ้าติดตามเครือข่าย ในรูปแบบต่างๆ ที่คุกคามเสรีภาพและความเป็นส่วนตัวของบุคคล
+\nTCP Proxy: Keepout ส่งต่อเฉพาะการเชื่อมต่อ TCP ของแอป ที่รวมอยู่ ไปยัง Orbot
+\nHTTP Proxy: Keepout สร้างอุโมงค์ HTTP CONNECT ไปยัง Orbot และส่งต่อเฉพาะการเชื่อมต่อ TCP ของแอป ที่รวมอยู่</string>
     <string name="settings_dns_proxy_dialog_header" translatable="true">ตั้งค่าพร็อกซี SOCKS5</string>
     <string name="hsf_vpn_dialog_message" translatable="true">Keepout ต้องได้รับอนุญาตในการตั้งค่า VPN ในพื้นที่เพื่อเข้ารหัสคำขอ DNS ของอุปกรณ์ ดำเนินการตรวจสอบเครือข่าย และบังคับใช้กฎไฟร์วอลล์
 \n
 \nKeepout จะไม่รวบรวมข้อมูลหรือสอดส่องคุณในทางใดทางหนึ่ง</string>
     <string name="about_bug_no_log_dialog_message" translatable="true">ไม่สามารถดึงข้อมูลบันทึกข้อผิดพลาดได้ คุณต้องการรายงานข้อผิดพลาดด้วยตนเองหรือไม่?</string>
-    <string name="rt_filter_desc" translatable="true">กำลังแสดง <u>%1$s</u> รายการบล็อค</string>
+    <string name="rt_filter_desc" translatable="true">กำลังแสดง %1$s รายการบล็อค</string>
     <string name="about_mail_bugreport_subject" translatable="true">[คิดใหม่]: รายงานจุดบกพร่อง</string>
     <string name="cd_dns_crypt_resolver_heading" translatable="true">แก้ปัญหา</string>
     <string name="cd_dns_crypt_relay_name" translatable="true">รีเลย์ DNS %1$s</string>
@@ -675,10 +670,10 @@
     <string name="settings_local_blocklist_in_use" translatable="true">%1$s รายการบล็อคที่ใช้งานอยู่</string>
     <string name="fapps_firewall_filter_excluded" translatable="true">ไม่รวม</string>
     <string name="bad_config_reason_invalid_value" translatable="true">ค่าไม่ถูกต้อง</string>
-    <string name="firewall_rule_block_app_mobile_desc" translatable="true">A user-set firewall rule blocked this <i>app</i> when trying to connect on <i>Metered</i> network.<br/><br/> To change go to <i>All Apps</i> tab.</string>
-    <string name="firewall_rule_block_dns_bypass_desc" translatable="true">This connection was blocked because the <i>source app</i> bypassed user-preferred DNS.<br/><br/> To change this behaviour go to <i>Universal</i> tab.</string>
-    <string name="firewall_rule_unknown_desc" translatable="true">This connection was firewalled because the <i>source app</i> could not be determined.<br/><br/> To change this behaviour go to <i>Universal</i> tab.</string>
-    <string name="firewall_rule_domain_blocked_univ_desc" translatable="true">This connection was blocked because the <i>domain</i> is set as blocked in Universal domain rules.<br/><br/> To change this behaviour go to <i>Configure DNS</i> tab.</string>
+    <string name="firewall_rule_block_app_mobile_desc" translatable="true">A user-set firewall rule blocked this app when trying to connect on Metered network.<br/><br/> To change go to All Apps tab.</string>
+    <string name="firewall_rule_block_dns_bypass_desc" translatable="true">This connection was blocked because the source app bypassed user-preferred DNS.<br/><br/> To change this behaviour go to Universal tab.</string>
+    <string name="firewall_rule_unknown_desc" translatable="true">This connection was firewalled because the source app could not be determined.<br/><br/> To change this behaviour go to Universal tab.</string>
+    <string name="firewall_rule_domain_blocked_univ_desc" translatable="true">This connection was blocked because the domain is set as blocked in Universal domain rules.<br/><br/> To change this behaviour go to Configure DNS tab.</string>
     <string name="catch_all_wg_dialog_desc" translatable="true">การเชื่อมต่อและแอปทั้งหมดที่ไม่ได้ถูกกำหนดเส้นทางโดย WireGuard VPN อื่น ๆ จะถูกกำหนดเส้นทางโดย VPN นี้</string>
     <string name="routing_remaining_apps" translatable="true">การกำหนดเส้นทางแอปที่เหลือ</string>
     <string name="wireguard_disclaimer" translatable="true">DNS จะถูกส่งต่อไปยัง %1$s, ICMP (ตัวอย่าง: ping) จะถูกส่งไปยังเครือข่ายพื้นฐาน</string>

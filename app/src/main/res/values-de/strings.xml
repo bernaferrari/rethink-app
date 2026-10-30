@@ -36,11 +36,11 @@
     <string name="default_dns_name">RDNS Standard</string>
     <string name="custom_url_error_invalid_url">Ungültige URL</string>
     <string name="conn_track_clear_logs_message">Dabei werden nur die Netzwerk-Logs, nicht aber die Firewall-Regeln gelöscht. Dieser Vorgang ist nicht umkehrbar. Möchtest du fortfahren?</string>
-    <string name="bsct_block_ip">Blockieren, <u>dieser IP</u> für <u>diese App</u> vertrauen</string>
+    <string name="bsct_block_ip">Blockieren, dieser IP für diese App vertrauen</string>
     <string name="always_on_dialog_positive_btn">Einstellungen öffnen</string>
     <string name="always_on_dialog_stop_heading">Always-On VPN</string>
     <string name="always_on_dialog_stop_message">Always-On VPN ist für Keepout aktiviert. Bist du sicher, dass du Keepout trotzdem beenden möchtest?</string>
-    <string name="always_on_dialog_lockdown_stop_message">Keepout führt die VPN im <i>Sperr-</i>Modus aus. Ein Beenden würde zum Verlust der Internetverbindung für dieses Benutzerprofil führen. Möchtest du trotzdem fortfahren?</string>
+    <string name="always_on_dialog_lockdown_stop_message">Keepout führt die VPN im Sperr-Modus aus. Ein Beenden würde zum Verlust der Internetverbindung für dieses Benutzerprofil führen. Möchtest du trotzdem fortfahren?</string>
     <string name="always_on_dialog_positive">Beenden</string>
     <string name="firewall_act_network_monitor_tab">Netzwerk</string>
     <string name="doh_custom_url_remove_dialog_title">DoH-Endpunkt löschen\?</string>
@@ -69,7 +69,7 @@
     <string name="private_dns_dialog_desc">Die DNS-Einstellungen von Keepout werden von Android\'s Private DNS außer Kraft gesetzt.\n\nUm Keepout\'s DNS zu verwenden, gehe zu den Android-Einstellungen und deaktiviere \"Privates DNS\".</string>
     <string name="dns_crypt_relay_remove_dialog_message">DNSCrypt-Relay aus der gespeicherten Konfiguration löschen.</string>
     <string name="local_blocklist_download">Blocklisten herunterladen</string>
-    <string name="settings_lock_down_mode_desc">Gewisse Optionen sind deaktiviert, wenn das VPN im Lockdown-Modus läuft. <u>Siehe VPN-Einstellungen</u>.</string>
+    <string name="settings_lock_down_mode_desc">Gewisse Optionen sind deaktiviert, wenn das VPN im Lockdown-Modus läuft. Siehe VPN-Einstellungen.</string>
     <string name="local_blocklist_redownload">Aktuell!</string>
     <string name="blocklist_update_check_not_required">Die Blocklisten sind bereits auf dem neuesten Stand.</string>
     <string name="local_blocklist_redownload_desc">Die geräteinternen Blocklisten sind bereits auf dem neuesten Stand (%1$s).</string>
@@ -78,7 +78,7 @@
     <string name="info_dialog_rethink_toast_msg">Kopiert als RDNS+ DNS-über-HTTPS URL</string>
     <string name="settings_allow_bypass_desc">Anfragenden Apps erlauben, alle verfügbaren Netzwerke zu benutzen. Diese Apps könnten die RethinkDNS-Firewall bei Bedarf umgehen. Einige Audio-/Videokonferenz-Apps wie Zoom und Meet können dies erfordern, um richtig zu funktionieren.</string>
     <string name="orbot_stop_dialog_message">Keepout hat aufgehört Verbindungen zu Orbot weiterzuleiten, aber Orbot läuft vielleicht noch im Hintergrund.</string>
-    <string name="orbot_explanation">Orbot ist eine kostenlose Proxy-App, die es anderen Apps ermöglicht, das Internet <u>sicherer</u> zu nutzen.\nOrbot verwendet <u>Tor</u>, um Ihren Internetverkehr zu verschlüsseln, was Ihnen hilft, <u>Zensur zu umgehen</u> und sich gegen Formen der <u>Netzwerküberwachung</u> zu verteidigen, die die persönliche Freiheit und Privatsphäre bedrohen.\n<u>TCP Proxy</u>: Keepout leitet nur TCP-Verbindungen von <i>eingeschlossenen</i> Apps an Orbot weiter.\n<u>HTTP Proxy</u>: Keepout <i>stellt</i> einen HTTP CONNECT-Tunnel zu Orbot <i>her</i> und leitet nur TCP-Verbindungen von <i>eingeschlossenen</i> Apps weiter.</string>
+    <string name="orbot_explanation">Orbot ist eine kostenlose Proxy-App, die es anderen Apps ermöglicht, das Internet sicherer zu nutzen.\nOrbot verwendet Tor, um Ihren Internetverkehr zu verschlüsseln, was Ihnen hilft, Zensur zu umgehen und sich gegen Formen der Netzwerküberwachung zu verteidigen, die die persönliche Freiheit und Privatsphäre bedrohen.\nTCP Proxy: Keepout leitet nur TCP-Verbindungen von eingeschlossenen Apps an Orbot weiter.\nHTTP Proxy: Keepout stellt einen HTTP CONNECT-Tunnel zu Orbot her und leitet nur TCP-Verbindungen von eingeschlossenen Apps weiter.</string>
     <string name="orbot_install_dialog_title">Orbot installieren\?</string>
     <string name="private_dns_dialog_positive">Einstellungen öffnen</string>
     <string name="blocklist_update_check_failure">Ein Fehler ist aufgetreten. Versuche es später noch einmal!</string>
@@ -88,8 +88,8 @@
     <string name="download_update_dialog_failure_message">Entweder sind unsere Server ausgefallen oder die Verbindung konnte nicht hergestellt werden. Bitte versuche es nach einiger Zeit erneut.</string>
     <string name="download_update_dialog_trylater_title">Kann im Moment nicht aktualisieren</string>
     <string name="download_update_dialog_trylater_message">Das Update kann im Moment nicht ausgeführt werden, bitte versuche es später noch einmal.</string>
-    <string name="search_universal_ips"><font size="12">IPs suchen</font></string>
-    <string name="search_custom_domains"><font size="12">Domänennamen suchen</font></string>
+    <string name="search_universal_ips">IPs suchen</string>
+    <string name="search_custom_domains">Domänennamen suchen</string>
     <string name="whats_new_version_update">&lt;b&gt;Don\'t Panic 2&lt;/b&gt;&lt;br/&gt;&lt;br/&gt; \n1. Neu: Netzwerk-Engine-Fehler können nun für Nutzermeldungen erfasst werden.&lt;br/&gt; \n2. Neu: System-DNS wird nun für nicht delegierte Domainnamen verwendet, wenn „DNS-Leaks verhindern“ aktiviert ist.&lt;br/&gt; \n3. Verbesserung: Dual-Stack-Verbindung (IPv4 + IPv6) mit WireGuard.&lt;br/&gt; \n4. Verbesserung: UI-Elemente werden nicht mehr blockiert, wenn die Netzwerk-Engine nicht reagiert.&lt;br/&gt; \n5. Fehlerbehebung: Verbindungsabbrüche bei aktiviertem erweitertem DNS-Filter.&lt;br/&gt; \n6. Fehlerbehebung: WireGuard-Endpunkte mit Domainnamen hängen bei Netzwerkänderungen fest.&lt;br/&gt;&lt;br/&gt; \n&lt;a href=https://svc.rethinkdns.com/r/translate&gt;Hilf mit, diese App zu übersetzen&lt;/a&gt;</string>
     <string name="connection_http3">HTTP3</string>
     <string name="orbot_install_dialog_message">Orbot bringt die Eigenschaften und Funktionen von Tor auf Android.</string>
@@ -117,7 +117,7 @@
     <string name="orbot_stop_dialog_neutral">DNS ändern</string>
     <string name="orbot_title">Orbot und Proxys</string>
     <string name="settings_orbot_disabled_error">Schalte HTTP(S) und/oder SOCKS5 Proxy aus, um mit der Tor-as-a-proxy Einrichtung fortzufahren.</string>
-    <string name="settings_network_all_networks_desc">Wenn diese Funktion aktiviert ist, verwendet Keepout alle verfügbaren Netzwerke, um eine Verbindung zum Internet herzustellen. Wenn nicht, wird das Netzwerk verwendet, das von Android als <i>aktiv</i> angesehen wird.</string>
+    <string name="settings_network_all_networks_desc">Wenn diese Funktion aktiviert ist, verwendet Keepout alle verfügbaren Netzwerke, um eine Verbindung zum Internet herzustellen. Wenn nicht, wird das Netzwerk verwendet, das von Android als aktiv angesehen wird.</string>
     <string name="settings_autostart_bootup_heading">Auto-Start beim Einschalten (experimentell)</string>
     <string name="orbot_both">TCP + HTTP-Proxy</string>
     <string name="orbot_none">Keine (Standard)</string>
@@ -159,26 +159,26 @@
     <string name="firewall_rule_block_app_exception">Fehler</string>
     <string name="firewall_rule_block_dns_bypass">DNS umgangen</string>
     <string name="firewall_rule_exempt_app_bypass_univ">umgangene App</string>
-    <string name="firewall_rule_block_app_desc"><![CDATA[Eine benutzerdefinierte Firewall-Regel hat diese <i>App</i> blockiert.<br/><br/> Zum Ändern gehe zum Tab <i>Alle Apps</i> .]]></string>
-    <string name="firewall_rule_new_app_desc"><![CDATA[Diese App hat zum <i>ersten</i> Mal eine Verbindung hergestellt.<br/><br/> Um dies zu ändern, gehe zum Tab <i>Universal</i>.]]></string>
-    <string name="firewall_rule_block_app_mobile_desc"><![CDATA[Eine benutzerdefinierte Firewall-Regel hat diese <i>App</i> beim Versuch, eine Verbindung in einem <i>nach Datenvolumen begrenzten</i> Netzwerk herzustellen, blockiert.<br/><br/> Um dies zu ändern, gehen Sie zum Tab <i>Alle Apps</i>.]]></string>
-    <string name="firewall_rule_block_ip_univ_desc"><![CDATA[Eine benutzerdefinierte Firewall-Regel hat die <i>Ziel-IP / den Ziel-Port</i> blockiert.<br/><br/> Zum Ändern gehen Sie zum Tab <i>Universell</i>.]]></string>
-    <string name="firewall_rule_block_ip_desc"><![CDATA[Eine benutzerdefinierte Firewall-Regel hat die <i>Ziel-IP</i> blockiert.<br/><br/> Um dies zu ändern, gehen Sie zum Bildschirm <i>App-spezifische Firewall</i>.]]></string>
+    <string name="firewall_rule_block_app_desc"><![CDATA[Eine benutzerdefinierte Firewall-Regel hat diese App blockiert.]]></string>
+    <string name="firewall_rule_new_app_desc"><![CDATA[Diese App hat zum ersten Mal eine Verbindung hergestellt.]]></string>
+    <string name="firewall_rule_block_app_mobile_desc"><![CDATA[Eine benutzerdefinierte Firewall-Regel hat diese App beim Versuch, eine Verbindung in einem nach Datenvolumen begrenzten Netzwerk herzustellen, blockiert.]]></string>
+    <string name="firewall_rule_block_ip_univ_desc"><![CDATA[Eine benutzerdefinierte Firewall-Regel hat die Ziel-IP / den Ziel-Port blockiert.]]></string>
+    <string name="firewall_rule_block_ip_desc"><![CDATA[Eine benutzerdefinierte Firewall-Regel hat die Ziel-IP blockiert.]]></string>
     <string name="settings_ip_dialog_ipv46">Auto (experimentell)</string>
     <string name="settings_dns_proxy_dialog_app_desc">Die gewählte Anwendung wird vom VPN ausgeschlossen, damit es in Ihrem Namen Verbindungen projizieren kann.</string>
     <string name="settings_ip_dialog_ipv6">IPv6 (experimentell)</string>
     <string name="accessibility_notification_content">Der Keepout-Dienst für Barrierefreiheit wurde angehalten oder ist abgestürzt. Im Hintergrund laufende Apps werden nicht mehr blockiert. Tippe auf den Bildschirm, um ihn wieder zu aktivieren.</string>
     <string name="firewall_rule_block_univ_ip">IP / Port (Universell)</string>
     <string name="firewall_rule_device_lock">Gerät gesperrt</string>
-    <string name="firewall_rule_block_app_unmetered_desc"><![CDATA[Eine benutzerdefinierte Firewall-Regel hat diese <i>App</i> beim Versuch, eine Verbindung im <i>Unmetered</i>-Netzwerk herzustellen, blockiert.<br/><br/> Um dies zu ändern, wechsel zum Tab <i>Alle Apps</i>.]]></string>
-    <string name="firewall_rule_block_app_univ_mobile_desc"><![CDATA[Eine vom Benutzer festgelegte universelle Firewall-Regel hat diese <i>App</i> blockiert, als sie versuchte, eine Verbindung in einem <i>gedrosselten</i> (mobilen) Netzwerk herzustellen.<br/><br/> Um dies zu ändern, gehen Sie zum Reiter <i>Universell</i>.]]></string>
-    <string name="firewall_rule_device_lock_desc"><![CDATA[Diese Verbindung wurde blockiert, da das <i>Gerät zu diesem Zeitpunkt gesperrt</i> war.<br/><br/> Um dieses Verhalten zu ändern, gehe zum Tab <i>Universal</i>.]]></string>
-    <string name="firewall_rule_bypass_universal_ip_desc"><![CDATA[Diese Verbindung wurde zugelassen, da die <i>Ziel-IP</i> so eingestellt ist, dass alle universellen Firewall-Regeln umgangen werden.<br/><br/> Um dies zu ändern, gehen Sie zu <i>IP-Regeln</i> im Tab <i>Universell</i>.]]></string>
-    <string name="firewall_rule_foreground_desc"><![CDATA[Diese Verbindung wurde blockiert, weil die Quell-App <i>nicht im Vordergrund</i> war.<br/><br/> Um dieses Verhalten zu ändern, gehen Sie zum Tab <i>Universal</i>.]]></string>
-    <string name="firewall_rule_block_dns_bypass_desc"><![CDATA[Diese Verbindung wurde blockiert, da die <i>Quell-App</i> die vom Benutzer bevorzugte DNS-Auflösung umgangen hat.<br/><br/> Um dieses Verhalten zu ändern, gehe zum Tab <i>Universal</i>.]]></string>
-    <string name="firewall_rule_block_udp_ntp_desc"><![CDATA[Eine benutzerdefinierte Firewall-Regel hat diese <i>UDP</i>-Verbindung blockiert.<br/><br/> Um dies zu ändern, gehen Sie zum Tab <i>Universal</i>.]]></string>
-    <string name="firewall_rule_block_http_desc"><![CDATA[Diese Verbindung wurde blockiert, da sie wahrscheinlich <i>unsicheres HTTP</i> verwendete.<br/><br/> Um dies zu ändern, gehe zum Tab <i>Universal</i>.]]></string>
-    <string name="firewall_rule_exempt_app_bypass_univ_desc"><![CDATA[Diese Verbindung wurde zugelassen, da die <i>Quell-App</i> auf <i>universelle Firewall-Regeln umgehen</i> eingestellt ist.<br/><br/> Um dies zu ändern, gehen Sie zum Bildschirm <i>App-spezifische Firewall</i>.]]></string>
+    <string name="firewall_rule_block_app_unmetered_desc"><![CDATA[Eine benutzerdefinierte Firewall-Regel hat diese App beim Versuch, eine Verbindung im Unmetered-Netzwerk herzustellen, blockiert.]]></string>
+    <string name="firewall_rule_block_app_univ_mobile_desc"><![CDATA[Eine vom Benutzer festgelegte universelle Firewall-Regel hat diese App blockiert, als sie versuchte, eine Verbindung in einem gedrosselten (mobilen) Netzwerk herzustellen.]]></string>
+    <string name="firewall_rule_device_lock_desc"><![CDATA[Diese Verbindung wurde blockiert, da das Gerät zu diesem Zeitpunkt gesperrt war.]]></string>
+    <string name="firewall_rule_bypass_universal_ip_desc"><![CDATA[Diese Verbindung wurde zugelassen, da die Ziel-IP so eingestellt ist, dass alle universellen Firewall-Regeln umgangen werden.]]></string>
+    <string name="firewall_rule_foreground_desc"><![CDATA[Diese Verbindung wurde blockiert, weil die Quell-App nicht im Vordergrund war.]]></string>
+    <string name="firewall_rule_block_dns_bypass_desc"><![CDATA[Diese Verbindung wurde blockiert, da die Quell-App die vom Benutzer bevorzugte DNS-Auflösung umgangen hat.]]></string>
+    <string name="firewall_rule_block_udp_ntp_desc"><![CDATA[Eine benutzerdefinierte Firewall-Regel hat diese UDP-Verbindung blockiert.]]></string>
+    <string name="firewall_rule_block_http_desc"><![CDATA[Diese Verbindung wurde blockiert, da sie wahrscheinlich unsicheres HTTP verwendete.]]></string>
+    <string name="firewall_rule_exempt_app_bypass_univ_desc"><![CDATA[Diese Verbindung wurde zugelassen, da die Quell-App auf universelle Firewall-Regeln umgehen eingestellt ist.]]></string>
     <string name="settings_http_proxy_error_text1">Der Portbereich muss zwischen 1024 und 65535 liegen</string>
     <string name="settings_http_proxy_error_text2">Ungültiger Port</string>
     <string name="settings_http_proxy_error_text3">Hostname ist leer</string>
@@ -204,16 +204,16 @@
     <string name="firewall_rule_block_udp_ntp">UDP geblockt</string>
     <string name="firewall_rule_global_lockdown">totale Sperrung</string>
     <string name="firewall_rule_no_rule_desc">Für diese Verbindung gibt es keine passenden Firewall-Regeln.</string>
-    <string name="firewall_rule_isolate_desc"><![CDATA[Eine benutzerdefinierte Firewall-Regel hat verhindert, dass diese <i>App</i> sich mit anderen Zielen als <i>umgangenen IPs</i> verbindet.<br/><br/> Um dies zu ändern, gehe zum Tab <i>Alle Apps</i>.]]></string>
-    <string name="firewall_rule_trusted_ip_desc"><![CDATA[Diese Verbindung wurde zugelassen, weil die <i>Ziel-IP</i> als vertrauenswürdige IP festgelegt ist.<br/><br/> Zum Ändern gehen Sie zum Bildschirm <i>App-spezifische Firewall</i>.]]></string>
-    <string name="firewall_rule_unknown_desc"><![CDATA[Diese Verbindung wurde blockiert, da die <i>Quell-App</i> nicht ermittelt werden konnte.<br/><br/> Um dieses Verhalten zu ändern, gehen Sie zur Registerkarte <i>Universal</i>.]]></string>
-    <string name="firewall_rule_exempt_dns_proxied_desc"><![CDATA[Diese DNS-Verbindung wurde weitergeleitet und an den vom Benutzer bevorzugten DNS-Endpunkt gesendet.<br/><br/> Um dies zu ändern, deaktivieren Sie <i>DNS-Leaks verhindern</i> auf dem Bildschirm <i>DNS konfigurieren</i>.]]></string>
-    <string name="firewall_rule_exempt_orbot_setup_desc"><![CDATA[Diese Verbindung wurde erlaubt, da die <i>One-Click-Tor-als-Proxy</i>-Einrichtung über Orbot im Gange war.]]></string>
+    <string name="firewall_rule_isolate_desc"><![CDATA[Eine benutzerdefinierte Firewall-Regel hat verhindert, dass diese App sich mit anderen Zielen als umgangenen IPs verbindet.]]></string>
+    <string name="firewall_rule_trusted_ip_desc"><![CDATA[Diese Verbindung wurde zugelassen, weil die Ziel-IP als vertrauenswürdige IP festgelegt ist.]]></string>
+    <string name="firewall_rule_unknown_desc"><![CDATA[Diese Verbindung wurde blockiert, da die Quell-App nicht ermittelt werden konnte.]]></string>
+    <string name="firewall_rule_exempt_dns_proxied_desc"><![CDATA[Diese DNS-Verbindung wurde weitergeleitet und an den vom Benutzer bevorzugten DNS-Endpunkt gesendet.]]></string>
+    <string name="firewall_rule_exempt_orbot_setup_desc"><![CDATA[Diese Verbindung wurde erlaubt, da die One-Click-Tor-als-Proxy-Einrichtung über Orbot im Gange war.]]></string>
     <string name="settings_import_export_desc">Manuelles Sichern oder Wiederherstellen der App-Daten und Einstellungen.</string>
     <string name="settings_custom_downloader_heading">In-App-Downloader verwenden</string>
     <string name="settings_check_update_desc">Einmal pro Woche automatisch nach App-Updates suchen.</string>
     <string name="settings_check_update_heading">Nach App-Updates suchen</string>
-    <string name="settings_custom_downloader_desc">Wenn deaktiviert, wird der in Android integrierte <i>Download Manager</i> verwendet</string>
+    <string name="settings_custom_downloader_desc">Wenn deaktiviert, wird der in Android integrierte Download Manager verwendet</string>
     <string name="bypass_universal">Pauschale Umgehung</string>
     <string name="firewall_act_universal_tab">Pauschal</string>
     <string name="new_app_bulk_notification_title">Achtung</string>
@@ -255,10 +255,10 @@
     <string name="rt_download_desc">Laden Sie Blocklisten herunter (ca. 60 MB), um diese Funktion zu nutzen.</string>
     <string name="radio_sky_btn">⛅ Himmel</string>
     <string name="radio_max_btn">🪂 Max</string>
-    <string name="rt_filter_hint">Zeige <u>alle</u> Blocklisten</string>
-    <string name="rt_filter_desc"><![CDATA[Zeige <u>%1$s</u> Blockierlisten an]]></string>
+    <string name="rt_filter_hint">Zeige alle Blocklisten</string>
+    <string name="rt_filter_desc"><![CDATA[Zeige %1$s Blockierlisten an]]></string>
     <string name="rethink_max_desc">50+ Standorte; mehr privat; rekursiver Resolver läuft auf fly.io</string>
-    <string name="rt_filter_desc_subgroups"><![CDATA[Zeige <u>%1$s</u> Blocklisten in Gruppe: %2$s und Untergruppe: %3$s]]></string>
+    <string name="rt_filter_desc_subgroups"><![CDATA[Zeige %1$s Blocklisten in Gruppe: %2$s und Untergruppe: %3$s]]></string>
     <string name="rethink_sky_desc">280+ Standorte; höhere Betriebszeit; Stub Resolver läuft auf cloudflare.com</string>
     <string name="dc_doh">DNS über HTTPS</string>
     <string name="dc_dns_crypt">DNSCrypt</string>
@@ -290,9 +290,9 @@
     <string name="rbl_security_desc" description="The text appears as blocklists description in configure screen">Blockieren Sie Malware, Ransomware (Erpressersoftware), Kryptoware, Phisher und andere Bedrohungen.</string>
     <string name="brbs_restore_desc">Aus Sicherungsdatei wiederherstellen</string>
     <string name="brbs_backup_desc">Sichern von Anwendungseinstellungen, Netzwerk- und DNS-Protokollen</string>
-    <string name="alert_firewall_accessibility_regrant_explanation">Der Keepout Dienst für Barrierefreiheit wurde angehalten oder ist abgestürzt. <i><b>Erzwinge das Beenden von Keepout über die Systemeinstellungen</b></i> und starte Keepout erneut, um die Funktion <i>Blockieren aller nicht genutzten Apps</i> zu verwenden.\n\nKeepout verwendet den Dienst für Barrierefreiheit, um zu verfolgen, welche Apps in Gebrauch sind (im Vordergrund) und welche nicht (im Hintergrund).</string>
+    <string name="alert_firewall_accessibility_regrant_explanation">Der Keepout Dienst für Barrierefreiheit wurde angehalten oder ist abgestürzt. Erzwinge das Beenden von Keepout über die Systemeinstellungen und starte Keepout erneut, um die Funktion Blockieren aller nicht genutzten Apps zu verwenden.\n\nKeepout verwendet den Dienst für Barrierefreiheit, um zu verfolgen, welche Apps in Gebrauch sind (im Vordergrund) und welche nicht (im Hintergrund).</string>
     <string name="firewall_status_whitelisted">Umgeht die universellen Firewall-Regeln</string>
-    <string name="firewall_rule_global_lockdown_desc"><![CDATA[Diese Verbindung wurde blockiert, da die universelle Sperre aktiviert ist.<br/><br/> Um dies zu ändern, gehe zum Tab <i>Universal</i>.]]></string>
+    <string name="firewall_rule_global_lockdown_desc"><![CDATA[Diese Verbindung wurde blockiert, da die universelle Sperre aktiviert ist.]]></string>
     <string name="new_app_bulk_notification_content">Keepout hat %1$s neue Apps blockiert. Zum Anzeigen oder Ändern tippen.</string>
     <string name="new_app_notification_content">Keepout blockierte die kürzlich installierte App, %1$s.</string>
     <string name="new_app_notification_action_deny">Weiter blockieren</string>
@@ -301,9 +301,6 @@
     <string name="notif_dialog_pause_dialog_positive">Fortfahren</string>
     <string name="notif_dialog_pause_dialog_negative">Verwerfen</string>
     <string name="notif_channel_desc_firewall_alerts">Warnung vor Firewall-Fehlern und Anomalien</string>
-    <string name="build__flavor_website">webseite</string>
-    <string name="build__flavor_play_store">Spiel {fileName}</string>
-    <string name="build__flavor_fdroid">fdroid</string>
     <string name="ada_app_status_block_md">Bei mobilen Daten blockiert</string>
     <string name="ada_app_metered">Getaktet</string>
     <string name="ada_app_unmetered">Ungetaktet</string>
@@ -370,7 +367,7 @@
     <string name="cd_doh_dialog_resolver_url">Resolver-URL</string>
     <string name="cd_dnscrypt_relay_heading">Relays</string>
     <string name="dc_dns_website_heading">Website-Icon in DNS-Logs anzeigen (experimentell)</string>
-    <string name="dc_dns_website_desc">Ruft Webseitensymbole von <i>nextdns.io</i> und <i>duckduckgo.com</i> ab. Verbraucht bis zu 350 MB Speicherplatz</string>
+    <string name="dc_dns_website_desc">Ruft Webseitensymbole von nextdns.io und duckduckgo.com ab. Verbraucht bis zu 350 MB Speicherplatz</string>
     <string name="dc_dns_leaks_heading">Verhindere DNS-Leaks</string>
     <string name="dc_dns_leaks_desc">Wenn aktiviert, fängt Keepout alle Pakete an Port 53 ab und leitet sie an den festgelegten DNS-Endpunkt weiter</string>
     <string name="about_bug_no_log_dialog_title">Fehlerbericht</string>
@@ -440,8 +437,8 @@
     <string name="dns_proxy_desc_no_app">%1$s:%2$s</string>
     <string name="fapps_filter_parent_system">System</string>
     <string name="fapps_firewall_filter_excluded">Ausgeschlossen</string>
-    <string name="fapps_unmetered_block_dialog_message">Verbindungen in Netzwerken ohne Datenlimit (WiFi) für die auf <i>aufgeführten</i> Apps blockieren?</string>
-    <string name="fapps_unmetered_unblock_dialog_message">Verbindungen in Netzwerken ohne Datenlimit (WiFi) für die auf <i>aufgeführten</i> Apps erlauben?</string>
+    <string name="fapps_unmetered_block_dialog_message">Verbindungen in Netzwerken ohne Datenlimit (WiFi) für die auf aufgeführten Apps blockieren?</string>
+    <string name="fapps_unmetered_unblock_dialog_message">Verbindungen in Netzwerken ohne Datenlimit (WiFi) für die auf aufgeführten Apps erlauben?</string>
     <string name="fapps_metered_block_dialog_title">Sperre bei kostenpflichtigen</string>
     <string name="unicode_question_sign">❔</string>
     <string name="rules_load_failure_heading">Anmerkung</string>
@@ -473,9 +470,9 @@
     <string name="fapps_filter_clear_btn">Leeren</string>
     <string name="fapps_filter_parent_installed">Installiert</string>
     <string name="fapps_info_dialog_positive_btn">OK</string>
-    <string name="fapps_metered_block_dialog_message">Verbindungen in kostenpflichtigen Netzwerken (Mobilfunknetze) für die auf <i>aufgeführten</i> Apps blockieren?</string>
+    <string name="fapps_metered_block_dialog_message">Verbindungen in kostenpflichtigen Netzwerken (Mobilfunknetze) für die auf aufgeführten Apps blockieren?</string>
     <string name="fapps_metered_unblock_dialog_title">Erlaubt im kostenpflichtigen</string>
-    <string name="fapps_metered_unblock_dialog_message">Verbindungen in kostenpflichtigen Netzwerken (Mobilfunknetze) für die auf <i>aufgeführten</i> Apps erlauben?</string>
+    <string name="fapps_metered_unblock_dialog_message">Verbindungen in kostenpflichtigen Netzwerken (Mobilfunknetze) für die auf aufgeführten Apps erlauben?</string>
     <string name="rules_load_failure_desc">Keine Firewall-Regeln gefunden</string>
     <string name="rules_load_failure_reload">Neu laden</string>
     <string name="system_dns_connection_failure">Der aktuelle DNS-Server kann nicht ermittelt werden</string>
@@ -488,11 +485,11 @@
     <string name="fapps_firewall_filter_isolate">Isoliert</string>
     <string name="fapps_info_exclude_msg">Sowohl von DNS + Firewall ausschließen.</string>
     <string name="fapps_bypass_block_dialog_title">Apps umgehen</string>
-    <string name="fapps_unblock_dialog_message">Verbindungen für <i>aufgelistete</i> Apps erlauben\?</string>
+    <string name="fapps_unblock_dialog_message">Verbindungen für aufgelistete Apps erlauben\?</string>
     <string name="fapps_exclude_block_dialog_title">Apps ausschließen</string>
     <string name="fapps_isolate_block_dialog_title">Apps isolieren</string>
-    <string name="fapps_isolate_block_dialog_message"><i>Aufgelistete</i> Apps isolieren\?</string>
-    <string name="fapps_exclude_block_dialog_message"><i>Aufgelistete</i> Apps von DNS und Firewall ausschließen\?</string>
+    <string name="fapps_isolate_block_dialog_message">Aufgelistete Apps isolieren\?</string>
+    <string name="fapps_exclude_block_dialog_message">Aufgelistete Apps von DNS und Firewall ausschließen\?</string>
     <string name="unicode_warning_sign">⚠</string>
     <string name="ci_trust_rule">Vertrauen</string>
     <string name="ssv_app_blocked_heading" description="This label will appear on the stats screen as a header for blocked applications." translatable="true">Meistblockierte Apps</string>
@@ -500,7 +497,7 @@
     <string name="ssv_most_contacted_ips_heading" description="This label will appear on the stats screen as a header for most visited ips" translatable="true">Meistkontaktierte IPs</string>
     <string name="ssv_most_blocked_ips_heading" description="This label will appear on the stats screen as a header for most blocked ips" translatable="true">Meistblockierte IPs</string>
     <string name="ssv_see_more">Alle anzeigen</string>
-    <string name="fapps_bypass_block_dialog_message">Universelle Firewall-Regeln für <i>aufgelistete</i> Apps umgehen\?</string>
+    <string name="fapps_bypass_block_dialog_message">Universelle Firewall-Regeln für aufgelistete Apps umgehen\?</string>
     <string name="ssv_most_contacted_domain_heading" description="This label will appear on the stats screen as a header for most visited domains" translatable="true">Meistkontaktierte Domains</string>
     <string name="hs_biometeric_title">Keepout entsperren</string>
     <string name="hs_biometeric_desc">Biometrische Authentifizierung zum Entsperren von Keepout verwenden</string>
@@ -520,8 +517,8 @@
     <string name="fapps_info_unmetered_msg" translatable="true">Zulassen / Blockieren in gebührenfreien Netzen (WLAN).</string>
     <string name="firewall_rule_exempt_dns_proxied" translatable="true">DNS durch Proxy geleitet</string>
     <string name="firewall_rule_block_domain" translatable="true">Domäne (App)</string>
-    <string name="firewall_rule_block_domain_desc" translatable="true"><![CDATA[Eine benutzerdefinierte Firewall-Regel hat die <i>Domain</i> blockiert.<br/><br/> Um dies zu ändern, gehen Sie zum Bildschirm <i>App-spezifische Firewall</i>.]]></string>
-    <string name="firewall_rule_trusted_domain_desc" translatable="true"><![CDATA[Diese Verbindung wurde zugelassen, da die <i>Domain</i> als vertrauenswürdige Domain festgelegt wurde.<br/><br/> Zum Ändern gehen Sie zum Bildschirm <i>App-spezifische Firewall</i>.]]></string>
+    <string name="firewall_rule_block_domain_desc" translatable="true"><![CDATA[Eine benutzerdefinierte Firewall-Regel hat die Domain blockiert.]]></string>
+    <string name="firewall_rule_trusted_domain_desc" translatable="true"><![CDATA[Diese Verbindung wurde zugelassen, da die Domain als vertrauenswürdige Domain festgelegt wurde.]]></string>
     <string name="lbl_cancel" translatable="true">Abbrechen</string>
     <string name="lbl_apply" translatable="true">Übernehmen</string>
     <string name="lbl_dismiss" translatable="true">Verwerfen</string>
@@ -544,20 +541,20 @@
     <string name="dc_setting_dns_cache_heading" translatable="true">DNS-Verstärker</string>
     <string name="dc_refresh_toast" translatable="true">Aktualisierung abgeschlossen</string>
     <string name="brbs_backup_restore_desc" translatable="true">Funktioniert nicht über verschiedene App-Versionen hinweg</string>
-    <string name="bsct_block_domain" translatable="true">Blockieren, <u>Domain(s)</u> für <u>diese App</u> vertrauen</string>
+    <string name="bsct_block_domain" translatable="true">Blockieren, Domain(s) für diese App vertrauen</string>
     <string name="settings_lock_down_proxy_desc" translatable="true">Proxies können nicht aufgesetzt werden, während das VPN im DNS only - Modus läuft.</string>
-    <string name="fapps_bypass_dns_firewall_dialog_message" translatable="true">Sollen universelle DNS- &amp; Firewall-Regeln für <i>aufgelisteten</i> Apps umgangen werden\?</string>
+    <string name="fapps_bypass_dns_firewall_dialog_message" translatable="true">Sollen universelle DNS- &amp; Firewall-Regeln für aufgelisteten Apps umgangen werden\?</string>
     <string name="firewall_rule_domain_trusted_univ" translatable="true">Vertrauenswürdige Domäne (Univ)</string>
-    <string name="firewall_rule_dns_blocked_desc" translatable="true"><![CDATA[Diese Verbindung wurde blockiert, da die <i>Domain</i> vom benutzer bevorzugten DNS blockiert wird.<br/><br/> Um dieses Verhalten zu ändern, wechseln Sie zum Tab <i>DNS konfigurieren</i>.]]></string>
+    <string name="firewall_rule_dns_blocked_desc" translatable="true"><![CDATA[Diese Verbindung wurde blockiert, da die Domain vom benutzer bevorzugten DNS blockiert wird.]]></string>
     <string name="ada_app_bypass_dns_firewall" translatable="true">Umgehe DNS &amp; Firewall</string>
     <string name="dc_setting_dns_cache_desc" translatable="true">Vereine Anfragen, cache Antworten, robuste Fehlerbehandlung</string>
-    <string name="firewall_rule_domain_blocked_univ_desc" translatable="true"><![CDATA[Diese Verbindung wurde blockiert, da die <i>Domain</i> in den universellen Domain-Regeln als blockiert festgelegt ist.<br/><br/> Um dieses Verhalten zu ändern, gehen Sie zur Registerkarte <i>DNS konfigurieren</i>.]]></string>
+    <string name="firewall_rule_domain_blocked_univ_desc" translatable="true"><![CDATA[Diese Verbindung wurde blockiert, da die Domain in den universellen Domain-Regeln als blockiert festgelegt ist.]]></string>
     <string name="ada_app_status_bypass_dns_firewall" translatable="true">Umgeht die universellen DNS- und Firewall-Regeln</string>
     <string name="cd_dns_alg_desc" translatable="true">Einzigartige IP für jede DNS-Anfrage verwenden.</string>
     <string name="firewall_rule_domain_blocked_univ" translatable="true">Domäne (Univ)</string>
-    <string name="firewall_rule_bypass_dns_firewall_desc" translatable="true"><![CDATA[Diese Verbindung wurde zugelassen, da die <i>Quell-App</i> auf <i>DNS- und Firewall-Regeln umgehen</i> gesetzt ist.<br/><br/> Zum Ändern gehen Sie zum Bildschirm <i>App-spezifische Firewall</i>.]]></string>
+    <string name="firewall_rule_bypass_dns_firewall_desc" translatable="true"><![CDATA[Diese Verbindung wurde zugelassen, da die Quell-App auf DNS- und Firewall-Regeln umgehen gesetzt ist.]]></string>
     <string name="settings_default_dns_desc" translatable="true">In seltenen Fällen kann das bevorzugte DNS nicht ermittelt bzw. erreicht werden. Dann wird das Ausweich-DNS verwendet.</string>
-    <string name="firewall_rule_domain_trusted_univ_desc" translatable="true"><![CDATA[Diese Verbindung wurde zugelassen, da die <i>Domain</i> in den universellen Domain-Regeln als vertrauenswürdig eingestuft ist.<br/><br/> Um dieses Verhalten zu ändern, gehen Sie zum Tab <i>DNS konfigurieren</i>.]]></string>
+    <string name="firewall_rule_domain_trusted_univ_desc" translatable="true"><![CDATA[Diese Verbindung wurde zugelassen, da die Domain in den universellen Domain-Regeln als vertrauenswürdig eingestuft ist.]]></string>
     <string name="lbl_network" translatable="true">Netzwerk</string>
     <string name="settings_allow_lan_heading" translatable="true">Private IPs nicht umlenken (experimentell)</string>
     <string name="settings_allow_lan_desc" translatable="true">LAN, Loopback, Multicast und Link-Local Routen von Rethinks VPN-Tunnel ausschließen.</string>
@@ -645,7 +642,6 @@
     <string name="lbl_split" translatable="true">Aufteilen</string>
     <string name="lbl_idle" translatable="true">Leerlauf</string>
     <string name="lbl_anonymous" translatable="true">anonym</string>
-    <string name="lbl_unselected" translatable="true">Nicht ausgewählt</string>
     <string name="lbl_starting" translatable="true">Wird gestartet</string>
     <string name="failed_using_default" translatable="true">Fehlgeschlagen: Verwendung von Fallback-DNS</string>
     <string name="dot_custom_url_remove_dialog_title" translatable="true">DoT Endpunkt löschen?</string>
@@ -653,7 +649,6 @@
     <string name="lbl_persistent_keepalive" translatable="true">Dauerhafte Aufrechterhaltung der Verbindung</string>
     <string name="hybrid_mode_with_proxy_notification_title" translatable="true">Geschützt! Verbunden mit DNS + Firewall + Proxy.</string>
     <string name="lbl_peer" translatable="true">Peer</string>
-    <string name="settings_exclude_proxy_apps_desc" translatable="true">Bei Deaktivierung werden Proxy-Apps (SOCKS5, HTTP, DNS) aus Rethinks VPN-Tunnel ausgeschlossen.</string>
     <string name="dot_custom_url_remove_dialog_message" translatable="true">Endpunkt für DNS-over-TLS (DoT) aus der gespeicherten Konfiguration löschen.</string>
     <string name="http_proxy_dialog_desc" translatable="true">Richte die URL in der Form \"&lt;protocol&gt;://&lt;username&gt;:&lt;password&gt;@&lt;domain-or-ip&gt;:&lt;port&gt;&lt;path&gt;\" ein. Beispiel: https://proxy.example.com:8080/</string>
     <string name="settings_connectivity_checks" translatable="true">Verbindungstests durchführen</string>
@@ -666,7 +661,7 @@
     <string name="one_wg_apps_added" translatable="true">Weiterleitung aller Anwendungen</string>
     <string name="import_error" translatable="true">Tunnel kann nicht importiert werden: %s</string>
     <string name="toast_allow_bypass_disabled" translatable="true">%1$s ist deaktiviert, wenn Proxies aktiv sind</string>
-    <string name="firewall_rule_proxied_desc" translatable="true"><![CDATA[Diese Verbindung wurde an den vom Benutzer bevorzugten Proxy weitergeleitet.<br/><br/> Um dies zu ändern, gehe auf dem Bildschirm <i>Konfigurieren</i> zu <i>Proxy</i>.]]></string>
+    <string name="firewall_rule_proxied_desc" translatable="true"><![CDATA[Diese Verbindung wurde an den vom Benutzer bevorzugten Proxy weitergeleitet.]]></string>
     <string name="parse_error_reason" translatable="true">Kann %1$s “%2$s” nicht analysieren</string>
     <string name="cd_toast_edit" translatable="true">Bearbeitet</string>
     <string name="exclude_apps_from_proxy">App alle Proxies umgehen lassen</string>
@@ -705,7 +700,7 @@
     <string name="lbl_manual" translatable="true">Manuell</string>
     <string name="dns_desc" translatable="true">Wähle aus über 190 Listen, um Werbung, Tracker und Malware zu stoppen.</string>
     <string name="dc_use_sys_dns_undelegated_heading" translatable="true">DNS des Systems für undelegierte Domains nutzen</string>
-    <string name="dc_use_sys_dns_undelegated_desc" translatable="true">DNS des Systems für undelegierte Domains wie <i>.lan</i>, <i>.internal</i> etc. nutzen</string>
+    <string name="dc_use_sys_dns_undelegated_desc" translatable="true">DNS des Systems für undelegierte Domains wie .lan, .internal etc. nutzen</string>
     <string name="cd_split_dns_desc" translatable="true">DNS-Anfragen von geproxyten Apps zum DNS-Server des Proxys weiterleiten.</string>
     <string name="firewall_rule_private_dns" translatable="true">Privates DNS</string>
     <string name="lbl_always" translatable="true">Immer</string>
@@ -717,10 +712,10 @@
     <string name="firewall_rule_bypass_proxy" translatable="true">Proxy umgehen</string>
     <string name="firewall_rule_paused_app" translatable="true">App angehalten</string>
     <string name="firewall_rule_lockdown_wg" translatable="true">Lockdown-Proxy</string>
-    <string name="firewall_rule_private_dns_desc" translatable="true"><![CDATA[Diese Verbindung sucht nach einem <i>privaten DNS</i>-Server, der nicht existiert.]]></string>
-    <string name="firewall_rule_bypass_proxy_desc" translatable="true"><![CDATA[Diese Verbindung wurde zugelassen, da für die <i>Quellanwendung</i> die Regeln für <i>Proxy umgehen</i> festgelegt sind.<br/><br/> Um dies zu ändern, gehen Sie zum Bildschirm <i>Anwendungsspezifische Firewall</i>.]]></string>
-    <string name="firewall_rule_paused_app_desc" translatable="true"><![CDATA[Diese Verbindung wurde zugelassen, da die <i>App</i> im <i>Pausiert</i>-Status ist.]]></string>
-    <string name="firewall_rule_lockdown_wg_desc" translatable="true"><![CDATA[Diese Verbindung wurde blockiert, da WireGuard im <i>Lockdown</i>-Modus ist.<br/><br/> Um dies zu ändern, wechseln Sie zum <i>WireGuard</i>-Bildschirm.]]></string>
+    <string name="firewall_rule_private_dns_desc" translatable="true"><![CDATA[Diese Verbindung sucht nach einem privaten DNS-Server, der nicht existiert.]]></string>
+    <string name="firewall_rule_bypass_proxy_desc" translatable="true"><![CDATA[Diese Verbindung wurde zugelassen, da für die Quellanwendung die Regeln für Proxy umgehen festgelegt sind.]]></string>
+    <string name="firewall_rule_paused_app_desc" translatable="true"><![CDATA[Diese Verbindung wurde zugelassen, da die App im Pausiert-Status ist.]]></string>
+    <string name="firewall_rule_lockdown_wg_desc" translatable="true"><![CDATA[Diese Verbindung wurde blockiert, da WireGuard im Lockdown-Modus ist.]]></string>
     <string name="wireguard_disable_failure_relay" translatable="true">\"WireGuard Relais\" kann nicht deaktiviert werden</string>
     <string name="config_invalid_desc" translatable="true">Ungültige WireGuard-Konfiguration</string>
     <string name="console_log_title" translatable="true">App Protokolle</string>
@@ -748,20 +743,20 @@
     <string name="wg_setting_use_on_mobile_desc" translatable="true">Dieses WireGuard VPN über mobile Daten nutzen.</string>
     <string name="hop_add_remove_title" translatable="true">Relay hinzufügen / entfernen</string>
     <string name="about_terms_of_service" translatable="true">Nutzungsbedingungen</string>
-    <string name="bypasses_network_restrictions" translatable="true">Erreichbarkeitsprüfungen umgehen alle Netzwerkbeschränkungen. Im <i>Auto</i>-Modus verwendet Keepout zufällig zuvor verbundene IPs und Hostnamen.</string>
+    <string name="bypasses_network_restrictions" translatable="true">Erreichbarkeitsprüfungen umgehen alle Netzwerkbeschränkungen. Im Auto-Modus verwendet Keepout zufällig zuvor verbundene IPs und Hostnamen.</string>
     <string name="most_contacted_asn" translatable="true">Meistkontaktierten Anbieter</string>
     <string name="most_blocked_asn" translatable="true">Meist blockierte Anbieter</string>
     <string name="download_ip_info_title" translatable="true">Providerinformationen anzeigen</string>
-    <string name="download_ip_info_desc" translatable="true">Ruft Details zu Dienstanbietern für Websites von <i>rethinkdns.com</i> ab, bereitgestellt von <i>%1$s</i></string>
+    <string name="download_ip_info_desc" translatable="true">Ruft Details zu Dienstanbietern für Websites von rethinkdns.com ab, bereitgestellt von %1$s</string>
     <string name="top_active_conns" translatable="true">Top aktive Verbindungen</string>
     <string name="close_conns_dialog_title" translatable="true">Verbindungen schließen</string>
     <string name="close_conns_dialog_desc" translatable="true">Alle Verbindungen für %1$s schließen?</string>
     <string name="local_blocklist_delete_desc" translatable="true">Geräteseitige Blockierlisten löschen?</string>
     <string name="fail_open_network_title" translatable="true">Bei Netzwerkverlust blockieren</string>
-    <string name="fail_open_network_desc" translatable="true">Wenn aktiviert, stoppt Keepout alle Daten, wenn keine Konnektivität verfügbar ist, z. B. im <i>Flugmodus</i>.</string>
+    <string name="fail_open_network_desc" translatable="true">Wenn aktiviert, stoppt Keepout alle Daten, wenn keine Konnektivität verfügbar ist, z. B. im Flugmodus.</string>
     <string name="about_license" translatable="true">Lizenz unter Apache-2.0</string>
     <string name="smart_dns" translatable="true">Smart DNS</string>
-    <string name="smart_dns_desc" translatable="true"><i>Smart DNS</i> verwendet zufällig einen der folgenden DNS-Resolver:</string>
+    <string name="smart_dns_desc" translatable="true">Smart DNS verwendet zufällig einen der folgenden DNS-Resolver:</string>
     <string name="vpn_policy_auto_desc" translatable="true">Reagiert auf wichtige Netzwerk- und Verbindungsänderungen.</string>
     <string name="vpn_policy_sensitive" translatable="true">Sensibel</string>
     <string name="vpn_policy_sensitive_desc" translatable="true">Reagiert auf alle Netzwerk- und Verbindungsänderungen.</string>
@@ -792,12 +787,12 @@
     <string name="tombstone_app_desc" translatable="true">Wenn aktiviert, werden die App-Regeln 7 Tage lang beibehalten.</string>
     <string name="settings_allow_incoming_wg_packets" translatable="true">WireGuard P2P</string>
     <string name="settings_allow_incoming_wg_packets_desc" translatable="true">Wenn aktiviert, werden eingehende Verbindungen von WireGuard-Peers zugelassen.</string>
-    <string name="firewall_rule_proxy_error_desc" translatable="true"><![CDATA[Diese Verbindung wurde blockiert, da der für die App ausgewählte <i>Proxy</i> nicht ausgewählt wurde.<br/><br/> Um dies zu ändern, gehe auf dem Bildschirm <i>Konfigurieren</i> zu <i>Proxy</i>.]]></string>
-    <string name="wg_ssid_dialog_description" translatable="true">%1$s dieses WireGuard-VPN, wenn <i>aktiv</i> WLAN-Kennung (%2$s) %3$s.</string>
-    <string name="lockdown_download_message" translatable="true">Der in Android integrierte <i>Download-Manager</i> funktioniert möglicherweise nicht, da sich das VPN im <i>Lockdown</i>-Modus befindet. Möchtest du stattdessen den Downloader von Keepout aktivieren?</string>
+    <string name="firewall_rule_proxy_error_desc" translatable="true"><![CDATA[Diese Verbindung wurde blockiert, da der für die App ausgewählte Proxy nicht ausgewählt wurde.]]></string>
+    <string name="wg_ssid_dialog_description" translatable="true">%1$s dieses WireGuard-VPN, wenn aktiv WLAN-Kennung (%2$s) %3$s.</string>
+    <string name="lockdown_download_message" translatable="true">Der in Android integrierte Download-Manager funktioniert möglicherweise nicht, da sich das VPN im Lockdown-Modus befindet. Möchtest du stattdessen den Downloader von Keepout aktivieren?</string>
     <string name="lockdown_download_enable_inapp" translatable="true">Downloader aktivieren</string>
-    <string name="settings_jumbo_packets_desc" translatable="true">Verwendet <i>Jumbo-Pakete</i> innerhalb des VPN-Tunnels von Keepout.</string>
-    <string name="stability_program_toast" translatable="true">Für das <i>Stabilitätsprogramm</i> für <i>experimentelle Funktionen</i> angemeldet.</string>
+    <string name="settings_jumbo_packets_desc" translatable="true">Verwendet Jumbo-Pakete innerhalb des VPN-Tunnels von Keepout.</string>
+    <string name="stability_program_toast" translatable="true">Für das Stabilitätsprogramm für experimentelle Funktionen angemeldet.</string>
     <string name="home_last_24_hours">Letzte 24 Stunden</string>
     <plurals name="home_stopped_at_dns_count">
         <item quantity="one">%d Anfrage schon beim DNS gestoppt</item>

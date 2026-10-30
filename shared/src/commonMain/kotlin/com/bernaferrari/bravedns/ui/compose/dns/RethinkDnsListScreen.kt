@@ -5,8 +5,7 @@ package com.bernaferrari.bravedns.ui.compose.dns
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillDefaults
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillSize
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWell
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWellDefaults
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusColors
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
@@ -31,7 +30,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.unit.Constraints
@@ -180,12 +178,8 @@ private fun DnsProtocolCard(
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                RethinkIconWell(
-                    icon = protocol.icon,
-                    tint = titleColor,
-                    containerColor = RethinkIconWellDefaults.tinted(titleColor),
-                    size = SharedDimensions.iconContainerSm,
-                )
+                // Bare icon: a backplate on every card carried no state.
+                Icon(protocol.icon, contentDescription = null, tint = titleColor, modifier = Modifier.size(SharedDimensions.iconSizeMd))
                 Spacer(Modifier.weight(1f))
                 if (selected) {
                     Icon(
@@ -217,11 +211,19 @@ private fun DnsProtocolCard(
             // wrapping a lone chip onto a second line.
             DnsCapabilityChipRow(protocol.capabilities, strings)
             if (selected && !selectedWorking && strings.notWorking.isNotBlank()) {
-                Text(
-                    strings.notWorking,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                // A failing resolver is a status, in the status colour, not a footnote.
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
+                ) {
+                    Icon(MaterialSymbols.Filled.Warning, null, tint = RethinkStatusColors.blocked, modifier = Modifier.size(SharedDimensions.iconSizeXs))
+                    Text(
+                        strings.notWorking,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = RethinkStatusColors.blocked,
+                    )
+                }
             }
         }
     }
@@ -230,13 +232,14 @@ private fun DnsProtocolCard(
 @Composable
 private fun DnsCapabilityChipRow(capabilities: List<RethinkDnsCapability>, strings: RethinkDnsListStrings) {
     if (capabilities.isEmpty()) return
-    val overflowColor = MaterialTheme.colorScheme.onSurfaceVariant
+    // One neutral tag style: capabilities are facts, not statuses, so they don't each get a colour.
+    val tagColors = RethinkPillDefaults.neutral()
     val gap = SharedDimensions.spacingXs
     Layout(
         content = {
-            capabilities.forEach { capability -> RethinkPill(strings.labelFor(capability), colors = RethinkPillDefaults.status(capability.tint()), size = RethinkPillSize.Small) }
+            capabilities.forEach { capability -> RethinkPill(strings.labelFor(capability), colors = tagColors, size = RethinkPillSize.Small) }
             // One candidate overflow chip per possible hidden count; only the needed one is placed.
-            for (hidden in 1..capabilities.size) RethinkPill("+$hidden", colors = RethinkPillDefaults.status(overflowColor), size = RethinkPillSize.Small)
+            for (hidden in 1..capabilities.size) RethinkPill("+$hidden", colors = tagColors, size = RethinkPillSize.Small)
         },
     ) { measurables, constraints ->
         val loose = Constraints(maxWidth = constraints.maxWidth)
@@ -262,14 +265,6 @@ private fun DnsCapabilityChipRow(capabilities: List<RethinkDnsCapability>, strin
             }
         }
     }
-}
-
-@Composable
-private fun RethinkDnsCapability.tint(): Color = when (this) {
-    RethinkDnsCapability.Fast -> MaterialTheme.colorScheme.primary
-    RethinkDnsCapability.Private -> MaterialTheme.colorScheme.secondary
-    RethinkDnsCapability.Secure -> MaterialTheme.colorScheme.tertiary
-    RethinkDnsCapability.Anonymous -> MaterialTheme.colorScheme.secondary
 }
 
 /** True when one label adds nothing to the other ("DNSCrypt"/"DNSCrypt", "Rethink"/"RethinkDNS"). */

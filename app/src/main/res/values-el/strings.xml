@@ -82,7 +82,7 @@
     <string name="notification_action_dns_firewall_mode" translatable="true">DNS + Firewallwall</string>
     <string name="dns_mode_info_title" translatable="true">DNS</string>
     <string name="default_dns_name" translatable="true">RDNS Default</string>
-    <string name="bsct_block_domain" translatable="true">Block, εμπιστοσύνη <u>domain(s) </u> για <u> αυτή την εφαρμογή </u></string>
+    <string name="bsct_block_domain" translatable="true">Block, εμπιστοσύνη domain(s)  για  αυτή την εφαρμογή </string>
     <string name="lbl_sec" translatable="true">δευτ</string>
     <string name="lbl_min" translatable="true">λεπ</string>
     <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit." translatable="true">Δεν προστατεύεται</string>
@@ -93,7 +93,7 @@
     <string name="custom_url_error_invalid_url" translatable="true">Μη έγκυρη διεύθυνση URL</string>
     <string name="conn_track_clear_logs_title" translatable="true">Διαγραφή όλων των αρχείων καταγραφής δικτύου;</string>
     <string name="conn_track_clear_logs_message" translatable="true">Αυτό διαγράφει μόνο τα αρχεία καταγραφής δικτύου αλλά όχι τους κανόνες τείχους προστασίας. Αυτή η λειτουργία δεν είναι αναστρέψιμη. Θέλετε να συνεχίσετε;</string>
-    <string name="bsct_block_ip" translatable="true">Αποκλεισμός, εμπιστοσύνη <u>αυτή η IP</u> για <u>αυτή την εφαρμογή</u></string>
+    <string name="bsct_block_ip" translatable="true">Αποκλεισμός, εμπιστοσύνη αυτή η IP για αυτή την εφαρμογή</string>
     <string name="always_on_dialog_heading" translatable="true">Απενεργοποίηση Always-on VPN</string>
     <string name="always_on_dialog" translatable="true">Το \"Always-On VPN\" είναι ενεργοποιημένο σε αυτή τη συσκευή. Για να ξεκινήσετε το Keepout, μεταβείτε στην εφαρμογή Ρυθμίσεις και απενεργοποιήστε το \"Always-on VPN\".</string>
     <string name="always_on_dialog_positive_btn" translatable="true">Μεταβείτε στις Ρυθμίσεις</string>
@@ -112,11 +112,11 @@
     <string name="alert_firewall_accessibility_explanation" translatable="true">Keepout χρησιμοποιεί την υπηρεσία προσβασιμότητας για να παρακολουθεί ποιες εφαρμογές χρησιμοποιούνται (προσκήνιο) σε σχέση με εκείνες που δεν χρησιμοποιούνται (παρασκήνιο).
 \n
 \nKeepout δεν συλλέγει πληροφορίες ούτε σας κατασκοπεύει με οποιονδήποτε τρόπο.</string>
-    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Η υπηρεσία προσβασιμότητας Keepout σταμάτησε ή κατέρρευσε.. <i><b>Μεταβείτε στις Ρυθμίσεις και κάντε αναγκαστική διακοπή</b></i>Keepout και ξεκινήστε το ξανά για να χρησιμοποιήσετε <i>Αποκλείστε κάθε εφαρμογή που δεν χρησιμοποιείται</i>χαρακτηριστικό.
+    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Η υπηρεσία προσβασιμότητας Keepout σταμάτησε ή κατέρρευσε.. Μεταβείτε στις Ρυθμίσεις και κάντε αναγκαστική διακοπήKeepout και ξεκινήστε το ξανά για να χρησιμοποιήσετε Αποκλείστε κάθε εφαρμογή που δεν χρησιμοποιείταιχαρακτηριστικό.
 \n
 \nΤο Keepout χρησιμοποιεί υπηρεσία προσβασιμότητας για να παρακολουθεί ποιες εφαρμογές είναι σε χρήση (προσκήνιο) σε σχέση με εκείνες που δεν είναι σε χρήση (παρασκήνιο).</string>
     <string name="bsct_app_info" translatable="true">Πληροφορίες εφαρμογής</string>
-    <string name="always_on_dialog_lockdown_stop_message" translatable="true">Το Keepout τρέχει το VPN σε κατάσταση <i>Lockdown</i>. Η διακοπή της θα είχε ως αποτέλεσμα την απώλεια της συνδεσιμότητας στο Internet για αυτό το προφίλ χρήστη. Θέλετε να συνεχίσετε ούτως ή άλλως;</string>
+    <string name="always_on_dialog_lockdown_stop_message" translatable="true">Το Keepout τρέχει το VPN σε κατάσταση Lockdown. Η διακοπή της θα είχε ως αποτέλεσμα την απώλεια της συνδεσιμότητας στο Internet για αυτό το προφίλ χρήστη. Θέλετε να συνεχίσετε ούτως ή άλλως;</string>
     <string name="firewall_act_network_monitor_tab" translatable="true">Δίκτυο</string>
     <string name="dot_custom_url_remove_dialog_message" translatable="true">Διαγράψτε το τελικό σημείο DNS over TLS από την αποθηκευμένη ρύθμιση παραμέτρων.</string>
     <string name="home_last_24_hours">Τελευταίες 24 ώρες</string>

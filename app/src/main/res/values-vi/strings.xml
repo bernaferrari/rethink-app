@@ -76,10 +76,10 @@
     <string name="blocklist_update_check_failure" translatable="true">Đã xảy ra sự cố. Thử lại sau!</string>
     <string name="refresh_complete" translatable="true"><!-- use dc_refresh_toast --> Hoàn tất đồng bộ lại danh sách ứng dụng.</string>
     <string name="http_proxy_dialog_heading" translatable="true">Đặt proxy HTTP(S) CONNECT</string>
-    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Dịch vụ trợ năng RethinkDNS đã dừng hoạt động hoặc đang gặp sự cố. <i><b>Chuyển đến Cài đặt và Buộc dừng</b></i> RethinkDNS và khởi động lại tính năng để sử dụng<i>Chặn mọi ứng dụng không sử dụng</i>.
+    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Dịch vụ trợ năng RethinkDNS đã dừng hoạt động hoặc đang gặp sự cố. Chuyển đến Cài đặt và Buộc dừng RethinkDNS và khởi động lại tính năng để sử dụngChặn mọi ứng dụng không sử dụng.
 \n
 \nRethinkDNS sử dụng dịch vụ trợ năng để theo dõi xem những nào ứng dụng đang được sử dụng trực tiếp (foreground) và những ứng dụng nào đang không được sử dụng trực tiếp/chạy ngầm (background).</string>
-    <string name="always_on_dialog_lockdown_stop_message" translatable="true">Keepout đang chạy VPN ở chế độ <i>Lockdown</i>. Nếu dừng nó sẽ dẫn đến mất kết nối Internet trên hồ sơ người dùng này. Bạn có muốn tiếp tục không?</string>
+    <string name="always_on_dialog_lockdown_stop_message" translatable="true">Keepout đang chạy VPN ở chế độ Lockdown. Nếu dừng nó sẽ dẫn đến mất kết nối Internet trên hồ sơ người dùng này. Bạn có muốn tiếp tục không?</string>
     <string name="dns_crypt_relay_remove_success" translatable="true">Đã xóa Chuyển tiếp DNSCrypt.</string>
     <string name="doh_custom_url_remove_dialog_title" translatable="true">Xóa điểm cuối DoH?</string>
     <string name="dns_crypt_relay_remove_dialog_message" translatable="true">Xóa chuyển tiếp DNSCrypt khỏi cấu hình đã lưu.</string>
@@ -96,8 +96,8 @@
     <string name="download_update_dialog_failure_title" translatable="true">Đã gặp vấn đề!</string>
     <string name="download_update_dialog_failure_message" translatable="true">Máy chủ của chúng tôi không hoạt động hoặc không thể thiết lập kết nối. Vui lòng thử lại sau một thời gian.</string>
     <string name="download_update_dialog_trylater_title" translatable="true">Không thể cập nhật ngày bây giờ</string>
-    <string name="search_universal_ips" translatable="true"><font size="12">Tìm kiếm IPs</font></string>
-    <string name="search_custom_domains" translatable="true"><font size="12">Tìm kiếm tên miền</font></string>
+    <string name="search_universal_ips" translatable="true">Tìm kiếm IPs</string>
+    <string name="search_custom_domains" translatable="true">Tìm kiếm tên miền</string>
     <string name="info_dialog_copy_toast_msg" translatable="true">Đã sao chép địa chỉ IP.</string>
     <string name="info_dialog_url_copy_toast_msg" translatable="true">Đã sao chép URL</string>
     <string name="settings_enable_logs" translatable="true">Bật ghi nhật ký trên thiết bị</string>
@@ -138,7 +138,7 @@
     <string name="settings_network_all_networks" translatable="true">Sử dụng tất cả các mạng có sẵn (thử nghiệm)</string>
     <string name="settings_check_update_heading" translatable="true">Kiểm tra các bản cập nhật ứng dụng</string>
     <string name="settings_check_update_desc" translatable="true">Tự động kiểm tra các bản cập nhật ứng dụng mỗi tuần một lần.</string>
-    <string name="settings_custom_downloader_desc" translatable="true">Nếu tắt, <i>Trình quản lí Tải xuống</i> tích hợp sẵn của Android sẽ được sử dụng</string>
+    <string name="settings_custom_downloader_desc" translatable="true">Nếu tắt, Trình quản lí Tải xuống tích hợp sẵn của Android sẽ được sử dụng</string>
     <string name="settings_theme_heading" translatable="true">Ngoại hình</string>
     <string name="settings_http_proxy_desc" translatable="true">Đang chuyển tiếp tới %1$s</string>
     <string name="settings_http_proxy_error_text2" translatable="true">cổng không hợp lệ</string>
@@ -170,10 +170,10 @@
     <string name="orbot_bs_status_4" translatable="true">Thiết lập Tor-as-a-Proxy (Orbot) chỉ bằng một cú nhấp.</string>
     <string name="orbot_stop_dialog_message" translatable="true">Keepout đã ngừng chuyển tiếp kết nối tới Orbot, nhưng Orbot có thể đang chạy nền.</string>
     <string name="orbot_stop_dialog_dns_message" translatable="true">Keepout được thiết lập để chuyển tiếp các truy vấn DNS tới Orbot. Thay đổi theo yêu cầu.</string>
-    <string name="orbot_explanation" translatable="true">Orbot là ứng dụng proxy miễn phí hỗ trợ các ứng dụng khác sử dụng Internet <u>an toàn hơn</u>. \nOrbot sử dụng <u>Tor</u> để mã hóa lưu lượng truy cập Internet giúp bạn <u>vượt qua kiểm duyệt</u> và chống lại các hình thức <u>giám sát mạng</u> đe dọa quyền tự do và quyền riêng tư cá nhân. \n<u>TCP Proxy</u>: RethinkDNS chỉ chuyển tiếp các kết nối TCP của tất cả trừ các ứng dụng bị loại trừ tới Orbot. \n<u>Proxy HTTP</u>: Keepout<i>đặt</i> proxy HTTP nhưng không bắt buộc các ứng dụng phải sử dụng nó. Thông thường, các trình duyệt như Chrome và Firefox sử dụng nó. Các ứng dụng sử dụng proxy HTTP(S) sẽ bỏ qua cả quy tắc Tường lửa và DNS.</string>
+    <string name="orbot_explanation" translatable="true">Orbot là ứng dụng proxy miễn phí hỗ trợ các ứng dụng khác sử dụng Internet an toàn hơn. \nOrbot sử dụng Tor để mã hóa lưu lượng truy cập Internet giúp bạn vượt qua kiểm duyệt và chống lại các hình thức giám sát mạng đe dọa quyền tự do và quyền riêng tư cá nhân. \nTCP Proxy: RethinkDNS chỉ chuyển tiếp các kết nối TCP của tất cả trừ các ứng dụng bị loại trừ tới Orbot. \nProxy HTTP: Keepoutđặt proxy HTTP nhưng không bắt buộc các ứng dụng phải sử dụng nó. Thông thường, các trình duyệt như Chrome và Firefox sử dụng nó. Các ứng dụng sử dụng proxy HTTP(S) sẽ bỏ qua cả quy tắc Tường lửa và DNS.</string>
     <string name="settings_orbot_disabled_error" translatable="true">Tắt proxy HTTP(S) và/hoặc SOCKS5 để tiếp tục thiết lập Tor-as-a-proxy.</string>
     <string name="settings_autostart_bootup_desc" translatable="true">Khi bật nguồn thiết bị, khởi động Keepout nếu nó vẫn đang chạy trước khi tắt máy.</string>
-    <string name="settings_network_all_networks_desc" translatable="true">Khi được bật, Keepout sẽ sử dụng tất cả các mạng khả dụng để kết nối với Internet. Nếu không, nó sẽ sử dụng bất kỳ mạng nào được Android coi là <i> đang hoạt động</i>.</string>
+    <string name="settings_network_all_networks_desc" translatable="true">Khi được bật, Keepout sẽ sử dụng tất cả các mạng khả dụng để kết nối với Internet. Nếu không, nó sẽ sử dụng bất kỳ mạng nào được Android coi là  đang hoạt động.</string>
     <string name="settings_import_export_desc" translatable="true">Sao lưu hoặc khôi phục cài đặt và dữ liệu ứng dụng theo cách thủ công.</string>
     <string name="settings_theme_dialog_themes_2" translatable="true">Sáng</string>
     <string name="settings_ip_text_ipv6" translatable="true">IPv6</string>
@@ -183,8 +183,8 @@
     <string name="lbl_configure" translatable="true">Cấu hình</string>
     <string name="bypass_universal" translatable="true">bỏ qua phổ quát</string>
     <string name="bypass_dns_firewall" translatable="true">bỏ qua dns &amp; tường lửa</string>
-    <string name="bsct_block_ip" translatable="true">Chặn, tin tưởng \u0020<u>địa chỉ IP này</u> cho <u>ứng dụng này</u></string>
-    <string name="bsct_block_domain" translatable="true">Chặn, tin tưởng <u>tên miền </u> cho <u>ứng dụng này </u></string>
+    <string name="bsct_block_ip" translatable="true">Chặn, tin tưởng \u0020địa chỉ IP này cho ứng dụng này</string>
+    <string name="bsct_block_domain" translatable="true">Chặn, tin tưởng tên miền  cho ứng dụng này </string>
     <string name="lbl_logs" translatable="true">nhật kí</string>
     <string name="settings_custom_downloader_heading" translatable="true">Sử dụng trình tải xuống trong ứng dụng</string>
     <string name="dc_dns_leaks_heading" translatable="true">Ngăn chặn rò rỉ DNS</string>
@@ -295,7 +295,7 @@
     <string name="fapps_filter_parent_system" translatable="true">Hệ thống</string>
     <string name="fapps_info_isolate_msg" translatable="true">Chặn tất cả ngoại trừ các IP đáng tin cậy.</string>
     <string name="settings_allow_lan_desc" translatable="true">Loại trừ các tuyến LAN, loopback, link-local khỏi đường hầm VPN của Keepout.</string>
-    <string name="settings_lock_down_mode_desc" translatable="true">Một số tùy chọn bị tắt khi VPN ở chế độ khóa.<u>Xem cài đặt VPN</u></string>
+    <string name="settings_lock_down_mode_desc" translatable="true">Một số tùy chọn bị tắt khi VPN ở chế độ khóa.Xem cài đặt VPN</string>
     <string name="settings_dns_proxy_dialog_app_desc" translatable="true">Ứng dụng đã chọn sẽ bị loại trừ khỏi VPN để cho phép ứng dụng đó thay mặt bạn kết nối proxy.</string>
     <string name="settings_default_dns_desc" translatable="true">Trong một số ít trường hợp khi không thể xác định được DNS ưa thích của người dùng, DNS dự phòng sẽ được sử dụng.</string>
     <string name="hsf_vpn_prepare_failure" translatable="true">Quyền VPN bị thiếu hoặc một ứng dụng khác đang ở chế độ \"Luôn bật VPN\".</string>
@@ -330,7 +330,7 @@
     <string name="about_dialog_positive_button" translatable="true">Đi nào</string>
     <string name="fapps_exclude_block_dialog_title" translatable="true">Loại trừ ứng dụng</string>
     <string name="fapps_info_exclude_msg" translatable="true">Loại trừ khỏi cả DNS + Tường lửa.</string>
-    <string name="fapps_exclude_block_dialog_message" translatable="true">Loại trừ các ứng dụng <i>được liệt kê</i> khỏi DNS và Tường lửa?</string>
+    <string name="fapps_exclude_block_dialog_message" translatable="true">Loại trừ các ứng dụng được liệt kê khỏi DNS và Tường lửa?</string>
     <string name="dns_crypt_connection_failure" translatable="true">Lỗi kết nối với máy chủ DNSCrypt.</string>
     <string name="copy_clipboard_label" translatable="true">URL</string>
     <string name="update_complete_snack_message" translatable="true">Phiên bản mới đã được tải xuống.</string>
@@ -387,21 +387,21 @@
     <string name="cd_doh_dialog_resolver_name" translatable="true">Tên trình phân giải</string>
     <string name="univ_firewall_rule_10" translatable="true">Chặn tất cả ngoại trừ các ứng dụng và IP được bỏ qua</string>
     <string name="fapps_filter_clear_btn" translatable="true">Xóa</string>
-    <string name="fapps_unmetered_block_dialog_message" translatable="true">Chặn kết nối trên mạng không có đồng hồ đo (WiFi) cho các ứng dụng <i>được liệt kê</i> ?</string>
+    <string name="fapps_unmetered_block_dialog_message" translatable="true">Chặn kết nối trên mạng không có đồng hồ đo (WiFi) cho các ứng dụng được liệt kê ?</string>
     <string name="fapps_bypass_block_dialog_title" translatable="true">Bỏ qua các ứng dụng</string>
-    <string name="fapps_bypass_block_dialog_message" translatable="true">Bỏ qua quy tắc tường lửa chung cho các ứng dụng <i>được liệt kê</i>\?</string>
+    <string name="fapps_bypass_block_dialog_message" translatable="true">Bỏ qua quy tắc tường lửa chung cho các ứng dụng được liệt kê\?</string>
     <string name="collecting_logs_progress_text" translatable="true">Đang bắt giữ…</string>
     <string name="cd_dns_crypt_relay_heading" translatable="true">Chuyển tiếp</string>
     <string name="univ_firewall_rule_9" translatable="true">Chặn ở mạng có đồng hồ đo (di động)</string>
     <string name="fapps_metered_unblock_dialog_title" translatable="true">Cho phép trên mạng có đồng hồ đo</string>
-    <string name="fapps_metered_block_dialog_message" translatable="true">Chặn kết nối trên mạng có đồng hồ đo (Di động) cho các ứng dụng <i>được liệt kê</i>\?</string>
-    <string name="fapps_metered_unblock_dialog_message" translatable="true">Cho phép các kết nối trên mạng có đồng hồ đo (Di động) cho các ứng dụng <i>được liệt kê</i>\?</string>
-    <string name="dc_dns_website_desc" translatable="true">Lấy các biểu tượng trang web từ <i>nextdns.io</i> và <i>duckduckgo.com</i>. Sử dụng lên tới 350 mb bộ nhớ máy</string>
+    <string name="fapps_metered_block_dialog_message" translatable="true">Chặn kết nối trên mạng có đồng hồ đo (Di động) cho các ứng dụng được liệt kê\?</string>
+    <string name="fapps_metered_unblock_dialog_message" translatable="true">Cho phép các kết nối trên mạng có đồng hồ đo (Di động) cho các ứng dụng được liệt kê\?</string>
+    <string name="dc_dns_website_desc" translatable="true">Lấy các biểu tượng trang web từ nextdns.io và duckduckgo.com. Sử dụng lên tới 350 mb bộ nhớ máy</string>
     <string name="about_bug_report_desc" translatable="true">gửi email nhật kí sự cố</string>
     <string name="cd_dns_proxy_mode_external" translatable="true">Bên ngoài</string>
     <string name="cd_dnscrypt_relay_heading" translatable="true">Chuyển tiếp</string>
     <string name="fapps_info_bypass_msg" translatable="true">Bỏ qua quy tắc tường lửa chung.</string>
-    <string name="fapps_unmetered_unblock_dialog_message">Cho phép các kết nối trên mạng không có đồng hồ đo (WiFi) cho các ứng dụng <i>được liệt kê</i>\?</string>
+    <string name="fapps_unmetered_unblock_dialog_message">Cho phép các kết nối trên mạng không có đồng hồ đo (WiFi) cho các ứng dụng được liệt kê\?</string>
     <string name="fapps_metered_block_dialog_title" translatable="true">Chặn trên mạng có đồng hồ đo</string>
     <string name="univ_firewall_rule_5" translatable="true">Chặn khi DNS bị bỏ qua</string>
     <string name="app_ip_domain_rules_desc" translatable="true">Chỉnh sửa quy tắc IP / Tên miền theo ứng dụng.</string>
@@ -415,20 +415,18 @@
     <string name="http_proxy_dialog_desc" translatable="true">Đặt URL theo mẫu, &lt;giao thức&gt;://&lt;tên-người-dùng&gt;:&lt;mật khẩu&gt;@&lt;tên-miền-hoặc-ip&gt;:&lt;cổng&gt;&lt;đường dẫn&gt;. Ví dụ: http://proxy.example.com:8080/</string>
     <string name="public_key_copy_toast_msg" translatable="true">Đã sao chép khóa công cộng.</string>
     <string name="settings_connectivity_checks_desc" translatable="true">Các lần kiểm tra kết nối được gửi để đảm bảo khả năng tiếp cận mạng.</string>
-    <string name="settings_exclude_proxy_apps_desc" translatable="true">Khi tắt, loại trừ các ứng dụng chuyển tiếp proxy(SOCKS5, HTTP, DNS) khỏi đường hầm VPN của Keepout.</string>
     <string name="dc_dns_leaks_desc" translatable="true">Khi được bật, Keepout bắt giữ tất cả các gói từ cổng 53 và chuyển tiếp chúng tới một điểm cuối DNS do người dùng đặt</string>
     <string name="about_bug_no_log_dialog_message" translatable="true">Không thể thu thập nhật kí sập. Bạn có muốn báo cáo lỗi theo cách thủ công không?</string>
     <string name="ctbs_block_other_apps" translatable="true">Các quy tắc áp dụng cho %1$s cũng sẽ được áp dụng cho %2$s ứng dụng khác</string>
     <string name="univ_firewall_heading" translatable="true">Quy tắc tường lửa chung</string>
     <string name="app_ip_domain_rules" translatable="true">Quy tắc IP / Tên miền theo ứng dụng</string>
     <string name="fapps_info_dialog_message" translatable="true">Chặn các ứng dụng khỏi việc kết nối với mạng internet. Việc giới hạn truy cập internet giúp ngăn chặn việc sử dụng dữ liệu di động không chính đáng, đồng thời giúp tiết kiệm pin.</string>
-    <string name="lbl_unselected" translatable="true">Chưa chọn</string>
     <string name="fapps_bypass_dns_firewall_dialog_title" translatable="true">Bỏ qua ứng dụng</string>
-    <string name="fapps_bypass_dns_firewall_dialog_message" translatable="true">Bỏ qua các quy tắc tường lửa &amp; DNS chung cho các ứng dụng <i>được liệt kê </i>\?</string>
-    <string name="fapps_isolate_block_dialog_message" translatable="true">Cô lập các ứng dụng <i>được liệt kê </i>\?</string>
+    <string name="fapps_bypass_dns_firewall_dialog_message" translatable="true">Bỏ qua các quy tắc tường lửa &amp; DNS chung cho các ứng dụng được liệt kê \?</string>
+    <string name="fapps_isolate_block_dialog_message" translatable="true">Cô lập các ứng dụng được liệt kê \?</string>
     <string name="fapps_isolate_block_dialog_title" translatable="true">Cô lập ứng dụng</string>
     <string name="fapps_unblock_dialog_title" translatable="true">Cho phép ứng dụng</string>
-    <string name="fapps_unblock_dialog_message" translatable="true">Cho phép kết nối cho các ứng dụng <i>được liệt kê </i>\?</string>
+    <string name="fapps_unblock_dialog_message" translatable="true">Cho phép kết nối cho các ứng dụng được liệt kê \?</string>
     <string name="lbl_test" translatable="true">thử</string>
     <string name="lbl_experimental" translatable="true">(thử nghiệm)</string>
     <string name="lbl_service_providers" translatable="true">Nhà cung cấp dịch vụ</string>
@@ -437,7 +435,7 @@
     <string name="dns_desc" translatable="true">Chọn từ hơn 190 danh sách để chặn quảng cáo, trình theo dõi và phần mềm độc hại.</string>
     <string name="status_no_network" translatable="true">Không có mạng</string>
     <string name="dc_use_sys_dns_undelegated_heading" translatable="true">Sử dụng DNS hệ thống cho những tên miền không được chuyển giao</string>
-    <string name="dc_use_sys_dns_undelegated_desc" translatable="true">Sử dụng DNS hệ thống cho những tên miền không được chuyển giao như <i>.lan</i>, <i>.internal</i>,...</string>
+    <string name="dc_use_sys_dns_undelegated_desc" translatable="true">Sử dụng DNS hệ thống cho những tên miền không được chuyển giao như .lan, .internal,...</string>
     <string name="cd_split_dns_heading" translatable="true">Tách DNS (thử nghiệm)</string>
     <string name="cd_split_dns_desc" translatable="true">Chuyển hướng yêu cầu DNS từ những ứng dụng có proxy tới máy chủ DNS của proxy.</string>
     <string name="cd_treat_dns_rules_firewall_heading" translatable="true">Coi quy tắc DNS như quy tắc tường lửa (thử nghiệm)</string>
@@ -504,8 +502,6 @@
     <string name="category_name_others" translatable="true">Khác</string>
     <string name="category_name_non_app_sys" translatable="true">Dịch vụ hệ thống</string>
     <string name="category_name_installed" translatable="true">Ứng dụng đã cài đặt</string>
-    <string name="build__flavor_website" translatable="true">trang web</string>
-    <string name="build__flavor_fdroid" translatable="true">fdroid</string>
     <string name="hop_error_toast_msg_2" translatable="true">Không có WireGuard có sẵn cho rơ le; vui lòng bổ sung</string>
     <string name="exclude_no_package_err_toast" translatable="true">Loại trừ ứng dụng yêu cầu tên gói</string>
     <string name="ac_toast_retry_disabled" translatable="true">Chọn bất kỳ phương thức chống kiểm duyệt nào để chọn chiến lược</string>

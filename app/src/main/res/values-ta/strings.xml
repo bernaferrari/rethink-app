@@ -54,7 +54,7 @@
     <string name="always_on_dialog_stop_heading">எப்போதும் VPN-ஆன்</string>
     <string name="always_on_dialog_positive">நிறுத்து</string>
     <string name="dns_crypt_relay_remove_dialog_title">DNSCrypt Relay ஐ நீக்கவா\?</string>
-    <string name="alert_firewall_accessibility_regrant_explanation">RethinkDNS அணுகல்தன்மை பணி நிறுத்தப்பட்டது அல்லது செயலிழந்தது. <i><b>செட்டிங்ச் சென்று ஃபோர்ச் ச்டாப்</b></i> ரீதிங்க்டிஎன்எச் மற்றும் அதை மீண்டும் தொடங்கவும் <i>பயன்படுத்தாத எந்த பயன்பாட்டையும் தடு</i> நற்பொருத்தம். \n \nRethinkDNS எந்தெந்த பயன்பாடுகள் பயன்பாட்டில் உள்ளன (முன்புறம்) மற்றும் பயன்பாட்டில் இல்லாதவை (பின்னணி) ஆகியவற்றைக் கண்காணிக்க அணுகல்தன்மை சேவையைப் பயன்படுத்துகிறது.</string>
+    <string name="alert_firewall_accessibility_regrant_explanation">RethinkDNS அணுகல்தன்மை பணி நிறுத்தப்பட்டது அல்லது செயலிழந்தது. செட்டிங்ச் சென்று ஃபோர்ச் ச்டாப் ரீதிங்க்டிஎன்எச் மற்றும் அதை மீண்டும் தொடங்கவும் பயன்படுத்தாத எந்த பயன்பாட்டையும் தடு நற்பொருத்தம். \n \nRethinkDNS எந்தெந்த பயன்பாடுகள் பயன்பாட்டில் உள்ளன (முன்புறம்) மற்றும் பயன்பாட்டில் இல்லாதவை (பின்னணி) ஆகியவற்றைக் கண்காணிக்க அணுகல்தன்மை சேவையைப் பயன்படுத்துகிறது.</string>
     <string name="firewall_act_universal_tab">உலகளாவிய</string>
     <string name="bsct_app_info">பயன்பாட்டுத் செய்தி</string>
     <string name="warning_title" description="Status indicator text shown in a warning notification.">எச்சரிக்கை: ரீடிங்க் செயலிழக்கப்பட்டது</string>
@@ -62,7 +62,7 @@
     <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">காத்திருக்கிறது</string>
     <string name="rdns_plus">ஆர்டிஎன்எஸ் கூடுதல்</string>
     <string name="status_dns_server_down">DNS சர்வர் செயலிழந்துள்ளது</string>
-    <string name="always_on_dialog_lockdown_stop_message">ரீடிங்க் <i> பூட்டுதல் </i> பயன்முறையில் VPN ஐ இயக்குகிறது. அதை நிறுத்துவது இந்த பயனர் சுயவிவரத்தில் இணைய இணைப்பை இழக்க நேரிடும். எப்படியும் தொடர விரும்புகிறீர்களா?</string>
+    <string name="always_on_dialog_lockdown_stop_message">ரீடிங்க்  பூட்டுதல்  பயன்முறையில் VPN ஐ இயக்குகிறது. அதை நிறுத்துவது இந்த பயனர் சுயவிவரத்தில் இணைய இணைப்பை இழக்க நேரிடும். எப்படியும் தொடர விரும்புகிறீர்களா?</string>
     <string name="doh_custom_url_remove_success">இறுதிப்புள்ளி நீக்கப்பட்டது.</string>
     <string name="lbl_idle" translatable="true">நிலையிக்கம்</string>
     <string name="lbl_private" translatable="true">தனிப்பட்ட</string>
@@ -154,7 +154,7 @@
     <string name="cd_doh_dialog_resolver_url" translatable="true">தீர்வி முகவரி</string>
     <string name="cd_dnscrypt_relay_heading" translatable="true">ரிலேக்கள்</string>
     <string name="univ_view_blocked_ip_desc" translatable="true">தடுக்கப்பட்ட அல்லது நம்பகமான டொமைன், ஐபி / துறைமுகம் விதிகளை மாற்றவும்.</string>
-    <string name="fapps_bypass_block_dialog_message" translatable="true"><i> பட்டியலிடப்பட்ட </i> பயன்பாடுகளுக்கான யுனிவர்சல் ஃபயர்வால் விதிகளை பைபாச்?</string>
+    <string name="fapps_bypass_block_dialog_message" translatable="true"> பட்டியலிடப்பட்ட  பயன்பாடுகளுக்கான யுனிவர்சல் ஃபயர்வால் விதிகளை பைபாச்?</string>
     <string name="copy_clipboard_label" translatable="true">முகவரி</string>
     <string name="update_complete_snack_message" translatable="true">புதிய பதிப்பு பதிவிறக்கம்.</string>
     <string name="firewall_rule_block_unmetered" translatable="true">அளவிடப்படாத (வைஃபை)</string>
@@ -173,7 +173,7 @@
     <string name="about_join_telegram" translatable="true">தந்தி</string>
     <string name="cd_dns_proxy_error_text_3" translatable="true">தவறான துறைமுகம்</string>
     <string name="dns_info_positive" translatable="true">சரி</string>
-    <string name="fapps_isolate_block_dialog_message" translatable="true">தனிமைப்படுத்த <i> பட்டியலிடப்பட்ட </i> பயன்பாடுகள்?</string>
+    <string name="fapps_isolate_block_dialog_message" translatable="true">தனிமைப்படுத்த  பட்டியலிடப்பட்ட  பயன்பாடுகள்?</string>
     <string name="cd_no_rules_text" translatable="true">டொமைன் விதிகள் இல்லை.</string>
     <string name="ada_noapp_dialog_positive" translatable="true">சரி</string>
     <string name="ada_app_bypass_dns_firewall" translatable="true">பைபாச் டி.என்.எச் மற்றும் ஃபயர்வால்</string>
@@ -287,7 +287,7 @@
     <string name="lbl_configure" translatable="true">உள்ளமைக்கவும்</string>
     <string name="lbl_logs" translatable="true">பதிவுகள்</string>
     <string name="lbl_network" translatable="true">பிணையம்</string>
-    <string name="bsct_block_ip" translatable="true">தடு, <u>இந்தப் பயன்பாட்டிற்கு </u><u>இந்த ஐபி </u> ஐ நம்புங்கள்</string>
+    <string name="bsct_block_ip" translatable="true">தடு, இந்தப் பயன்பாட்டிற்கு இந்த ஐபி  ஐ நம்புங்கள்</string>
     <string name="dns_crypt_relay_remove_success" translatable="true">டி.என்ச்கிரிப்ட் ரிலே நீக்கப்பட்டது.</string>
     <string name="orbot_bs_status_trying_connect" translatable="true">ஆர்போட்டை அமைத்தல்…</string>
     <string name="settings_check_update_heading" translatable="true">பயன்பாட்டு புதுப்பிப்புகளைச் சரிபார்க்கவும்</string>
@@ -318,7 +318,6 @@
     <string name="pause_text" translatable="true">இடைநிறுத்தப்பட்டது</string>
     <string name="firewall_rule_trusted_ip" translatable="true">நம்பகமான ஐபி</string>
     <string name="firewall_rule_exempt_app_bypass_univ_desc" translatable="true">&lt;!</string>
-    <string name="build__flavor_website" translatable="true">இணையதளம்</string>
     <string name="rt_re_download" translatable="true">பிளாக்லிச்ட்களை மீண்டும் ஏற்றவும்</string>
     <string name="lbl_dns_servers" translatable="true">டிஎன்எச் சேவையகங்கள்</string>
     <string name="lbl_delete" translatable="true">அழி</string>
@@ -332,7 +331,6 @@
     <string name="settings_default_dns_heading" translatable="true">குறைவடையும் DNS ஐத் தேர்வுசெய்க</string>
     <string name="fapps_filter_categories_heading" translatable="true">வகைகள்</string>
     <string name="firewall_rule_proxied" translatable="true">பிரதிநிதித்துவம்</string>
-    <string name="build__flavor_fdroid" translatable="true">fdroid</string>
     <string name="bad_config_reason_unknown_attribute" translatable="true">தெரியாத பண்புக்கூறு</string>
     <string name="lbl_cancel" translatable="true">ரத்துசெய்</string>
     <string name="lbl_dismiss" translatable="true">தள்ளுபடி</string>
@@ -409,7 +407,7 @@
     <string name="settings_allow_lan_heading" translatable="true">தனியார் ஐபிக்களை வழிநடத்த வேண்டாம் (சோதனை)</string>
     <string name="settings_allow_bypass_heading" translatable="true">பிணையத் தெரிவுநிலையை இயக்கவும்</string>
     <string name="cd_dns_crypt_dialog_desc" translatable="true">விளக்கம் (விரும்பினால்)</string>
-    <string name="dc_dns_website_desc" translatable="true"><i> nextdns.io </i> மற்றும் <i> duckduckgo.com </i> ஆகியவற்றிலிருந்து வலைத்தள ஐகான்களைப் பெறுகிறது. வட்டு இடத்தில் 350 எம்பி வரை பயன்படுத்துகிறது</string>
+    <string name="dc_dns_website_desc" translatable="true"> nextdns.io  மற்றும்  duckduckgo.com  ஆகியவற்றிலிருந்து வலைத்தள ஐகான்களைப் பெறுகிறது. வட்டு இடத்தில் 350 எம்பி வரை பயன்படுத்துகிறது</string>
     <string name="dc_check_update_heading" translatable="true">பிளாக்லிச்ட் புதுப்பிப்புகளில் வரியில்</string>
     <string name="about_bug_report" translatable="true">பிழை அறிக்கை</string>
     <string name="about_bug_report_dialog_positive_btn" translatable="true">மின்னஞ்சல் அனுப்பு</string>
@@ -451,18 +449,18 @@
     <string name="fapps_info_isolate_msg" translatable="true">நம்பகமான ஐபிக்களைத் தவிர அனைத்தையும் தடுக்கவும்.</string>
     <string name="fapps_unmetered_unblock_dialog_title" translatable="true">அளவிடப்படாததை அனுமதிக்கவும்</string>
     <string name="fapps_unmetered_block_dialog_title" translatable="true">அளவிடப்படாத நிலையில்</string>
-    <string name="fapps_unmetered_block_dialog_message" translatable="true"><i> பட்டியலிடப்பட்ட </i> பயன்பாடுகளுக்கான அளவிடப்படாத (வைஃபை) நெட்வொர்க்கில் இணைப்புகளைத் தடுக்கவும்?</string>
-    <string name="fapps_unmetered_unblock_dialog_message"><i> பட்டியலிடப்பட்ட </i> பயன்பாடுகளுக்கான அளவிடப்படாத (வைஃபை) நெட்வொர்க்கில் இணைப்புகளை அனுமதிக்கவா?</string>
+    <string name="fapps_unmetered_block_dialog_message" translatable="true"> பட்டியலிடப்பட்ட  பயன்பாடுகளுக்கான அளவிடப்படாத (வைஃபை) நெட்வொர்க்கில் இணைப்புகளைத் தடுக்கவும்?</string>
+    <string name="fapps_unmetered_unblock_dialog_message"> பட்டியலிடப்பட்ட  பயன்பாடுகளுக்கான அளவிடப்படாத (வைஃபை) நெட்வொர்க்கில் இணைப்புகளை அனுமதிக்கவா?</string>
     <string name="fapps_metered_block_dialog_title" translatable="true">மீட்டர் மீது தொகுதி</string>
-    <string name="fapps_metered_block_dialog_message" translatable="true"><i> பட்டியலிடப்பட்ட </i> பயன்பாடுகளுக்கான மீட்டர் (மொபைல்) நெட்வொர்க்கில் இணைப்புகளைத் தடுக்கவா?</string>
+    <string name="fapps_metered_block_dialog_message" translatable="true"> பட்டியலிடப்பட்ட  பயன்பாடுகளுக்கான மீட்டர் (மொபைல்) நெட்வொர்க்கில் இணைப்புகளைத் தடுக்கவா?</string>
     <string name="fapps_metered_unblock_dialog_title" translatable="true">மீட்டர் அனுமதிக்கவும்</string>
-    <string name="fapps_metered_unblock_dialog_message" translatable="true"><i> பட்டியலிடப்பட்ட </i> பயன்பாடுகளுக்கான மீட்டர் (மொபைல்) நெட்வொர்க்கில் இணைப்புகளை அனுமதிக்கவா?</string>
+    <string name="fapps_metered_unblock_dialog_message" translatable="true"> பட்டியலிடப்பட்ட  பயன்பாடுகளுக்கான மீட்டர் (மொபைல்) நெட்வொர்க்கில் இணைப்புகளை அனுமதிக்கவா?</string>
     <string name="fapps_bypass_block_dialog_title" translatable="true">பைபாச் பயன்பாடுகள்</string>
-    <string name="fapps_bypass_dns_firewall_dialog_message" translatable="true">பைபாச் யுனிவர்சல் டி.என்.எச் &amp; <i> பட்டியலிடப்பட்ட </i> பயன்பாடுகளுக்கான ஃபயர்வால் விதிகள்?</string>
+    <string name="fapps_bypass_dns_firewall_dialog_message" translatable="true">பைபாச் யுனிவர்சல் டி.என்.எச் &amp;  பட்டியலிடப்பட்ட  பயன்பாடுகளுக்கான ஃபயர்வால் விதிகள்?</string>
     <string name="fapps_unblock_dialog_title" translatable="true">பயன்பாடுகளை அனுமதிக்கவும்</string>
-    <string name="fapps_unblock_dialog_message" translatable="true"><i> பட்டியலிடப்பட்ட </i> பயன்பாடுகளுக்கான இணைப்புகளை அனுமதிக்கவா?</string>
+    <string name="fapps_unblock_dialog_message" translatable="true"> பட்டியலிடப்பட்ட  பயன்பாடுகளுக்கான இணைப்புகளை அனுமதிக்கவா?</string>
     <string name="fapps_exclude_block_dialog_title" translatable="true">பயன்பாடுகளை விலக்கு</string>
-    <string name="fapps_exclude_block_dialog_message" translatable="true"><i> பட்டியலிடப்பட்ட </i> டிஎன்எச் மற்றும் ஃபயர்வாலில் இருந்து பயன்பாடுகளை விலக்கு?</string>
+    <string name="fapps_exclude_block_dialog_message" translatable="true"> பட்டியலிடப்பட்ட  டிஎன்எச் மற்றும் ஃபயர்வாலில் இருந்து பயன்பாடுகளை விலக்கு?</string>
     <string name="fapps_isolate_block_dialog_title" translatable="true">பயன்பாடுகளை தனிமைப்படுத்தவும்</string>
     <string name="rules_load_failure_heading" translatable="true">குறிப்பு</string>
     <string name="rules_load_failure_desc" translatable="true">ஃபயர்வால் விதிகள் எதுவும் கிடைக்கவில்லை</string>
@@ -485,13 +483,13 @@
     <string name="firewall_rule_block_http" translatable="true">பாதுகாப்பற்ற http</string>
     <string name="firewall_rule_global_lockdown" translatable="true">முடக்குதல்</string>
     <string name="firewall_rule_trusted_domain" translatable="true">நம்பகமான டொமைன் (பயன்பாடு)</string>
-    <string name="firewall_rule_block_app_desc" translatable="true"><![CDATA[ஒரு பயனர்-செட் ஃபயர்வால் விதி இதைத் தடுத்தது <i> பயன்பாடு </i>.<br/><br/>To change go to <i>All Apps</i> tab.]]></string>
-    <string name="firewall_rule_new_app_desc" translatable="true"><![CDATA[இந்த பயன்பாடு <i> முதல் </i> நேரத்திற்கான இணைப்பை ஏற்படுத்தியது.]]></string>
+    <string name="firewall_rule_block_app_desc" translatable="true"><![CDATA[ஒரு பயனர்-செட் ஃபயர்வால் விதி இதைத் தடுத்தது பயன்பாடு .]]></string>
+    <string name="firewall_rule_new_app_desc" translatable="true"><![CDATA[இந்த பயன்பாடு முதல் நேரத்திற்கான இணைப்பை ஏற்படுத்தியது.]]></string>
     <string name="firewall_rule_block_app_mobile_desc" translatable="true">&lt;!</string>
     <string name="firewall_rule_block_app_univ_mobile_desc" translatable="true">&lt;!</string>
     <string name="firewall_rule_bypass_dns_firewall_desc" translatable="true">&lt;!</string>
     <string name="firewall_rule_block_ip_desc" translatable="true">&lt;!</string>
-    <string name="firewall_rule_trusted_ip_desc" translatable="true">&lt;! [சி.டி.ஏ.டி.ஏ [இந்த இணைப்பு அனுமதிக்கப்பட்டது, ஏனெனில் &lt;i&gt; இலக்கு ஐபி &lt;/i&gt; நம்பகமான ஐபி என அமைக்கப்பட்டுள்ளது.</string>
+    <string name="firewall_rule_trusted_ip_desc" translatable="true">&lt;! [சி.டி.ஏ.டி.ஏ [இந்த இணைப்பு அனுமதிக்கப்பட்டது, ஏனெனில்  இலக்கு ஐபி  நம்பகமான ஐபி என அமைக்கப்பட்டுள்ளது.</string>
     <string name="lbl_apply" translatable="true">இடு</string>
     <string name="lbl_allowed" translatable="true">அனுமதிக்கப்படுகிறது</string>
     <string name="lbl_blocked" translatable="true">தடுக்கப்பட்டது</string>
@@ -524,7 +522,7 @@
     <string name="lbl_save" translatable="true">சேமி</string>
     <string name="lbl_secure" translatable="true">பாதுகாப்பானது</string>
     <string name="failed_using_default" translatable="true">தோல்வியுற்றது: குறைவடையும் டி.என்.எச்</string>
-    <string name="bsct_block_domain" translatable="true"><u> இந்த பயன்பாட்டிற்கு </u> க்கு தொகுதி, நம்பிக்கை <u> டொமைன் (கள்) </u></string>
+    <string name="bsct_block_domain" translatable="true"> இந்த பயன்பாட்டிற்கு  க்கு தொகுதி, நம்பிக்கை  டொமைன் (கள்) </string>
     <string name="dot_custom_url_remove_dialog_title" translatable="true">டாட் எண்ட்பாயிண்ட் நீக்கவா?</string>
     <string name="dot_custom_url_remove_dialog_message" translatable="true">சேமிக்கப்பட்ட உள்ளமைவிலிருந்து டி.எல்.எச் இறுதிப்புள்ளி மீது டி.என்.எச்சை நீக்கவும்.</string>
     <string name="dns_crypt_relay_remove_dialog_message" translatable="true">சேமிக்கப்பட்ட உள்ளமைவிலிருந்து Dnscrypt ரிலேவை நீக்கவும்.</string>
@@ -544,13 +542,13 @@
     <string name="download_update_dialog_message_success" translatable="true">பிளாக்லிச்ட் பதிவிறக்கம் வெற்றிகரமாக.</string>
     <string name="download_update_dialog_failure_title" translatable="true">ஏதோ தவறு நடந்துவிட்டது!</string>
     <string name="download_update_dialog_trylater_message" translatable="true">புதுப்பிப்பை இப்போது செயல்படுத்த முடியாது, தயவுசெய்து பின்னர் மீண்டும் முயற்சிக்கவும்.</string>
-    <string name="search_universal_ips" translatable="true"><font size="12"> ஐபிஎச் தேடல் </font></string>
-    <string name="search_custom_domains" translatable="true"><font size="12"> தேடல் டொமைன் பெயர்கள் </font></string>
+    <string name="search_universal_ips" translatable="true"> ஐபிஎச் தேடல் </string>
+    <string name="search_custom_domains" translatable="true"> தேடல் டொமைன் பெயர்கள் </string>
     <string name="public_key_copy_toast_msg" translatable="true">பொது விசை நகலெடுக்கப்பட்டது.</string>
     <string name="info_dialog_rethink_toast_msg" translatable="true">Rdns+ dns-over-https முகவரி ஆக நகலெடுக்கப்பட்டது</string>
     <string name="settings_enable_logs_desc" translatable="true">டி.என்.எச் மற்றும் ஃபயர்வால் பதிவுகளை உள்நாட்டில் சாதனத்தில் சேமிக்கவும்.</string>
     <string name="settings_enable_logs" translatable="true">ஆன்-சாதன பதிவுகளை இயக்கவும்</string>
-    <string name="firewall_rule_bypass_universal_ip_desc" translatable="true"><![CDATA[இந்த இணைப்பு அனுமதிக்கப்பட்டது, ஏனெனில் <i> இலக்கு ஐபி </i> அனைத்து உலகளாவிய ஃபயர்வால் விதிகளையும் புறக்கணிக்க அமைக்கப்பட்டுள்ளது. /i&gt; தாவல்.]]></string>
+    <string name="firewall_rule_bypass_universal_ip_desc" translatable="true"><![CDATA[இந்த இணைப்பு அனுமதிக்கப்பட்டது, ஏனெனில் இலக்கு ஐபி அனைத்து உலகளாவிய ஃபயர்வால் விதிகளையும் புறக்கணிக்க அமைக்கப்பட்டுள்ளது. /i&gt; தாவல்.]]></string>
     <string name="settings_http_proxy_error_text1" translatable="true">துறைமுகம் வீச்சு 1024–65535 முதல் இருக்க வேண்டும்</string>
     <string name="settings_http_proxy_error_text2" translatable="true">தவறான துறைமுகம்</string>
     <string name="settings_app_list_default_app" translatable="true">எதுவுமில்லை</string>
@@ -564,7 +562,7 @@
     <string name="firewall_rule_block_dns_bypass_desc" translatable="true">&lt;!</string>
     <string name="firewall_rule_exempt_dns_proxied_desc" translatable="true">&lt;!</string>
     <string name="firewall_rule_exempt_orbot_setup_desc" translatable="true">&lt;!</string>
-    <string name="firewall_rule_trusted_domain_desc" translatable="true"><![CDATA[இந்த இணைப்பு அனுமதிக்கப்பட்டது, ஏனெனில் <i> டொமைன் </i> நம்பகமான களமாக அமைக்கப்பட்டுள்ளது.]]></string>
+    <string name="firewall_rule_trusted_domain_desc" translatable="true"><![CDATA[இந்த இணைப்பு அனுமதிக்கப்பட்டது, ஏனெனில் டொமைன் நம்பகமான களமாக அமைக்கப்பட்டுள்ளது.]]></string>
     <string name="firewall_rule_domain_trusted_univ_desc" translatable="true">&lt;!</string>
     <string name="firewall_rule_proxied_desc" translatable="true">இந்த இணைப்பு பயனர்-வழங்கப்பட்ட பதிலாள்.</string>
     <string name="notif_channel_vpn_notification" translatable="true">செயலில் VPN</string>
@@ -575,7 +573,6 @@
     <string name="category_name_sys_apps" translatable="true">கணினி பயன்பாடுகள்</string>
     <string name="category_name_others" translatable="true">மற்றொன்று</string>
     <string name="category_name_installed" translatable="true">நிறுவப்பட்ட பயன்பாடுகள்</string>
-    <string name="build__flavor_play_store" translatable="true">விளையாடுங்கள்</string>
     <string name="ada_app_status_block" translatable="true">தடுக்கப்பட்டது</string>
     <string name="ada_app_status_block_wifi" translatable="true">Wi-Fi-இல் தடுக்கப்பட்டது</string>
     <string name="ada_app_status_block_md" translatable="true">மொபைல் டேட்டாவில் தடுக்கப்பட்டது</string>
@@ -594,7 +591,7 @@
     <string name="rt_filter_parent_selected" translatable="true">தேர்ந்தெடுக்கப்பட்டது</string>
     <string name="radio_sky_btn" translatable="true">⛅ வானம்</string>
     <string name="radio_max_btn" translatable="true">. அதிகபட்சம்</string>
-    <string name="rt_filter_hint" translatable="true"><u> அனைத்தையும் </u> பிளாக்லிச்ட்களைக் காட்டுகிறது</string>
+    <string name="rt_filter_hint" translatable="true"> அனைத்தையும்  பிளாக்லிச்ட்களைக் காட்டுகிறது</string>
     <string name="rt_filter_desc" translatable="true">&lt;!</string>
     <string name="rt_filter_desc_subgroups" translatable="true">&lt;!</string>
     <string name="rethink_sky_desc" translatable="true">280+ இடங்கள்; அதிக நேரம்; Cloudflare.com இல் இயங்கும் முளை RISOLVER</string>
@@ -627,7 +624,6 @@
     <string name="hs_biometeric_error" translatable="true">பயோமெட்ரிக் அங்கீகார பிழை</string>
     <string name="hsf_vpn_dialog_message" translatable="true">சாதனத்தின் டிஎன்எச் கோரிக்கைகளை குறியாக்கவும், பிணைய மானிட்டரை செயல்படுத்தவும், ஃபயர்வால் விதிகளை அமல்படுத்தவும் உள்ளக வி.பி.என் அமைக்க ரீடிங்க் தேவை. \n\nரீடிங்க் எந்த தகவலையும் சேகரிக்கவில்லை அல்லது எந்த வகையிலும் உளவு பார்க்காது.</string>
     <string name="hsf_vpn_prepare_failure" translatable="true">VPN இசைவு காணவில்லை, அல்லது மற்றொரு பயன்பாடு எப்போதும் VPN பயன்முறையில் இருக்கும்.</string>
-    <string name="lbl_unselected" translatable="true">தேர்வு செய்யப்படாதது</string>
     <string name="exclude_apps_from_proxy">அனைத்து ப்ராக்சிகளிலிருந்தும் பைபாச் பயன்பாடு</string>
     <string name="parse_error_reason" translatable="true">%1$s “ %2$s” ஐ அலச முடியாது</string>
     <string name="invalid_file_error" translatable="true">தவறான கோப்பு</string>
@@ -638,8 +634,7 @@
     <string name="connection_http3" translatable="true">Http3</string>
     <string name="settings_connectivity_checks" translatable="true">இணைப்பு சோதனைகளைச் செய்யுங்கள்</string>
     <string name="settings_exclude_proxy_apps_heading" translatable="true">லூப் பேக் பதிலாள் முன்னோக்கி பயன்பாடுகள்</string>
-    <string name="settings_exclude_proxy_apps_desc" translatable="true">முடக்கப்பட்டால், ரெதிங்கின் விபிஎன் சுரங்கப்பாதையில் இருந்து பதிலாள் (SOCKS5, HTTP, DNS) முன்னோக்கி பயன்பாடுகளை விலக்குகிறது.</string>
-    <string name="settings_lock_down_mode_desc" translatable="true">VPN பூட்டப்பட்ட பயன்முறையில் இருக்கும்போது சில விருப்பங்கள் முடக்கப்பட்டுள்ளன. <u> VPN அமைப்புகளைக் காண்க </u>.</string>
+    <string name="settings_lock_down_mode_desc" translatable="true">VPN பூட்டப்பட்ட பயன்முறையில் இருக்கும்போது சில விருப்பங்கள் முடக்கப்பட்டுள்ளன.  VPN அமைப்புகளைக் காண்க .</string>
     <string name="settings_https_desc" translatable="true">HTTP (கள்) இணைக்க இறுதிப்புள்ளிக்கு இணைப்புகளை முன்னோக்கி.</string>
     <string name="orbot_bs_status_1" translatable="true">Orbot க்கு %1$s இணைப்புகளை அனுப்புதல்.</string>
     <string name="orbot_bs_status_3" translatable="true">Orbot க்கு %1$s ஐ அனுப்புதல், HTTP பதிலாள் ஆகியவை அமைக்கப்பட்டன.</string>
@@ -648,7 +643,7 @@
     <string name="orbot_stop_dialog_negative" translatable="true">ஆர்போட்டை நிறுத்துங்கள்</string>
     <string name="orbot_stop_dialog_neutral" translatable="true">DNS ஐ மாற்றவும்</string>
     <string name="orbot_title" translatable="true">ஆர்போட் மற்றும் ப்ராக்சிகள்</string>
-    <string name="orbot_explanation" translatable="true">ஆர்போட் என்பது ஒரு இலவச பதிலாள் பயன்பாடாகும், இது இணையத்தை மேலும் பயன்படுத்த மற்ற பயன்பாடுகளுக்கு அதிகாரம் அளிக்கிறது <u> பாதுகாப்பாக </u>. \nஉங்கள் இணைய போக்குவரத்தை குறியாக்க ஆர்போட் <u> டோர் </u> ஐப் பயன்படுத்துகிறது, இது உங்களுக்கு <u> தணிக்கை </u> ஐத் தவிர்த்து, தனிப்பட்ட விடுதலை மற்றும் தனியுரிமையை அச்சுறுத்தும் <u> பிணையம் கண்காணிப்பு </u> வடிவங்களுக்கு எதிராக பாதுகாக்க உதவுகிறது. \n<u> TCP பதிலாள் </u>: மறுபரிசீலனை செய்யுங்கள் <i> இன் TCP இணைப்புகள் மட்டுமே </i> ஆர்போட்டுக்கு பயன்பாடுகள். \n<u> http பதிலாள் </u>: மறுபரிசீலனை <i> நிறுவுகிறது </i> http சுரங்கப்பாதையை ஆர்போட்டுடன் இணைக்கவும், <i> சேர்க்கப்பட்ட </i> பயன்பாடுகளின் TCP இணைப்புகளை மட்டுமே முன்னோக்கி செய்கிறது.</string>
+    <string name="orbot_explanation" translatable="true">ஆர்போட் என்பது ஒரு இலவச பதிலாள் பயன்பாடாகும், இது இணையத்தை மேலும் பயன்படுத்த மற்ற பயன்பாடுகளுக்கு அதிகாரம் அளிக்கிறது  பாதுகாப்பாக . \nஉங்கள் இணைய போக்குவரத்தை குறியாக்க ஆர்போட்  டோர்  ஐப் பயன்படுத்துகிறது, இது உங்களுக்கு  தணிக்கை  ஐத் தவிர்த்து, தனிப்பட்ட விடுதலை மற்றும் தனியுரிமையை அச்சுறுத்தும்  பிணையம் கண்காணிப்பு  வடிவங்களுக்கு எதிராக பாதுகாக்க உதவுகிறது. \n TCP பதிலாள் : மறுபரிசீலனை செய்யுங்கள்  இன் TCP இணைப்புகள் மட்டுமே  ஆர்போட்டுக்கு பயன்பாடுகள். \n http பதிலாள் : மறுபரிசீலனை  நிறுவுகிறது  http சுரங்கப்பாதையை ஆர்போட்டுடன் இணைக்கவும்,  சேர்க்கப்பட்ட  பயன்பாடுகளின் TCP இணைப்புகளை மட்டுமே முன்னோக்கி செய்கிறது.</string>
     <string name="orbot_install_dialog_title" translatable="true">ஆர்போட்டை நிறுவவா?</string>
     <string name="orbot_install_dialog_message" translatable="true">ORBOT TOR இன் அம்சங்களையும் செயல்பாட்டையும் ஆண்ட்ராய்டு க்கு கொண்டு வருகிறது.</string>
     <string name="orbot_install_dialog_positive" translatable="true">நிறுவு</string>
@@ -661,10 +656,10 @@
     <string name="settings_orbot_notification_action" translatable="true">திறந்த சுற்றுப்பாதை</string>
     <string name="settings_general_header" translatable="true">பொது</string>
     <string name="settings_autostart_bootup_desc" translatable="true">சாதன பவர்-அப் இல், மூடப்படுவதற்கு முன்பு அது இயங்கினால் மறுபரிசீலனை செய்யத் தொடங்குங்கள்.</string>
-    <string name="settings_network_all_networks_desc" translatable="true">இயக்கப்பட்டால், இணையத்துடன் இணைக்க ரெதிங்க் கிடைக்கக்கூடிய அனைத்து நெட்வொர்க்குகளையும் பயன்படுத்துகிறது. இல்லையெனில், ஆண்ட்ராய்டு மூலம் எந்த பிணையம் <i> செயலில் </i> எனக் கருதப்படுகிறது.</string>
+    <string name="settings_network_all_networks_desc" translatable="true">இயக்கப்பட்டால், இணையத்துடன் இணைக்க ரெதிங்க் கிடைக்கக்கூடிய அனைத்து நெட்வொர்க்குகளையும் பயன்படுத்துகிறது. இல்லையெனில், ஆண்ட்ராய்டு மூலம் எந்த பிணையம்  செயலில்  எனக் கருதப்படுகிறது.</string>
     <string name="settings_check_update_desc" translatable="true">பயன்பாட்டு புதுப்பிப்புகளை வாரத்திற்கு ஒரு முறை தானாகவே சரிபார்க்கவும்.</string>
     <string name="settings_custom_downloader_heading" translatable="true">பயன்பாட்டு பதிவிறக்கத்தைப் பயன்படுத்தவும்</string>
-    <string name="settings_custom_downloader_desc" translatable="true">முடக்கப்பட்டால், ஆண்ட்ராய்டு இன் உள்ளமைக்கப்பட்ட <i> பதிவிறக்கம் மேலாளர் </i> பயன்படுத்தப்படுகிறது</string>
+    <string name="settings_custom_downloader_desc" translatable="true">முடக்கப்பட்டால், ஆண்ட்ராய்டு இன் உள்ளமைக்கப்பட்ட  பதிவிறக்கம் மேலாளர்  பயன்படுத்தப்படுகிறது</string>
     <string name="settings_theme_heading" translatable="true">தோற்றம்</string>
     <string name="cleanbrowsing_family_dns_desc" translatable="true">குடும்ப வடிகட்டி அனைத்து வயதுவந்த, ஆபாச மற்றும் வெளிப்படையான தளங்களுக்கும் அணுகலைத் தடுக்கிறது. இது எங்கள் வடிப்பான்களைத் தவிர்ப்பதற்கு பயன்படுத்தக்கூடிய பதிலாள் மற்றும் விபிஎன் களங்களையும் தடுக்கிறது. கலப்பு உள்ளடக்க தளங்களும் (ரெடிட் போன்றவை) தடுக்கப்படுகின்றன. கூகிள், பிங் மற்றும் யூடியூப் ஆகியவை பாதுகாப்பான பயன்முறையில் அமைக்கப்பட்டுள்ளன.</string>
     <string name="cleanbrowsing_adult_dns_desc" translatable="true">வயதுவந்த வடிகட்டி அனைத்து வயதுவந்த, ஆபாச மற்றும் வெளிப்படையான தளங்களுக்கும் அணுகலைத் தடுக்கிறது. இது பதிலாள் அல்லது வி.பி.என்-கள் அல்லது கலப்பு-உள்ளடக்க தளங்களைத் தடுக்காது. ரெடிட் போன்ற தளங்கள் அனுமதிக்கப்படுகின்றன. கூகிள் மற்றும் பிங் ஆகியவை பாதுகாப்பான பயன்முறையில் அமைக்கப்பட்டுள்ளன.</string>
@@ -679,7 +674,7 @@
     <string name="dns_desc" translatable="true">விளம்பரங்கள், டிராக்கர்கள் மற்றும் தீம்பொருளை நிறுத்த 190+ பட்டியல்களிலிருந்து தேர்வு செய்யவும்.</string>
     <string name="status_no_network" translatable="true">பிணையம் இல்லை</string>
     <string name="dc_use_sys_dns_undelegated_heading" translatable="true">குறைக்கப்படாத களங்களுக்கு கணினி டி.என்.எச் பயன்படுத்தவும்</string>
-    <string name="dc_use_sys_dns_undelegated_desc" translatable="true"><i> .லான் </i>, <i> .internal </i>, முதலியன போன்றவற்றில் பயன்படுத்தப்படாத களங்களுக்கு கணினி DNS ஐப் பயன்படுத்தவும்.</string>
+    <string name="dc_use_sys_dns_undelegated_desc" translatable="true"> .லான் ,  .internal , முதலியன போன்றவற்றில் பயன்படுத்தப்படாத களங்களுக்கு கணினி DNS ஐப் பயன்படுத்தவும்.</string>
     <string name="dc_filtering_heading" translatable="true">வடிகட்டுதல்</string>
     <string name="cd_split_dns_heading" translatable="true">பிளவு டி.என்.எச் (சோதனை)</string>
     <string name="cd_split_dns_desc" translatable="true">ப்ராக்சியின் டிஎன்எச் சேவையகங்களுக்கு ப்ராக்சிட் ஆப்சிலிருந்து முன்னோக்கி டிஎன்எச் வினவல்கள்.</string>
@@ -689,7 +684,7 @@
     <string name="firewall_rule_bypass_proxy" translatable="true">பைபாச் பதிலாள்</string>
     <string name="firewall_rule_paused_app" translatable="true">பயன்பாடு இடைநிறுத்தப்பட்டது</string>
     <string name="firewall_rule_lockdown_wg" translatable="true">பூட்டுதல் பதிலாள்</string>
-    <string name="firewall_rule_private_dns_desc" translatable="true"><![CDATA[இந்த இணைப்பு ஒரு <i> தனியார் டி.என்.எச் </i> சேவையகத்தைத் தேடுகிறது.]]></string>
+    <string name="firewall_rule_private_dns_desc" translatable="true"><![CDATA[இந்த இணைப்பு ஒரு தனியார் டி.என்.எச் சேவையகத்தைத் தேடுகிறது.]]></string>
     <string name="firewall_rule_bypass_proxy_desc" translatable="true">&lt;!</string>
     <string name="firewall_rule_paused_app_desc" translatable="true">&lt;!</string>
     <string name="firewall_rule_lockdown_wg_desc" translatable="true">&lt;!</string>
@@ -721,20 +716,20 @@
     <string name="wg_setting_use_on_mobile_desc" translatable="true">மொபைல் தரவு வழியாக பிரத்தியேகமாக இந்த வயர் கார்டைப் பயன்படுத்தவும்.</string>
     <string name="hop_add_remove_title" translatable="true">ரிலேவைச் சேர்க்கவும் / அகற்றவும்</string>
     <string name="about_terms_of_service" translatable="true">பணி விதிமுறைகள்</string>
-    <string name="bypasses_network_restrictions" translatable="true">அணுகல் காசோலைகள் அனைத்து பிணைய கட்டுப்பாடுகளையும் புறக்கணிக்கின்றன. <i> ஆட்டோ </i> பயன்முறையில், ரீடிங்க் தோராயமாக முன்னர் இணைக்கப்பட்ட ஐபிக்கள் மற்றும் ஓச்ட்பெயர்களைப் பயன்படுத்துகிறது.</string>
+    <string name="bypasses_network_restrictions" translatable="true">அணுகல் காசோலைகள் அனைத்து பிணைய கட்டுப்பாடுகளையும் புறக்கணிக்கின்றன.  ஆட்டோ  பயன்முறையில், ரீடிங்க் தோராயமாக முன்னர் இணைக்கப்பட்ட ஐபிக்கள் மற்றும் ஓச்ட்பெயர்களைப் பயன்படுத்துகிறது.</string>
     <string name="most_contacted_asn" translatable="true">பெரும்பாலானவர்கள் தொடர்பு கொண்ட வழங்குநர்கள்</string>
     <string name="most_blocked_asn" translatable="true">பெரும்பாலான தடுக்கப்பட்ட வழங்குநர்கள்</string>
     <string name="download_ip_info_title" translatable="true">வழங்குநரின் தகவலைக் காட்டு</string>
-    <string name="download_ip_info_desc" translatable="true"><i> rethinkdns.com </i> இலிருந்து வலைத்தளங்களுக்கான பணி வழங்குநரின் விவரங்களைப் பெறுகிறது, <i>%1$s </i> ஆல் இயக்கப்படுகிறது</string>
+    <string name="download_ip_info_desc" translatable="true"> rethinkdns.com  இலிருந்து வலைத்தளங்களுக்கான பணி வழங்குநரின் விவரங்களைப் பெறுகிறது, %1$s  ஆல் இயக்கப்படுகிறது</string>
     <string name="top_active_conns" translatable="true">சிறந்த செயலில் உள்ள இணைப்புகள்</string>
     <string name="close_conns_dialog_title" translatable="true">இணைப்புகளை மூடு</string>
     <string name="close_conns_dialog_desc" translatable="true">%1$s க்கான அனைத்து இணைப்புகளையும் மூடவா?</string>
     <string name="local_blocklist_delete_desc" translatable="true">ஆன்-டெவிச் பிளாக்லிச்ட்களை நீக்கவா?</string>
     <string name="fail_open_network_title" translatable="true">பிணைய இழப்பை நிறுத்த வேண்டாம்</string>
-    <string name="fail_open_network_desc" translatable="true">முடக்கப்படும்போது, <i> விமானப் பயன்முறை </i> ஐப் போல, இணைப்பு எதுவும் கிடைக்காதபோது எல்லா தரவையும் மறுபரிசீலனை செய்கிறது.</string>
+    <string name="fail_open_network_desc" translatable="true">முடக்கப்படும்போது,  விமானப் பயன்முறை  ஐப் போல, இணைப்பு எதுவும் கிடைக்காதபோது எல்லா தரவையும் மறுபரிசீலனை செய்கிறது.</string>
     <string name="about_license" translatable="true">APLV2 இன் கீழ் உரிமம் பெற்றது</string>
     <string name="smart_dns" translatable="true">அறிவுள்ள டி.என்.எச்</string>
-    <string name="smart_dns_desc" translatable="true"><i> அறிவுள்ள டி.என்.எச் </i> இந்த டிஎன்எச் தீர்வுகளில் எதையும் தோராயமாக பயன்படுத்துகிறது:</string>
+    <string name="smart_dns_desc" translatable="true"> அறிவுள்ள டி.என்.எச்  இந்த டிஎன்எச் தீர்வுகளில் எதையும் தோராயமாக பயன்படுத்துகிறது:</string>
     <string name="home_last_24_hours">கடந்த 24 மணிநேரம்</string>
     <plurals name="home_stopped_at_dns_count">
         <item quantity="one">%d தேடல் DNS-இலேயே நிறுத்தப்பட்டது</item>

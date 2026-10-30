@@ -107,11 +107,11 @@
     <string name="dns_proxy_remove_dialog_message">Slett DNS-mellomtjeneren fra lagret oppsett.</string>
     <string name="about_dialog_neutral_button">Foreslå funksjoner</string>
     <string name="dns_proxy_remove_success">DNS-mellomtjener slettet.</string>
-    <string name="search_custom_domains"><font size="12">Søk etter domenenavn</font></string>
+    <string name="search_custom_domains">Søk etter domenenavn</string>
     <string name="cd_custom_doh_url_name_default">DoH</string>
     <string name="cd_dns_proxy_error_text_3">Ugyldig port</string>
     <string name="univ_view_blocked_ip">IP og port-regler</string>
-    <string name="search_universal_ips"><font size="12">Søk etter IP-er</font></string>
+    <string name="search_universal_ips">Søk etter IP-er</string>
     <string name="cd_dns_crypt_dialog_name">Navn</string>
     <string name="hs_download_positive_default">OK</string>
     <string name="local_blocklist_download">Last ned svartelister</string>
@@ -153,7 +153,6 @@
     <string name="dns_proxy_connection_failure">Kunne ikke koble til DNS-mellomtjener.</string>
     <string name="copy_clipboard_label">Nettadresse</string>
     <string name="firewall_rule_exempt_orbot_setup">Orbot-oppsett</string>
-    <string name="build__flavor_fdroid">fdroid</string>
     <string name="dns_proxy_dialog_header_dns">Legg til DNS-mellomtjener</string>
     <string name="firewall_rule_unknown">Ukjent kilde</string>
     <string name="firewall_rule_block_http">Usikker HTTP</string>
@@ -184,7 +183,6 @@
     <string name="unicode_warning_sign">⚠</string>
     <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit.">Ikke beskyttet</string>
     <string name="cd_dns_proxy_mode_internal">Intern</string>
-    <string name="build__flavor_play_store">play</string>
     <string name="hybrid_mode_notification_title">Beskyttet. Tilkoblet til DNS og brannmur.</string>
     <string name="doh_custom_url_remove_dialog_message">Slett DNS-over-HTTPS-endepunktet fra lagret oppsett.</string>
     <string name="about_dialog_positive_button">Begynn</string>
@@ -210,7 +208,6 @@
     <string name="dns_query_latency">%1$s ms</string>
     <string name="firewall_rule_block_app_exception">Feil</string>
     <string name="firewall_rule_exempt_app_bypass_univ">Omgått program</string>
-    <string name="build__flavor_website">website</string>
     <string name="vpn_profile_error">Kunne ikke igangsette VPN-profil.</string>
     <string name="warning_title" description="Status indicator text shown in a warning notification.">Advarsel: Keepout har blitt avslått</string>
     <string name="notification_content" description="Indicates what will happen if the user taps the notification.">Trykk for å endre beskyttelsesinstilling</string>
@@ -270,7 +267,7 @@
     <string name="brbs_restore_dialog_failure_positive">Prøv igjen</string>
     <string name="brbs_restore_no_uri_toast">Gjenoppretting mislyktes. Prøv igjen.</string>
     <string name="orbot_stop_dialog_title">Handling kreves</string>
-    <string name="settings_custom_downloader_desc">Ellers vil Androids innebygde <i>Nedlastingshåndterer</i> brukes.</string>
+    <string name="settings_custom_downloader_desc">Ellers vil Androids innebygde Nedlastingshåndterer brukes.</string>
     <string name="univ_firewall_rule_8">Blokker port 80 (usikker HTTP-) trafikk</string>
     <string name="radio_max_btn">🪂 Maks</string>
     <string name="brbs_restore_complete_toast">Gjenoppretting fullført. Starter programmet igjen …</string>
@@ -316,7 +313,7 @@
     <string name="cd_doh_dialog_resolver_url">Utledernettadresse</string>
     <string name="univ_firewall_rule_6">Blokker nylig installerte programmer som forvalg</string>
     <string name="dns_connected_rethink_plus">Tilkoblet. %1$s svartelister i bruk.</string>
-    <string name="dc_dns_website_desc">Henter nettsideikon fra <i>duckduckgo.com</i>. Bruker ca. 350 MB plass.</string>
+    <string name="dc_dns_website_desc">Henter nettsideikon fra duckduckgo.com. Bruker ca. 350 MB plass.</string>
     <string name="radio_sky_btn">⛅ Sky</string>
     <string name="download_update_dialog_message_success">Svarteliste nedlastet.</string>
     <string name="download_update_dialog_message">Last ned ny versjon av programmet fra nettsiden\?</string>
@@ -333,7 +330,7 @@
     <string name="new_app_bulk_notification_content">Keepout blokkerte %1$s nye programmer. Trykk for å vise eller endre.</string>
     <string name="ctbs_app_other_apps">%1$s og %2$s program(mer) til</string>
     <string name="download_update_dialog_message_ok">Du har allerede nyeste versjon.</string>
-    <string name="firewall_rule_block_app_desc">En brukervalgt brannmursregel blokkerte dette <i>programmet</i>.<br/><br/> Endre dette fra <i>Alle programmer</i>-fanen.</string>
+    <string name="firewall_rule_block_app_desc">En brukervalgt brannmursregel blokkerte dette programmet.<br/><br/> Endre dette fra Alle programmer-fanen.</string>
     <string name="orbot_bs_status_3">Videresender %1$s til Orbot. HTTP-mellomtjener også satt.</string>
     <string name="dc_other_dns_heading">Type</string>
     <string name="cd_dns_crypt_resolver_heading">Utleder</string>

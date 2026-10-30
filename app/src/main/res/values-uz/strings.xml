@@ -33,7 +33,6 @@
     <string name="lbl_save" translatable="true">saqlash</string>
     <string name="lbl_stopped" translatable="true">To\'xtatildi</string>
     <string name="lbl_secure" translatable="true">xavfsiz</string>
-    <string name="lbl_unselected" translatable="true">Belgilanmagan</string>
     <string name="lbl_test" translatable="true">test</string>
     <string name="allow" translatable="true">ruxsat berish</string>
     <string name="block" translatable="true">bloklash</string>

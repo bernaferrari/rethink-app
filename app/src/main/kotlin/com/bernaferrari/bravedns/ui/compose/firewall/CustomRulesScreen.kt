@@ -232,7 +232,7 @@ private fun androidCustomRulesStrings(port: (Int) -> String) = RethinkCustomRule
     search = stringResource(R.string.lbl_search),
     clearSearch = stringResource(R.string.cd_clear_search),
     loading = stringResource(R.string.lbl_loading),
-    noIpRules = stringResource(R.string.rules_load_failure_desc),
+    noIpRules = stringResource(R.string.ci_no_rules_text),
     noDomainRules = stringResource(R.string.cd_no_rules_text),
     add = stringResource(R.string.lbl_add),
     cancel = stringResource(R.string.lbl_cancel),
@@ -248,4 +248,8 @@ private fun androidCustomRulesStrings(port: (Int) -> String) = RethinkCustomRule
     clearSelection = stringResource(R.string.custom_rules_clear_selection),
     select = stringResource(R.string.custom_rules_select),
     deleteRule = stringResource(R.string.custom_rules_delete_rule),
+    addIpRuleTitle = stringResource(R.string.custom_rules_add_ip_title),
+    addDomainRuleTitle = stringResource(R.string.custom_rules_add_domain_title),
+    ipHint = stringResource(R.string.custom_rules_ip_hint),
+    domainHint = stringResource(R.string.custom_rules_domain_hint),
 )

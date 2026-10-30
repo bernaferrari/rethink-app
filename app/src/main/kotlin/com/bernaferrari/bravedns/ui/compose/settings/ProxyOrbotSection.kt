@@ -109,7 +109,7 @@ private fun ProxyOrbotInfoDialog(onDismiss: () -> Unit) {
         onDismissRequest = onDismiss,
         title = stringResource(R.string.orbot_title),
         message = stringResource(R.string.orbot_explanation),
-        confirmText = stringResource(R.string.lbl_dismiss),
+        confirmText = stringResource(R.string.fapps_info_dialog_positive_btn),
         onConfirm = onDismiss
     )
 }
@@ -246,7 +246,7 @@ private fun ProxyOrbotStopDialog(
                 text = if (ui.stopHasDnsHint) strings.stopMessageCombo else strings.stopMessage
             )
         },
-        primaryText = stringResource(R.string.lbl_dismiss),
+        primaryText = stringResource(R.string.fapps_info_dialog_positive_btn),
         onPrimary = { onUiChange(ui.copy(showStop = false)) },
         secondaryText = if (ui.stopHasDnsHint && onNavigateToDns != null) stringResource(R.string.orbot_stop_dialog_neutral) else null,
         onSecondary = if (ui.stopHasDnsHint && onNavigateToDns != null) {

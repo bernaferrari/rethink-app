@@ -24,7 +24,7 @@
     <string name="firewall_mode_info_title" translatable="true">חומת אש</string>
     <string name="custom_url_error_invalid_url" translatable="true">כתובת האתר לא תקינה</string>
     <string name="bsct_app_info" translatable="true">מידע על האפליקציה</string>
-    <string name="bsct_block_ip" translatable="true">חסום, סמוך על <u>IP זה</u> עבור <u>אפליקציה זו</u></string>
+    <string name="bsct_block_ip" translatable="true">חסום, סמוך על IP זה עבור אפליקציה זו</string>
     <string name="title_about" translatable="true">אודות</string>
     <string name="finish" translatable="true">סיום</string>
     <string name="title_settings" translatable="true">הגדרות</string>
@@ -128,7 +128,7 @@
     <string name="download_update_dialog_message" translatable="true">גרסה חדשה של האפליקציה זמינה להורדה מהאתר. האם אתה רוצה להמשיך\?</string>
     <string name="download_update_dialog_message_success" translatable="true">הורדת רשימת החסימה הצליחה.</string>
     <string name="orbot_install_dialog_title" translatable="true">להתקין Orbot\?</string>
-    <string name="settings_network_all_networks_desc" translatable="true">כאשר מופעל, Keepout משתמש בכל הרשתות הזמינות כדי להתחבר לאינטרנט. אם לא, הוא משתמש בכל הרשת שנחשבת ל-<i>פעילה</i> על ידי אנדרואיד.</string>
+    <string name="settings_network_all_networks_desc" translatable="true">כאשר מופעל, Keepout משתמש בכל הרשתות הזמינות כדי להתחבר לאינטרנט. אם לא, הוא משתמש בכל הרשת שנחשבת ל-פעילה על ידי אנדרואיד.</string>
     <string name="orbot_status_arg_3" translatable="true">DNS ו-TCP</string>
     <string name="orbot_stop_dialog_title" translatable="true">נדרשת התערבות ידנית</string>
     <string name="orbot_app_issue" translatable="true">לא ניתן להפעיל את Orbot. האם האפליקציה מותקנת\?</string>
@@ -206,18 +206,17 @@
     <string name="lbl_anonymous" translatable="true">אנונימי</string>
     <string name="hybrid_mode_with_proxy_notification_title" translatable="true">מוגן! מחובר ל- DNS + Firewall + proxy.</string>
     <string name="failed_using_default" translatable="true">נכשל: משתמש בDNS חלופי</string>
-    <string name="lbl_unselected" translatable="true">לא נבחר</string>
     <string name="lbl_secure" translatable="true">מאובטח</string>
-    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">שירות הנגישות של Keepout נעצר או קרס. <i><b>עבור להגדרות, כפה עצירה</b></i> על Keepout והפעל אותו מחדש כדי להשתמש בתכונת <i>חסום כל אפליקציה שאינה בשימוש</i>.
+    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">שירות הנגישות של Keepout נעצר או קרס. עבור להגדרות, כפה עצירה על Keepout והפעל אותו מחדש כדי להשתמש בתכונת חסום כל אפליקציה שאינה בשימוש.
 \n
 \nKeepout משתמש בשירות נגישות כדי לעקוב אחר אילו אפליקציות נמצאות בשימוש (בחזית) לעומת אלו שאינן בשימוש (ברקע).</string>
     <string name="lbl_split" translatable="true">פיצול</string>
     <string name="lbl_peer" translatable="true">עמית</string>
     <string name="doh_custom_url_remove_dialog_title" translatable="true">מחק נקודת קצה שלDoH?</string>
-    <string name="always_on_dialog_lockdown_stop_message" translatable="true">Keepout מריץ VPN במצב <i>סגר</i>. יצירתו תגרום לאובדן החיבור לרשת בפרופיל המשתמש הזה. האם אתה רוצה להמשיך בכל מקרה?</string>
+    <string name="always_on_dialog_lockdown_stop_message" translatable="true">Keepout מריץ VPN במצב סגר. יצירתו תגרום לאובדן החיבור לרשת בפרופיל המשתמש הזה. האם אתה רוצה להמשיך בכל מקרה?</string>
     <string name="doh_custom_url_remove_success" translatable="true">נקודת הקצה נמחקה.</string>
     <string name="blocklist_update_check_not_required" translatable="true">רשימות החסימה כבר נמצאות בגרסה האחרונה.</string>
-    <string name="bsct_block_domain" translatable="true">חסום, סמוך על <u>דומיינים</u> עבור <u>אפליקציה זו</u></string>
+    <string name="bsct_block_domain" translatable="true">חסום, סמוך על דומיינים עבור אפליקציה זו</string>
     <string name="dns_proxy_remove_success" translatable="true">פרוקסי DNS נמחק.</string>
     <string name="local_blocklist_download" translatable="true">הורד רשימות חסימה</string>
     <string name="local_blocklist_download_desc" translatable="true">להוריד רשימות חסימה (בסביבות 60MB) כדי להשתמש בתכונה זו?</string>
@@ -242,16 +241,16 @@
     <string name="refresh_complete" translatable="true"><!-- use dc_refresh_toast -->סנכרון רשימת האפליקציות הושלם.</string>
     <string name="dns_crypt_relay_remove_dialog_title" translatable="true">האם למחוק את DNSCrypt?</string>
     <string name="info_dialog_rethink_toast_msg" translatable="true">הועתק ככתובת DNS-over-HTTPS של RDNS+</string>
-    <string name="search_universal_ips" translatable="true"><font size="12">חפש כתובות IP</font></string>
+    <string name="search_universal_ips" translatable="true">חפש כתובות IP</string>
     <string name="search_proxy_add_apps" translatable="true">חפש אפליקציות באמצעות שם</string>
-    <string name="search_custom_domains" translatable="true"><font size="12">חפש שמות דומיינים</font></string>
+    <string name="search_custom_domains" translatable="true">חפש שמות דומיינים</string>
     <string name="public_key_copy_toast_msg" translatable="true">מפתח ציבורי הועתק.</string>
     <string name="connection_http3" translatable="true">HTTP3</string>
     <string name="settings_allow_lan_heading" translatable="true">לא לנתב כתובות IP פרטיות(ניסיוני)</string>
     <string name="settings_https_heading" translatable="true">הגדרת פרוקסי HTTP(S) CONNECT</string>
     <string name="settings_enable_logs_desc" translatable="true">אחסן יומני DNS וחומת אש מקומית על המכשיר.</string>
     <string name="settings_enable_logs" translatable="true">אפשר רישום על המכשיר של יומנים</string>
-    <string name="settings_lock_down_mode_desc" translatable="true">אפשרויות מסוימות לא זמינות כשהVPN במצב סגר. <u>ראה הגדרות VPN </u>.</string>
+    <string name="settings_lock_down_mode_desc" translatable="true">אפשרויות מסוימות לא זמינות כשהVPN במצב סגר. ראה הגדרות VPN .</string>
     <string name="settings_socks5_heading" translatable="true">הגדרת פרוקסי SOCKS5</string>
     <string name="orbot_status_arg_2" translatable="true">TCP</string>
     <string name="http_proxy_dialog_heading" translatable="true">קבע פרוקסי HTTP(S) CONNECT</string>
@@ -283,7 +282,6 @@
     <string name="settings_socks_forwarding_default_desc" translatable="true">העברת חיבורים לנקודת קצה של SOCKS5.</string>
     <string name="settings_allow_lan_desc" translatable="true">אל תכלול LAN, loopback, קישורים מקומיים במנהרת ה-VPN של Keepout.</string>
     <string name="whats_new_version_update" translatable="true">&lt;b&gt;טעון במיוחד!&lt;/b&gt;&lt;br/&gt;&lt;br/&gt; 1. &lt;i&gt;תכונה חדשה&lt;/i&gt;: סינון DNS מתקדם; החל את כללי הדומיין רק כאשר יישומים מתחברים.&lt;br/&gt; 2. &lt;i&gt;תכונה חדשה&lt;/i&gt;: אפשר או דחה דומיינים לכל אפליקציה.&lt;br/&gt; 3. &lt;i&gt;תכונה חדשה&lt;/i&gt;: אפשר או דחה דומיינים עבור כל היישומים.&lt;br/&gt; 4. &lt;i&gt;תכונה חדשה&lt;/i&gt;: עקיפת כללי DNS וחומת אש לכל אפליקציה.&lt;br/&gt; 5. &lt;i&gt;תכונה חדשה&lt;/i&gt;: לכידת מנות (PCAP ).&lt;br/&gt; 6. &lt;i&gt;תכונה חדשה&lt;/i&gt;: מגבר DNS; התאחדו בקשות, תגובות מטמון.&lt;br/&gt; 7. &lt;i&gt;תכונה חדשה&lt;/i&gt;: עריכת כללי דומיין ו-IP.&lt;br/&gt; 8. ושינויים קלים אחרים בממשק המשתמש ותיקוני באגים.&lt;br/&gt;&lt;br/ &gt; &lt;a href=https://svc.rethinkdns.com/r/translate&gt;עזור לתרגם את האפליקציה הזו&lt;/a&gt;</string>
-    <string name="settings_exclude_proxy_apps_desc" translatable="true">כאשר כבוי, למעטים Proxy (SOCKS5, HTTP, DNS) יישומים קדימה יותר ממנהרת VPN של Keepout.</string>
     <string name="settings_orbot_notification_action" translatable="true">פתיחת Orbot</string>
     <string name="settings_protocol_translation_dns_inactive" translatable="true">עבור למצב DNS/DNS+חומת אש כדי להפעיל הגדרה זו</string>
     <string name="hsf_vpn_dialog_message" translatable="true">Keepout זקוק להרשאה להגדיר VPN מקומי כדי להצפין את בקשות ה-DNS של המכשיר, לפקח על הרשת ולאכוף כללי חומת אש.\n\nKeepout לא אוסף שום מידע ולא מרגל אחרי משתמשים בשום צורה.</string>
@@ -296,13 +294,13 @@
     <string name="dc_block_heading" translatable="true">כללים</string>
     <string name="dc_entries" translatable="true">%1$s ערכים »</string>
     <string name="dc_local_block_heading" translatable="true">רשימות חסימה במכשיר</string>
-    <string name="dc_dns_website_desc" translatable="true">שואב סמלי אתר מ-<i>nextdns.io</i> ו-<i>duckduckgo.com</i>. צורך עד 350 מגה בשטח דיסק</string>
+    <string name="dc_dns_website_desc" translatable="true">שואב סמלי אתר מ-nextdns.io ו-duckduckgo.com. צורך עד 350 מגה בשטח דיסק</string>
     <string name="about_github" translatable="true">קח חלק בפיתוח ב-GitHub</string>
     <string name="about_faq" translatable="true">שאלות נפוצות</string>
     <string name="about_app" translatable="true">אפליקציה</string>
     <string name="about_email" translatable="true">שלח לנו דוא\"ל</string>
     <string name="about_settings_notification" translatable="true">הגדרות של התראות</string>
-    <string name="settings_custom_downloader_desc" translatable="true">אם מושבת, נעשה שימוש ב-<i>מנהל ההורדות</i> המובנה של אנדרואיד</string>
+    <string name="settings_custom_downloader_desc" translatable="true">אם מושבת, נעשה שימוש ב-מנהל ההורדות המובנה של אנדרואיד</string>
     <string name="about_docs" translatable="true">דוקומנטציה</string>
     <string name="settings_orbot_notification_content" translatable="true">כשל בהפעלת Tor-as-a-Proxy. יש לפתוח את אפליקציית Orbot כדי להפעיל אותו באופן ידני.</string>
     <string name="settings_orbot_disabled_error" translatable="true">כבה את HTTP(S) ו/או SOCKS5 proxy כדי להמשיך בהגדרת Tor-as-a-Proxy.</string>
@@ -331,10 +329,10 @@
     <string name="cd_dns_crypt_dialog_stamp" translatable="true">חותמת</string>
     <string name="cd_dns_crypt_dialog_desc" translatable="true">תיאור (אופציונלי)</string>
     <string name="cd_doh_dialog_heading" translatable="true">הוסף DNS-דרך-HTTPS</string>
-    <string name="orbot_explanation" translatable="true">Orbot היא אפליקציית פרוקסי חינמית המאפשרת לאפליקציות אחרות להשתמש באינטרנט בצורה <u> מאובטחת</u> יותר.
-\nOrbot משתמש ב-<u>Tor</u> כדי להצפין את תעבורת האינטרנט שלך, מה שעוזר לך <u> לעקוף צנזורה</u> ולהתגונן מפני צורות של <u>מעקב רשת</u> המאיימות על חופש אישי ופרטיות.
-\n<u>TCP Proxy</u>: Keepout מעביר רק חיבורי TCP של האפליקציות <i>הנבחרות</i> ל-Orbot.
-\n<u>HTTP Proxy</u>: Keepout <i>יוצר</i> פרוקסי HTTP CONNECT לOrbot ומעביר רק חיבורי TCP של האפליקציות <i>הנבחרות</i>.</string>
+    <string name="orbot_explanation" translatable="true">Orbot היא אפליקציית פרוקסי חינמית המאפשרת לאפליקציות אחרות להשתמש באינטרנט בצורה  מאובטחת יותר.
+\nOrbot משתמש ב-Tor כדי להצפין את תעבורת האינטרנט שלך, מה שעוזר לך  לעקוף צנזורה ולהתגונן מפני צורות של מעקב רשת המאיימות על חופש אישי ופרטיות.
+\nTCP Proxy: Keepout מעביר רק חיבורי TCP של האפליקציות הנבחרות ל-Orbot.
+\nHTTP Proxy: Keepout יוצר פרוקסי HTTP CONNECT לOrbot ומעביר רק חיבורי TCP של האפליקציות הנבחרות.</string>
     <string name="dc_dns_leaks_desc" translatable="true">כאשר מופעל, Keepout לוכד את כל החבילות בפיתחה 53 ומעביר אותן לנקודת קצה של DNS שהוגדרה על ידי המשתמש</string>
     <string name="hsf_notification_permission_failure" translatable="true">אפשר הרשאת התראות ממסך ההגדרות</string>
     <string name="settings_check_update_heading" translatable="true">בדוק אם יש עדכוני אפליקציה</string>
@@ -392,7 +390,7 @@
     <string name="univ_accessibility_dialog_negative" translatable="true">סירוב</string>
     <string name="fapps_filter_parent_installed" translatable="true">מותקן</string>
     <string name="fapps_filter_parent_system" translatable="true">מערכת</string>
-    <string name="fapps_unmetered_unblock_dialog_message">אפשר חיבורים ברשת לא מדודה (WiFi) עבור אפליקציות <i>רשומות</i>\?</string>
+    <string name="fapps_unmetered_unblock_dialog_message">אפשר חיבורים ברשת לא מדודה (WiFi) עבור אפליקציות רשומות\?</string>
     <string name="fapps_firewall_filter_bypass_universal" translatable="true">עוקף</string>
     <string name="fapps_firewall_filter_excluded" translatable="true">מוצא מן הכלל</string>
     <string name="fapps_firewall_filter_isolate" translatable="true">מבודדות</string>
@@ -426,16 +424,16 @@
     <string name="fapps_unmetered_unblock_dialog_title" translatable="true">אפשר בלא מדוד</string>
     <string name="fapps_unmetered_block_dialog_title" translatable="true">חסום בלא מדוד</string>
     <string name="fapps_metered_block_dialog_title" translatable="true">חסום במדוד</string>
-    <string name="fapps_metered_block_dialog_message" translatable="true">לחסום חיבורים ברשת מדודה (סלולרית) עבור אפליקציות <i>רשומות</i>\?</string>
+    <string name="fapps_metered_block_dialog_message" translatable="true">לחסום חיבורים ברשת מדודה (סלולרית) עבור אפליקציות רשומות\?</string>
     <string name="fapps_metered_unblock_dialog_title" translatable="true">אפשר במדוד</string>
-    <string name="fapps_bypass_block_dialog_message" translatable="true">לעקוף כללי חומת אש אוניברסליים עבור אפליקציות <i>ברשימה</i>\?</string>
+    <string name="fapps_bypass_block_dialog_message" translatable="true">לעקוף כללי חומת אש אוניברסליים עבור אפליקציות ברשימה\?</string>
     <string name="fapps_bypass_dns_firewall_dialog_title" translatable="true">עקוף ליישומים</string>
     <string name="univ_firewall_heading" translatable="true">כללי חומת אש אוניברסליים</string>
-    <string name="fapps_unmetered_block_dialog_message" translatable="true">לחסום חיבורים ברשת לא מדודה (WiFi) עבור אפליקציות <i>רשומות</i>\?</string>
-    <string name="fapps_metered_unblock_dialog_message" translatable="true">האם לאפשר חיבורים ברשת מדודה (סלולרית) עבור אפליקציות <i>רשומות</i>\?</string>
-    <string name="rt_filter_desc_subgroups" translatable="true">מציג את רשימות החסימה: <u>%1$s</u> בקבוצה:%2$s ובתת הקבוצה: %3$s</string>
+    <string name="fapps_unmetered_block_dialog_message" translatable="true">לחסום חיבורים ברשת לא מדודה (WiFi) עבור אפליקציות רשומות\?</string>
+    <string name="fapps_metered_unblock_dialog_message" translatable="true">האם לאפשר חיבורים ברשת מדודה (סלולרית) עבור אפליקציות רשומות\?</string>
+    <string name="rt_filter_desc_subgroups" translatable="true">מציג את רשימות החסימה: %1$s בקבוצה:%2$s ובתת הקבוצה: %3$s</string>
     <string name="parse_error_generic" translatable="true">מחרוזת</string>
-    <string name="rt_filter_desc" translatable="true">מציג את רשימות החסימה: <u>%1$s</u></string>
+    <string name="rt_filter_desc" translatable="true">מציג את רשימות החסימה: %1$s</string>
     <string name="ada_app_status_isolate" translatable="true">מבודדת: רק כתובות IP ודומיינים מהימנים מורשים</string>
     <string name="ada_app_status_exclude" translatable="true">מוחרגת מ-DNS ומחומת האש</string>
     <string name="notif_download_cancel_content" translatable="true">הורדה בוטלה.</string>
@@ -450,7 +448,7 @@
     <string name="ada_app_status_allow" translatable="true">מאושרת</string>
     <string name="ada_app_status_block" translatable="true">חסומה</string>
     <string name="notif_download_success_content" translatable="true">הורדה הושלמה בהצלחה.</string>
-    <string name="rt_filter_hint" translatable="true">מציג את <u>כל</u> רשימות החסימה</string>
+    <string name="rt_filter_hint" translatable="true">מציג את כל רשימות החסימה</string>
     <string name="parse_error_integer" translatable="true">מספר</string>
     <string name="parse_error_inet_endpoint" translatable="true">נקודת סיום</string>
     <string name="config_delete_dialog_title" translatable="true">מחק</string>
@@ -460,7 +458,7 @@
     <string name="intent_launch_error" translatable="true">לא יכל להפעיל %1$s</string>
     <string name="cd_dns_alg_desc" translatable="true">הקצאת IP מיוחד לכל שאילתת DNS</string>
     <string name="rules_load_failure_heading" translatable="true">הערה</string>
-    <string name="fapps_bypass_dns_firewall_dialog_message" translatable="true">לעקוף כללי DNS וחומת אש אוניברסליים בשביל היישומים <i>הרשומים</i>\?</string>
+    <string name="fapps_bypass_dns_firewall_dialog_message" translatable="true">לעקוף כללי DNS וחומת אש אוניברסליים בשביל היישומים הרשומים\?</string>
     <string name="other_dns_list_tab1" translatable="true">DoH</string>
     <string name="rules_load_failure_desc" translatable="true">לא נמצאו כללי חומת אש</string>
     <string name="update_complete_snack_message" translatable="true">גרסה חדשה הורדה.</string>
@@ -469,13 +467,13 @@
     <string name="pause_desc" translatable="true">הערה: %1$s אפליקציות חסומות ימשיכו להיחסם על ידי חומת האש.</string>
     <string name="other_dns_list_tab3" translatable="true">פרוקסי DNS</string>
     <string name="toast_allow_bypass_disabled" translatable="true">%1$s כבוי בגלל שproxies פעילות</string>
-    <string name="firewall_rule_exempt_orbot_setup_desc" translatable="true">החיבור הזה אופשר בגלל ש<i>הגדרה בלחיצה אחת של Tor-as-a-Proxy</i> באמצעות Orbot הייתה בתהליך.</string>
+    <string name="firewall_rule_exempt_orbot_setup_desc" translatable="true">החיבור הזה אופשר בגלל שהגדרה בלחיצה אחת של Tor-as-a-Proxy באמצעות Orbot הייתה בתהליך.</string>
     <string name="univ_view_blocked_ip_desc" translatable="true">שינוי כללי הדומיינים, כתובות הIP והפתחות החסומים או הבטוחים.</string>
     <string name="fapps_isolate_block_dialog_title" translatable="true">בידוד יישומים</string>
     <string name="fapps_exclude_block_dialog_title" translatable="true">החרגת יישומים</string>
-    <string name="fapps_exclude_block_dialog_message" translatable="true">להחריג את היישומים <i>הרשומים</i> מDNS וחומת אש?</string>
-    <string name="fapps_unblock_dialog_message" translatable="true">לאפשר חיבורים בשביל היישומים <i>הרשומים</i>\?</string>
-    <string name="fapps_isolate_block_dialog_message" translatable="true">בידוד היישומים <i>הרשומים</i>\?</string>
+    <string name="fapps_exclude_block_dialog_message" translatable="true">להחריג את היישומים הרשומים מDNS וחומת אש?</string>
+    <string name="fapps_unblock_dialog_message" translatable="true">לאפשר חיבורים בשביל היישומים הרשומים\?</string>
+    <string name="fapps_isolate_block_dialog_message" translatable="true">בידוד היישומים הרשומים\?</string>
     <string name="rules_load_failure_reload" translatable="true">טעינה מחדש</string>
     <string name="system_dns_connection_failure" translatable="true">אי אפשר לקבוע את שרת הDNS הנוכחי</string>
     <string name="copy_clipboard_label" translatable="true">כתובת אתר</string>
@@ -505,33 +503,33 @@
     <string name="firewall_rule_domain_trusted_univ" translatable="true">דומיין מהימן (אוניברסלי)</string>
     <string name="firewall_rule_proxied" translatable="true">תווך</string>
     <string name="firewall_rule_no_rule_desc" translatable="true">אף כלל חומת אש לא תאם לחיבור הזה.</string>
-    <string name="firewall_rule_block_app_desc" translatable="true">כלל חומת אש שהוגדר על ידי משתמש חסם את <i>האפליקציה </i> הזו.<br/><br/> כדי לשנות זאת יש לעבור אל לשונית <i>כל האפליקציות</i>.</string>
-    <string name="firewall_rule_new_app_desc" translatable="true">האפליקציה הזו יצרה חיבור בפעם <i>הראשונה</i>. <br/><br/>כדי לשנות זאת יש לעבור אל הלשונית <i>אוניברסלי</i>.</string>
-    <string name="firewall_rule_block_app_unmetered_desc" translatable="true">כלל חומת אש שהוגדר על ידי משתמש חסם את <i>האפליקציה</i> הזו בעת ניסיון להתחבר ברשת <i>לא מדודה</i>.<br/><br/> כדי לשנות זאת יש לעבור אל לשונית <i>כל האפליקציות</i>.</string>
-    <string name="firewall_rule_block_app_mobile_desc" translatable="true">כלל חומת אש שהוגדר על ידי משתמש חסם את <i>האפליקציה</i> הזו בעת ניסיון להתחבר ברשת <i>מדודה</i>.<br/><br/> כדי לשנות זאת יש לעבור אל לשונית <i>כל האפליקציות</i>.</string>
-    <string name="firewall_rule_block_app_univ_mobile_desc" translatable="true">כלל חומת אש אוניברסלי שהוגדר על ידי משתמש חסם את <i>האפליקציה</i> הזו בעת ניסיון להתחבר ברשת <i>מדודה</i> (נתונים).<br/><br/> כדי לשנות זאת יש לעבור אל הלשונית <i>Universal</i>.</string>
-    <string name="firewall_rule_isolate_desc" translatable="true">כלל חומת אש שהוגדר על ידי משתמש חסם את החיבור של <i>אפליקציה</i> זו לכתובות IP אחרות מלבד ה<i>נעקפות</i>.<br/><br/> כדי לשנות זאת יש לעבור אל לשונית <i>כל האפליקציות</i>.</string>
-    <string name="firewall_rule_bypass_dns_firewall_desc" translatable="true">חיבור זה הותר מכיוון ש<i>אפליקציית המקור </i> מוגדרת ל-<i>עקוף כללי DNS וחומת אש</i>.<br/><br/> כדי לשנות זאת יש לעבור למסך ה<i>חומת אש ספציפית לאפליקציה</i> .</string>
+    <string name="firewall_rule_block_app_desc" translatable="true">כלל חומת אש שהוגדר על ידי משתמש חסם את האפליקציה  הזו.<br/><br/> כדי לשנות זאת יש לעבור אל לשונית כל האפליקציות.</string>
+    <string name="firewall_rule_new_app_desc" translatable="true">האפליקציה הזו יצרה חיבור בפעם הראשונה. <br/><br/>כדי לשנות זאת יש לעבור אל הלשונית אוניברסלי.</string>
+    <string name="firewall_rule_block_app_unmetered_desc" translatable="true">כלל חומת אש שהוגדר על ידי משתמש חסם את האפליקציה הזו בעת ניסיון להתחבר ברשת לא מדודה.<br/><br/> כדי לשנות זאת יש לעבור אל לשונית כל האפליקציות.</string>
+    <string name="firewall_rule_block_app_mobile_desc" translatable="true">כלל חומת אש שהוגדר על ידי משתמש חסם את האפליקציה הזו בעת ניסיון להתחבר ברשת מדודה.<br/><br/> כדי לשנות זאת יש לעבור אל לשונית כל האפליקציות.</string>
+    <string name="firewall_rule_block_app_univ_mobile_desc" translatable="true">כלל חומת אש אוניברסלי שהוגדר על ידי משתמש חסם את האפליקציה הזו בעת ניסיון להתחבר ברשת מדודה (נתונים).<br/><br/> כדי לשנות זאת יש לעבור אל הלשונית Universal.</string>
+    <string name="firewall_rule_isolate_desc" translatable="true">כלל חומת אש שהוגדר על ידי משתמש חסם את החיבור של אפליקציה זו לכתובות IP אחרות מלבד הנעקפות.<br/><br/> כדי לשנות זאת יש לעבור אל לשונית כל האפליקציות.</string>
+    <string name="firewall_rule_bypass_dns_firewall_desc" translatable="true">חיבור זה הותר מכיוון שאפליקציית המקור  מוגדרת ל-עקוף כללי DNS וחומת אש.<br/><br/> כדי לשנות זאת יש לעבור למסך החומת אש ספציפית לאפליקציה .</string>
     <string name="firewall_rule_exempt_dns_proxied" translatable="true">DNS תווך</string>
-    <string name="firewall_rule_block_ip_univ_desc" translatable="true">כלל חומת אש שהוגדר על ידי משתמש חסם את <i>יעד הIP/היציאה</i>.<br/><br/> כדי לשנות זאת יש לעבור אל הלשונית <i>Universal</i>.</string>
-    <string name="firewall_rule_block_ip_desc" translatable="true">כלל חומת אש שהוגדר על ידי משתמש חסם את <i>יעד הIP</i>.<br/><br/> כדי לשנות זאת יש לעבור למסך <i>חומת אש ספציפית לאפליקציה</i>.</string>
-    <string name="firewall_rule_trusted_ip_desc" translatable="true">חיבור זה הותר מכיוון ש-<i>IP היעד</i> מוגדר כ-IP מהימן.<br/><br/> כדי לשנות זאת יש לעבור למסך <i>חומת אש ספציפית לאפליקציה</i>.</string>
-    <string name="firewall_rule_bypass_universal_ip_desc" translatable="true">חיבור זה הותר מכיוון ש&lt;i&gt;כתובת ה-IP של היעד&lt;/i&gt; מוגדרת לעקוף את כל כללי חומת האש האוניברסליים.&lt;br/&gt;&lt;br/&gt; כדי לשנות זאת יש לעבור אל &lt;i&gt;כללי הIP&lt;i&gt; בלשונית &lt;i&gt;אוניברסלי&lt; /i&gt;.</string>
-    <string name="firewall_rule_device_lock_desc" translatable="true">חיבור זה נחסם חומת אש מכיוון ש<i>המכשיר היה נעול</i> באותו זמן.<br/><br/> כדי לשנות את ההתנהגות הזו יש עבור לכרטיסייה <i>Universal</i>.</string>
-    <string name="firewall_rule_foreground_desc" translatable="true">חיבור זה נחסם מכיוון שאפליקציית המקור <i>לא הייתה בחזית</i>.<br/><br/> כדי לשנות את ההתנהגות הזו יש לעבור ללשונית <i>Universal</i>.</string>
-    <string name="firewall_rule_unknown_desc" translatable="true">חיבור זה נחסם מכיוון שאפליקציית המקור <i>לא יכלה להיקבע</i>.<br/><br/> כדי לשנות את ההתנהגות הזו יש לעבור ללשונית <i>Universal</i>.</string>
-    <string name="firewall_rule_block_udp_ntp_desc" translatable="true">כלל חומת אש שהוגדר על ידי משתמש חסם את <i>חיבור הUDP</i> הזה.<br/><br/> כדי לשנות זאת יש לעבור אל הלשונית <i>Universal</i>.</string>
-    <string name="firewall_rule_block_dns_bypass_desc" translatable="true">חיבור זה נחסם משום ש<i>אפליקציית המקור</i> עקפה את הDNS המועדף על ידי המשתמש.<br/><br/> כדי לשנות את ההתנהגות הזאת יש לעבור ללשונית <i>Universal</i>.</string>
-    <string name="firewall_rule_exempt_app_bypass_univ_desc" translatable="true">חיבור זה הותר מכיוון ש <i>אפליקציית המקור</i> מוגדרת <i>לעקוף dns וכללי חומת אש</i>.<br/><br/> כדי לשנות זאת יש לעבור אל המסך <i>חומת אש ספציפית לאפליקציה</i> .</string>
-    <string name="firewall_rule_exempt_dns_proxied_desc" translatable="true">חיבור הDNS הזה תווך והועבר לנקודת קצה של DNS המועדפת על ידי המשתמש.<br/><br/> כדי לשנות זאת יש להשבית <i>מניעת דליפות DNS</i> ממסך <i>הגדרת</i> הDNS.</string>
-    <string name="firewall_rule_block_http_desc" translatable="true">חיבור זה נחסם מכיוון שהוא כנראה השתמש ב<i>HTTP לא מאובטח</i>.<br/><br/> כדי לשנות זאת יש לעבור ללשונית <i>Universal</i>.</string>
-    <string name="firewall_rule_global_lockdown_desc" translatable="true">חיבור זה נחסם מכיוון שהוגדר סגר אוניברסלי.<br/><br/> כדי לשנות זאת יש לעבור אל הכרטיסייה <i>Universal</i>.</string>
-    <string name="firewall_rule_block_domain_desc" translatable="true">כלל חומת אש שהוגדר על ידי משתמש חסם את <i>הדומיין</i>.<br/><br/> כדי לשנות זאת יש לעבור למסך <i>חומת אש ספציפית לאפליקציה</i>.</string>
-    <string name="firewall_rule_trusted_domain_desc" translatable="true">חיבור זה הותר מכיוון ש<i>הדומיין </i> מוגדר כדומיין מהימן.<br/><br/> כדי לשנות זאת יש לעבור למסך <i>חומת אש ספציפית לאפליקציה</i>.</string>
-    <string name="firewall_rule_dns_blocked_desc" translatable="true">חיבור זה נחסם משום ש<i>הדומיין</i> חסום על ידי הDNS המועדף על ידי המשתמש.<br/><br/> כדי לשנות את ההתנהגות הזאת יש לעבור ללשונית <i>הגדרת הDNS</i>.</string>
-    <string name="firewall_rule_domain_blocked_univ_desc" translatable="true">חיבור זה נחסם משום ש<i>הדומיין</i> נקבע כחסום בכללי הדומיין האוניברסליים.<br/><br/> כדי לשנות את ההתנהגות הזאת יש לעבור ללשונית <i>הגדרת הDNS</i>.</string>
-    <string name="firewall_rule_domain_trusted_univ_desc" translatable="true">חיבור זה הותר משום ש<i>הדומיין</i> נקבע כמהימן בכללי הדומיין האוניברסליים.<br/><br/> כדי לשנות את ההתנהגות הזאת יש לעבור ללשונית <i>הגדרת הDNS</i>.</string>
-    <string name="firewall_rule_proxied_desc" translatable="true">חיבור זה תווך לפרוקסי המועדף על ידי המשתמש.<br/><br/> כדי לשנות יש לעבור ל<i>פרוקסי</i> ממסך ה<i>הגדרה</i>.</string>
+    <string name="firewall_rule_block_ip_univ_desc" translatable="true">כלל חומת אש שהוגדר על ידי משתמש חסם את יעד הIP/היציאה.<br/><br/> כדי לשנות זאת יש לעבור אל הלשונית Universal.</string>
+    <string name="firewall_rule_block_ip_desc" translatable="true">כלל חומת אש שהוגדר על ידי משתמש חסם את יעד הIP.<br/><br/> כדי לשנות זאת יש לעבור למסך חומת אש ספציפית לאפליקציה.</string>
+    <string name="firewall_rule_trusted_ip_desc" translatable="true">חיבור זה הותר מכיוון ש-IP היעד מוגדר כ-IP מהימן.<br/><br/> כדי לשנות זאת יש לעבור למסך חומת אש ספציפית לאפליקציה.</string>
+    <string name="firewall_rule_bypass_universal_ip_desc" translatable="true">חיבור זה הותר מכיוון שכתובת ה-IP של היעד מוגדרת לעקוף את כל כללי חומת האש האוניברסליים.&lt;br/&gt;&lt;br/&gt; כדי לשנות זאת יש לעבור אל כללי הIP בלשונית אוניברסלי&lt; /i&gt;.</string>
+    <string name="firewall_rule_device_lock_desc" translatable="true">חיבור זה נחסם חומת אש מכיוון שהמכשיר היה נעול באותו זמן.<br/><br/> כדי לשנות את ההתנהגות הזו יש עבור לכרטיסייה Universal.</string>
+    <string name="firewall_rule_foreground_desc" translatable="true">חיבור זה נחסם מכיוון שאפליקציית המקור לא הייתה בחזית.<br/><br/> כדי לשנות את ההתנהגות הזו יש לעבור ללשונית Universal.</string>
+    <string name="firewall_rule_unknown_desc" translatable="true">חיבור זה נחסם מכיוון שאפליקציית המקור לא יכלה להיקבע.<br/><br/> כדי לשנות את ההתנהגות הזו יש לעבור ללשונית Universal.</string>
+    <string name="firewall_rule_block_udp_ntp_desc" translatable="true">כלל חומת אש שהוגדר על ידי משתמש חסם את חיבור הUDP הזה.<br/><br/> כדי לשנות זאת יש לעבור אל הלשונית Universal.</string>
+    <string name="firewall_rule_block_dns_bypass_desc" translatable="true">חיבור זה נחסם משום שאפליקציית המקור עקפה את הDNS המועדף על ידי המשתמש.<br/><br/> כדי לשנות את ההתנהגות הזאת יש לעבור ללשונית Universal.</string>
+    <string name="firewall_rule_exempt_app_bypass_univ_desc" translatable="true">חיבור זה הותר מכיוון ש אפליקציית המקור מוגדרת לעקוף dns וכללי חומת אש.<br/><br/> כדי לשנות זאת יש לעבור אל המסך חומת אש ספציפית לאפליקציה .</string>
+    <string name="firewall_rule_exempt_dns_proxied_desc" translatable="true">חיבור הDNS הזה תווך והועבר לנקודת קצה של DNS המועדפת על ידי המשתמש.<br/><br/> כדי לשנות זאת יש להשבית מניעת דליפות DNS ממסך הגדרת הDNS.</string>
+    <string name="firewall_rule_block_http_desc" translatable="true">חיבור זה נחסם מכיוון שהוא כנראה השתמש בHTTP לא מאובטח.<br/><br/> כדי לשנות זאת יש לעבור ללשונית Universal.</string>
+    <string name="firewall_rule_global_lockdown_desc" translatable="true">חיבור זה נחסם מכיוון שהוגדר סגר אוניברסלי.<br/><br/> כדי לשנות זאת יש לעבור אל הכרטיסייה Universal.</string>
+    <string name="firewall_rule_block_domain_desc" translatable="true">כלל חומת אש שהוגדר על ידי משתמש חסם את הדומיין.<br/><br/> כדי לשנות זאת יש לעבור למסך חומת אש ספציפית לאפליקציה.</string>
+    <string name="firewall_rule_trusted_domain_desc" translatable="true">חיבור זה הותר מכיוון שהדומיין  מוגדר כדומיין מהימן.<br/><br/> כדי לשנות זאת יש לעבור למסך חומת אש ספציפית לאפליקציה.</string>
+    <string name="firewall_rule_dns_blocked_desc" translatable="true">חיבור זה נחסם משום שהדומיין חסום על ידי הDNS המועדף על ידי המשתמש.<br/><br/> כדי לשנות את ההתנהגות הזאת יש לעבור ללשונית הגדרת הDNS.</string>
+    <string name="firewall_rule_domain_blocked_univ_desc" translatable="true">חיבור זה נחסם משום שהדומיין נקבע כחסום בכללי הדומיין האוניברסליים.<br/><br/> כדי לשנות את ההתנהגות הזאת יש לעבור ללשונית הגדרת הDNS.</string>
+    <string name="firewall_rule_domain_trusted_univ_desc" translatable="true">חיבור זה הותר משום שהדומיין נקבע כמהימן בכללי הדומיין האוניברסליים.<br/><br/> כדי לשנות את ההתנהגות הזאת יש לעבור ללשונית הגדרת הDNS.</string>
+    <string name="firewall_rule_proxied_desc" translatable="true">חיבור זה תווך לפרוקסי המועדף על ידי המשתמש.<br/><br/> כדי לשנות יש לעבור לפרוקסי ממסך ההגדרה.</string>
     <string name="new_app_bulk_notification_title" translatable="true">שימו לב</string>
     <string name="new_app_bulk_notification_content" translatable="true">Keepout חסם %1$s אפליקציות חדשות.יש להקיש כדי לצפות או לשנות.</string>
     <string name="new_app_notification_content" translatable="true">Keepout חסם אפליקציה שהותקנה לאחרונה, %1$s.</string>
@@ -555,9 +553,6 @@
     <string name="category_name_others" translatable="true">אחר</string>
     <string name="category_name_non_app_sys" translatable="true">שירותי מערכת</string>
     <string name="category_name_installed" translatable="true">אפליקציות מותקנות</string>
-    <string name="build__flavor_website" translatable="true">אתר</string>
-    <string name="build__flavor_play_store" translatable="true">גוגל Play</string>
-    <string name="build__flavor_fdroid" translatable="true">F-Droid</string>
     <string name="cd_no_rules_text" translatable="true">אין כללי דומיין.</string>
     <string name="cd_toast_edit" translatable="true">נערך</string>
     <string name="home_last_24_hours">24 השעות האחרונות</string>

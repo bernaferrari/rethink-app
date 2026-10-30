@@ -863,7 +863,7 @@ private fun AndroidLocalBlocklistsSheet(
             maintenance = stringResource(R.string.lbbs_maintenance_header),
             checkUpdate = stringResource(R.string.lbbs_update_check),
             download = stringResource(R.string.local_blocklist_download),
-            redownload = stringResource(R.string.local_blocklist_redownload),
+            redownload = stringResource(R.string.rt_re_download),
             delete = stringResource(R.string.lbl_delete),
             deleteMessage = stringResource(R.string.local_blocklist_delete_desc),
             cancel = stringResource(R.string.lbl_cancel),

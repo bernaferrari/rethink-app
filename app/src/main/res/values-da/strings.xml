@@ -62,7 +62,6 @@
     <string name="lbl_anonymous" translatable="true">anonym</string>
     <string name="lbl_peer" translatable="true">Peer</string>
     <string name="lbl_split" translatable="true">Opdel</string>
-    <string name="lbl_unselected" translatable="true">Ikke valgt</string>
     <string name="lbl_test" translatable="true">test</string>
     <string name="lbl_experimental" translatable="true">(eksperimentel)</string>
     <string name="lbl_service_providers" translatable="true">Serviceudbydere</string>
@@ -105,14 +104,14 @@
     <string name="apps_info_title" translatable="true">Apps</string>
     <string name="alert_permission_accessibility" translatable="true">Tilladelse - tilgængelighed</string>
     <string name="alert_firewall_accessibility_explanation" translatable="true">Keepout bruger tilgængelighedstjenester til at spore, hvilke apps der er i brug (i forgrunden) mod dem, der ikke er i brug (i baggrunden).\n\nKeepout indsamler ikke oplysninger eller spionerer på dig på nogen som helst måde.</string>
-    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Keepout tilgængelighedstjeneste er stoppet eller brudt sammen. <i><b>Gå til indstillinger og gennemtving et stop</b></i> Keepout og opstart igen for at bruge <i>Blokér alle apps, der ikke er i brug</i>-funktionen.\n\nKeepout bruger tilgængelighedstjenester til at spore, hvilke apps der er i brug (i forgrunden) mod dem, der ikke er i brug (i baggrunden).</string>
+    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Keepout tilgængelighedstjeneste er stoppet eller brudt sammen. Gå til indstillinger og gennemtving et stop Keepout og opstart igen for at bruge Blokér alle apps, der ikke er i brug-funktionen.\n\nKeepout bruger tilgængelighedstjenester til at spore, hvilke apps der er i brug (i forgrunden) mod dem, der ikke er i brug (i baggrunden).</string>
     <string name="default_dns_name" translatable="true">RDNS standard</string>
     <string name="custom_url_error_invalid_url" translatable="true">Ugyldig URL</string>
     <string name="conn_track_clear_logs_title" translatable="true">Slet alle netværkslogfiler?</string>
     <string name="conn_track_clear_logs_message" translatable="true">Dette sletter kun netværkslogfiler, men ikke firewall-regler. Dette kan ikke omgøres. Vil du fortsætte?</string>
     <string name="bsct_app_info" translatable="true">App-information</string>
-    <string name="bsct_block_ip" translatable="true">Blokér, stol på <u>denne IP</u> for <u>denne app</u></string>
-    <string name="bsct_block_domain" translatable="true">Blokér, stol på <u>domæne(r)</u> for <u>denne app</u></string>
+    <string name="bsct_block_ip" translatable="true">Blokér, stol på denne IP for denne app</string>
+    <string name="bsct_block_domain" translatable="true">Blokér, stol på domæne(r) for denne app</string>
     <string name="always_on_dialog_heading" translatable="true">Deaktivér \"Altid på-VPN\"</string>
     <string name="always_on_dialog" translatable="true">\"Altid på-VPN\" er aktiveret på denne enhed. For at starte Keepout skal du gå til indstillinger og deaktivere \"Altid på-VPN\".</string>
     <string name="always_on_dialog_positive_btn" translatable="true">Gå til indstillinger</string>

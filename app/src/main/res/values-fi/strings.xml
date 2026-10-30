@@ -61,7 +61,6 @@
     <string name="lbl_preshared_key" translatable="true">Esijaettu avain</string>
     <string name="lbl_insecure" translatable="true">(epäturvallinen)</string>
     <string name="lbl_persistent_keepalive" translatable="true">Pysyvä hengissäpysyminen</string>
-    <string name="lbl_unselected" translatable="true">Ei valittu</string>
     <string name="lbl_peer" translatable="true">Pari</string>
     <string name="lbl_split" translatable="true">Jaa</string>
     <string name="lbl_rules" translatable="true">Säännöt</string>
@@ -109,8 +108,8 @@
     <string name="conn_track_clear_logs_title" translatable="true">Poista kaikki verkkotoiminnan lokit?</string>
     <string name="conn_track_clear_logs_message" translatable="true">Tämä poistaa vain verkkotoiminnan lokit, ei palomuurisääntöjä. Tätä ei voi kumota. Haluatko jatkaa?</string>
     <string name="bsct_app_info" translatable="true">Tietoa sovelluksesta</string>
-    <string name="bsct_block_ip" translatable="true">Estä, luota <u>tähän IP-osoitteeseen</u> <u>tälle sovellukselle</u></string>
-    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Käytettävyyspalvelu on pysähtynyt tai kaatunut. <i><b>Mene asetuksiin ja pakota Rethinkin lopetus</b></i> \u0020ja käynnistä se uudelleen <i>Estä mikä tahansa sovellus, jota ei käytetä.</i>\n\nKeepout käyttää saavutettavuuspalvelua seuraamaan, mitkä sovellukset ovat käytössä (etualalla) verrattuna niihin, jotka eivät ole käytössä (taustalla).</string>
+    <string name="bsct_block_ip" translatable="true">Estä, luota tähän IP-osoitteeseen tälle sovellukselle</string>
+    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Käytettävyyspalvelu on pysähtynyt tai kaatunut. Mene asetuksiin ja pakota Rethinkin lopetus \u0020ja käynnistä se uudelleen Estä mikä tahansa sovellus, jota ei käytetä.\n\nKeepout käyttää saavutettavuuspalvelua seuraamaan, mitkä sovellukset ovat käytössä (etualalla) verrattuna niihin, jotka eivät ole käytössä (taustalla).</string>
     <string name="home_last_24_hours">Viimeiset 24 tuntia</string>
     <plurals name="home_stopped_at_dns_count">
         <item quantity="one">%d haku pysäytetty jo DNS:ssä</item>

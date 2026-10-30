@@ -14,18 +14,18 @@
     <string name="settings_general_header">algemeen</string>
     <string name="download_update_dialog_failure_message">Onze servers liggen plat of de verbinding kon niet tot stand worden gebracht. Probeer het na enige tijd opnieuw.</string>
     <string name="download_update_dialog_trylater_message">De update kan nu niet worden uitgevoerd, probeer het later nog eens.</string>
-    <string name="search_universal_ips"><font size="12">IP\'s zoeken</font></string>
+    <string name="search_universal_ips">IP\'s zoeken</string>
     <string name="settings_enable_logs">On-device logging inschakelen</string>
-    <string name="search_custom_domains"><font size="12">Domeinnamen zoeken</font></string>
+    <string name="search_custom_domains">Domeinnamen zoeken</string>
     <string name="settings_socks5_vpn_disabled_error">Start RethinkDNS om verder te gaan.</string>
-    <string name="settings_network_all_networks_desc">Indien ingeschakeld, gebruikt RethinkDNS alle beschikbare netwerken om verbinding te maken met het internet. Indien niet, gebruikt het netwerk dat door Android als <i>actief wordt beschouwd</i>.</string>
+    <string name="settings_network_all_networks_desc">Indien ingeschakeld, gebruikt RethinkDNS alle beschikbare netwerken om verbinding te maken met het internet. Indien niet, gebruikt het netwerk dat door Android als actief wordt beschouwd.</string>
     <string name="settings_https_heading">HTTP(S)-proxy instellen</string>
     <string name="orbot_stop_dialog_dns_message">RethinkDNS is ingesteld om DNS queries door te sturen naar Orbot. Verander indien nodig.</string>
     <string name="settings_socks5_disabled_error">Verbonden met %1$s. Zet het uit om verder te gaan.</string>
     <string name="settings_https_disabled_error">Verbonden met %1$s. Zet het uit om verder te gaan.</string>
     <string name="settings_autostart_bootup_desc">Start RethinkDNS bij het opstarten van het apparaat als het actief was voor het afsluiten.</string>
     <string name="settings_autostart_bootup_heading">Auto-start bij opstarten (experimenteel)</string>
-    <string name="settings_custom_downloader_desc">Indien uitgeschakeld, wordt Android\'s ingebouwde <i>Download Manager</i> gebruikt.</string>
+    <string name="settings_custom_downloader_desc">Indien uitgeschakeld, wordt Android\'s ingebouwde Download Manager gebruikt.</string>
     <string name="settings_http_proxy_error_text3">Hostname is leeg</string>
     <string name="settings_http_proxy_desc">Doorsturen naar %1$s</string>
     <string name="settings_http_proxy_error_text1">Het poortbereik moet liggen tussen 1024-65535</string>
@@ -42,7 +42,7 @@
     <string name="connection_http3">HTTP3</string>
     <string name="always_on_dialog_heading">VPN altijd aan uitschakelen</string>
     <string name="always_on_dialog_stop_heading">Altijd VPN</string>
-    <string name="always_on_dialog_lockdown_stop_message">RethinkDNS draait VPN in <i>Lockdown</i> mode. Stoppen zou resulteren in verlies van internet connectiviteit op dit gebruikers profiel. Wil je toch doorgaan?</string>
+    <string name="always_on_dialog_lockdown_stop_message">RethinkDNS draait VPN in Lockdown mode. Stoppen zou resulteren in verlies van internet connectiviteit op dit gebruikers profiel. Wil je toch doorgaan?</string>
     <string name="always_on_dialog_positive">Stop</string>
     <string name="always_on_dialog_neutral">Instellingen</string>
     <string name="doh_custom_url_remove_dialog_title">DoH eindpunt verwijderen\?</string>
@@ -73,7 +73,7 @@
     <string name="custom_url_error_invalid_url">Ongeldige URL</string>
     <string name="conn_track_clear_logs_title">Alle netwerk logs verwijderen\?</string>
     <string name="bsct_app_info">App Info</string>
-    <string name="bsct_block_ip">Blokkeer, omzeil <u>dit IP</u> voor <u>deze app</u></string>
+    <string name="bsct_block_ip">Blokkeer, omzeil dit IP voor deze app</string>
     <string name="orbot_install_dialog_title">Orbot installeren\?</string>
     <string name="orbot_install_dialog_message">Orbot brengt de functies en functionaliteit van Tor naar Android.</string>
     <string name="orbot_install_dialog_positive">Installeren</string>
@@ -106,7 +106,7 @@
     <string name="warning_title" description="Status indicator text shown in a warning notification.">Waarschuwing: RethinkDNS is gedeactiveerd</string>
     <string name="notification_content" description="Indicates what will happen if the user taps the notification.">Tik om de beveiligingsinstelling te wijzigen</string>
     <string name="settings_allow_bypass_heading">Omleiding toestaan</string>
-    <string name="settings_lock_down_mode_desc">Kan geen bypass toestaan, of proxies instellen wanneer VPN in lockdown modus draait. <u>Ga naar VPN instellingen</u>.</string>
+    <string name="settings_lock_down_mode_desc">Kan geen bypass toestaan, of proxies instellen wanneer VPN in lockdown modus draait. Ga naar VPN instellingen.</string>
     <string name="settings_proxy_header">proxy</string>
     <string name="settings_socks5_heading">SOCKS5-proxy instellen</string>
     <string name="settings_https_desc">Deze instelling is slechts een aanbeveling en het is mogelijk dat apps deze zullen negeren. Apps die HTTP(S)-proxy gebruiken, omzeilen zowel de firewall als de DNS-regels.</string>
@@ -138,7 +138,7 @@
     <string name="firewall_rule_foreground">App Niet in gebruik</string>
     <string name="univ_firewall_rule_1">Alle apps blokkeren wanneer het apparaat is vergrendeld</string>
     <string name="dc_local_block_desc_1">Kies uit 185+ blocklists. Klik hier om bloklijsten te downloaden of te configureren.</string>
-    <string name="alert_firewall_accessibility_regrant_explanation">RethinkDNS toegankelijkheidsdienst is gestopt of gecrasht. <i><b>Ga naar Instellingen en Forceer Stop</b></i> RethinkDNS en start het opnieuw om <i>te gebruiken Blokkeer elke app die niet in gebruik is</i> functie.
+    <string name="alert_firewall_accessibility_regrant_explanation">RethinkDNS toegankelijkheidsdienst is gestopt of gecrasht. Ga naar Instellingen en Forceer Stop RethinkDNS en start het opnieuw om te gebruiken Blokkeer elke app die niet in gebruik is functie.
 \n
 \nRethinkDNS gebruikt de toegankelijkheidsdienst om bij te houden welke apps in gebruik zijn (voorgrond) versus welke niet in gebruik zijn (achtergrond).</string>
     <string name="firewall_status_unknown">Onbekend</string>
@@ -152,7 +152,7 @@
     <string name="dc_custom_dns_radio">Andere DNS</string>
     <string name="dc_rethink_dns_radio">RethinkDNS</string>
     <string name="dc_local_block_heading">Blokkeringslijsten op het apparaat</string>
-    <string name="dc_dns_website_desc">Haalt website iconen op van <i>duckduckgo.com</i>. Verbruikt tot 350 mb aan schijfruimte</string>
+    <string name="dc_dns_website_desc">Haalt website iconen op van duckduckgo.com. Verbruikt tot 350 mb aan schijfruimte</string>
     <string name="univ_firewall_rule_5">Blokkeren wanneer DNS wordt omzeild</string>
     <string name="about_app">App</string>
     <string name="about_privacy_policy">Privacybeleid</string>
@@ -211,10 +211,10 @@
     <string name="firewall_rule_block_ip">IP / Poort (App)</string>
     <string name="firewall_rule_no_rule_desc">Geen firewall regels kwamen overeen met deze verbinding.</string>
     <string name="firewall_rule_block_http">Onveilige HTTP</string>
-    <string name="firewall_rule_new_app_desc">Deze app maakte verbinding voor de <i>eerste keer</i>.<br/><br/> Om te veranderen ga naar <i>Universele</i> tab.</string>
+    <string name="firewall_rule_new_app_desc">Deze app maakte verbinding voor de eerste keer.<br/><br/> Om te veranderen ga naar Universele tab.</string>
     <string name="dc_dns_leaks_desc">Indien ingeschakeld, vangt RethinkDNS alle pakketten op poort 53 op en stuurt deze door naar een door de gebruiker ingesteld DNS eindpunt</string>
-    <string name="firewall_rule_isolate_desc">Een door de gebruiker ingestelde firewallregel blokkeerde deze <i>app</i> door verbinding te maken met andere dan <i>omzeilde IP\'s</i>.<br/><br/> Om te wijzigen ga naar <i>All Apps</i> tab.</string>
-    <string name="firewall_rule_global_lockdown_desc">Deze verbinding is geblokkeerd omdat universele lockdown is ingesteld.<br/><br/> Om dit te veranderen ga naar <i>tabblad Universal</i>.</string>
+    <string name="firewall_rule_isolate_desc">Een door de gebruiker ingestelde firewallregel blokkeerde deze app door verbinding te maken met andere dan omzeilde IP\'s.<br/><br/> Om te wijzigen ga naar All Apps tab.</string>
+    <string name="firewall_rule_global_lockdown_desc">Deze verbinding is geblokkeerd omdat universele lockdown is ingesteld.<br/><br/> Om dit te veranderen ga naar tabblad Universal.</string>
     <string name="ada_app_status_isolate">Geïsoleerd: alleen vertrouwde IP\'s en domeinen toegestaan</string>
     <string name="ada_app_isolate">Lockdown</string>
     <string name="settings_orbot_notification_content">Fout bij het starten van Tor-as-a-Proxy. Open de Orbot-app om deze handmatig te starten.</string>
@@ -297,7 +297,7 @@
     <string name="firewall_rule_unknown">Bron Onbekend</string>
     <string name="firewall_rule_block_dns_bypass">DNS omzeild</string>
     <string name="firewall_rule_exempt_app_bypass_univ">Omzeilde app</string>
-    <string name="firewall_rule_block_app_desc">Een door de gebruiker ingestelde firewallregel blokkeerde deze <i>app</i>.<br/><br/> Om te wijzigen ga naar <i>All Apps</i> tab.</string>
+    <string name="firewall_rule_block_app_desc">Een door de gebruiker ingestelde firewallregel blokkeerde deze app.<br/><br/> Om te wijzigen ga naar All Apps tab.</string>
     <string name="firewall_rule_global_lockdown">Lockdown</string>
     <string name="settings_allow_bypass_desc">Sta toe dat aanvragende apps de RethinkDNS firewall on-demand omzeilen. Sommige audio/video conferentie apps zoals Zoom en WhatsApp kunnen een on-demand bypass nodig hebben om goed te functioneren.</string>
     <string name="orbot_stop_dialog_title">Handmatige tussenkomst vereist</string>
@@ -358,7 +358,6 @@
     <string name="hs_biometeric_error" translatable="true">Biometische authenticatie fout</string>
     <string name="collecting_logs_progress_text" translatable="true">Bezig met vastleggen…</string>
     <string name="notif_channel_desc_vpn_failure" translatable="true">Informeer wanneer RethinkDNS wordt gestopt door Android of door een andere VPN app</string>
-    <string name="build__flavor_fdroid" translatable="true">fdroid</string>
     <string name="cd_toast_edit" translatable="true">Bewerkt</string>
     <string name="hybrid_mode_with_proxy_notification_title" translatable="true">Beschermd! Verbonden met DNS + Firewall + Proxy.</string>
     <string name="dot_custom_url_remove_dialog_title" translatable="true">Verwijder DoT endpoint?</string>
@@ -377,7 +376,6 @@
     <string name="bypass_dns_firewall" translatable="true">Omzeil dns &amp; firewall</string>
     <string name="dc_other_dns_heading" translatable="true">Type</string>
     <string name="bypass_universal" translatable="true">Omzeil Universeel</string>
-    <string name="build__flavor_website" translatable="true">website</string>
     <string name="notification_action_resume_vpn" translatable="true">DOORGAAN</string>
     <string name="notification_action_pause_vpn" translatable="true">PAUZE</string>
     <string name="private_dns_dialog_heading" translatable="true">Privé DNS uitzetten</string>
@@ -455,8 +453,7 @@
     <string name="dc_proxy_dns_heading" translatable="true">Nooit DNS over proxy tunnelen</string>
     <string name="lbl_private" translatable="true">privé</string>
     <string name="lbl_peer" translatable="true">Peer</string>
-    <string name="lbl_unselected" translatable="true">Ongeselecteerd</string>
-    <string name="bsct_block_domain" translatable="true">Blokkeer, vertrouw &lt;u&gt;domein(en)&lt;/u&gt; voor &lt;u&gt;deze app&lt;u/&gt;</string>
+    <string name="bsct_block_domain" translatable="true">Blokkeer, vertrouw domein(en) voor deze app&lt;u/&gt;</string>
     <string name="lbl_overall" translatable="true">Totaal</string>
     <string name="lbl_listen_port" translatable="true">Luisterpoort</string>
     <string name="lbl_persistent_keepalive" translatable="true">Aanhoudende keepalive</string>

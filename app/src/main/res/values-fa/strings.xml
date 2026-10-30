@@ -57,8 +57,8 @@
     <string name="isolate" translatable="true">منزوی</string>
     <string name="default_dns_name" translatable="true">RDNS پیش فرض</string>
     <string name="bsct_app_info" translatable="true">اطلاعات برنامه</string>
-    <string name="bsct_block_ip" translatable="true">مسدود کنید، به <u>این IP</u> برای <u>این برنامه</u> اعتماد کنید</string>
-    <string name="bsct_block_domain" translatable="true">برای <u>این برنامه</u> دامنه(های) <u/> را مسدود کنید، اعتماد کنید</string>
+    <string name="bsct_block_ip" translatable="true">مسدود کنید، به این IP برای این برنامه اعتماد کنید</string>
+    <string name="bsct_block_domain" translatable="true">برای این برنامه دامنه(های) <u/> را مسدود کنید، اعتماد کنید</string>
     <string name="always_on_dialog" translatable="true">\"VPN همیشه روشن\" در این دستگاه فعال است. برای شروع Keepout، لطفاً به برنامه تنظیمات بروید و «VPN همیشه روشن» را غیرفعال کنید.</string>
     <string name="always_on_dialog_positive_btn" translatable="true">برو به تنظیمات</string>
     <string name="conn_track_clear_logs_message" translatable="true">این ulg فقط \'chvahj شبکه را حذف می کند اما قوانین فایروال را حذف نمی کند. این عمل برگشت پذیر نیست. آیا می خواهید ادامه دهید؟</string>
@@ -73,13 +73,13 @@
     <string name="alert_firewall_accessibility_explanation" translatable="true">Keepout از سرویس دسترسی برای ردیابی برنامه هایی که در حال استفاده هستند (پیش زمینه) در برابر برنامه هایی که در حال استفاده نیستند (پس زمینه) استفاده می کند.
 \n
 \nKeepout هیچ اطلاعاتی را جمع آوری نکرده و به هیچ وجه از شما جاسوسی نمی کند.</string>
-    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">سرویس دسترسی RethinkDNS متوقف شده یا از کار افتاده است. <i><b>به تنظیمات رفته و RethinkDNS را اجباراً متوقف کنید</b></i> و دوباره آن را برای استفاده از <i>ویژگی مسدود کردن هر برنامه‌ای که از آن</i> استفاده نمی‌کنید، راه‌اندازی کنید.
+    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">سرویس دسترسی RethinkDNS متوقف شده یا از کار افتاده است. به تنظیمات رفته و RethinkDNS را اجباراً متوقف کنید و دوباره آن را برای استفاده از ویژگی مسدود کردن هر برنامه‌ای که از آن استفاده نمی‌کنید، راه‌اندازی کنید.
 \n
 \nRethinkDNS از سرویس دسترسی برای ردیابی برنامه هایی که در حال استفاده هستند (پیش زمینه) در برابر برنامه هایی که در حال استفاده نیستند (پس زمینه) استفاده می کند.</string>
     <string name="always_on_dialog_stop_message" translatable="true">VPN همیشه روشن برای Keepout فعال است. آیا مطمئنید که در هر صورت می‌خواهید Keepout را متوقف کنید؟</string>
     <string name="always_on_dialog_positive" translatable="true">توقف</string>
     <string name="dns_crypt_url_remove_success" translatable="true">برطرف کننده DNSCrypt حذف شد.</string>
-    <string name="always_on_dialog_lockdown_stop_message" translatable="true">VPN ،Keepout را در حالت <i>Lockdown</i> اجرا می کند. توقف آن منجر به از دست رفتن اتصال اینترنت در این نمایه کاربر می شود. میخواهید ادامه دهید؟</string>
+    <string name="always_on_dialog_lockdown_stop_message" translatable="true">VPN ،Keepout را در حالت Lockdown اجرا می کند. توقف آن منجر به از دست رفتن اتصال اینترنت در این نمایه کاربر می شود. میخواهید ادامه دهید؟</string>
     <string name="dns_crypt_url_remove_dialog_message" translatable="true">برطرف کننده DNSCrypt را از پیکربندی ذخیره شده حذف کنید.</string>
     <string name="dns_crypt_relay_remove_dialog_message" translatable="true">رله DNSCrypt را از پیکربندی ذخیره شده حذف کنید.</string>
     <string name="private_dns_dialog_heading" translatable="true">DNS خصوصی را خاموش کنید</string>
@@ -110,7 +110,7 @@
     <string name="download_update_dialog_message_ok" translatable="true">شما در حال حاضر در آخرین نسخه هستید.</string>
     <string name="download_update_dialog_message_success" translatable="true">دانلود فهرست بلاک با موفقیت انجام شد.</string>
     <string name="download_update_dialog_failure_title" translatable="true">مشکلی پیش آمد!</string>
-    <string name="search_universal_ips" translatable="true"><font size="12">جستجوی آی‌پی‌ها</font></string>
+    <string name="search_universal_ips" translatable="true">جستجوی آی‌پی‌ها</string>
     <string name="info_dialog_url_copy_toast_msg" translatable="true">URL کپی شد</string>
     <string name="info_dialog_copy_toast_msg" translatable="true">آدرس IP کپی شد.</string>
     <string name="info_dialog_rethink_toast_msg" translatable="true">به عنوان URL RDNS+ DNS-over-HTTPS کپی شد</string>
@@ -119,7 +119,7 @@
     <string name="download_update_dialog_failure_message" translatable="true">یا سرورهای ما قطع است یا اتصال برقرار نشد. لطفا بعد از مدتی دوباره امتحان کنید.</string>
     <string name="download_update_dialog_trylater_title" translatable="true">در حال حاضر نمی توان به روز رسانی کرد</string>
     <string name="download_update_dialog_trylater_message" translatable="true">به روز رسانی در حال حاضر قابل اجرا نیست، لطفاً بعداً دوباره امتحان کنید.</string>
-    <string name="search_custom_domains" translatable="true"><font size="12">جستجوی نامهای دامنه</font></string>
+    <string name="search_custom_domains" translatable="true">جستجوی نامهای دامنه</string>
     <string name="settings_enable_logs" translatable="true">فعال کردن گزارش‌گیری روی دستگاه</string>
     <string name="download_update_dialog_title" translatable="true">به‌روزرسانی جدید!</string>
     <string name="whats_new_version_update" translatable="true"><b>حداکثر تلاش</b> \u0020 \u0020 
@@ -139,8 +139,8 @@
     <string name="settings_allow_bypass_heading" translatable="true">فعال سازی قابلیت مشاهده شبکه</string>
     <string name="orbot_http" translatable="true">پروکسی HTTP</string>
     <string name="orbot_none" translatable="true">هیچکدام (پیش‌فرض)</string>
-    <string name="settings_lock_down_mode_desc" translatable="true">برخی از گزینه‌ها وقتی VPN در حالت قفل باشد، غیرفعال می‌شوند. <u>تنظیمات VPN را ببینید</u>.</string>
-    <string name="settings_lock_down_proxy_desc" translatable="true">نمی توان پراکسی ها را وقتی VPN در حالت فقط DNS یا حالت قفل اجرا می شود، راه اندازی کرد. <u>به تنظیمات VPN بروید</u></string>
+    <string name="settings_lock_down_mode_desc" translatable="true">برخی از گزینه‌ها وقتی VPN در حالت قفل باشد، غیرفعال می‌شوند. تنظیمات VPN را ببینید.</string>
+    <string name="settings_lock_down_proxy_desc" translatable="true">نمی توان پراکسی ها را وقتی VPN در حالت فقط DNS یا حالت قفل اجرا می شود، راه اندازی کرد. به تنظیمات VPN بروید</string>
     <string name="orbot_socks5" translatable="true">پروکسی صرفا از نوع TCP</string>
     <string name="settings_proxy_header" translatable="true">پروکسی</string>
     <string name="settings_https_heading" translatable="true">راه اندازی پروکسی HTTP(S)</string>
@@ -212,16 +212,16 @@
     <string name="settings_general_header" translatable="true">general</string>
     <string name="settings_https_disabled_error" translatable="true">Connected to %1$s. Turn it off to continue.</string>
     <string name="settings_autostart_bootup_desc" translatable="true">On device power-up, start Keepout if it was running before shut down.</string>
-    <string name="settings_custom_downloader_desc" translatable="true">If disabled, Android\'s built-in <i>Download Manager</i> is used</string>
+    <string name="settings_custom_downloader_desc" translatable="true">If disabled, Android\'s built-in Download Manager is used</string>
     <string name="settings_check_update_desc" translatable="true">Automatically check for app updates once a week.</string>
     <string name="about_settings_notification" translatable="true">تنظیمات اعلان</string>
     <string name="settings_network_all_networks" translatable="true">Use all available networks (experimental)</string>
-    <string name="settings_network_all_networks_desc" translatable="true">When enabled, Keepout uses all available networks to connect to Internet. If not, it uses whichever network is deemed <i>active</i> by Android.</string>
+    <string name="settings_network_all_networks_desc" translatable="true">When enabled, Keepout uses all available networks to connect to Internet. If not, it uses whichever network is deemed active by Android.</string>
     <string name="public_key_copy_toast_msg" translatable="true">Public key copied.</string>
-    <string name="orbot_explanation" translatable="true">Orbot یک برنامه پراکسی رایگان است که به سایر برنامه‌ها اجازه می‌دهد تا &lt;u&gt;ایمن‌تر&lt;/u&gt; از اینترنت استفاده کنند.
-\n Orbot از &lt;u&gt;Tor&lt;/u&gt; برای رمزگذاری ترافیک اینترنت شما استفاده می کند که به شما کمک می کند &lt;u&gt;سانسور را دور بزنید&lt;/u&gt; و در برابر اشکال &lt;u&gt;نظارت شبکه&lt;/u&gt; که آزادی و حریم خصوصی شخصی را تهدید می کند، دفاع کنید.
-\n &lt;u&gt;پراکسی TCP&lt;/u&gt;: فقط اتصالات TCP برنامه‌های &lt;i&gt;شامل شده&lt;/i&gt; را مجدداً به Orbot فوروارد کنید.
-\n &lt;u&gt;پراکسی HTTP&lt;/u&gt;: دوباره فکر کنید &lt;i&gt;تونل HTTP CONNECT را به Orbot ایجاد می کند و فقط اتصالات TCP برنامه های &lt;i&gt;شامل&lt;/i&gt; را ارسال می کند.</string>
+    <string name="orbot_explanation" translatable="true">Orbot یک برنامه پراکسی رایگان است که به سایر برنامه‌ها اجازه می‌دهد تا ایمن‌تر از اینترنت استفاده کنند.
+\n Orbot از Tor برای رمزگذاری ترافیک اینترنت شما استفاده می کند که به شما کمک می کند سانسور را دور بزنید و در برابر اشکال نظارت شبکه که آزادی و حریم خصوصی شخصی را تهدید می کند، دفاع کنید.
+\n پراکسی TCP: فقط اتصالات TCP برنامه‌های شامل شده را مجدداً به Orbot فوروارد کنید.
+\n پراکسی HTTP: دوباره فکر کنید تونل HTTP CONNECT را به Orbot ایجاد می کند و فقط اتصالات TCP برنامه های شامل را ارسال می کند.</string>
     <string name="settings_general_customize" translatable="true">customize</string>
     <string name="settings_orbot_notification_content" translatable="true">Failure starting Tor-as-a-Proxy. Open the Orbot app to start it manually.</string>
     <string name="about_settings_app_info" translatable="true">اطلاعات برنامه</string>
@@ -247,13 +247,11 @@
     <string name="dot_custom_url_remove_dialog_title" translatable="true">نقطه پایانی DoTحذف شود؟</string>
     <string name="orbot_no_app_toast" translatable="true">برای فعال کردن Orbot حداقل یک برنامه اضافه کنید</string>
     <string name="failed_using_default" translatable="true">بازگشتی DNS ناموفق: استفاده از</string>
-    <string name="settings_exclude_proxy_apps_desc" translatable="true">وقتی غیرفعال است، برنامه‌های ارسال‌کننده پروکسی (SOCKS5، HTTP، DNS) را از تونل VPN Keepout مستثنی می‌کند.</string>
     <string name="settings_connectivity_checks" translatable="true">بررسی های اتصال را انجام دهید</string>
     <string name="settings_connectivity_checks_desc" translatable="true">بررسی های اتصال برای اطمینان از قابلیت دسترسی ارسال می شود.</string>
     <string name="settings_exclude_proxy_apps_heading" translatable="true">برنامه های فوروارد پروکسی Loopback</string>
     <string name="dot_custom_url_remove_dialog_message" translatable="true">DNS روی نقطه پایانی TLSرا از پیکربندی ذخیره شده حذف کنید</string>
     <string name="http_proxy_dialog_desc" translatable="true">راه اندازی URL فرم، &lt;protocol&gt;://&lt;username&gt;:&lt;password&gt;@&lt;domain-or-ip&gt;:&lt;port&gt;&lt;path&gt;. مثال: http://proxy.example.com:8080/</string>
-    <string name="lbl_unselected" translatable="true">انتخاب نشده است</string>
     <string name="hybrid_mode_with_proxy_notification_title" translatable="true">حفاظت شده! به DNS +فایروال +پروکسی متصل است</string>
     <string name="lbl_idle" translatable="true">بیکار</string>
     <string name="lbl_anonymous" translatable="true">ناشناس</string>
@@ -313,7 +311,7 @@
     <string name="about_whats_new" translatable="true">چه چیزهایی در %1$s جدید است</string>
     <string name="about_mozilla" translatable="true">Rethink توسط Mozilla Builders، بنیاد FOSS United و FLOSS/fund پشتیبانی می‌شود.</string>
     <string name="dc_local_block_desc_1" translatable="true">از بین بیش از ۱۹۵ لیست مسدودکننده انتخاب کنید. برای دانلود یا پیکربندی لیست‌های مسدودکننده اینجا کلیک کنید.</string>
-    <string name="dc_dns_website_desc" translatable="true">آیکون‌های وب‌سایت را از <i>nextdns.io</i> و <i>duckduckgo.com</i> دریافت می‌کند. تا ۳۵۰ مگابایت از فضای دیسک را اشغال می‌کند</string>
+    <string name="dc_dns_website_desc" translatable="true">آیکون‌های وب‌سایت را از nextdns.io و duckduckgo.com دریافت می‌کند. تا ۳۵۰ مگابایت از فضای دیسک را اشغال می‌کند</string>
     <string name="firewall_status_whitelisted" translatable="true">قوانین فراگیر فایروال را دور می‌زند</string>
     <string name="hsf_vpn_dialog_message" translatable="true">Keepout برای راه‌اندازی VPN محلی جهت رمزگذاری درخواست‌های DNS دستگاه، پیاده‌سازی مانیتور شبکه و اجرای قوانین دیوار‌آتش به مجوز نیاز دارد.\n\nKeepout هیچ اطلاعاتی را جمع‌آوری نمی‌کند و به هیچ وجه از شما جاسوسی نمی‌کند.</string>
     <string name="dc_other_dns_heading" translatable="true">نوع</string>
@@ -330,7 +328,7 @@
     <string name="dns_desc" translatable="true">برای متوقف کردن تبلیغات، ردیاب‌ها و بدافزارها، از بین بیش از ۱۹۰ لیست، یکی را انتخاب کنید.</string>
     <string name="status_no_network" translatable="true">بدون شبکه</string>
     <string name="dc_use_sys_dns_undelegated_heading" translatable="true">از DNS سیستم برای دامنه‌های واگذار نشده استفاده کنید</string>
-    <string name="dc_use_sys_dns_undelegated_desc" translatable="true">برای دامنه‌های بدون مجوز مانند <i>.Lan</i>، <i>.داخلی</i> و غیره از DNS سیستم استفاده کنید.</string>
+    <string name="dc_use_sys_dns_undelegated_desc" translatable="true">برای دامنه‌های بدون مجوز مانند .Lan، .داخلی و غیره از DNS سیستم استفاده کنید.</string>
     <string name="dc_filtering_heading" translatable="true">فیلتر کردن</string>
     <string name="about_dialog_positive_button" translatable="true">بزن بریم</string>
     <string name="about_mail_to" translatable="true">hello@celzero.com</string>
@@ -427,8 +425,8 @@
     <string name="fapps_info_dialog_positive_btn" translatable="true">باشه</string>
     <string name="fapps_unmetered_unblock_dialog_title" translatable="true">مجاز در شبکه نامحدود</string>
     <string name="fapps_unmetered_block_dialog_title" translatable="true">مسدودسازی در اتصال شبکه نامحدود</string>
-    <string name="fapps_unmetered_block_dialog_message" translatable="true">اتصالات برنامه‌های <i>فهرست‌شده</i> در شبکه‌ی بدون محدودیت حجمی (وای‌فای) مسدود شود؟</string>
-    <string name="fapps_unmetered_unblock_dialog_message">اتصال برنامه‌های <i>فهرست‌شده</i> در شبکهٔ نامحدود (وای‌فای) مجاز شود؟</string>
+    <string name="fapps_unmetered_block_dialog_message" translatable="true">اتصالات برنامه‌های فهرست‌شده در شبکه‌ی بدون محدودیت حجمی (وای‌فای) مسدود شود؟</string>
+    <string name="fapps_unmetered_unblock_dialog_message">اتصال برنامه‌های فهرست‌شده در شبکهٔ نامحدود (وای‌فای) مجاز شود؟</string>
     <string name="fapps_metered_block_dialog_title" translatable="true">مسدودسازی در اتصال محدود</string>
     <string name="cd_no_rules_text" translatable="true">بدون قوانین دامنه</string>
     <string name="ci_trust_rule" translatable="true">اعتماد</string>
@@ -476,10 +474,7 @@
     <string name="brbs_restore_title" translatable="true">بازیابی</string>
     <string name="brbs_title" translatable="true">پشتیبان‌گیری و بازیابی</string>
     <string name="bsac_title_desc" translatable="true">قوانین فقط برای این برنامه اعمال می‌شود.</string>
-    <string name="build__flavor_website" translatable="true">وب‌سایت</string>
-    <string name="build__flavor_play_store" translatable="true">پلی استور</string>
-    <string name="build__flavor_fdroid" translatable="true">fdroid</string>
-    <string name="bypasses_network_restrictions" translatable="true">بررسی‌های دسترسی‌پذیری از تمام محدودیت‌های شبکه عبور می‌کنند. در حالت <i>خودکار</i>، رسینک به طور تصادفی از IPها و نام‌های میزبان قبلاً متصل شده استفاده می‌کند.</string>
+    <string name="bypasses_network_restrictions" translatable="true">بررسی‌های دسترسی‌پذیری از تمام محدودیت‌های شبکه عبور می‌کنند. در حالت خودکار، رسینک به طور تصادفی از IPها و نام‌های میزبان قبلاً متصل شده استفاده می‌کند.</string>
     <string name="catch_all_wg_dialog_desc" translatable="true">تمام اتصالات و برنامه‌هایی که توسط سایر VPN های WireGuard مسیریابی نمی‌شوند، توسط این یکی مسیریابی خواهند شد.</string>
     <string name="category_name_sys_components" translatable="true">اجزای سیستم</string>
     <string name="category_name_sys_apps" translatable="true">برنامه‌های سیستمی</string>
@@ -488,21 +483,21 @@
     <string name="category_name_non_app_sys" translatable="true">خدمات سیستم</string>
     <string name="catch_all_wg_dialog_title" translatable="true">همیشه روشن</string>
     <string name="cd_doh_dialog_resolver_url" translatable="true">Resolver URL</string>
-    <string name="fapps_metered_block_dialog_message" translatable="true">آیا اتصالات در شبکه‌ی محدود (موبایل) برای برنامه‌های <i>لیست‌شده</i> مسدود می‌شود؟</string>
+    <string name="fapps_metered_block_dialog_message" translatable="true">آیا اتصالات در شبکه‌ی محدود (موبایل) برای برنامه‌های لیست‌شده مسدود می‌شود؟</string>
     <string name="fapps_metered_unblock_dialog_title" translatable="true">اجازه در metered</string>
-    <string name="fapps_metered_unblock_dialog_message" translatable="true">اتصالات در شبکه اندازه‌گیری شده (موبایل) برای برنامه‌های <i>فهرست</i> مجاز باشد؟</string>
+    <string name="fapps_metered_unblock_dialog_message" translatable="true">اتصالات در شبکه اندازه‌گیری شده (موبایل) برای برنامه‌های فهرست مجاز باشد؟</string>
     <string name="fapps_bypass_block_dialog_title" translatable="true">دور زدن برنامه ها</string>
-    <string name="fapps_bypass_block_dialog_message" translatable="true">قوانین فایروال جهانی برای برنامه های <i>لیست شده</i> را دور بزنید؟</string>
+    <string name="fapps_bypass_block_dialog_message" translatable="true">قوانین فایروال جهانی برای برنامه های لیست شده را دور بزنید؟</string>
     <string name="fapps_bypass_dns_firewall_dialog_title" translatable="true">دور زدن برنامه ها</string>
     <string name="fapps_bypass_dns_firewall_dialog_message" translatable="true">قوانین فایروال DNS &amp; جهانی را برای برنامه های فهرست شده <i/> دور بزنید؟</string>
     <string name="fapps_unblock_dialog_title" translatable="true">برنامه ها را مجاز کنید</string>
-    <string name="fapps_unblock_dialog_message" translatable="true">اتصالات برای برنامه های <i>فهرست شده</i> مجاز باشد؟</string>
+    <string name="fapps_unblock_dialog_message" translatable="true">اتصالات برای برنامه های فهرست شده مجاز باشد؟</string>
     <string name="fapps_exclude_block_dialog_title" translatable="true">حذف برنامه ها</string>
-    <string name="fapps_exclude_block_dialog_message" translatable="true">برنامه‌های <i>لیست شده</i> از DNS و فایروال مستثنی شوند؟</string>
+    <string name="fapps_exclude_block_dialog_message" translatable="true">برنامه‌های لیست شده از DNS و فایروال مستثنی شوند؟</string>
     <string name="fapps_isolate_block_dialog_title" translatable="true">برنامه ها را ایزوله کنید</string>
     <string name="dns_crypt_connection_failure" translatable="true">خطا در اتصال به سرور DNSCrypt.</string>
     <string name="update_complete_snack_message" translatable="true">نسخه جدید دانلود شد.</string>
-    <string name="fapps_isolate_block_dialog_message" translatable="true">برنامه‌های <i>فهرست‌شده</i> ایزوله شوند؟</string>
+    <string name="fapps_isolate_block_dialog_message" translatable="true">برنامه‌های فهرست‌شده ایزوله شوند؟</string>
     <string name="rules_load_failure_desc" translatable="true">هیچ قانون فایروالی پیدا نشد</string>
     <string name="rules_load_failure_reload" translatable="true">بارگذاری</string>
     <string name="network_log_app_name_unknown" translatable="true">ناشناخته</string>

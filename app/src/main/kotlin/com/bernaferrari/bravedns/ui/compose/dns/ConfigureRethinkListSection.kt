@@ -50,7 +50,7 @@ import com.bernaferrari.bravedns.ui.compose.dns.RethinkEndpointRow
 import com.bernaferrari.bravedns.customdownloader.RemoteBlocklistCoordinator
 import com.bernaferrari.bravedns.data.AppConfig
 import com.bernaferrari.bravedns.service.PersistentState
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormSection
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkContainedCard
 import com.bernaferrari.bravedns.util.Constants
 import com.bernaferrari.bravedns.util.Utilities
 import com.bernaferrari.bravedns.util.workInfosByTagFlow
@@ -104,9 +104,11 @@ internal fun RethinkListContent(
         contentPadding = androidx.compose.foundation.layout.PaddingValues(
             start = SharedDimensions.screenPaddingHorizontal,
             end = SharedDimensions.screenPaddingHorizontal,
+            top = SharedDimensions.spacingSm,
             bottom = SharedDimensions.spacing2xl,
         ),
-        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)
+        // Endpoint rows carry their own 4dp inset, so this matches every other endpoint list.
+        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)
     ) {
         item(key = "update") {
             RethinkListUpdateCard(
@@ -189,14 +191,28 @@ private fun RethinkListUpdateCard(
     val actionText = rethinkListActionText(updateUi)
     val actionInProgress = rethinkListActionInProgress(updateUi)
 
-    RethinkFormSection(
-        title = stringResource(R.string.dc_rethink_dns_radio),
-        description = if (updateUi.isMax) {
-            stringResource(id = R.string.rethink_max_desc)
-        } else {
-            stringResource(id = R.string.rethink_sky_desc)
-        },
-    ) {
+    // One card at the top, no section header: the large title already says "Rethink DNS".
+    // Sky/Max leads (it is the choice), its description follows, then the blocklist version and
+    // its update action.
+    RethinkContainedCard(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd)) {
+        RethinkSkyMaxToggleRow(
+            skyLabel = stringResource(id = R.string.radio_sky_btn),
+            maxLabel = stringResource(id = R.string.radio_max_btn),
+            isMax = updateUi.isMax,
+            onSky = {
+                scope.launch(Dispatchers.IO) { appConfig.switchRethinkDnsToSky() }
+                onMaxChanged(false)
+            },
+            onMax = {
+                scope.launch(Dispatchers.IO) { appConfig.switchRethinkDnsToMax() }
+                onMaxChanged(true)
+            },
+        )
+        Text(
+            text = stringResource(if (updateUi.isMax) R.string.rethink_max_desc else R.string.rethink_sky_desc),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
         if (persistentState.remoteBlocklistTimestamp != Constants.INIT_TIME_MS || actionText != null) {
             Text(
                 text = localBlocklistVersionTemplate.format(
@@ -205,7 +221,7 @@ private fun RethinkListUpdateCard(
                         Constants.TIME_FORMAT_2
                     )
                 ),
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.labelLarge,
             )
         }
 
@@ -221,20 +237,6 @@ private fun RethinkListUpdateCard(
                 onDownload = onDownload,
             )
         }
-
-        RethinkSkyMaxToggleRow(
-            skyLabel = stringResource(id = R.string.radio_sky_btn),
-            maxLabel = stringResource(id = R.string.radio_max_btn),
-            isMax = updateUi.isMax,
-            onSky = {
-                scope.launch(Dispatchers.IO) { appConfig.switchRethinkDnsToSky() }
-                onMaxChanged(false)
-            },
-            onMax = {
-                scope.launch(Dispatchers.IO) { appConfig.switchRethinkDnsToMax() }
-                onMaxChanged(true)
-            },
-        )
     }
 }
 

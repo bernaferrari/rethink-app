@@ -90,7 +90,6 @@
     <string name="lbl_idle" translatable="true">Inactiv</string>
     <string name="lbl_peer" translatable="true">Pereche</string>
     <string name="lbl_split" translatable="true">Ramificat</string>
-    <string name="lbl_unselected" translatable="true">Neselectat</string>
     <string name="memory_notification_text">Keepout nu dispune de suficientă memorie. Operațiunile sistemului ar putea fi limitate.</string>
     <string name="slide_2_desc" translatable="true">Keepout e cea mai ușoară cale pentru monitorizarea activității din rețea, ocolirea cenzurii pe internet și protejarea aplicațiilor pe dispozitivul tău Android.</string>
     <string name="allow" translatable="true">permite</string>
@@ -145,20 +144,20 @@
     <string name="notification_action_stop_vpn" translatable="true">STOP</string>
     <string name="notification_action_dns_firewall_mode" translatable="true">DNS + Firewall</string>
     <string name="alert_permission_accessibility" translatable="true">Permisiuni - Accesibilitate</string>
-    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Serviciul de accesibilitate al Keepout s-a oprit sau s-a blocat. <i><b>Mergeți la Setări și Oprire Forțată</b></i> apoi reporniți Keepout pentru <i>Blocare aplicații care rulează în fundal</i>.\n\nKeepout utilizează serviciul de accesibilitate pentru a diferenția aplicațiile care rulează la vedere față de cele care rulează în fundal.</string>
+    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Serviciul de accesibilitate al Keepout s-a oprit sau s-a blocat. Mergeți la Setări și Oprire Forțată apoi reporniți Keepout pentru Blocare aplicații care rulează în fundal.\n\nKeepout utilizează serviciul de accesibilitate pentru a diferenția aplicațiile care rulează la vedere față de cele care rulează în fundal.</string>
     <string name="alert_firewall_accessibility_explanation" translatable="true">Keepout utilizează serviciul de accesibilitate pentru a diferenția aplicațiile care rulează la vedere față de cele care rulează în fundal.\n\nKeepout nu colectează nici o informație și nu vă spionează în nici un fel.</string>
     <string name="default_dns_name" translatable="true">RDNS prestabilit</string>
     <string name="conn_track_clear_logs_title" translatable="true">Ștergi toate jurnalele de rețea?</string>
     <string name="conn_track_clear_logs_message" translatable="true">Vor fi eliminate toate jurnalele de rețea, dar nu și regulile Firewall-ului. Acțiunea este ireversibilă. Vrei să continui?</string>
-    <string name="bsct_block_ip" translatable="true">Blochează, autorizează <u>aceasta adresă IP</u> pentru <u>această aplicație</u></string>
-    <string name="bsct_block_domain" translatable="true">Blochează, autorizează <u>domeniul</u> pentru <u>această aplicație</u></string>
+    <string name="bsct_block_ip" translatable="true">Blochează, autorizează aceasta adresă IP pentru această aplicație</string>
+    <string name="bsct_block_domain" translatable="true">Blochează, autorizează domeniul pentru această aplicație</string>
     <string name="always_on_dialog_heading" translatable="true">Dezactivează VPN Permanent</string>
     <string name="always_on_dialog" translatable="true">\"VPN Permanent\" este activat pe acest dispozitiv. Pentru a porni Keepout, mergi la setările aplicației și dezactivează \"VPN Permanent\".</string>
     <string name="always_on_dialog_stop_heading" translatable="true">VPN Permanent</string>
     <string name="firewall_act_universal_tab" translatable="true">universal</string>
     <string name="download_update_dialog_trylater_message" translatable="true">Nu se poate actualiza acum, încearcă din nou mai târziu.</string>
-    <string name="search_universal_ips" translatable="true"><font size="12">Caută IP-uri</font></string>
-    <string name="search_custom_domains" translatable="true"><font size="12">Caută nume de domeniu</font></string>
+    <string name="search_universal_ips" translatable="true">Caută IP-uri</string>
+    <string name="search_custom_domains" translatable="true">Caută nume de domeniu</string>
     <string name="search_proxy_add_apps" translatable="true">Caută aplicații după nume</string>
     <string name="info_dialog_copy_toast_msg" translatable="true">Adresă IP copiată.</string>
     <string name="info_dialog_url_copy_toast_msg" translatable="true">URL copiat</string>
@@ -201,10 +200,9 @@
     <string name="settings_connectivity_checks_desc" translatable="true">Sunt trimise verificări de conectivitate pentru a determina disponibilitatea.</string>
     <string name="settings_allow_lan_heading" translatable="true">Nu direcționa IP-urile private (experimental)</string>
     <string name="settings_allow_lan_desc" translatable="true">Exclude direcționările LAN, loopback, multicast și link-local din tunelul VPN al Keepout.</string>
-    <string name="settings_exclude_proxy_apps_desc" translatable="true">Când este dezactivat, exclude aplicațiile proxy (SOCKS5, HTTP, DNS) din tunelul VPN al Keepout.</string>
     <string name="settings_allow_bypass_heading" translatable="true">Activează vizibilitatea rețelei</string>
     <string name="settings_allow_bypass_desc" translatable="true">Permite aplicațiilor să acceseze toate rețelele disponibile. La nevoie, aceste aplicații pot ocoli tunelul VPN Keepout. Unele aplicații de audio/video conferință precum Zoom și Meet au nevoie de asta pentru a funcționa corespunzător.</string>
-    <string name="settings_lock_down_mode_desc" translatable="true">Anumite opțiuni sunt dezactivate când VPN e în modul lockdown. <u>Vezi setările VPN</u>.</string>
+    <string name="settings_lock_down_mode_desc" translatable="true">Anumite opțiuni sunt dezactivate când VPN e în modul lockdown. Vezi setările VPN.</string>
     <string name="settings_lock_down_proxy_desc" translatable="true">Nu pot fi setate proxy-uri când VPN rulează în modul DNS-only.</string>
     <string name="settings_socks5_heading" translatable="true">Setări Proxy SOCKS5</string>
     <string name="settings_https_heading" translatable="true">Setări Proxy HTTP(S) CONNECT</string>
@@ -222,7 +220,7 @@
     <string name="orbot_stop_dialog_dns_message" translatable="true">Keepout este setat să transmită cererile DNS la Orbot. Modifică dacă e necesar.</string>
     <string name="local_blocklist_download_desc" translatable="true">Descarc listele de blocat (în jur de 60Mb) pentru a utiliza această opțiune?</string>
     <string name="dns_proxy_remove_dialog_title" translatable="true">Elimini DNS Proxy?</string>
-    <string name="always_on_dialog_lockdown_stop_message" translatable="true">Keepout rulează VPN în modul <i>Lockdown</i>. Oprirea acestuia va duce la pierderea conexiunii internet pe acest profil de utilizator. Vrei să continui?</string>
+    <string name="always_on_dialog_lockdown_stop_message" translatable="true">Keepout rulează VPN în modul Lockdown. Oprirea acestuia va duce la pierderea conexiunii internet pe acest profil de utilizator. Vrei să continui?</string>
     <string name="refresh_complete" translatable="true"><!-- use dc_refresh_toast -->Lista aplicațiilor reactualizată.</string>
     <string name="orbot_bs_status_4" translatable="true">Setare Tor-ca-Proxy (Orbot) dintr-un singur click.</string>
     <string name="orbot_stop_dialog_message" translatable="true">Keepout a oprit transmiterea conexiunilor prin Orbot, dar e posibil ca Orbot să ruleze încă în fundal.</string>
@@ -241,12 +239,12 @@
     <string name="settings_orbot_notification_action" translatable="true">Deschide Orbot</string>
     <string name="settings_autostart_bootup_heading" translatable="true">Auto-start la pornirea dispozitivului (experimental)</string>
     <string name="settings_autostart_bootup_desc" translatable="true">La pornirea dispozitivului, startează Keepout dacă rula înainte de închidere.</string>
-    <string name="orbot_explanation" translatable="true">Orbot este o aplicație proxy gratuită care permite altor aplicații să folosească internetul mult mai <u>sigur</u>.\nOrbot folosește <u>Tor</u> pentru a cripta traficul tău de internet și astfel te ajută să <u>ocolești cenzura</u> și să eviți diferitele forme de <u>supraveghere în rețea</u> care pun în pericol libertatea și intimitatea personală\n<u>TCP Proxy</u>: Keepout direcționează numai conexiunile TCP ale aplicațiilor <i>adăugate</i> la Orbot.\n<u>HTTP Proxy</u>: Keepout <i>instalează</i> tunelul HTTP CONNECT la Orbot și direcționează numai conexiunile TCP ale aplicațiilor <i>adăugate</i>.</string>
+    <string name="orbot_explanation" translatable="true">Orbot este o aplicație proxy gratuită care permite altor aplicații să folosească internetul mult mai sigur.\nOrbot folosește Tor pentru a cripta traficul tău de internet și astfel te ajută să ocolești cenzura și să eviți diferitele forme de supraveghere în rețea care pun în pericol libertatea și intimitatea personală\nTCP Proxy: Keepout direcționează numai conexiunile TCP ale aplicațiilor adăugate la Orbot.\nHTTP Proxy: Keepout instalează tunelul HTTP CONNECT la Orbot și direcționează numai conexiunile TCP ale aplicațiilor adăugate.</string>
     <string name="settings_network_all_networks" translatable="true">Folosește toate rețelele disponibile (experimental)</string>
-    <string name="settings_network_all_networks_desc" translatable="true">Când este activat, Keepout folosește toate rețelele disponibile pentru conectarea la internet. Dacă nu, folosește orice rețea indicată ca <i>activă</i> de Android.</string>
+    <string name="settings_network_all_networks_desc" translatable="true">Când este activat, Keepout folosește toate rețelele disponibile pentru conectarea la internet. Dacă nu, folosește orice rețea indicată ca activă de Android.</string>
     <string name="settings_check_update_desc" translatable="true">Verifică automat pentru actualizări săptămânal.</string>
     <string name="settings_custom_downloader_heading" translatable="true">Folosește downloader-ul aplicației</string>
-    <string name="settings_custom_downloader_desc" translatable="true">Dacă e dezactivat, se folosește <i>Download Manager</i> al Android</string>
+    <string name="settings_custom_downloader_desc" translatable="true">Dacă e dezactivat, se folosește Download Manager al Android</string>
     <string name="settings_import_export_desc" translatable="true">Efectuează manual copie de rezervă sau restaurare a setărilor și datelor din aplicații.</string>
     <string name="settings_ip_dialog_title" translatable="true">Alege versiunea IP</string>
     <string name="settings_ip_dialog_ipv4" translatable="true">IPv4 (prestabilit)</string>
@@ -283,7 +281,7 @@
     <string name="dc_local_block_heading" translatable="true">Liste de blocat de pe dispozitiv</string>
     <string name="hsf_pause_vpn_failure" translatable="true">Keepout nu poate fi pus în pauză deoarece e inactiv</string>
     <string name="dc_dns_website_heading" translatable="true">Arată icon-urile website-urilor în jurnalul DNS (experimental)</string>
-    <string name="dc_dns_website_desc" translatable="true">Colectează icon-uri de website de la <i>nextdns.io</i> și <i>duckduckgo.com</i>. Consumă până la 350Mb spațiu memorie</string>
+    <string name="dc_dns_website_desc" translatable="true">Colectează icon-uri de website de la nextdns.io și duckduckgo.com. Consumă până la 350Mb spațiu memorie</string>
     <string name="dc_proxy_dns_heading" translatable="true">Niciodată Proxy DNS</string>
     <string name="dc_proxy_dns_desc" translatable="true">Nu utiliza DNS peste proxy-uri permanente WireGuard, SOCKS5, HTTP.</string>
     <string name="dc_dns_leaks_heading" translatable="true">Previne scurgerile DNS</string>
@@ -407,34 +405,34 @@
     <string name="fapps_info_dialog_positive_btn" translatable="true">Okay</string>
     <string name="fapps_unmetered_unblock_dialog_title" translatable="true">Permite în rețele necontorizate</string>
     <string name="fapps_unmetered_block_dialog_title" translatable="true">Blochează în rețele necontorizate</string>
-    <string name="fapps_unmetered_unblock_dialog_message">Permiți conexiunile în rețele necontorizate (WiFi) pentru aplicațiile <i>din listă</i>\?</string>
-    <string name="fapps_unmetered_block_dialog_message" translatable="true">Blochezi conexiunile în rețele necontorizate (WiFi) pentru aplicațiile <i>din listă</i>\?</string>
+    <string name="fapps_unmetered_unblock_dialog_message">Permiți conexiunile în rețele necontorizate (WiFi) pentru aplicațiile din listă\?</string>
+    <string name="fapps_unmetered_block_dialog_message" translatable="true">Blochezi conexiunile în rețele necontorizate (WiFi) pentru aplicațiile din listă\?</string>
     <string name="rules_load_failure_heading" translatable="true">Notă</string>
     <string name="network_log_app_name_unknown" translatable="true">Necunoscut</string>
     <string name="accessibility_notification_content" translatable="true">Serviciul de accesibilitate Keepout s-a oprit sau blocat. Ca urmare, aplicațiile în fundal nu mai sunt blocate. Tap pentru a reactiva.</string>
     <string name="other_dns_list_tab3" translatable="true">Proxy Dns</string>
     <string name="firewall_rule_block_app_exception" translatable="true">Eroare</string>
-    <string name="firewall_rule_block_ip_desc" translatable="true"><![CDATA[O regulă firewall setată de utilizator blochează <i>IP-ul destinație</i>.<br/><br/> Pentru a schimba, mergi la tab-ul <i>Firewall per Aplicație</i>.]]></string>
-    <string name="firewall_rule_bypass_universal_ip_desc" translatable="true"><![CDATA[Această conexiune a fost permisă pentru că <i>IP-ul destinație</i> este setat să ocolească toate regulile firewall.<br/><br/> Pentru a schimba, mergi la <i>Reguli IP<i> în tab-ul <i>Universal</i>.]]></string>
-    <string name="firewall_rule_bypass_dns_firewall_desc" translatable="true"><![CDATA[Această conexiune a fost permisă pentru că the <i>aplicația solicitantă</i> este setată pe <i>ocolirea regulilor dns și firewall</i>.<br/><br/> Pentru a schimba, mergi la ecranul <i>Firewall per Aplicație</i>.]]></string>
-    <string name="firewall_rule_domain_trusted_univ_desc" translatable="true"><![CDATA[Această conexiune a fost permisă pentru că <i>domeniul</i> este setat de încredere de regulile Universale de domeniu.<br/><br/> Pentru modificare, mergi la tab-ul<i>Configurare DNS</i>.]]></string>
+    <string name="firewall_rule_block_ip_desc" translatable="true"><![CDATA[O regulă firewall setată de utilizator blochează IP-ul destinație.]]></string>
+    <string name="firewall_rule_bypass_universal_ip_desc" translatable="true"><![CDATA[Această conexiune a fost permisă pentru că IP-ul destinație este setat să ocolească toate regulile firewall.]]></string>
+    <string name="firewall_rule_bypass_dns_firewall_desc" translatable="true"><![CDATA[Această conexiune a fost permisă pentru că the aplicația solicitantă este setată pe ocolirea regulilor dns și firewall.]]></string>
+    <string name="firewall_rule_domain_trusted_univ_desc" translatable="true"><![CDATA[Această conexiune a fost permisă pentru că domeniul este setat de încredere de regulile Universale de domeniu.]]></string>
     <string name="new_app_bulk_notification_title" translatable="true">Atenție</string>
     <string name="new_app_notification_action_toast_deny" translatable="true">Conexiune de rețea refuzată pentru aplicație</string>
     <string name="notif_channel_vpn_failure" translatable="true">VPN inactivă</string>
     <string name="notif_channel_desc_firewall_alerts" translatable="true">Notificare la erori și anomalii ale Firewall-ului</string>
-    <string name="fapps_bypass_block_dialog_message" translatable="true">Ocolești regulile universale de Firewall pentru aplicațiile <i>din listă</i>\?</string>
+    <string name="fapps_bypass_block_dialog_message" translatable="true">Ocolești regulile universale de Firewall pentru aplicațiile din listă\?</string>
     <string name="fapps_bypass_dns_firewall_dialog_title" translatable="true">Aplicații cu ocolire</string>
-    <string name="fapps_bypass_dns_firewall_dialog_message" translatable="true">Ocolești regulile universale la DNS și Firewall pentru aplicațiile <i>din listă</i>\?</string>
+    <string name="fapps_bypass_dns_firewall_dialog_message" translatable="true">Ocolești regulile universale la DNS și Firewall pentru aplicațiile din listă\?</string>
     <string name="fapps_unblock_dialog_title" translatable="true">Permite aplicații</string>
     <string name="fapps_exclude_block_dialog_title" translatable="true">Exclude aplicații</string>
-    <string name="fapps_unblock_dialog_message" translatable="true">Permiți conexiunile pentru aplicațiile <i>din listă</i>\?</string>
-    <string name="fapps_exclude_block_dialog_message" translatable="true">Excluzi aplicațiile <i>din listă</i> de la Firewall și DNS?</string>
+    <string name="fapps_unblock_dialog_message" translatable="true">Permiți conexiunile pentru aplicațiile din listă\?</string>
+    <string name="fapps_exclude_block_dialog_message" translatable="true">Excluzi aplicațiile din listă de la Firewall și DNS?</string>
     <string name="fapps_isolate_block_dialog_title" translatable="true">Izolare aplicatii</string>
-    <string name="fapps_isolate_block_dialog_message" translatable="true">Izolezi aplicațiile <i>din listă</i>\?</string>
+    <string name="fapps_isolate_block_dialog_message" translatable="true">Izolezi aplicațiile din listă\?</string>
     <string name="fapps_metered_block_dialog_title" translatable="true">Blocare în rețele contorizate</string>
     <string name="fapps_metered_unblock_dialog_title" translatable="true">Permis în rețele contorizate</string>
-    <string name="fapps_metered_unblock_dialog_message" translatable="true">Permiți conexiunile în rețelele contorizate (mobile) pentru aplicațiile <i>din listă</i>\?</string>
-    <string name="fapps_metered_block_dialog_message" translatable="true">Blochezi conexiunile în rețelele contorizate (mobile) pentru aplicațiile <i>din listă</i>\?</string>
+    <string name="fapps_metered_unblock_dialog_message" translatable="true">Permiți conexiunile în rețelele contorizate (mobile) pentru aplicațiile din listă\?</string>
+    <string name="fapps_metered_block_dialog_message" translatable="true">Blochezi conexiunile în rețelele contorizate (mobile) pentru aplicațiile din listă\?</string>
     <string name="fapps_bypass_block_dialog_title" translatable="true">Aplicații cu ocolire</string>
     <string name="rules_load_failure_desc" translatable="true">Nu ai fost găsite reguli pentru Firewall</string>
     <string name="rules_load_failure_reload" translatable="true">Reîncărcare</string>
@@ -481,29 +479,29 @@
     <string name="firewall_rule_domain_trusted_univ" translatable="true">Domeniu de încredere (Universal)</string>
     <string name="firewall_rule_proxied" translatable="true">Prin Proxy</string>
     <string name="firewall_rule_no_rule_desc" translatable="true">Nici o regulă firewall pentru această conexiune.</string>
-    <string name="firewall_rule_new_app_desc" translatable="true"><![CDATA[Această aplicație se conectează <i>întâia</i> oară.<br/><br/> Pentru a-i schimba setările, mergi la tab-ul <i>Universal</i>.]]></string>
-    <string name="firewall_rule_block_app_unmetered_desc" translatable="true"><![CDATA[O regulă firewall setată de utilizator blochează conectarea acestei <i>aplicații</i> în rețelele <i>necontorizate</i>.<br/><br/>Pentru a schimba, mergi la tab-ul <i>Toate</i> (aplicațiile).]]></string>
-    <string name="firewall_rule_block_app_desc" translatable="true"><![CDATA[O regulă firewall setată de utilizator blochează această <i>aplicație</i>.<br/><br/>Pentru a schimba, mergi la tab-ul <i>Toate</i> (aplicațiile).]]></string>
-    <string name="firewall_rule_block_app_mobile_desc" translatable="true"><![CDATA[O regulă firewall setată de utilizator blochează conectarea acestei <i>aplicații</i> în rețelele <i>contorizate</i>.<br/><br/>Pentru a schimba, mergi la tab-ul <i>Toate</i> (aplicațiile).]]></string>
-    <string name="firewall_rule_block_app_univ_mobile_desc" translatable="true"><![CDATA[O regulă firewall setată de utilizator blochează conectarea acestei <i>aplicații</i> în rețelele <i>contorizate</i> (mobile).<br/><br/>Pentru a schimba, mergi la tab-ul <i>Universal</i>.]]></string>
-    <string name="firewall_rule_isolate_desc" translatable="true"><![CDATA[O regulă firewall setată de utilizator blochează conectarea acestei <i>aplicații</i> la alte IP-uri în afară celor <i>cu ocolire</i>.<br/><br/>Pentru a schimba, mergi la tab-ul <i>Toate</i> (aplicațiile).]]></string>
-    <string name="firewall_rule_block_ip_univ_desc" translatable="true"><![CDATA[O regulă firewall setată de utilizator blochează <i>IP-ul/Portul destinație</i>.<br/><br/> Pentru a schimba, mergi la tab-ul <i>Universal</i>.]]></string>
-    <string name="firewall_rule_trusted_ip_desc" translatable="true"><![CDATA[Această conexiune a fost permisă pentru că <i>IP-ul destinație</i> este setat ca IP de încredere.<br/><br/> Pentru a schimba, mergi la ecranul <i>Firewall per Aplicație</i>.]]></string>
-    <string name="firewall_rule_device_lock_desc" translatable="true"><![CDATA[Această conexiune a fost blocată de firewall pentru că <i>dispozitivul era blocat</i> la acel moment.<br/><br/> Pentru a schimba regula, mergi la tab-ul <i>Universal</i>.]]></string>
-    <string name="firewall_rule_unknown_desc" translatable="true"><![CDATA[Această conexiune a fost blocată de firewall pentru că <i>sursa aplicației</i> este necunoscută.<br/><br/> Pentru a schimba regula, mergi la tab-ul <i>Universal</i>.]]></string>
-    <string name="firewall_rule_block_udp_ntp_desc" translatable="true"><![CDATA[O regulă setată de utlizator a blocat această conexiune <i>UDP</i>.<br/><br/> Pentru a schimba regula, mergi la tab-ul <i>Universal</i>.]]></string>
-    <string name="firewall_rule_foreground_desc" translatable="true"><![CDATA[Această conexiune a fost blocată de firewall pentru că aplicația solicitantă rula <i>în fundal</i>.<br/><br/> Pentru a schimba regula, mergi la tab-ul <i>Universal</i>.]]></string>
-    <string name="firewall_rule_block_dns_bypass_desc" translatable="true"><![CDATA[Această conexiune a fost blocată pentru ca <i>aplicația solicitantă</i> a ocolit DNS-ul preferat de utilizator. <br/><br/> Pentru a schimba regula, mergi la tab-ul <i>Universal</i>.]]></string>
-    <string name="firewall_rule_exempt_app_bypass_univ_desc" translatable="true"><![CDATA[Această conexiune a fost permisă pentru că<i>aplicația solicitantă</i> este setată pe <i>ocolirea regulilor universale</i> ale firewall-ului.<br/><br/> Pentru a schimba regula, mergi la tab-ul <i>Firewall per Aplicație</i>.]]></string>
-    <string name="firewall_rule_exempt_dns_proxied_desc" translatable="true"><![CDATA[Această conexiune DNS s-a realizat prin proxy, fiind înaintată la endpoint-ul DNS preferat de utilizator.<br/><br/> Pentru modificare, dezactivează <i>Previne scurgerile DNS</i> din ecranul DNS <i>Configurare</i>.]]></string>
-    <string name="firewall_rule_exempt_orbot_setup_desc" translatable="true"><![CDATA[Această conexiune a fost permisă pentru că instalarea <i>Tor-ca proxy cu un singur click</i> este în curs de realizare.]]></string>
-    <string name="firewall_rule_block_http_desc" translatable="true"><![CDATA[Această conexiune a fost blocată pentru că e posibil să utilizeze <i>HTTP nesigur</i>.<br/><br/> Pentru modificare, mergi la tab-ul <i>Universal</i>.]]></string>
-    <string name="firewall_rule_global_lockdown_desc" translatable="true"><![CDATA[Această conexiune a fost blocată pentru că a fost setată Blocarea universală.<br/><br/> Pentru modificare, mergi la tab-ul <i>Universal</i>.]]></string>
-    <string name="firewall_rule_block_domain_desc" translatable="true"><![CDATA[O regulă de firewall setată de utilizator a blocat <i>domeniul</i>.<br/><br/> Pentru modificare, mergi la ecranul <i>Firewall per aplicație</i>.]]></string>
-    <string name="firewall_rule_trusted_domain_desc" translatable="true"><![CDATA[Această conexiune a fost permisă pentru că <i>domeniul</i> este setat ca domeniu de încredere.<br/><br/> Pentru modificare, mergi la ecranul <i>Firewall per aplicație</i>.]]></string>
-    <string name="firewall_rule_dns_blocked_desc" translatable="true"><![CDATA[Această conexiune a fost blocată pentru că <i>domeniul</i> este blocat de DNS-ul preferat de utilizator.<br/><br/> Pentru modificare, mergi la tab-ul <i>Configurare DNS</i>.]]></string>
-    <string name="firewall_rule_domain_blocked_univ_desc" translatable="true"><![CDATA[Această conexiune a fost blocată pentru că <i>domeniul</i> este blocat de regulile Universale de domeniu.<br/><br/> Pentru modificare, mergi la tab-ul <i>Configurare DNS</i>.]]></string>
-    <string name="firewall_rule_proxied_desc" translatable="true"><![CDATA[Această conexiune a fost înaintată la Proxy-ul preferat de utilizator.<br/><br/> Pentru modificare, mergi la <i>Proxy</i> în ecranul <i>Configurare</i>.]]></string>
+    <string name="firewall_rule_new_app_desc" translatable="true"><![CDATA[Această aplicație se conectează întâia oară.]]></string>
+    <string name="firewall_rule_block_app_unmetered_desc" translatable="true"><![CDATA[O regulă firewall setată de utilizator blochează conectarea acestei aplicații în rețelele necontorizate.]]></string>
+    <string name="firewall_rule_block_app_desc" translatable="true"><![CDATA[O regulă firewall setată de utilizator blochează această aplicație.]]></string>
+    <string name="firewall_rule_block_app_mobile_desc" translatable="true"><![CDATA[O regulă firewall setată de utilizator blochează conectarea acestei aplicații în rețelele contorizate.]]></string>
+    <string name="firewall_rule_block_app_univ_mobile_desc" translatable="true"><![CDATA[O regulă firewall setată de utilizator blochează conectarea acestei aplicații în rețelele contorizate (mobile).]]></string>
+    <string name="firewall_rule_isolate_desc" translatable="true"><![CDATA[O regulă firewall setată de utilizator blochează conectarea acestei aplicații la alte IP-uri în afară celor cu ocolire.]]></string>
+    <string name="firewall_rule_block_ip_univ_desc" translatable="true"><![CDATA[O regulă firewall setată de utilizator blochează IP-ul/Portul destinație.]]></string>
+    <string name="firewall_rule_trusted_ip_desc" translatable="true"><![CDATA[Această conexiune a fost permisă pentru că IP-ul destinație este setat ca IP de încredere.]]></string>
+    <string name="firewall_rule_device_lock_desc" translatable="true"><![CDATA[Această conexiune a fost blocată de firewall pentru că dispozitivul era blocat la acel moment.]]></string>
+    <string name="firewall_rule_unknown_desc" translatable="true"><![CDATA[Această conexiune a fost blocată de firewall pentru că sursa aplicației este necunoscută.]]></string>
+    <string name="firewall_rule_block_udp_ntp_desc" translatable="true"><![CDATA[O regulă setată de utlizator a blocat această conexiune UDP.]]></string>
+    <string name="firewall_rule_foreground_desc" translatable="true"><![CDATA[Această conexiune a fost blocată de firewall pentru că aplicația solicitantă rula în fundal.]]></string>
+    <string name="firewall_rule_block_dns_bypass_desc" translatable="true"><![CDATA[Această conexiune a fost blocată pentru ca aplicația solicitantă a ocolit DNS-ul preferat de utilizator.]]></string>
+    <string name="firewall_rule_exempt_app_bypass_univ_desc" translatable="true"><![CDATA[Această conexiune a fost permisă pentru căaplicația solicitantă este setată pe ocolirea regulilor universale ale firewall-ului.]]></string>
+    <string name="firewall_rule_exempt_dns_proxied_desc" translatable="true"><![CDATA[Această conexiune DNS s-a realizat prin proxy, fiind înaintată la endpoint-ul DNS preferat de utilizator.]]></string>
+    <string name="firewall_rule_exempt_orbot_setup_desc" translatable="true"><![CDATA[Această conexiune a fost permisă pentru că instalarea Tor-ca proxy cu un singur click este în curs de realizare.]]></string>
+    <string name="firewall_rule_block_http_desc" translatable="true"><![CDATA[Această conexiune a fost blocată pentru că e posibil să utilizeze HTTP nesigur.]]></string>
+    <string name="firewall_rule_global_lockdown_desc" translatable="true"><![CDATA[Această conexiune a fost blocată pentru că a fost setată Blocarea universală.]]></string>
+    <string name="firewall_rule_block_domain_desc" translatable="true"><![CDATA[O regulă de firewall setată de utilizator a blocat domeniul.]]></string>
+    <string name="firewall_rule_trusted_domain_desc" translatable="true"><![CDATA[Această conexiune a fost permisă pentru că domeniul este setat ca domeniu de încredere.]]></string>
+    <string name="firewall_rule_dns_blocked_desc" translatable="true"><![CDATA[Această conexiune a fost blocată pentru că domeniul este blocat de DNS-ul preferat de utilizator.]]></string>
+    <string name="firewall_rule_domain_blocked_univ_desc" translatable="true"><![CDATA[Această conexiune a fost blocată pentru că domeniul este blocat de regulile Universale de domeniu.]]></string>
+    <string name="firewall_rule_proxied_desc" translatable="true"><![CDATA[Această conexiune a fost înaintată la Proxy-ul preferat de utilizator.]]></string>
     <string name="new_app_bulk_notification_content" translatable="true">Keepout a blocat %1$s aplicații noi. Tap pentru a vizualiza și modifica.</string>
     <string name="new_app_notification_content" translatable="true">Keepout a blocat aplicația instalată recent, %1$s.</string>
     <string name="new_app_notification_action_deny" translatable="true">Continuă blocarea</string>
@@ -523,9 +521,6 @@
     <string name="category_name_others" translatable="true">Altele</string>
     <string name="category_name_non_app_sys" translatable="true">Servicii de sistem</string>
     <string name="category_name_installed" translatable="true">Aplicații instalate</string>
-    <string name="build__flavor_website" translatable="true">website</string>
-    <string name="build__flavor_play_store" translatable="true">play-store</string>
-    <string name="build__flavor_fdroid" translatable="true">fdroid</string>
     <string name="cd_no_rules_text" translatable="true">Nu există reguli de domeniu.</string>
     <string name="cd_toast_edit" translatable="true">Editat</string>
     <string name="ci_dialog_error_invalid_ip" translatable="true">Adresele IP, subrețelele IP sau porturile nu sunt valide.</string>
@@ -544,7 +539,7 @@
     <string name="rt_download_desc" translatable="true">Descarcă listele de blocat (aprox. 60Mb) pentru a utiliza această opțiune.</string>
     <string name="rt_filter_parent_selected" translatable="true">Selectat</string>
     <string name="radio_max_btn" translatable="true">🪂 Max</string>
-    <string name="rt_filter_desc" translatable="true"><![CDATA[Se arată listele de blocat <u>%1$s</u>]]></string>
+    <string name="rt_filter_desc" translatable="true"><![CDATA[Se arată listele de blocat %1$s]]></string>
     <string name="ada_noapp_dialog_title" translatable="true">Nu există această aplicație</string>
     <string name="ada_noapp_dialog_message" translatable="true">Nu există informații despre aplicație. Posibil să fi fost dezinstalată?</string>
     <string name="ada_noapp_dialog_positive" translatable="true">Okay</string>
@@ -610,8 +605,8 @@
     <string name="brbs_backup_dialog_failure_positive" translatable="true">Reîncearcă crearea unei copii de rezervă</string>
     <string name="brbs_backup_dialog_failure_message" translatable="true">Nu s-a realizat copia de rezervă. Mai încerci o dată?</string>
     <string name="radio_sky_btn" translatable="true">⛅ Sky</string>
-    <string name="rt_filter_hint" translatable="true">Se arată <u>toate</u> listele de blocat</string>
-    <string name="rt_filter_desc_subgroups" translatable="true"><![CDATA[Se arată listele de blocat <u>%1$s</u>în grupul: %2$s și subgrupul: %3$s]]></string>
+    <string name="rt_filter_hint" translatable="true">Se arată toate listele de blocat</string>
+    <string name="rt_filter_desc_subgroups" translatable="true"><![CDATA[Se arată listele de blocat %1$sîn grupul: %2$s și subgrupul: %3$s]]></string>
     <string name="rethink_sky_desc" translatable="true">280+ locații; uptime ridicat; resolver stub rulând pe cloudflare.com</string>
     <string name="rethink_max_desc" translatable="true">50+ locații; mai multă intimitate; resolver recursiv rulând pe fly.io</string>
     <string name="dc_setting_dns_cache_heading" translatable="true">Booster DNS</string>
@@ -678,7 +673,7 @@
     <string name="dns_desc" translatable="true">Alege din peste 190 liste pentru a bloca reclame, trackers și malware.</string>
     <string name="status_no_network" translatable="true">Fără rețea</string>
     <string name="dc_use_sys_dns_undelegated_heading" translatable="true">Utilizează DNS de sistem pentru domenii nedelegate</string>
-    <string name="dc_use_sys_dns_undelegated_desc" translatable="true">Utilizează DNS de sistem pentru domenii nedelegate precum <i>.lan</i>, <i>.internal</i>, etc.</string>
+    <string name="dc_use_sys_dns_undelegated_desc" translatable="true">Utilizează DNS de sistem pentru domenii nedelegate precum .lan, .internal, etc.</string>
     <string name="dc_filtering_heading" translatable="true">Filtrare</string>
     <string name="cd_split_dns_heading" translatable="true">DNS ramificat (experimental)</string>
     <string name="cd_split_dns_desc" translatable="true">Redirecționează cererile DNS de la aplicațiile care folosesc proxy către serverele DNS proxy.</string>
@@ -688,10 +683,10 @@
     <string name="firewall_rule_bypass_proxy" translatable="true">Ocolire proxy</string>
     <string name="firewall_rule_paused_app" translatable="true">Aplicație în repaus</string>
     <string name="firewall_rule_lockdown_wg" translatable="true">Proxy izolat</string>
-    <string name="firewall_rule_private_dns_desc" translatable="true"><![CDATA[Această conexiune caută un server <i>DNS privat</i> care nu există]]></string>
-    <string name="firewall_rule_bypass_proxy_desc" translatable="true"><![CDATA[Această conexiune a fost permisă pentru că <i>aplicația solicitantă</i> este setată să <i>ocolească regulile</i>.<br/><br/> Pentru a modifica, mergi la setările de <i>Firewall ale aplicației.</i>]]></string>
-    <string name="firewall_rule_paused_app_desc" translatable="true"><![CDATA[Această conexiune a fost permisă pentru că <i>aplicația</i>este în stare de <i>repaus</i>.]]></string>
-    <string name="firewall_rule_lockdown_wg_desc" translatable="true"><![CDATA[Această conexiune a fost blocată pentru că WireGuard este pus în <i>izolare</i>.<br/><br/> Pentru a modifica, mergi la setările <i>WireGuard</i>.]]></string>
+    <string name="firewall_rule_private_dns_desc" translatable="true"><![CDATA[Această conexiune caută un server DNS privat care nu există]]></string>
+    <string name="firewall_rule_bypass_proxy_desc" translatable="true"><![CDATA[Această conexiune a fost permisă pentru că aplicația solicitantă este setată să ocolească regulile.]]></string>
+    <string name="firewall_rule_paused_app_desc" translatable="true"><![CDATA[Această conexiune a fost permisă pentru că aplicațiaeste în stare de repaus.]]></string>
+    <string name="firewall_rule_lockdown_wg_desc" translatable="true"><![CDATA[Această conexiune a fost blocată pentru că WireGuard este pus în izolare.]]></string>
     <string name="wireguard_disable_failure_relay" translatable="true">\"Releul WireGuard\" nu poate fi închis</string>
     <string name="config_invalid_desc" translatable="true">Configurare WireGuard incorectă</string>
     <string name="console_log_title" translatable="true">Jurnale aplicații</string>
@@ -722,20 +717,20 @@
     <string name="wg_setting_use_on_mobile_desc" translatable="true">Utilizează acest VPN WireGuard cu date mobile.</string>
     <string name="hop_add_remove_title" translatable="true">Adaugă / Elimină releu</string>
     <string name="about_terms_of_service" translatable="true">Termeni serviciu</string>
-    <string name="bypasses_network_restrictions" translatable="true">Verificările de accesibilitate ocolesc toate restricțiile de rețea. În modul <i>Auto</i>, Keepout utilizează la întâmplare IP-uri și nume-gazdă conectate anterior.</string>
+    <string name="bypasses_network_restrictions" translatable="true">Verificările de accesibilitate ocolesc toate restricțiile de rețea. În modul Auto, Keepout utilizează la întâmplare IP-uri și nume-gazdă conectate anterior.</string>
     <string name="most_contacted_asn" translatable="true">Cei mai contactați ISP</string>
     <string name="most_blocked_asn" translatable="true">Cei mai blocați ISP</string>
     <string name="download_ip_info_title" translatable="true">Arată informații despre ISP</string>
-    <string name="download_ip_info_desc" translatable="true">Oferă detalii ISP-ului pentru website-uri de la <i>rethinkdns.com</i>, cu sprijinul <i>%1$s</i></string>
+    <string name="download_ip_info_desc" translatable="true">Oferă detalii ISP-ului pentru website-uri de la rethinkdns.com, cu sprijinul %1$s</string>
     <string name="top_active_conns" translatable="true">Top conexiuni active</string>
     <string name="close_conns_dialog_title" translatable="true">Închide conexiunile</string>
     <string name="close_conns_dialog_desc" translatable="true">Închizi toate conexiunile pentru %1$s?</string>
     <string name="local_blocklist_delete_desc" translatable="true">Ștergi listele de blocat de pe dispozitiv?</string>
     <string name="fail_open_network_title" translatable="true">Blocaj la pierderea rețelei</string>
-    <string name="fail_open_network_desc" translatable="true">Când este activat, Keepout blochează toate datele când conectivitatea este întreruptă, ca în <i>Modul Avion</i>.</string>
+    <string name="fail_open_network_desc" translatable="true">Când este activat, Keepout blochează toate datele când conectivitatea este întreruptă, ca în Modul Avion.</string>
     <string name="about_license" translatable="true">Licențiat sub Apache-2.0</string>
     <string name="smart_dns" translatable="true">Smart DNS</string>
-    <string name="smart_dns_desc" translatable="true"><i>Smart DNS</i> utilizează la întâmplare oricare din acești rezolvatori DNS:</string>
+    <string name="smart_dns_desc" translatable="true">Smart DNS utilizează la întâmplare oricare din acești rezolvatori DNS:</string>
     <string name="vpn_policy_auto_desc" translatable="true">Reacționează la schimbări importante ale rețelei și conectivității.</string>
     <string name="vpn_policy_sensitive" translatable="true">Sensibil</string>
     <string name="vpn_policy_sensitive_desc" translatable="true">Reacționează la toate schimbările rețelei și conectivității.</string>
@@ -750,14 +745,14 @@
     <string name="lbl_connect" translatable="true">Conectare</string>
     <string name="lbl_criteria" translatable="true">Criteriu</string>
     <string name="firewall_rule_proxy_error" translatable="true">Eroare Proxy</string>
-    <string name="firewall_rule_proxy_error_desc" translatable="true"><![CDATA[Această conexiune a fost blocată pentru că <i>proxy-ul</i> selectat pentru aplicație nu a fost ales.<br/><br/> Pentru a modifica mergi la <i>Proxy</i> din ecranul <i>Configurare</i>.]]></string>
+    <string name="firewall_rule_proxy_error_desc" translatable="true"><![CDATA[Această conexiune a fost blocată pentru că proxy-ul selectat pentru aplicație nu a fost ales.]]></string>
     <string name="vpn_policy_fixed" translatable="true">Conservator</string>
     <string name="vpn_policy_fixed_desc" translatable="true">Reacționează minim la schimbările rețelei.</string>
     <string name="wg_setting_ssid_title" translatable="true">Numai Wi-Fi</string>
     <string name="wg_setting_ssid_desc" translatable="true">Activează acest VPN Wireguard numai la conexiunile Wi-Fi sau anumiți identificatori Wi-Fi (%1$s).</string>
     <string name="ssid_permission_explanation" translatable="true">Keepout are nevoie de permisiune pentru locație pentru a accesa identificatori Wi-Fi (%1$s).</string>
     <string name="location_enable_explanation" translatable="true">Pentru accesarea identificatorilor Wi-Fi (%1$s), pornește serviciul Locație.</string>
-    <string name="wg_ssid_dialog_description" translatable="true">%1$s această VPN Wireguard când este <i>activ</i> identificatorul Wi-Fi (%2$s) %3$s.</string>
+    <string name="wg_ssid_dialog_description" translatable="true">%1$s această VPN Wireguard când este activ identificatorul Wi-Fi (%2$s) %3$s.</string>
     <string name="wg_ssid_type_exact" translatable="true">Precis</string>
     <string name="wg_ssid_type_wildcard" translatable="true">Parțial</string>
     <string name="wg_ssid_invalid_error" translatable="true">Identificatorii Wi-Fi (%1$s) trebuie să conțină cel mult 32 caractere..</string>
@@ -767,11 +762,11 @@
     <string name="tombstone_app_desc" translatable="true">Dacă este activat, păstrează regulile pe aplicații timp de 7 zile.</string>
     <string name="settings_allow_incoming_wg_packets" translatable="true">WireGuard P2P</string>
     <string name="settings_allow_incoming_wg_packets_desc" translatable="true">Odată activate, permite intrarea conexiunile inițiate de perechile Wireguard.</string>
-    <string name="lockdown_download_message" translatable="true">E posibil ca <i>Download Manager-ul</i> din Android să nu poată funcționa când VPN este în modul <i>Lockdown</i>. Activezi downloader-ul Keepout\'s în loc?</string>
+    <string name="lockdown_download_message" translatable="true">E posibil ca Download Manager-ul din Android să nu poată funcționa când VPN este în modul Lockdown. Activezi downloader-ul Keepout\'s în loc?</string>
     <string name="lockdown_download_enable_inapp" translatable="true">Activează Downloader-ul</string>
     <string name="settings_jumbo_packets" translatable="true">Extindere lățime de bandă</string>
-    <string name="settings_jumbo_packets_desc" translatable="true">Folosește <i>pachete jumbo</i> în tunelul VPN al Keepout.</string>
-    <string name="stability_program_toast" translatable="true">Înscris în <i>programul de stabilitate</i> pentru <i>caracteristici experimentale</i>.</string>
+    <string name="settings_jumbo_packets_desc" translatable="true">Folosește pachete jumbo în tunelul VPN al Keepout.</string>
+    <string name="stability_program_toast" translatable="true">Înscris în programul de stabilitate pentru caracteristici experimentale.</string>
     <string name="home_last_24_hours">Ultimele 24 de ore</string>
     <plurals name="home_stopped_at_dns_count">
         <item quantity="one">%d interogare oprită la DNS</item>

@@ -40,7 +40,7 @@ enum class FirewallRuleset(val id: String, val title: Int, val desc: Int, val ac
     RULE1C(
         "Rule #1C",
         R.string.firewall_rule_block_app_exception,
-        R.string.firewall_rule_block_app_desc,
+        R.string.firewall_rule_block_app_exception_desc,
         R.integer.stall
     ),
     RULE1D(
@@ -195,8 +195,8 @@ enum class FirewallRuleset(val id: String, val title: Int, val desc: Int, val ac
     ),
     RULE13(
         "No route available",
-        R.string.firewall_rule_block_app,
-        R.string.firewall_rule_block_app_desc,
+        R.string.firewall_rule_no_route,
+        R.string.firewall_rule_no_route_desc,
         R.integer.stall
     ),
     RULE14(
