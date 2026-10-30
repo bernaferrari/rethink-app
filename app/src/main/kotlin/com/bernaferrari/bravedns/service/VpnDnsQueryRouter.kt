@@ -99,7 +99,9 @@ class VpnDnsQueryRouter(
         val old = Pair(previous.tidcsv, previous.tidseccsv)
         val clean = Pair(DnsTransportRouting.transportIds(old.first), DnsTransportRouting.transportIds(old.second))
         val target = getTransportIdToBypass(clean)
-        if (target == clean) return previous.copy().apply { noblock = true }
+        if (DnsTransportRouting.sameTransports(previous.tidcsv, target.first)) {
+            return if (previous.noblock) DNSOpts() else previous.copy().apply { noblock = true }
+        }
         return makeNsOpts(uid, target, domain, true, persistentState.routeRethinkInRethink)
     }
 
@@ -118,7 +120,8 @@ class VpnDnsQueryRouter(
     }
 
     private fun getTransportIdToBypass(id: Pair<String, String>): Pair<String, String> {
-        val secondary = listOf(id.first, id.second).filter(String::isNotBlank).joinToString(",")
+        val secondary = listOf(id.first, id.second).flatMap { it.split(',') }
+            .filter(String::isNotBlank).distinct().joinToString(",")
         return when (BlockFreeDnsMode.fromMode(persistentState.blockFreeDnsMode)) {
             BlockFreeDnsMode.AUTO -> {
                 if (persistentState.splitDns || persistentState.preventDnsLeaks) {
@@ -441,7 +444,7 @@ class VpnDnsQueryRouter(
                 ip = "",
                 port = 0,
                 domain,
-                true,
+                isActiveCellular(),
                 ssid,
                 defaultProxy
             )

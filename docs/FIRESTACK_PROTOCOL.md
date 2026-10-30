@@ -40,6 +40,16 @@ A user-proxy DNS transport must not recursively use another user proxy. The loca
 `onPrequery` currently returns empty DomainOpts, retaining the native default
 ranking policy. It must not introduce a second asynchronous firewall verdict path.
 
+DNS diagnostic reasons use the flow ID, app UID, question name/type and native
+start time together. Firestack documents FID as a socket identity for tunnel
+queries, so it must not be used alone as a query key. The cache is synchronized
+across answer and summary callback threads and retains bounded entries for duplicate
+summaries. The binding does not expose a DNS wire query ID; native start time has
+millisecond precision, so identical questions on one socket in the same millisecond
+cannot be distinguished perfectly without a native API extension. Conflicting
+reasons for an indistinguishable key are omitted rather than guessed. Routing verdicts
+never depend on this diagnostic cache.
+
 The native range also includes bootstrap DNS deadlock repair, serialized proxy
 notifications, DNSCrypt missing-transport handling, NAT64/ALG fixes, and WireGuard
 re-resolution and handshake changes. The full native range changes 125 paths;

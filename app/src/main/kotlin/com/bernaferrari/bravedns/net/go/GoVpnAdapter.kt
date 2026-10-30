@@ -1880,17 +1880,20 @@ class GoVpnAdapter(
     fun invalidateProxyProbes() { proxyGeneration.incrementAndGet() }
     fun isProxyProbeGenerationCurrent(generation: Long): Boolean = generation == proxyGeneration.get()
 
+    private fun hasActiveOverlay(): Boolean = WireguardManager.isAnyWgActive() || RpnProxyManager.isRpnActive()
+
     suspend fun getActiveProxiesIpAndMtu(): BraveVPNService.OverlayNetworks = kotlinx.coroutines.coroutineScope {
         val generation = proxyGeneration.get()
-        val active = WireguardManager.isAnyWgActive() || RpnProxyManager.isRpnActive()
+        val active = hasActiveOverlay()
         val proxies = getProxies() ?: return@coroutineScope BraveVPNService.OverlayNetworks(failOpen = !active, proxyGeneration = generation)
         val mtu = proxyMtu(proxies)
-        if (!active) return@coroutineScope BraveVPNService.OverlayNetworks(failOpen = true, mtu = mtu)
+        if (!active) return@coroutineScope BraveVPNService.OverlayNetworks(failOpen = true, mtu = mtu, proxyGeneration = generation)
         val results = activeProxyRouters(proxies).map { (id, router) ->
             async { reachesPerFamily(generation, id, router) }
         }.map { it.await() }
         kotlinx.coroutines.currentCoroutineContext().ensureActive()
-        if (!isProxyProbeGenerationCurrent(generation)) throw kotlinx.coroutines.CancellationException("Proxy changed during probe")
+        // The service discards stale generations inside its serializer and reruns the
+        // conflated refresh actor, without cancelling that actor for an ordinary update.
         BraveVPNService.OverlayNetworks(results.any { it.first }, results.any { it.second },
             failOpen = false, mtu = mtu, proxyGeneration = generation)
     }

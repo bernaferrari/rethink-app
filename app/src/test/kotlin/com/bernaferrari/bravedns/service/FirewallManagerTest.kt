@@ -96,16 +96,15 @@ class FirewallManagerTest : KoinTest {
         every { VpnController.closeConnectionsIfNeeded(any(), any()) } just Runs
         every { AndroidUidConfig.isUidAppRange(any()) } answers { firstArg<Int>() >= 10000 }
 
-        // Clear FirewallManager state
-        clearFirewallManagerState()
-
-        // Setup Koin with mocks
+        // Install the graph before the singleton starts its initial repository load.
         startKoin {
             modules(module {
                 single<AppInfoRepository> { mockDb }
                 single<PersistentState> { mockPersistentState }
             })
         }
+
+        clearFirewallManagerState()
 
         // Populate test data into FirewallManager's internal state
         runBlocking {
@@ -401,6 +400,16 @@ class FirewallManagerTest : KoinTest {
         assertFalse(FirewallManager.isUidFirewalled(testUid1)) // ALLOW status
         assertTrue(FirewallManager.isUidFirewalled(testUid2)) // BOTH status
         assertFalse(FirewallManager.isUidFirewalled(invalidUid)) // Non-existent UID
+    }
+
+    @Test
+    fun `one-network block is not a fully firewalled uid`() = kotlinx.coroutines.test.runTest {
+        FirewallManager.updateFirewalledApps(testUid1, FirewallManager.ConnectionStatus.UNMETERED)
+        assertFalse(FirewallManager.isUidFirewalled(testUid1))
+        FirewallManager.updateFirewalledApps(testUid1, FirewallManager.ConnectionStatus.METERED)
+        assertFalse(FirewallManager.isUidFirewalled(testUid1))
+        FirewallManager.updateFirewalledApps(testUid1, FirewallManager.ConnectionStatus.BOTH)
+        assertTrue(FirewallManager.isUidFirewalled(testUid1))
     }
 
     // Test isUidSystemApp method

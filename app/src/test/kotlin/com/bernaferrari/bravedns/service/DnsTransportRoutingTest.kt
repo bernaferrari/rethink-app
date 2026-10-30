@@ -14,6 +14,10 @@ class DnsTransportRoutingTest {
         assertEquals("wg1:Base", DnsTransportRouting.encode("wg1", "wg2,Base"))
         assertEquals(Backend.CT + "wg1:Base", DnsTransportRouting.encode(Backend.CT + "wg1", "wg2,Base"))
     }
+    @Test fun `unchanged primary transport is recognized across cache and proxy encoding`() {
+        assertTrue(DnsTransportRouting.sameTransports(Backend.CT + "Preferred:wg1:Base", "Preferred"))
+        assertFalse(DnsTransportRouting.sameTransports("Default:Base", "Preferred"))
+    }
     @Test fun `bypass policy parses original transports rather than encoded proxies`() {
         assertEquals("Preferred,System", DnsTransportRouting.transportIds("Preferred:wg1:Base,System:Exit"))
     }

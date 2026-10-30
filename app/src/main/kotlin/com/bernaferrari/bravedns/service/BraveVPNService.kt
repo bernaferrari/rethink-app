@@ -50,6 +50,7 @@ import android.util.Log
 import android.view.accessibility.AccessibilityManager
 import androidx.annotation.RequiresApi
 import androidx.core.app.ServiceCompat
+import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.RethinkDnsApplication.Companion.DEBUG
 import com.bernaferrari.bravedns.customdownloader.IpInfoDownloader
 import com.bernaferrari.bravedns.data.AppConfig
@@ -258,6 +259,8 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
     private lateinit var firewallStatsManager: FirewallStatsManager
     private lateinit var vpnDnsQueryRouter: VpnDnsQueryRouter
 
+    private var overlayNetworkRefresher: OverlayNetworkRefresher? = null
+
     private val pcapSession by lazy {
         PcapSessionController(
             applyNative = { path -> vpnAdapter?.setPcapMode(path) ?: path.isEmpty() },
@@ -266,8 +269,10 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
         )
     }
 
-    private val dnsAnswerReasons = com.bernaferrari.bravedns.util.ExpiringCache<String, String>(
-        maxSize = 4096, expireAfterWriteMs = 60_000,
+    private val dnsAnswerReasons = DnsAnswerReasons()
+
+    private fun dnsQuestionKey(summary: DNSSummary) = DnsQuestionKey(
+        summary.fid, summary.uid, summary.qName.orEmpty(), summary.qType, summary.start,
     )
 
     private val connectionFirewall by lazy {
@@ -1051,6 +1056,13 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
     }
 
     override fun onCreate() {
+        overlayNetworkRefresher = OverlayNetworkRefresher(
+            CoroutineScope(vpnScope.coroutineContext + Dispatchers.IO),
+            reportError = { error -> Logger.w(LOG_TAG_VPN, "Proxy reachability refresh failed", error) },
+        ) {
+            val networks = vpnAdapter?.getActiveProxiesIpAndMtu()
+            if (networks != null) onOverlayNetworkChanged(networks)
+        }
         connTracer = ConnectionTracer(this)
         VpnController.onVpnCreated(this)
 
@@ -2027,6 +2039,9 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
     }
 
     override fun onDestroy() {
+        dnsAnswerReasons.clear()
+        overlayNetworkRefresher?.close()
+        overlayNetworkRefresher = null
         bubbleController.dismissIfEnabled()
 
         try {
@@ -2113,7 +2128,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
                 mutable = false
             )
 
-        var builder: Builder = newBuilder().setSession("Rethink").setMtu(mtu)
+        var builder: Builder = newBuilder().setSession(getString(R.string.app_name)).setMtu(mtu)
         builder.setConfigureIntent(pendingIntent)
         val result = vpnTunRoutes.establish(builder, networks, mtu)
         builderRoutes = result.routes
@@ -2179,9 +2194,9 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
                 return
             }
         }
-        dnsAnswerReasons.getIfPresent(summary.fid)?.let {
-            summary.msg = "${summary.msg.orEmpty()}; firewall=$it"
-            dnsAnswerReasons.invalidate(summary.fid)
+        dnsAnswerReasons.find(dnsQuestionKey(summary))?.let {
+            val marker = "firewall=$it"
+            if (!summary.msg.orEmpty().contains(marker)) summary.msg = "${summary.msg.orEmpty()}; $marker"
         }
         netLogTracker.processDnsLog(summary)
         setRegionIfRequired(summary)
@@ -2224,11 +2239,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
         WireguardManager.refreshSplitProxyInfo(iid)
         // new proxy added, refresh overlay network pair
         vpnAdapter?.invalidateProxyProbes()
-        io("onProxyAdded") {
-            val nw: OverlayNetworks? = vpnAdapter?.getActiveProxiesIpAndMtu()
-            logd("onProxyAdded for proxy $iid: $nw")
-            onOverlayNetworkChanged(nw ?: OverlayNetworks())
-        }
+        overlayNetworkRefresher?.request()
         val id = iid.substringAfter(ID_WG_BASE).toIntOrNull() ?: return@go2kt
         val files = WireguardManager.getConfigFilesById(id) ?: return@go2kt
 
@@ -2258,11 +2269,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
         }
         // proxy removed, refresh overlay network pair
         vpnAdapter?.invalidateProxyProbes()
-        io("onProxyRemoved") {
-            val nw: OverlayNetworks? = vpnAdapter?.getActiveProxiesIpAndMtu()
-            logd("onProxyRemoved for proxy $iid: $nw")
-            onOverlayNetworkChanged(nw ?: OverlayNetworks())
-        }
+        overlayNetworkRefresher?.request()
     }
 
     override fun onProxyStopped(id: String?, handle: String) {
@@ -2323,11 +2330,11 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
         when (decision) {
             DnsAnswerPolicy.Decision.Keep -> DNSOpts()
             is DnsAnswerPolicy.Decision.Block -> {
-                dnsAnswerReasons.put(smm.fid, decision.rule.id)
+                dnsAnswerReasons.record(dnsQuestionKey(smm), decision.rule.id)
                 DNSOpts().apply { tidcsv = Backend.BlockAll; noblock = false }
             }
             is DnsAnswerPolicy.Decision.Bypass -> {
-                dnsAnswerReasons.put(smm.fid, decision.rule.id)
+                dnsAnswerReasons.record(dnsQuestionKey(smm), decision.rule.id)
                 vpnDnsQueryRouter.bypassAnswer(uid, smm.qName.orEmpty(), rcvdDnsOpts)
             }
         }

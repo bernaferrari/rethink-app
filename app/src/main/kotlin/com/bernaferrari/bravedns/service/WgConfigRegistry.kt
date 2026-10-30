@@ -18,6 +18,7 @@ package com.bernaferrari.bravedns.service
 import com.bernaferrari.bravedns.database.WgConfigFilesImmutable
 import com.bernaferrari.bravedns.wireguard.Config
 import java.util.concurrent.CopyOnWriteArraySet
+import java.util.concurrent.CopyOnWriteArrayList
 
 /**
  * In-memory lifecycle for parsed WireGuard [Config]s and their [WgConfigFilesImmutable]
@@ -25,18 +26,24 @@ import java.util.concurrent.CopyOnWriteArraySet
  * via the manager's `registry` field.
  */
 internal class WgConfigRegistry {
-    val mappings: CopyOnWriteArraySet<WgConfigFilesImmutable> = CopyOnWriteArraySet()
-    val configs: CopyOnWriteArraySet<Config> = CopyOnWriteArraySet()
+    // Readers retain a complete snapshot while writers prepare the next one.
+    @Volatile
+    var mappings: CopyOnWriteArraySet<WgConfigFilesImmutable> = CopyOnWriteArraySet()
+        private set
+    @Volatile
+    var configs: CopyOnWriteArrayList<Config> = CopyOnWriteArrayList()
+        private set
     var lastAddedConfigId: Int = 0
 
+    @Synchronized
     fun clear() {
-        configs.clear()
-        mappings.clear()
+        configs = CopyOnWriteArrayList()
+        mappings = CopyOnWriteArraySet()
     }
 
+    @Synchronized
     fun replaceMappings(newMappings: Collection<WgConfigFilesImmutable>) {
-        mappings.clear()
-        mappings.addAll(newMappings)
+        mappings = CopyOnWriteArraySet(newMappings)
     }
 
     fun findConfig(id: Int): Config? = configs.find { it.getId() == id }
@@ -47,40 +54,42 @@ internal class WgConfigRegistry {
 
     fun configCount(): Int = configs.size
 
+    @Synchronized
     fun addConfigIfAbsent(id: Int, build: () -> Config) {
-        if (configs.none { it.getId() == id }) {
-            configs.add(build())
-        }
+        if (configs.none { it.getId() == id }) configs = CopyOnWriteArrayList(configs + build())
     }
 
+    @Synchronized
     fun putConfig(cfg: Config) {
-        val existing = configs.find { it.getId() == cfg.getId() }
-        if (existing != null) configs.remove(existing)
-        configs.add(cfg)
+        // Config.equals compares contents, not IDs. Distinct imported configurations must
+        // remain addressable by ID even when their contents are identical.
+        configs = CopyOnWriteArrayList(configs.filterNot { it.getId() == cfg.getId() } + cfg)
     }
 
+    @Synchronized
     fun removeConfig(id: Int) {
-        configs.find { it.getId() == id }?.let { configs.remove(it) }
+        configs = CopyOnWriteArrayList(configs.filterNot { it.getId() == id })
     }
 
+    @Synchronized
     fun removeMapping(id: Int) {
-        mappings.find { it.id == id }?.let { mappings.remove(it) }
+        mappings = CopyOnWriteArraySet(mappings.filterNot { it.id == id })
     }
 
+    @Synchronized
     fun replaceMapping(
         id: Int,
         transform: (WgConfigFilesImmutable) -> WgConfigFilesImmutable,
     ): WgConfigFilesImmutable? {
         val current = mappings.find { it.id == id } ?: return null
-        mappings.remove(current)
         val next = transform(current)
-        mappings.add(next)
+        mappings = CopyOnWriteArraySet(mappings.filterNot { it.id == id } + next)
         return next
     }
 
+    @Synchronized
     fun putMapping(mapping: WgConfigFilesImmutable) {
-        mappings.find { it.id == mapping.id }?.let { mappings.remove(it) }
-        mappings.add(mapping)
+        mappings = CopyOnWriteArraySet(mappings.filterNot { it.id == mapping.id } + mapping)
     }
 
     fun addOrUpdateConfigFileMapping(
@@ -90,7 +99,7 @@ internal class WgConfigRegistry {
         serverResponse: String,
     ) {
         if (file == null) {
-            mappings.add(
+            putMapping(
                 WgConfigFilesImmutable(
                     cfg.getId(),
                     cfg.getName(),
@@ -107,9 +116,7 @@ internal class WgConfigRegistry {
                 )
             )
         } else {
-            val configFile = mappings.find { it.id == cfg.getId() }
-            mappings.remove(configFile)
-            mappings.add(file)
+            putMapping(file)
         }
     }
 

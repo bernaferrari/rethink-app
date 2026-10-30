@@ -91,8 +91,7 @@ object WireguardManager : KoinComponent {
                 Logger.w(LOG_TAG_PROXY, "wg config missing or undecryptable: $path")
                 if (it.isActive) {
                     val inactive = it.copy(isActive = false, oneWireGuard = false)
-                    registry.mappings.remove(it)
-                    registry.mappings.add(inactive)
+                    registry.putMapping(inactive)
                     db.disableConfig(it.id)
                     VpnController.removeWireGuardProxy(it.id)
                 }
@@ -110,11 +109,9 @@ object WireguardManager : KoinComponent {
                 }
                 continue
             }
-            registry.addConfigIfAbsent(it.id) {
-                val c = WgConfigParser.withIdentity(config, it.id, it.name)
-                Logger.d(LOG_TAG_PROXY, "read wg config: ${it.id}, ${it.name}")
-                c
-            }
+            registry.putConfig(WgConfigParser.withIdentity(config, it.id, it.name))
+            refreshSplitProxyInfo(ID_WG_BASE + it.id)
+            Logger.d(LOG_TAG_PROXY, "read wg config: ${it.id}, ${it.name}")
         }
         return registry.configCount()
     }

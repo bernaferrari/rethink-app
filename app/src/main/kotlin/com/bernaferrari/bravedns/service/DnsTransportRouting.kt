@@ -15,6 +15,12 @@ internal object DnsTransportRouting {
         }
     }
 
+    fun sameTransports(left: String, right: String): Boolean =
+        normalizedTransports(left) == normalizedTransports(right)
+
+    private fun normalizedTransports(encoded: String): List<String> = transportIds(encoded)
+        .split(',').filter(String::isNotBlank).map { it.removePrefix(Backend.CT) }.distinct()
+
     fun transportIds(encoded: String): String =
         encoded.split(',').filter(String::isNotBlank).joinToString(",") { it.substringBefore(':') }
 }

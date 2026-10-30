@@ -313,15 +313,40 @@ class GoVpnAdapterTest : KoinTest {
         every { router.iP6() } returns true
         every { router.mtu() } returns 1380L
 
-        io.mockk.mockkObject(com.bernaferrari.bravedns.service.WireguardManager, RpnProxyManager)
-        every { com.bernaferrari.bravedns.service.WireguardManager.isAnyWgActive() } returns false
-        every { com.bernaferrari.bravedns.service.WireguardManager.getActiveConfigs() } returns emptyList()
-        every { RpnProxyManager.isRpnActive() } returns false
-        val adapter = newAdapter(tunnel)
+        val adapter = spyk(newAdapter(tunnel), recordPrivateCalls = true)
+        every { adapter["hasActiveOverlay"]() } returns false
 
         val net = adapter.getActiveProxiesIpAndMtu()
 
-        assertEquals(BraveVPNService.OverlayNetworks(false, false, true, 1380), net)
+        assertEquals(BraveVPNService.OverlayNetworks(false, false, true, 1380, proxyGeneration = 0), net)
+    }
+
+    @Test
+    fun `proxy families are combined across independent active proxies`() = runTest {
+        val tunnel = mockk<Tunnel>(relaxed = true)
+        every { tunnel.isConnected } returns true
+        val proxies = mockk<Proxies>(relaxed = true)
+        every { tunnel.proxies } returns proxies
+        every { proxies.router().mtu() } returns 1380L
+        every { persistentState.pingv4Ips } returns "192.0.2.1:443"
+        every { persistentState.pingv6Ips } returns "[2001:db8::1]:443"
+        val v4Only = mockk<Router>(relaxed = true)
+        val v6Only = mockk<Router>(relaxed = true)
+        every { v4Only.reaches("192.0.2.1:443") } returns true
+        every { v6Only.reaches("[2001:db8::1]:443") } returns true
+        val adapter = spyk(newAdapter(tunnel), recordPrivateCalls = true)
+        every { adapter["hasActiveOverlay"]() } returns true
+        io.mockk.coEvery { adapter["activeProxyRouters"](proxies) } returns listOf("wg1" to v4Only, "wg2" to v6Only)
+        val probes = mockk<NativeProbeRunner>()
+        io.mockk.coEvery { probes.probe(any(), any()) } answers { secondArg<() -> Boolean>().invoke() }
+        GoVpnAdapter::class.java.getDeclaredField("nativeProbes").apply { isAccessible = true; set(adapter, probes) }
+        val result = adapter.getActiveProxiesIpAndMtu()
+        assertTrue(result.has4)
+        assertTrue(result.has6)
+        assertFalse(result.failOpen)
+        assertTrue(adapter.isProxyProbeGenerationCurrent(result.proxyGeneration))
+        adapter.invalidateProxyProbes()
+        assertFalse(adapter.isProxyProbeGenerationCurrent(result.proxyGeneration))
     }
 
     @Test
