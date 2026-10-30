@@ -69,7 +69,7 @@ fun RethinkLogFilterRow(
         selected = selected,
         onSelect = onSelected,
         modifier = modifier.fillMaxWidth(),
-        labels = RethinkChoiceLabels.SelectedOnly,
+        labels = RethinkChoiceLabels.SelectedIcon,
     )
 }
 
