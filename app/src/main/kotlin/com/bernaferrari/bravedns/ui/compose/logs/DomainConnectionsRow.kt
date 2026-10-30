@@ -16,8 +16,6 @@
 package com.bernaferrari.bravedns.ui.compose.logs
 
 import android.content.Intent
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -26,24 +24,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.data.AppConnection
 import com.bernaferrari.bravedns.service.FirewallManager
 import com.bernaferrari.bravedns.ui.HomeScreenActivity
-import com.bernaferrari.bravedns.ui.compose.rememberDrawablePainter
+import com.bernaferrari.bravedns.ui.compose.common.AppIcon
+import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.statistics.RethinkStatisticsSummaryItem
 import com.bernaferrari.bravedns.util.Constants
-import com.bernaferrari.bravedns.util.Utilities
+import com.bernaferrari.bravedns.util.formatByteCount
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
-fun ConnectionRow(dc: AppConnection) {
+fun ConnectionRow(dc: AppConnection, position: CardPosition = CardPosition.Single) {
     val context = LocalContext.current
     val fallbackName = if (dc.appOrDnsName.isNullOrEmpty()) {
         stringResource(R.string.network_log_app_name_unnamed, "(${dc.uid})")
@@ -56,12 +53,12 @@ fun ConnectionRow(dc: AppConnection) {
         val download =
             stringResource(
                 R.string.symbol_download,
-                Utilities.humanReadableByteCount(downloadBytes, true)
+                formatByteCount(downloadBytes)
             )
         val upload =
             stringResource(
                 R.string.symbol_upload,
-                Utilities.humanReadableByteCount(uploadBytes, true)
+                formatByteCount(uploadBytes)
             )
         stringResource(R.string.two_argument, upload, download)
     } else {
@@ -70,7 +67,7 @@ fun ConnectionRow(dc: AppConnection) {
 
     val scope = rememberCoroutineScope()
     var title by remember(dc.uid, dc.appOrDnsName) { mutableStateOf(fallbackName.orEmpty()) }
-    var icon by remember(dc.uid) { mutableStateOf(Utilities.getDefaultIcon(context)) }
+    var packageName by remember(dc.uid) { mutableStateOf("") }
     var isUnknown by remember(dc.uid) { mutableStateOf(true) }
 
     LaunchedEffect(dc.uid, dc.appOrDnsName) {
@@ -82,17 +79,11 @@ fun ConnectionRow(dc: AppConnection) {
                 } else {
                     dc.appOrDnsName
                 }
-                val resolvedIcon =
-                    Utilities.getIcon(
-                        context,
-                        appInfo?.packageName ?: "",
-                        appInfo?.appName ?: ""
-                    ) ?: Utilities.getDefaultIcon(context)
-                Triple(appInfo == null, displayName, resolvedIcon)
+                Triple(appInfo == null, displayName, appInfo?.packageName.orEmpty())
             }
         isUnknown = resolved.first
         title = resolved.second ?: fallbackName.orEmpty()
-        icon = resolved.third
+        packageName = resolved.third
     }
 
     val onClick = {
@@ -123,10 +114,7 @@ fun ConnectionRow(dc: AppConnection) {
         progressColor = Color.Transparent,
         showIndicator = true,
         onClick = onClick,
-        leadingContent = {
-            rememberDrawablePainter(icon)?.let { painter ->
-                Image(painter = painter, contentDescription = null, modifier = Modifier.size(SharedDimensions.iconContainerSm))
-            }
-        },
+        position = position,
+        leadingContent = { AppIcon(packageName) },
     )
 }

@@ -6,12 +6,8 @@
  */
 package com.bernaferrari.bravedns.ui.compose.statistics
 
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -21,9 +17,10 @@ import com.bernaferrari.bravedns.data.SummaryStatisticsType
 import com.bernaferrari.bravedns.ui.compose.statistics.RethinkDetailedStatistic
 import com.bernaferrari.bravedns.ui.compose.statistics.RethinkDetailedStatisticsScreen
 import com.bernaferrari.bravedns.ui.compose.statistics.RethinkDetailedStatisticsStrings
-import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
-import com.bernaferrari.bravedns.util.UIUtils.formatBytes
+import com.bernaferrari.bravedns.util.formatByteCount
 import com.bernaferrari.bravedns.viewmodel.DetailedStatisticsViewModel
+import com.bernaferrari.bravedns.ui.compose.common.AppIcon
+import com.bernaferrari.bravedns.ui.compose.common.lastTimeWindowLabel
 import com.bernaferrari.bravedns.viewmodel.SummaryStatisticsViewModel.TimeCategory
 
 /** Android data, resources, and icon adapter for the common detailed-statistics screen. */
@@ -54,7 +51,7 @@ fun DetailedStatisticsScreen(
 
     RethinkDetailedStatisticsScreen(
         title = stringResource(getTitleResId(type)),
-        subtitle = if (type == SummaryStatisticsType.TOP_ACTIVE_CONNS) null else getTimeCategoryText(timeCategory),
+        subtitle = if (type == SummaryStatisticsType.TOP_ACTIVE_CONNS) null else lastTimeWindowLabel(timeCategory.value),
         itemCount = pagingItems.itemCount,
         isRefreshing = pagingItems.loadState.refresh is LoadState.Loading,
         isAppending = pagingItems.loadState.append is LoadState.Loading,
@@ -70,7 +67,6 @@ fun DetailedStatisticsScreen(
 @Composable
 private fun AppConnection.toRethinkDetailedStatistic(type: SummaryStatisticsType): RethinkDetailedStatistic {
     val isCountryType = type == SummaryStatisticsType.MOST_CONTACTED_COUNTRIES
-    val appIconPainter = if (type.supportsAppIcon()) rememberStatisticsAppIconPainter(uid) else null
     val countryName = if (isCountryType) countryNameFromFlag(flag) else null
     val fallbackName = stringResource(R.string.network_log_app_name_unknown)
     val title = appOrDnsName?.takeIf { it.isNotBlank() } ?: ipAddress.takeIf { it.isNotBlank() } ?: fallbackName
@@ -78,7 +74,7 @@ private fun AppConnection.toRethinkDetailedStatistic(type: SummaryStatisticsType
         append(stringResource(R.string.summary_connections_count, count))
         totalBytes?.takeIf { it > 0L }?.let { bytes ->
             append(" · ")
-            append(formatBytes(bytes))
+            append(formatByteCount(bytes))
         }
     }
     return RethinkDetailedStatistic(
@@ -86,9 +82,7 @@ private fun AppConnection.toRethinkDetailedStatistic(type: SummaryStatisticsType
         headline = if (isCountryType) countryName ?: title else title,
         supporting = metric,
         countryFlag = flag.takeIf { isCountryType && it.isNotBlank() },
-        leadingContent = appIconPainter?.let { painter ->
-            { Icon(painter, null, tint = Color.Unspecified, modifier = Modifier.size(SharedDimensions.iconContainerMd)) }
-        },
+        leadingContent = if (type.supportsAppIcon()) ({ AppIcon(uid) }) else null,
     )
 }
 
@@ -103,14 +97,4 @@ private fun getTitleResId(type: SummaryStatisticsType): Int = when (type) {
     SummaryStatisticsType.MOST_CONTACTED_IPS -> R.string.ssv_most_contacted_ips_heading
     SummaryStatisticsType.MOST_BLOCKED_IPS -> R.string.ssv_most_blocked_ips_heading
     SummaryStatisticsType.MOST_CONTACTED_COUNTRIES -> R.string.ssv_most_contacted_countries_heading
-}
-
-@Composable
-private fun getTimeCategoryText(timeCategory: TimeCategory): String {
-    val window = when (timeCategory) {
-        TimeCategory.ONE_HOUR -> stringResource(R.string.time_window_one_hour_short)
-        TimeCategory.TWENTY_FOUR_HOUR -> stringResource(R.string.time_window_twenty_four_hours_short)
-        TimeCategory.SEVEN_DAYS -> stringResource(R.string.time_window_seven_days_short)
-    }
-    return "${stringResource(R.string.lbl_last)} $window"
 }

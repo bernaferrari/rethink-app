@@ -15,7 +15,6 @@
  */
 package com.bernaferrari.bravedns.ui.compose.logs
 
-import android.graphics.drawable.Drawable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -26,7 +25,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.bernaferrari.bravedns.R
@@ -34,11 +32,8 @@ import com.bernaferrari.bravedns.ui.compose.apps.IpRow
 import com.bernaferrari.bravedns.service.EventLogger
 import com.bernaferrari.bravedns.ui.compose.firewall.AppIpRulesSheet
 import com.bernaferrari.bravedns.util.Constants.Companion.INVALID_UID
-import com.bernaferrari.bravedns.util.Utilities
 import com.bernaferrari.bravedns.util.Utilities.removeBeginningTrailingCommas
 import com.bernaferrari.bravedns.viewmodel.AppConnectionsViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 @Composable
 fun AppWiseIpLogsScreen(
@@ -48,59 +43,23 @@ fun AppWiseIpLogsScreen(
     eventLogger: EventLogger,
     onBackClick: (() -> Unit)? = null
 ) {
-    val context = LocalContext.current
-    val twoArgumentColonTemplate = stringResource(R.string.two_argument_colon)
-    val twoArgumentSpaceTemplate = stringResource(R.string.two_argument_space)
-    val appOtherAppsTemplate = stringResource(R.string.ctbs_app_other_apps, "", "")
-    val searchLabel = stringResource(R.string.lbl_search)
-    val serviceProviderLabel = stringResource(R.string.lbl_service_providers)
-    val universalIpLabel = stringResource(R.string.search_universal_ips)
-    var appName by remember(uid) { mutableStateOf("") }
-    var searchHint by remember { mutableStateOf("") }
-    var appIcon by remember { mutableStateOf<Drawable?>(null) }
     val showDeleteIcon = remember { !isAsn }
     var selectedCategory by remember { mutableStateOf(AppConnectionsViewModel.TimeCategory.SEVEN_DAYS) }
-    var isRethinkApp by remember(uid) { mutableStateOf(false) }
+    val header = rememberAppWiseLogsHeader(uid, isAsn, onMissing = { onBackClick?.invoke() })
 
     LaunchedEffect(uid, isAsn) {
-        if (uid == INVALID_UID) {
-            onBackClick?.invoke()
-            return@LaunchedEffect
-        }
+        if (uid == INVALID_UID) return@LaunchedEffect
         viewModel.timeCategoryChanged(selectedCategory, isDomain = false)
-        withContext(Dispatchers.IO) {
-            val meta = resolveAppWiseLogsHeader(
-                context = context,
-                uid = uid,
-                isAsn = isAsn,
-                appOtherAppsTemplate = appOtherAppsTemplate,
-                twoArgumentColonTemplate = twoArgumentColonTemplate,
-                twoArgumentSpaceTemplate = twoArgumentSpaceTemplate,
-                searchLabel = searchLabel,
-                serviceProvidersLabel = serviceProviderLabel,
-                universalIpsLabel = universalIpLabel
-            )
-            if (meta == null) {
-                withContext(Dispatchers.Main) { onBackClick?.invoke() }
-                return@withContext
-            }
-            withContext(Dispatchers.Main) {
-                appName = meta.appName
-                searchHint = meta.searchHint
-                appIcon = meta.appIcon
-                isRethinkApp = meta.isRethinkApp
-            }
-        }
     }
 
     RethinkAppWiseLogsScaffold(
-        title = appName.ifBlank { stringResource(R.string.lbl_logs) },
+        title = header?.appName.orEmpty().ifBlank { stringResource(R.string.lbl_logs) },
         onBackClick = onBackClick,
         strings = appWiseLogsStrings(),
         onDelete = if (showDeleteIcon) ({ viewModel.deleteLogs(uid) }) else null,
     ) { paddingValues ->
         RethinkAppWiseLogsContent(
-            searchHint = searchHint,
+            searchHint = header?.searchHint.orEmpty(),
             fallbackSearchHint = stringResource(R.string.search_universal_ips),
             strings = appWiseLogsStrings(),
             selectedRange = selectedCategory.toRethinkTimeRange(),
@@ -119,13 +78,13 @@ fun AppWiseIpLogsScreen(
             },
             modifier = Modifier.fillMaxSize().padding(paddingValues),
             queryEnabled = !isAsn,
-            appIcon = { AppWiseLogsAndroidIcon(appIcon ?: Utilities.getDefaultIcon(context)) },
+            appIcon = header.searchIcon(),
         ) {
             AppWiseIpList(
                 viewModel = viewModel,
                 uid = uid,
                 isAsn = isAsn,
-                isRethinkApp = isRethinkApp,
+                isRethinkApp = header?.isRethinkApp == true,
                 eventLogger = eventLogger
             )
         }

@@ -3,9 +3,7 @@
 package com.bernaferrari.bravedns.ui.compose.logs
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
@@ -16,7 +14,10 @@ import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.ui.compose.logs.ConnectionRow
+import com.bernaferrari.bravedns.ui.compose.common.lastTimeWindowLabel
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkScreenDefaults
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 import com.bernaferrari.bravedns.util.UIUtils.getCountryNameFromFlag
 import com.bernaferrari.bravedns.viewmodel.DomainConnectionsViewModel
 
@@ -61,7 +62,7 @@ fun DomainConnectionsScreen(
     val isEmpty = refreshState is LoadState.NotLoading && items.itemCount == 0
     RethinkDomainConnectionsScreen(
         title = title,
-        subtitle = subtitleFor(timeCategory),
+        subtitle = lastTimeWindowLabel(timeCategory.value),
         emptyMessage = stringResource(R.string.ada_ip_no_connection),
         isEmpty = isEmpty,
         isLoading = isLoading,
@@ -70,23 +71,13 @@ fun DomainConnectionsScreen(
     ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(
-                horizontal = SharedDimensions.screenPaddingHorizontal,
-                vertical = SharedDimensions.spacingSm,
-            ),
-            verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
+            contentPadding = RethinkScreenDefaults.contentPadding,
+            verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile),
         ) {
             items(count = items.itemCount) { index ->
                 val connection = items[index] ?: return@items
-                ConnectionRow(connection)
+                ConnectionRow(connection, cardPositionFor(index, items.itemCount - 1))
             }
         }
     }
-}
-
-@Composable
-private fun subtitleFor(timeCategory: DomainConnectionsViewModel.TimeCategory): String = when (timeCategory) {
-    DomainConnectionsViewModel.TimeCategory.ONE_HOUR -> stringResource(R.string.three_argument, stringResource(R.string.lbl_last), stringResource(R.string.numeric_one), stringResource(R.string.lbl_hour))
-    DomainConnectionsViewModel.TimeCategory.TWENTY_FOUR_HOUR -> stringResource(R.string.three_argument, stringResource(R.string.lbl_last), stringResource(R.string.numeric_twenty_four), stringResource(R.string.lbl_hour))
-    DomainConnectionsViewModel.TimeCategory.SEVEN_DAYS -> stringResource(R.string.three_argument, stringResource(R.string.lbl_last), stringResource(R.string.numeric_seven), stringResource(R.string.lbl_day))
 }
