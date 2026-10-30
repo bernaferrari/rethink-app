@@ -47,6 +47,15 @@ class RestoreIdentityPolicyTest {
             status = 1; billingExpiry = Long.MAX_VALUE
         }
         db.subscriptionStatusDao().insert(purchase)
+        val proxy = com.bernaferrari.bravedns.database.RpnProxy(
+            4, "WIN", "old-state", "old-entitlement", true, false, 1, 1, "", "old-tunnel", 0, 1
+        )
+        db.rpnProxyDao().insert(proxy)
+        listOf("wgyrpn", "Auto", "RPN-WIN4", "WG1", "S51").forEachIndexed { index, id ->
+            db.wgApplicationMappingDao().insert(com.bernaferrari.bravedns.database.ProxyApplicationMapping(
+                index, "app.$index", "App $index", id, true, id
+            ))
+        }
         db.close()
         val file = context.getDatabasePath(AppDatabase.DATABASE_NAME)
         RestoreIdentityPolicy.clearImportedPurchases(file, AndroidSQLiteDriver())
@@ -59,6 +68,14 @@ class RestoreIdentityPolicyTest {
             assertEquals("", row.deviceId)
             assertEquals("", row.sessionToken)
             assertEquals("", row.developerPayload)
+            val importedProxy = requireNotNull(restored.rpnProxyDao().getProxyById(4))
+            assertFalse(importedProxy.isActive)
+            assertEquals("", importedProxy.configPath)
+            assertEquals("", importedProxy.serverResPath)
+            assertEquals("", importedProxy.tunId)
+            val mappings = restored.wgApplicationMappingDao().getWgAppMapping().associateBy { it.proxyId }
+            listOf("wgyrpn", "Auto", "RPN-WIN4").forEach { assertFalse(requireNotNull(mappings[it]).isActive) }
+            listOf("WG1", "S51").forEach { assertTrue(requireNotNull(mappings[it]).isActive) }
         } finally { restored.close(); context.deleteDatabase(AppDatabase.DATABASE_NAME) }
     }
 

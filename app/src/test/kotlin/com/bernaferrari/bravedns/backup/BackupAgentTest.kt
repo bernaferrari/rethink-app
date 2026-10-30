@@ -25,6 +25,8 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.unmockkAll
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import org.junit.After
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -120,6 +122,29 @@ class BackupAgentTest {
             com.bernaferrari.bravedns.service.VpnController.stopAndAwait(any(), any())
         }
         io.mockk.verify(exactly = 0) { com.bernaferrari.bravedns.service.VpnController.start(any(), any()) }
+    }
+
+    @Test
+    fun `overlapping exports use isolated staging and clean failures independently`() = kotlinx.coroutines.test.runTest {
+        io.mockk.mockkObject(DatabaseSnapshot)
+        val directories = java.util.concurrent.CopyOnWriteArrayList<java.io.File>()
+        every { logDatabase.dnsLogDAO().logsCount() } returns kotlinx.coroutines.flow.flowOf(0L)
+        every { DatabaseSnapshot.create(any(), any(), any()) } answers {
+            directories += secondArg<java.io.File>().parentFile
+            false
+        }
+        fun worker(): BackupAgent {
+            val params = mockk<WorkerParameters>(relaxed = true)
+            every { params.id } returns java.util.UUID.randomUUID()
+            every { params.inputData } returns androidx.work.Data.Builder().putString(
+                BackupHelper.DATA_BUILDER_BACKUP_URI, android.net.Uri.fromFile(java.io.File(tmp.root, "backup.zip")).toString()
+            ).build()
+            return BackupAgent(context, params)
+        }
+        val workers = listOf(worker(), worker())
+        workers.map { async { it.doWork() } }.awaitAll()
+        org.junit.Assert.assertEquals(2, directories.distinct().size)
+        directories.forEach { org.junit.Assert.assertFalse(it.exists()) }
     }
 
     private fun invokeBackupMetadata(): String {

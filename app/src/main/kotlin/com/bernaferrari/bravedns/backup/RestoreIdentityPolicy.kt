@@ -25,7 +25,7 @@ internal object RestoreIdentityPolicy {
                     developerPayload = '', status = 0""")
                 db.execute("""UPDATE RpnProxy SET configPath = '', serverResPath = '',
                     tunId = '', isActive = 0""")
-                db.execute("UPDATE ProxyApplicationMapping SET isActive = 0 WHERE proxyId LIKE '%rpn'")
+                db.execute("UPDATE ProxyApplicationMapping SET isActive = 0 WHERE proxyId LIKE '%rpn' OR proxyId = 'Auto' OR proxyId LIKE 'RPN-WIN%'")
                 db.execute("COMMIT")
             } catch (error: SQLiteException) {
                 db.execute("ROLLBACK")

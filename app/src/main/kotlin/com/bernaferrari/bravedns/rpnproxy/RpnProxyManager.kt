@@ -99,10 +99,8 @@ object RpnProxyManager : KoinComponent {
         WinRegistrationCoordinator(object : WinRegistrationBackend {
             override suspend fun isRegistered() = VpnController.isWinRegistered()
             override suspend fun isStale(): Boolean {
-                val entitlement = VpnController.getActiveEntitlement() ?: return false
-                val expiry = entitlement.expiry()
-                return expiry > 0L && (expiry <= System.currentTimeMillis() ||
-                    entitlement.status().equals("expired", ignoreCase = true))
+                val entitlement = VpnController.getActiveEntitlement()
+                return WinEntitlementFreshness.requiresRefresh(entitlement?.expiry(), entitlement?.status())
             }
             override suspend fun material(forceServer: Boolean) = registrationMaterialProvider.resolve(forceServer)
             override suspend fun savedState() = getWinExistingData()
