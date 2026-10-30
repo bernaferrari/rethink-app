@@ -61,7 +61,7 @@ fun RethinkSearchField(
 @Composable
 fun RethinkFilterChip(
     label: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier,
-    shape: RoundedCornerShape = RoundedCornerShape(SharedDimensions.cornerRadiusMdLg),
+    shape: RoundedCornerShape = RoundedCornerShape(SharedDimensions.cornerRadiusMd),
     // Selection family shared with connected groups and toggle actions.
     selectedContainerColor: Color = MaterialTheme.colorScheme.secondaryContainer, selectedLabelColor: Color = MaterialTheme.colorScheme.onSecondaryContainer,
     containerColor: Color = MaterialTheme.colorScheme.surfaceContainerLow, labelColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,

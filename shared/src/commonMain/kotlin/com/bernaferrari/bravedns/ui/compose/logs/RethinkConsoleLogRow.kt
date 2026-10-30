@@ -74,7 +74,7 @@ fun RethinkConsoleLogRow(
 ) {
     val severity = rethinkConsoleLogSeverity(item.level)
     val tint = severity.tint()
-    val shape = position?.let(::rethinkGroupedListShape) ?: RoundedCornerShape(SharedDimensions.cornerRadiusMdLg)
+    val shape = position?.let(::rethinkGroupedListShape) ?: RoundedCornerShape(SharedDimensions.groupCornerRadius)
     Surface(
         modifier = if (position != null) modifier.rethinkGroupedRow(position) else modifier.fillMaxWidth(),
         shape = shape,

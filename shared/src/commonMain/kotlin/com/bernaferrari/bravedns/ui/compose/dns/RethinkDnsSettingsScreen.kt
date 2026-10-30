@@ -321,7 +321,7 @@ private fun DnsChoiceCard(choice: DnsChoice, highlighted: Boolean, modifier: Mod
     val scheme = MaterialTheme.colorScheme
     val motion = LocalRethinkMotion.current
     val corner by androidx.compose.animation.core.animateDpAsState(
-        targetValue = if (choice.selected) SharedDimensions.cornerRadius3xl else SharedDimensions.cornerRadiusLg,
+        targetValue = if (choice.selected) SharedDimensions.groupCornerRadius else SharedDimensions.cornerRadiusLg,
         animationSpec = if (motion.reducedMotion) androidx.compose.animation.core.snap() else MaterialTheme.motionScheme.fastSpatialSpec(),
         label = "dnsChoiceCorner",
     )
@@ -368,7 +368,7 @@ private fun DnsInUseHero(state: RethinkDnsSettingsState, strings: RethinkDnsSett
     val latencies = state.recentLatencies.take(LATENCY_BARS)
     val median = latencies.sorted().let { if (it.isEmpty()) null else it[it.size / 2] }
     val latencyLabel = state.dnsLatency.trim('(', ')', ' ').takeIf { it.isNotBlank() } ?: median?.let { "$it ms" }
-    val shape = RoundedCornerShape(SharedDimensions.cornerRadius3xl)
+    val shape = RoundedCornerShape(SharedDimensions.groupCornerRadius)
     Surface(
         shape = shape,
         color = if (highlighted) scheme.primaryContainer else scheme.primaryContainer.copy(alpha = .78f),

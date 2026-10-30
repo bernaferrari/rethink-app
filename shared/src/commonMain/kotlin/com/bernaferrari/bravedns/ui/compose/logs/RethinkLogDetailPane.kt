@@ -84,7 +84,7 @@ fun RethinkLogDetailPane(
     val fadeSpec = if (motion.reducedMotion) snap() else MaterialTheme.motionScheme.defaultEffectsSpec<Float>()
     Surface(
         modifier = modifier.fillMaxHeight(),
-        shape = RoundedCornerShape(SharedDimensions.cornerRadius3xl),
+        shape = RoundedCornerShape(SharedDimensions.groupCornerRadius),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
         AnimatedContent(

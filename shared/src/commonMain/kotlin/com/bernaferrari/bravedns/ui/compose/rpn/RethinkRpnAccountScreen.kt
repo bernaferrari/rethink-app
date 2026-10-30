@@ -191,7 +191,7 @@ private fun RethinkRpnManageTab(
         state.message?.let { message ->
             item {
                 Surface(
-                    shape = RoundedCornerShape(SharedDimensions.cornerRadiusMd),
+                    shape = RoundedCornerShape(SharedDimensions.groupCornerRadius),
                     color = if (state.error) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer,
                     modifier = Modifier.fillMaxWidth(),
                 ) {

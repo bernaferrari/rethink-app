@@ -163,7 +163,7 @@ private fun DnsProtocolCard(
     } else {
         MaterialTheme.colorScheme.onSurface
     }
-    val cardShape = RoundedCornerShape(SharedDimensions.cornerRadiusXl)
+    val cardShape = RoundedCornerShape(SharedDimensions.groupCornerRadius)
     // Only show the long name when it adds information beyond the short label
     // (e.g. "DoH" → "DNS-over-HTTPS"), never "DNSCrypt / DNSCrypt".
     val secondary = protocol.title.takeUnless { it.isRedundantWith(protocol.label) }

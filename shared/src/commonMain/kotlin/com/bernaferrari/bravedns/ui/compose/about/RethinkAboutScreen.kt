@@ -219,7 +219,7 @@ private fun AboutIdentityHero(
     version: String?,
 ) {
     Surface(
-        shape = RoundedCornerShape(SharedDimensions.cornerRadius3xl),
+        shape = RoundedCornerShape(SharedDimensions.groupCornerRadius),
         color = MaterialTheme.colorScheme.primaryContainer,
         contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
         modifier = Modifier.fillMaxWidth(),
@@ -235,7 +235,7 @@ private fun AboutIdentityHero(
                 containerColor = MaterialTheme.colorScheme.primary,
                 size = SharedDimensions.iconContainerLg,
                 iconSize = SharedDimensions.iconSizeLg,
-                shape = RoundedCornerShape(SharedDimensions.cornerRadiusXl),
+                shape = RoundedCornerShape(SharedDimensions.iconContainerRadius),
             )
             Column(
                 modifier = Modifier.weight(1f),

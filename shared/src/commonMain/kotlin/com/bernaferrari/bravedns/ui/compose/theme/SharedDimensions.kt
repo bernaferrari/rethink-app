@@ -23,16 +23,16 @@ object SharedDimensions {
 
     val cornerRadiusXs = 4.dp
     val cornerRadiusSm = 8.dp
-    val cornerRadiusSmMd = 10.dp
     val cornerRadiusMd = 12.dp
-    val cornerRadiusMdLg = 14.dp
     val cornerRadiusLg = 16.dp
     val cornerRadiusXl = 20.dp
     val cornerRadius2xl = 28.dp
-    val cornerRadius3xl = 32.dp
     val cornerRadiusFull = 999.dp
 
-    /** Outer corners of an expressive grouped list (inner corners use [cornerRadiusSm]). */
+    /**
+     * The one card radius: grouped lists' outer corners (inner corners use [cornerRadiusSm]) and
+     * every standalone card, hero and pane. Dialogs and sheets use [cornerRadius2xl].
+     */
     val groupCornerRadius = 24.dp
 
     val iconContainerRadius = 12.dp

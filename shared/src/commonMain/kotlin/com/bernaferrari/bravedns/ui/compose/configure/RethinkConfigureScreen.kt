@@ -352,7 +352,7 @@ private fun ConfigureListRow(entry: RethinkConfigureEntry, position: CardPositio
 private fun ConfigureIconWell(colors: ConfigureTileColors, icon: @Composable () -> Unit) = RethinkIconWell(
     containerColor = colors.well,
     contentColor = colors.icon,
-    shape = RoundedCornerShape(SharedDimensions.cornerRadiusMdLg),
+    shape = RoundedCornerShape(SharedDimensions.iconContainerRadius),
     content = icon,
 )
 @Composable private fun NoResults(strings: RethinkConfigureStrings) =
