@@ -22,6 +22,13 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 
 @Composable
 fun RethinkSearchField(
@@ -70,3 +77,25 @@ fun RethinkFilterChip(
     leadingIcon = leadingIcon, trailingIcon = trailingIcon, shape = shape, border = border,
     colors = FilterChipDefaults.filterChipColors(selectedContainerColor = selectedContainerColor, selectedLabelColor = selectedLabelColor, containerColor = containerColor, labelColor = labelColor, selectedLeadingIconColor = selectedLeadingIconColor, iconColor = leadingIconColor, selectedTrailingIconColor = selectedLeadingIconColor),
 )
+
+/** A chip that opens a menu: the label shows the current choice, a caret marks it as a menu. */
+@Composable
+fun RethinkMenuChip(
+    label: String,
+    selected: Boolean,
+    modifier: Modifier = Modifier,
+    menuContent: @Composable ColumnScope.(dismiss: () -> Unit) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Box(modifier) {
+        RethinkFilterChip(
+            label = label,
+            selected = selected,
+            onClick = { expanded = true },
+            trailingIcon = { Icon(MaterialSymbols.Filled.KeyboardArrowDown, null, Modifier.size(FilterChipDefaults.IconSize)) },
+        )
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            menuContent { expanded = false }
+        }
+    }
+}

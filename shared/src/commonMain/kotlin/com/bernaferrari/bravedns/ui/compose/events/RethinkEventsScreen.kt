@@ -83,6 +83,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListShape
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedRow
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkMenuChip
 
 enum class RethinkEventFilterMode { All, Severity, Source }
 
@@ -257,7 +258,7 @@ private fun RethinkEventControls(
                 onClick = { onFiltersChange(RethinkEventFilters(RethinkEventFilterMode.All)) },
             )
             val severity = filters.severity.takeIf { filters.mode == RethinkEventFilterMode.Severity }
-            RethinkEventMenuChip(
+            RethinkMenuChip(
                 label = severity?.let { strings.filterValue(strings.severity, it.label(strings)) } ?: strings.severity,
                 selected = severity != null,
             ) { dismiss ->
@@ -289,7 +290,7 @@ private fun RethinkEventControls(
                 1 -> sourceLabel(sources.first())
                 else -> "${sourceLabel(sources.first())} +${sources.size - 1}"
             }
-            RethinkEventMenuChip(
+            RethinkMenuChip(
                 label = sourceValue?.let { strings.filterValue(strings.source, it) } ?: strings.source,
                 selected = sources.isNotEmpty(),
             ) { _ ->
@@ -322,26 +323,6 @@ private fun RethinkEventControls(
 }
 
 /** A filter chip that opens a menu; the trailing caret marks it as a menu, not a toggle. */
-@Composable
-private fun RethinkEventMenuChip(
-    label: String,
-    selected: Boolean,
-    menuContent: @Composable ColumnScope.(dismiss: () -> Unit) -> Unit,
-) {
-    var expanded by remember { mutableStateOf(false) }
-    Box {
-        RethinkFilterChip(
-            label = label,
-            selected = selected,
-            onClick = { expanded = true },
-            trailingIcon = { Icon(MaterialSymbols.Filled.KeyboardArrowDown, null, Modifier.size(FilterChipDefaults.IconSize)) },
-        )
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            menuContent { expanded = false }
-        }
-    }
-}
-
 /**
  * One event row. Tap expands to reveal details and the copy action; long-press copies directly.
  * Severity is carried once, by the tinted glyph (with its label as content description).

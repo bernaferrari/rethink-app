@@ -54,6 +54,17 @@ import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.runtime.derivedStateOf
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkMenuChip
 
 private val ShareBarWidth = 48.dp
 private val ShareBarHeight = 4.dp
@@ -128,10 +139,24 @@ fun RethinkSummaryStatisticsScreen(
     onWindowSelected: (RethinkStatisticsWindow) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    // Once the window selector scrolls away, the window rides in the top bar so it stays visible and switchable.
+    val listState = rememberLazyListState()
+    val selectorHidden by remember { derivedStateOf { listState.firstVisibleItemIndex > 0 } }
+    val reducedMotion = LocalRethinkMotion.current.reducedMotion
     RethinkAdaptiveWidth(modifier) { widthClass ->
         RethinkTopBarLazyColumnScreen(
             title = strings.title,
             modifier = Modifier.fillMaxWidth(),
+            listState = listState,
+            topBarActions = {
+                AnimatedVisibility(
+                    visible = selectorHidden,
+                    enter = if (reducedMotion) EnterTransition.None else fadeIn() + scaleIn(initialScale = 0.9f),
+                    exit = if (reducedMotion) ExitTransition.None else fadeOut() + scaleOut(targetScale = 0.9f),
+                ) {
+                    RethinkStatisticsWindowMenu(selectedWindow, strings, onWindowSelected, Modifier.padding(end = SharedDimensions.spacingSm))
+                }
+            },
         ) {
             // The window scopes everything below it, including the usage totals, so it leads.
             item {
@@ -172,17 +197,49 @@ fun RethinkSummaryStatisticsScreen(
     }
 }
 
+private fun RethinkSummaryStatisticsStrings.windowOptions() = listOf(
+    RethinkStatisticsWindow.OneHour to oneHour,
+    RethinkStatisticsWindow.TwentyFourHours to twentyFourHours,
+    RethinkStatisticsWindow.SevenDays to sevenDays,
+)
+
+@Composable
+private fun RethinkStatisticsWindowMenu(
+    selectedWindow: RethinkStatisticsWindow,
+    strings: RethinkSummaryStatisticsStrings,
+    onWindowSelected: (RethinkStatisticsWindow) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val options = strings.windowOptions()
+    RethinkMenuChip(
+        label = options.first { it.first == selectedWindow }.second,
+        selected = true,
+        modifier = modifier,
+    ) { dismiss ->
+        options.forEach { (window, label) ->
+            DropdownMenuItem(
+                text = { Text(label) },
+                trailingIcon = if (window == selectedWindow) {
+                    { Icon(MaterialSymbols.Filled.Check, null) }
+                } else {
+                    null
+                },
+                onClick = {
+                    dismiss()
+                    onWindowSelected(window)
+                },
+            )
+        }
+    }
+}
+
 @Composable
 private fun RethinkStatisticsWindowSelector(
     selectedWindow: RethinkStatisticsWindow,
     strings: RethinkSummaryStatisticsStrings,
     onWindowSelected: (RethinkStatisticsWindow) -> Unit,
 ) {
-    val options = listOf(
-        RethinkStatisticsWindow.OneHour to strings.oneHour,
-        RethinkStatisticsWindow.TwentyFourHours to strings.twentyFourHours,
-        RethinkStatisticsWindow.SevenDays to strings.sevenDays,
-    )
+    val options = strings.windowOptions()
     RethinkConnectedChoiceGroup(
         options = options.map { (window, label) -> RethinkChoiceOption(window, label) },
         selected = selectedWindow,
