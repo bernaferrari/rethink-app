@@ -11,7 +11,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWellContainerColor
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSwitchListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBarLazyColumnScreen
@@ -73,11 +72,6 @@ private fun AdvancedToggleRow(
         supporting = description,
         leadingIcon = icon,
         leadingIconTint = if (warning) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
-        leadingIconContainerColor = if (warning) {
-            MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.6f)
-        } else {
-            RethinkIconWellContainerColor
-        },
         position = position,
     )
 }

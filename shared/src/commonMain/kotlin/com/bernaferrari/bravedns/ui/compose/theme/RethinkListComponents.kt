@@ -41,6 +41,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.foundation.layout.Box
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -171,12 +172,16 @@ fun RethinkListItem(
     contentOffset: Modifier = Modifier,
     leadingIcon: ImageVector? = null,
     /**
-     * Destructive action row (delete, reset, sign out): error-toned icon well and headline.
-     * Overrides [leadingIconTint]/[leadingIconContainerColor].
+     * Destructive action row (delete, reset, sign out): error-toned icon and headline.
+     * Overrides [leadingIconTint].
      */
     destructive: Boolean = false,
-    leadingIconTint: Color = if (destructive) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.primary,
-    leadingIconContainerColor: Color = if (destructive) MaterialTheme.colorScheme.errorContainer else RethinkIconWellContainerColor,
+    leadingIconTint: Color = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+    /**
+     * Null draws the icon bare, which is what plain rows want: a filled well on every row reads
+     * heavy. Pass a colour only when the well itself says something (active, selected, warning).
+     */
+    leadingIconContainerColor: Color? = null,
     leadingIconContainerShape: Shape = RoundedCornerShape(SharedDimensions.iconContainerRadius),
     leadingContent: (@Composable () -> Unit)? = null,
     trailing: (@Composable () -> Unit)? = null,
@@ -253,10 +258,18 @@ fun RethinkListItem(
                 // rows so their content aligns with the card inset instead of a phantom icon.
                 leadingContent = when {
                     leadingContent != null -> leadingContent
-                    leadingIcon != null -> {
+                    leadingIcon != null && leadingIconContainerColor != null -> {
                         {
                             RethinkIconWell(containerColor = leadingIconContainerColor, contentColor = leadingIconTint, shape = leadingIconContainerShape) {
                                 androidx.compose.material3.Icon(leadingIcon, null, tint = leadingIconTint.copy(alpha = alpha), modifier = Modifier.size(SharedDimensions.iconSizeSm))
+                            }
+                        }
+                    }
+                    // Bare icon in the same 40dp slot, so text lines up with rows that do have a well.
+                    leadingIcon != null -> {
+                        {
+                            Box(Modifier.size(SharedDimensions.iconContainerMd), contentAlignment = Alignment.Center) {
+                                androidx.compose.material3.Icon(leadingIcon, null, tint = leadingIconTint.copy(alpha = alpha), modifier = Modifier.size(SharedDimensions.iconSizeMd))
                             }
                         }
                     }
@@ -353,7 +366,7 @@ fun RethinkSwitchListItem(
     supportingAnnotated: AnnotatedString? = null,
     leadingIcon: ImageVector? = null,
     leadingIconTint: Color = MaterialTheme.colorScheme.primary,
-    leadingIconContainerColor: Color = RethinkIconWellContainerColor,
+    leadingIconContainerColor: Color? = null,
     leadingContent: (@Composable () -> Unit)? = null,
     position: CardPosition = CardPosition.Middle,
     enabled: Boolean = true,
@@ -389,7 +402,7 @@ fun RethinkCheckboxListItem(
     supportingAnnotated: AnnotatedString? = null,
     leadingIcon: ImageVector? = null,
     leadingIconTint: Color = MaterialTheme.colorScheme.primary,
-    leadingIconContainerColor: Color = RethinkIconWellContainerColor,
+    leadingIconContainerColor: Color? = null,
     leadingContent: (@Composable () -> Unit)? = null,
     position: CardPosition = CardPosition.Middle,
     enabled: Boolean = true,

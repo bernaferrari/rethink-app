@@ -21,7 +21,6 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWellDefaults
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSwitchListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBarLazyColumnScreen
 import androidx.compose.runtime.getValue
@@ -196,12 +195,6 @@ private fun RethinkWireguardDetailAction(
     supporting = description,
     leadingIcon = icon,
     destructive = destructive,
-    leadingIconTint = if (destructive) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.primary,
-    leadingIconContainerColor = if (destructive) {
-        MaterialTheme.colorScheme.errorContainer
-    } else {
-        RethinkIconWellDefaults.tinted(MaterialTheme.colorScheme.primary)
-    },
     position = position,
     enabled = enabled,
     showTrailingChevron = navigates,

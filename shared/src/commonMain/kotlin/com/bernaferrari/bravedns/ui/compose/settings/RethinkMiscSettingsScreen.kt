@@ -15,7 +15,6 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSwitchListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBarLazyColumnScreen
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWellDefaults
 import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkSection
@@ -84,7 +83,6 @@ fun RethinkMiscSettingsScreen(
                     headline = strings.backupTitle,
                     supporting = strings.backupDescription,
                     leadingIcon = MaterialSymbols.Filled.Backup,
-                    leadingIconContainerColor = RethinkIconWellDefaults.tinted(MaterialTheme.colorScheme.secondary),
                     position = CardPosition.Single,
                     highlighted = focusedSettingId == "general_backup" || focusedSettingId == "general_backup_restore",
                     // Opens a sheet in place; chevrons are reserved for navigation.
@@ -110,7 +108,6 @@ fun RethinkMiscSettingsScreen(
                     headline = strings.websiteTitle,
                     supporting = strings.websiteDescription,
                     leadingIcon = MaterialSymbols.Filled.Public,
-                    leadingIconContainerColor = RethinkIconWellDefaults.tinted(MaterialTheme.colorScheme.tertiary),
                     position = CardPosition.First,
                     highlighted = focusedSettingId == "general_website",
                     onClick = onOpenWebsite,
@@ -119,7 +116,6 @@ fun RethinkMiscSettingsScreen(
                     headline = strings.aboutTitle,
                     supporting = strings.aboutDescription,
                     leadingIcon = MaterialSymbols.Filled.Info,
-                    leadingIconContainerColor = RethinkIconWellDefaults.tinted(MaterialTheme.colorScheme.tertiary),
                     position = CardPosition.Last,
                     highlighted = focusedSettingId == "general_about",
                     showTrailingChevron = true,
