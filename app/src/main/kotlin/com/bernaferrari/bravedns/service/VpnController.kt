@@ -61,6 +61,7 @@ object VpnController : KoinComponent {
     private var lastConnectedServerName: String? = null
     private var isLastConnectionEch = false
     private val persistentState by inject<PersistentState>()
+    private val appConfig by inject<com.bernaferrari.bravedns.data.AppConfig>()
     private var states: Channel<BraveVPNService.State?>? = null
     private var protocol: Pair<Boolean, Boolean> = Pair(false, false)
     private const val URL4 = "IPv4"
@@ -449,7 +450,12 @@ object VpnController : KoinComponent {
 
     suspend fun startPcapCapture(mode: Int, path: String): Boolean = braveVpnService?.startPcapCapture(mode, path) ?: false
 
-    suspend fun stopPcapCapture(): Boolean = braveVpnService?.stopPcapCapture() ?: true
+    suspend fun stopPcapCapture(): Boolean {
+        braveVpnService?.let { return it.stopPcapCapture() }
+        stoppingService?.awaitStopped()
+        appConfig.setPcap(com.bernaferrari.bravedns.util.PcapMode.NONE.id)
+        return true
+    }
 
     suspend fun getActiveEntitlement(): com.celzero.firestack.backend.RpnEntitlement? = braveVpnService?.getActiveEntitlement()
 

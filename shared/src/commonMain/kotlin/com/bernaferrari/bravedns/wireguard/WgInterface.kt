@@ -129,7 +129,7 @@ class WgInterface private constructor(builder: Builder) {
     }
 
     private fun userspaceDns(): List<String> {
-        val configured = dnsServers + dnsSearchDomains
+        val configured = (dnsServers + dnsSearchDomains).toList()
         return configured.ifEmpty { listOf("1.1.1.1") }
     }
 

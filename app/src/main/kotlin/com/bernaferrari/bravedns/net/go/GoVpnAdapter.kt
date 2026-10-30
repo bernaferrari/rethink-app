@@ -1227,7 +1227,7 @@ class GoVpnAdapter(
         }
     }
 
-    suspend fun closeTun() {
+    suspend fun closeTun() = pcapMutex.withLock {
         nativeProbes.close()
         try {
             if (tunnel.isConnected) {
@@ -1834,6 +1834,9 @@ class GoVpnAdapter(
     }
 
     suspend fun isSplitTunnelProxy(proxyId: String, pair: Pair<Boolean, Boolean>): Boolean {
+        proxyId.removePrefix(ID_WG_BASE).toIntOrNull()?.let { id ->
+            WireguardManager.getConfigFilesById(id)?.let { return it.isSplitProxy }
+        }
         return try {
             val router = getProxies()?.getProxy(proxyId)?.router() ?: return false
             // if the router contains 0.0.0.0, then it is not split tunnel for ipv4
