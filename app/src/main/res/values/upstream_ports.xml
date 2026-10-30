@@ -1,0 +1,4 @@
+<resources>
+    <string name="port_disable">Disable</string>
+    <string name="port_ssid_background_explanation">SSID automation needs location access while Keepout runs in the background. First allow precise location, then open app permissions and choose Allow all the time. Location services must also be on.</string>
+</resources>

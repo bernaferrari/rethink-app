@@ -482,19 +482,13 @@ androidComponents {
             "x86" to 8,
             "x86_64" to 9
         )
-        val mainOutput = variant.outputs.singleOrNull {
-            it.filters.any { filter -> filter.filterType == com.android.build.api.variant.FilterConfiguration.FilterType.ABI }
-        }
-        mainOutput?.let { output ->
-            val abi = output.filters.find { it.filterType == com.android.build.api.variant.FilterConfiguration.FilterType.ABI }?.identifier
-            val baseAbiVersionCode = versionCodes[abi]
-            if (baseAbiVersionCode != null) {
-                // Use map to calculate version code properly from the provider
-                val calculatedVersionCode = variant.outputs.first().versionCode.map { base ->
-                    ((baseAbiVersionCode * 10000000) + (base ?: 0)).toInt()
-                }
-                output.versionCode.set(calculatedVersionCode)
-            }
+        variant.outputs.forEach { output ->
+            val abi = output.filters.find {
+                it.filterType == com.android.build.api.variant.FilterConfiguration.FilterType.ABI
+            }?.identifier
+            val multiplier = versionCodes[abi] ?: versionCodes.getValue("arm64-v8a")
+            val base = output.versionCode.get()
+            output.versionCode.set(multiplier * 10_000_000 + base)
         }
     }
 }

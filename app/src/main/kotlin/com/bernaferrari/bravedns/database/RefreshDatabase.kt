@@ -267,7 +267,7 @@ internal constructor(
                     .bigText(ctx.getString(R.string.db_corruption_notif_desc))
             )
             .setAutoCancel(true)
-            .addAction(0, ctx.getString(R.string.db_corruption_action_clear), clearIntent)
+            .addAction(Utilities.notificationAction(ctx.getString(R.string.db_corruption_action_clear), clearIntent))
             .addAction(0, ctx.getString(R.string.db_corruption_action_dismiss), dismissIntent)
 
         notificationManager.notify(
@@ -863,14 +863,12 @@ internal constructor(
                 PENDING_INTENT_REQUEST_CODE_DENY
             )
         val notificationAction: NotificationCompat.Action =
-            NotificationCompat.Action(
-                0,
+            Utilities.notificationAction(
                 ctx.getString(R.string.allow).uppercase(),
                 openIntent1
             )
         val notificationAction2: NotificationCompat.Action =
-            NotificationCompat.Action(
-                0,
+            Utilities.notificationAction(
                 ctx.getString(R.string.new_app_notification_action_deny).uppercase(),
                 openIntent2
             )
@@ -922,8 +920,7 @@ internal constructor(
         val openIntent =
             makeVpnIntent(NOTIF_ID_LOAD_RULES_FAIL, Constants.NOTIF_ACTION_RULES_FAILURE)
         val notificationAction: NotificationCompat.Action =
-            NotificationCompat.Action(
-                0,
+            Utilities.notificationAction(
                 ctx.getString(R.string.rules_load_failure_reload),
                 openIntent
             )

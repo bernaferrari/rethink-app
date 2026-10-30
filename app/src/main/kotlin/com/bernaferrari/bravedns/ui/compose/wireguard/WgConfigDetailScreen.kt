@@ -300,9 +300,14 @@ fun WgConfigDetailScreen(
     }
 
     fun toggleSsid(enabled: Boolean) {
+        if (!enabled) {
+            ssidEnabled = false
+            scope.launch(Dispatchers.IO) { WireguardManager.updateSsidEnabled(configId, false) }
+            return
+        }
         ssidEnabled = enabled
         val activity = context as? Activity
-        if (activity == null || !SsidPermissionManager.hasRequiredPermissions(activity) || !SsidPermissionManager.isLocationEnabled(
+        if (activity == null || !SsidPermissionManager.hasBackgroundAccess(activity) || !SsidPermissionManager.isLocationEnabled(
                 activity
             )
         ) {
@@ -363,14 +368,14 @@ fun WgConfigDetailScreen(
         RethinkConfirmDialog(
             onDismissRequest = { showSsidPermissionDialog = false },
             title = stringResource(R.string.lbl_ssid),
-            message = SsidPermissionManager.getPermissionExplanation(context),
+            message = stringResource(R.string.port_ssid_background_explanation),
             confirmText = stringResource(R.string.fapps_info_dialog_positive_btn),
             dismissText = stringResource(R.string.lbl_cancel),
             onConfirm = {
                 showSsidPermissionDialog = false
                 val activity = context as? Activity
                 if (activity != null) {
-                    SsidPermissionManager.requestSsidPermissions(activity)
+                    SsidPermissionManager.requestBackgroundAccess(activity)
                 }
             },
             onDismiss = {
