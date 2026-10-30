@@ -77,6 +77,8 @@ import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListPairShape
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 import com.bernaferrari.bravedns.ui.icons.keepout.KeepoutIcons
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkRadioListItem
+import androidx.compose.foundation.selection.selectableGroup
 
 /** Two-line action row height (Material 72dp). */
 private val AppInfoActionMinHeight = 72.dp
@@ -120,10 +122,18 @@ data class RethinkAppInfoStrings(
     val mobile: String,
     val allowed: String,
     val blocked: String,
+    /** How Keepout treats this app: one choice, "normal" first. */
+    val modeTitle: String,
+    val normal: String,
+    val normalDescription: String,
     val isolate: String,
+    val isolateDescription: String,
     val bypassDns: String,
+    val bypassDnsDescription: String,
     val bypassUniversal: String,
+    val bypassUniversalDescription: String,
     val exclude: String,
+    val excludeDescription: String,
     val advanced: String,
     val proxyExclude: String,
     val proxyExcludeDescription: String,
@@ -191,13 +201,10 @@ fun RethinkAppInfoScreen(
                 RethinkFormSection(strings.firewall) {
                     RethinkAppStatusChips(state, strings)
                     RethinkAppNetworkPair(state, strings, onWifiClick, onMobileClick)
-                    RethinkListGroup {
-                        RethinkAppExclusiveRow(strings.isolate, state.isolated, MaterialSymbols.Filled.Verified, CardPosition.First, onIsolateClick)
-                        RethinkAppExclusiveRow(strings.bypassDns, state.bypassDnsFirewall, KeepoutIcons.FirewallOff, CardPosition.Middle, onBypassDnsClick)
-                        RethinkAppExclusiveRow(strings.bypassUniversal, state.bypassUniversalFirewall, MaterialSymbols.Filled.PublicOff, CardPosition.Middle, onBypassUniversalClick)
-                        RethinkAppExclusiveRow(strings.exclude, state.excluded, MaterialSymbols.Filled.RemoveModerator, CardPosition.Last, onExcludeClick)
-                    }
                 }
+            }
+            item {
+                RethinkAppModeSection(state, strings, onIsolateClick, onBypassDnsClick, onBypassUniversalClick, onExcludeClick)
             }
         }
         val rules: LazyListScope.() -> Unit = {
@@ -508,18 +515,36 @@ private fun animateCorner(
     return CornerSize(currentDp)
 }
 
+/**
+ * The modes are mutually exclusive, so they read as one radio group with "normal" first: the
+ * current mode is always the visibly selected row, and each says what choosing it does. Each
+ * host callback toggles its mode, so choosing "normal" turns off whichever mode is on.
+ */
 @Composable
-private fun RethinkAppExclusiveRow(title: String, enabled: Boolean, icon: androidx.compose.ui.graphics.vector.ImageVector, position: CardPosition, onClick: () -> Unit) {
-    // Mutually exclusive modes, but each can be switched back off (to "none"), so these are
-    // switches rather than radio buttons: turning one on turns the others off. The title says it
-    // all; a status line under it only repeated it.
-    RethinkSwitchListItem(
-        headline = title,
-        checked = enabled,
-        onCheckedChange = { onClick() },
-        leadingIcon = icon,
-        position = position,
-    )
+private fun RethinkAppModeSection(
+    state: RethinkAppInfoState,
+    strings: RethinkAppInfoStrings,
+    onIsolateClick: () -> Unit,
+    onBypassDnsClick: () -> Unit,
+    onBypassUniversalClick: () -> Unit,
+    onExcludeClick: () -> Unit,
+) {
+    val active: (() -> Unit)? = when {
+        state.isolated -> onIsolateClick
+        state.bypassDnsFirewall -> onBypassDnsClick
+        state.bypassUniversalFirewall -> onBypassUniversalClick
+        state.excluded -> onExcludeClick
+        else -> null
+    }
+    RethinkFormSection(strings.modeTitle) {
+        RethinkListGroup(Modifier.selectableGroup()) {
+            RethinkRadioListItem(strings.normal, active == null, { active?.invoke() }, supporting = strings.normalDescription, leadingIcon = MaterialSymbols.Filled.GppGood, position = CardPosition.First)
+            RethinkRadioListItem(strings.isolate, state.isolated, { if (!state.isolated) onIsolateClick() }, supporting = strings.isolateDescription, leadingIcon = MaterialSymbols.Filled.Verified)
+            RethinkRadioListItem(strings.bypassDns, state.bypassDnsFirewall, { if (!state.bypassDnsFirewall) onBypassDnsClick() }, supporting = strings.bypassDnsDescription, leadingIcon = KeepoutIcons.FirewallOff)
+            RethinkRadioListItem(strings.bypassUniversal, state.bypassUniversalFirewall, { if (!state.bypassUniversalFirewall) onBypassUniversalClick() }, supporting = strings.bypassUniversalDescription, leadingIcon = MaterialSymbols.Filled.PublicOff)
+            RethinkRadioListItem(strings.exclude, state.excluded, { if (!state.excluded) onExcludeClick() }, supporting = strings.excludeDescription, leadingIcon = MaterialSymbols.Filled.RemoveModerator, position = CardPosition.Last)
+        }
+    }
 }
 
 @Composable

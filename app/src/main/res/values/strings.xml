@@ -1061,6 +1061,13 @@
     <string name="ada_app_bypass_univ" translatable="true">Bypass universal rules</string>
     <string name="ada_app_bypass_dns_firewall" translatable="true">Bypass DNS and firewall</string>
     <string name="ada_app_exclude" translatable="true">Exclude from Keepout</string>
+    <string name="ada_app_mode_title">How Keepout treats this app</string>
+    <string name="ada_app_mode_normal">Normal</string>
+    <string name="ada_app_mode_normal_desc">Follows your firewall and DNS rules</string>
+    <string name="ada_app_isolate_desc">Blocks everything except the domains and IPs you trust</string>
+    <string name="ada_app_bypass_dns_firewall_desc">Skips DNS blocking and firewall rules</string>
+    <string name="ada_app_bypass_univ_desc">Ignores the rules that apply to every app</string>
+    <string name="ada_app_exclude_desc">Its traffic goes around Keepout entirely</string>
     <string name="ada_app_isolate" translatable="true">Allow only trusted</string>
 
 

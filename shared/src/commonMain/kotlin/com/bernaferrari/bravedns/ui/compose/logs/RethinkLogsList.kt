@@ -21,6 +21,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceOption
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConnectedChoiceGroup
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceLabels
 
 enum class RethinkLogFilter { All, Allowed, Blocked }
 
@@ -56,7 +57,7 @@ fun RethinkLogFilterRow(
     onSelected: (RethinkLogFilter) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    // Every filter shows its icon and label, so the row never shifts as the selection moves.
+    // Icons always; the selected filter adds its label (the M3 Expressive default).
     val options = listOf(
         RethinkChoiceOption(RethinkLogFilter.All, strings.all, MaterialSymbols.Filled.FormatListBulleted),
         RethinkChoiceOption(RethinkLogFilter.Allowed, strings.allowed, MaterialSymbols.Filled.CheckCircle),
@@ -67,6 +68,7 @@ fun RethinkLogFilterRow(
         selected = selected,
         onSelect = onSelected,
         modifier = modifier.fillMaxWidth(),
+        labels = RethinkChoiceLabels.SelectedLabel,
     )
 }
 

@@ -35,6 +35,9 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.runtime.getValue
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.animateFloatAsState
 
 /**
  * One option of a [RethinkConnectedChoiceGroup]. [selectedIcon] lets an option swap its glyph
@@ -52,8 +55,9 @@ data class RethinkChoiceOption<T>(
  * How a [RethinkConnectedChoiceGroup] shows its options.
  * - [Always]: every option shows icon + label; when a full-width row is too narrow for the
  *   labels, they drop and the icons stay (labels become content descriptions).
- * - [SelectedLabel]: the selected option shows icon + label, the others only their icon. Only for
- *   a two-way switch whose icons are self-evident (Network / DNS), where it reads cleaner.
+ * - [SelectedLabel]: the selected option shows icon + label, the others only their icon (the
+ *   M3 Expressive default for toolbar and filter groups). In a full-width row the selected
+ *   segment grows to hold its label.
  */
 enum class RethinkChoiceLabels {
     Always,
@@ -145,6 +149,11 @@ private fun <T> ChoiceRow(
         options.forEachIndexed { index, option ->
             val isSelected = option.value == selected
             val collapsedToIcon = labels == RethinkChoiceLabels.SelectedLabel && option.icon != null && !isSelected
+            val weight by animateFloatAsState(
+                targetValue = if (collapsedToIcon) COLLAPSED_WEIGHT else 1f,
+                animationSpec = if (LocalRethinkMotion.current.reducedMotion) snap() else MaterialTheme.motionScheme.defaultSpatialSpec(),
+                label = "choiceWeight",
+            )
             ToggleButton(
                 checked = isSelected,
                 onCheckedChange = { checked ->
@@ -167,7 +176,7 @@ private fun <T> ChoiceRow(
                     fillWidth -> FillWidthContentPadding
                     else -> ButtonDefaults.ContentPadding
                 },
-                modifier = choiceSegmentModifier(fillWidth, compact),
+                modifier = choiceSegmentModifier(fillWidth, compact, weight),
             ) {
                 ChoiceContent(option, isSelected, iconOnly, collapsedToIcon, compact)
             }
@@ -175,9 +184,9 @@ private fun <T> ChoiceRow(
     }
 }
 
-private fun RowScope.choiceSegmentModifier(fillWidth: Boolean, compact: Boolean): Modifier =
+private fun RowScope.choiceSegmentModifier(fillWidth: Boolean, compact: Boolean, weight: Float): Modifier =
     Modifier
-        .then(if (fillWidth) Modifier.weight(1f) else Modifier.animateContentSize())
+        .then(if (fillWidth) Modifier.weight(weight) else Modifier.animateContentSize())
         .heightIn(min = if (compact) SharedDimensions.buttonHeightSm else SharedDimensions.touchTargetMin)
         // A segment narrower than the touch target gets invisible side padding from
         // Material, which shows as wide gaps; at the target width the 2dp gap holds.
@@ -212,6 +221,9 @@ private fun <T> ChoiceContent(
         )
     }
 }
+
+/** Share of the row an icon-only segment takes next to the selected, labelled one. */
+private const val COLLAPSED_WEIGHT = 0.5f
 
 private val CompactContentPadding = PaddingValues(horizontal = SharedDimensions.spacingMd)
 private val FillWidthContentPadding = PaddingValues(
