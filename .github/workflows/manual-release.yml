@@ -1,0 +1,72 @@
+name: Manual signed release artifacts
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: Release channel
+        type: choice
+        options: [fdroid, play, website]
+        default: fdroid
+      version_code:
+        description: Positive base version code (1 to 9999999)
+        type: string
+        required: true
+      expected_cert_sha256:
+        description: Expected signing certificate SHA-256 digest
+        type: string
+        required: true
+permissions:
+  contents: read
+jobs:
+  signed-artifacts:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-provider: basic
+      - name: Configure optional Firebase channel
+        env:
+          RELEASE_CHANNEL: ${{ inputs.channel }}
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_RELEASE_JSON }}
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          if os.environ['RELEASE_CHANNEL'] != 'fdroid':
+              value = os.environ.get('GOOGLE_SERVICES_JSON', '')
+              if not value:
+                  raise SystemExit('The selected channel requires GOOGLE_SERVICES_RELEASE_JSON')
+              target = Path('app/src/release/google-services.json')
+              target.parent.mkdir(parents=True, exist_ok=True)
+              target.write_text(value)
+          PY
+      - name: Build and sign without publishing
+        env:
+          RELEASE_CHANNEL: ${{ inputs.channel }}
+          VERSION_CODE: ${{ inputs.version_code }}
+          EXPECTED_CERT_SHA256: ${{ inputs.expected_cert_sha256 }}
+          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: python3 scripts/build-signed-release.py
+      - name: Upload signed artifacts for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: keepout-${{ inputs.channel }}-${{ inputs.version_code }}
+          path: |
+            app/build/outputs/signed-release/${{ inputs.channel }}/*.apk
+            app/build/outputs/mapping/${{ inputs.channel }}Release/
+          if-no-files-found: error
+      - name: Remove channel configuration
+        if: always()
+        run: rm -f app/src/release/google-services.json

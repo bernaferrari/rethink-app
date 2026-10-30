@@ -40,7 +40,10 @@ java {
 apply(plugin = "com.google.gms.google-services")
 apply(plugin = "com.google.firebase.crashlytics")
 
+val artifactOnlyBuild = providers.gradleProperty("keepoutArtifactsOnly").map(String::toBoolean).getOrElse(false)
+
 tasks.configureEach {
+    if (artifactOnlyBuild && name.startsWith("uploadCrashlytics")) enabled = false
     if (name.contains("Fdroid", ignoreCase = true) &&
         (name.contains("GoogleServices") || name.contains("Crashlytics"))) {
         enabled = false
@@ -153,7 +156,7 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             ndk {
                 debugSymbolLevel = "SYMBOL_TABLE"
-                abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64")
+                abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
             }
             configure<com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsExtension> {
                 nativeSymbolUploadEnabled = true
