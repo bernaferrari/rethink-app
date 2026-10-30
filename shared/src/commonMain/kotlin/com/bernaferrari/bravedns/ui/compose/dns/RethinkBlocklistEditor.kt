@@ -20,7 +20,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.LinearWavyProgressIndicator
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -108,21 +109,22 @@ fun RethinkBlocklistEditor(
                     modifier = Modifier.fillMaxWidth().padding(SharedDimensions.cardPadding),
                     verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
-                    ) {
-                        Text(strings.downloadDescription, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
-                        if (isDownloading) LoadingIndicator(Modifier.size(SharedDimensions.iconSizeMd))
+                    Text(strings.downloadDescription, style = MaterialTheme.typography.bodyMedium)
+                    if (isDownloading) {
+                        // Downloading is one clear state: a full-width progress line and the way
+                        // out, not a stray spinner beside a greyed-out Download button.
+                        LinearWavyProgressIndicator(Modifier.fillMaxWidth().padding(vertical = SharedDimensions.spacingSm))
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                            TextButton(onClick = onCancelDownload) { Text(strings.cancel) }
+                        }
+                    } else {
+                        RethinkFormActionRow(
+                            confirmLabel = strings.download,
+                            onConfirm = onDownload,
+                            dismissLabel = strings.cancel,
+                            onDismiss = onCancelDownload,
+                        )
                     }
-                    RethinkFormActionRow(
-                        confirmLabel = strings.download,
-                        onConfirm = onDownload,
-                        dismissLabel = strings.cancel,
-                        onDismiss = onCancelDownload,
-                        confirmEnabled = !isDownloading,
-                    )
                 }
             }
         } else if (showEditor) {

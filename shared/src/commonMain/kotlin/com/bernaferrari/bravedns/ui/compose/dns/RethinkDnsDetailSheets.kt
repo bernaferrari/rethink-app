@@ -30,6 +30,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormSection
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkSwitchListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkModalBottomSheet
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
@@ -174,20 +175,22 @@ fun RethinkLocalBlocklistSheet(
             RethinkSheetHeader(title = state.heading, subtitle = state.version)
             RethinkFormSection(strings.state) {
                 RethinkListGroup {
-                    RethinkListItem(
-                        headline = if (state.enabled) strings.disable else strings.enable,
+                    // It is a toggle, so it reads as one: a switch with the current state.
+                    RethinkSwitchListItem(
+                        headline = strings.enable,
+                        checked = state.enabled,
+                        onCheckedChange = { onEnableToggle() },
                         supporting = strings.toggleDescription,
                         leadingIcon = MaterialSymbols.Filled.Security,
                         position = CardPosition.Single,
-                        onClick = onEnableToggle,
                     )
                 }
             }
             RethinkFormSection(strings.actions) {
                 RethinkListGroup {
-                    RethinkListItem(defaultContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh, headline = strings.configure, leadingIcon = MaterialSymbols.Filled.Settings, position = CardPosition.First, enabled = state.canConfigure, onClick = onConfigure)
-                    RethinkListItem(defaultContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh, headline = strings.copy, leadingIcon = MaterialSymbols.Filled.ContentCopy, position = CardPosition.Middle, enabled = state.canCopy, onClick = onCopy)
-                    RethinkListItem(defaultContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh, headline = strings.search, leadingIcon = MaterialSymbols.Filled.Search, position = CardPosition.Last, enabled = state.canSearch, onClick = onSearch)
+                    RethinkListItem(headline = strings.configure, leadingIcon = MaterialSymbols.Filled.Settings, position = CardPosition.First, enabled = state.canConfigure, onClick = onConfigure)
+                    RethinkListItem(headline = strings.copy, leadingIcon = MaterialSymbols.Filled.ContentCopy, position = CardPosition.Middle, enabled = state.canCopy, onClick = onCopy)
+                    RethinkListItem(headline = strings.search, leadingIcon = MaterialSymbols.Filled.Search, position = CardPosition.Last, enabled = state.canSearch, onClick = onSearch)
                 }
             }
             RethinkFormSection(strings.maintenance) {
