@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -22,22 +21,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.text.font.FontWeight
@@ -45,10 +40,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.bernaferrari.bravedns.ui.compose.common.RethinkAdaptiveWidth
 import com.bernaferrari.bravedns.ui.compose.common.WindowWidthClass
 import com.bernaferrari.bravedns.ui.compose.common.isExpanded
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkLazyColumnScreenScaffold
-import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkSection
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBarLazyColumnScreen
 
 enum class RethinkDnsCapability {
     Fast,
@@ -77,7 +71,6 @@ data class RethinkDnsListStrings(
 )
 
 /** Target-neutral DNS protocol chooser; the host owns the selected protocol and navigation. */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RethinkDnsListScreen(
     protocols: List<RethinkDnsProtocol>,
@@ -88,40 +81,22 @@ fun RethinkDnsListScreen(
     onBackClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    RethinkLazyColumnScreenScaffold(
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = MaterialTheme.colorScheme.surface,
-        topBar = {
-            RethinkLargeTopBar(
-                title = strings.title,
-                subtitle = strings.subtitle,
-                onBackClick = onBackClick,
-                scrollBehavior = scrollBehavior,
-            )
-        },
-        listState = rememberLazyListState(),
-        contentPadding = PaddingValues(
-            start = SharedDimensions.screenPaddingHorizontal,
-            end = SharedDimensions.screenPaddingHorizontal,
-            top = SharedDimensions.spacingMd,
-            bottom = SharedDimensions.spacing3xl,
-        ),
-        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
+    RethinkTopBarLazyColumnScreen(
+        title = strings.title,
+        subtitle = strings.subtitle,
+        onBackClick = onBackClick,
+        modifier = modifier,
     ) {
-        item {
+        rethinkSection(strings.configure) {
             RethinkAdaptiveWidth { widthClass ->
-                Column {
-                    SectionHeader(strings.configure)
-                    DnsProtocolGrid(
-                        protocols = protocols,
-                        selectedProtocolId = selectedProtocolId,
-                        selectedProtocolWorking = selectedProtocolWorking,
-                        strings = strings,
-                        onProtocolClick = onProtocolClick,
-                        widthClass = widthClass,
-                    )
-                }
+                DnsProtocolGrid(
+                    protocols = protocols,
+                    selectedProtocolId = selectedProtocolId,
+                    selectedProtocolWorking = selectedProtocolWorking,
+                    strings = strings,
+                    onProtocolClick = onProtocolClick,
+                    widthClass = widthClass,
+                )
             }
         }
     }

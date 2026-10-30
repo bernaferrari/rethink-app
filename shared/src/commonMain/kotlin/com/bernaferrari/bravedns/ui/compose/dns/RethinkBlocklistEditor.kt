@@ -204,7 +204,7 @@ private fun RethinkBlocklistSubgroupMenu(selected: Set<String>, all: List<String
 @Composable
 private fun RethinkBlocklistPackList(feed: RethinkBlocklistFeed<RethinkBlocklistPack>, strings: RethinkBlocklistEditorStrings, onToggle: (RethinkBlocklistPack, Boolean) -> Unit, modifier: Modifier) {
     if (feed.itemCount == 0) {
-        RethinkEmptyState(title = strings.empty.ifBlank { strings.filterHint }, message = "", modifier = modifier)
+        RethinkEmptyState(title = strings.empty.ifBlank { strings.filterHint }, icon = MaterialSymbols.Filled.FilterList, modifier = modifier)
         return
     }
     val rowStrings = RethinkBlocklistRowStrings(strings.blocklistCount, strings.entries, strings.openSource)
@@ -225,7 +225,7 @@ private fun RethinkBlocklistPackList(feed: RethinkBlocklistFeed<RethinkBlocklist
 @Composable
 private fun RethinkBlocklistFileTagList(feed: RethinkBlocklistFeed<RethinkBlocklistFileTag>, strings: RethinkBlocklistEditorStrings, onToggle: (RethinkBlocklistFileTag, Boolean) -> Unit, onOpenUrl: (String) -> Unit, modifier: Modifier) {
     if (feed.itemCount == 0) {
-        RethinkEmptyState(title = strings.empty.ifBlank { strings.filterHint }, message = "", modifier = modifier)
+        RethinkEmptyState(title = strings.empty.ifBlank { strings.filterHint }, icon = MaterialSymbols.Filled.FilterList, modifier = modifier)
         return
     }
     val rowStrings = RethinkBlocklistRowStrings(strings.blocklistCount, strings.entries, strings.openSource)

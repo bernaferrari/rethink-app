@@ -264,7 +264,6 @@ private fun RethinkRpnAccountEntries(entries: List<RethinkRpnAccountEntry>, keyV
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = RethinkScreenDefaults.contentPadding,
-        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile),
     ) {
         itemsIndexed(entries, key = { index, item -> "${item.title}_${item.supporting}_$index" }) { index, item ->
             if (keyValue) {

@@ -7,16 +7,12 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkSplitSwitch
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -27,11 +23,12 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWellContainerColor
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWellDefaults
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBarLazyColumnScreen
-import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusColors
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkSection
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkContainedCard
 
 data class RethinkProxySettingsState(
     val canEnableProxy: Boolean,
@@ -106,73 +103,67 @@ fun RethinkProxySettingsScreen(
         },
     ) {
         if (!state.canEnableProxy) item { RethinkProxyWarning(strings.warning, activeFocusKey == "proxy_warning") }
-        item {
-            Column {
-                SectionHeader(strings.serversSection)
-                RethinkListGroup {
-                    val rowCount = if (state.wireguardAvailable) 3 else 2
-                    var row = 0
-                    if (state.wireguardAvailable) {
-                        RethinkListItem(
-                            headline = strings.wireguard,
-                            supporting = state.wireguardDescription,
-                            leadingIcon = MaterialSymbols.Filled.VpnKey,
-                            position = cardPositionFor(row++, rowCount - 1),
-                            highlighted = activeFocusKey == "proxy_wireguard",
-                            showTrailingChevron = true,
-                            onClick = onWireguardClick,
-                        )
-                    }
-                    RethinkProxyToggleRow(
-                        title = strings.socks5,
-                        description = state.socks5Description,
-                        checked = state.socks5Enabled,
-                        enabled = state.canEnableProxy || !state.socks5Enabled,
-                        highlighted = activeFocusKey == "proxy_socks",
-                        icon = MaterialSymbols.Filled.Security,
+        rethinkSection(strings.serversSection) {
+            RethinkListGroup {
+                val rowCount = if (state.wireguardAvailable) 3 else 2
+                var row = 0
+                if (state.wireguardAvailable) {
+                    RethinkListItem(
+                        headline = strings.wireguard,
+                        supporting = state.wireguardDescription,
+                        leadingIcon = MaterialSymbols.Filled.VpnKey,
                         position = cardPositionFor(row++, rowCount - 1),
-                        onRowClick = onSocksRowClick,
-                        onCheckedChange = onSocksChange,
-                    )
-                    RethinkProxyToggleRow(
-                        title = strings.http,
-                        description = state.httpDescription,
-                        checked = state.httpEnabled,
-                        enabled = state.canEnableProxy || !state.httpEnabled,
-                        highlighted = activeFocusKey == "proxy_http",
-                        icon = MaterialSymbols.Filled.Http,
-                        position = cardPositionFor(row, rowCount - 1),
-                        onRowClick = onHttpRowClick,
-                        onCheckedChange = onHttpChange,
+                        highlighted = activeFocusKey == "proxy_wireguard",
+                        showTrailingChevron = true,
+                        onClick = onWireguardClick,
                     )
                 }
-            }
-        }
-        item {
-            Column {
-                SectionHeader(strings.torSection)
-                RethinkOrbotPanel(
-                    state = state,
-                    strings = strings,
-                    highlightedKey = activeFocusKey,
-                    onMainClick = onOrbotClick,
-                    onCheckedChange = onOrbotChange,
-                    onAppsClick = onOrbotAppsClick,
-                    onOpenAppClick = onOpenOrbotApp,
-                    onInfoClick = onOrbotInfo,
+                RethinkProxyToggleRow(
+                    title = strings.socks5,
+                    description = state.socks5Description,
+                    checked = state.socks5Enabled,
+                    enabled = state.canEnableProxy || !state.socks5Enabled,
+                    highlighted = activeFocusKey == "proxy_socks",
+                    icon = MaterialSymbols.Filled.Security,
+                    position = cardPositionFor(row++, rowCount - 1),
+                    onRowClick = onSocksRowClick,
+                    onCheckedChange = onSocksChange,
+                )
+                RethinkProxyToggleRow(
+                    title = strings.http,
+                    description = state.httpDescription,
+                    checked = state.httpEnabled,
+                    enabled = state.canEnableProxy || !state.httpEnabled,
+                    highlighted = activeFocusKey == "proxy_http",
+                    icon = MaterialSymbols.Filled.Http,
+                    position = cardPositionFor(row, rowCount - 1),
+                    onRowClick = onHttpRowClick,
+                    onCheckedChange = onHttpChange,
                 )
             }
+        }
+        rethinkSection(strings.torSection) {
+            RethinkOrbotPanel(
+                state = state,
+                strings = strings,
+                highlightedKey = activeFocusKey,
+                onMainClick = onOrbotClick,
+                onCheckedChange = onOrbotChange,
+                onAppsClick = onOrbotAppsClick,
+                onOpenAppClick = onOpenOrbotApp,
+                onInfoClick = onOrbotInfo,
+            )
         }
     }
 }
 
 @Composable
 private fun RethinkProxyWarning(message: String, highlighted: Boolean) {
-    Surface(
-        shape = RoundedCornerShape(SharedDimensions.cornerRadiusXl),
+    RethinkContainedCard(
         color = if (highlighted) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.72f) else MaterialTheme.colorScheme.errorContainer,
+        contentColor = MaterialTheme.colorScheme.onErrorContainer,
     ) {
-        Text(message, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onErrorContainer, modifier = Modifier.padding(horizontal = SharedDimensions.spacingMd, vertical = SharedDimensions.spacingSmMd))
+        Text(message, style = MaterialTheme.typography.bodyMedium)
     }
 }
 

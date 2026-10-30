@@ -38,6 +38,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkOverflowMenu
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkOverflowItem
+import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
 
 enum class RethinkIncludeAppsFilter { All, Selected }
 
@@ -129,7 +130,7 @@ fun RethinkIncludeAppsPicker(
                     )
                 }
                 if (items.isEmpty()) {
-                    item { Text(strings.empty, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(SharedDimensions.cardPadding)) }
+                    item { RethinkEmptyState(title = strings.empty, icon = MaterialSymbols.Filled.Apps) }
                 }
                 items.forEachIndexed { index, item ->
                     val previous = items.getOrNull(index - 1)

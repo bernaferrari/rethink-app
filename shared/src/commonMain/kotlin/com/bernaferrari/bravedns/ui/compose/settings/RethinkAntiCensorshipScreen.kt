@@ -5,7 +5,6 @@ package com.bernaferrari.bravedns.ui.compose.settings
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.ui.semantics.Role
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -13,8 +12,8 @@ import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBarLazyColumnScreen
-import com.bernaferrari.bravedns.ui.compose.theme.SectionHeaderWithSubtitle
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkSection
 
 data class RethinkAntiCensorshipOption(
     val id: String,
@@ -51,12 +50,8 @@ fun RethinkAntiCensorshipScreen(
         title = strings.title,
         onBackClick = onBackClick,
         modifier = modifier,
-        containerColor = MaterialTheme.colorScheme.surface,
-        topBarContainerColor = MaterialTheme.colorScheme.surface,
-        topBarScrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
     ) {
-        item {
-            SectionHeaderWithSubtitle(title = strings.splitHeading, subtitle = strings.splitDescription)
+        rethinkSection(strings.splitHeading, strings.splitDescription) {
             RethinkListGroup(Modifier.selectableGroup()) {
                 dialOptions.forEachIndexed { index, option ->
                     RethinkStrategyOption(
@@ -68,8 +63,7 @@ fun RethinkAntiCensorshipScreen(
                 }
             }
         }
-        item {
-            SectionHeaderWithSubtitle(title = strings.retryHeading, subtitle = strings.retryDescription)
+        rethinkSection(strings.retryHeading, strings.retryDescription) {
             RethinkListGroup(Modifier.selectableGroup()) {
                 retryOptions.forEachIndexed { index, option ->
                     RethinkStrategyOption(

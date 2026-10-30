@@ -55,6 +55,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkContainedCard
 
 data class RethinkDatabaseTablePreview(
     val table: String,
@@ -168,7 +169,6 @@ private fun RethinkDatabaseNoTables(strings: RethinkDatabaseStrings, modifier: M
     Box(modifier, contentAlignment = Alignment.Center) {
         RethinkEmptyState(
             title = strings.noTables,
-            message = "",
             icon = MaterialSymbols.Filled.Storage,
         )
     }
@@ -226,7 +226,6 @@ private fun RethinkDatabaseTableList(
             } else {
                 androidx.compose.foundation.lazy.LazyColumn(
                     contentPadding = PaddingValues(horizontal = SharedDimensions.spacingSm, vertical = SharedDimensions.spacingXs),
-                    verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile),
                 ) {
                     tables.forEachIndexed { index, table ->
                         item(key = table) {
@@ -306,8 +305,12 @@ private fun RethinkDatabaseDetail(
                 }
             }
             errorText?.takeIf { it.isNotBlank() }?.let { error ->
-                Surface(shape = RoundedCornerShape(SharedDimensions.cornerRadiusMd), color = MaterialTheme.colorScheme.errorContainer.copy(alpha = .44f)) {
-                    Text(error, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onErrorContainer, modifier = Modifier.padding(SharedDimensions.spacingMd))
+                RethinkContainedCard(
+                    color = MaterialTheme.colorScheme.errorContainer.copy(alpha = .44f),
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                    contentPadding = PaddingValues(SharedDimensions.spacingMd),
+                ) {
+                    Text(error, style = MaterialTheme.typography.bodySmall)
                 }
             }
             if (loadingPreview) {

@@ -7,10 +7,8 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkCheckboxListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSheetHeader
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.MaterialTheme
@@ -21,17 +19,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkLazyColumnScreenScaffold
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormActionRow
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkModalBottomSheet
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBar
-import com.bernaferrari.bravedns.ui.compose.theme.SectionHeaderWithSubtitle
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkSection
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBarLazyColumnScreen
 
 enum class RethinkRpnDnsMode { Default, Privacy, Parental, Security }
 
@@ -86,13 +83,13 @@ fun RethinkRpnServerSettingsScreen(
 ) {
     var showExclusions by remember { mutableStateOf(false) }
     var showReset by remember { mutableStateOf(false) }
-    RethinkLazyColumnScreenScaffold(
+    RethinkTopBarLazyColumnScreen(
+        title = strings.title,
+        onBackClick = onBackClick,
         modifier = modifier,
-        topBar = { RethinkTopBar(strings.title, onBackClick = onBackClick) },
-        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
     ) {
-            item { SectionHeaderWithSubtitle(title = strings.dnsFilteringTitle, subtitle = strings.dnsFilteringDescription) }
-            item {
+        rethinkSection(strings.dnsFilteringTitle, strings.dnsFilteringDescription) {
+            RethinkListGroup {
                 RethinkRpnDnsMode.entries.forEachIndexed { index, mode ->
                     RpnToggleRow(
                         title = strings.dnsModeTitle(mode),
@@ -106,8 +103,9 @@ fun RethinkRpnServerSettingsScreen(
                     )
                 }
             }
-            item { SectionHeaderWithSubtitle(title = strings.configurationTitle, subtitle = strings.configurationDescription) }
-            item {
+        }
+        rethinkSection(strings.configurationTitle, strings.configurationDescription) {
+            RethinkListGroup {
                 RpnToggleRow(strings.manualTitle, strings.manualDescription, MaterialSymbols.Filled.Tune, manualConfiguration, CardPosition.First, onManualConfigurationChange)
                 RpnToggleRow(strings.changeIdentityTitle, strings.changeIdentityDescription, MaterialSymbols.Filled.Security, alwaysChangeIdentity, CardPosition.Middle, onAlwaysChangeIdentityChange)
                 RpnActionRow(
@@ -118,8 +116,9 @@ fun RethinkRpnServerSettingsScreen(
                     onClick = { showExclusions = true },
                 )
             }
-            item { SectionHeaderWithSubtitle(title = strings.maintenanceTitle, subtitle = strings.maintenanceDescription) }
-            item {
+        }
+        rethinkSection(strings.maintenanceTitle, strings.maintenanceDescription) {
+            RethinkListGroup {
                 RpnActionRow(
                     title = strings.resetTitle,
                     description = strings.resetDescription,
@@ -130,7 +129,8 @@ fun RethinkRpnServerSettingsScreen(
                     onClick = { showReset = true },
                 )
             }
-            message?.let { text -> item { Text(text, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(vertical = SharedDimensions.spacingSm)) } }
+            message?.let { text -> Text(text, color = MaterialTheme.colorScheme.error) }
+        }
     }
     if (showExclusions) {
         RethinkCountryExclusionDialog(countries, excludedCountries, strings, onDismiss = { showExclusions = false }) { selected ->
@@ -198,8 +198,7 @@ private fun RethinkCountryExclusionDialog(
     ) { dismissSheet ->
         RethinkSheetHeader(strings.excludeLocationsTitle)
         LazyColumn(
-            modifier = Modifier.fillMaxWidth().heightIn(min = 360.dp, max = SharedDimensions.sheetContentMaxHeight),
-            verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile),
+            modifier = Modifier.fillMaxWidth().heightIn(max = SharedDimensions.sheetContentMaxHeight),
         ) {
             itemsIndexed(countries, key = { _, country -> country.code }) { index, country ->
                 val checked = country.code in selected

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -98,16 +99,12 @@ fun RethinkFormSection(
     title: String,
     description: String? = null,
     modifier: Modifier = Modifier,
-    titleModifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
-    ) {
+    // No spacing of its own: the header's bottom padding is the one 8dp header→content gap.
+    Column(modifier = modifier.fillMaxWidth()) {
         // Same header as every other grouped section, so form screens don't drift.
         SectionHeaderWithSubtitle(
-            modifier = titleModifier,
             title = title,
             subtitle = description?.takeIf { it.isNotBlank() },
         )
@@ -118,6 +115,18 @@ fun RethinkFormSection(
         )
     }
 }
+
+/**
+ * A titled section as one lazy item: [RethinkFormSection] around [content] (usually one
+ * [RethinkListGroup]). Header and group never split across items, so the header→group gap is the
+ * same on every screen whatever the list's own spacing between sections.
+ */
+fun LazyListScope.rethinkSection(
+    title: String,
+    description: String? = null,
+    key: Any? = null,
+    content: @Composable ColumnScope.() -> Unit,
+) = item(key = key, contentType = "rethink_section") { RethinkFormSection(title, description, content = content) }
 
 /**
  * The canonical text input for Rethink forms.

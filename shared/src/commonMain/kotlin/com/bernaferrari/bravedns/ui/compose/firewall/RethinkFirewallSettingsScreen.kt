@@ -5,7 +5,6 @@ package com.bernaferrari.bravedns.ui.compose.firewall
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
@@ -18,14 +17,13 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormSection
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBarLazyColumnScreen
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
-import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 import kotlin.math.roundToInt
 import kotlinx.coroutines.delay
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkSection
 
 data class RethinkFirewallSettingsStrings(
     val title: String,
@@ -93,42 +91,37 @@ fun RethinkFirewallSettingsScreen(
         onBackClick = onBackClick,
         modifier = modifier,
         listState = listState,
-        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
     ) {
-        item {
-            RethinkFormSection(strings.universalSection) {
-                RethinkListGroup {
-                    FirewallNavigationRow(
-                        title = strings.universalTitle,
-                        description = strings.universalDescription,
-                        icon = MaterialSymbols.Filled.Public,
-                        position = CardPosition.First,
-                        highlighted = highlightedRowId == "firewall_universal_main",
-                        onClick = onUniversalFirewallClick,
-                    )
-                    FirewallNavigationRow(
-                        title = strings.blockedTitle,
-                        description = strings.blockedDescription,
-                        icon = MaterialSymbols.Filled.GppBad,
-                        position = CardPosition.Last,
-                        highlighted = highlightedRowId == "firewall_universal_blocked",
-                        onClick = onCustomIpDomainClick,
-                    )
-                }
+        rethinkSection(strings.universalSection) {
+            RethinkListGroup {
+                FirewallNavigationRow(
+                    title = strings.universalTitle,
+                    description = strings.universalDescription,
+                    icon = MaterialSymbols.Filled.Public,
+                    position = CardPosition.First,
+                    highlighted = highlightedRowId == "firewall_universal_main",
+                    onClick = onUniversalFirewallClick,
+                )
+                FirewallNavigationRow(
+                    title = strings.blockedTitle,
+                    description = strings.blockedDescription,
+                    icon = MaterialSymbols.Filled.GppBad,
+                    position = CardPosition.Last,
+                    highlighted = highlightedRowId == "firewall_universal_blocked",
+                    onClick = onCustomIpDomainClick,
+                )
             }
         }
-        item {
-            RethinkFormSection(strings.appWiseSection) {
-                RethinkListGroup {
-                    FirewallNavigationRow(
-                        title = strings.appWiseTitle,
-                        description = strings.appWiseDescription,
-                        icon = MaterialSymbols.Filled.Apps,
-                        position = CardPosition.Single,
-                        highlighted = highlightedRowId == "firewall_apps_rules",
-                        onClick = onAppWiseIpDomainClick,
-                    )
-                }
+        rethinkSection(strings.appWiseSection) {
+            RethinkListGroup {
+                FirewallNavigationRow(
+                    title = strings.appWiseTitle,
+                    description = strings.appWiseDescription,
+                    icon = MaterialSymbols.Filled.Apps,
+                    position = CardPosition.Single,
+                    highlighted = highlightedRowId == "firewall_apps_rules",
+                    onClick = onAppWiseIpDomainClick,
+                )
             }
         }
     }

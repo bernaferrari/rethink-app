@@ -37,6 +37,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkMetric
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkMetricSize
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSwitchListItem
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkContainedCard
 
 data class RethinkRpnWinProxyDetailsState(
     val countryCode: String,
@@ -137,13 +138,9 @@ fun RethinkRpnWinProxyDetailsScreen(
 
 @Composable
 private fun RethinkRpnWinStats(state: RethinkRpnWinProxyDetailsState, strings: RethinkRpnWinProxyDetailsStrings) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(SharedDimensions.groupCornerRadius),
-        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.42f),
-    ) {
+    RethinkContainedCard(color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.42f)) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(SharedDimensions.spacingLg),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
             verticalAlignment = Alignment.CenterVertically,
         ) {

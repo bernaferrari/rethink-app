@@ -9,17 +9,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButtonMenu
 import androidx.compose.material3.FloatingActionButtonMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleFloatingActionButton
 import androidx.compose.material3.ToggleFloatingActionButtonDefaults.animateIcon
@@ -45,6 +42,8 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkConnectedChoiceGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWell
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkContainedCard
 
 enum class RethinkWgTab { One, General }
 
@@ -108,7 +107,6 @@ fun <T> RethinkWireguardScreen(
             if (isEmpty) {
                 RethinkEmptyState(
                     title = strings.noConfigurations,
-                    message = "",
                     icon = MaterialSymbols.Filled.VpnKey,
                     ctaLabel = strings.create,
                     onCtaClick = onCreate,
@@ -165,19 +163,21 @@ private fun RethinkWgTabs(selected: RethinkWgTab, strings: RethinkWireguardStrin
 
 @Composable
 private fun RethinkWgOverview(text: String) {
-    Surface(
-        modifier = Modifier.fillMaxWidth().padding(
+    RethinkContainedCard(
+        modifier = Modifier.padding(
             start = SharedDimensions.screenPaddingHorizontal,
             end = SharedDimensions.screenPaddingHorizontal,
             top = SharedDimensions.spacingMd,
         ),
-        shape = RoundedCornerShape(SharedDimensions.cornerRadius2xl),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
-        Row(Modifier.fillMaxWidth().padding(SharedDimensions.cardPadding), horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd), verticalAlignment = Alignment.CenterVertically) {
-            Surface(shape = RoundedCornerShape(SharedDimensions.cornerRadiusMdLg), color = MaterialTheme.colorScheme.primaryContainer) {
-                Icon(MaterialSymbols.Filled.VpnKey, null, Modifier.padding(SharedDimensions.spacingSmMd), tint = MaterialTheme.colorScheme.onPrimaryContainer)
-            }
+        Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd), verticalAlignment = Alignment.CenterVertically) {
+            // Same well as the detail screen's overview card.
+            RethinkIconWell(
+                icon = MaterialSymbols.Filled.VpnKey,
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                iconSize = SharedDimensions.iconSizeMd,
+            )
             Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }

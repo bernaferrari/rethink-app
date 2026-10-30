@@ -4,17 +4,15 @@ package com.bernaferrari.bravedns.ui.compose.proxy
 
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSwitchListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBarLazyColumnScreen
-import com.bernaferrari.bravedns.ui.compose.theme.SectionHeaderWithSubtitle
-import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
+import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkSection
 
 data class RethinkTcpProxyStrings(
     val title: String,
@@ -53,9 +51,8 @@ fun RethinkTcpProxyScreen(
         onBackClick = onBackClick,
         modifier = modifier,
     ) {
-        item {
-            SectionHeaderWithSubtitle(title = strings.rethinkProxyTitle, subtitle = strings.rethinkProxyDescription)
-            Column {
+        rethinkSection(strings.rethinkProxyTitle, strings.rethinkProxyDescription) {
+            RethinkListGroup {
                 RethinkSwitchListItem(
                     headline = strings.rethinkProxyTitle,
                     checked = tcpProxyEnabled,
@@ -81,17 +78,17 @@ fun RethinkTcpProxyScreen(
                 )
             }
         }
-        item {
-            SectionHeaderWithSubtitle(title = strings.warpTitle, subtitle = strings.warpDescription)
-            RethinkSwitchListItem(
-                headline = strings.warpTitle,
-                checked = warpEnabled,
-                onCheckedChange = onWarpEnabledChange,
-                supporting = strings.warpDescription,
-                leadingIcon = MaterialSymbols.Filled.VpnKey,
-                position = cardPositionFor(0, 0),
-            )
+        rethinkSection(strings.warpTitle, strings.warpDescription) {
+            RethinkListGroup {
+                RethinkSwitchListItem(
+                    headline = strings.warpTitle,
+                    checked = warpEnabled,
+                    onCheckedChange = onWarpEnabledChange,
+                    supporting = strings.warpDescription,
+                    leadingIcon = MaterialSymbols.Filled.VpnKey,
+                    position = CardPosition.Single,
+                )
+            }
         }
-        item { Spacer(Modifier.height(SharedDimensions.spacingSm)) }
     }
 }

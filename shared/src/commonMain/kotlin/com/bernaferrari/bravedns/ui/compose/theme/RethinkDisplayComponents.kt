@@ -28,6 +28,10 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.graphics.takeOrElse
+import androidx.compose.material3.contentColorFor
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.foundation.layout.PaddingValues
 
 /**
  * The one title block for bottom sheets: titleLarge title, optional bodyMedium subtitle, optional
@@ -135,23 +139,29 @@ fun RethinkStatusLabel(
 }
 
 /**
- * A grouped-radius tonal card for editor sections hosted inside sheets: one tone above the sheet
- * separates the cards without outlines.
+ * The one standalone card (overview, notice, warning, stats strip): the grouped-list radius and
+ * row tone, so a lone card belongs to the same family as the grouped rows around it. Inside
+ * sheets it follows [LocalRethinkListContainerColor] one tone up; pass [color] for a tonal notice
+ * (its content colour follows).
  */
 @Composable
 fun RethinkContainedCard(
     modifier: Modifier = Modifier,
-    color: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
+    color: Color = LocalRethinkListContainerColor.current ?: MaterialTheme.colorScheme.surfaceContainerLow,
+    contentColor: Color = contentColorFor(color).takeOrElse { LocalContentColor.current },
+    contentPadding: PaddingValues = PaddingValues(SharedDimensions.cardPadding),
+    verticalArrangement: Arrangement.Vertical = Arrangement.spacedBy(SharedDimensions.spacingSm),
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(SharedDimensions.groupCornerRadius),
         color = color,
+        contentColor = contentColor,
     ) {
         Column(
-            modifier = Modifier.padding(SharedDimensions.cardPadding),
-            verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
+            modifier = Modifier.padding(contentPadding),
+            verticalArrangement = verticalArrangement,
             content = content,
         )
     }

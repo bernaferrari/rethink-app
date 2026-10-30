@@ -3,7 +3,6 @@ package com.bernaferrari.bravedns.ui.compose.firewall
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
-import androidx.compose.foundation.layout.Arrangement
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSplitSwitch
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -65,7 +64,6 @@ fun RethinkUniversalFirewallSettingsScreen(
         subtitle = if (isLoadingStats) null else strings.blocked(total),
         onBackClick = onBackClick,
         modifier = modifier,
-        verticalArrangement = Arrangement.Top,
     ) {
         item {
             Text(
@@ -74,8 +72,6 @@ fun RethinkUniversalFirewallSettingsScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = SharedDimensions.spacingXs, vertical = SharedDimensions.spacingSm),
             )
-        }
-        item {
             RethinkListGroup {
                 settings.forEachIndexed { index, setting ->
                     val countText = if (isLoadingStats) strings.loading else strings.blocked(setting.blockedCount)

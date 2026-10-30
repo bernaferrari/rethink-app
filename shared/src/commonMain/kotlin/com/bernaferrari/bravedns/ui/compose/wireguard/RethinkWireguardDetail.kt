@@ -10,9 +10,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -21,7 +19,6 @@ import androidx.compose.ui.Modifier
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
-import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWellDefaults
@@ -31,6 +28,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkSection
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkContainedCard
 
 data class RethinkWireguardDetailState(
     val name: String,
@@ -93,48 +92,43 @@ fun RethinkWireguardDetail(
         title = strings.title,
         onBackClick = onBackClick,
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
     ) {
-            item { RethinkWireguardDetailOverview(state) }
-            if (state.isOneWireguard) item { RethinkOneWireguardNotice(strings.oneWireguardNotice) }
-            item {
-                SectionHeader(strings.configure)
+        item { RethinkWireguardDetailOverview(state) }
+        if (state.isOneWireguard) item { RethinkOneWireguardNotice(strings.oneWireguardNotice) }
+        rethinkSection(strings.configure) {
+            RethinkListGroup {
+                RethinkWireguardDetailAction(strings.addPeer, strings.peer, MaterialSymbols.Filled.Add, CardPosition.First, onAddPeer)
+                // Only Edit leaves the screen; the other rows open dialogs, so they get no chevron.
+                RethinkWireguardDetailAction(strings.edit, strings.title, MaterialSymbols.Filled.Edit, CardPosition.Middle, onEdit, navigates = true)
+                RethinkWireguardDetailAction(strings.delete, strings.deleteDescription, MaterialSymbols.Filled.Delete, CardPosition.Last, { confirmDelete = true }, destructive = true)
+            }
+        }
+        if (!state.isOneWireguard) {
+            rethinkSection(strings.apps) {
                 RethinkListGroup {
-                    RethinkWireguardDetailAction(strings.addPeer, strings.peer, MaterialSymbols.Filled.Add, CardPosition.First, onAddPeer)
-                    // Only Edit leaves the screen; the other rows open dialogs, so they get no chevron.
-                    RethinkWireguardDetailAction(strings.edit, strings.title, MaterialSymbols.Filled.Edit, CardPosition.Middle, onEdit, navigates = true)
-                    RethinkWireguardDetailAction(strings.delete, strings.deleteDescription, MaterialSymbols.Filled.Delete, CardPosition.Last, { confirmDelete = true }, destructive = true)
+                    RethinkWireguardDetailAction(strings.manageApps(state.appsCount), null, MaterialSymbols.Filled.Apps, CardPosition.First, onManageApps, enabled = !state.catchAllEnabled)
+                    RethinkWireguardDetailAction(strings.manageHops, null, MaterialSymbols.Filled.MobiledataArrows, CardPosition.Last, onManageHops)
                 }
             }
-            if (!state.isOneWireguard) {
-                item {
-                    SectionHeader(strings.apps)
-                    RethinkListGroup {
-                        RethinkWireguardDetailAction(strings.manageApps(state.appsCount), null, MaterialSymbols.Filled.Apps, CardPosition.First, onManageApps, enabled = !state.catchAllEnabled)
-                        RethinkWireguardDetailAction(strings.manageHops, null, MaterialSymbols.Filled.MobiledataArrows, CardPosition.Last, onManageHops)
-                    }
+        }
+        rethinkSection(strings.advanced) {
+            RethinkListGroup {
+                RethinkWireguardDetailToggle(strings.catchAll, strings.catchAllDescription, MaterialSymbols.Filled.Security, state.catchAllEnabled, onCatchAllChange, CardPosition.First)
+                RethinkWireguardDetailToggle(
+                    strings.useMobile,
+                    strings.useMobileDescription,
+                    MaterialSymbols.Filled.Settings,
+                    state.useMobileEnabled,
+                    onUseMobileChange,
+                    if (state.ssidSupported) CardPosition.Middle else CardPosition.Last,
+                )
+                if (state.ssidSupported) {
+                    RethinkWireguardDetailToggle(strings.ssid, state.ssidSummary, MaterialSymbols.Filled.Wifi, state.ssidEnabled, onSsidChange, CardPosition.Middle)
+                    RethinkWireguardDetailAction(strings.edit, strings.editSsids, MaterialSymbols.Filled.Edit, CardPosition.Last, onEditSsids)
                 }
             }
-            item {
-                SectionHeader(strings.advanced)
-                RethinkListGroup {
-                    RethinkWireguardDetailToggle(strings.catchAll, strings.catchAllDescription, MaterialSymbols.Filled.Security, state.catchAllEnabled, onCatchAllChange, CardPosition.First)
-                    RethinkWireguardDetailToggle(
-                        strings.useMobile,
-                        strings.useMobileDescription,
-                        MaterialSymbols.Filled.Settings,
-                        state.useMobileEnabled,
-                        onUseMobileChange,
-                        if (state.ssidSupported) CardPosition.Middle else CardPosition.Last,
-                    )
-                    if (state.ssidSupported) {
-                        RethinkWireguardDetailToggle(strings.ssid, state.ssidSummary, MaterialSymbols.Filled.Wifi, state.ssidEnabled, onSsidChange, CardPosition.Middle)
-                        RethinkWireguardDetailAction(strings.edit, strings.editSsids, MaterialSymbols.Filled.Edit, CardPosition.Last, onEditSsids)
-                    }
-                }
-            }
-            item { SectionHeader(strings.peers) }
-            item { peerContent() }
+        }
+        rethinkSection(strings.peers) { peerContent() }
     }
     if (confirmDelete) {
         RethinkConfirmDialog(
@@ -154,13 +148,9 @@ fun RethinkWireguardDetail(
 
 @Composable
 private fun RethinkWireguardDetailOverview(state: RethinkWireguardDetailState) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.cornerRadius2xl),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-    ) {
+    RethinkContainedCard {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(SharedDimensions.cardPadding),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
         ) {
@@ -186,8 +176,8 @@ private fun RethinkWireguardDetailOverview(state: RethinkWireguardDetailState) {
 
 @Composable
 private fun RethinkOneWireguardNotice(message: String) {
-    Surface(shape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.cornerRadius2xl), color = MaterialTheme.colorScheme.tertiaryContainer) {
-        Text(message, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onTertiaryContainer, modifier = Modifier.padding(horizontal = SharedDimensions.cardPadding, vertical = SharedDimensions.spacingMd))
+    RethinkContainedCard(color = MaterialTheme.colorScheme.tertiaryContainer) {
+        Text(message, style = MaterialTheme.typography.bodyMedium)
     }
 }
 

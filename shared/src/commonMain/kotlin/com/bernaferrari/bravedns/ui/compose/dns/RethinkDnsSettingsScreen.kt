@@ -4,8 +4,8 @@
 package com.bernaferrari.bravedns.ui.compose.dns
 
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkLatencyTone
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillDefaults
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWell
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.background
@@ -22,7 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWellContainerColor
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillColors
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -44,7 +44,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -57,11 +56,11 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusIndicator
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
-import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusColors
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkSection
 
 enum class RethinkDnsType { Doh, RethinkRemote, SmartDns, Dot, Odoh, DnsCrypt, DnsProxy, System }
 enum class RethinkBlockFreeDnsMode { Auto, Global, Fallback }
@@ -210,92 +209,80 @@ fun RethinkDnsSettingsScreen(
             }
         },
     ) {
-        item {
-            Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd)) {
-                DnsInUseHero(state, strings, highlighted = focusedSettingId == "dns_mode_rethink")
-                SectionHeader(strings.modesSection)
-                // Four resolver choices as selectable cards in a 2×2 grid: the chosen one fills
-                // with the secondary container, rounds further and carries a check.
-                val choices = listOf(
-                    DnsChoice(strings.systemDns, strings.systemDnsDescription, state.isSystemDnsEnabled, MaterialSymbols.Filled.Settings, MaterialShapes.Cookie4Sided, "dns_mode_system", onSystemDns, onSystemDnsInfo),
-                    DnsChoice(strings.customDns, strings.customDnsDescription, !state.isSystemDnsEnabled && !state.isRethinkDnsConnected && !state.isSmartDnsEnabled, MaterialSymbols.Filled.Dns, MaterialShapes.Pill, "dns_mode_custom", onCustomDns),
-                    DnsChoice(strings.rethinkDns, strings.rethinkDnsDescription, state.isRethinkDnsConnected, MaterialSymbols.Filled.Security, MaterialShapes.Cookie9Sided, "dns_mode_rethink", onRethinkDns),
-                    DnsChoice(strings.smartDns, strings.smartDnsDescription, state.isSmartDnsEnabled, MaterialSymbols.Filled.Language, MaterialShapes.Clover4Leaf, "dns_mode_smart", onSmartDns, onSmartDnsInfo),
-                )
-                Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
-                    choices.chunked(2).forEach { pair ->
-                        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
-                            pair.forEach { choice ->
-                                DnsChoiceCard(choice, focusedSettingId == choice.id, strings.aboutItem(choice.title), Modifier.weight(1f).fillMaxHeight())
-                            }
+        item { DnsInUseHero(state, strings, highlighted = focusedSettingId == "dns_mode_rethink") }
+        rethinkSection(strings.modesSection) {
+            // Four resolver choices as selectable cards in a 2×2 grid: the chosen one fills
+            // with the secondary container, rounds further and carries a check.
+            val choices = listOf(
+                DnsChoice(strings.systemDns, strings.systemDnsDescription, state.isSystemDnsEnabled, MaterialSymbols.Filled.Settings, MaterialShapes.Cookie4Sided, "dns_mode_system", onSystemDns, onSystemDnsInfo),
+                DnsChoice(strings.customDns, strings.customDnsDescription, !state.isSystemDnsEnabled && !state.isRethinkDnsConnected && !state.isSmartDnsEnabled, MaterialSymbols.Filled.Dns, MaterialShapes.Pill, "dns_mode_custom", onCustomDns),
+                DnsChoice(strings.rethinkDns, strings.rethinkDnsDescription, state.isRethinkDnsConnected, MaterialSymbols.Filled.Security, MaterialShapes.Cookie9Sided, "dns_mode_rethink", onRethinkDns),
+                DnsChoice(strings.smartDns, strings.smartDnsDescription, state.isSmartDnsEnabled, MaterialSymbols.Filled.Language, MaterialShapes.Clover4Leaf, "dns_mode_smart", onSmartDns, onSmartDnsInfo),
+            )
+            Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
+                choices.chunked(2).forEach { pair ->
+                    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
+                        pair.forEach { choice ->
+                            DnsChoiceCard(choice, focusedSettingId == choice.id, strings.aboutItem(choice.title), Modifier.weight(1f).fillMaxHeight())
                         }
                     }
                 }
             }
         }
-        item {
-            Column {
-                SectionHeader(strings.blockSection)
-                RethinkListGroup {
-                    RethinkListItem(
-                        headline = strings.localBlocklists,
-                        supporting = if (state.blocklistEnabled) strings.localBlocklistsDescription(state.numberOfLocalBlocklists) else strings.localBlocklistsDisabledDescription,
-                        leadingIcon = MaterialSymbols.Filled.Security,
-                        position = CardPosition.First,
-                        highlighted = focusedSettingId == "dns_block_local",
-                        trailing = { RethinkDnsStatusText(if (state.blocklistEnabled) strings.enabled else strings.disabled, state.blocklistEnabled) },
-                        onClick = onLocalBlocklists,
-                    )
-                    RethinkDnsToggleRow(strings.customDownloader, strings.customDownloaderDescription, state.useCustomDownloadManager, MaterialSymbols.Filled.Storage, CardPosition.Middle, focusedSettingId == "dns_block_custom_downloader", onCustomDownloaderChange)
-                    RethinkDnsToggleRow(strings.periodicUpdates, strings.periodicUpdatesDescription, state.periodicallyCheckBlocklistUpdate, MaterialSymbols.Filled.Refresh, CardPosition.Last, focusedSettingId == "dns_block_periodic_updates", onPeriodicUpdateChange)
-                }
+        rethinkSection(strings.blockSection) {
+            RethinkListGroup {
+                RethinkListItem(
+                    headline = strings.localBlocklists,
+                    supporting = if (state.blocklistEnabled) strings.localBlocklistsDescription(state.numberOfLocalBlocklists) else strings.localBlocklistsDisabledDescription,
+                    leadingIcon = MaterialSymbols.Filled.Security,
+                    position = CardPosition.First,
+                    highlighted = focusedSettingId == "dns_block_local",
+                    trailing = { RethinkDnsStatusText(if (state.blocklistEnabled) strings.enabled else strings.disabled, state.blocklistEnabled) },
+                    onClick = onLocalBlocklists,
+                )
+                RethinkDnsToggleRow(strings.customDownloader, strings.customDownloaderDescription, state.useCustomDownloadManager, MaterialSymbols.Filled.Storage, CardPosition.Middle, focusedSettingId == "dns_block_custom_downloader", onCustomDownloaderChange)
+                RethinkDnsToggleRow(strings.periodicUpdates, strings.periodicUpdatesDescription, state.periodicallyCheckBlocklistUpdate, MaterialSymbols.Filled.Refresh, CardPosition.Last, focusedSettingId == "dns_block_periodic_updates", onPeriodicUpdateChange)
             }
         }
-        item {
+        rethinkSection(strings.filteringSection) {
             val rows = buildList {
                 add(RethinkDnsToggle(strings.dnsAlg, strings.dnsAlgDescription, state.enableDnsAlg, MaterialSymbols.Filled.Dns, "dns_filter_alg", onDnsAlgChange))
                 if (state.showSplitDns) add(RethinkDnsToggle(strings.splitDns, strings.splitDnsDescription, state.splitDns, MaterialSymbols.Filled.Language, "dns_filter_split", onSplitDnsChange))
                 if (state.showBypassDnsBlock) add(RethinkDnsToggle(strings.rulesAsFirewall, strings.rulesAsFirewallDescription, state.bypassBlockInDns, MaterialSymbols.Filled.Security, "dns_filter_rules_as_firewall", onRulesAsFirewallChange))
             }
-            Column {
-                SectionHeader(strings.filteringSection)
-                RethinkListGroup {
-                    rows.forEachIndexed { index, row ->
-                        RethinkDnsToggleRow(row.title, row.description, row.checked, row.icon, cardPositionFor(index, rows.lastIndex + 1), focusedSettingId == row.id, row.onChange)
-                    }
-                    RethinkListItem(
-                        headline = strings.recordTypes,
-                        supporting = strings.recordTypesDescription,
-                        leadingIcon = MaterialSymbols.Filled.Public,
-                        position = CardPosition.Last,
-                        highlighted = focusedSettingId == "dns_filter_record_types",
-                        trailing = { RethinkDnsStatusText(if (state.dnsRecordTypesAutoMode) strings.auto else state.allowedDnsRecordTypesSize.toString(), true) },
-                        onClick = onRecordTypes,
-                    )
+            RethinkListGroup {
+                rows.forEachIndexed { index, row ->
+                    RethinkDnsToggleRow(row.title, row.description, row.checked, row.icon, cardPositionFor(index, rows.lastIndex + 1), focusedSettingId == row.id, row.onChange)
                 }
+                RethinkListItem(
+                    headline = strings.recordTypes,
+                    supporting = strings.recordTypesDescription,
+                    leadingIcon = MaterialSymbols.Filled.Public,
+                    position = CardPosition.Last,
+                    highlighted = focusedSettingId == "dns_filter_record_types",
+                    trailing = { RethinkDnsStatusText(if (state.dnsRecordTypesAutoMode) strings.auto else state.allowedDnsRecordTypesSize.toString(), true) },
+                    onClick = onRecordTypes,
+                )
             }
         }
-        item {
-            Column {
-                SectionHeader(strings.blockFreeSection)
-                RethinkListGroup {
-                    Column(Modifier.selectableGroup()) {
-                        RethinkBlockFreeDnsMode.entries.forEachIndexed { index, mode ->
-                            RethinkDnsRadioRow(strings.blockFreeLabel(mode), strings.blockFreeDescription(mode), state.blockFreeDnsMode == mode, MaterialSymbols.Filled.Dns, cardPositionFor(index, RethinkBlockFreeDnsMode.entries.lastIndex + 1), false, { onBlockFreeModeChange(mode) })
-                        }
+        rethinkSection(strings.blockFreeSection) {
+            RethinkListGroup {
+                Column(Modifier.selectableGroup()) {
+                    RethinkBlockFreeDnsMode.entries.forEachIndexed { index, mode ->
+                        RethinkDnsRadioRow(strings.blockFreeLabel(mode), strings.blockFreeDescription(mode), state.blockFreeDnsMode == mode, MaterialSymbols.Filled.Dns, cardPositionFor(index, RethinkBlockFreeDnsMode.entries.lastIndex + 1), false, { onBlockFreeModeChange(mode) })
                     }
-                    RethinkListItem(
-                        headline = strings.trustedEndpoint,
-                        supporting = strings.trustedEndpointDescription,
-                        leadingIcon = MaterialSymbols.Filled.Security,
-                        position = CardPosition.Last,
-                        showTrailingChevron = true,
-                        onClick = onTrustedEndpoint,
-                    )
                 }
+                RethinkListItem(
+                    headline = strings.trustedEndpoint,
+                    supporting = strings.trustedEndpointDescription,
+                    leadingIcon = MaterialSymbols.Filled.Security,
+                    position = CardPosition.Last,
+                    showTrailingChevron = true,
+                    onClick = onTrustedEndpoint,
+                )
             }
         }
-        item {
+        rethinkSection(strings.advancedSection) {
             val rows = listOf(
                 RethinkDnsToggle(strings.favicons, strings.faviconsDescription, state.fetchFavIcon, MaterialSymbols.Filled.Language, "dns_advanced_favicon", onFaviconsChange),
                 RethinkDnsToggle(strings.dnsCache, strings.dnsCacheDescription, state.enableDnsCache, MaterialSymbols.Filled.Storage, "dns_advanced_cache", onDnsCacheChange),
@@ -304,12 +291,9 @@ fun RethinkDnsSettingsScreen(
                 RethinkDnsToggle(strings.fallbackDns, strings.fallbackDnsDescription, state.useFallbackDnsToBypass, MaterialSymbols.Filled.Security, "dns_advanced_fallback", onFallbackDnsChange),
                 RethinkDnsToggle(strings.preventLeaks, strings.preventLeaksDescription, state.preventDnsLeaks, MaterialSymbols.Filled.Security, "dns_advanced_leaks", onPreventLeaksChange),
             )
-            Column {
-                SectionHeader(strings.advancedSection)
-                RethinkListGroup {
-                    rows.forEachIndexed { index, row ->
-                        RethinkDnsToggleRow(row.title, row.description, row.checked, row.icon, cardPositionFor(index, rows.lastIndex), focusedSettingId == row.id, row.onChange)
-                    }
+            RethinkListGroup {
+                rows.forEachIndexed { index, row ->
+                    RethinkDnsToggleRow(row.title, row.description, row.checked, row.icon, cardPositionFor(index, rows.lastIndex), focusedSettingId == row.id, row.onChange)
                 }
             }
         }
@@ -408,9 +392,9 @@ private fun DnsInUseHero(state: RethinkDnsSettingsState, strings: RethinkDnsSett
                 overflow = TextOverflow.Ellipsis,
             )
             Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm), verticalAlignment = Alignment.CenterVertically) {
-                RethinkPill(protocol, colors = RethinkPillColors(scheme.onPrimaryContainer.copy(alpha = .1f), scheme.onPrimaryContainer), fontWeight = FontWeight.Bold)
+                RethinkPill(protocol, colors = RethinkPillDefaults.onContainer(scheme.onPrimaryContainer), size = RethinkPillSize.Large)
                 endpoint.takeIf { it.isNotBlank() }?.let {
-                    RethinkPill(it, Modifier.weight(1f, fill = false), colors = RethinkPillColors(scheme.onPrimaryContainer.copy(alpha = .1f), scheme.onPrimaryContainer))
+                    RethinkPill(it, Modifier.weight(1f, fill = false), colors = RethinkPillDefaults.onContainer(scheme.onPrimaryContainer), size = RethinkPillSize.Large)
                 }
             }
             Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg)) {
@@ -434,21 +418,13 @@ private fun LatencyBars(latencies: List<Long>, modifier: Modifier = Modifier) {
                 Modifier
                     .weight(1f)
                     .fillMaxHeight((ms / max).coerceIn(0.08f, 1f))
-                    .background(latencyColor(ms), RoundedCornerShape(SharedDimensions.cornerRadiusFull)),
+                    .background(rethinkLatencyTone(ms), RoundedCornerShape(SharedDimensions.cornerRadiusFull)),
             )
         }
     }
 }
 
-@Composable
-private fun latencyColor(ms: Long): Color = when {
-    ms < FAST_BAR_MS -> RethinkStatusColors.allowed
-    ms < FAST_LATENCY_MS -> RethinkStatusColors.mixed
-    else -> RethinkStatusColors.blocked
-}
-
 private const val LATENCY_BARS = 24
-private const val FAST_BAR_MS = 40L
 private val LatencyChartHeight = 56.dp
 
 private data class RethinkDnsToggle(
@@ -518,21 +494,6 @@ private fun RethinkDnsToggleRow(
     highlighted = highlighted,
 )
 
-/** Latency reads as a status: fast uses the allowed role, sluggish mixed, very slow blocked. */
-@Composable
-private fun latencyTone(latency: String): Color {
-    val ms = latency.takeWhile { it.isDigit() || it == '.' }.toDoubleOrNull()
-        ?: return RethinkStatusColors.idle
-    return when {
-        ms < FAST_LATENCY_MS -> RethinkStatusColors.allowed
-        ms < SLOW_LATENCY_MS -> RethinkStatusColors.mixed
-        else -> RethinkStatusColors.blocked
-    }
-}
-
-private const val FAST_LATENCY_MS = 150.0
-private const val SLOW_LATENCY_MS = 500.0
-
 @Composable
 private fun RethinkDnsStatusText(text: String, enabled: Boolean) = RethinkStatusLabel(
     label = text,
@@ -553,8 +514,9 @@ private fun RethinkDnsType.protocol(endpoint: String): String = when (this) {
 
 private fun dnsSettingsSectionFor(id: String?): Int? = when (id) {
     null, "" -> null
+    // Item indices: 0 hero, 1 modes, 2 blocklists, 3 filtering, 4 block-free, 5 advanced.
     "dns_mode", "dns_mode_system", "dns_mode_custom", "dns_mode_rethink", "dns_mode_smart" -> 0
-    "dns_blocklist", "dns_block_local", "dns_block_custom_downloader", "dns_block_periodic_updates" -> 1
-    "dns_filtering", "dns_filter_alg", "dns_filter_split", "dns_filter_rules_as_firewall", "dns_filter_record_types" -> 2
-    else -> 4
+    "dns_blocklist", "dns_block_local", "dns_block_custom_downloader", "dns_block_periodic_updates" -> 2
+    "dns_filtering", "dns_filter_alg", "dns_filter_split", "dns_filter_rules_as_firewall", "dns_filter_record_types" -> 3
+    else -> 5
 }

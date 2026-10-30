@@ -18,7 +18,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
@@ -37,6 +36,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusIndicator
 import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
 import com.bernaferrari.bravedns.ui.compose.common.RethinkErrorState
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
+import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 private val AvailabilityRingSize = 120.dp
 
@@ -114,7 +114,7 @@ fun RethinkRpnAvailabilityScreen(
                 val failedEmpty = items.isEmpty() && loadFailed
                 when {
                     failedEmpty -> RethinkErrorState(strings.loadFailed, retryLabel = strings.retry, onRetry = onRetry, contained = true)
-                    items.isEmpty() -> RethinkEmptyState(title = strings.noSelected, message = "", contained = true)
+                    items.isEmpty() -> RethinkEmptyState(title = strings.noSelected, icon = MaterialSymbols.Filled.Public, contained = true)
                     else -> AvailabilityList(items, strings)
                 }
                 if (!failedEmpty) {

@@ -3,7 +3,6 @@ package com.bernaferrari.bravedns.ui.compose.settings
 
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -17,9 +16,9 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSwitchListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBarLazyColumnScreen
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWellDefaults
-import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkSection
 
 enum class RethinkMiscSettingIcon {
     Logs, AutoStart, Tombstone, FirewallBubble, IpInfo, AppUpdates, CrashReports, Downloader,
@@ -79,64 +78,55 @@ fun RethinkMiscSettingsScreen(
         modifier = modifier,
         listState = listState,
     ) {
-            item {
-                Column {
-                    SectionHeader(strings.backupSection)
-                    RethinkListGroup {
-                        RethinkListItem(
-                            headline = strings.backupTitle,
-                            supporting = strings.backupDescription,
-                            leadingIcon = MaterialSymbols.Filled.Backup,
-                            leadingIconContainerColor = RethinkIconWellDefaults.tinted(MaterialTheme.colorScheme.secondary),
-                            position = CardPosition.Single,
-                            highlighted = focusedSettingId == "general_backup" || focusedSettingId == "general_backup_restore",
-                            // Opens a sheet in place; chevrons are reserved for navigation.
-                            onClick = onBackupRestore,
-                        )
-                    }
+        rethinkSection(strings.backupSection) {
+            RethinkListGroup {
+                RethinkListItem(
+                    headline = strings.backupTitle,
+                    supporting = strings.backupDescription,
+                    leadingIcon = MaterialSymbols.Filled.Backup,
+                    leadingIconContainerColor = RethinkIconWellDefaults.tinted(MaterialTheme.colorScheme.secondary),
+                    position = CardPosition.Single,
+                    highlighted = focusedSettingId == "general_backup" || focusedSettingId == "general_backup_restore",
+                    // Opens a sheet in place; chevrons are reserved for navigation.
+                    onClick = onBackupRestore,
+                )
+            }
+        }
+        rethinkSection(strings.generalSection) {
+            RethinkListGroup {
+                toggles.forEachIndexed { index, toggle ->
+                    RethinkMiscToggleRow(
+                        toggle = toggle,
+                        position = cardPositionFor(index, toggles.lastIndex),
+                        highlighted = focusedSettingId == toggle.id,
+                        onCheckedChange = { onToggleChange(toggle.id, it) },
+                    )
                 }
             }
-            item {
-                Column {
-                    SectionHeader(strings.generalSection)
-                    RethinkListGroup {
-                        toggles.forEachIndexed { index, toggle ->
-                            RethinkMiscToggleRow(
-                                toggle = toggle,
-                                position = cardPositionFor(index, toggles.lastIndex),
-                                highlighted = focusedSettingId == toggle.id,
-                                onCheckedChange = { onToggleChange(toggle.id, it) },
-                            )
-                        }
-                    }
-                }
+        }
+        rethinkSection(strings.aboutSection) {
+            RethinkListGroup {
+                RethinkListItem(
+                    headline = strings.websiteTitle,
+                    supporting = strings.websiteDescription,
+                    leadingIcon = MaterialSymbols.Filled.Public,
+                    leadingIconContainerColor = RethinkIconWellDefaults.tinted(MaterialTheme.colorScheme.tertiary),
+                    position = CardPosition.First,
+                    highlighted = focusedSettingId == "general_website",
+                    onClick = onOpenWebsite,
+                )
+                RethinkListItem(
+                    headline = strings.aboutTitle,
+                    supporting = strings.aboutDescription,
+                    leadingIcon = MaterialSymbols.Filled.Info,
+                    leadingIconContainerColor = RethinkIconWellDefaults.tinted(MaterialTheme.colorScheme.tertiary),
+                    position = CardPosition.Last,
+                    highlighted = focusedSettingId == "general_about",
+                    showTrailingChevron = true,
+                    onClick = onOpenAbout,
+                )
             }
-            item {
-                Column {
-                    SectionHeader(strings.aboutSection)
-                    RethinkListGroup {
-                        RethinkListItem(
-                            headline = strings.websiteTitle,
-                            supporting = strings.websiteDescription,
-                            leadingIcon = MaterialSymbols.Filled.Public,
-                            leadingIconContainerColor = RethinkIconWellDefaults.tinted(MaterialTheme.colorScheme.tertiary),
-                            position = CardPosition.First,
-                            highlighted = focusedSettingId == "general_website",
-                            onClick = onOpenWebsite,
-                        )
-                        RethinkListItem(
-                            headline = strings.aboutTitle,
-                            supporting = strings.aboutDescription,
-                            leadingIcon = MaterialSymbols.Filled.Info,
-                            leadingIconContainerColor = RethinkIconWellDefaults.tinted(MaterialTheme.colorScheme.tertiary),
-                            position = CardPosition.Last,
-                            highlighted = focusedSettingId == "general_about",
-                            showTrailingChevron = true,
-                            onClick = onOpenAbout,
-                        )
-                    }
-                }
-            }
+        }
     }
 }
 

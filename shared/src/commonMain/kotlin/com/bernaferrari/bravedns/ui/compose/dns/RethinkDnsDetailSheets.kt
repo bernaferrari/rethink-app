@@ -26,7 +26,6 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormSection
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
@@ -80,9 +79,8 @@ fun RethinkDnsRecordTypesSheet(
             }
             RethinkFormSection(strings.allowed) {
                 LazyColumn(
-                    modifier = Modifier.fillMaxWidth().heightIn(max = 380.dp),
+                    modifier = Modifier.fillMaxWidth().heightIn(max = SharedDimensions.sheetContentMaxHeight),
                     contentPadding = PaddingValues(bottom = SharedDimensions.spacing2xl),
-                    verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
                 ) {
                     itemsIndexed(types, key = { _, type -> type.id }) { index, type ->
                         val checked = type.id in selectedIds

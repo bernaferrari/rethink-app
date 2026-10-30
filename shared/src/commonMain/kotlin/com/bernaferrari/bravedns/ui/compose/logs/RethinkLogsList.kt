@@ -138,4 +138,4 @@ private val LogStateModifier = Modifier.padding(top = SharedDimensions.spacingSm
 
 @Composable
 private fun RethinkLogEmpty(label: String) =
-    RethinkEmptyState(title = label, message = "", modifier = LogStateModifier, icon = MaterialSymbols.Filled.Info, contained = true)
+    RethinkEmptyState(title = label, modifier = LogStateModifier, icon = MaterialSymbols.Filled.Info, contained = true)

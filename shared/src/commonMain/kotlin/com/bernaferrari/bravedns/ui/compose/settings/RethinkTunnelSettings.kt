@@ -23,10 +23,11 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSwitchListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBarLazyColumnScreen
-import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListShape
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkSection
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedRow
 
 enum class RethinkTunnelSettingKind { Action, Toggle }
 
@@ -88,43 +89,40 @@ fun RethinkTunnelSettingsScreen(
             }
         }
         item { RethinkTunnelSettingGroup(coreRows, focusedRowId, onActionClick, onToggleChange) }
-        item {
-            Column {
-                SectionHeader(strings.advanced)
-                RethinkTunnelSettingGroup(
-                    rows = advancedRows,
-                    focusedRowId = focusedRowId,
-                    onActionClick = onActionClick,
-                    onToggleChange = onToggleChange,
-                    lastIndexOverride = advancedRows.lastIndex + 1,
+        rethinkSection(strings.advanced) {
+            RethinkTunnelSettingGroup(
+                rows = advancedRows,
+                focusedRowId = focusedRowId,
+                onActionClick = onActionClick,
+                onToggleChange = onToggleChange,
+                lastIndexOverride = advancedRows.lastIndex + 1,
+            ) {
+                val timeoutPosition = cardPositionFor(advancedRows.lastIndex + 1, advancedRows.lastIndex + 1)
+                val timeoutHighlighted = focusedRowId == "network_dial_timeout"
+                Surface(
+                    modifier = Modifier.rethinkGroupedRow(timeoutPosition),
+                    color = if (timeoutHighlighted) {
+                        // Same tonal highlight as RethinkListItem's focus state.
+                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.56f)
+                    } else {
+                        MaterialTheme.colorScheme.surfaceContainerLow
+                    },
+                    shape = rethinkGroupedListShape(timeoutPosition),
                 ) {
-                    val timeoutPosition = cardPositionFor(advancedRows.lastIndex + 1, advancedRows.lastIndex + 1)
-                    val timeoutHighlighted = focusedRowId == "network_dial_timeout"
-                    Surface(
-                        modifier = Modifier.fillMaxWidth().padding(top = SharedDimensions.spacingGridTile),
-                        color = if (timeoutHighlighted) {
-                            // Same tonal highlight as RethinkListItem's focus state.
-                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.56f)
-                        } else {
-                            MaterialTheme.colorScheme.surfaceContainerLow
-                        },
-                        shape = rethinkGroupedListShape(timeoutPosition),
-                    ) {
-                        Column(Modifier.fillMaxWidth().padding(SharedDimensions.cardPadding)) {
-                            Text(strings.dialTimeout, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
-                            Text(dialTimeoutDescription, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Spacer(Modifier.height(SharedDimensions.spacingSm))
-                            Slider(
-                                value = dialTimeoutMinutes.toFloat(),
-                                onValueChange = { onDialTimeoutChange(it.toInt()) },
-                                valueRange = 0f..60f,
-                                colors = SliderDefaults.colors(
-                                    thumbColor = MaterialTheme.colorScheme.primary,
-                                    activeTrackColor = MaterialTheme.colorScheme.primary,
-                                    inactiveTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                                ),
-                            )
-                        }
+                    Column(Modifier.fillMaxWidth().padding(SharedDimensions.cardPadding)) {
+                        Text(strings.dialTimeout, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+                        Text(dialTimeoutDescription, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Spacer(Modifier.height(SharedDimensions.spacingSm))
+                        Slider(
+                            value = dialTimeoutMinutes.toFloat(),
+                            onValueChange = { onDialTimeoutChange(it.toInt()) },
+                            valueRange = 0f..60f,
+                            colors = SliderDefaults.colors(
+                                thumbColor = MaterialTheme.colorScheme.primary,
+                                activeTrackColor = MaterialTheme.colorScheme.primary,
+                                inactiveTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                            ),
+                        )
                     }
                 }
             }

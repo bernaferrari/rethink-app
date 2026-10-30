@@ -47,7 +47,6 @@ fun RethinkAlertsScreen(
         ) {
             RethinkEmptyState(
                 title = strings.emptyMessage,
-                message = "",
                 icon = MaterialSymbols.Filled.NotificationsOff,
             )
         }

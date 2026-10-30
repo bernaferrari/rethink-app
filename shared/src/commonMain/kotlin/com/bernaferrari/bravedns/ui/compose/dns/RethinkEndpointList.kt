@@ -29,9 +29,9 @@ import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBarLazyColumnScreen
 
 /** A small bridge keeps Paging Android-only while every endpoint-list visual is portable. */
 interface RethinkEndpointFeed<T> {
@@ -132,28 +132,19 @@ fun <T> RethinkEndpointPicker(
     modifier: Modifier = Modifier,
     itemContent: @Composable (T) -> Unit,
 ) {
-    Scaffold(
+    RethinkTopBarLazyColumnScreen(
+        title = title,
+        onBackClick = onBackClick,
         modifier = modifier,
-        containerColor = MaterialTheme.colorScheme.surface,
-        topBar = { RethinkTopBar(title = title, onBackClick = onBackClick) },
-    ) { padding ->
+        // Same rhythm as [RethinkEndpointListWithAdd]: endpoint rows are standalone cards.
+        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
+    ) {
         if (feed.itemCount == 0) {
-            RethinkEmptyState(
-                title = title,
-                message = "",
-                modifier = Modifier.fillMaxSize().padding(padding),
-            )
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                contentPadding = PaddingValues(horizontal = SharedDimensions.screenPaddingHorizontal, vertical = SharedDimensions.spacingXs),
-                verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
-            ) {
-                items(feed.itemCount) { index ->
-                    val item = feed[index] ?: return@items
-                    itemContent(item)
-                }
-            }
+            item { RethinkEmptyState(title = title, icon = MaterialSymbols.Filled.Dns) }
+        }
+        items(feed.itemCount) { index ->
+            val item = feed[index] ?: return@items
+            itemContent(item)
         }
     }
 }

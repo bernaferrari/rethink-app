@@ -8,11 +8,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -27,6 +25,8 @@ import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import androidx.compose.foundation.layout.PaddingValues
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkContainedCard
 
 enum class RethinkBackupRestoreFailure { Backup, Restore }
 
@@ -131,15 +131,11 @@ fun RethinkBackupRestoreSheet(
                     onClick = { confirmation = RethinkBackupRestoreFailure.Restore },
                 )
             }
-            Surface(
-                shape = RoundedCornerShape(SharedDimensions.cornerRadiusXl),
-                color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            ) {
+            RethinkContainedCard(contentPadding = PaddingValues(SharedDimensions.spacingMd)) {
                 Text(
                     versionText,
                     style = MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Monospace),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.fillMaxWidth().padding(SharedDimensions.spacingMd),
                 )
             }
         }

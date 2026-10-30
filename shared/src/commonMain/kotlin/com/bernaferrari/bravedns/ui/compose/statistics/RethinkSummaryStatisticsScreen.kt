@@ -132,13 +132,6 @@ fun RethinkSummaryStatisticsScreen(
         RethinkTopBarLazyColumnScreen(
             title = strings.title,
             modifier = Modifier.fillMaxWidth(),
-            containerColor = MaterialTheme.colorScheme.surface,
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                start = SharedDimensions.screenPaddingHorizontal,
-                end = SharedDimensions.screenPaddingHorizontal,
-                top = SharedDimensions.spacingMd,
-                bottom = SharedDimensions.spacing3xl,
-            ),
         ) {
             // The window scopes everything below it, including the usage totals, so it leads.
             item {
@@ -211,7 +204,7 @@ private fun RethinkSummaryStatisticsSectionCard(
         SectionHeader(title = section.title, color = section.accentColor)
         when {
             section.isLoading && section.rows.isEmpty() -> RethinkLoadingState(label = "", contained = true)
-            section.rows.isEmpty() -> RethinkEmptyState(icon = MaterialSymbols.Filled.Info, title = strings.noLogs, message = "", contained = true)
+            section.rows.isEmpty() -> RethinkEmptyState(icon = MaterialSymbols.Filled.Info, title = strings.noLogs, contained = true)
             else -> RethinkListGroup {
                 displayedRows.forEachIndexed { index, row ->
                     val isExpanded = expandedCountryId == row.id

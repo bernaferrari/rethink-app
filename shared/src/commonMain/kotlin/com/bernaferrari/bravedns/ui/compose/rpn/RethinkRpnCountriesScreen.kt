@@ -2,7 +2,6 @@
 
 package com.bernaferrari.bravedns.ui.compose.rpn
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -150,7 +149,6 @@ fun RethinkRpnCountriesScreen(
                 top = SharedDimensions.spacingSm,
                 bottom = SharedDimensions.spacing3xl,
             ),
-            verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile),
         ) {
             item(key = "search") {
                 RethinkSearchField(
@@ -184,7 +182,6 @@ fun RethinkRpnCountriesScreen(
                 item(key = "empty") {
                     RethinkEmptyState(
                         title = strings.noMatches,
-                        message = "",
                         icon = MaterialSymbols.Filled.Public,
                         ctaLabel = strings.clearFilters.takeIf { query.isNotBlank() || favouritesOnly },
                         onCtaClick = { query = ""; favouritesOnly = false },

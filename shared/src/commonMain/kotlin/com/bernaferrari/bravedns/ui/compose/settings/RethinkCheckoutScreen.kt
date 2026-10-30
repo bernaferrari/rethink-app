@@ -28,7 +28,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
@@ -45,6 +44,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkContainedCard
 
 enum class RethinkCheckoutPaymentStatus { NotPaid, Initiated, Paid, Failed }
 
@@ -152,15 +152,9 @@ private fun CheckoutPaymentContent(
             ) { Text(strings.purchase, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold) }
             TextButton(onClick = onNavigateToProxy, modifier = Modifier.heightIn(min = SharedDimensions.touchTargetMin)) { Text(strings.restore) }
         }
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(SharedDimensions.groupCornerRadius),
-            color = MaterialTheme.colorScheme.surfaceContainerLow,
-        ) {
-            Column(Modifier.padding(SharedDimensions.cardPadding), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
-                Text(strings.termsTitle, style = MaterialTheme.typography.titleSmall)
-                Text(strings.termsBody, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+        RethinkContainedCard(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
+            Text(strings.termsTitle, style = MaterialTheme.typography.titleSmall)
+            Text(strings.termsBody, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

@@ -61,7 +61,6 @@ fun RethinkDomainConnectionsScreen(
                 isLoading -> RethinkLoadingState(loadingMessage, Modifier.align(Alignment.Center))
                 isEmpty -> RethinkEmptyState(
                     title = emptyMessage,
-                    message = "",
                     icon = MaterialSymbols.Filled.Public,
                     modifier = Modifier.align(Alignment.Center),
                 )

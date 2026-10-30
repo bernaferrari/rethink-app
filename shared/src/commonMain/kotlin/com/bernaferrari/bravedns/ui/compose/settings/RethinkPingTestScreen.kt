@@ -11,14 +11,11 @@ import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -43,6 +40,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusColors
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkContainedCard
 
 sealed interface RethinkPingStatus {
     data object Idle : RethinkPingStatus
@@ -104,24 +102,16 @@ fun RethinkPingTestScreen(
         strength?.let { value ->
             item {
                 SectionHeader(strings.strength)
-                PingCheckCard {
-                    Column(
-                        modifier = Modifier.padding(
-                            horizontal = SharedDimensions.cardPadding,
-                            vertical = SharedDimensions.spacingLg,
-                        ),
-                        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
-                    ) {
-                        Text(
-                            strings.strengthValue(value, maxStrength),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        LinearWavyProgressIndicator(
-                            progress = { value.toFloat() / maxStrength.toFloat() },
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
+                RethinkContainedCard(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd)) {
+                    Text(
+                        strings.strengthValue(value, maxStrength),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    LinearWavyProgressIndicator(
+                        progress = { value.toFloat() / maxStrength.toFloat() },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
                 }
             }
         }
@@ -135,16 +125,6 @@ fun RethinkPingTestScreen(
             onConfirm = { onBackClick?.invoke() },
         )
     }
-}
-
-@Composable
-private fun PingCheckCard(content: @Composable () -> Unit) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(SharedDimensions.groupCornerRadius),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        content = content,
-    )
 }
 
 /**

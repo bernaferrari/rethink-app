@@ -7,7 +7,6 @@ import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillDefaults
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillSize
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWell
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -39,7 +38,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import com.bernaferrari.bravedns.ui.compose.common.isExpanded
 import com.bernaferrari.bravedns.ui.compose.common.RethinkAdaptiveWidth
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -260,7 +258,6 @@ fun RethinkAppInfoScreen(
                             RethinkEmptyState(
                                 icon = MaterialSymbols.Filled.Apps,
                                 title = strings.unavailable,
-                                message = "",
                             )
                         }
                     } else {

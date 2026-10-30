@@ -6,19 +6,17 @@ import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFilterChip
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormSection
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkLazyColumnScreenScaffold
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkSection
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBarLazyColumnScreen
 
 data class RethinkBlockFreeDnsItem(val key: String, val name: String, val url: String, val type: String)
 data class RethinkBlockFreeDnsFilter(val id: String?, val label: String)
@@ -42,41 +40,38 @@ fun RethinkBlockFreeDnsScreen(
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    RethinkLazyColumnScreenScaffold(
+    RethinkTopBarLazyColumnScreen(
+        title = strings.title,
+        onBackClick = onBackClick,
         modifier = modifier,
-        containerColor = MaterialTheme.colorScheme.surface,
-        topBar = { RethinkTopBar(strings.title, onBackClick = onBackClick) },
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(
-            start = SharedDimensions.screenPaddingHorizontal,
-            end = SharedDimensions.screenPaddingHorizontal,
-            bottom = SharedDimensions.spacing3xl,
-        ),
-        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
     ) {
-            item {
-                RethinkFormSection(strings.heading, strings.description) {
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
-                        filters.forEach { filter ->
-                            RethinkFilterChip(filter.label, selected = activeFilterId == filter.id, onClick = { onFilterSelected(filter.id) })
-                        }
+        rethinkSection(strings.heading, strings.description) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
+                filters.forEach { filter ->
+                    RethinkFilterChip(filter.label, selected = activeFilterId == filter.id, onClick = { onFilterSelected(filter.id) })
+                }
+            }
+        }
+        item {
+            if (items.isEmpty()) {
+                // The section above already explains the list; the empty state only marks it empty.
+                RethinkEmptyState(title = strings.heading, icon = MaterialSymbols.Filled.Dns, contained = true)
+            } else {
+                RethinkListGroup {
+                    items.forEachIndexed { index, item ->
+                        val selected = selectedKey == item.key
+                        RethinkListItem(
+                            headline = item.name,
+                            supporting = item.url,
+                            position = cardPositionFor(index, items.lastIndex),
+                            highlighted = selected,
+                            onClick = { onItemSelected(item) },
+                            leadingIcon = MaterialSymbols.Filled.Public,
+                            trailing = if (selected) ({ Icon(MaterialSymbols.Filled.Check, strings.selectedDescription) }) else null,
+                        )
                     }
                 }
             }
-            if (items.isEmpty()) {
-                item { RethinkEmptyState(title = strings.heading, message = strings.description) }
-            } else {
-                itemsIndexed(items, key = { _, item -> item.key }) { index, item ->
-                    val selected = selectedKey == item.key
-                    RethinkListItem(
-                        headline = item.name,
-                        supporting = item.url,
-                        position = cardPositionFor(index, items.lastIndex),
-                        highlighted = selected,
-                        onClick = { onItemSelected(item) },
-                        leadingIcon = MaterialSymbols.Filled.Public,
-                        trailing = if (selected) ({ Icon(MaterialSymbols.Filled.Check, strings.selectedDescription) }) else null,
-                    )
-                }
-            }
+        }
     }
 }
