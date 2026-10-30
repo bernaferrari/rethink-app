@@ -12,6 +12,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
@@ -164,7 +165,7 @@ private fun AppConnection.toRethinkSummaryRow(
     // The trailing metric is the headline number (bytes when known, else the count); the
     // supporting line only adds what the metric doesn't already show.
     val metric = bytes?.let(::formatByteCount) ?: count.toString()
-    val connectionsLabel = stringResource(R.string.summary_connections_count, count)
+    val connectionsLabel = pluralStringResource(R.plurals.summary_connections_count, count, count)
     val supporting = if (isCountry || bytes == null) null else connectionsLabel
     return RethinkSummaryStatisticsRow(
         id = "$type-$uid-$ipAddress-$flag-$count",
