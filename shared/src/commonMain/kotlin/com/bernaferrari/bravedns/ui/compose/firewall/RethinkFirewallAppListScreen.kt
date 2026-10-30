@@ -440,6 +440,7 @@ private fun RethinkFirewallAppRows(
     onMobileToggle: (RethinkFirewallApp) -> Unit,
 ) {
     val alphabetical = sortOrder == RethinkAppSort.Name
+    val initials = if (alphabetical) apps.map(::appInitial) else List(apps.size) { "" }
     LazyColumn(
         state = state,
         contentPadding = PaddingValues(
@@ -450,10 +451,9 @@ private fun RethinkFirewallAppRows(
         ),
     ) {
         apps.forEachIndexed { index, app ->
-            val initial = if (alphabetical) appInitial(app) else ""
-            val previousInitial = if (alphabetical) apps.getOrNull(index - 1)?.let(::appInitial) else if (index > 0) "" else null
-            val nextInitial = if (alphabetical) apps.getOrNull(index + 1)?.let(::appInitial) else if (index < apps.lastIndex) "" else null
-            if (alphabetical && (index == 0 || initial != previousInitial)) {
+            val grouping = firewallAppGrouping(initials, index, alphabetical)
+            val initial = grouping.initial
+            if (grouping.startsSection) {
                 // The same initial can legitimately appear in separate groups after filtering;
                 // include the source position so LazyColumn never receives duplicate keys.
                 stickyHeader(key = "firewall_header_${initial}_$index", contentType = "header") {
@@ -465,12 +465,7 @@ private fun RethinkFirewallAppRows(
                 }
             }
             // Rows group per letter: the first/last row of each letter gets the outer corners.
-            val position = when {
-                previousInitial != initial && nextInitial != initial -> CardPosition.Single
-                previousInitial != initial -> CardPosition.First
-                nextInitial != initial -> CardPosition.Last
-                else -> CardPosition.Middle
-            }
+            val position = grouping.position
             item(key = app.id, contentType = "app") {
                 RethinkFirewallAppRow(
                     app = firewallAppWithSortIdentity(app, sortOrder, strings),

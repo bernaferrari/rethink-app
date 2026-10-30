@@ -11,6 +11,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.bernaferrari.bravedns.ui.TestDialogActivity
+import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -58,4 +59,26 @@ class RethinkListItemInteractionTest {
         composeRule.onNodeWithText("Custom rules").assertIsDisplayed()
         composeRule.onNodeWithText("12").assertIsDisplayed()
     }
+
+    @Test
+    fun connectedSelectedIconModeKeepsEveryLabelAndSelectionAction() {
+        val selections = mutableListOf<Int>()
+        composeRule.setContent {
+            RethinkTheme {
+                RethinkConnectedChoiceGroup(
+                    options = listOf(
+                        RethinkChoiceOption(1, "Name", MaterialSymbols.Filled.Security),
+                        RethinkChoiceOption(2, "Package", MaterialSymbols.Filled.Security),
+                    ),
+                    selected = 1,
+                    onSelect = { selections.add(it) },
+                    labels = RethinkChoiceLabels.SelectedIcon,
+                )
+            }
+        }
+        composeRule.onNodeWithText("Name").assertIsDisplayed()
+        composeRule.onNodeWithText("Package").assertIsDisplayed().performClick()
+        composeRule.runOnIdle { assertEquals(listOf(2), selections) }
+    }
+
 }
