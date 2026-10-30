@@ -4,8 +4,6 @@
 package com.bernaferrari.bravedns.ui.compose.events
 
 import com.bernaferrari.bravedns.ui.compose.common.RethinkLoadingState
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWellDefaults
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWell
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillDefaults
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillSize
@@ -20,7 +18,6 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -37,7 +34,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -58,11 +54,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
@@ -408,24 +402,10 @@ fun RethinkEventCard(
     }
 }
 
+/** The severity as a bare icon in its colour: a well around every row's icon read as noise. */
 @Composable
 private fun EventSeverityIcon(severity: RethinkEventSeverity, severityLabel: String, accent: Color, modifier: Modifier) {
-    RethinkIconWell(modifier = modifier, containerColor = RethinkIconWellDefaults.tinted(accent), contentColor = accent) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            if (severity == RethinkEventSeverity.Low) {
-                // Low is routine: a neutral dot reads as "nothing to act on" without a glyph.
-                Box(
-                    Modifier
-                        .size(SharedDimensions.spacingSmMd)
-                        .clip(CircleShape)
-                        .background(accent)
-                        .semantics { contentDescription = severityLabel },
-                )
-            } else {
-                Icon(severity.icon(), severityLabel, tint = accent, modifier = Modifier.size(SharedDimensions.iconSizeSm))
-            }
-        }
-    }
+    Icon(severity.icon(), severityLabel, tint = accent, modifier = modifier.size(SharedDimensions.iconSizeMd))
 }
 
 @Composable
