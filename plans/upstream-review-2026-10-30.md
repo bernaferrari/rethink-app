@@ -130,7 +130,7 @@ All three release variants passed real R8/minification with positive base versio
 
 The Android emulator passed **12 UI tests plus one production-default Bundled Room test**. Runtime checks demonstrated native DNS setup and controlled HTTP 200; per-port blocking of 19862 while 19863 remained allowed, with HTTP restored after deletion; and a PCAP containing one global header and 42 valid records through EOF, with no growth after Stop and appropriate share/delete ownership. Minified fresh startup/consent and cold saved-intent presentation also passed.
 
-An actual 44,629-byte KPRF backup contained two SQLite images passing `integrity_check` at `user_version=1`. After correcting Room maintenance to use a writer outside transactions, the same archive restored through the UI with an active VPN. The exact final dummy-signed R8 APK also restored it successfully: worker success, launcher restart, 40 allowed/8 blocked apps recovered, then explicit Start returned Protected with controlled HTTP 200. This exercised the production driver through minification, beyond mocked storage tests.
+An actual 44,629-byte archive contained bounded KPRF preferences and two SQLite images passing `integrity_check` at `user_version=1`. After correcting Room maintenance to use a writer outside transactions, the same archive restored through the UI with an active VPN. The exact final dummy-signed R8 APK also restored it successfully: worker success, launcher restart, connection counts of 40 allowed/8 blocked recovered, then explicit Start returned Protected with controlled HTTP 200. This exercised the production driver through minification, beyond mocked storage tests.
 
 ### Standards review
 
