@@ -151,11 +151,18 @@ class BackupAgentTest {
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     @Test fun `backup waits for restore ownership before capturing preferences or databases`() = kotlinx.coroutines.test.runTest {
         val dispatcher = kotlinx.coroutines.test.UnconfinedTestDispatcher(testScheduler)
-        io.mockk.mockkStatic(kotlinx.coroutines.Dispatchers::class)
-        every { kotlinx.coroutines.Dispatchers.IO } returns dispatcher
         io.mockk.mockkObject(DatabaseSnapshot)
         every { DatabaseSnapshot.create(any(), any(), any()) } returns false
         every { logDatabase.dnsLogDAO().logsCount() } returns kotlinx.coroutines.flow.flowOf(0L)
+        var preferenceReads = 0
+        var databaseReads = 0
+        every { persistentState.snapshotPreferences() } answers {
+            preferenceReads++
+            mapOf(PersistentState.APP_VERSION to 30)
+        }
+        coEvery { appDatabase.appInfoDAO().getAppCount() } coAnswers { databaseReads++; 0 }
+        io.mockk.mockkStatic(kotlinx.coroutines.Dispatchers::class)
+        every { kotlinx.coroutines.Dispatchers.IO } returns dispatcher
         val entered = kotlinx.coroutines.CompletableDeferred<Unit>()
         val finish = kotlinx.coroutines.CompletableDeferred<Unit>()
         val restore = launch(dispatcher) {
@@ -169,12 +176,12 @@ class BackupAgentTest {
         val backup = async(dispatcher) { BackupAgent(context, parameters).doWork() }
         try {
             org.junit.Assert.assertFalse(backup.isCompleted)
-            io.mockk.verify(exactly = 0) { persistentState.snapshotPreferences() }
-            coVerify(exactly = 0) { appDatabase.appInfoDAO().getAppCount() }
+            org.junit.Assert.assertEquals(0, preferenceReads)
+            org.junit.Assert.assertEquals(0, databaseReads)
             finish.complete(Unit)
             backup.await()
-            io.mockk.verify(exactly = 1) { persistentState.snapshotPreferences() }
-            coVerify(exactly = 1) { appDatabase.appInfoDAO().getAppCount() }
+            org.junit.Assert.assertEquals(1, preferenceReads)
+            org.junit.Assert.assertEquals(1, databaseReads)
         } finally {
             finish.complete(Unit)
             restore.cancel()
