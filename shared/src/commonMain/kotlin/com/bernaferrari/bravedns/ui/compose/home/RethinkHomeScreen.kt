@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 
 /*
  * Copyright 2026 RethinkDNS and its authors
@@ -46,6 +46,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialShapes
@@ -54,6 +55,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
@@ -70,6 +72,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
@@ -82,9 +85,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.graphics.shapes.Morph
 import com.bernaferrari.bravedns.ui.compose.common.RethinkAdaptiveWidth
+import com.bernaferrari.bravedns.ui.compose.common.RethinkWindowBreakpoints
 import com.bernaferrari.bravedns.ui.compose.common.WindowWidthClass
 import com.bernaferrari.bravedns.ui.compose.common.isExpanded
+import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
+import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkConnectedRowShape
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillColors
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillDefaults
@@ -175,7 +185,19 @@ fun RethinkHomeScreen(
     onBlockedAppClick: ((String) -> Unit)? = null,
 ) {
     val visualState = uiState.visualState()
-    Scaffold(modifier = modifier, containerColor = MaterialTheme.colorScheme.surface) { insets ->
+    // The same large title as Stats and Settings, collapsing as the page scrolls; the status pill rides in its actions.
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    Scaffold(
+        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        containerColor = MaterialTheme.colorScheme.surface,
+        topBar = {
+            RethinkLargeTopBar(
+                title = strings.productName,
+                scrollBehavior = scrollBehavior,
+                actions = { HomeStatus(strings, visualState, Modifier.padding(end = SharedDimensions.spacingMd)) },
+            )
+        },
+    ) { insets ->
         RethinkAdaptiveWidth(Modifier.fillMaxSize().padding(insets)) { widthClass ->
             val hero: @Composable (Modifier) -> Unit = { heroModifier ->
                 ProtectionHero(uiState, strings, visualState, widthClass, onStartStopClick, heroModifier)
@@ -190,11 +212,7 @@ fun RethinkHomeScreen(
                     Modifier.fillMaxSize().padding(SharedDimensions.spacingXl),
                     horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXl),
                 ) {
-                    Column(Modifier.weight(1f).fillMaxHeight()) {
-                        HomeHeader(strings, visualState)
-                        Spacer(Modifier.height(SharedDimensions.spacingLg))
-                        hero(Modifier.weight(1f).fillMaxWidth())
-                    }
+                    hero(Modifier.weight(1f).fillMaxHeight())
                     Column(
                         Modifier.weight(1.05f).fillMaxHeight().verticalScroll(rememberScrollState()),
                         verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXl),
@@ -205,17 +223,18 @@ fun RethinkHomeScreen(
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
                     Column(
                         Modifier
-                            .widthIn(max = 640.dp)
+                            .widthIn(max = RethinkWindowBreakpoints.ContentMax)
                             .fillMaxSize()
                             .verticalScroll(rememberScrollState())
-                            .padding(horizontal = SharedDimensions.screenPaddingHorizontal, vertical = SharedDimensions.spacingLg),
+                            .padding(
+                                start = SharedDimensions.screenPaddingHorizontal,
+                                end = SharedDimensions.screenPaddingHorizontal,
+                                top = SharedDimensions.screenContentTop,
+                                bottom = SharedDimensions.spacingLg,
+                            ),
                         verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXl),
                     ) {
-                        Column {
-                            HomeHeader(strings, visualState)
-                            Spacer(Modifier.height(SharedDimensions.spacingLg))
-                            hero(Modifier.fillMaxWidth())
-                        }
+                        hero(Modifier.fillMaxWidth())
                         activity()
                     }
                 }
@@ -225,29 +244,22 @@ fun RethinkHomeScreen(
 }
 
 @Composable
-private fun HomeHeader(strings: RethinkHomeStrings, state: ProtectionVisualState) {
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(
-            strings.productName,
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.weight(1f).semantics { heading() },
-        )
-        RethinkPill(
-            text = when (state) {
-                ProtectionVisualState.Protected -> strings.live
-                ProtectionVisualState.Recovering -> strings.reconnecting
-                ProtectionVisualState.Off -> strings.offline
-            },
-            colors = RethinkPillColors(MaterialTheme.colorScheme.surfaceContainerHigh, MaterialTheme.colorScheme.onSurface),
-            size = RethinkPillSize.Large,
-            dotColor = when (state) {
-                ProtectionVisualState.Protected -> RethinkStatusColors.allowed
-                ProtectionVisualState.Recovering -> MaterialTheme.colorScheme.error
-                ProtectionVisualState.Off -> MaterialTheme.colorScheme.outline
-            },
-        )
-    }
+private fun HomeStatus(strings: RethinkHomeStrings, state: ProtectionVisualState, modifier: Modifier = Modifier) {
+    RethinkPill(
+        text = when (state) {
+            ProtectionVisualState.Protected -> strings.live
+            ProtectionVisualState.Recovering -> strings.reconnecting
+            ProtectionVisualState.Off -> strings.offline
+        },
+        colors = RethinkPillColors(MaterialTheme.colorScheme.surfaceContainerHigh, MaterialTheme.colorScheme.onSurface),
+        size = RethinkPillSize.Large,
+        dotColor = when (state) {
+            ProtectionVisualState.Protected -> RethinkStatusColors.allowed
+            ProtectionVisualState.Recovering -> MaterialTheme.colorScheme.error
+            ProtectionVisualState.Off -> MaterialTheme.colorScheme.outline
+        },
+        modifier = modifier,
+    )
 }
 
 private data class HeroColors(val container: Color, val content: Color, val mark: Color, val onMark: Color, val halo: Color)
@@ -296,10 +308,9 @@ private fun ProtectionHero(
                 if (state != ProtectionVisualState.Off && uiState.dnsName.isNotBlank()) {
                     RethinkPill(
                         text = uiState.dnsName,
-                        colors = RethinkPillColors(colors.content.copy(alpha = 0.1f), colors.content),
+                        colors = RethinkPillDefaults.onContainer(colors.content),
                         size = RethinkPillSize.Large,
                         leadingIcon = MaterialSymbols.Filled.Dns,
-                        fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.widthIn(max = 220.dp),
                     )
                 }
@@ -458,7 +469,7 @@ private fun SectionHeader(title: String, action: String? = null, onAction: (() -
 private fun TodaySection(uiState: RethinkHomeUiState, strings: RethinkHomeStrings, onActivityClick: (() -> Unit)?) {
     Column {
         SectionHeader(strings.last24Hours, strings.seeStatistics, onActivityClick)
-        Surface(shape = RoundedCornerShape(SharedDimensions.cornerRadius2xl), color = MaterialTheme.colorScheme.surfaceContainerLow) {
+        Surface(shape = RoundedCornerShape(SharedDimensions.groupCornerRadius), color = MaterialTheme.colorScheme.surfaceContainerLow) {
             Column(Modifier.padding(SharedDimensions.spacingXl), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg)) {
                     TodayMetric(formatGrouped(uiState.allowedToday), strings.allowed, RethinkStatusColors.allowed, MaterialSymbols.Filled.CheckCircle, Modifier.weight(1f))
@@ -514,51 +525,30 @@ private fun SplitBar(allowed: Long, blocked: Long) {
 private fun StoppedMostSection(apps: List<RethinkHomeBlockedApp>, strings: RethinkHomeStrings, onClick: ((String) -> Unit)?) {
     Column {
         SectionHeader(strings.stoppedMost)
-        if (apps.isEmpty()) {
-            Surface(shape = RoundedCornerShape(SharedDimensions.cornerRadius2xl), color = MaterialTheme.colorScheme.surfaceContainerLow) {
-                Text(
-                    strings.nothingStopped,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.fillMaxWidth().padding(SharedDimensions.spacingXl),
+        RethinkListGroup {
+            if (apps.isEmpty()) {
+                RethinkListItem(headline = strings.nothingStopped, leadingIcon = MaterialSymbols.Filled.CheckCircle, position = CardPosition.Single)
+            }
+            apps.forEachIndexed { index, app ->
+                RethinkListItem(
+                    headline = app.label,
+                    leadingContent = {
+                        Box(Modifier.size(SharedDimensions.iconContainerMd).clip(RoundedCornerShape(SharedDimensions.iconContainerRadius)), contentAlignment = Alignment.Center) {
+                            app.icon?.invoke() ?: Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceContainerHighest))
+                        }
+                    },
+                    trailing = {
+                        RethinkPill(
+                            text = strings.blockedCount(app.count),
+                            colors = RethinkPillDefaults.blocked(),
+                            leadingIcon = MaterialSymbols.Filled.Block,
+                        )
+                    },
+                    position = cardPositionFor(index, apps.lastIndex),
+                    onClick = onClick?.let { { it(app.id) } },
                 )
             }
-            return@Column
         }
-        Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile)) {
-            apps.forEachIndexed { index, app ->
-                StoppedAppRow(app, strings, groupedShape(index, apps.size), onClick)
-            }
-        }
-    }
-}
-
-@Composable
-private fun StoppedAppRow(app: RethinkHomeBlockedApp, strings: RethinkHomeStrings, shape: Shape, onClick: ((String) -> Unit)?) {
-    val content: @Composable () -> Unit = {
-        Row(
-            Modifier.fillMaxWidth().padding(horizontal = SharedDimensions.spacingLg, vertical = SharedDimensions.spacingMd),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
-        ) {
-            Box(Modifier.size(SharedDimensions.iconContainerMd).clip(RoundedCornerShape(SharedDimensions.cornerRadiusMd)), contentAlignment = Alignment.Center) {
-                app.icon?.invoke() ?: Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceContainerHighest))
-            }
-            Text(app.label, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-            RethinkPill(
-                text = strings.blockedCount(app.count),
-                colors = RethinkPillDefaults.blocked(),
-                size = RethinkPillSize.Medium,
-                leadingIcon = MaterialSymbols.Filled.Block,
-                fontWeight = FontWeight.SemiBold,
-            )
-        }
-    }
-    val color = MaterialTheme.colorScheme.surfaceContainerLow
-    if (onClick != null) {
-        Surface(onClick = { onClick(app.id) }, shape = shape, color = color, content = content)
-    } else {
-        Surface(shape = shape, color = color, content = content)
     }
 }
 
@@ -573,7 +563,7 @@ private fun QuickActions(strings: RethinkHomeStrings, onApps: (() -> Unit)?, onL
     if (actions.isEmpty()) return
     Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile)) {
         actions.forEachIndexed { index, action ->
-            QuickTile(action, connectedShape(index, actions.size), Modifier.weight(1f).fillMaxHeight())
+            QuickTile(action, rethinkConnectedRowShape(index, actions.size), Modifier.weight(1f).fillMaxHeight())
         }
     }
 }
@@ -607,23 +597,6 @@ private fun QuickTile(action: QuickAction, shape: Shape, modifier: Modifier = Mo
         }
     }
 }
-
-private val OuterCorner = SharedDimensions.cornerRadius2xl
-private val InnerCorner = SharedDimensions.cornerRadiusSm
-
-private fun groupedShape(index: Int, count: Int) = RoundedCornerShape(
-    topStart = if (index == 0) OuterCorner else InnerCorner,
-    topEnd = if (index == 0) OuterCorner else InnerCorner,
-    bottomStart = if (index == count - 1) OuterCorner else InnerCorner,
-    bottomEnd = if (index == count - 1) OuterCorner else InnerCorner,
-)
-
-private fun connectedShape(index: Int, count: Int) = RoundedCornerShape(
-    topStart = if (index == 0) OuterCorner else InnerCorner,
-    bottomStart = if (index == 0) OuterCorner else InnerCorner,
-    topEnd = if (index == count - 1) OuterCorner else InnerCorner,
-    bottomEnd = if (index == count - 1) OuterCorner else InnerCorner,
-)
 
 private fun RethinkHomeUiState.visualState(): ProtectionVisualState = when {
     isVpnActive && isProtectionFailing -> ProtectionVisualState.Recovering

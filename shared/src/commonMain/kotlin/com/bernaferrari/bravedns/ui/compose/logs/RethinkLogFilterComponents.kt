@@ -15,14 +15,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -36,12 +34,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkModalBottomSheet
@@ -49,6 +45,10 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkSearchField
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.ui.semantics.Role
+import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
 
 data class RethinkLogAppOption(
     val id: String,
@@ -133,7 +133,6 @@ fun RethinkLogAppFilterDialog(
                     closeWhenEmptyContentDescription = strings.dismissDescription,
                     onCloseWhenEmpty = dismissSheet,
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(SharedDimensions.cornerRadiusMdLg),
                     containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                     textStyle = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
                     iconSize = SharedDimensions.iconSizeXs,
@@ -151,9 +150,9 @@ fun RethinkLogAppFilterDialog(
                 if (isLoading) {
                     RethinkLoadingState(strings.loading, contained = true)
                 } else {
+                    // "All" leads one grouped list with the apps below it.
                     LazyColumn(
-                        modifier = Modifier.fillMaxWidth().weight(1f, fill = false),
-                        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile),
+                        modifier = Modifier.fillMaxWidth().weight(1f, fill = false).selectableGroup(),
                     ) {
                         item("all_apps") {
                             RethinkLogAppFilterItem(
@@ -161,15 +160,17 @@ fun RethinkLogAppFilterDialog(
                                 label = strings.all,
                                 count = totalCount,
                                 selected = selectedId == null,
+                                position = cardPositionFor(0, filteredOptions.size),
                                 onClick = { onSelect(null) },
                             )
                         }
-                        items(filteredOptions, key = { it.id }) { option ->
+                        itemsIndexed(filteredOptions, key = { _, option -> option.id }) { index, option ->
                             RethinkLogAppFilterItem(
                                 option = option,
                                 label = option.label,
                                 count = option.count,
                                 selected = selectedId == option.id,
+                                position = cardPositionFor(index + 1, filteredOptions.size),
                                 onClick = { onSelect(option.id) },
                                 appIcon = appIcon,
                             )
@@ -186,49 +187,34 @@ private fun RethinkLogAppFilterItem(
     label: String,
     count: Int,
     selected: Boolean,
+    position: CardPosition,
     onClick: () -> Unit,
     appIcon: (@Composable (RethinkLogAppOption) -> Unit)? = null,
 ) {
-    val itemShape = RoundedCornerShape(SharedDimensions.cornerRadiusMdLg)
-    Surface(
-        onClick = onClick,
-        shape = itemShape,
-        color = if (selected) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.34f) else MaterialTheme.colorScheme.surfaceContainerLow,
-        tonalElevation = 0.dp,
-        shadowElevation = 0.dp,
-        modifier = Modifier.clip(itemShape),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = SharedDimensions.spacingMd, vertical = SharedDimensions.spacingSm),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            if (option == null) {
-                Icon(
-                    MaterialSymbols.Filled.Public,
-                    contentDescription = null,
-                    modifier = Modifier.size(SharedDimensions.iconSizeMd),
-                    tint = if (selected) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            } else if (appIcon != null) {
-                appIcon(option)
-            } else {
-                Surface(
-                    shape = RoundedCornerShape(SharedDimensions.cornerRadiusSm),
-                    color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                    modifier = Modifier.size(SharedDimensions.iconSizeMd),
-                ) {}
+    RethinkListItem(
+        headline = label,
+        leadingIcon = if (option == null) MaterialSymbols.Filled.Public else null,
+        // App icons sit centred in a well-sized box so their labels line up with "All".
+        leadingContent = option?.let {
+            {
+                Box(Modifier.size(SharedDimensions.iconContainerMd), contentAlignment = Alignment.Center) {
+                    if (appIcon != null) {
+                        appIcon(option)
+                    } else {
+                        Surface(
+                            shape = RoundedCornerShape(SharedDimensions.cornerRadiusSm),
+                            color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                            modifier = Modifier.size(SharedDimensions.iconSizeMd),
+                        ) {}
+                    }
+                }
             }
-            Spacer(modifier = Modifier.size(SharedDimensions.spacingMd))
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
-                modifier = Modifier.weight(1f),
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            RethinkPill(count.toString(), colors = if (selected) RethinkPillDefaults.secondary() else RethinkPillDefaults.neutral())
-        }
-    }
+        },
+        trailing = { RethinkPill(count.toString(), colors = if (selected) RethinkPillDefaults.secondary() else RethinkPillDefaults.neutral()) },
+        position = position,
+        highlighted = selected,
+        selection = RethinkListSelection(checked = selected, role = Role.RadioButton) { onClick() },
+    )
 }
 
 @Composable
@@ -262,7 +248,7 @@ fun RethinkLogRulesDialog(
                     trailing = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             if (selectedCount > 0) {
-                                RethinkPill(selectedCount.toString(), colors = RethinkPillDefaults.primary(), size = RethinkPillSize.Small, fontWeight = FontWeight.SemiBold)
+                                RethinkPill(selectedCount.toString(), colors = RethinkPillDefaults.primary(), size = RethinkPillSize.Small)
                                 TextButton(onClick = onClear) { Text(strings.clear, fontWeight = FontWeight.SemiBold) }
                             }
                             IconButton(
