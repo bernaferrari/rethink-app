@@ -7,6 +7,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.bernaferrari.bravedns.database.AppDatabase
 import com.bernaferrari.bravedns.database.SubscriptionStatus
 import com.bernaferrari.bravedns.service.PersistentState
+import com.bernaferrari.bravedns.util.PcapMode
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
 import org.junit.Rule
@@ -32,6 +33,33 @@ class RestoreIdentityPolicyTest {
         assertFalse(values.containsKey("ANDROIDX.SECURITY.keyset"))
         assertFalse(values.containsKey("master_key"))
         assertEquals(0, values[PersistentState.USE_RPN])
+    }
+
+    @Test fun `active LOGCAT backup requires explicit capture reactivation`() {
+        assertRestoredCaptureIsDisabled(PcapMode.LOGCAT, PcapMode.ENABLE_PCAP_LOGCAT)
+    }
+
+    @Test fun `active FILE backup requires explicit capture reactivation`() {
+        assertRestoredCaptureIsDisabled(PcapMode.EXTERNAL_FILE, "/private/old-capture.pcap")
+    }
+
+    private fun assertRestoredCaptureIsDisabled(mode: PcapMode, path: String) {
+        val backup = mapOf(
+            PersistentState.PCAP_MODE to mode.id,
+            PersistentState.PCAP_FILE_PATH to path,
+            "pcap_capture_id" to "old-capture",
+            "pcap_started_at" to 1000L,
+            "pcap_notice_dismissed" to true,
+            "ordinary" to "preserved",
+        )
+        val restored = RestoreIdentityPolicy.preferences(backup)
+        assertEquals(PcapMode.NONE.id, restored[PersistentState.PCAP_MODE])
+        assertEquals("", restored[PersistentState.PCAP_FILE_PATH])
+        assertEquals("", restored["pcap_capture_id"])
+        assertEquals(0L, restored["pcap_started_at"])
+        assertEquals(true, restored["pcap_notice_dismissed"])
+        assertEquals("preserved", restored["ordinary"])
+        assertEquals(mode.id, backup[PersistentState.PCAP_MODE])
     }
 
     @Test fun `actual Room purchase retains recovery token without imported authorization`() = runTest {

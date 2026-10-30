@@ -5,15 +5,24 @@ import androidx.sqlite.SQLiteException
 import androidx.sqlite.SQLiteDriver
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.bernaferrari.bravedns.service.PersistentState
+import com.bernaferrari.bravedns.util.PcapMode
 import java.io.File
 
-/** Keep recovery metadata, but never trust another device's authorization after restore. */
+/** Retain recovery metadata, but require new authorization and capture consent after restore. */
 internal object RestoreIdentityPolicy {
     fun preferences(values: Map<String, Any?>): Map<String, Any?> = values.filterKeys { key ->
         !key.contains("androidx.security", ignoreCase = true) &&
             !key.contains("keyset", ignoreCase = true) &&
             !key.contains("master_key", ignoreCase = true)
-    } + (PersistentState.USE_RPN to 0)
+    } + mapOf(
+        PersistentState.USE_RPN to 0,
+        // WorkManager capture deadlines are not backed up. Imported logging must never
+        // resume without the original stop deadline and renewed user activation.
+        PersistentState.PCAP_MODE to PcapMode.NONE.id,
+        PersistentState.PCAP_FILE_PATH to "",
+        "pcap_capture_id" to "",
+        "pcap_started_at" to 0L,
+    )
 
     fun clearImportedPurchases(database: File, driver: SQLiteDriver? = null) {
         (driver ?: BundledSQLiteDriver()).open(database.path).use { db ->
