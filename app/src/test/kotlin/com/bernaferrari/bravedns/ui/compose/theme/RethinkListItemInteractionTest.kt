@@ -8,6 +8,7 @@ import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsToggleable
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.bernaferrari.bravedns.ui.TestDialogActivity
@@ -61,7 +62,7 @@ class RethinkListItemInteractionTest {
     }
 
     @Test
-    fun connectedSelectedIconModeKeepsEveryLabelAndSelectionAction() {
+    fun connectedSelectedLabelModeKeepsUnselectedIconAccessible() {
         val selections = mutableListOf<Int>()
         composeRule.setContent {
             RethinkTheme {
@@ -72,12 +73,12 @@ class RethinkListItemInteractionTest {
                     ),
                     selected = 1,
                     onSelect = { selections.add(it) },
-                    labels = RethinkChoiceLabels.SelectedIcon,
+                    labels = RethinkChoiceLabels.SelectedLabel,
                 )
             }
         }
         composeRule.onNodeWithText("Name").assertIsDisplayed()
-        composeRule.onNodeWithText("Package").assertIsDisplayed().performClick()
+        composeRule.onNodeWithContentDescription("Package").assertIsDisplayed().performClick()
         composeRule.runOnIdle { assertEquals(listOf(2), selections) }
     }
 
