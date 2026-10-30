@@ -6,12 +6,11 @@ import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFilterChip
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkRadioListItem
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkSection
@@ -59,15 +58,14 @@ fun RethinkBlockFreeDnsScreen(
             } else {
                 RethinkListGroup {
                     items.forEachIndexed { index, item ->
-                        val selected = selectedKey == item.key
-                        RethinkListItem(
+                        // Single choice: the whole row is the radio, like every other one-of list.
+                        RethinkRadioListItem(
                             headline = item.name,
                             supporting = item.url,
-                            position = cardPositionFor(index, items.lastIndex),
-                            highlighted = selected,
-                            onClick = { onItemSelected(item) },
+                            selected = selectedKey == item.key,
+                            onSelect = { onItemSelected(item) },
                             leadingIcon = MaterialSymbols.Filled.Public,
-                            trailing = if (selected) ({ Icon(MaterialSymbols.Filled.Check, strings.selectedDescription) }) else null,
+                            position = cardPositionFor(index, items.lastIndex),
                         )
                     }
                 }

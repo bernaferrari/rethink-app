@@ -53,7 +53,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusLabel
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusIndicator
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkRadioListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusColors
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
@@ -277,7 +277,14 @@ fun RethinkDnsSettingsScreen(
             RethinkListGroup {
                 Column(Modifier.selectableGroup()) {
                     RethinkBlockFreeDnsMode.entries.forEachIndexed { index, mode ->
-                        RethinkDnsRadioRow(strings.blockFreeLabel(mode), strings.blockFreeDescription(mode), state.blockFreeDnsMode == mode, MaterialSymbols.Filled.Dns, cardPositionFor(index, RethinkBlockFreeDnsMode.entries.lastIndex + 1), false, { onBlockFreeModeChange(mode) })
+                        RethinkRadioListItem(
+                            headline = strings.blockFreeLabel(mode),
+                            supporting = strings.blockFreeDescription(mode),
+                            selected = state.blockFreeDnsMode == mode,
+                            onSelect = { onBlockFreeModeChange(mode) },
+                            leadingIcon = MaterialSymbols.Filled.Dns,
+                            position = cardPositionFor(index, RethinkBlockFreeDnsMode.entries.lastIndex + 1),
+                        )
                     }
                 }
                 RethinkListItem(
@@ -450,29 +457,6 @@ private data class RethinkDnsToggle(
     val id: String,
     val onChange: (Boolean) -> Unit,
 )
-
-@Composable
-private fun RethinkDnsRadioRow(
-    title: String,
-    description: String,
-    selected: Boolean,
-    icon: ImageVector,
-    position: CardPosition,
-    highlighted: Boolean,
-    onClick: () -> Unit,
-) {
-    RethinkListItem(
-        headline = title,
-        supporting = description,
-        leadingIcon = icon,
-        position = position,
-        highlighted = highlighted,
-        // The complete row is the selection target. A passive indicator avoids exposing
-        // two identical actions to keyboard and screen-reader users.
-        trailing = { RadioButton(selected = selected, onClick = null) },
-        selection = RethinkListSelection(checked = selected, role = Role.RadioButton) { onClick() },
-    )
-}
 
 @Composable
 private fun RethinkDnsToggleRow(
