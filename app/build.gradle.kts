@@ -465,12 +465,14 @@ androidComponents {
         }
     }
 
-    // Release artifacts must never silently ship versionCode 0 — a fresh install would then
-    // treat every future update as an upgrade from 0. Same source the `full` flavor reads.
+    // Validate the resolved base code before ABI-specific output encoding. The action must
+    // capture only this value, never the script or Project, so configuration caching stays safe.
+    val releaseBaseVersionCode = getVersionCode(project)
     val validateReleaseVersionCode =
         tasks.register("validateReleaseVersionCode") {
+            inputs.property("baseVersionCode", releaseBaseVersionCode)
             doLast {
-                require(getVersionCode(project) > 0) {
+                require(releaseBaseVersionCode > 0) {
                     "versionCode is 0: set VERSION_CODE (env or -PVERSION_CODE=...) for release builds."
                 }
             }
