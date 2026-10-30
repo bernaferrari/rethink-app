@@ -16,12 +16,9 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialShapes
-import androidx.compose.material3.toShape
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWellContainerColor
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -61,6 +58,8 @@ import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkSection
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.clickable
 
 enum class RethinkDnsType { Doh, RethinkRemote, SmartDns, Dot, Odoh, DnsCrypt, DnsProxy, System }
 enum class RethinkBlockFreeDnsMode { Auto, Global, Fallback }
@@ -209,21 +208,29 @@ fun RethinkDnsSettingsScreen(
             }
         },
     ) {
-        item { DnsInUseHero(state, strings, highlighted = focusedSettingId == "dns_mode_rethink") }
+        item {
+            // System and Smart DNS have servers worth listing; the hero opens them for whichever is in use.
+            val details = when {
+                state.isSystemDnsEnabled -> onSystemDnsInfo
+                state.isSmartDnsEnabled -> onSmartDnsInfo
+                else -> null
+            }
+            DnsInUseHero(state, strings, highlighted = focusedSettingId == "dns_mode_rethink", onDetails = details)
+        }
         rethinkSection(strings.modesSection) {
-            // Four resolver choices as selectable cards in a 2×2 grid: the chosen one fills
-            // with the secondary container, rounds further and carries a check.
+            // Four resolver choices as one radio group in a 2×2 grid: every card carries a radio, and
+            // the chosen one fills with the secondary container and rounds further.
             val choices = listOf(
-                DnsChoice(strings.systemDns, strings.systemDnsDescription, state.isSystemDnsEnabled, MaterialSymbols.Filled.Settings, MaterialShapes.Cookie4Sided, "dns_mode_system", onSystemDns, onSystemDnsInfo),
-                DnsChoice(strings.customDns, strings.customDnsDescription, !state.isSystemDnsEnabled && !state.isRethinkDnsConnected && !state.isSmartDnsEnabled, MaterialSymbols.Filled.Dns, MaterialShapes.Pill, "dns_mode_custom", onCustomDns),
-                DnsChoice(strings.rethinkDns, strings.rethinkDnsDescription, state.isRethinkDnsConnected, MaterialSymbols.Filled.Security, MaterialShapes.Cookie9Sided, "dns_mode_rethink", onRethinkDns),
-                DnsChoice(strings.smartDns, strings.smartDnsDescription, state.isSmartDnsEnabled, MaterialSymbols.Filled.Language, MaterialShapes.Clover4Leaf, "dns_mode_smart", onSmartDns, onSmartDnsInfo),
+                DnsChoice(strings.systemDns, strings.systemDnsDescription, state.isSystemDnsEnabled, MaterialSymbols.Filled.Settings, "dns_mode_system", onSystemDns),
+                DnsChoice(strings.customDns, strings.customDnsDescription, !state.isSystemDnsEnabled && !state.isRethinkDnsConnected && !state.isSmartDnsEnabled, MaterialSymbols.Filled.Dns, "dns_mode_custom", onCustomDns),
+                DnsChoice(strings.rethinkDns, strings.rethinkDnsDescription, state.isRethinkDnsConnected, MaterialSymbols.Filled.Security, "dns_mode_rethink", onRethinkDns),
+                DnsChoice(strings.smartDns, strings.smartDnsDescription, state.isSmartDnsEnabled, MaterialSymbols.Filled.Language, "dns_mode_smart", onSmartDns),
             )
             Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
                 choices.chunked(2).forEach { pair ->
                     Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
                         pair.forEach { choice ->
-                            DnsChoiceCard(choice, focusedSettingId == choice.id, strings.aboutItem(choice.title), Modifier.weight(1f).fillMaxHeight())
+                            DnsChoiceCard(choice, focusedSettingId == choice.id, Modifier.weight(1f).fillMaxHeight())
                         }
                     }
                 }
@@ -305,14 +312,12 @@ private class DnsChoice(
     val description: String,
     val selected: Boolean,
     val icon: ImageVector,
-    val shape: androidx.graphics.shapes.RoundedPolygon,
     val id: String,
     val onClick: () -> Unit,
-    val onInfo: (() -> Unit)? = null,
 )
 
 @Composable
-private fun DnsChoiceCard(choice: DnsChoice, highlighted: Boolean, infoDescription: String, modifier: Modifier = Modifier) {
+private fun DnsChoiceCard(choice: DnsChoice, highlighted: Boolean, modifier: Modifier = Modifier) {
     val scheme = MaterialTheme.colorScheme
     val motion = LocalRethinkMotion.current
     val corner by androidx.compose.animation.core.animateDpAsState(
@@ -332,24 +337,11 @@ private fun DnsChoiceCard(choice: DnsChoice, highlighted: Boolean, infoDescripti
         contentColor = if (choice.selected) scheme.onSecondaryContainer else scheme.onSurface,
     ) {
         Column(Modifier.padding(SharedDimensions.spacingLg), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
-            Row(verticalAlignment = Alignment.Top) {
-                Box(
-                    Modifier.size(SharedDimensions.iconContainerLg).background(
-                        if (choice.selected) scheme.secondary else RethinkIconWellContainerColor,
-                        choice.shape.toShape(),
-                    ),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(choice.icon, null, tint = if (choice.selected) scheme.onSecondary else scheme.primary, modifier = Modifier.size(SharedDimensions.iconSizeSm))
-                }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(choice.icon, null, tint = if (choice.selected) scheme.onSecondaryContainer else scheme.primary, modifier = Modifier.size(SharedDimensions.iconSizeMd))
                 Spacer(Modifier.weight(1f))
-                if (choice.onInfo != null) {
-                    IconButton(onClick = choice.onInfo, modifier = Modifier.size(SharedDimensions.touchTargetMin)) {
-                        Icon(MaterialSymbols.Filled.Info, infoDescription, Modifier.size(SharedDimensions.iconSizeSm), tint = scheme.onSurfaceVariant)
-                    }
-                } else if (choice.selected) {
-                    Icon(MaterialSymbols.Filled.CheckCircle, null, tint = scheme.onSecondaryContainer, modifier = Modifier.size(SharedDimensions.iconSizeMd))
-                }
+                // The whole card is the target; the radio only shows the state.
+                RadioButton(selected = choice.selected, onClick = null)
             }
             Text(choice.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Text(
@@ -368,7 +360,7 @@ private fun DnsChoiceCard(choice: DnsChoice, highlighted: Boolean, infoDescripti
  * endpoint, and the median latency of the last lookups with a bar for each of them.
  */
 @Composable
-private fun DnsInUseHero(state: RethinkDnsSettingsState, strings: RethinkDnsSettingsStrings, highlighted: Boolean) {
+private fun DnsInUseHero(state: RethinkDnsSettingsState, strings: RethinkDnsSettingsStrings, highlighted: Boolean, onDetails: (() -> Unit)?) {
     val scheme = MaterialTheme.colorScheme
     val endpoint = state.connectedDnsName.substringAfter(',', "").trim()
     val displayName = state.connectedDnsName.substringBefore(',').trim().ifBlank { "--" }
@@ -376,14 +368,20 @@ private fun DnsInUseHero(state: RethinkDnsSettingsState, strings: RethinkDnsSett
     val latencies = state.recentLatencies.take(LATENCY_BARS)
     val median = latencies.sorted().let { if (it.isEmpty()) null else it[it.size / 2] }
     val latencyLabel = state.dnsLatency.trim('(', ')', ' ').takeIf { it.isNotBlank() } ?: median?.let { "$it ms" }
+    val shape = RoundedCornerShape(SharedDimensions.cornerRadius3xl)
     Surface(
-        shape = RoundedCornerShape(SharedDimensions.cornerRadius3xl),
+        shape = shape,
         color = if (highlighted) scheme.primaryContainer else scheme.primaryContainer.copy(alpha = .78f),
         contentColor = scheme.onPrimaryContainer,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().clip(shape).then(
+            if (onDetails != null) Modifier.clickable(onClickLabel = strings.aboutItem(displayName), onClick = onDetails) else Modifier,
+        ),
     ) {
         Column(Modifier.padding(SharedDimensions.spacingXl), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd)) {
-            Text(strings.inUse, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(strings.inUse, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                if (onDetails != null) Icon(MaterialSymbols.AutoMirrored.Filled.KeyboardArrowRight, null)
+            }
             Text(
                 displayName,
                 style = MaterialTheme.typography.headlineMedium,
@@ -445,8 +443,6 @@ private fun RethinkDnsRadioRow(
     position: CardPosition,
     highlighted: Boolean,
     onClick: () -> Unit,
-    onInfo: (() -> Unit)? = null,
-    infoDescription: String? = null,
 ) {
     RethinkListItem(
         headline = title,
@@ -454,23 +450,9 @@ private fun RethinkDnsRadioRow(
         leadingIcon = icon,
         position = position,
         highlighted = highlighted,
-        trailing = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                if (onInfo != null) {
-                    IconButton(onClick = onInfo) {
-                        Icon(
-                            MaterialSymbols.Filled.Info,
-                            infoDescription,
-                            Modifier.size(SharedDimensions.iconSizeSm),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-                // The complete row is the selection target. A passive indicator avoids exposing
-                // two identical actions to keyboard and screen-reader users.
-                RadioButton(selected = selected, onClick = null)
-            }
-        },
+        // The complete row is the selection target. A passive indicator avoids exposing
+        // two identical actions to keyboard and screen-reader users.
+        trailing = { RadioButton(selected = selected, onClick = null) },
         selection = RethinkListSelection(checked = selected, role = Role.RadioButton) { onClick() },
     )
 }
