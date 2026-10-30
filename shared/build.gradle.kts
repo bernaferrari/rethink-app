@@ -45,6 +45,10 @@ kotlin {
     }
 
     sourceSets {
+        // SQLite exposes blocking driver APIs on Android/JVM and suspend APIs on Wasm.
+        // Reuse this small policy implementation only in the two blocking target compilations.
+        named("androidMain") { kotlin.srcDir("src/androidJvmMain/kotlin") }
+        named("jvmMain") { kotlin.srcDir("src/androidJvmMain/kotlin") }
         commonMain.dependencies {
             implementation(project.dependencies.platform(libs.koin.bom))
             implementation(libs.kotlinx.coroutines.core)

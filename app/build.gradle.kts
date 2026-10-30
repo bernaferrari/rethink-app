@@ -278,6 +278,7 @@ val detektShared by tasks.registering(Detekt::class) {
     setSource(files(
         "../shared/src/commonMain/kotlin",
         "../shared/src/androidMain/kotlin",
+        "../shared/src/androidJvmMain/kotlin",
         "../shared/src/jvmMain/kotlin",
         "../shared/src/wasmJsMain/kotlin",
     ))

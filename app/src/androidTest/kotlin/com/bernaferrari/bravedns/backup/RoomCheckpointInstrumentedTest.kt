@@ -3,6 +3,8 @@ package com.bernaferrari.bravedns.backup
 import android.content.Context
 import android.content.ContextWrapper
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
+import androidx.room3.useWriterConnection
+import androidx.room3.useReaderConnection
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.bernaferrari.bravedns.database.*
@@ -48,6 +50,22 @@ class RoomCheckpointInstrumentedTest {
         assertEquals(7L, scalar(appCopy, "SELECT COUNT(*) FROM RethinkDnsEndpoint"))
         assertEquals(1L, scalar(logCopy, "SELECT COUNT(*) FROM Events"))
         assertEquals("bundled-checkpoint", logs.eventDao().getLatest(1).single().message)
+    }
+
+    @Test fun bothProductionFactoriesApplyRetainedJournalPolicyToWriterAndReaderConnections() = runBlocking {
+        assertEquals(7, app.rethinkEndpointDao().getCount())
+        for (database in listOf(app, logs)) {
+            database.useWriterConnection { connection ->
+                connection.usePrepared("PRAGMA journal_size_limit") { statement ->
+                    assertTrue(statement.step()); assertEquals(32L * 1024 * 1024, statement.getLong(0))
+                }
+            }
+            database.useReaderConnection { connection ->
+                connection.usePrepared("PRAGMA journal_size_limit") { statement ->
+                    assertTrue(statement.step()); assertEquals(32L * 1024 * 1024, statement.getLong(0))
+                }
+            }
+        }
     }
 
     private fun scalar(file: File, sql: String): Long = BundledSQLiteDriver().open(file.path).use { db ->

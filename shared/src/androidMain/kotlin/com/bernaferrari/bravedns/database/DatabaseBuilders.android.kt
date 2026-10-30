@@ -18,7 +18,7 @@ fun buildAppDatabase(
         context.applicationContext,
         AppDatabase.DATABASE_NAME
     ) { AppDatabaseConstructor.initialize() }
-        .setDriver(driver)
+        .setDriver(RetainedJournalDriver(driver))
         .setJournalMode(RoomDatabase.JournalMode.AUTOMATIC)
         .apply { if (callback != null) addCallback(callback) }
         .build()
@@ -28,7 +28,7 @@ fun buildLogDatabase(context: Context, driver: SQLiteDriver = BundledSQLiteDrive
         context.applicationContext,
         LogDatabase.LOGS_DATABASE_NAME
     ) { LogDatabaseConstructor.initialize() }
-        .setDriver(driver)
+        .setDriver(RetainedJournalDriver(driver))
         .setJournalMode(RoomDatabase.JournalMode.AUTOMATIC)
         .build()
 
