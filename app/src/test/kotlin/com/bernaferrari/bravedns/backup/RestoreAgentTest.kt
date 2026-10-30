@@ -39,7 +39,6 @@ import org.koin.dsl.module
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.io.File
-import java.io.ObjectOutputStream
 
 @RunWith(RobolectricTestRunner::class)
 @Config(application = Application::class, sdk = [28])
@@ -77,6 +76,13 @@ class RestoreAgentTest {
     fun tearDown() {
         stopKoin()
         unmockkAll()
+    }
+
+    @Test
+    fun `production preference reader accepts the current typed archive`() {
+        val values = mapOf("boolean" to false, "integer" to -7, "long" to Long.MAX_VALUE, "string" to "value")
+        val directory = prefsDir(values)
+        org.junit.Assert.assertEquals(values, invoke("readPreferences", File::class.java, directory))
     }
 
     @Test
@@ -156,9 +162,7 @@ class RestoreAgentTest {
 
     private fun prefsDir(prefs: Map<String, Any?>): File {
         val dir = tmp.newFolder()
-        ObjectOutputStream(File(dir, SHARED_PREFS_BACKUP_FILE_NAME).outputStream()).use { out ->
-            out.writeObject(HashMap(prefs))
-        }
+        PreferenceBackupCodec.write(File(dir, SHARED_PREFS_BACKUP_FILE_NAME), prefs)
         return dir
     }
 

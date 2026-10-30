@@ -19,8 +19,6 @@ import com.bernaferrari.bravedns.service.PersistentState
 import com.bernaferrari.bravedns.service.VpnController
 import com.bernaferrari.bravedns.util.Utilities
 import java.io.File
-import java.io.FileInputStream
-import java.io.ObjectInputStream
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
@@ -173,18 +171,9 @@ class RestoreAgent(val context: Context, workerParams: WorkerParameters) :
 
     private fun validateMetadata(directory: String?): Boolean = File(directory, METADATA_FILENAME).isFile
 
-    private fun readPreferences(directory: File): Map<String, Any?> {
-        ObjectInputStream(FileInputStream(File(directory, SHARED_PREFS_BACKUP_FILE_NAME))).use { input ->
-            val values = input.readObject() as? Map<*, *> ?: error("Invalid preference backup")
-            return values.entries.associate { (key, value) ->
-                require(key is String) { "Invalid preference name" }
-                require(value == null || value is Boolean || value is Int || value is Long || value is String) {
-                    "Invalid preference type"
-                }
-                key to value
-            }
-        }
-    }
+    private fun readPreferences(directory: File): Map<String, Any?> =
+        PreferenceBackupCodec.read(File(directory, SHARED_PREFS_BACKUP_FILE_NAME))
+
 }
 
 private fun SQLiteDatabase.roomIdentity(): String? =

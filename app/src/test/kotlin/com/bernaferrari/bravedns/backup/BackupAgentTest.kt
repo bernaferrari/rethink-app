@@ -89,6 +89,18 @@ class BackupAgentTest {
     }
 
     @Test
+    fun `production preference writer uses the bounded current codec`() {
+        val values = mapOf("boolean" to true, "integer" to 7, "long" to 9L, "string" to "value")
+        every { persistentState.snapshotPreferences() } returns values
+        val file = tmp.newFile()
+        val method = BackupAgent::class.java.getDeclaredMethod("saveSharedPreferencesToFile", java.io.File::class.java)
+        method.isAccessible = true
+        assertTrue(method.invoke(agent, file) as Boolean)
+        org.junit.Assert.assertEquals(values, PreferenceBackupCodec.read(file))
+        assertTrue(file.path in agent.filesPathToZip)
+    }
+
+    @Test
     fun `CREATED_TIME is wall-clock epoch millis not elapsedRealtime`() {
         val before = System.currentTimeMillis()
         val metadata = invokeBackupMetadata()

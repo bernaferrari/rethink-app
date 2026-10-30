@@ -45,8 +45,6 @@ import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
-import java.io.IOException
-import java.io.ObjectOutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import kotlinx.coroutines.CancellationException
@@ -240,26 +238,15 @@ class BackupAgent(val context: Context, workerParams: WorkerParameters) :
     }
 
     private fun saveSharedPreferencesToFile(prefFile: File): Boolean {
-        var output: ObjectOutputStream? = null
-
         Logger.i(LOG_TAG_BACKUP_RESTORE, "begin shared pref copy, file path:${prefFile.path}")
-
         try {
-            output = ObjectOutputStream(FileOutputStream(prefFile))
-            val allPrefs = backupPreferences ?: persistentState.snapshotPreferences()
-            output.writeObject(allPrefs)
-        } catch (e: Exception) {
-            Logger.crash(LOG_TAG_BACKUP_RESTORE, "exception during shared pref backup, ${e.message}", e)
+            PreferenceBackupCodec.write(prefFile, backupPreferences ?: persistentState.snapshotPreferences())
+        } catch (error: java.io.IOException) {
+            Logger.e(LOG_TAG_BACKUP_RESTORE, "Cannot write preference backup", error)
             return false
-        } finally {
-            try {
-                if (output != null) {
-                    output.flush()
-                    output.close()
-                }
-            } catch (_: IOException) {
-                // no-op
-            }
+        } catch (error: IllegalArgumentException) {
+            Logger.e(LOG_TAG_BACKUP_RESTORE, "Invalid preference backup values", error)
+            return false
         }
         filesPathToZip.add(prefFile.absolutePath)
         return true
