@@ -41,8 +41,13 @@ class RestoreAgent(val context: Context, workerParams: WorkerParameters) :
 
     override suspend fun doWork(): Result {
         val uri = inputData.getString(DATA_BUILDER_RESTORE_URI)?.toUri() ?: return Result.failure()
-        return if (startRestore(uri)) Result.success()
-        else Result.failure(Data.Builder().putBoolean(RESTART_REQUIRED, restartRequired).build())
+        return BackupRestoreFileGate.withSourceFiles {
+            if (RestoreRestart.required(context)) {
+                return@withSourceFiles Result.failure(Data.Builder().putBoolean(RESTART_REQUIRED, true).build())
+            }
+            if (startRestore(uri)) Result.success()
+            else Result.failure(Data.Builder().putBoolean(RESTART_REQUIRED, restartRequired).build())
+        }
     }
 
     // Import boundary: every deserialization/filesystem failure must leave the original state intact.

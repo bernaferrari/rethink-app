@@ -55,6 +55,7 @@ import com.bernaferrari.bravedns.backup.BackupHelper.Companion.DATA_BUILDER_REST
 import com.bernaferrari.bravedns.backup.BackupHelper.Companion.INTENT_TYPE_OCTET
 import com.bernaferrari.bravedns.backup.BackupHelper.Companion.INTENT_TYPE_XZIP
 import com.bernaferrari.bravedns.backup.RestoreAgent
+import com.bernaferrari.bravedns.backup.RestoreWork
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.settings.RethinkBackupRestoreDialogCopy
 import com.bernaferrari.bravedns.ui.compose.settings.RethinkBackupRestoreFailure
@@ -99,7 +100,7 @@ fun BackupRestoreSheet(
                 host,
                 result,
                 onFailure = { failure = RethinkBackupRestoreFailure.Restore },
-                onRestore = { uri -> startRestoreProcess(host, uri, workManager) }
+                onRestore = { uri -> startRestoreProcess(uri, workManager) }
             )
         }
 
@@ -133,8 +134,8 @@ fun BackupRestoreSheet(
 
     LaunchedEffect(workManager, activity) {
         val host = activity ?: return@LaunchedEffect
-        workManager.workInfosByTagFlow(RestoreAgent.TAG).collect { workInfoList ->
-            val workInfo = workInfoList.getOrNull(0) ?: return@collect
+        RestoreWork.observe(workManager).collect { workInfo ->
+            workInfo ?: return@collect
             Logger.i(LOG_TAG_UI, "WorkManager state: ${workInfo.state} for ${RestoreAgent.TAG}")
             if (WorkInfo.State.SUCCEEDED == workInfo.state) {
                 Utilities.showToastUiCentered(
@@ -338,27 +339,13 @@ private fun handleRestoreResult(
     }
 }
 
-private fun startRestoreProcess(activity: ComponentActivity, fileUri: Uri?, workManager: WorkManager) {
+private fun startRestoreProcess(fileUri: Uri?, workManager: WorkManager) {
     if (fileUri == null) {
         Logger.w(LOG_TAG_UI, "uri received from activity result is null, cancel restore process")
         return
     }
 
-    Logger.i(LOG_TAG_UI, "invoke worker to initiate the restore process")
-    val data = Data.Builder()
-    data.putString(DATA_BUILDER_RESTORE_URI, fileUri.toString())
-
-    val importWorker =
-        OneTimeWorkRequestBuilder<RestoreAgent>()
-            .setInputData(data.build())
-            .setBackoffCriteria(
-                BackoffPolicy.LINEAR,
-                WorkRequest.MIN_BACKOFF_MILLIS,
-                TimeUnit.MILLISECONDS
-            )
-            .addTag(RestoreAgent.TAG)
-            .build()
-    workManager.beginWith(importWorker).enqueue()
+    RestoreWork.enqueue(workManager, fileUri)
 }
 
 private fun startBackupProcess(activity: ComponentActivity, backupUri: Uri?, workManager: WorkManager) {

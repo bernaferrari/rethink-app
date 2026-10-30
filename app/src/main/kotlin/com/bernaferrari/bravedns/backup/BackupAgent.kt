@@ -80,7 +80,6 @@ class BackupAgent(val context: Context, workerParams: WorkerParameters) :
         }
 
         Logger.d(LOG_TAG_BACKUP_RESTORE, "begin backup process with file uri: $backupFileUri")
-        backupPreferences = persistentState.snapshotPreferences()
         return withContext(Dispatchers.IO) {
             if (startBackupProcess(backupFileUri)) Result.success() else Result.failure()
         }
@@ -93,40 +92,7 @@ class BackupAgent(val context: Context, workerParams: WorkerParameters) :
             tempDir.deleteRecursively()
             check(tempDir.mkdirs()) { "Cannot create backup staging directory" }
 
-            val prefsBackupFile = File(tempDir, SHARED_PREFS_BACKUP_FILE_NAME)
-
-            Logger.d(
-                    LOG_TAG_BACKUP_RESTORE,
-                    "backup process, temp file dir: ${tempDir.path}, prefs backup file: ${prefsBackupFile.path}"
-                )
-            processCompleted = saveSharedPreferencesToFile(prefsBackupFile)
-
-            if (processCompleted) {
-                Logger.d(LOG_TAG_BACKUP_RESTORE, "shared pref backup is added to the temp dir")
-            } else {
-                Logger.w(
-                    LOG_TAG_BACKUP_RESTORE,
-                    "failed to add shared pref to temp backup dir, return failure"
-                )
-                return false
-            }
-
-            processCompleted = saveDatabasesToFile(tempDir.path)
-
-            if (processCompleted) {
-                Logger.d(LOG_TAG_BACKUP_RESTORE, "database backup is added to the temp dir")
-            } else {
-                Logger.w(
-                    LOG_TAG_BACKUP_RESTORE,
-                    "failed to add database to temp backup dir, return failure"
-                )
-                return false
-            }
-
-            // no need to check the return value, we can proceed even if the wireguard config backup
-            // fails
-            currentCoroutineContext().ensureActive()
-            backupWireGuardConfig(tempDir)
+            if (!snapshotSourceFiles(tempDir)) return false
 
             processCompleted = createMetaData(tempDir)
 
@@ -155,6 +121,24 @@ class BackupAgent(val context: Context, workerParams: WorkerParameters) :
             filesPathToZip.clear()
             tempDir.deleteRecursively()
         }
+    }
+
+    private suspend fun snapshotSourceFiles(tempDir: File): Boolean = BackupRestoreFileGate.withSourceFiles {
+        if (RestoreRestart.required(context)) return@withSourceFiles false
+        backupPreferences = persistentState.snapshotPreferences()
+        val prefsBackupFile = File(tempDir, SHARED_PREFS_BACKUP_FILE_NAME)
+        if (!saveSharedPreferencesToFile(prefsBackupFile)) {
+            Logger.w(LOG_TAG_BACKUP_RESTORE, "Could not snapshot backup preferences")
+            return@withSourceFiles false
+        }
+        if (!saveDatabasesToFile(tempDir.path)) {
+            Logger.w(LOG_TAG_BACKUP_RESTORE, "Could not snapshot backup databases")
+            return@withSourceFiles false
+        }
+        // Existing behavior allows a backup when no readable WireGuard configs exist.
+        currentCoroutineContext().ensureActive()
+        backupWireGuardConfig(tempDir)
+        true
     }
 
     private fun backupWireGuardConfig(tempDir: File): Boolean {
