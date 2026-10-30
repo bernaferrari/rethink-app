@@ -186,10 +186,13 @@ private fun AppConnection.toRethinkSummaryRow(
         countryFlag = flag.takeIf { isCountry && it.isNotBlank() },
         leadingContent = if (!isCountry) {
             {
-                if (appIconPainter != null) {
-                    Icon(appIconPainter, contentDescription = null, tint = Unspecified, modifier = Modifier.size(SharedDimensions.iconSizeMd))
-                } else {
-                    Icon(painterResource(R.drawable.ic_app_info), contentDescription = null, tint = accentColor, modifier = Modifier.size(SharedDimensions.iconSizeMd))
+                // App icons at the size the Apps list and logs use; the fallback glyph stays icon-sized in that slot.
+                Box(Modifier.size(SharedDimensions.iconContainerMd), contentAlignment = Alignment.Center) {
+                    if (appIconPainter != null) {
+                        Icon(appIconPainter, contentDescription = null, tint = Unspecified, modifier = Modifier.size(SharedDimensions.iconContainerMd))
+                    } else {
+                        Icon(painterResource(R.drawable.ic_app_info), contentDescription = null, tint = accentColor, modifier = Modifier.size(SharedDimensions.iconSizeMd))
+                    }
                 }
             }
         } else null,

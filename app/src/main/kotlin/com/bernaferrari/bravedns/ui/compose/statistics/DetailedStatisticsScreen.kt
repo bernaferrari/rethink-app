@@ -87,7 +87,7 @@ private fun AppConnection.toRethinkDetailedStatistic(type: SummaryStatisticsType
         supporting = metric,
         countryFlag = flag.takeIf { isCountryType && it.isNotBlank() },
         leadingContent = appIconPainter?.let { painter ->
-            { Icon(painter, null, tint = Color.Unspecified, modifier = Modifier.size(SharedDimensions.iconSizeMd)) }
+            { Icon(painter, null, tint = Color.Unspecified, modifier = Modifier.size(SharedDimensions.iconContainerMd)) }
         },
     )
 }
