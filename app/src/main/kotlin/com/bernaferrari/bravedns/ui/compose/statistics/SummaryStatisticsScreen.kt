@@ -6,18 +6,12 @@
  */
 package com.bernaferrari.bravedns.ui.compose.statistics
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
@@ -27,6 +21,7 @@ import com.bernaferrari.bravedns.data.AppConnection
 import com.bernaferrari.bravedns.data.DataUsageSummary
 import com.bernaferrari.bravedns.data.SummaryStatisticsType
 import com.bernaferrari.bravedns.service.PersistentState
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusColors
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.util.formatByteCount
 import com.bernaferrari.bravedns.ui.compose.common.AppIcon
@@ -52,12 +47,16 @@ fun SummaryStatisticsScreen(
     val mostContactedIps = viewModel.getMostContactedIps.collectAsLazyPagingItems()
     val mostBlockedIps = viewModel.getMostBlockedIps.collectAsLazyPagingItems()
 
+    // Green and red mean allowed and blocked, as on Home; every other ranking stays neutral.
+    val allowed = RethinkStatusColors.allowed
+    val blocked = RethinkStatusColors.blocked
+    val neutral = MaterialTheme.colorScheme.onSurfaceVariant
     val sections = mutableListOf<RethinkSummaryStatisticsSection>()
     sections += summarySection(
             title = stringResource(R.string.ssv_app_network_activity_heading),
             type = SummaryStatisticsType.MOST_CONNECTED_APPS,
             pagingItems = mostConnectedApps,
-            accentColor = MaterialTheme.colorScheme.primary,
+            accentColor = allowed,
             viewModel = viewModel,
             refreshToken = uiState.timeCategory,
             onSeeMoreClick = onSeeMoreClick,
@@ -66,7 +65,7 @@ fun SummaryStatisticsScreen(
             title = stringResource(R.string.ssv_app_blocked_heading),
             type = SummaryStatisticsType.MOST_BLOCKED_APPS,
             pagingItems = mostBlockedApps,
-            accentColor = MaterialTheme.colorScheme.error,
+            accentColor = blocked,
             viewModel = viewModel,
             refreshToken = uiState.timeCategory,
             onSeeMoreClick = onSeeMoreClick,
@@ -75,23 +74,23 @@ fun SummaryStatisticsScreen(
             title = stringResource(R.string.ssv_most_contacted_countries_heading),
             type = SummaryStatisticsType.MOST_CONTACTED_COUNTRIES,
             pagingItems = mostContactedCountries,
-            accentColor = MaterialTheme.colorScheme.tertiary,
+            accentColor = neutral,
             viewModel = viewModel,
             refreshToken = uiState.timeCategory,
             onSeeMoreClick = onSeeMoreClick,
     )
     if (persistentState.downloadIpInfo && shouldShowOptionalSection(mostConnectedAsn)) {
-        sections += summarySection(stringResource(R.string.most_contacted_asn), SummaryStatisticsType.MOST_CONNECTED_ASN, mostConnectedAsn, MaterialTheme.colorScheme.secondary, viewModel, uiState.timeCategory, onSeeMoreClick)
+        sections += summarySection(stringResource(R.string.most_contacted_asn), SummaryStatisticsType.MOST_CONNECTED_ASN, mostConnectedAsn, neutral, viewModel, uiState.timeCategory, onSeeMoreClick)
     }
     if (persistentState.downloadIpInfo && shouldShowOptionalSection(mostBlockedAsn)) {
-        sections += summarySection(stringResource(R.string.most_blocked_asn), SummaryStatisticsType.MOST_BLOCKED_ASN, mostBlockedAsn, MaterialTheme.colorScheme.error, viewModel, uiState.timeCategory, onSeeMoreClick)
+        sections += summarySection(stringResource(R.string.most_blocked_asn), SummaryStatisticsType.MOST_BLOCKED_ASN, mostBlockedAsn, blocked, viewModel, uiState.timeCategory, onSeeMoreClick)
     }
-    sections += summarySection(stringResource(R.string.ssv_most_contacted_domain_heading), SummaryStatisticsType.MOST_CONTACTED_DOMAINS, mostContactedDomains, MaterialTheme.colorScheme.secondary, viewModel, uiState.timeCategory, onSeeMoreClick)
-    sections += summarySection(stringResource(R.string.ssv_most_blocked_domain_heading), SummaryStatisticsType.MOST_BLOCKED_DOMAINS, mostBlockedDomains, MaterialTheme.colorScheme.error, viewModel, uiState.timeCategory, onSeeMoreClick)
-    sections += summarySection(stringResource(R.string.ssv_most_contacted_ips_heading), SummaryStatisticsType.MOST_CONTACTED_IPS, mostContactedIps, MaterialTheme.colorScheme.secondary, viewModel, uiState.timeCategory, onSeeMoreClick)
-    sections += summarySection(stringResource(R.string.ssv_most_blocked_ips_heading), SummaryStatisticsType.MOST_BLOCKED_IPS, mostBlockedIps, MaterialTheme.colorScheme.error, viewModel, uiState.timeCategory, onSeeMoreClick)
+    sections += summarySection(stringResource(R.string.ssv_most_contacted_domain_heading), SummaryStatisticsType.MOST_CONTACTED_DOMAINS, mostContactedDomains, neutral, viewModel, uiState.timeCategory, onSeeMoreClick)
+    sections += summarySection(stringResource(R.string.ssv_most_blocked_domain_heading), SummaryStatisticsType.MOST_BLOCKED_DOMAINS, mostBlockedDomains, blocked, viewModel, uiState.timeCategory, onSeeMoreClick)
+    sections += summarySection(stringResource(R.string.ssv_most_contacted_ips_heading), SummaryStatisticsType.MOST_CONTACTED_IPS, mostContactedIps, neutral, viewModel, uiState.timeCategory, onSeeMoreClick)
+    sections += summarySection(stringResource(R.string.ssv_most_blocked_ips_heading), SummaryStatisticsType.MOST_BLOCKED_IPS, mostBlockedIps, blocked, viewModel, uiState.timeCategory, onSeeMoreClick)
     if (shouldShowOptionalSection(topActiveConns)) {
-        sections += summarySection(stringResource(R.string.top_active_conns), SummaryStatisticsType.TOP_ACTIVE_CONNS, topActiveConns, MaterialTheme.colorScheme.primary, viewModel, uiState.timeCategory, onSeeMoreClick)
+        sections += summarySection(stringResource(R.string.top_active_conns), SummaryStatisticsType.TOP_ACTIVE_CONNS, topActiveConns, neutral, viewModel, uiState.timeCategory, onSeeMoreClick)
     }
 
     RethinkSummaryStatisticsScreen(
@@ -173,16 +172,8 @@ private fun AppConnection.toRethinkSummaryRow(
         supporting = supporting,
         metric = metric,
         countryFlag = flag.takeIf { isCountry && it.isNotBlank() },
-        leadingContent = when {
-            isCountry -> null
-            type.supportsAppIcon() -> ({ AppIcon(uid) })
-            // Domains, IPs and ASNs: a glyph, icon-sized in the same 40dp slot.
-            else -> ({
-                Box(Modifier.size(SharedDimensions.iconContainerMd), contentAlignment = Alignment.Center) {
-                    Icon(painterResource(R.drawable.ic_app_info), contentDescription = null, tint = accentColor, modifier = Modifier.size(SharedDimensions.iconSizeMd))
-                }
-            })
-        },
+        // Apps lead with their icon; domains, IPs and ASNs are text-only rows.
+        leadingContent = if (type.supportsAppIcon()) ({ AppIcon(uid) }) else null,
         expandedContent = if (isCountry && flag.isNotBlank()) {
             { CountryBreakdown(flag, accentColor, viewModel, refreshToken) }
         } else null,

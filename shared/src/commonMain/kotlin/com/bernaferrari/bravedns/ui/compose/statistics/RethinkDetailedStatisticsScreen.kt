@@ -6,7 +6,6 @@ package com.bernaferrari.bravedns.ui.compose.statistics
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillDefaults
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillSize
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWell
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -18,7 +17,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -27,7 +25,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import com.bernaferrari.bravedns.ui.compose.common.RethinkAdaptiveWidth
 import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
@@ -148,26 +145,23 @@ private fun RethinkDetailedStatisticRow(
     item: RethinkDetailedStatistic,
     position: CardPosition,
 ) {
-    val isCountry = !item.countryFlag.isNullOrBlank()
+    // Apps lead with their icon and countries with their flag; domains, IPs and ASNs are
+    // text-only rows (a generic glyph on every row says nothing).
     RethinkListItem(
         headline = item.headline,
         supporting = item.supporting,
         position = position,
-        leadingContent = {
-            RethinkIconWell(
-                containerColor = when {
-                    item.leadingContent != null -> Color.Transparent
-                    isCountry -> MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.32f)
-                    else -> MaterialTheme.colorScheme.surfaceContainerHighest
-                },
-                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            ) {
-                when {
-                    item.leadingContent != null -> item.leadingContent.invoke()
-                    isCountry -> Text(item.countryFlag.orEmpty(), style = MaterialTheme.typography.titleMedium)
-                    else -> Icon(MaterialSymbols.Filled.Info, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        singleLineHeadline = true,
+        leadingContent = when {
+            item.leadingContent != null -> item.leadingContent
+            !item.countryFlag.isNullOrBlank() -> {
+                {
+                    Box(Modifier.size(SharedDimensions.iconContainerMd), contentAlignment = Alignment.Center) {
+                        Text(item.countryFlag, style = MaterialTheme.typography.headlineSmall)
+                    }
                 }
             }
+            else -> null
         },
     )
 }

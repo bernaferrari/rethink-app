@@ -25,7 +25,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -93,6 +92,7 @@ fun rethinkRelativeShares(values: List<Long>): List<Float?> {
 data class RethinkSummaryStatisticsSection(
     val id: String,
     val title: String,
+    /** Metric and ranking-bar colour: allowed green, blocked red, otherwise neutral. */
     val accentColor: Color,
     val rows: List<RethinkSummaryStatisticsRow>,
     val isLoading: Boolean = false,
@@ -238,8 +238,27 @@ private fun RethinkSummaryStatisticsSectionCard(
     var expandedCountryId by remember(section.id) { mutableStateOf<String?>(null) }
     val displayedRows = if (isCountrySection && !showAllCountries) section.rows.take(5) else section.rows
 
+    val canToggleCountries = isCountrySection && section.rows.size > 5
+    val canSeeMore = !isCountrySection && section.canSeeMore && section.onSeeMore != null
     Column {
-        SectionHeader(title = section.title, color = section.accentColor)
+        // One header colour for every section; the verdict colour lives in the metric alone.
+        // "Show all" is a quiet link on the header row, not a filled pill under the list.
+        SectionHeader(
+            title = section.title,
+            actionLabel = when {
+                canToggleCountries -> if (showAllCountries) strings.seeLess else strings.seeMore
+                canSeeMore -> strings.seeMore
+                else -> null
+            },
+            onAction = {
+                if (canToggleCountries) {
+                    showAllCountries = !showAllCountries
+                    if (!showAllCountries && section.rows.take(5).none { it.id == expandedCountryId }) expandedCountryId = null
+                } else {
+                    section.onSeeMore?.invoke()
+                }
+            },
+        )
         when {
             section.isLoading && section.rows.isEmpty() -> RethinkLoadingState(label = "", contained = true)
             section.rows.isEmpty() -> RethinkEmptyState(icon = MaterialSymbols.Filled.Info, title = strings.noLogs, contained = true)
@@ -257,6 +276,8 @@ private fun RethinkSummaryStatisticsSectionCard(
                         },
                         headline = row.headline,
                         supporting = row.supporting,
+                        // Domains and IPs never wrap mid-label; the middle elides so the TLD stays.
+                        singleLineHeadline = true,
                         // ListItem's text column begins at 16dp without a leading slot.
                         // Text-only statistics read best with a deliberate 20dp inset.
                         contentOffset = if (row.countryFlag.isNullOrBlank() && row.leadingContent == null) {
@@ -296,28 +317,6 @@ private fun RethinkSummaryStatisticsSectionCard(
                         },
                     )
                     if (isExpanded) row.expandedContent?.invoke()
-                }
-            }
-        }
-
-        val canToggleCountries = isCountrySection && section.rows.size > 5
-        if (canToggleCountries || (!isCountrySection && section.canSeeMore && section.onSeeMore != null)) {
-            Row(Modifier.fillMaxWidth().padding(top = SharedDimensions.spacingSm), horizontalArrangement = Arrangement.End) {
-                FilledTonalButton(
-                    onClick = {
-                        if (canToggleCountries) {
-                            showAllCountries = !showAllCountries
-                            if (!showAllCountries && displayedRows.none { it.id == expandedCountryId }) expandedCountryId = null
-                        } else {
-                            section.onSeeMore?.invoke()
-                        }
-                    },
-                ) {
-                    Text(
-                        if (canToggleCountries && showAllCountries) strings.seeLess else strings.seeMore,
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.SemiBold,
-                    )
                 }
             }
         }
@@ -391,7 +390,7 @@ fun RethinkCountryBreakdown(
             Modifier.padding(horizontal = SharedDimensions.spacingMd, vertical = SharedDimensions.spacingSm),
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
         ) {
-            SectionHeader(title = title, color = accentColor)
+            SectionHeader(title = title)
             if (apps.isEmpty()) {
                 Text(emptyMessage, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             } else {

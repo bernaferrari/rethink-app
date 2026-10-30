@@ -45,8 +45,9 @@ fun RethinkUsageOverviewCard(
             Modifier.fillMaxWidth().height(IntrinsicSize.Min),
             horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile),
         ) {
-            UsageTile(downloadLabel, overview.download, MaterialTheme.colorScheme.primary, 0, Modifier.weight(1f).fillMaxHeight())
-            UsageTile(uploadLabel, overview.upload, MaterialTheme.colorScheme.tertiary, 1, Modifier.weight(1f).fillMaxHeight())
+            // Neutral values: in this app red and green mean blocked and allowed, not direction.
+            UsageTile(downloadLabel, overview.download, MaterialTheme.colorScheme.onSurface, 0, Modifier.weight(1f).fillMaxHeight())
+            UsageTile(uploadLabel, overview.upload, MaterialTheme.colorScheme.onSurface, 1, Modifier.weight(1f).fillMaxHeight())
             UsageTile(connectionsLabel, overview.connections, MaterialTheme.colorScheme.onSurface, 2, Modifier.weight(1f).fillMaxHeight())
         }
     }
