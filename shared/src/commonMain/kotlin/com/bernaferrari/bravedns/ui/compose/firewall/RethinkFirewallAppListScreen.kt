@@ -473,11 +473,7 @@ private fun RethinkFirewallAppRows(
             }
             item(key = app.id, contentType = "app") {
                 RethinkFirewallAppRow(
-                    app = app.copy(technicalIdentity = when (sortOrder) {
-                        RethinkAppSort.Name -> null
-                        RethinkAppSort.Package -> app.packageName
-                        RethinkAppSort.Uid -> strings.uidLabel(app.uid)
-                    }),
+                    app = firewallAppWithSortIdentity(app, sortOrder, strings),
                     query = query,
                     statusLabel = strings.statusLabel(app.status),
                     position = position,
