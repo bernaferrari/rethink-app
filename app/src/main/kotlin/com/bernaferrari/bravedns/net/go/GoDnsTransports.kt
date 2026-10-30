@@ -23,6 +23,7 @@ import com.celzero.firestack.backend.Backend
 import com.celzero.firestack.backend.DNSResolver
 import com.celzero.firestack.intra.Intra
 import com.celzero.firestack.intra.Tunnel
+import kotlinx.coroutines.CancellationException
 
 /**
  * Adapter-side DNS transport construction: builds protocol URLs / stamps and
@@ -32,7 +33,10 @@ internal class GoDnsTransports(
     private val tunnel: () -> Tunnel,
     private val context: Context,
     private val appConfig: AppConfig,
-    private val callbacks: Callbacks
+    private val callbacks: Callbacks,
+    private val installDoh: (Tunnel, String, String, String) -> Unit = { tun, id, url, ips ->
+        Intra.addDoHTransport(tun, id, url, ips)
+    },
 ) {
     internal interface Callbacks {
         fun runOnUi(block: suspend () -> Unit)
@@ -130,12 +134,12 @@ internal class GoDnsTransports(
             context.getString(R.string.system_dns_connection_failure)
         )
         val rethinkDefault = appConfig.getRethinkDefaultEndpoint()
-        if (rethinkDefault == null || rethinkDefault.url.isEmpty()) {
-            Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: fallback; rethink default is empty, cannot add transport")
-            showDnsFailureToast("")
-            return
+        check(rethinkDefault != null && rethinkDefault.url.isNotBlank()) {
+            "Cannot initialize DNS: the default Rethink endpoint catalog is missing"
         }
-        // this will in-turn updates the ui and calls the adapter to update the transport
+        // Initial setup precedes preference observation: install now, then publish the selection.
+        // Waiting for an observer can leave Preferred absent for the entire VPN session.
+        installRdnsTransport(Backend.Preferred, rethinkDefault.url)
         appConfig.handleRethinkChanges(rethinkDefault)
     }
 
@@ -159,6 +163,8 @@ internal class GoDnsTransports(
                 "removed $id from tun? $res"
             )
             res
+        } catch (cancelled: CancellationException) {
+            throw cancelled
         } catch (e: Exception) {
             Logger.e(LOG_TAG_VPN, "$TAG err remove resolver $id: ${e.message}", e)
             callbacks.logEvent(
@@ -189,13 +195,15 @@ internal class GoDnsTransports(
             url = dohTransportUrl(url, doh.isSecure)
             // add replaces the existing transport with the same id if successful
             // so no need to remove the transport before adding
-            Intra.addDoHTransport(tunnel(), id, url, ips)
+            installDoh(tunnel(), id, url, ips)
             Logger.i(LOG_TAG_VPN, "$TAG new doh: $id (${doh.dohName}), url: $url, ips: $ips")
             callbacks.logEvent(
                 Severity.LOW,
                 "doh transport added",
                 "id: $id, url: $url, ips: $ips"
             )
+        } catch (cancelled: CancellationException) {
+            throw cancelled
         } catch (e: Exception) {
             Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: doh failure, url: $url", e)
             removeResolver(id)
@@ -236,6 +244,8 @@ internal class GoDnsTransports(
                 "dot transport added",
                 "id: $id, url: $url, ips: $ips"
             )
+        } catch (cancelled: CancellationException) {
+            throw cancelled
         } catch (e: Exception) {
             Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: dot failure, url: $url", e)
             removeResolver(id)
@@ -272,6 +282,8 @@ internal class GoDnsTransports(
                 "odoh transport added",
                 "id: $id, proxy: $proxy, resolver: $resolver"
             )
+        } catch (cancelled: CancellationException) {
+            throw cancelled
         } catch (e: Exception) {
             Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: odoh failure, res: $resolver", e)
             removeResolver(id)
@@ -306,6 +318,8 @@ internal class GoDnsTransports(
                 "dnscrypt transport added",
                 "id: $id, url: $url"
             )
+        } catch (cancelled: CancellationException) {
+            throw cancelled
         } catch (e: Exception) {
             Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: dns crypt failure for $id", e)
             removeResolver(id)
@@ -341,6 +355,8 @@ internal class GoDnsTransports(
                 "dns proxy transport added",
                 "id: $id, ip: $ipPortCsv"
             )
+        } catch (cancelled: CancellationException) {
+            throw cancelled
         } catch (e: Exception) {
             Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: dns proxy failure", e)
             removeResolver(id)
@@ -371,15 +387,9 @@ internal class GoDnsTransports(
     private suspend fun addRdnsTransport(id: String, url: String) {
         Logger.v(LOG_TAG_VPN, "$TAG addRdnsTransport, id: $id, url: $url")
         try {
-            val ips: String = callbacks.ipString(url)
-            val convertedUrl = getRdnsUrl(url) ?: return
-            Intra.addDoHTransport(tunnel(), id, convertedUrl, ips)
-            Logger.i(LOG_TAG_VPN, "$TAG new doh (rdns): $id, url: $convertedUrl, ips: $ips")
-            callbacks.logEvent(
-                Severity.LOW,
-                "rdns transport added",
-                "id: $id, url: $convertedUrl, ips: $ips"
-            )
+            installRdnsTransport(id, url)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
         } catch (e: Exception) {
             Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: rdns failure, url: $url ($id)", e)
             removeResolver(id)
@@ -392,6 +402,14 @@ internal class GoDnsTransports(
             )
         }
         Logger.v(LOG_TAG_VPN, "$TAG addRdnsTransport done")
+    }
+
+    private suspend fun installRdnsTransport(id: String, url: String) {
+        val ips = callbacks.ipString(url)
+        val convertedUrl = checkNotNull(getRdnsUrl(url)) { "Invalid Rethink DNS endpoint: $url" }
+        installDoh(tunnel(), id, convertedUrl, ips)
+        Logger.i(LOG_TAG_VPN, "$TAG new doh (rdns): $id, url: $convertedUrl, ips: $ips")
+        callbacks.logEvent(Severity.LOW, "rdns transport added", "id: $id, url: $convertedUrl, ips: $ips")
     }
 
     private suspend fun getRdnsUrl(url: String): String? {
@@ -448,6 +466,8 @@ internal class GoDnsTransports(
                 "add dnscrypt relay",
                 "added dnscrypt relay ${relay.dnsCryptRelayURL}"
             )
+        } catch (cancelled: CancellationException) {
+            throw cancelled
         } catch (e: Exception) {
             Logger.e(
                 LOG_TAG_VPN,
@@ -481,6 +501,8 @@ internal class GoDnsTransports(
                 "remove dns crypt relay",
                 "remove dns crypt relay for id: ${relay.id}, url: ${relay.dnsCryptRelayURL}"
             )
+        } catch (cancelled: CancellationException) {
+            throw cancelled
         } catch (e: Exception) {
             Logger.w(LOG_TAG_VPN, "$TAG connect-tunnel: dnscrypt rmv failure")
             callbacks.logEvent(

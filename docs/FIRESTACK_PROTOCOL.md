@@ -64,6 +64,14 @@ coalesced, adapter close rejects late results, and generation changes discard
 results from replaced proxy configurations. Native work may finish after a wait
 has expired; it stays bounded and owned, rather than creating detached IO jobs.
 
+A successfully initialized bootstrap/default resolver does not prove that the
+selected `Preferred` transport exists. The native resolver intentionally refuses
+to substitute bootstrap DNS for a missing `Preferred` transport. Fresh database
+endpoint catalogs must be populated, and initial fallback selection must install
+`Preferred` synchronously before publishing preferences; startup must fail explicitly
+when no default endpoint exists. This failure was reproduced on the fresh-install
+emulator smoke test, despite successful bridge compilation and bootstrap setup.
+
 Validation includes Kotlin compilation against the pinned artifact, reflection
 contract tests, routing/DNS policy tests, and shared JVM serialization tests.
 These checks do not prove native device behavior. VPN start/stop/rebuild, full
