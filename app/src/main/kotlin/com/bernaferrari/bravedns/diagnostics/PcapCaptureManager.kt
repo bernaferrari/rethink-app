@@ -6,6 +6,10 @@ import com.bernaferrari.bravedns.data.AppConfig
 import com.bernaferrari.bravedns.service.PersistentState
 import com.bernaferrari.bravedns.service.VpnController
 import com.bernaferrari.bravedns.util.PcapMode
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.io.File
@@ -20,9 +24,12 @@ class PcapCaptureManager(
     private val mutex = Mutex()
     private val directory get() = File(context.filesDir, "pcap").apply { mkdirs() }
     val active: Boolean get() = persistentState.pcapMode != PcapMode.NONE.id
+    val activeFlow = persistentState.preferenceKeyChanges()
+        .onStart { emit(PersistentState.PCAP_MODE) }
+        .map { active }.distinctUntilChanged()
 
     fun files(): List<File> = directory.listFiles().orEmpty()
-        .filter { it.isFile && it.extension == "pcap" && it.canonicalFile.parentFile == directory.canonicalFile }
+        .filter(::ownedRegularFile)
         .sortedByDescending { it.lastModified() }
 
     suspend fun start(mode: PcapMode): Boolean = mutex.withLock {
@@ -33,11 +40,27 @@ class PcapCaptureManager(
         val captureId = java.util.UUID.randomUUID().toString()
         persistentState.pcapCaptureId = captureId
         persistentState.pcapStartedAt = System.currentTimeMillis()
-        appConfig.setPcap(mode.id, path)
         val request = OneTimeWorkRequestBuilder<PcapStopWorker>()
             .setInputData(workDataOf(CAPTURE_ID to captureId))
             .setInitialDelay(MAX_CAPTURE_HOURS, TimeUnit.HOURS).build()
-        WorkManager.getInstance(context).enqueueUniqueWork(STOP_WORK, ExistingWorkPolicy.REPLACE, request)
+        val scheduler = WorkManager.getInstance(context)
+        try {
+            // Persist the deadline before native capture can start.
+            scheduler.enqueueUniqueWork(STOP_WORK, ExistingWorkPolicy.REPLACE, request).await()
+            if (!VpnController.startPcapCapture(mode.id, path)) return@withLock false
+        } catch (cancelled: CancellationException) {
+            withContext(NonCancellable) {
+                if (VpnController.stopPcapCapture()) appConfig.setPcap(PcapMode.NONE.id)
+            }
+            throw cancelled
+        } finally {
+            if (!active) {
+                persistentState.pcapCaptureId = ""
+                persistentState.pcapStartedAt = 0L
+                if (mode == PcapMode.EXTERNAL_FILE) File(path).delete()
+                scheduler.cancelUniqueWork(STOP_WORK)
+            }
+        }
         true
     }
 
@@ -50,8 +73,10 @@ class PcapCaptureManager(
         true
     }
 
-    fun canExpose(file: File): Boolean = !active &&
-        file.canonicalFile.parentFile == directory.canonicalFile && file.isFile && file.extension == "pcap"
+    private fun ownedRegularFile(file: File): Boolean = file.isFile && file.extension == "pcap" &&
+        file.canonicalFile == File(directory.canonicalFile, file.name)
+
+    fun canExpose(file: File): Boolean = !active && ownedRegularFile(file)
 
     fun delete(file: File): Boolean = canExpose(file) && file.delete()
 

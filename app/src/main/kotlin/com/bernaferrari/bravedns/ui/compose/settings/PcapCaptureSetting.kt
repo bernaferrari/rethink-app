@@ -29,7 +29,7 @@ internal fun PcapCaptureSetting() {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var open by remember { mutableStateOf(false) }
-    var active by remember { mutableStateOf(manager.active) }
+    val active by manager.activeFlow.collectAsState(initial = manager.active)
     var files by remember { mutableStateOf(emptyList<File>()) }
     var busy by remember { mutableStateOf(false) }
     var failed by remember { mutableStateOf(false) }
@@ -42,7 +42,8 @@ internal fun PcapCaptureSetting() {
             try {
                 failed = !withContext(Dispatchers.IO) { action() }
                 files = withContext(Dispatchers.IO) { manager.files() }
-                active = manager.active
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
             } catch (error: java.io.IOException) {
                 Logger.e(Logger.LOG_TAG_UI, "Packet capture operation failed", error)
                 failed = true

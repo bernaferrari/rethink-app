@@ -17,15 +17,18 @@ object RuleImportParser {
         val entries = linkedSetOf<String>()
         var invalid = 0
         var duplicates = 0
-        var processed = 0
         var limited = false
-        for (raw in lines) {
-            if (processed++ >= MAX_ENTRIES) { limited = true; break }
-            if (raw.length > MAX_LINE_LENGTH) { invalid++; continue }
-            val line = raw.substringBefore('#').trim()
-            if (line.isEmpty()) continue
-            val value = normalize(line)
-            if (value.isNullOrBlank()) invalid++ else if (!entries.add(value)) duplicates++
+        for ((index, raw) in lines.withIndex()) {
+            if (index >= MAX_ENTRIES) { limited = true; break }
+            if (raw.length > MAX_LINE_LENGTH) {
+                invalid++
+            } else {
+                val line = raw.substringBefore('#').trim()
+                if (line.isNotEmpty()) {
+                    val value = normalize(line)
+                    if (value.isNullOrBlank()) invalid++ else if (!entries.add(value)) duplicates++
+                }
+            }
         }
         return RuleImportPreview(entries.toList(), invalid, duplicates, limited)
     }

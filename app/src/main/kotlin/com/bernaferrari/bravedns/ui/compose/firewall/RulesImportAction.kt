@@ -40,7 +40,7 @@ internal fun RulesImportAction(uid: Int, tab: RethinkRulesTab) {
                         val coroutine = kotlinx.coroutines.currentCoroutineContext()
                         com.bernaferrari.bravedns.rules.RuleImportReader.preview(input) { line ->
                             coroutine.ensureActive()
-                            normalizeImportedRule(tab, line)
+                            com.bernaferrari.bravedns.rules.RuleImportService.normalize(tab, line)
                         }
                     }
                 } catch (error: IOException) {
@@ -69,9 +69,11 @@ internal fun RulesImportAction(uid: Int, tab: RethinkRulesTab) {
                 busy = true
                 scope.launch {
                     try {
-                        summary = withContext(Dispatchers.IO) { importRules(uid, tab, parsed.entries) }
+                        summary = withContext(Dispatchers.IO) { com.bernaferrari.bravedns.rules.RuleImportService.import(uid, tab, parsed.entries) }
                         preview = null
-                    } catch (error: android.database.SQLException) {
+                    } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                    throw cancelled
+                } catch (error: android.database.SQLException) {
                         Logger.e(Logger.LOG_TAG_UI, "Could not import rules", error); failed = true
                     } catch (error: IllegalStateException) {
                         Logger.e(Logger.LOG_TAG_UI, "Could not import rules", error); failed = true
@@ -85,38 +87,4 @@ internal fun RulesImportAction(uid: Int, tab: RethinkRulesTab) {
         text = { Text(if (failed) stringResource(R.string.port_import_error) else
             stringResource(R.string.port_import_summary, summary!!.first, summary!!.second)) },
         confirmButton = { TextButton(onClick = { failed = false; summary = null }) { Text(stringResource(R.string.lbl_done)) } })
-}
-
-private fun normalizeImportedRule(tab: RethinkRulesTab, line: String): String? = when (tab) {
-    RethinkRulesTab.DOMAIN -> DomainRulesManager.extractHost(line)?.lowercase()?.trimEnd('.')
-    RethinkRulesTab.IP -> {
-        val (address, port) = IpRulesManager.getIpNetPort(line)
-        val split = IpRulesManager.splitHostPort(line)
-        if (address == null || (split.first.isNotEmpty() && (split.second.toIntOrNull() !in 0..65535)) ||
-            !IpRulesManager.isIpRuleEnforceable(address.toNormalizedString())) null
-        else IpRulesManager.joinIpNetPort(address.toNormalizedString(), port)
-    }
-}
-
-private suspend fun importRules(uid: Int, tab: RethinkRulesTab, entries: List<String>): Pair<Int, Int> {
-    var imported = 0
-    var duplicates = 0
-    for (entry in entries) {
-        kotlinx.coroutines.currentCoroutineContext().ensureActive()
-        when (tab) {
-            RethinkRulesTab.DOMAIN -> {
-                if (DomainRulesManager.getObj(uid, entry) != null) { duplicates++; continue }
-                DomainRulesManager.addDomainRule(entry, DomainRulesManager.Status.BLOCK,
-                    if (entry.startsWith("*.")) DomainRulesManager.DomainType.WILDCARD else DomainRulesManager.DomainType.DOMAIN, uid)
-            }
-            RethinkRulesTab.IP -> {
-                val (address, port) = IpRulesManager.getIpNetPort(entry)
-                if (address == null) continue
-                if (IpRulesManager.getObj(uid, address.toNormalizedString(), port) != null) { duplicates++; continue }
-                IpRulesManager.addIpRule(uid, address, port, IpRulesManager.IpRuleStatus.BLOCK, "", "")
-            }
-        }
-        imported++
-    }
-    return imported to duplicates
 }

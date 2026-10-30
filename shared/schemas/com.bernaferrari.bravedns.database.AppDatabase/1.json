@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "5e469cbc6c632546e9487b0c210721bd",
+    "identityHash": "326f38957770905be47bfdfea0d20b0c",
     "entities": [
       {
         "tableName": "AppInfo",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`packageName` TEXT NOT NULL, `appName` TEXT NOT NULL, `uid` INTEGER NOT NULL, `isSystemApp` INTEGER NOT NULL, `firewallStatus` INTEGER NOT NULL, `appCategory` TEXT NOT NULL, `wifiDataUsed` INTEGER NOT NULL, `mobileDataUsed` INTEGER NOT NULL, `connectionStatus` INTEGER NOT NULL, `screenOffAllowed` INTEGER NOT NULL, `backgroundAllowed` INTEGER NOT NULL, `uploadBytes` INTEGER NOT NULL, `downloadBytes` INTEGER NOT NULL, `isProxyExcluded` INTEGER NOT NULL, `tombstoneTs` INTEGER NOT NULL, `modifiedTs` INTEGER NOT NULL, `tempAllowEnabled` INTEGER NOT NULL, `tempAllowExpiryTime` INTEGER NOT NULL, PRIMARY KEY(`uid`, `packageName`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`packageName` TEXT NOT NULL, `appName` TEXT NOT NULL, `uid` INTEGER NOT NULL, `isSystemApp` INTEGER NOT NULL, `firewallStatus` INTEGER NOT NULL, `appCategory` TEXT NOT NULL, `wifiDataUsed` INTEGER NOT NULL, `mobileDataUsed` INTEGER NOT NULL, `connectionStatus` INTEGER NOT NULL, `screenOffAllowed` INTEGER NOT NULL, `backgroundAllowed` INTEGER NOT NULL, `uploadBytes` INTEGER NOT NULL, `downloadBytes` INTEGER NOT NULL, `isProxyExcluded` INTEGER NOT NULL, `tombstoneTs` INTEGER NOT NULL, `modifiedTs` INTEGER NOT NULL, `tempAllowEnabled` INTEGER NOT NULL, `tempAllowExpiryTime` INTEGER NOT NULL, `notes` TEXT NOT NULL, PRIMARY KEY(`uid`, `packageName`))",
         "fields": [
           {
             "fieldPath": "packageName",
@@ -114,6 +114,12 @@
             "fieldPath": "tempAllowExpiryTime",
             "columnName": "tempAllowExpiryTime",
             "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "notes",
+            "columnName": "notes",
+            "affinity": "TEXT",
             "notNull": true
           }
         ],
@@ -1741,7 +1747,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '5e469cbc6c632546e9487b0c210721bd')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '326f38957770905be47bfdfea0d20b0c')"
     ]
   }
 }

@@ -317,6 +317,18 @@ fun AppInfoScreen(
     }
 
     RethinkAppInfoScreen(
+        ipLogActions = com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoLogActions(
+            onOpen = { onAppWiseIpLogsClick(uid, false) },
+            onEntry = { entry -> ipPreview.getOrNull(entry.id.toIntOrNull() ?: -1)?.let { selectedIp = it.ipAddress; selectedDomains = it.appOrDnsName.orEmpty(); showIpRulesSheet = true } },
+        ),
+        domainLogActions = com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoLogActions(
+            onOpen = { onAppWiseDomainLogsClick(uid) },
+            onEntry = { entry -> domainPreview.getOrNull(entry.id.toIntOrNull() ?: -1)?.let { selectedDomain = it.appOrDnsName.orEmpty(); showDomainRulesSheet = true } },
+        ),
+        activeLogActions = com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoLogActions(
+            onOpen = { onAppWiseIpLogsClick(uid, false) },
+            onEntry = { entry -> activePreview.getOrNull(entry.id.toIntOrNull() ?: -1)?.let { closeDialogConn = it } },
+        ),
         appNotes = info?.let { app -> { AppNotesEditor(app) } },
         state = RethinkAppInfoState(
             appAvailable = info != null,
@@ -421,12 +433,6 @@ fun AppInfoScreen(
         onSystemAppInfo = { info?.let { openAndroidAppInfo(context, it.packageName) } },
         onIpRules = { onCustomIpRulesClick(uid) },
         onDomainRules = { onCustomDomainRulesClick(uid) },
-        onActiveConnections = { onAppWiseIpLogsClick(uid, false) },
-        onDomains = { onAppWiseDomainLogsClick(uid) },
-        onIps = { onAppWiseIpLogsClick(uid, false) },
-        onActiveEntry = { entry -> activePreview.getOrNull(entry.id.toIntOrNull() ?: -1)?.let { closeDialogConn = it } },
-        onDomainEntry = { entry -> domainPreview.getOrNull(entry.id.toIntOrNull() ?: -1)?.let { selectedDomain = it.appOrDnsName.orEmpty(); showDomainRulesSheet = true } },
-        onIpEntry = { entry -> ipPreview.getOrNull(entry.id.toIntOrNull() ?: -1)?.let { selectedIp = it.ipAddress; selectedDomains = it.appOrDnsName.orEmpty(); showIpRulesSheet = true } },
         // The page header: a step up from the 40dp list rows.
         titleLeading = { AppIcon(info?.packageName.orEmpty(), appName = info?.appName, size = SharedDimensions.iconContainerLg) },
     )

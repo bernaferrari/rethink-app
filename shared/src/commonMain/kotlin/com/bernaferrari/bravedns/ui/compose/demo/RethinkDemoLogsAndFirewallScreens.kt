@@ -476,8 +476,7 @@ internal fun DemoAppInfoScreen(modifier: Modifier, app: RethinkFirewallApp?, onB
         },
         onProxyExcludedChange = { proxyExcluded = it },
         onTempAllowChange = { tempAllowed = it },
-        onSystemAppInfo = {}, onIpRules = {}, onDomainRules = {}, onActiveConnections = null, onDomains = null, onIps = null,
-        onActiveEntry = null, onDomainEntry = null, onIpEntry = null,
+        onSystemAppInfo = {}, onIpRules = {}, onDomainRules = {}, activeLogActions = com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoLogActions(), domainLogActions = com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoLogActions(), ipLogActions = com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoLogActions(),
         titleLeading = {
             RethinkWebDemoAppIcon(
                 current.packageName,

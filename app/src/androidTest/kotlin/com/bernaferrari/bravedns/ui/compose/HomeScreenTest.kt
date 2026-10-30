@@ -21,6 +21,9 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkTheme
+import org.junit.Assert.assertEquals
+import androidx.test.platform.app.InstrumentationRegistry
+import com.bernaferrari.bravedns.R
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -46,7 +49,7 @@ class HomeScreenTest {
             }
         }
 
-        composeTestRule.onNodeWithText("Start").assertIsDisplayed()
+        composeTestRule.onNodeWithText(InstrumentationRegistry.getInstrumentation().targetContext.getString(R.string.lbl_start)).assertIsDisplayed()
     }
 
     @Test
@@ -64,7 +67,7 @@ class HomeScreenTest {
             }
         }
 
-        composeTestRule.onNodeWithText("Stop").assertIsDisplayed()
+        composeTestRule.onNodeWithText(InstrumentationRegistry.getInstrumentation().targetContext.getString(R.string.lbl_stop)).assertIsDisplayed()
     }
 
     @Test
@@ -81,10 +84,10 @@ class HomeScreenTest {
             }
         }
 
-        composeTestRule.onNodeWithText("Start").performClick()
+        composeTestRule.onNodeWithText(InstrumentationRegistry.getInstrumentation().targetContext.getString(R.string.lbl_start)).performClick()
 
         // Verify callback was triggered
-        assert(clickCount == 1)
+        assertEquals(1, clickCount)
     }
 
     @Test
@@ -103,7 +106,7 @@ class HomeScreenTest {
             }
         }
 
-        composeTestRule.onNodeWithText("432").assertIsDisplayed()
-        composeTestRule.onNodeWithText("87").assertIsDisplayed()
+        composeTestRule.onNodeWithText("432", substring = true).assertIsDisplayed()
+        composeTestRule.onNodeWithText("87", substring = true).assertIsDisplayed()
     }
 }

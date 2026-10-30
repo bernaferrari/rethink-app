@@ -133,6 +133,11 @@ data class RethinkAppInfoStrings(
     val empty: String,
 )
 
+data class RethinkAppInfoLogActions(
+    val onOpen: (() -> Unit)? = null,
+    val onEntry: ((RethinkAppInfoLogItem) -> Unit)? = null,
+)
+
 /** Shared app-detail screen. Android retains app lookup, icon loading, rule writes and log paging. */
 @Composable
 fun RethinkAppInfoScreen(
@@ -150,12 +155,9 @@ fun RethinkAppInfoScreen(
     onSystemAppInfo: () -> Unit,
     onIpRules: () -> Unit,
     onDomainRules: () -> Unit,
-    onActiveConnections: (() -> Unit)?,
-    onDomains: (() -> Unit)?,
-    onIps: (() -> Unit)?,
-    onActiveEntry: ((RethinkAppInfoLogItem) -> Unit)?,
-    onDomainEntry: ((RethinkAppInfoLogItem) -> Unit)?,
-    onIpEntry: ((RethinkAppInfoLogItem) -> Unit)?,
+    activeLogActions: RethinkAppInfoLogActions,
+    domainLogActions: RethinkAppInfoLogActions,
+    ipLogActions: RethinkAppInfoLogActions,
     titleLeading: (@Composable () -> Unit)? = null,
     modifier: Modifier = Modifier,
     appNotes: (@Composable () -> Unit)? = null,
@@ -214,9 +216,9 @@ fun RethinkAppInfoScreen(
         }
         val activity: LazyListScope.() -> Unit = {
             val logSections = listOf(
-                Triple(state.activeConnections, onActiveConnections, onActiveEntry),
-                Triple(state.domainLogs, onDomains, onDomainEntry),
-                Triple(state.ipLogs, onIps, onIpEntry),
+                Triple(state.activeConnections, activeLogActions.onOpen, activeLogActions.onEntry),
+                Triple(state.domainLogs, domainLogActions.onOpen, domainLogActions.onEntry),
+                Triple(state.ipLogs, ipLogActions.onOpen, ipLogActions.onEntry),
             )
             if (logSections.all { (section) -> section.empty && !section.loading }) {
                 // One compact note instead of three stacked full empty states.

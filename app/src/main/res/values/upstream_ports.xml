@@ -6,9 +6,9 @@
     <string name="port_notes_hint">Remember why you trusted, blocked or excluded this app.</string>
     <string name="port_notes_error">Could not save notes. Your draft is still here; try again.</string>
     <string name="port_save">Save</string>
-    <string name="port_sort_name">Sort: name</string>
-    <string name="port_sort_package">Sort: package</string>
-    <string name="port_sort_uid">Sort: UID</string>
+    <string name="port_sort_name">Name</string>
+    <string name="port_sort_package">Package</string>
+    <string name="port_sort_uid">UID</string>
     <plurals name="port_hours"><item quantity="one">%1$d hour</item><item quantity="other">%1$d hours</item></plurals>
     <plurals name="port_days"><item quantity="one">%1$d day</item><item quantity="other">%1$d days</item></plurals>
     <string name="port_capture_title">Packet capture</string>
@@ -29,4 +29,5 @@
     <string name="port_wg_duplicate">Another active tunnel uses the same key and peer. Disable it before enabling this tunnel.</string>
     <string name="port_captive_title">Use system DNS for captive portals</string>
     <string name="port_captive_description">Temporarily use the network’s DNS to sign in to public Wi-Fi. DNS filtering resumes after sign-in.</string>
+    <string name="port_sort_title">Sort apps</string>
 </resources>

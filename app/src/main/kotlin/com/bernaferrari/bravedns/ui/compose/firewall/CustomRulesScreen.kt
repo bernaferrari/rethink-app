@@ -49,6 +49,7 @@ fun CustomRulesScreen(
 ) {
     val scope = rememberCoroutineScope()
     val invalidIpMessage = stringResource(R.string.ci_dialog_error_invalid_ip)
+    val invalidDomainMessage = stringResource(R.string.custom_url_error_invalid_url)
     var selectedTab by rememberSaveable(uid, initialTab) { mutableStateOf(initialTab) }
     var selectedMode by rememberSaveable(uid, initialMode) { mutableStateOf(initialMode) }
     var ipQuery by rememberSaveable(uid) { mutableStateOf("") }
@@ -127,11 +128,13 @@ fun CustomRulesScreen(
                     RethinkRulesAddResult.Success
                 }
                 RethinkRulesTab.DOMAIN -> {
+                    val domain = com.bernaferrari.bravedns.rules.DomainRuleInput.normalize(value)
+                        ?: return@RethinkCustomRulesScreen RethinkRulesAddResult(false, invalidDomainMessage)
                     scope.launch(Dispatchers.IO) {
                         DomainRulesManager.addDomainRule(
-                            value,
+                            domain,
                             DomainRulesManager.Status.BLOCK,
-                            DomainRulesManager.DomainType.DOMAIN,
+                            if (domain.startsWith("*.")) DomainRulesManager.DomainType.WILDCARD else DomainRulesManager.DomainType.DOMAIN,
                             uid = uid,
                         )
                         eventLogger.log(

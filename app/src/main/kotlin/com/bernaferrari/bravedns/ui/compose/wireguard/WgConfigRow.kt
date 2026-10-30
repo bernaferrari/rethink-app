@@ -441,13 +441,13 @@ private suspend fun enableWgIfPossible(
         return false
     }
 
-    if (type == WgType.ONE_WG) {
-        WireguardManager.updateOneWireGuardConfig(config.id, owg = true)
-        config.oneWireGuard = true
-    }
     if (WireguardManager.getConflictingActiveConfigId(config.id) != null) {
         showLongToast(context, strings.duplicateConfig)
         return false
+    }
+    if (type == WgType.ONE_WG) {
+        WireguardManager.updateOneWireGuardConfig(config.id, owg = true)
+        config.oneWireGuard = true
     }
     WireguardManager.enableConfig(config.toImmutable())
     withContext(Dispatchers.Main) { onDnsStatusChanged() }
@@ -560,7 +560,8 @@ private fun rememberWgStrings(): WgStrings {
         startRethinkToast, duplicateConfig
     ) {
         WgStrings(
-            duplicateConfig = duplicateConfig,            disabled = disabled,
+            duplicateConfig = duplicateConfig,
+            disabled = disabled,
             failing = failing,
             waiting = waiting,
             active = active,

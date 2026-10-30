@@ -373,6 +373,7 @@ dependencies {
     implementation(platform(libs.koin.bom))
     download(libs.koin.core)
     implementation(libs.koin.core)
+    implementation(libs.koin.compose)
     download(libs.koin.android)
     implementation(libs.koin.android)
     implementation(libs.koin.annotations)

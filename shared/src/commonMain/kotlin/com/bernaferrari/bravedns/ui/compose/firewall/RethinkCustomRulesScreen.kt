@@ -215,33 +215,12 @@ fun RethinkCustomRulesScreen(
         modifier = modifier,
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
-            if (selecting) {
-                RethinkTopBar(
-                    title = strings.selectedCount(selection.size),
-                    onBackClick = { selection = emptyMap() },
-                    backDescription = strings.clearSelection,
-                    navigationIcon = MaterialSymbols.Filled.Close,
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                    actions = {
-                        IconButton(onClick = { pendingDelete = selection.values.toList() }) {
-                            Icon(MaterialSymbols.Filled.DeleteOutline, strings.delete)
-                        }
-                    },
-                )
-            } else {
-                RethinkTopBar(title = title, onBackClick = onBackClick, actions = {
-                    if (effectiveMode == RethinkRulesMode.SELECTED_UID) importAction?.invoke()
-                })
-            }
+            RethinkRulesTopBar(selection.size, title, strings, onBackClick,
+                { selection = emptyMap() }, { pendingDelete = selection.values.toList() },
+                effectiveMode == RethinkRulesMode.SELECTED_UID, importAction)
         },
         floatingActionButton = {
-            if (!selecting && effectiveMode == RethinkRulesMode.SELECTED_UID && (rules.isLoading || rules.itemCount > 0)) {
-                ExtendedFloatingActionButton(
-                    onClick = { showAddDialog = true },
-                    icon = { Icon(MaterialSymbols.Filled.Add, null) },
-                    text = { Text(strings.add) },
-                )
-            }
+            RethinkRulesAddButton(selecting, effectiveMode, rules.isLoading, rules.itemCount, strings.add) { showAddDialog = true }
         },
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
@@ -284,22 +263,15 @@ fun RethinkCustomRulesScreen(
             onDelete = { pendingDelete = listOf(rule) },
         )
     }
-    if (pendingDelete.isNotEmpty()) {
-        val single = pendingDelete.singleOrNull()
-        RethinkConfirmDialog(
-            onDismissRequest = { pendingDelete = emptyList() },
-            title = if (single != null) strings.deleteRuleTitle else strings.deleteSelectedTitle(pendingDelete.size),
-            message = single?.let { listOfNotNull(it.value, it.port?.let(strings.port)).joinToString(" · ") } ?: "",
-            confirmText = strings.delete,
-            dismissText = strings.cancel,
-            isConfirmDestructive = true,
-            onConfirm = {
-                pendingDelete.forEach { onDeleteRule(selectedTab, it) }
-                selection = selection - pendingDelete.map { it.id }.toSet()
-                pendingDelete = emptyList()
-            },
-        )
-    }
+    RethinkDeleteRulesDialog(
+        rules = pendingDelete, strings = strings,
+        onDismiss = { pendingDelete = emptyList() },
+        onConfirm = {
+            pendingDelete.forEach { onDeleteRule(selectedTab, it) }
+            selection = selection - pendingDelete.map { it.id }.toSet()
+            pendingDelete = emptyList()
+        },
+    )
 
     if (showAddDialog && effectiveMode == RethinkRulesMode.SELECTED_UID) {
         RethinkAddFirewallRuleDialog(

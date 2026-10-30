@@ -192,8 +192,7 @@ fun AppListScreen(
     }
 
     RethinkFirewallAppListScreen(
-        sortOrder = sortOrder,
-        onSortChange = { sortOrder = it },
+        sorting = com.bernaferrari.bravedns.ui.compose.firewall.RethinkAppSorting(sortOrder) { sortOrder = it },
         apps = portableApps,
         query = queryText,
         selectedQuickFilter = currentFilters.status,
@@ -294,6 +293,7 @@ private fun androidFirewallAppListStrings(dialogs: AndroidBulkDialogCopy): Rethi
     val wifi = stringResource(R.string.ada_app_unmetered)
     val mobile = stringResource(R.string.lbl_mobile_data)
     return RethinkFirewallAppListStrings(
+        sortTitle = stringResource(R.string.port_sort_title),
         sortLabels = listOf(stringResource(R.string.port_sort_name), stringResource(R.string.port_sort_package), stringResource(R.string.port_sort_uid)),
         title = stringResource(R.string.apps_info_title),
         searchHint = { count -> stringResource(R.string.search_apps_count_placeholder, count) },

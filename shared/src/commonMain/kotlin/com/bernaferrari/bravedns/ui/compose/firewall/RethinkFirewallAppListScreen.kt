@@ -119,6 +119,8 @@ enum class RethinkFirewallFilter { All, Allowed, Blocked, Bypass, Excluded, Lock
 
 enum class RethinkAppSort { Name, Package, Uid }
 
+data class RethinkAppSorting(val order: RethinkAppSort = RethinkAppSort.Name, val onChange: (RethinkAppSort) -> Unit = {})
+
 enum class RethinkFirewallTopLevelFilter { Installed, System, All }
 
 enum class RethinkFirewallBulkAction { Wifi, Mobile, Bypass, BypassDns, Exclude, Lockdown }
@@ -167,6 +169,7 @@ data class RethinkFirewallAppListStrings(
     /** Content description of the top-bar overflow button that holds the bulk-rules entry. */
     val moreOptions: String = "More options",
     val sortLabels: List<String> = emptyList(),
+    val sortTitle: String = "Sort apps",
 )
 
 /**
@@ -205,9 +208,9 @@ fun RethinkFirewallAppListScreen(
     appIcon: @Composable (RethinkFirewallApp) -> Unit,
     onBackClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
-    sortOrder: RethinkAppSort = RethinkAppSort.Name,
-    onSortChange: (RethinkAppSort) -> Unit = {},
+    sorting: RethinkAppSorting = RethinkAppSorting(),
 ) {
+    val sortOrder = sorting.order
     var showFilters by remember { mutableStateOf(false) }
     var showRules by remember { mutableStateOf(false) }
     var pendingBulkAction by remember { mutableStateOf<RethinkFirewallBulkAction?>(null) }
@@ -234,11 +237,7 @@ fun RethinkFirewallAppListScreen(
                 title = strings.title,
                 onBackClick = onBackClick,
                 actions = {
-                    if (strings.sortLabels.size == RethinkAppSort.entries.size) {
-                        TextButton(onClick = {
-                            onSortChange(RethinkAppSort.entries[(sortOrder.ordinal + 1) % RethinkAppSort.entries.size])
-                        }) { Text(strings.sortLabels[sortOrder.ordinal]) }
-                    }
+                    RethinkAppSortMenu(strings.sortTitle, strings.sortLabels, sorting)
                     RethinkFirewallTopBarActions(
                         isRefreshing = isRefreshing,
                         strings = strings,
@@ -1034,7 +1033,7 @@ fun rethinkFirewallScrollerMarks(apps: List<RethinkFirewallApp>): List<RethinkFa
     var listIndex = 0
     var previous: String? = null
     apps.forEach { app ->
-        val initial = if (alphabetical) appInitial(app) else ""
+        val initial = appInitial(app)
         if (previous != initial) {
             marks += RethinkFastScrollerMark(initial, listIndex)
             listIndex++

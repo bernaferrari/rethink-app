@@ -22,7 +22,7 @@ object RuleImportReader {
                     yield(if (overlong) " ".repeat(RuleImportParser.MAX_LINE_LENGTH + 1) else line.toString().trimEnd('\r'))
                     line.clear(); overlong = false
                 }
-                else -> if (line.length < RuleImportParser.MAX_LINE_LENGTH) line.append(character.toChar()) else overlong = true
+                else -> if (line.length < RuleImportParser.MAX_LINE_LENGTH) line.append(character.toChar()) else if (character.toChar() != '\r') overlong = true
             }
             character = reader.read()
         }

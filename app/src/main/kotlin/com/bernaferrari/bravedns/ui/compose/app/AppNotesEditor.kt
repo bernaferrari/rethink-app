@@ -41,6 +41,8 @@ internal fun AppNotesEditor(app: AppInfo) {
                 try {
                     val success = withContext(Dispatchers.IO) { FirewallManager.updateNotes(app.uid, app.packageName, draft) }
                     if (success) { savedNotes = draft; open = false } else failed = true
+                } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                    throw cancelled
                 } catch (error: android.database.SQLException) {
                     Logger.e(Logger.LOG_TAG_UI, "Could not save app notes", error)
                     failed = true
