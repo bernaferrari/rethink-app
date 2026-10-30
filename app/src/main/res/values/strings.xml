@@ -129,7 +129,7 @@
     <string name="lbl_overall" translatable="true">Overall</string>
     <string name="lbl_upload" translatable="true">Upload</string>
     <string name="lbl_info" translatable="true">Info</string>
-    <string name="lbl_mobile_data" translatable="true">Data</string>
+    <string name="lbl_mobile_data" translatable="true">Mobile data</string>
     <string name="lbl_stopped" translatable="true">Stopped</string>
     <string name="lbl_idle" translatable="true">Idle</string>
     <string name="lbl_private" translatable="true">private</string>
@@ -145,7 +145,7 @@
     <string name="lbl_experimental" translatable="true">(experimental)</string>
     <string name="lbl_service_providers" translatable="true">Service providers</string>
     <string name="lbl_search" translatable="false">Search</string>
-    <string name="lbl_ipinfo_inc" translatable="false">IPinfo Inc.</string>
+    <string name="lbl_ipinfo_inc" translatable="false">IPinfo</string>
     <string name="lbl_manual" translatable="true">Manual</string>
     <string name="lbl_fallback" translatable="true">Fallback</string>
     <string name="lbl_action" translatable="true">Action</string>
@@ -167,7 +167,7 @@
     <string name="symbol_id" translatable="false">🆔</string>
 
 
-    <string name="slide_2_desc" translatable="true">Keepout is the easiest way to monitor network activity, bypass Internet censorship, and firewall apps on your Android device.</string>
+    <string name="slide_2_desc" translatable="true">Block ads and trackers for every app, and decide which apps can use the internet.</string>
 
 
 
@@ -189,11 +189,11 @@
 
     <string name="allow" translatable="true">allow</string>
     <string name="block" translatable="true">block</string>
-    <string name="bypass_universal" translatable="true">Bypass universal rules</string>
+    <string name="bypass_universal" translatable="true">Skip universal rules</string>
     <string name="exclude" translatable="true">exclude</string>
     <string name="isolate" translatable="true">isolate</string>
     <string name="untracked" translatable="true">untracked</string>
-    <string name="bypass_dns_firewall" translatable="true">Bypass DNS and firewall</string>
+    <string name="bypass_dns_firewall" translatable="true">Skip all filtering</string>
 
     <string name="warning_title" description="Status indicator text shown in a warning notification." translatable="true">Keepout was turned off</string>
 
@@ -214,7 +214,7 @@
     <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">Failing</string>
 
 
-    <string name="failed_using_default" translatable="true">Failed: using fallback DNS</string>
+    <string name="failed_using_default" translatable="true">Not answering · using fallback DNS</string>
 
 
     <string name="status_dns_error" translatable="true">DNS error</string>
@@ -241,7 +241,7 @@
 
 
 
-    <string name="universal_firewall_explanation" translatable="true">Firewall all apps based on device events, like a locked screen.</string>
+    <string name="universal_firewall_explanation" translatable="true">Rules that apply to every app.</string>
 
     <string name="notification_action_resume_vpn" translatable="true">Resume</string>
     <string name="notification_action_pause_vpn" translatable="true">Pause</string>
@@ -275,18 +275,18 @@
     <string name="bsct_block_ip" translatable="true">Block or trust this IP</string>
     <string name="bsct_block_domain" translatable="true">Block or trust this domain</string>
 
-    <string name="always_on_dialog_heading" translatable="true">Disable always-on VPN</string>
-    <string name="always_on_dialog" translatable="true">Another app is set as the always-on VPN. To start Keepout, turn off always-on VPN in Android settings.</string>
-    <string name="always_on_dialog_positive_btn" translatable="true">Go to settings</string>
+    <string name="always_on_dialog_heading" translatable="true">Another VPN is set to always on</string>
+    <string name="always_on_dialog" translatable="true">Android lets only one VPN run. Turn off always-on for the other VPN, then come back.</string>
+    <string name="always_on_dialog_positive_btn" translatable="true">Open VPN settings</string>
 
     <string name="always_on_dialog_stop_heading" translatable="true">Always-on VPN</string>
     <string name="always_on_dialog_stop_message" translatable="true">Always-on VPN is enabled for Keepout. Are you sure you want to stop Keepout anyway?</string>
     <string name="always_on_dialog_lockdown_stop_message" translatable="true">Keepout is running the VPN in lockdown mode. Stopping it cuts off internet access for this user profile. Stop anyway?</string>
-    <string name="always_on_dialog_positive" translatable="true">Stop</string>
+    <string name="always_on_dialog_positive" translatable="true">Stop anyway</string>
     <string name="always_on_dialog_neutral" translatable="true">Settings</string>
 
-    <string name="private_dns_dialog_heading" translatable="true">Turn off private DNS</string>
-    <string name="private_dns_dialog_desc" translatable="true">Keepout\'s DNS settings are overridden by Android\'s Private DNS.\n\nTo use Keepout\'s DNS go to Android Settings and turn off \"Private DNS\".</string>
+    <string name="private_dns_dialog_heading" translatable="true">Private DNS is overriding Keepout</string>
+    <string name="private_dns_dialog_desc" translatable="true">Android\'s Private DNS is on, so Keepout can\'t block ads and trackers. Turn it off in Android settings.</string>
     <string name="private_dns_dialog_positive" translatable="true">Go to settings</string>
 
     <string name="firewall_act_universal_tab" translatable="true">Universal</string>
@@ -556,7 +556,7 @@
 
     <!-- AppDetailActivity -->
 
-    <string name="firewall_status_whitelisted" translatable="true">Bypasses universal firewall rules</string>
+    <string name="firewall_status_whitelisted" translatable="true">Skips universal rules</string>
     <string name="firewall_status_unknown" translatable="true">Unknown</string>
 
     <!--Connection tracker bottom sheet -->
@@ -599,12 +599,12 @@
 
     <string name="dc_block_heading" translatable="true">Rules</string>
     <string name="dc_other_dns_heading" translatable="true">Type</string>
-    <string name="dns_mode_system_desc" translatable="true">Use the DNS server configured by the system.</string>
-    <string name="dns_mode_other_desc" translatable="true">Use a user-selected DNS server.</string>
-    <string name="dns_mode_rethink_desc" translatable="true">Use Rethink DNS with in-app blocklists and policies.</string>
+    <string name="dns_mode_system_desc" translatable="true">Whatever Wi‑Fi or mobile provides. Not encrypted.</string>
+    <string name="dns_mode_other_desc" translatable="true">Cloudflare, Google, Quad9, AdGuard or your own</string>
+    <string name="dns_mode_rethink_desc" translatable="true">Encrypted. Blocks ads, trackers and malware.</string>
     <string name="dns_mode_smart_desc" translatable="true">Smart DNS picks from a rotating set of resolvers.</string>
 
-    <string name="dc_custom_dns_radio" translatable="true">Other DNS</string>
+    <string name="dc_custom_dns_radio" translatable="true">Another provider</string>
     <string name="dc_rethink_dns_radio" translatable="true">Rethink DNS</string>
 
     <string name="dc_entries" translatable="true">%1$s entries »</string>
@@ -769,17 +769,17 @@
 
     <!-- Universal Firewall-->
     <string name="univ_firewall_rule_1" translatable="true">Block all apps when device is locked</string>
-    <string name="univ_firewall_rule_2" translatable="true">Block any app not in use</string>
+    <string name="univ_firewall_rule_2" translatable="true">Block apps I\'m not using</string>
     <string name="univ_firewall_rule_3" translatable="true">Block when source app is unknown</string>
     <string name="univ_firewall_rule_4" translatable="true">Block UDP except DNS and NTP</string>
-    <string name="univ_firewall_rule_5" translatable="true">Block when DNS is bypassed</string>
+    <string name="univ_firewall_rule_5" translatable="true">Block apps that skip Keepout\'s DNS</string>
     <string name="univ_firewall_rule_6" translatable="true">Block newly installed apps by default</string>
     <string name="univ_firewall_rule_8" translatable="true">Block port 80 (insecure HTTP) traffic</string>
-    <string name="univ_firewall_rule_9" translatable="true">Block on metered (mobile) network</string>
-    <string name="univ_firewall_rule_10" translatable="true">Block all except bypassed apps and IPs</string>
+    <string name="univ_firewall_rule_9" translatable="true">Block all apps on mobile data</string>
+    <string name="univ_firewall_rule_10" translatable="true">Lockdown: block everything except apps and IPs you\'ve allowed</string>
 
-    <string name="univ_view_blocked_ip" translatable="true">IP &amp; port rules</string>
-    <string name="univ_view_blocked_ip_desc" translatable="true">Block or trust domains, IPs, and ports.</string>
+    <string name="univ_view_blocked_ip" translatable="true">Rules</string>
+    <string name="univ_view_blocked_ip_desc" translatable="true">Block or trust domains and IPs, for one app or all.</string>
 
 
     <string name="univ_accessibility_crash_dialog_positive" translatable="true">Go to settings</string>
@@ -811,43 +811,43 @@
     <string name="dns_proxy_port" translatable="true">Port number</string>
 
     <!-- Firewall -->
-    <string name="fapps_filter_categories_heading" translatable="true">Categories</string>
+    <string name="fapps_filter_categories_heading" translatable="true">Category</string>
 
     <string name="fapps_filter_clear_btn" translatable="true">Clear</string>
 
-    <string name="fapps_filter_parent_installed" translatable="true">Installed</string>
-    <string name="fapps_filter_parent_system" translatable="true">System</string>
+    <string name="fapps_filter_parent_installed" translatable="true">Your apps</string>
+    <string name="fapps_filter_parent_system" translatable="true">System apps</string>
 
-    <string name="fapps_firewall_filter_bypass_universal" translatable="true">Bypassed</string>
+    <string name="fapps_firewall_filter_bypass_universal" translatable="true">Skips universal rules</string>
     <string name="fapps_firewall_filter_excluded" translatable="true">Excluded</string>
-    <string name="fapps_firewall_filter_isolate" translatable="true">Isolated</string>
+    <string name="fapps_firewall_filter_isolate" translatable="true">Trusted only</string>
 
     <string name="fapps_info_dialog_message" translatable="true">Block apps from connecting to the Internet. Limiting access to the Internet helps prevent unwarranted data usage, as well as conserve battery.</string>
     <string name="fapps_info_unmetered_msg" translatable="true">Allow or block on Wi‑Fi (unmetered networks).</string>
     <string name="fapps_info_metered_msg" translatable="true">Allow or block on mobile data (metered networks).</string>
-    <string name="fapps_info_bypass_msg" translatable="true">Bypass universal firewall rules.</string>
-    <string name="fapps_info_bypass_dns_firewall_msg" translatable="true">Bypass DNS and firewall rules.</string>
+    <string name="fapps_info_bypass_msg" translatable="true">Skip universal rules.</string>
+    <string name="fapps_info_bypass_dns_firewall_msg" translatable="true">Skip DNS blocking and firewall rules.</string>
     <string name="fapps_info_exclude_msg" translatable="true">Exclude from DNS and firewall.</string>
-    <string name="fapps_info_isolate_msg" translatable="true">Block all except trusted IPs.</string>
+    <string name="fapps_info_isolate_msg" translatable="true">Only reach domains and IPs you trust.</string>
 
     <string name="fapps_info_dialog_positive_btn" translatable="true">OK</string>
 
-    <string name="fapps_unmetered_unblock_dialog_title" translatable="true">Allow on unmetered</string>
-    <string name="fapps_unmetered_block_dialog_title" translatable="true">Block on unmetered</string>
+    <string name="fapps_unmetered_unblock_dialog_title" translatable="true">Allow on Wi‑Fi</string>
+    <string name="fapps_unmetered_block_dialog_title" translatable="true">Block on Wi‑Fi</string>
     <string name="fapps_unmetered_block_dialog_message" translatable="true">Block connections on Wi‑Fi (unmetered networks) for the listed apps?</string>
     <string name="fapps_unmetered_unblock_dialog_message">Allow connections on Wi‑Fi (unmetered networks) for the listed apps?</string>
 
-    <string name="fapps_metered_block_dialog_title" translatable="true">Block on metered</string>
+    <string name="fapps_metered_block_dialog_title" translatable="true">Block on mobile data</string>
     <string name="fapps_metered_block_dialog_message" translatable="true">Block connections on mobile data (metered networks) for the listed apps?</string>
-    <string name="fapps_metered_unblock_dialog_title" translatable="true">Allow on metered</string>
+    <string name="fapps_metered_unblock_dialog_title" translatable="true">Allow on mobile data</string>
     <string name="fapps_metered_unblock_dialog_message" translatable="true">Allow connections on mobile data (metered networks) for the listed apps?</string>
 
-    <string name="fapps_bypass_block_dialog_title" translatable="true">Bypass apps</string>
-    <string name="fapps_bypass_block_dialog_message" translatable="true">Bypass universal firewall rules for the listed apps?</string>
+    <string name="fapps_bypass_block_dialog_title" translatable="true">Skip universal rules</string>
+    <string name="fapps_bypass_block_dialog_message" translatable="true">Let the listed apps skip universal rules?</string>
 
 
-    <string name="fapps_bypass_dns_firewall_dialog_title" translatable="true">Bypass apps</string>
-    <string name="fapps_bypass_dns_firewall_dialog_message" translatable="true">Bypass universal DNS and firewall rules for the listed apps?</string>
+    <string name="fapps_bypass_dns_firewall_dialog_title" translatable="true">Skip all filtering</string>
+    <string name="fapps_bypass_dns_firewall_dialog_message" translatable="true">Let the listed apps skip DNS blocking and firewall rules?</string>
 
     <string name="fapps_unblock_dialog_title" translatable="true">Allow apps</string>
     <string name="fapps_unblock_dialog_message" translatable="true">Allow connections for the listed apps?</string>
@@ -855,8 +855,8 @@
     <string name="fapps_exclude_block_dialog_title" translatable="true">Exclude apps</string>
     <string name="fapps_exclude_block_dialog_message" translatable="true">Exclude the listed apps from DNS and firewall?</string>
 
-    <string name="fapps_isolate_block_dialog_title" translatable="true">Isolate apps</string>
-    <string name="fapps_isolate_block_dialog_message" translatable="true">Isolate the listed apps?</string>
+    <string name="fapps_isolate_block_dialog_title" translatable="true">Trusted only</string>
+    <string name="fapps_isolate_block_dialog_message" translatable="true">Let the listed apps reach only domains and IPs you trust?</string>
 
     <string name="fapps_bulk_selected_apps" translatable="true" tools:ignore="PluralsCandidate">%1$d apps</string>
 
@@ -910,11 +910,11 @@
     <!-- Firewall rules -->
     <string name="firewall_rule_no_rule" translatable="true">No rule</string>
     <string name="firewall_rule_block_app" translatable="true">App blocked</string>
-    <string name="firewall_rule_block_unmetered" translatable="true">Wi‑Fi (unmetered)</string>
-    <string name="firewall_rule_block_metered" translatable="true">Metered (mobile)</string>
-    <string name="firewall_rule_univ_block_metered" translatable="true">Metered (universal)</string>
-    <string name="firewall_rule_isolate" translatable="true">Isolate</string>
-    <string name="firewall_rule_bypass_dns_firewall" translatable="true">Bypasses DNS and firewall</string>
+    <string name="firewall_rule_block_unmetered" translatable="true">Wi‑Fi blocked</string>
+    <string name="firewall_rule_block_metered" translatable="true">Mobile data blocked</string>
+    <string name="firewall_rule_univ_block_metered" translatable="true">Mobile data blocked (all apps)</string>
+    <string name="firewall_rule_isolate" translatable="true">Trusted only</string>
+    <string name="firewall_rule_bypass_dns_firewall" translatable="true">Skips all filtering</string>
     <string name="firewall_rule_block_app_new_install" translatable="true">New app</string>
     <string name="firewall_rule_block_app_exception" translatable="true">Error</string>
     <string name="firewall_rule_block_ip" translatable="true">IP / port (app)</string>
@@ -926,7 +926,7 @@
     <string name="firewall_rule_unknown" translatable="true">Source unknown</string>
     <string name="firewall_rule_block_udp_ntp" translatable="true">UDP blocked</string>
     <string name="firewall_rule_block_dns_bypass" translatable="true">DNS bypassed</string>
-    <string name="firewall_rule_exempt_app_bypass_univ" translatable="true">Bypasses universal rules</string>
+    <string name="firewall_rule_exempt_app_bypass_univ" translatable="true">Skips universal rules</string>
     <string name="firewall_rule_exempt_dns_proxied" translatable="true">DNS proxied</string>
     <string name="firewall_rule_exempt_orbot_setup" translatable="true">Orbot setup</string>
     <string name="firewall_rule_block_http" translatable="true">Insecure HTTP</string>
@@ -951,21 +951,21 @@
     <string name="firewall_rule_block_app_mobile_desc" translatable="true">Blocked because this app is blocked on mobile data.</string>
     <string name="firewall_rule_block_app_univ_mobile_desc" translatable="true">Blocked because all apps are blocked on mobile data.</string>
     <string name="firewall_rule_isolate_desc" translatable="true">Blocked because this app may only reach trusted IPs and domains.</string>
-    <string name="firewall_rule_bypass_dns_firewall_desc" translatable="true">Allowed because this app bypasses DNS and firewall rules.</string>
+    <string name="firewall_rule_bypass_dns_firewall_desc" translatable="true">Allowed because this app skips all filtering.</string>
     <string name="firewall_rule_block_ip_univ_desc" translatable="true">Blocked by a universal IP or port rule.</string>
     <string name="firewall_rule_block_ip_desc" translatable="true">Blocked by an IP rule for this app.</string>
     <string name="firewall_rule_trusted_ip_desc" translatable="true">Allowed because this IP is trusted.</string>
-    <string name="firewall_rule_bypass_universal_ip_desc" translatable="true">Allowed because this IP bypasses universal firewall rules.</string>
+    <string name="firewall_rule_bypass_universal_ip_desc" translatable="true">Allowed because this IP skips universal rules.</string>
     <string name="firewall_rule_device_lock_desc" translatable="true">Blocked because the device was locked.</string>
     <string name="firewall_rule_foreground_desc" translatable="true">Blocked because the app wasn\'t in use.</string>
     <string name="firewall_rule_unknown_desc" translatable="true">Blocked because the app that made it couldn\'t be identified.</string>
     <string name="firewall_rule_block_udp_ntp_desc" translatable="true">Blocked because UDP is blocked, except for DNS and NTP.</string>
-    <string name="firewall_rule_block_dns_bypass_desc" translatable="true">Blocked because the app bypassed your DNS.</string>
-    <string name="firewall_rule_exempt_app_bypass_univ_desc" translatable="true">Allowed because this app bypasses universal firewall rules.</string>
+    <string name="firewall_rule_block_dns_bypass_desc" translatable="true">Blocked because the app skipped Keepout\'s DNS.</string>
+    <string name="firewall_rule_exempt_app_bypass_univ_desc" translatable="true">Allowed because this app skips universal rules.</string>
     <string name="firewall_rule_exempt_dns_proxied_desc" translatable="true">Sent to your DNS server because Prevent DNS leaks is on.</string>
     <string name="firewall_rule_exempt_orbot_setup_desc" translatable="true">Allowed while Orbot was being set up.</string>
     <string name="firewall_rule_block_http_desc" translatable="true">Blocked because it used insecure HTTP.</string>
-    <string name="firewall_rule_global_lockdown_desc" translatable="true">Blocked because only bypassed apps and IPs may connect.</string>
+    <string name="firewall_rule_global_lockdown_desc" translatable="true">Blocked by lockdown: only apps and IPs you\'ve allowed may connect.</string>
     <string name="firewall_rule_block_domain_desc" translatable="true">Blocked by a domain rule for this app.</string>
     <string name="firewall_rule_trusted_domain_desc" translatable="true">Allowed because this domain is trusted for this app.</string>
     <string name="firewall_rule_dns_blocked_desc" translatable="true">Blocked because your DNS blocked this domain.</string>
@@ -1039,7 +1039,7 @@
 
     <!-- app info -->
     <string name="ada_noapp_dialog_title" translatable="true">No such app</string>
-    <string name="ada_noapp_dialog_message" translatable="true">App information missing. Perhaps this app was uninstalled?</string>
+    <string name="ada_noapp_dialog_message" translatable="true">This app is no longer installed</string>
     <string name="ada_noapp_dialog_positive" translatable="true">OK</string>
 
 
@@ -1049,27 +1049,27 @@
     <string name="ada_app_status_block" translatable="true">Blocked</string>
     <string name="ada_app_status_block_wifi" translatable="true">Blocked on Wi‑Fi</string>
     <string name="ada_app_status_block_md" translatable="true">Blocked on mobile data</string>
-    <string name="ada_app_status_whitelist" translatable="true">Bypasses universal firewall rules</string>
+    <string name="ada_app_status_whitelist" translatable="true">Skips universal rules</string>
     <string name="ada_app_status_exclude" translatable="true">Excluded from DNS and firewall</string>
-    <string name="ada_app_status_isolate" translatable="true">Isolated: only trusted IPs and domains are allowed</string>
-    <string name="ada_app_status_bypass_dns_firewall" translatable="true">Bypasses universal DNS &amp; firewall rules</string>
+    <string name="ada_app_status_isolate" translatable="true">Trusted only: reaches only domains and IPs you trust</string>
+    <string name="ada_app_status_bypass_dns_firewall" translatable="true">Skips all filtering</string>
     <string name="ada_app_status_unknown" translatable="true">Unknown</string>
 
 
 
     <string name="ada_app_metered" translatable="true">Metered</string>
-    <string name="ada_app_unmetered" translatable="true">Unmetered</string>
-    <string name="ada_app_bypass_univ" translatable="true">Bypass universal rules</string>
-    <string name="ada_app_bypass_dns_firewall" translatable="true">Bypass DNS and firewall</string>
+    <string name="ada_app_unmetered" translatable="true">Wi‑Fi</string>
+    <string name="ada_app_bypass_univ" translatable="true">Skip universal rules</string>
+    <string name="ada_app_bypass_dns_firewall" translatable="true">Skip all filtering</string>
     <string name="ada_app_exclude" translatable="true">Exclude from Keepout</string>
     <string name="ada_app_mode_title">How Keepout treats this app</string>
     <string name="ada_app_mode_normal">Normal</string>
     <string name="ada_app_mode_normal_desc">Follows your firewall and DNS rules</string>
-    <string name="ada_app_isolate_desc">Blocks everything except the domains and IPs you trust</string>
-    <string name="ada_app_bypass_dns_firewall_desc">Skips DNS blocking and firewall rules</string>
+    <string name="ada_app_isolate_desc">Only reaches domains and IPs you trust</string>
+    <string name="ada_app_bypass_dns_firewall_desc">No DNS blocking or firewall rules. Still logged.</string>
     <string name="ada_app_bypass_univ_desc">Ignores the rules that apply to every app</string>
-    <string name="ada_app_exclude_desc">Its traffic goes around Keepout entirely</string>
-    <string name="ada_app_isolate" translatable="true">Allow only trusted</string>
+    <string name="ada_app_exclude_desc">Goes around Keepout. Not filtered or logged.</string>
+    <string name="ada_app_isolate" translatable="true">Trusted only</string>
 
 
     <string name="ada_delete_logs_dialog_title" description="Appears as dialog title to clear the logs in app specific screen" translatable="true">Clear logs</string>
@@ -1089,7 +1089,7 @@
     <!-- DNS logs bottom sheet -->
 
     <!-- app config -->
-    <string name="network_dns" translatable="true">System DNS</string>
+    <string name="network_dns" translatable="true">Your network\'s DNS</string>
 
     <!-- custom download -->
     <string name="notif_download_content_title" translatable="true">On-device blocklist download</string>
@@ -1220,8 +1220,8 @@
     <string name="ssv_most_contacted_domain_heading" description="This label will appear on the stats screen as a header for most visited domains" translatable="true">Most contacted domains</string>
     <string name="ssv_most_contacted_countries_heading" description="This label will appear on the stats screen as a header for most visited domains by country" translatable="true">Most contacted countries</string>
     <string name="ssv_most_blocked_domain_heading" description="This label will appear on the stats screen as a header for most blocked domains" translatable="true">Most blocked domains</string>
-    <string name="ssv_most_contacted_ips_heading" description="This label will appear on the stats screen as a header for most visited ips" translatable="true">Most contacted ips</string>
-    <string name="ssv_most_blocked_ips_heading" description="This label will appear on the stats screen as a header for most blocked ips" translatable="true">Most blocked ips</string>
+    <string name="ssv_most_contacted_ips_heading" description="This label will appear on the stats screen as a header for most visited ips" translatable="true">Most contacted IPs</string>
+    <string name="ssv_most_blocked_ips_heading" description="This label will appear on the stats screen as a header for most blocked ips" translatable="true">Most blocked IPs</string>
     <string name="ssv_toast_start_rethink" description="This label will appear on the stats screen as toast to start Rethink app" translatable="true">Start Keepout to proceed</string>
     <string name="ssv_see_more" translatable="true">Show all</string>
     <string name="ssv_see_less" translatable="true">Show less</string>
@@ -1855,7 +1855,7 @@
     <string name="ada_no_activity">No activity yet</string>
     <string name="dns_endpoints_empty">No servers yet</string>
     <string name="custom_rules_add_ip_title">Add IP rule</string>
-    <string name="custom_rules_add_domain_title">Add domain rule</string>
+    <string name="custom_rules_add_domain_title">Add rule</string>
     <string name="custom_rules_ip_hint">192.168.1.1 or 10.0.0.0/24</string>
     <string name="custom_rules_domain_hint">example.com</string>
     <string name="exclude_apps_from_proxy_desc">This app connects directly, never through a proxy.</string>
