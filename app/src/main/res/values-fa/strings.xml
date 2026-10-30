@@ -557,7 +557,6 @@
     <string name="log_detail_flags">پرچم‌ها</string>
     <string name="log_detail_message">پیام</string>
     <string name="log_detail_resolver">سرور DNS</string>
-    <string name="log_detail_blocklists">فهرست‌های بلاک</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">معتبر</string>
     <string name="log_detail_dnssec_unverified">تأییدنشده</string>

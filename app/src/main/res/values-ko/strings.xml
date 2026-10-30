@@ -491,7 +491,6 @@
     <string name="log_detail_flags">플래그</string>
     <string name="log_detail_message">메시지</string>
     <string name="log_detail_resolver">리졸버</string>
-    <string name="log_detail_blocklists">차단 목록</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">유효</string>
     <string name="log_detail_dnssec_unverified">확인되지 않음</string>

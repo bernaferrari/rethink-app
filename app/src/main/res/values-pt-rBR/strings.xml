@@ -740,7 +740,6 @@
     <string name="log_detail_flags">Flags</string>
     <string name="log_detail_message">Mensagem</string>
     <string name="log_detail_resolver">Resolvedor</string>
-    <string name="log_detail_blocklists">Listas de bloqueio</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">Válido</string>
     <string name="log_detail_dnssec_unverified">Não verificado</string>

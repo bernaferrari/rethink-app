@@ -705,7 +705,6 @@
     <string name="log_detail_flags">फ़्लैग</string>
     <string name="log_detail_message">संदेश</string>
     <string name="log_detail_resolver">रिज़ॉल्वर</string>
-    <string name="log_detail_blocklists">ब्लॉकलिस्ट</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">मान्य</string>
     <string name="log_detail_dnssec_unverified">असत्यापित</string>

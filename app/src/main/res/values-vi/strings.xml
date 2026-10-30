@@ -602,7 +602,6 @@
     <string name="log_detail_flags">Cờ</string>
     <string name="log_detail_message">Thông báo</string>
     <string name="log_detail_resolver">Trình phân giải</string>
-    <string name="log_detail_blocklists">Danh sách chặn</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">Hợp lệ</string>
     <string name="log_detail_dnssec_unverified">Chưa xác minh</string>

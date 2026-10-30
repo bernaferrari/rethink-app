@@ -764,7 +764,6 @@
     <string name="log_detail_flags">Jelzők</string>
     <string name="log_detail_message">Üzenet</string>
     <string name="log_detail_resolver">Feloldó</string>
-    <string name="log_detail_blocklists">Blokkolólisták</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">Érvényes</string>
     <string name="log_detail_dnssec_unverified">Nem ellenőrzött</string>

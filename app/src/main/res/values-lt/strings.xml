@@ -509,7 +509,6 @@
     <string name="log_detail_flags">Žymos</string>
     <string name="log_detail_message">Pranešimas</string>
     <string name="log_detail_resolver">DNS serveris</string>
-    <string name="log_detail_blocklists">Blokavimo sąrašai</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">Galioja</string>
     <string name="log_detail_dnssec_unverified">Nepatikrinta</string>

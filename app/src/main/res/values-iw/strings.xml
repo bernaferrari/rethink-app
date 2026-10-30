@@ -572,7 +572,6 @@
     <string name="log_detail_flags">דגלים</string>
     <string name="log_detail_message">הודעה</string>
     <string name="log_detail_resolver">שרת DNS</string>
-    <string name="log_detail_blocklists">רשימות חסימה</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">תקין</string>
     <string name="log_detail_dnssec_unverified">לא מאומת</string>

@@ -692,7 +692,6 @@
     <string name="log_detail_flags">Příznaky</string>
     <string name="log_detail_message">Zpráva</string>
     <string name="log_detail_resolver">Resolver</string>
-    <string name="log_detail_blocklists">Blokovací seznamy</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">Platné</string>
     <string name="log_detail_dnssec_unverified">Neověřeno</string>

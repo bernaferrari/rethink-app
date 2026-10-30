@@ -752,7 +752,6 @@
     <string name="log_detail_flags">ஃபிளாக்குகள்</string>
     <string name="log_detail_message">செய்தி</string>
     <string name="log_detail_resolver">ரிசால்வர்</string>
-    <string name="log_detail_blocklists">தடுப்புப் பட்டியல்கள்</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">சரியானது</string>
     <string name="log_detail_dnssec_unverified">சரிபார்க்கப்படவில்லை</string>

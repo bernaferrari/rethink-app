@@ -825,7 +825,6 @@
     <string name="log_detail_flags">Флаги</string>
     <string name="log_detail_message">Сообщение</string>
     <string name="log_detail_resolver">Резолвер</string>
-    <string name="log_detail_blocklists">Списки блокировки</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">Действительно</string>
     <string name="log_detail_dnssec_unverified">Не проверено</string>

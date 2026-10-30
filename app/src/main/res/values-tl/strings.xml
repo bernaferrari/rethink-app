@@ -124,7 +124,6 @@
     <string name="log_detail_flags">Mga flag</string>
     <string name="log_detail_message">Mensahe</string>
     <string name="log_detail_resolver">Resolver</string>
-    <string name="log_detail_blocklists">Mga blocklist</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">Valid</string>
     <string name="log_detail_dnssec_unverified">Hindi pa beripikado</string>

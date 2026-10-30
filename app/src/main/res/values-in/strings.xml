@@ -822,7 +822,6 @@
     <string name="log_detail_flags">Flag</string>
     <string name="log_detail_message">Pesan</string>
     <string name="log_detail_resolver">Resolver</string>
-    <string name="log_detail_blocklists">Daftar blokir</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">Valid</string>
     <string name="log_detail_dnssec_unverified">Belum diverifikasi</string>

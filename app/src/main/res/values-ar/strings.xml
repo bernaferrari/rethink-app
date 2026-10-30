@@ -683,7 +683,6 @@
     <string name="log_detail_flags">العلامات</string>
     <string name="log_detail_message">الرسالة</string>
     <string name="log_detail_resolver">المحلّل</string>
-    <string name="log_detail_blocklists">قوائم الحظر</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">صالح</string>
     <string name="log_detail_dnssec_unverified">غير موثّق</string>

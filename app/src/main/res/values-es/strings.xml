@@ -754,7 +754,6 @@
     <string name="log_detail_flags">Indicadores</string>
     <string name="log_detail_message">Mensaje</string>
     <string name="log_detail_resolver">Servidor de resolución</string>
-    <string name="log_detail_blocklists">Listas de bloqueo</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">Válido</string>
     <string name="log_detail_dnssec_unverified">No verificado</string>

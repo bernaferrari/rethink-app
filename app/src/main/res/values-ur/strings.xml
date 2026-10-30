@@ -47,7 +47,6 @@
     <string name="log_detail_flags">فلیگز</string>
     <string name="log_detail_message">پیغام</string>
     <string name="log_detail_resolver">DNS سرور</string>
-    <string name="log_detail_blocklists">بلاک لسٹس</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">درست</string>
     <string name="log_detail_dnssec_unverified">غیر تصدیق شدہ</string>

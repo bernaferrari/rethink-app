@@ -7,6 +7,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.rules.RuleImportPreview
 import com.bernaferrari.bravedns.service.IpRulesManager
@@ -60,6 +61,8 @@ internal fun RulesImportAction(uid: Int, tab: RethinkRulesTab) {
     if (failed || summary != null) com.bernaferrari.bravedns.ui.compose.theme.RethinkDialogScaffold(
         onDismissRequest = { failed = false; summary = null },
         text = { Text(if (failed) stringResource(R.string.port_import_error) else
-            stringResource(R.string.port_import_summary, summary!!.first, summary!!.second)) },
+            stringResource(R.string.port_import_summary,
+                pluralStringResource(R.plurals.port_import_imported, summary!!.first, summary!!.first),
+                pluralStringResource(R.plurals.port_import_skipped, summary!!.second, summary!!.second))) },
         confirmButton = { TextButton(onClick = { failed = false; summary = null }) { Text(stringResource(R.string.lbl_done)) } })
 }

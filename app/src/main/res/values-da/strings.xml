@@ -137,7 +137,6 @@
     <string name="log_detail_flags">Flag</string>
     <string name="log_detail_message">Besked</string>
     <string name="log_detail_resolver">Resolver</string>
-    <string name="log_detail_blocklists">Blokeringslister</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">Gyldig</string>
     <string name="log_detail_dnssec_unverified">Ikke bekræftet</string>

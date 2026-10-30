@@ -823,7 +823,6 @@
     <string name="log_detail_flags">Bayraklar</string>
     <string name="log_detail_message">Mesaj</string>
     <string name="log_detail_resolver">Çözümleyici</string>
-    <string name="log_detail_blocklists">Engelleme listeleri</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">Geçerli</string>
     <string name="log_detail_dnssec_unverified">Doğrulanmadı</string>

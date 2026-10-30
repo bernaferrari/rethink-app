@@ -478,7 +478,6 @@
     <string name="log_detail_flags">Flags</string>
     <string name="log_detail_message">Bericht</string>
     <string name="log_detail_resolver">Resolver</string>
-    <string name="log_detail_blocklists">Blocklists</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">Geldig</string>
     <string name="log_detail_dnssec_unverified">Niet geverifieerd</string>

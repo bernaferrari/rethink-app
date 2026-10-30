@@ -827,7 +827,6 @@
     <string name="log_detail_flags">Indicateurs</string>
     <string name="log_detail_message">Message</string>
     <string name="log_detail_resolver">Résolveur</string>
-    <string name="log_detail_blocklists">Listes de blocage</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">Valide</string>
     <string name="log_detail_dnssec_unverified">Non vérifié</string>

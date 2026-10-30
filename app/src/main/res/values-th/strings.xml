@@ -697,7 +697,6 @@
     <string name="log_detail_flags">แฟล็ก</string>
     <string name="log_detail_message">ข้อความ</string>
     <string name="log_detail_resolver">ตัวแปลงชื่อ</string>
-    <string name="log_detail_blocklists">รายการบล็อก</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">ถูกต้อง</string>
     <string name="log_detail_dnssec_unverified">ยังไม่ยืนยัน</string>

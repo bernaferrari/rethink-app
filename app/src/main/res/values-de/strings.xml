@@ -815,7 +815,6 @@
     <string name="log_detail_flags">Flags</string>
     <string name="log_detail_message">Meldung</string>
     <string name="log_detail_resolver">Resolver</string>
-    <string name="log_detail_blocklists">Blocklisten</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">Gültig</string>
     <string name="log_detail_dnssec_unverified">Nicht verifiziert</string>

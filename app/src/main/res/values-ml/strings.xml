@@ -63,7 +63,6 @@
     <string name="log_detail_flags">ഫ്ലാഗുകൾ</string>
     <string name="log_detail_message">സന്ദേശം</string>
     <string name="log_detail_resolver">റിസോൾവർ</string>
-    <string name="log_detail_blocklists">ബ്ലോക്ക്‌ലിസ്റ്റുകൾ</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">സാധുവാണ്</string>
     <string name="log_detail_dnssec_unverified">പരിശോധിച്ചിട്ടില്ല</string>

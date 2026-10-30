@@ -77,7 +77,6 @@
     <string name="log_detail_flags">Сцягі</string>
     <string name="log_detail_message">Паведамленне</string>
     <string name="log_detail_resolver">Рэзолвер</string>
-    <string name="log_detail_blocklists">Спісы блакіроўкі</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">Сапраўдна</string>
     <string name="log_detail_dnssec_unverified">Не праверана</string>

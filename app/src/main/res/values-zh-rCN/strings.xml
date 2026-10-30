@@ -739,7 +739,6 @@
     <string name="log_detail_flags">标志</string>
     <string name="log_detail_message">消息</string>
     <string name="log_detail_resolver">解析服务</string>
-    <string name="log_detail_blocklists">屏蔽名单</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">有效</string>
     <string name="log_detail_dnssec_unverified">未验证</string>

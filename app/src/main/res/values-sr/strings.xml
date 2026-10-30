@@ -688,7 +688,6 @@
     <string name="log_detail_flags">Заставице</string>
     <string name="log_detail_message">Порука</string>
     <string name="log_detail_resolver">Резолвер</string>
-    <string name="log_detail_blocklists">Блоклисте</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">Важеће</string>
     <string name="log_detail_dnssec_unverified">Непроверено</string>

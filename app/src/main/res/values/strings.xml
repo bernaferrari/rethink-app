@@ -156,7 +156,6 @@
 
     <string name="symbol_upload" translatable="false">%1$s 🔺</string>
     <string name="symbol_download" translatable="false">%1$s 🔻</string>
-    <string name="single_argument" translatable="false">%1$s</string>
     <string name="single_argument_parenthesis" translatable="false">(%1$s)</string>
     <string name="two_argument_space" translatable="false">%1$s %2$s</string>
     <string name="two_argument_colon" translatable="false">%1$s: %2$s</string>
@@ -1804,7 +1803,6 @@
     <string name="log_detail_flags">Flags</string>
     <string name="log_detail_message">Message</string>
     <string name="log_detail_resolver">Resolver</string>
-    <string name="log_detail_blocklists">Blocklists</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">Valid</string>
     <string name="log_detail_dnssec_unverified">Unverified</string>

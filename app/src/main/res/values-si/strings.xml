@@ -117,7 +117,6 @@
     <string name="log_detail_flags">Flags</string>
     <string name="log_detail_message">පණිවිඩය</string>
     <string name="log_detail_resolver">Resolver</string>
-    <string name="log_detail_blocklists">අවහිර ලැයිස්තු</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">වලංගුයි</string>
     <string name="log_detail_dnssec_unverified">සත්‍යාපනය කර නැත</string>

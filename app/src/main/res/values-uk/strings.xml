@@ -803,7 +803,6 @@
     <string name="log_detail_flags">Прапорці</string>
     <string name="log_detail_message">Повідомлення</string>
     <string name="log_detail_resolver">Резолвер</string>
-    <string name="log_detail_blocklists">Списки блокування</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">Дійсно</string>
     <string name="log_detail_dnssec_unverified">Не перевірено</string>

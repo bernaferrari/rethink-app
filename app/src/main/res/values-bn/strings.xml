@@ -550,7 +550,6 @@
     <string name="log_detail_flags">ফ্ল্যাগ</string>
     <string name="log_detail_message">বার্তা</string>
     <string name="log_detail_resolver">রিজলভার</string>
-    <string name="log_detail_blocklists">ব্লকলিস্ট</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">বৈধ</string>
     <string name="log_detail_dnssec_unverified">যাচাই করা হয়নি</string>

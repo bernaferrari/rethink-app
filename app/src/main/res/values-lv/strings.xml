@@ -63,7 +63,6 @@
     <string name="log_detail_flags">Karodziņi</string>
     <string name="log_detail_message">Ziņojums</string>
     <string name="log_detail_resolver">DNS serveris</string>
-    <string name="log_detail_blocklists">Bloķēšanas saraksti</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">Derīgs</string>
     <string name="log_detail_dnssec_unverified">Nepārbaudīts</string>

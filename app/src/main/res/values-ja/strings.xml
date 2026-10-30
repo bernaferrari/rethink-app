@@ -434,7 +434,6 @@
     <string name="log_detail_flags">フラグ</string>
     <string name="log_detail_message">メッセージ</string>
     <string name="log_detail_resolver">リゾルバ</string>
-    <string name="log_detail_blocklists">ブロックリスト</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">有効</string>
     <string name="log_detail_dnssec_unverified">未検証</string>

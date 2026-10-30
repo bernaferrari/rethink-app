@@ -10,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.rules.RuleImportPreview
 import com.bernaferrari.bravedns.rules.RuleImportReader
@@ -26,7 +27,10 @@ internal fun RulesImportPreviewDialog(preview: RuleImportPreview, busy: Boolean,
     RethinkDialogScaffold(
         onDismissRequest = onDismiss, title = stringResource(R.string.port_import_rules),
         text = { Column(Modifier.verticalScroll(rememberScrollState())) {
-            Text(stringResource(R.string.port_import_preview, preview.entries.size, preview.duplicateCount, preview.invalidCount))
+            Text(stringResource(R.string.port_import_preview,
+                pluralStringResource(R.plurals.port_import_valid, preview.entries.size, preview.entries.size),
+                pluralStringResource(R.plurals.port_import_duplicates, preview.duplicateCount, preview.duplicateCount),
+                pluralStringResource(R.plurals.port_import_invalid, preview.invalidCount, preview.invalidCount)))
             Text(stringResource(R.string.port_import_policy))
             if (busy) LinearProgressIndicator()
             if (preview.limitReached) Text(stringResource(R.string.port_import_limit))
