@@ -19,6 +19,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.util.LruCache
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
@@ -85,28 +86,21 @@ private object AppIconCache {
 
 /**
  * Painter for an installed app's launcher icon, decoded once and served from [AppIconCache].
- * Returns the themed default icon while loading / when missing if [fallbackToDefault], else null.
+ * With [fallbackToDefault], the themed default icon shows only once the lookup finished without
+ * an icon; while it loads this returns null, so a real icon never flashes in after a robot.
  */
 @Composable
 fun rememberAppIconPainter(
     packageName: String,
     appName: String? = null,
     fallbackToDefault: Boolean = false,
-): Painter? {
-    val context = LocalContext.current
-    var bitmap by remember(packageName) { mutableStateOf(AppIconCache.get(packageName)) }
-    LaunchedEffect(packageName, appName) {
-        if (bitmap == null) bitmap = AppIconCache.load(context, packageName, appName)
-    }
-    val iconPainter = remember(bitmap) { bitmap?.let(::BitmapPainter) }
-    val fallback = if (fallbackToDefault && iconPainter == null) rememberDrawablePainter(Utilities.getDefaultIcon(context)) else null
-    return iconPainter ?: fallback
-}
+): Painter? = rememberResolvedAppIconPainter(packageName, appName, fallbackToDefault)
 
 /** Like [rememberAppIconPainter], resolving the package from a (possibly multi-user) [uid]. */
 @Composable
 fun rememberAppIconPainter(uid: Int, fallbackToDefault: Boolean = false): Painter? {
     val context = LocalContext.current
+    // null while resolving; "" once resolved to no package.
     val packageName by produceState<String?>(initialValue = null, uid) {
         value =
             withContext(Dispatchers.IO) {
@@ -115,14 +109,34 @@ fun rememberAppIconPainter(uid: Int, fallbackToDefault: Boolean = false): Painte
                     ?: candidateUids.firstNotNullOfOrNull {
                         Utilities.getPackageInfoForUid(context, it)?.firstOrNull()
                     }
-            }
+            }.orEmpty()
     }
-    return rememberAppIconPainter(packageName.orEmpty(), fallbackToDefault = fallbackToDefault)
+    return rememberResolvedAppIconPainter(packageName, appName = null, fallbackToDefault = fallbackToDefault)
+}
+
+/** [packageName] null means the package is still being resolved: nothing to show yet. */
+@Composable
+private fun rememberResolvedAppIconPainter(
+    packageName: String?,
+    appName: String?,
+    fallbackToDefault: Boolean,
+): Painter? {
+    val context = LocalContext.current
+    var bitmap by remember(packageName) { mutableStateOf(packageName?.let(AppIconCache::get)) }
+    var settled by remember(packageName) { mutableStateOf(bitmap != null) }
+    LaunchedEffect(packageName, appName) {
+        if (packageName == null) return@LaunchedEffect
+        if (bitmap == null) bitmap = AppIconCache.load(context, packageName, appName)
+        settled = true
+    }
+    val iconPainter = remember(bitmap) { bitmap?.let(::BitmapPainter) }
+    val fallback = if (fallbackToDefault && iconPainter == null && settled) rememberDrawablePainter(Utilities.getDefaultIcon(context)) else null
+    return iconPainter ?: fallback
 }
 
 /**
- * The one app icon: the cached launcher icon, or the default app icon while it loads and when the
- * package has none. No backplate — launcher icons carry their own shape. List rows use the
+ * The one app icon: the cached launcher icon, or the default app icon when the package has none.
+ * While the icon loads the slot stays empty (same size), so rows don't jump or flash a robot. No backplate — launcher icons carry their own shape. List rows use the
  * default [SharedDimensions.iconContainerMd]; pass [Dp.Unspecified] to fill a slot the shared
  * layout already sized.
  */
@@ -133,9 +147,7 @@ fun AppIcon(
     appName: String? = null,
     size: Dp = SharedDimensions.iconContainerMd,
 ) {
-    rememberAppIconPainter(packageName, appName, fallbackToDefault = true)?.let { painter ->
-        Image(painter, null, modifier.iconSize(size))
-    }
+    AppIconImage(rememberAppIconPainter(packageName, appName, fallbackToDefault = true), modifier, size)
 }
 
 /** [AppIcon] for an app known only by its (possibly multi-user) [uid]. */
@@ -145,9 +157,12 @@ fun AppIcon(
     modifier: Modifier = Modifier,
     size: Dp = SharedDimensions.iconContainerMd,
 ) {
-    rememberAppIconPainter(uid, fallbackToDefault = true)?.let { painter ->
-        Image(painter, null, modifier.iconSize(size))
-    }
+    AppIconImage(rememberAppIconPainter(uid, fallbackToDefault = true), modifier, size)
+}
+
+@Composable
+private fun AppIconImage(painter: Painter?, modifier: Modifier, size: Dp) {
+    if (painter != null) Image(painter, null, modifier.iconSize(size)) else Spacer(modifier.iconSize(size))
 }
 
 private fun Modifier.iconSize(size: Dp): Modifier = if (size.isSpecified) size(size) else fillMaxSize()
