@@ -44,18 +44,17 @@ data class RethinkChoiceOption<T>(
 )
 
 /**
- * How a [RethinkConnectedChoiceGroup] shows its options. Every segment always keeps its label:
- * a row of unlabeled icons reads as a riddle.
+ * How a [RethinkConnectedChoiceGroup] shows its options.
  * - [Always]: every option shows icon + label.
  * - [SelectedIcon]: every option shows its label; only the selected one adds its icon. For
- *   crowded rows (log filters, toolbar switches) where an icon on every segment would truncate.
+ *   crowded rows (log filters) where an icon on every segment would truncate.
+ * - [SelectedLabel]: the selected option shows icon + label, the others only their icon. Only for
+ *   a two-way switch whose icons are self-evident (Network / DNS), where it reads cleaner.
  */
 enum class RethinkChoiceLabels {
     Always,
     SelectedIcon,
-
-    @Deprecated("Unselected segments keep their labels now", ReplaceWith("RethinkChoiceLabels.SelectedIcon"))
-    SelectedOnly,
+    SelectedLabel,
 }
 
 /**
@@ -107,8 +106,8 @@ fun <T> RethinkConnectedChoiceGroup(
         )
         options.forEachIndexed { index, option ->
             val isSelected = option.value == selected
-            @Suppress("DEPRECATION")
-            val iconOnSelectedOnly = labels == RethinkChoiceLabels.SelectedIcon || labels == RethinkChoiceLabels.SelectedOnly
+            val iconOnSelectedOnly = labels == RethinkChoiceLabels.SelectedIcon
+            val collapsedToIcon = labels == RethinkChoiceLabels.SelectedLabel && option.icon != null && !isSelected
             ToggleButton(
                 checked = isSelected,
                 onCheckedChange = { checked ->
@@ -147,11 +146,11 @@ fun <T> RethinkConnectedChoiceGroup(
                 if (icon != null) {
                     Icon(
                         imageVector = icon,
-                        contentDescription = if (iconOnly) option.label else null,
+                        contentDescription = if (iconOnly || collapsedToIcon) option.label else null,
                         modifier = Modifier.size(ToggleButtonDefaults.IconSize),
                     )
                 }
-                if (!iconOnly || icon == null) {
+                if ((!iconOnly && !collapsedToIcon) || icon == null) {
                     if (icon != null) Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
                     Text(
                         text = option.label,
