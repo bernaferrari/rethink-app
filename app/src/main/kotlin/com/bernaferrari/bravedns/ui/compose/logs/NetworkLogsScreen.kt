@@ -693,32 +693,47 @@ private fun PlatformLogRuleIcon(ruleId: String, tint: Color) {
 }
 
 /** Why a connection was allowed or blocked: the rule's subject, in the same glyphs the settings use. */
-private fun firewallRuleIcon(ruleId: String?): ImageVector = when (ruleId) {
-    FirewallRuleset.RULE0.id -> MaterialSymbols.Filled.CheckCircle
-    FirewallRuleset.RULE1.id, FirewallRuleset.RULE1C.id -> MaterialSymbols.Filled.DoNotDisturbOn
-    FirewallRuleset.RULE1B.id -> MaterialSymbols.Filled.NewReleases
-    FirewallRuleset.RULE1D.id -> MaterialSymbols.Filled.WifiOff
-    FirewallRuleset.RULE1E.id -> MaterialSymbols.Filled.MobiledataOff
-    FirewallRuleset.RULE1F.id -> MaterialSymbols.Filled.CellTower
-    FirewallRuleset.RULE1G.id, FirewallRuleset.RULE2B.id, FirewallRuleset.RULE2F.id, FirewallRuleset.RULE2I.id -> MaterialSymbols.Filled.Verified
-    FirewallRuleset.RULE1H.id -> KeepoutIcons.FirewallOff
-    FirewallRuleset.RULE2.id -> MaterialSymbols.Filled.Pin
-    FirewallRuleset.RULE2C.id, FirewallRuleset.RULE8.id -> MaterialSymbols.Filled.PublicOff
-    FirewallRuleset.RULE2D.id, FirewallRuleset.RULE2H.id -> MaterialSymbols.Filled.Public
-    FirewallRuleset.RULE2E.id -> MaterialSymbols.Filled.Link
-    FirewallRuleset.RULE3.id -> MaterialSymbols.Filled.ScreenLockPortrait
-    FirewallRuleset.RULE4.id -> MaterialSymbols.Filled.VisibilityOff
-    FirewallRuleset.RULE5.id -> MaterialSymbols.AutoMirrored.Filled.HelpOutline
-    FirewallRuleset.RULE6.id -> MaterialSymbols.Filled.SettingsEthernet
-    FirewallRuleset.RULE7.id -> MaterialSymbols.Filled.Shield
-    FirewallRuleset.RULE9B.id, FirewallRuleset.RULE12.id, FirewallRuleset.RULE15.id -> MaterialSymbols.Filled.ConversionPath
-    FirewallRuleset.RULE10.id -> MaterialSymbols.Filled.Http
-    FirewallRuleset.RULE11.id, FirewallRuleset.RULE17.id -> MaterialSymbols.Filled.Lock
-    FirewallRuleset.RULE13.id, FirewallRuleset.RULE18.id -> MaterialSymbols.Filled.Warning
-    FirewallRuleset.RULE16.id -> MaterialSymbols.Filled.PauseCircle
-    FirewallRuleset.RULE19.id -> MaterialSymbols.Filled.Timer
-    else -> MaterialSymbols.Filled.Dns // RULE2G (DNS blocked), RULE9, RULE14 and unknown ids
+private val firewallRuleIcons: Map<String, () -> ImageVector> by lazy {
+    // Keep each vector lazy: initializing the dispatch table must not inflate every glyph.
+    mapOf(
+        FirewallRuleset.RULE0.id to { MaterialSymbols.Filled.CheckCircle },
+        FirewallRuleset.RULE1.id to { MaterialSymbols.Filled.DoNotDisturbOn },
+        FirewallRuleset.RULE1C.id to { MaterialSymbols.Filled.DoNotDisturbOn },
+        FirewallRuleset.RULE1B.id to { MaterialSymbols.Filled.NewReleases },
+        FirewallRuleset.RULE1D.id to { MaterialSymbols.Filled.WifiOff },
+        FirewallRuleset.RULE1E.id to { MaterialSymbols.Filled.MobiledataOff },
+        FirewallRuleset.RULE1F.id to { MaterialSymbols.Filled.CellTower },
+        FirewallRuleset.RULE1G.id to { MaterialSymbols.Filled.Verified },
+        FirewallRuleset.RULE2B.id to { MaterialSymbols.Filled.Verified },
+        FirewallRuleset.RULE2F.id to { MaterialSymbols.Filled.Verified },
+        FirewallRuleset.RULE2I.id to { MaterialSymbols.Filled.Verified },
+        FirewallRuleset.RULE1H.id to { KeepoutIcons.FirewallOff },
+        FirewallRuleset.RULE2.id to { MaterialSymbols.Filled.Pin },
+        FirewallRuleset.RULE2C.id to { MaterialSymbols.Filled.PublicOff },
+        FirewallRuleset.RULE8.id to { MaterialSymbols.Filled.PublicOff },
+        FirewallRuleset.RULE2D.id to { MaterialSymbols.Filled.Public },
+        FirewallRuleset.RULE2H.id to { MaterialSymbols.Filled.Public },
+        FirewallRuleset.RULE2E.id to { MaterialSymbols.Filled.Link },
+        FirewallRuleset.RULE3.id to { MaterialSymbols.Filled.ScreenLockPortrait },
+        FirewallRuleset.RULE4.id to { MaterialSymbols.Filled.VisibilityOff },
+        FirewallRuleset.RULE5.id to { MaterialSymbols.AutoMirrored.Filled.HelpOutline },
+        FirewallRuleset.RULE6.id to { MaterialSymbols.Filled.SettingsEthernet },
+        FirewallRuleset.RULE7.id to { MaterialSymbols.Filled.Shield },
+        FirewallRuleset.RULE9B.id to { MaterialSymbols.Filled.ConversionPath },
+        FirewallRuleset.RULE12.id to { MaterialSymbols.Filled.ConversionPath },
+        FirewallRuleset.RULE15.id to { MaterialSymbols.Filled.ConversionPath },
+        FirewallRuleset.RULE10.id to { MaterialSymbols.Filled.Http },
+        FirewallRuleset.RULE11.id to { MaterialSymbols.Filled.Lock },
+        FirewallRuleset.RULE17.id to { MaterialSymbols.Filled.Lock },
+        FirewallRuleset.RULE13.id to { MaterialSymbols.Filled.Warning },
+        FirewallRuleset.RULE18.id to { MaterialSymbols.Filled.Warning },
+        FirewallRuleset.RULE16.id to { MaterialSymbols.Filled.PauseCircle },
+        FirewallRuleset.RULE19.id to { MaterialSymbols.Filled.Timer },
+    )
 }
+
+private fun firewallRuleIcon(ruleId: String?): ImageVector =
+    firewallRuleIcons[ruleId]?.invoke() ?: MaterialSymbols.Filled.Dns
 
 @Composable
 private fun LogsDeleteDialog(
