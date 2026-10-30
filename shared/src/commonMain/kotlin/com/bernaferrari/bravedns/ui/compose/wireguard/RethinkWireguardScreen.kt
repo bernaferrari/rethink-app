@@ -105,11 +105,11 @@ fun <T> RethinkWireguardScreen(
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding)) {
             if (isEmpty) {
+                // No in-place Create button: the FAB menu below is the one way to add (create,
+                // import or scan), so the empty screen doesn't offer two entry points.
                 RethinkEmptyState(
                     title = strings.noConfigurations,
                     icon = MaterialSymbols.Filled.VpnKey,
-                    ctaLabel = strings.create,
-                    onCtaClick = onCreate,
                     modifier = Modifier.align(Alignment.Center).padding(bottom = bottomInset),
                 )
             } else {

@@ -103,10 +103,11 @@ fun RethinkProxyConfigurationDialog(
                 RethinkProxyTextField(state.username, strings.username) { onStateChange(state.copy(username = it, error = null)) }
                 RethinkProxyPasswordField(state.password, strings.password) { onStateChange(state.copy(password = it, error = null)) }
             }
-            Text(strings.appDescription, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             RethinkProxyAppSelector(
                 selectedId = state.selectedAppId,
                 apps = state.apps,
+                // The explanation belongs to the picker: under it as supporting text, like any field.
+                supportingText = strings.appDescription,
                 onSelected = { onStateChange(state.copy(selectedAppId = it, error = null)) },
                 appIcon = appIcon,
             )
@@ -208,6 +209,7 @@ private fun RethinkProxyAppSelector(
     apps: List<RethinkProxyAppOption>,
     onSelected: (String) -> Unit,
     appIcon: @Composable ((RethinkProxyAppOption, Dp) -> Unit)?,
+    supportingText: String,
 ) {
     var expanded by remember { mutableStateOf(false) }
     val selected = apps.firstOrNull { it.id == selectedId } ?: apps.firstOrNull()
@@ -225,9 +227,12 @@ private fun RethinkProxyAppSelector(
                 .fillMaxWidth()
                 .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, enabled = apps.isNotEmpty()),
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            leadingIcon = selected?.let { option ->
-                { appIcon?.invoke(option, SharedDimensions.iconSizeMd) }
+            leadingIcon = if (selected != null && appIcon != null) {
+                { appIcon(selected, SharedDimensions.iconSizeMd) }
+            } else {
+                null
             },
+            supportingText = { Text(supportingText) },
             shape = RoundedCornerShape(SharedDimensions.cornerRadiusLg),
         )
         ExposedDropdownMenu(
@@ -236,7 +241,7 @@ private fun RethinkProxyAppSelector(
         ) {
             apps.forEach { option ->
                 androidx.compose.material3.DropdownMenuItem(
-                    leadingIcon = { appIcon?.invoke(option, SharedDimensions.iconSizeSm) },
+                    leadingIcon = appIcon?.let { icon -> { icon(option, SharedDimensions.iconSizeMd) } },
                     text = { Text(option.label) },
                     onClick = {
                         expanded = false

@@ -15,20 +15,16 @@
  */
 package com.bernaferrari.bravedns.ui.compose.settings
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.service.FirewallManager
-import com.bernaferrari.bravedns.ui.compose.common.rememberAppIconPainter
-import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.common.AppIcon
+import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 internal data class ProxyDialogAppOption(
     val packageName: String,
@@ -84,39 +80,20 @@ internal fun selectedProxyAppLabel(selectedPackageName: String, options: List<Pr
         ?: ""
 }
 
+/**
+ * The picked proxy app's launcher icon (the shared [AppIcon], default app icon as its fallback).
+ * "None" has no app, so it shows a quiet block glyph instead of an empty tile.
+ */
 @Composable
 internal fun ProxyDialogAppIcon(
     option: ProxyDialogAppOption?,
     size: androidx.compose.ui.unit.Dp
 ) {
     if (option == null || option.packageName.isBlank()) {
-        ProxyDialogIconPlaceholder(size = size)
-        return
-    }
-
-    val painter = rememberAppIconPainter(option.packageName, option.iconLookupName)
-    if (painter != null) {
-        Image(
-            painter = painter,
-            contentDescription = null,
-            modifier =
-                Modifier
-                    .size(size)
-                    .clip(RoundedCornerShape(SharedDimensions.cornerRadiusSm))
-        )
+        Icon(MaterialSymbols.Filled.Block, null, Modifier.size(size), tint = MaterialTheme.colorScheme.onSurfaceVariant)
     } else {
-        ProxyDialogIconPlaceholder(size = size)
+        AppIcon(option.packageName, appName = option.iconLookupName, size = size)
     }
-}
-
-@Composable
-private fun ProxyDialogIconPlaceholder(size: androidx.compose.ui.unit.Dp) {
-    Surface(
-        shape = RoundedCornerShape(SharedDimensions.cornerRadiusSm),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.72f),
-        border = BorderStroke(SharedDimensions.dividerThicknessBold, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.28f)),
-        modifier = Modifier.size(size)
-    ) {}
 }
 
 internal suspend fun buildProxyDialogAppOptions(
