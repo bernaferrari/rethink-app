@@ -125,7 +125,6 @@ fun BackupRestoreSheet(
                 WorkInfo.State.CANCELLED, WorkInfo.State.FAILED -> {
                     failure = RethinkBackupRestoreFailure.Backup
                     workManager.pruneWork()
-                    workManager.cancelAllWorkByTag(BackupAgent.TAG)
                 }
                 else -> Unit
             }
@@ -157,7 +156,6 @@ fun BackupRestoreSheet(
                     com.bernaferrari.bravedns.backup.RestoreRestart.restart(host)
                 }
                 workManager.pruneWork()
-                workManager.cancelAllWorkByTag(RestoreAgent.TAG)
             }
         }
     }

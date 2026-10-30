@@ -165,7 +165,6 @@ internal class HomeBackupController(
                         Toast.LENGTH_SHORT
                     )
                     workManager.pruneWork()
-                    workManager.cancelAllWorkByTag(RestoreAgent.TAG)
                     if (com.bernaferrari.bravedns.backup.RestoreRestart.required(activity) || workInfo.outputData.getBoolean(RestoreAgent.RESTART_REQUIRED, false)) {
                         com.bernaferrari.bravedns.backup.RestoreRestart.restart(activity)
                     }
