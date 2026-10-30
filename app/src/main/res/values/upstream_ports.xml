@@ -13,7 +13,7 @@
     <plurals name="port_days"><item quantity="one">%1$d day</item><item quantity="other">%1$d days</item></plurals>
     <string name="port_capture_title">Packet capture</string>
     <string name="port_capture_description">Capture, share or delete diagnostic files</string>
-    <string name="port_capture_privacy">Captures may contain private network data. Capture stops automatically after about three hours. Stop capture before sharing or deleting a file.</string>
+    <string name="port_capture_privacy">Captures may contain private network data. Capture stops automatically after about three hours. File capture also stops when the VPN tunnel restarts. Stop capture before sharing or deleting a file.</string>
     <string name="port_capture_start">Capture to file</string>
     <string name="port_capture_logcat">Capture to system log</string>
     <string name="port_capture_stop">Stop capture</string>

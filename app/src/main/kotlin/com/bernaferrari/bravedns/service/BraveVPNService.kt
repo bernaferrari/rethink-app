@@ -86,6 +86,7 @@ import com.bernaferrari.bravedns.util.IPUtil
 import com.bernaferrari.bravedns.util.InternetProtocol
 import com.bernaferrari.bravedns.util.KnownPorts
 import com.bernaferrari.bravedns.util.OrbotHelper
+import com.bernaferrari.bravedns.util.PcapMode
 import com.bernaferrari.bravedns.util.Protocol
 import com.bernaferrari.bravedns.util.Utilities
 import com.bernaferrari.bravedns.util.Utilities.isAtleastQ
@@ -134,6 +135,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
+import java.io.File
 import java.io.IOException
 import java.net.Socket
 import java.net.SocketException
@@ -264,8 +266,16 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
     private val pcapSession by lazy {
         PcapSessionController(
             applyNative = { path -> vpnAdapter?.setPcapMode(path) ?: path.isEmpty() },
-            persist = { mode, path -> appConfig.setPcap(mode, path) },
+            persist = { mode, path ->
+                if (mode == PcapMode.NONE.id) {
+                    persistentState.pcapCaptureId = ""
+                    persistentState.pcapStartedAt = 0L
+                }
+                appConfig.setPcap(mode, path)
+            },
             latestPath = { appConfig.getPcapFilePath() },
+            backendIdentity = { vpnAdapter?.captureBackendIdentity },
+            isFileEmpty = { path -> File(path).let { it.isFile && it.length() == 0L } },
         )
     }
 
@@ -1762,6 +1772,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
                                     Logger.e(LOG_TAG_VPN, "err recreate vpn-adapter")
                                     return@withContext noTun
                                 }
+                                pcapSession.refresh()
                                 vpnAdapter?.setLinkMtu(nwMtu)
                             } else {
                                 if (vpnAdapter?.updateLinkAndRoutes(fd, mtu, nwMtu,protos) == false) {

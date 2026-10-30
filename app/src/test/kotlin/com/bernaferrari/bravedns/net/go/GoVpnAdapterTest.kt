@@ -157,6 +157,9 @@ class GoVpnAdapterTest : KoinTest {
             set(adapter, tunnel)
         }
 
+        GoVpnAdapter::class.java.getDeclaredField("captureBackendIdentity").apply {
+            isAccessible = true; set(adapter, Any())
+        }
         GoVpnAdapter::class.java.getDeclaredField("pcapMutex").apply {
             isAccessible = true; set(adapter, kotlinx.coroutines.sync.Mutex())
         }
@@ -167,6 +170,23 @@ class GoVpnAdapterTest : KoinTest {
             isAccessible = true; set(adapter, NativeProbeRunner())
         }
         return adapter
+    }
+
+    @Test
+    fun `native restart and close invalidate capture backend identity`() = runTest {
+        val tunnel = mockk<Tunnel>(relaxed = true)
+        every { tunnel.isConnected } returns true
+        val adapter = newAdapter(tunnel)
+        val original = adapter.captureBackendIdentity
+        assertTrue(adapter.restartTunnel(10, 1500, 1500, 2))
+        io.mockk.verifyOrder {
+            tunnel.setPcap("")
+            tunnel.restart(10, 1500, 1500, 2)
+        }
+        val restarted = adapter.captureBackendIdentity
+        assertFalse(original === restarted)
+        adapter.closeTun()
+        assertFalse(restarted === adapter.captureBackendIdentity)
     }
 
     private fun constructSocks5ViaReflection(target: Any): String {

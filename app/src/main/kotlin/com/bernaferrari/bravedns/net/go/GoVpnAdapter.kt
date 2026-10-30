@@ -226,6 +226,9 @@ class GoVpnAdapter(
     }
 
     private val pcapMutex = kotlinx.coroutines.sync.Mutex()
+    @Volatile
+    var captureBackendIdentity: Any = Any()
+        private set
 
     suspend fun setPcapMode(pcapFilePath: String): Boolean = pcapMutex.withLock {
         Logger.v(LOG_TAG_VPN, "$TAG setPcapMode")
@@ -1228,12 +1231,13 @@ class GoVpnAdapter(
     }
 
     suspend fun closeTun() = pcapMutex.withLock {
+        captureBackendIdentity = Any()
         nativeProbes.close()
         try {
             if (tunnel.isConnected) {
                 // this is not the only place where tunnel is disconnected
                 // netstack can also close the tunnel on errors
-                tunnel.disconnect()
+                try { tunnel.setPcap("") } finally { tunnel.disconnect() }
                 logEvent(
                     Severity.MEDIUM,
                     "tunnel disconnected",
@@ -1512,7 +1516,7 @@ class GoVpnAdapter(
         }
     }
 
-    suspend fun restartTunnel(tunFd: Long, mtu: Int, nwMtu: Int, proto: Long): Boolean {
+    suspend fun restartTunnel(tunFd: Long, mtu: Int, nwMtu: Int, proto: Long): Boolean = pcapMutex.withLock {
         if (!tunnel.isConnected) {
             Logger.e(LOG_TAG_VPN, "$TAG restartTunnel: tunnel is not connected, returning")
             logEvent(
@@ -1520,18 +1524,24 @@ class GoVpnAdapter(
                 "restart tunnel failed",
                 "Tunnel is not connected"
             )
-            return false
+            return@withLock false
         }
 
         Logger.i(LOG_TAG_VPN, "$TAG restarting tunnel with fd(${tunFd}) mtu: $mtu, nwMtu: $nwMtu, proto: $proto")
         try {
+            // Restart replaces the native GTunnel and closes its previous capture sink.
+            captureBackendIdentity = Any()
+            // Disconnect alone does not synchronously detach the old capture writer.
+            tunnel.setPcap("")
             tunnel.restart(tunFd, nwMtu.toLong(), mtu.toLong(), proto)
             logEvent(
                 Severity.LOW,
                 "restart tunnel",
                 "Tunnel restarted successfully"
             )
-            return true
+            return@withLock true
+        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+            throw cancelled
         } catch (e: Exception) {
             Logger.e(LOG_TAG_VPN, "$TAG error restarting tunnel: ${e.message}", e)
             logEvent(
@@ -1539,7 +1549,7 @@ class GoVpnAdapter(
                 "restart tunnel failed",
                 "Error: ${e.message}"
             )
-            return false
+            return@withLock false
         }
     }
 
