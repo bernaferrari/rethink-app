@@ -76,6 +76,7 @@ import com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoScreen
 import com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoState
 import com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoStrings
 import com.bernaferrari.bravedns.ui.compose.apps.CloseConnsDialog
+import com.bernaferrari.bravedns.ui.compose.apps.commaList
 import com.bernaferrari.bravedns.data.AppConnection
 import com.bernaferrari.bravedns.database.AppInfo
 import com.bernaferrari.bravedns.database.EventSource
@@ -207,7 +208,7 @@ fun AppInfoScreen(
         )
     }
 
-    // CloseConnsDialog displayed when user long-presses an active connection
+    // CloseConnsDialog opens when an active connection is tapped
     closeDialogConn?.let { conn ->
         CloseConnsDialog(
             conn = conn,
@@ -394,7 +395,7 @@ fun AppInfoScreen(
                 loading = activeList == null,
                 empty = activeList.isNullOrEmpty(),
                 entries = activePreview.mapIndexed { index, item ->
-                    RethinkAppInfoLogItem(index.toString(), beautifyCommaSeparated(item.ipAddress), beautifyCommaSeparated(item.appOrDnsName))
+                    RethinkAppInfoLogItem(index.toString(), commaList(item.ipAddress), commaList(item.appOrDnsName))
                 },
             ),
             domainLogs = RethinkAppInfoLogSection(
@@ -403,9 +404,9 @@ fun AppInfoScreen(
                 loading = domainList == null,
                 empty = domainList.isNullOrEmpty(),
                 entries = domainPreview.mapIndexed { index, item ->
-                    val domain = beautifyCommaSeparated(item.appOrDnsName).ifBlank { beautifyCommaSeparated(item.ipAddress) }
-                    val address = beautifyCommaSeparated(item.ipAddress)
-                    RethinkAppInfoLogItem(index.toString(), domain, address.takeIf { it.isNotBlank() && it != beautifyCommaSeparated(item.appOrDnsName) })
+                    val domain = commaList(item.appOrDnsName).ifBlank { commaList(item.ipAddress) }
+                    val address = commaList(item.ipAddress)
+                    RethinkAppInfoLogItem(index.toString(), domain, address.takeIf { it.isNotBlank() && it != commaList(item.appOrDnsName) })
                 },
             ),
             ipLogs = RethinkAppInfoLogSection(
@@ -414,7 +415,7 @@ fun AppInfoScreen(
                 loading = ipList == null,
                 empty = ipList.isNullOrEmpty(),
                 entries = ipPreview.mapIndexed { index, item ->
-                    RethinkAppInfoLogItem(index.toString(), beautifyCommaSeparated(item.ipAddress), beautifyCommaSeparated(item.appOrDnsName))
+                    RethinkAppInfoLogItem(index.toString(), commaList(item.ipAddress), commaList(item.appOrDnsName))
                 },
             ),
         ),
@@ -494,15 +495,6 @@ fun AppInfoScreen(
         },
     )
 
-}
-
-private fun beautifyCommaSeparated(value: String?): String {
-    if (value.isNullOrBlank()) return ""
-    return value
-        .split(",")
-        .map { it.trim() }
-        .filter { it.isNotBlank() }
-        .joinToString(", ")
 }
 
 private data class AppInfoLoad(

@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,6 +32,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -87,6 +89,7 @@ fun ConfigureRethinkBasicScreen(
     localFileTagViewModel: RethinkLocalFileTagViewModel,
     remoteBlocklistPacksMapViewModel: RemoteBlocklistPacksMapViewModel,
     localBlocklistPacksMapViewModel: LocalBlocklistPacksMapViewModel,
+    onEditConfiguration: (ConfigureRethinkScreenType, String, String) -> Unit = { _, _, _ -> },
     onBackClick: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
@@ -423,12 +426,15 @@ fun ConfigureRethinkBasicScreen(
         else -> null
     }
 
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             RethinkLargeTopBar(
                 title = title,
                 subtitle = subtitle,
+                scrollBehavior = scrollBehavior,
                 onBackClick = if (onBackClick == null) null else {
                     {
                         if (screenType != ConfigureRethinkScreenType.DB_LIST && isStampChanged()) {
@@ -472,7 +478,8 @@ fun ConfigureRethinkBasicScreen(
                         onCheckBlocklistUpdate = { checkBlocklistUpdate() },
                         onDownload = { timestamp, isRedownload -> download(timestamp, isRedownload) },
                         localBlocklistVersionTemplate = localBlocklistVersionTemplate,
-                        downloadFailureMessage = downloadFailureMessage
+                        downloadFailureMessage = downloadFailureMessage,
+                        onEditConfiguration = onEditConfiguration,
                     )
                 }
 

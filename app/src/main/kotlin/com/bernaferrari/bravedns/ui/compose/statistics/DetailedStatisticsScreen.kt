@@ -60,7 +60,7 @@ fun DetailedStatisticsScreen(
         isAppending = pagingItems.loadState.append is LoadState.Loading,
         strings = RethinkDetailedStatisticsStrings(
             loading = stringResource(R.string.lbl_loading),
-            empty = stringResource(R.string.blocklist_update_check_failure),
+            empty = stringResource(R.string.lbl_no_logs),
         ),
         onBackClick = onBackClick,
         itemAt = { index -> pagingItems[index]?.toRethinkDetailedStatistic(type) },

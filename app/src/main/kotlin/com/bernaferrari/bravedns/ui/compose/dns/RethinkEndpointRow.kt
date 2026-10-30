@@ -37,7 +37,7 @@ private const val TAG = "RethinkEndpointRow"
 fun RethinkEndpointRow(
     endpoint: RethinkDnsEndpoint,
     appConfig: AppConfig,
-    onEditConfiguration: (ConfigureRethinkScreenType, String, String) -> Unit = { _, _, _ -> }
+    onEditConfiguration: (ConfigureRethinkScreenType, String, String) -> Unit,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()

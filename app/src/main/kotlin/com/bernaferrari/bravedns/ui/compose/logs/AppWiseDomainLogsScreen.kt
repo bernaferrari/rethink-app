@@ -160,7 +160,6 @@ private fun AppWiseDomainList(
             conn = item,
             position = position,
             uid = uid,
-            isActiveConn = false,
             refreshToken = refreshToken,
             onIpClick = { conn ->
                 selectedDomain = conn.appOrDnsName.orEmpty()

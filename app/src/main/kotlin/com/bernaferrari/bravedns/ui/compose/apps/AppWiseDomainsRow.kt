@@ -29,31 +29,19 @@ import com.bernaferrari.bravedns.ui.compose.logs.RethinkAppConnectionRow
 import com.bernaferrari.bravedns.ui.compose.logs.RethinkConnectionRuleState
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
-import com.bernaferrari.bravedns.util.Utilities.removeBeginningTrailingCommas
 import com.bernaferrari.bravedns.util.Utilities.showToastUiCentered
-import kotlin.math.log2
 
 
 @Composable
 fun DomainRow(
     conn: AppConnection,
     uid: Int,
-    isActiveConn: Boolean,
     refreshToken: Int,
     onIpClick: (AppConnection) -> Unit,
     position: CardPosition = CardPosition.Single,
 ) {
-    val (primaryText, secondaryText) =
-        if (isActiveConn) {
-            val ip = beautifyIpString(conn.ipAddress)
-            val name = conn.appOrDnsName.orEmpty()
-            ip to name
-        } else {
-            conn.appOrDnsName to conn.ipAddress
-        }
-
     val ruleState =
-        if (isActiveConn || conn.appOrDnsName.isNullOrEmpty()) {
+        if (conn.appOrDnsName.isNullOrEmpty()) {
             RethinkConnectionRuleState.None
         } else {
             when (DomainRulesManager.status(conn.appOrDnsName.orEmpty(), uid)) {
@@ -63,16 +51,16 @@ fun DomainRow(
             }
         }
     val activity =
-        if (isActiveConn || conn.appOrDnsName.isNullOrEmpty() || refreshToken == Int.MIN_VALUE) {
+        if (conn.appOrDnsName.isNullOrEmpty() || refreshToken == Int.MIN_VALUE) {
             null
         } else {
-            (calculatePercentage(conn.count.toDouble()).coerceAtLeast(5) / 100f)
+            connectionActivity(conn.count)
         }
     RethinkAppConnectionRow(
         item = RethinkAppConnectionItem(
             flag = conn.flag,
-            title = primaryText.orEmpty(),
-            supporting = secondaryText,
+            title = conn.appOrDnsName.orEmpty(),
+            supporting = conn.ipAddress,
             count = conn.count.toString(),
             ruleState = ruleState,
             activity = activity,
@@ -111,15 +99,4 @@ fun CloseConnsDialog(
         },
         onDismiss = onDismiss
     )
-}
-
-private fun calculatePercentage(c: Double): Int {
-    // If not available, it becomes a per-item progress which is less useful.
-    // For now, let's use a reasonable default or assume max is handled elsewhere.
-    val value = (log2(c) * 100).toInt()    // In a LazyList, computing global max is expensive or requires a separate pass.
-    return (value % 100) // Fallback
-}
-
-private fun beautifyIpString(d: String): String {
-    return removeBeginningTrailingCommas(d).replace(",,", ",").replace(",", ", ")
 }

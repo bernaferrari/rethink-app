@@ -30,7 +30,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -67,6 +66,8 @@ import com.bernaferrari.bravedns.ui.compose.settings.ProxySettingsScreen
 import com.bernaferrari.bravedns.ui.compose.proxy.TcpProxyMainScreen
 import com.bernaferrari.bravedns.ui.compose.logs.NetworkLogsScreen
 import com.bernaferrari.bravedns.ui.compose.settings.PingTestScreen
+import com.bernaferrari.bravedns.ui.compose.theme.CompactEmptyState
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBarLazyColumnScreen
 import com.bernaferrari.bravedns.ui.compose.wireguard.WgIncludeAppsScreen
 import com.bernaferrari.bravedns.ui.compose.logs.AppWiseIpLogsScreen
 import com.bernaferrari.bravedns.viewmodel.ProxyAppsMappingViewModel
@@ -858,6 +859,7 @@ fun HomeScreenRoot(
                     localFileTagViewModel = localFileTagViewModel,
                     remoteBlocklistPacksMapViewModel = remoteBlocklistPacksMapViewModel,
                     localBlocklistPacksMapViewModel = localBlocklistPacksMapViewModel,
+                    onEditConfiguration = { type, name, url -> nav.push(configureRethinkBasicRoute(type, name, url)) },
                     onBackClick = { nav.popBackStack() }
                 )
             }
@@ -867,6 +869,8 @@ fun HomeScreenRoot(
                 }
                 ConfigureRethinkBasicScreen(
                     screenType = screenType,
+                    remoteName = args.remoteName,
+                    remoteUrl = args.remoteUrl,
                     uid = args.uid,
                     persistentState = persistentState,
                     appConfig = appConfig,
@@ -876,6 +880,7 @@ fun HomeScreenRoot(
                     localFileTagViewModel = localFileTagViewModel,
                     remoteBlocklistPacksMapViewModel = remoteBlocklistPacksMapViewModel,
                     localBlocklistPacksMapViewModel = localBlocklistPacksMapViewModel,
+                    onEditConfiguration = { type, name, url -> nav.push(configureRethinkBasicRoute(type, name, url)) },
                     onBackClick = { nav.popBackStack() }
                 )
             }
@@ -906,7 +911,13 @@ fun HomeScreenRoot(
             entry<RethinkRoute.Checkout> {
                 val currentCheckoutViewModel = checkoutViewModel
                 if (currentCheckoutViewModel == null) {
-                    Text(text = stringResource(id = R.string.checkout_unavailable_desc))
+                    // Builds without a store have no checkout; say so on a real screen with a way back.
+                    RethinkTopBarLazyColumnScreen(
+                        title = stringResource(R.string.app_name),
+                        onBackClick = { nav.popBackStack() },
+                    ) {
+                        item { CompactEmptyState(message = stringResource(R.string.checkout_unavailable_desc)) }
+                    }
                 } else {
                     val paymentStatus by currentCheckoutViewModel.paymentStatus.collectAsStateWithLifecycle()
                     val workInfoList by currentCheckoutViewModel.paymentWorkInfo

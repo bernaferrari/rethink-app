@@ -24,8 +24,6 @@ import com.bernaferrari.bravedns.ui.compose.logs.RethinkAppConnectionRow
 import com.bernaferrari.bravedns.ui.compose.logs.RethinkConnectionRuleState
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.util.Utilities
-import com.bernaferrari.bravedns.util.Utilities.removeBeginningTrailingCommas
-import kotlin.math.log2
 
 
 @Composable
@@ -45,7 +43,7 @@ fun IpRow(
         }
     val titleText = if (isAsn) conn.appOrDnsName else conn.ipAddress
     val secondaryText =
-        if (isAsn) conn.ipAddress else conn.appOrDnsName?.let { beautifyDomainString(it) }
+        if (isAsn) conn.ipAddress else conn.appOrDnsName?.let(::commaList)
 
     val ruleState =
         if (isAsn) {
@@ -62,8 +60,7 @@ fun IpRow(
         if (isAsn || refreshToken == Int.MIN_VALUE) {
             null
         } else {
-            val score = (log2(conn.count.toDouble()) * 100).toInt()
-            if (score <= 0) 0.1f else (score / 500f).coerceAtMost(1f)
+            connectionActivity(conn.count)
         }
     RethinkAppConnectionRow(
         item = RethinkAppConnectionItem(
@@ -77,8 +74,4 @@ fun IpRow(
         onClick = { onIpClick(conn) },
         position = position,
     )
-}
-
-private fun beautifyDomainString(d: String): String {
-    return removeBeginningTrailingCommas(d).replace(",,", ",").replace(",", ", ")
 }

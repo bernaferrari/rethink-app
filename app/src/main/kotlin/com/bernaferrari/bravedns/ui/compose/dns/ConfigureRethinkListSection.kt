@@ -78,7 +78,8 @@ internal fun RethinkListContent(
     onCheckBlocklistUpdate: () -> Unit,
     onDownload: (Long, Boolean) -> Unit,
     localBlocklistVersionTemplate: String,
-    downloadFailureMessage: String
+    downloadFailureMessage: String,
+    onEditConfiguration: (ConfigureRethinkScreenType, String, String) -> Unit,
 ) {
     val pagingItems = rethinkEndpointViewModel.rethinkEndpointList.collectAsLazyPagingItems()
     val workInfos by WorkManager.getInstance(context)
@@ -97,33 +98,32 @@ internal fun RethinkListContent(
         onUpdateInProgressChanged = onUpdateInProgressChanged,
     )
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = SharedDimensions.screenPaddingHorizontal),
-        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd)
+    // The update card scrolls away with the list instead of pinning above it.
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(
+            start = SharedDimensions.screenPaddingHorizontal,
+            end = SharedDimensions.screenPaddingHorizontal,
+            bottom = SharedDimensions.spacing2xl,
+        ),
+        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)
     ) {
-        RethinkListUpdateCard(
-            persistentState = persistentState,
-            appConfig = appConfig,
-            updateUi = updateUi,
-            onMaxChanged = onMaxChanged,
-            onCheckUpdateInProgressChanged = onCheckUpdateInProgressChanged,
-            onUpdateInProgressChanged = onUpdateInProgressChanged,
-            onCheckBlocklistUpdate = onCheckBlocklistUpdate,
-            onDownload = onDownload,
-            localBlocklistVersionTemplate = localBlocklistVersionTemplate,
-        )
-
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = SharedDimensions.spacing2xl),
-            verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)
-        ) {
-            items(count = pagingItems.itemCount) { index ->
-                val item = pagingItems[index] ?: return@items
-                RethinkEndpointRow(endpoint = item, appConfig = appConfig)
-            }
+        item(key = "update") {
+            RethinkListUpdateCard(
+                persistentState = persistentState,
+                appConfig = appConfig,
+                updateUi = updateUi,
+                onMaxChanged = onMaxChanged,
+                onCheckUpdateInProgressChanged = onCheckUpdateInProgressChanged,
+                onUpdateInProgressChanged = onUpdateInProgressChanged,
+                onCheckBlocklistUpdate = onCheckBlocklistUpdate,
+                onDownload = onDownload,
+                localBlocklistVersionTemplate = localBlocklistVersionTemplate,
+            )
+        }
+        items(count = pagingItems.itemCount) { index ->
+            val item = pagingItems[index] ?: return@items
+            RethinkEndpointRow(endpoint = item, appConfig = appConfig, onEditConfiguration = onEditConfiguration)
         }
     }
 }
