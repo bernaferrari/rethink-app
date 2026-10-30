@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- UX overhaul, WS0 (foundation): the Connection sheet and the Add rule sheet. -->
+<resources>
+    <string name="lbl_undo">Undo</string>
+    <string name="lbl_all_apps">All apps</string>
+
+    <!-- Connection sheet: a log row's verdict, its fix, and a rule for its domain or IP -->
+    <string name="connection_this_domain">This domain</string>
+    <string name="connection_this_ip">This IP</string>
+    <string name="connection_only_app">Only %1$s</string>
+    <string name="connection_copy_address">Copy address</string>
+    <string name="connection_open_app">Open %1$s</string>
+    <string name="connection_blocked_by_lists">Blocked by %1$s</string>
+    <string name="connection_wider_rule">Another rule (a wildcard, range or port rule) also matches. Change it in Rules.</string>
+    <string name="connection_dns_allowed">No blocklist or rule stopped this lookup.</string>
+    <string name="connection_fix_allow_app_wifi">Allow %1$s on Wi‑Fi</string>
+    <string name="connection_fix_allow_app_mobile">Allow %1$s on mobile data</string>
+    <string name="connection_fix_allow_app_everywhere">Allow %1$s everywhere</string>
+    <string name="connection_fix_remove_rule">Remove this rule</string>
+    <string name="connection_fix_allow_domain">Allow this domain</string>
+    <string name="connection_fix_trust_ip">Trust this IP</string>
+    <string name="connection_fix_open_universal">Open universal rules</string>
+    <string name="connection_fix_open_proxy">Open proxy settings</string>
+    <string name="connection_fix_open_rules">Open rules</string>
+    <string name="connection_done_allowed_wifi">%1$s allowed on Wi‑Fi</string>
+    <string name="connection_done_allowed_mobile">%1$s allowed on mobile data</string>
+    <string name="connection_done_allowed">%1$s allowed</string>
+    <string name="connection_done_allowed_temporarily">%1$s allowed for 15 minutes</string>
+    <string name="connection_done_rule_removed">Rule removed</string>
+    <string name="connection_done_domain_trusted">Domain trusted for %1$s</string>
+    <string name="connection_done_ip_trusted">IP trusted for %1$s</string>
+    <string name="connection_done_rule_saved">Rule saved</string>
+    <string name="connection_save_failed">Couldn\'t save the rule. Try again.</string>
+
+    <!-- Add rule sheet: target + action + scope -->
+    <string name="add_rule_title">Add rule</string>
+    <string name="add_rule_domain_hint">e.g. ads.example.com or *.example.com</string>
+    <string name="add_rule_ip_label">IP or range</string>
+    <string name="add_rule_ip_hint">e.g. 1.2.3.4 or 1.2.3.0/24, optional :port</string>
+    <string name="add_rule_applies_to">Applies to</string>
+    <string name="add_rule_choose_app">Choose app…</string>
+    <string name="add_rule_block_domain">Block domain</string>
+    <string name="add_rule_trust_domain">Trust domain</string>
+    <string name="add_rule_block_ip">Block IP</string>
+    <string name="add_rule_trust_ip">Trust IP</string>
+</resources>
