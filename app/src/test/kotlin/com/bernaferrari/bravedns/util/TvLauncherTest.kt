@@ -22,5 +22,11 @@ class TvLauncherTest {
         assertEquals(launcher(Intent.CATEGORY_LAUNCHER), tv)
         assertTrue(tv.single().endsWith("LauncherAliasAppLock"))
         assertNotNull(context.applicationInfo.loadBanner(manager))
+        val features = manager.getPackageInfo(context.packageName, android.content.pm.PackageManager.GET_CONFIGURATIONS).reqFeatures.orEmpty()
+        for (name in listOf("android.hardware.touchscreen", "android.hardware.location", "android.hardware.location.gps", "android.hardware.location.network")) {
+            val feature = features.single { it.name == name }
+            assertEquals("$name must not filter TV distribution", 0,
+                feature.flags and android.content.pm.FeatureInfo.FLAG_REQUIRED)
+        }
     }
 }

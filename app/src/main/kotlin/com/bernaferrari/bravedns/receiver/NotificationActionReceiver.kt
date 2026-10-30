@@ -163,8 +163,10 @@ class NotificationActionReceiver : BroadcastReceiver(), KoinComponent {
                 context.getString(R.string.new_app_notification_action_toast_allow)
             }
 
-        Utilities.showToastUiCentered(context, text, Toast.LENGTH_SHORT)
-        io { FirewallManager.updateFirewalledApps(uid, connectionStatus) }
+        io {
+            FirewallManager.updateFirewalledApps(uid, connectionStatus)
+            Utilities.showToastUiCentered(context, text, Toast.LENGTH_SHORT)
+        }
     }
 
     private fun io(f: suspend () -> Unit) {
@@ -174,6 +176,8 @@ class NotificationActionReceiver : BroadcastReceiver(), KoinComponent {
                 f()
             } catch (cancelled: CancellationException) {
                 throw cancelled
+            } catch (error: android.database.SQLException) {
+                Logger.e(LOG_TAG_VPN, "Notification database action failed", error)
             } catch (error: IllegalStateException) {
                 Logger.e(LOG_TAG_VPN, "Notification action failed", error)
             } finally {

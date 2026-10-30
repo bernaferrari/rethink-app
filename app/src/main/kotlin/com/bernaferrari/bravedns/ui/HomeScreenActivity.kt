@@ -274,13 +274,7 @@ class HomeScreenActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-            try {
-                window.setHideOverlayWindows(true)
-            } catch (error: SecurityException) {
-                Logger.w(Logger.LOG_TAG_UI, "Cannot hide overlay windows", error)
-            }
-        }
+        com.bernaferrari.bravedns.util.SensitiveWindowProtection.apply(window)
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.auto(
                 lightScrim = 0x00000000,

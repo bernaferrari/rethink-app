@@ -70,7 +70,7 @@ object SsidPermissionManager {
     /** Foreground location must be granted before requesting background access. */
     fun requestBackgroundAccess(activity: Activity) {
         if (!isLocationEnabled(activity)) {
-            activity.startActivity(Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+            requestLocationEnable(activity)
         } else if (!hasRequiredPermissions(activity)) {
             requestSsidPermissions(activity)
         } else if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
