@@ -56,6 +56,9 @@ object VpnController : KoinComponent {
 
     @Volatile private var braveVpnService: BraveVPNService? = null
     @Volatile private var stoppingService: BraveVPNService? = null
+    private val session = VpnSessionState<BraveVPNService>()
+    /** Live service or authorized in-process start; saved activation intent alone is insufficient. */
+    val sessionActive: StateFlow<Boolean> = session.state
     private val startGate = VpnStartGate(CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate))
     private var connectionState: BraveVPNService.State? = null
     private var lastConnectedServerName: String? = null
@@ -96,6 +99,7 @@ object VpnController : KoinComponent {
         externalScope = scope
         val stateChannel = Channel<BraveVPNService.State?>(Channel.CONFLATED) // drop unconsumed states
         states = stateChannel
+        session.created(b)
 
         // store app start time, used in HomeScreenBottomSheet
         vpnStartElapsedTime = SystemClock.elapsedRealtime()
@@ -121,9 +125,11 @@ object VpnController : KoinComponent {
         }
     }
 
-    fun onVpnDestroyed() {
+    fun onVpnDestroyed(service: BraveVPNService) {
+        if (braveVpnService !== service) return
         stoppingService = braveVpnService
         braveVpnService = null
+        session.destroyed(service)
         states?.cancel()
         vpnStartElapsedTime = SystemClock.elapsedRealtime()
         try {
@@ -136,6 +142,8 @@ object VpnController : KoinComponent {
         }
     }
 
+    fun mayStart(service: BraveVPNService): Boolean = session.mayStart(service)
+
     fun onVpnTeardownComplete(service: BraveVPNService) {
         if (stoppingService === service) stoppingService = null
     }
@@ -143,7 +151,12 @@ object VpnController : KoinComponent {
     /** Waits for native disconnect and queued database writes before backup/restore proceeds. */
     suspend fun stopAndAwait(reason: String, context: Context) {
         startGate.cancelPending()
-        val service = braveVpnService ?: stoppingService ?: return
+        session.cancelPending()
+        val service = braveVpnService ?: stoppingService
+        if (service == null) {
+            persistentState.setVpnEnabled(false)
+            return
+        }
         Logger.i(LOG_TAG_VPN, "VPN Controller stop and await with context: $context")
         connectionState = null
         onConnectionStateChanged(null)
@@ -179,11 +192,16 @@ object VpnController : KoinComponent {
         connectionStatus.value = state
     }
 
-    fun start(context: Context, autoAttempt: Boolean = false) {
-        val previous = stoppingService ?: braveVpnService?.takeIf { it.isStopping() }
+    fun start(context: Context, autoAttempt: Boolean = false) = requestStart(context, autoAttempt, false)
+
+    private fun requestStart(context: Context, autoAttempt: Boolean, resumingQueued: Boolean) {
+        val previous = stoppingService ?: braveVpnService?.takeIf { it.isStopping() || !session.mayStart(it) }
         if (previous != null) {
+            if (!resumingQueued && !session.queueStart()) return
             val appContext = context.applicationContext
-            startGate.afterStopped(previous::awaitStopped) { start(appContext, autoAttempt) }
+            startGate.afterStopped(previous::awaitStopped, onFailure = session::startFailed) {
+                requestStart(appContext, autoAttempt, true)
+            }
             return
         }
         // if the tunnel has the go-adapter then there's nothing to do
@@ -201,31 +219,39 @@ object VpnController : KoinComponent {
             Logger.i(LOG_TAG_VPN, "vpn service already running, no need to start")
             return
         }
+        if (!session.beginStart(resumingQueued)) return
         try {
-            // else: resend/send the start-command to the vpn service which handles both false-start
-            // and actual-start scenarios just fine; ref: isNewVpn bool in vpnService.onStartCommand
+            // Dispatch once per in-process request; the saved boot intent may already be true.
             val startServiceIntent = Intent(context, BraveVPNService::class.java)
 
             // ContextCompat will take care of calling the proper service based on the API version.
             // before Android O, context.startService(intent) should be invoked.
             // on or after Android O, context.startForegroundService(intent) should be invoked.
-            ContextCompat.startForegroundService(context, startServiceIntent)
+            if (ContextCompat.startForegroundService(context, startServiceIntent) == null) {
+                session.startFailed()
+                return
+            }
 
             onConnectionStateChanged(connectionState)
             Logger.i(LOG_TAG_VPN, "VPNController; Start(sync) executed")
         } catch (e: IllegalStateException) {
+            session.startFailed()
             Logger.w(LOG_TAG_VPN, "VPNController; Start(sync) failed, ${e.message}", e)
         } catch (e: SecurityException) {
+            session.startFailed()
             Logger.w(LOG_TAG_VPN, "VPNController; Start(sync) failed, ${e.message}", e)
         }
     }
 
     fun stop(reason: String, context: Context, userInitiated: Boolean = true) {
         startGate.cancelPending()
+        session.cancelPending()
         Logger.i(LOG_TAG_VPN, "VPN Controller stop with context: $context")
         connectionState = null
         onConnectionStateChanged(null)
-        braveVpnService?.signalStopService(reason, userInitiated = userInitiated)
+        val service = braveVpnService
+        if (service == null && userInitiated) persistentState.setVpnEnabled(false)
+        service?.signalStopService(reason, userInitiated = userInitiated)
     }
 
     @Suppress("DEPRECATION")

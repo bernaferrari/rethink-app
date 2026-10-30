@@ -927,7 +927,7 @@ class HomeScreenActivity : FragmentActivity() {
     private fun handleVpnActivation() {
         if (handleAlwaysOnVpn()) return
 
-        if (VpnController.hasTunnel()) {
+        if (VpnController.hasTunnel() || VpnController.sessionActive.value) {
             stopVpnService()
         } else {
             prepareAndStartVpn()

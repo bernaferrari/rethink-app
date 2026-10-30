@@ -1313,7 +1313,13 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
             return START_STICKY
         }
 
+        if (!VpnController.mayStart(this)) {
+            signalStopService("start canceled before service creation", userInitiated = true)
+            return START_NOT_STICKY
+        }
+
         ui {
+            if (teardown.isStopping || !VpnController.mayStart(this)) return@ui
             // Initialize the value whenever the vpn is started.
             accessibilityHearbeatTimestamp = INIT_TIME_MS
 
@@ -2075,7 +2081,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
         // onVpnStart is also called from the main thread (ui).
         // Must unregister callbacks before vpnScope.cancel — ConnectionMonitor shares vpnScope.
         connectionMonitor.onVpnStop()
-        VpnController.onVpnDestroyed()
+        VpnController.onVpnDestroyed(this)
         // Callbacks remain available until the native tunnel has disconnected and logs are drained.
         teardown.onDestroyed()
 

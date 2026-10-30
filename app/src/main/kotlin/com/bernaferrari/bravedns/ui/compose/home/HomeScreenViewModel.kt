@@ -3,7 +3,6 @@ package com.bernaferrari.bravedns.ui.compose.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bernaferrari.bravedns.data.AppConfig
-import com.bernaferrari.bravedns.service.BraveVPNService
 import com.bernaferrari.bravedns.service.PersistentState
 import com.bernaferrari.bravedns.service.VpnController
 import com.bernaferrari.bravedns.database.ConnectionTrackerRepository
@@ -76,10 +75,8 @@ class HomeScreenViewModel(
     }
 
     private fun observeVpnState() {
-        persistentState.vpnEnabled.onEach { enabled ->
-            _uiState.update { it.copy(isVpnActive = enabled) }
-            syncDnsStatus()
-        }.launchIn(viewModelScope)
+        persistentState.vpnEnabled.onEach { syncDnsStatus() }.launchIn(viewModelScope)
+        VpnController.sessionActive.onEach { syncDnsStatus() }.launchIn(viewModelScope)
 
         VpnController.connectionStatus.onEach {
             if (VpnController.isAppPaused()) return@onEach
@@ -99,48 +96,17 @@ class HomeScreenViewModel(
 
     fun syncDnsStatus() {
         viewModelScope.launch {
-            val vpnState = VpnController.state()
-            val isEch = vpnState.isEch
-            var isFailing = false
-            var status = HomeProtectionStatus.Protected
-
-            if (vpnState.on) {
-                when (vpnState.connectionState) {
-                    BraveVPNService.State.APP_ERROR,
-                    BraveVPNService.State.DNS_ERROR,
-                    BraveVPNService.State.DNS_SERVER_DOWN,
-                    BraveVPNService.State.NO_INTERNET -> {
-                        isFailing = true
-                        status = HomeProtectionStatus.Failing
-                    }
-                    BraveVPNService.State.WORKING,
-                    BraveVPNService.State.NEW -> {
-                        status = if (isEch) {
-                            HomeProtectionStatus.UltraSecure
-                        } else {
-                            HomeProtectionStatus.Protected
-                        }
-                    }
-                    else -> {
-                        isFailing = true
-                        status = HomeProtectionStatus.Failing
-                    }
-                }
-            } else if (persistentState.getVpnEnabled()) {
-                isFailing = true
-                status = HomeProtectionStatus.Waiting
-            } else {
-                isFailing = true
-                status = HomeProtectionStatus.Exposed
-            }
-
-            if (VpnController.isUnderlyingVpnNetworkEmpty()) {
-                isFailing = true
-                status = HomeProtectionStatus.NoNetwork
-            }
-
+            val presentation = homeVpnPresentation(
+                VpnController.state(),
+                VpnController.sessionActive.value,
+                VpnController.isUnderlyingVpnNetworkEmpty(),
+            )
             _uiState.update {
-                it.copy(protectionStatus = status, isProtectionFailing = isFailing)
+                it.copy(
+                    isVpnActive = presentation.active,
+                    protectionStatus = presentation.status,
+                    isProtectionFailing = presentation.failing,
+                )
             }
         }
     }
