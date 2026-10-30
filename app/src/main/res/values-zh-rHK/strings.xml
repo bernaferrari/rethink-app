@@ -203,7 +203,7 @@
     <string name="about_faq">睇常見問題</string>
     <string name="about_docs">睇文檔</string>
     <string name="about_connect">聯繫我哋</string>
-    <string name="about_app">App</string>
+    <string name="about_app">app</string>
     <string name="about_email">電郵聯繫</string>
     <string name="about_settings_app_info">App 資料</string>
     <string name="about_settings_notification">通知設定</string>
@@ -273,14 +273,8 @@
     <string name="dns_connected">連咗線</string>
     <string name="dns_proxy_desc">%1$s:%2$s, %3$s</string>
     <string name="dns_proxy_desc_no_app">%1$s:%2$s</string>
-    <string name="dns_proxy_dialog_message">應用程式名：%1$s
-\n
-\nIP 地址：%2$s
-\n
-\n埠：%3$s</string>
-    <string name="dns_proxy_dialog_message_no_app">IP 地址：%1$s
-\n
-\n埠：%2$s</string>
+    <string name="dns_proxy_dialog_message">應用程式名：%1$s \n \nIP 地址：%2$s \n \n埠：%3$s</string>
+    <string name="dns_proxy_dialog_message_no_app">IP 地址：%1$s \n \n埠：%2$s</string>
     <string name="dns_query_latency">%1$sms</string>
     <string name="dns_proxy_dialog_header_dns">加 DNS 代理</string>
     <string name="dns_proxy_name">代理名</string>

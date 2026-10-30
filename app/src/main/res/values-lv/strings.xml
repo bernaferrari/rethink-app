@@ -7,7 +7,7 @@
     <string name="lbl_cancel" translatable="true">Atcelt</string>
     <string name="lbl_dismiss" translatable="true">Noraidīt</string>
     <string name="lbl_allowed" translatable="true">Atļauts</string>
-    <string name="lbl_blocked" translatable="true">Bloķēts</string>
+    <string name="lbl_blocked" translatable="true">Aizturēts</string>
     <string name="lbl_disabled" translatable="true">Atspējots</string>
     <string name="lbl_domain" translatable="true">Domēns</string>
     <string name="lbl_rules" translatable="true">Noteikumi</string>

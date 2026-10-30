@@ -134,7 +134,7 @@
     <string name="orbot_stop_dialog_message_combo">%1$s
 \n
 \n%2$s</string>
-    <string name="orbot_install_dialog_title">অরবট ইনস্টল করবেন\?</string>
+    <string name="orbot_install_dialog_title">অরবট ইনস্টল করবেন?</string>
     <string name="settings_theme_heading">চেহারা</string>
     <string name="dc_entries">%1$s এন্ট্রি 🔗</string>
     <string name="about_bug_no_log_dialog_positive_btn">ইচিঠি পাঠাও</string>
@@ -155,15 +155,11 @@
     <string name="univ_view_blocked_ip">আইপি এবং পোর্টের নিয়ম</string>
     <string name="univ_accessibility_dialog_positive">প্রদান</string>
     <string name="univ_accessibility_dialog_negative">অস্বীকার</string>
-    <string name="dns_proxy_dialog_message">অ্যাপের নাম: %1$s
-\n
-\nআইপি ঠিকানা: %2$s
-\n
-\nপোর্ট নম্বর: %3$s</string>
+    <string name="dns_proxy_dialog_message">অ্যাপের নাম: %1$s \n \nআইপি ঠিকানা: %2$s \n \nপোর্ট নম্বর: %3$s</string>
     <string name="isolate">তালাবদ্ধ</string>
     <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">অপেক্ষা করছে</string>
     <string name="conn_track_clear_logs_message">এটি শুধুমাত্র নেটওয়ার্ক লগ মুছে দেয় কিন্তু ফায়ারওয়াল নিয়ম নয়। এই অপারেশন বিপরীত করা যায় না. আপনি কি এগিয়ে যেতে চান\?</string>
-    <string name="dns_crypt_custom_url_remove_dialog_title">DNSCrypt সমাধানকারী মুছবেন\?</string>
+    <string name="dns_crypt_custom_url_remove_dialog_title">DNSCrypt সমাধানকারী মুছবেন?</string>
     <string name="dns_proxy_remove_dialog_title">ডিএনএস প্রক্সি মুছবেন\?</string>
     <string name="settings_network_all_networks_desc">সক্রিয় করা হলে, RethinkDNS ইন্টারনেটের সাথে সংযোগ করতে সমস্ত উপলব্ধ নেটওয়ার্ক ব্যবহার করে। যদি তা না হয়, তবে এটি Android দ্বারা সক্রিয় হিসাবে বিবেচিত যে কোনও নেটওয়ার্ক ব্যবহার করে৷</string>
     <string name="settings_ip_dialog_title">আইপি সংস্করণ চয়ন করুন</string>
@@ -182,7 +178,7 @@
     <string name="status_no_internet">ইন্টারনেট নেই</string>
     <string name="dns_crypt_relay_remove_success">DNSCrypt রিলে মুছে ফেলা হয়েছে।</string>
     <string name="download_update_dialog_message_ok">আপনি ইতিমধ্যেই সর্বশেষ সংস্করণে রয়েছেন৷</string>
-    <string name="orbot_app_issue">অরবট চালু করা যায়নি। এটা ইনস্টল করা হয়\?</string>
+    <string name="orbot_app_issue">অরবট চালু করা যায়নি। এটা ইনস্টল করা হয়?</string>
     <string name="orbot_install_dialog_neutral">ওয়েবসাইট</string>
     <string name="dc_rethink_dns_radio">RethinkDNS</string>
     <string name="about_github">GitHub-এ অবদান রাখুন</string>
@@ -246,22 +242,22 @@
     <string name="hybrid_mode_notification_title">সুরক্ষিত ! DNS + ফায়ারওয়ালের সাথে সংযুক্ত।</string>
     <string name="pause_mode_notification_title">বিরাম দেওয়া হয়েছে! ব্লক করা অ্যাপগুলি ফায়ারওয়াল করা অব্যাহত থাকবে।</string>
     <string name="universal_firewall_explanation">ডিভাইস ইভেন্টের উপর ভিত্তি করে সমস্ত অ্যাপ্লিকেশনগুলিতে ফায়ারওয়াল নিয়ম প্রয়োগ করুন, উদাহরণস্বরূপ, যখন ডিভাইসটি লক থাকে বা যখন একটি নির্দিষ্ট অ্যাপ ব্যবহার করা হয় না তখন ফায়ারওয়াল৷</string>
-    <string name="doh_custom_url_remove_dialog_title">DoH এন্ডপয়েন্ট মুছবেন\?</string>
+    <string name="doh_custom_url_remove_dialog_title">DoH এন্ডপয়েন্ট মুছবেন?</string>
     <string name="dns_crypt_relay_remove_dialog_message">সংরক্ষিত কনফিগারেশন থেকে DNSCrypt রিলে মুছুন।</string>
     <string name="custom_url_error_invalid_url">অবৈধ ইউ আর এল</string>
     <string name="alert_firewall_accessibility_regrant_explanation">RethinkDNS অ্যাক্সেসিবিলিটি পরিষেবা বন্ধ বা ক্র্যাশ হয়েছে৷ সেটিংসে যান এবং ফোর্স স্টপ রিথিঙ্কডিএনএসে যান এবং ব্যবহৃত নয় এমন কোনো অ্যাপ ব্লক করুন বৈশিষ্ট্যটি ব্যবহার করতে এটি আবার শুরু করুন।
 \n
 \nRethinkDNS অ্যাক্সেসিবিলিটি পরিষেবা ব্যবহার করে কোন অ্যাপগুলি ব্যবহার করা হচ্ছে (ফোরগ্রাউন্ড) বনাম যেগুলি ব্যবহারে নেই (পটভূমিতে) তা ট্র্যাক করতে।</string>
-    <string name="conn_track_clear_logs_title">সমস্ত নেটওয়ার্ক লগ মুছবেন\?</string>
+    <string name="conn_track_clear_logs_title">সমস্ত নেটওয়ার্ক লগ মুছবেন?</string>
     <string name="always_on_dialog">এই ডিভাইসে \"সর্বদা-চালু VPN\" সক্ষম করা আছে৷ পুনর্বিবেচনা শুরু করতে, অনুগ্রহ করে সেটিংস অ্যাপে যান এবং \"সর্বদা-চালু VPN\" অক্ষম করুন।</string>
     <string name="always_on_dialog_stop_message">পুনর্বিবেচনার জন্য সর্বদা-চালু VPN সক্ষম করা আছে৷ আপনি কি নিশ্চিত যে আপনি যাইহোক পুনর্বিবেচনা বন্ধ করতে চান\?</string>
     <string name="dns_crypt_url_remove_dialog_message">সংরক্ষিত কনফিগারেশন থেকে DNSCrypt সমাধানকারী মুছুন।</string>
     <string name="local_blocklist_download">ব্লকলিস্ট ডাউনলোড করুন</string>
-    <string name="local_blocklist_download_desc">এই বৈশিষ্ট্যটি ব্যবহার করতে ব্লকলিস্ট (প্রায় 60MB) ডাউনলোড করবেন\?</string>
+    <string name="local_blocklist_download_desc">এই বৈশিষ্ট্যটি ব্যবহার করতে ব্লকলিস্ট (প্রায় 60MB) ডাউনলোড করবেন?</string>
     <string name="refresh_complete">অ্যাপ তালিকা পুনঃ-সিঙ্ক সম্পূর্ণ হয়েছে।</string>
     <string name="blocklist_update_check_failure">কিছু ভুল হয়েছে. পরে আবার চেষ্টা করুন!</string>
     <string name="settings_enable_logs">অন-ডিভাইস লগিং সক্ষম করুন</string>
-    <string name="download_update_dialog_message">অ্যাপটির একটি নতুন সংস্করণ ওয়েবসাইট থেকে ডাউনলোডের জন্য উপলব্ধ। আপনি কি এগিয়ে যেতে চান\?</string>
+    <string name="download_update_dialog_message">অ্যাপটির একটি নতুন সংস্করণ ওয়েবসাইট থেকে ডাউনলোডের জন্য উপলব্ধ। আপনি কি এগিয়ে যেতে চান?</string>
     <string name="download_update_dialog_failure_message">হয় আমাদের সার্ভার ডাউন বা সংযোগ স্থাপন করা যায়নি. কিছুক্ষণ পরে আবার চেষ্টা করুন.</string>
     <string name="orbot_website_link">https://guardianproject.info/apps/org.torproject.android/</string>
     <string name="settings_network_all_networks">সমস্ত উপলব্ধ নেটওয়ার্ক ব্যবহার করুন (পরীক্ষামূলক)</string>
@@ -291,7 +287,7 @@
     <string name="dc_dns_leaks_heading">DNS ফাঁস প্রতিরোধ করুন</string>
     <string name="dc_dns_leaks_desc">সক্রিয় করা হলে, RethinkDNS পোর্ট 53-এ সমস্ত প্যাকেট ক্যাপচার করে এবং এটি একটি ব্যবহারকারী-সেট DNS এন্ডপয়েন্টে ফরোয়ার্ড করে</string>
     <string name="dc_check_update_heading">ব্লকলিস্ট আপডেটে প্রম্পট করুন</string>
-    <string name="about_bug_no_log_dialog_message">ক্র্যাশ লগগুলি আনা যায়নি৷ আপনি কি ম্যানুয়ালি আপনার বাগ রিপোর্ট করতে চান\?</string>
+    <string name="about_bug_no_log_dialog_message">ক্র্যাশ লগগুলি আনা যায়নি৷ আপনি কি ম্যানুয়ালি আপনার বাগ রিপোর্ট করতে চান?</string>
     <string name="hsf_vpn_dialog_message">ডিভাইসের DNS অনুরোধগুলি এনক্রিপ্ট করতে, একটি নেটওয়ার্ক মনিটর প্রয়োগ করতে এবং ফায়ারওয়াল নিয়মগুলি প্রয়োগ করতে একটি স্থানীয় VPN সেট আপ করার জন্য RethinkDNS-এর অনুমতি প্রয়োজন৷RethinkDNS কোনো তথ্য সংগ্রহ করে না বা কোনোভাবেই আপনার উপর গুপ্তচরবৃত্তি করে না।</string>
     <string name="about_website">rethinkdns.com এ যান</string>
     <string name="hsf_vpn_prepare_failure">হয় VPN অনুমতি অনুপস্থিত, অথবা অন্য একটি অ্যাপ সবসময়-চালু VPN মোডে আছে।</string>
@@ -308,9 +304,7 @@
     <string name="ctbs_dialog_negative_btn">পূর্বাবস্থায় যান</string>
     <string name="hs_download_positive_website">ওয়েবসাইট</string>
     <string name="hs_download_negative_default">আমাকে পরে মনে করিয়ে দিবেন</string>
-    <string name="dns_proxy_dialog_message_no_app">আইপি ঠিকানা: %1$s
-\n
-\nপোর্ট নম্বর: %2$s</string>
+    <string name="dns_proxy_dialog_message_no_app">আইপি ঠিকানা: %1$s \n \nপোর্ট নম্বর: %2$s</string>
     <string name="firewall_rule_block_app_desc">একটি ব্যবহারকারী-সেট ফায়ারওয়াল নিয়ম এই অ্যাপকে ব্লক করেছে।<br/><br/> পরিবর্তন করতে সমস্ত অ্যাপস ট্যাবে যান।</string>
     <string name="ada_app_unmetered">মিটারবিহীন</string>
     <string name="notif_channel_firewall_alerts">ফায়ারওয়াল সতর্কতা</string>
@@ -328,7 +322,7 @@
     <string name="dc_dns_proxy">DNS প্রক্সি</string>
     <string name="brbs_restore_dialog_message">একটি ব্যাকআপ ফাইল থেকে অ্যাপ সেটিংস, নেটওয়ার্ক এবং ডিএনএস লগ পুনরুদ্ধার করুন। এটি অ্যাপটি পুনরায় চালু করবে।</string>
     <string name="brbs_restore_dialog_positive">পুনঃস্থাপন</string>
-    <string name="brbs_restore_dialog_failure_message">পুনরুদ্ধার করা যায়নি। আবার চেষ্টা করুন\?</string>
+    <string name="brbs_restore_dialog_failure_message">পুনরুদ্ধার করা যায়নি। আবার চেষ্টা করুন?</string>
     <string name="copy_clipboard_label">ইউআরএল (URL)</string>
     <string name="firewall_rule_exempt_orbot_setup">অরবোট সেটআপ</string>
     <string name="firewall_rule_bypass_universal_ip_desc">এই সংযোগের অনুমতি দেওয়া হয়েছিল কারণ গন্তব্য আইপি সমস্ত সার্বজনীন ফায়ারওয়াল নিয়মগুলিকে বাইপাস করতে সেট করা হয়েছে৷&lt;br/&gt;&lt;br/&gt; পরিবর্তন করতে ইউনিভার্সাল&lt;-এ আইপি নিয়মে যান  ট্যাব।</string>
@@ -445,7 +439,7 @@
     <string name="firewall_rule_exempt_orbot_setup_desc">এই সংযোগের অনুমতি দেওয়া হয়েছিল কারণ এক-ক্লিক Tor-as-a-proxy অরবোটের মাধ্যমে সেটআপ প্রক্রিয়াধীন ছিল৷</string>
     <string name="new_app_bulk_notification_title">মনোযোগ</string>
     <string name="new_app_notification_action_toast_allow">অ্যাপের জন্য নেটওয়ার্ক সংযোগ অনুমোদিত</string>
-    <string name="rt_dialog_message">আপনি কি নতুন কনফিগার করা ব্লকলিস্ট প্রয়োগ করতে চান\?</string>
+    <string name="rt_dialog_message">আপনি কি নতুন কনফিগার করা ব্লকলিস্ট প্রয়োগ করতে চান?</string>
     <string name="rt_chip_update_available">হালনাগাদ আছে</string>
     <string name="brbs_restore_dialog_title">ব্যাকআপ পুনরুদ্ধার</string>
     <string name="firewall_rule_isolate">লকডাউন (অ্যাপ)</string>
@@ -480,13 +474,7 @@
     <string name="fapps_metered_unblock_dialog_title">মিটারে অনুমতি দিন</string>
     <string name="rules_load_failure_reload">পুনরায় লোড</string>
     <string name="rules_load_failure_desc">কোন ফায়ারওয়াল নিয়ম পাওয়া যায়নি</string>
-    <string name="fapps_info_dialog_message">অ্যাপ্লিকেশানগুলিকে ইন্টারনেটে সংযোগ করা থেকে ব্লক করুন৷ ইন্টারনেটে অ্যাক্সেস সীমিত করা অযৌক্তিক ডেটা ব্যবহার রোধ করতে, সেইসাথে ব্যাটারি সংরক্ষণ করতে সহায়তা করে।
-\n
-\nমিটারযুক্ত (মোবাইল) / আনমিটারড (ওয়াইফাই) ফায়ারওয়াল নিয়ম মান্য করা হবে না যখন:
-\n
-\n1. VPN লকডাউন মোডে আছে (যেমন, VPN ছাড়া সংযোগ ব্লক করুন সক্ষম করা আছে)।
-\n
-\n2. সমস্ত উপলব্ধ নেটওয়ার্ক ব্যবহার করুন সেটিং সক্ষম করা আছে৷</string>
+    <string name="fapps_info_dialog_message">অ্যাপ্লিকেশানগুলিকে ইন্টারনেটে সংযোগ করা থেকে ব্লক করুন৷ ইন্টারনেটে অ্যাক্সেস সীমিত করা অযৌক্তিক ডেটা ব্যবহার রোধ করতে, সেইসাথে ব্যাটারি সংরক্ষণ করতে সহায়তা করে। \n \nমিটারযুক্ত (মোবাইল) / আনমিটারড (ওয়াইফাই) ফায়ারওয়াল নিয়ম মান্য করা হবে না যখন: \n \n1. VPN লকডাউন মোডে আছে (যেমন, <i>VPN ছাড়া সংযোগ ব্লক করুন</i> সক্ষম করা আছে)। \n \n2. <i>সমস্ত উপলব্ধ নেটওয়ার্ক ব্যবহার করুন</i> সেটিং সক্ষম করা আছে৷</string>
     <string name="lbl_status" translatable="true">স্ট্যাটাস</string>
     <string name="lbl_remove" translatable="true">সরান</string>
     <string name="lbl_last" translatable="true">শেষ</string>

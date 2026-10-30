@@ -50,3 +50,7 @@ web-build/build/
 # Release signing, never committed
 keystore.properties
 upload-keystore.properties
+
+# Python maintenance/verification tools
+__pycache__/
+*.pyc

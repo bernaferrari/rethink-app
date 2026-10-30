@@ -38,7 +38,7 @@
 \nKeepout non raccoglie informazioni né spia l\'utente in alcun modo.</string>
     <string name="default_dns_name">RDNS Predefinito</string>
     <string name="custom_url_error_invalid_url">URL non valido</string>
-    <string name="conn_track_clear_logs_title">Cancellare il registro delle connessioni di rete\?</string>
+    <string name="conn_track_clear_logs_title">Cancellare il registro delle connessioni di rete?</string>
     <string name="bsct_app_info">Informazioni sull\'app</string>
     <string name="bsct_block_ip">Blocca, autorizza questo IP per questa app</string>
     <string name="always_on_dialog_heading">Disabilita \"VPN sempre attiva\"</string>
@@ -47,12 +47,12 @@
     <string name="always_on_dialog_stop_heading">VPN sempre attiva</string>
     <string name="always_on_dialog_positive">Arresta</string>
     <string name="always_on_dialog_neutral">Impostazioni</string>
-    <string name="firewall_act_universal_tab">universali</string>
+    <string name="firewall_act_universal_tab">Universali</string>
     <string name="firewall_act_network_monitor_tab">Rete</string>
-    <string name="doh_custom_url_remove_dialog_title">Eliminare l\'endpoint DoH\?</string>
+    <string name="doh_custom_url_remove_dialog_title">Eliminare l\'endpoint DoH?</string>
     <string name="doh_custom_url_remove_dialog_message">Elimina l\'endpoint DNS-over-HTTPS dalla configurazione salvata.</string>
     <string name="doh_custom_url_remove_success">Endpoint eliminato.</string>
-    <string name="dns_crypt_custom_url_remove_dialog_title">Eliminare il resolver DNSCrypt\?</string>
+    <string name="dns_crypt_custom_url_remove_dialog_title">Eliminare il resolver DNSCrypt?</string>
     <string name="dns_crypt_url_remove_dialog_message">Elimina il resolver DNSCrypt dalla configurazione salvata.</string>
     <string name="dns_crypt_url_remove_success">Il resolver DNSCrypt è stato eliminato.</string>
     <string name="dns_crypt_relay_remove_dialog_title">Eliminare il Relay DNSCrypt\?</string>
@@ -60,13 +60,13 @@
     <string name="dns_proxy_remove_dialog_message">Elimina il Proxy DNS dalla configurazione salvata.</string>
     <string name="dns_proxy_remove_success">Proxy DNS eliminato.</string>
     <string name="local_blocklist_download">Scarica le liste dei filtri</string>
-    <string name="local_blocklist_download_desc">Scaricare le liste dei filtri (circa 60MB) per usare questa funzionalità\?</string>
+    <string name="local_blocklist_download_desc">Scaricare le liste dei filtri (circa 60MB) per usare questa funzionalità?</string>
     <string name="local_blocklist_redownload">Aggiornato!</string>
     <string name="local_blocklist_redownload_desc">Le liste dei filtri sul dispositivo sono già all\'ultima versione v%1$s.</string>
     <string name="blocklist_update_check_failure">Qualcosa è andato storto. Riprova più tardi!</string>
     <string name="http_proxy_dialog_heading">Imposta Proxy HTTP(S) CONNECT</string>
     <string name="download_update_dialog_title">Nuovo aggiornamento!</string>
-    <string name="download_update_dialog_message">Una nuova versione dell\'app può essere scaricata dal sito web. Vuoi procedere\?</string>
+    <string name="download_update_dialog_message">Una nuova versione dell\'app può essere scaricata dal sito web. Vuoi procedere?</string>
     <string name="download_update_dialog_message_ok_title">Aggiornato!</string>
     <string name="download_update_dialog_message_ok">Hai già l\'ultima versione.</string>
     <string name="download_update_dialog_message_success">Liste dei filtri scaricate con successo.</string>
@@ -85,7 +85,7 @@
     <string name="settings_allow_bypass_heading">Attiva la visibilità rete</string>
     <string name="settings_allow_bypass_desc">Consentire alle app richiedenti di accedere a tutte le reti disponibili. Su richiesta queste app possono bypassare il tunnel VPN di Keepout. Alcune app per conferenze audio/video, come Zoom e Meet, potrebbero richiedere questa procedura per funzionare correttamente.</string>
     <string name="settings_lock_down_mode_desc">Alcune opzioni sono disabilitate quando la VPN è in modalità di blocco. Vai alle Impostazioni VPN.</string>
-    <string name="settings_proxy_header">proxy</string>
+    <string name="settings_proxy_header">Proxy</string>
     <string name="settings_socks5_heading">Imposta Proxy SOCKS5</string>
     <string name="settings_https_heading">Imposta Proxy HTTP(S) CONNECT</string>
     <string name="orbot">Orbot</string>
@@ -98,7 +98,7 @@
     <string name="orbot_bs_status_2">Proxy HTTP impostato.</string>
     <string name="orbot_status_arg_2">TCP</string>
     <string name="orbot_status_arg_3">DNS e TCP</string>
-    <string name="orbot_app_issue">Impossibile avviare Orbot. È installato\?</string>
+    <string name="orbot_app_issue">Impossibile avviare Orbot. È installato?</string>
     <string name="orbot_bs_status_trying_connect">Configurazione di Orbot…</string>
     <string name="orbot_bs_status_3">Sto inoltrando %1$s a Orbot e anche il proxy è HTTP impostato.</string>
     <string name="orbot_bs_status_4">Configurazione di Tor-come-Proxy (Orbot) con un solo clic.</string>
@@ -111,7 +111,7 @@
     <string name="orbot_stop_dialog_negative">Arresta Orbot</string>
     <string name="orbot_stop_dialog_neutral">Cambia DNS</string>
     <string name="orbot_title">Orbot e Proxy</string>
-    <string name="orbot_install_dialog_title">Installare Orbot\?</string>
+    <string name="orbot_install_dialog_title">Installare Orbot?</string>
     <string name="orbot_install_dialog_message">Orbot porta le funzionalità di Tor su Android.</string>
     <string name="orbot_install_dialog_positive">Installa</string>
     <string name="orbot_install_dialog_neutral">sito web</string>
@@ -124,7 +124,7 @@
     <string name="settings_https_disabled_error">Connesso a %1$s. Disabilitarlo per continuare.</string>
     <string name="settings_orbot_notification_content">Errore durante l\'avvio di Tor-come-Proxy. Apri l\'app Orbot e avvialo manualmente.</string>
     <string name="settings_orbot_notification_action">Apri Orbot</string>
-    <string name="settings_general_header">generali</string>
+    <string name="settings_general_header">Generali</string>
     <string name="settings_network_all_networks">Usa tutte le reti disponibili (sperimentale)</string>
     <string name="settings_network_all_networks_desc">Se abilitato, Keepout utilizza tutte le reti disponibili per connettersi a Internet. Altrimenti, Keepout utilizza la rete indicata come attiva da Android.</string>
     <string name="settings_autostart_bootup_heading">Avvio automatico all\'accensione (sperimentale)</string>
@@ -177,11 +177,7 @@
     <string name="univ_firewall_rule_10">Blocca tutto a eccezione di app e indirizzi ai quali hai consentito l\'aggiramento</string>
     <string name="fapps_filter_categories_heading">Categorie</string>
     <string name="dns_query_latency">%1$s ms</string>
-    <string name="dns_proxy_dialog_message">Nome app: %1$s
-\n
-\nIndirizzo IP: %2$s
-\n
-\nNumero porta: %3$s</string>
+    <string name="dns_proxy_dialog_message">Nome app: %1$s \n \nIndirizzo IP: %2$s \n \nNumero porta: %3$s</string>
     <string name="dns_proxy_port">Numero porta</string>
     <string name="fapps_metered_unblock_dialog_title">Consenti su rete a consumo</string>
     <string name="dns_crypt_connection_failure">Errore di connessione al server DNSCrypt.</string>
@@ -245,16 +241,16 @@
     <string name="about_join_telegram">Telegram</string>
     <string name="about_bug_report_dialog_positive_btn">Invia email</string>
     <string name="about_bug_no_log_dialog_title">Segnala bug</string>
-    <string name="about_bug_no_log_dialog_message">Impossibile reperire il registro degli arresti anomali. Vuoi segnalare il tuo bug manualmente\?</string>
+    <string name="about_bug_no_log_dialog_message">Impossibile reperire il registro degli arresti anomali. Vuoi segnalare il tuo bug manualmente?</string>
     <string name="about_bug_no_log_dialog_positive_btn">Invia email</string>
-    <string name="about_web">Collegamenti</string>
+    <string name="about_web">collegamenti</string>
     <string name="about_website">Visita rethinkdns.com</string>
     <string name="about_github">Contribuisci su GitHub</string>
     <string name="about_faq">Visualizza le domande frequenti</string>
     <string name="about_docs">Leggi la documentazione</string>
-    <string name="about_connect">Contatti</string>
+    <string name="about_connect">contatti</string>
     <string name="about_mozilla">Rethink fa parte del programma Mozilla Builders MVP, FOSS United Foundation, OSOM Products Inc.</string>
-    <string name="about_app">App</string>
+    <string name="about_app">app</string>
     <string name="about_email">Scrivici una email</string>
     <string name="about_settings_app_info">Info applicazione</string>
     <string name="about_settings_vpn_profile">Profilo VPN</string>
@@ -293,7 +289,7 @@
     <string name="cd_dns_crypt_relay_heading">Relay</string>
     <string name="cd_dns_crypt_dialog_desc">Descrizione (facoltativa)</string>
     <string name="cd_dns_crypt_dialog_name">Nome</string>
-    <string name="lbl_add">aggiungi</string>
+    <string name="lbl_add">Aggiungi</string>
     <string name="cd_dns_crypt_dialog_stamp">Stamp</string>
     <string name="cd_doh_dialog_heading">Aggiungi DNS su HTTPS</string>
     <string name="cd_doh_dialog_resolver_name">Nome Resolver</string>
@@ -321,9 +317,7 @@
     <string name="dns_info_neutral">Copia</string>
     <string name="dns_proxy_desc">%1$s:%2$s, %3$s</string>
     <string name="dns_proxy_desc_no_app">%1$s:%2$s</string>
-    <string name="dns_proxy_dialog_message_no_app">Indirizzo IP: %1$s
-\n
-\nNumero porta: %2$s</string>
+    <string name="dns_proxy_dialog_message_no_app">Indirizzo IP: %1$s \n \nNumero porta: %2$s</string>
     <string name="dns_proxy_dialog_header_dns">Aggiungi Proxy DNS</string>
     <string name="dns_proxy_name">Nome proxy</string>
     <string name="dns_proxy_ip_address">Indirizzo IP</string>
@@ -424,7 +418,7 @@
     <string name="ci_no_rule">Nessuna regola</string>
     <string name="ci_block">Blocca</string>
     <string name="ada_noapp_dialog_title">Nessuna app</string>
-    <string name="ada_noapp_dialog_message">Impossibile trovare le informazioni sull\'app. È stata disinstallata\?</string>
+    <string name="ada_noapp_dialog_message">Impossibile trovare le informazioni sull\'app. È stata disinstallata?</string>
     <string name="ada_noapp_dialog_positive">Okay</string>
     <string name="ada_ip_no_connection">Nessun registro di rete per quest\'app.</string>
     <string name="ada_app_status_allow">Consentita</string>
@@ -441,7 +435,7 @@
     <string name="notif_download_content_title">Scaricamento liste dei filtri su dispositivo</string>
     <string name="notif_download_content_text">Scaricamento in corso…</string>
     <string name="rt_dialog_title">Salva cambiamenti</string>
-    <string name="rt_dialog_message">Vuoi applicare le nuove liste dei filtri configurate\?</string>
+    <string name="rt_dialog_message">Vuoi applicare le nuove liste dei filtri configurate?</string>
     <string name="rt_download">Scarica liste dei filtri</string>
     <string name="rt_chip_update_available">Aggiornamento disponibile</string>
     <string name="rt_chip_check_update">Controlla aggiornamenti</string>
@@ -472,7 +466,7 @@
     <string name="brbs_backup_dialog_failure_positive">Riprova backup</string>
     <string name="brbs_backup_complete_toast">Backup completato</string>
     <string name="brbs_restore_dialog_failure_title">Ripristino non riuscito</string>
-    <string name="brbs_restore_dialog_failure_message">Ripristino non riuscito. Vuoi riprovare\?</string>
+    <string name="brbs_restore_dialog_failure_message">Ripristino non riuscito. Vuoi riprovare?</string>
     <string name="brbs_restore_dialog_failure_positive">Riprova Ripristino</string>
     <string name="brbs_restore_complete_toast">Ripristino completato, riavvio dell\'applicazione…</string>
     <string name="brbs_restore_no_uri_toast">Ripristino non riuscito; riprova</string>
@@ -545,7 +539,7 @@
     <string name="firewall_rule_dns_blocked_desc" translatable="true">Questa connessione è stata bloccata perché il dominio <i/> è bloccato dal DNS preferito dall\'utente.<br/><br/> Per modificare questo comportamento, accedere alla scheda Configura DNS.</string>
     <string name="ada_app_bypass_dns_firewall" translatable="true">Aggira DNS e firewall</string>
     <string name="lbl_rules" translatable="true">Regole</string>
-    <string name="lbl_network" translatable="true">rete</string>
+    <string name="lbl_network" translatable="true">Rete</string>
     <string name="bypass_dns_firewall" translatable="true">bypassare dns e firewall</string>
     <string name="settings_allow_lan_heading" translatable="true">Non instradare IP privati (sperimentale)</string>
     <string name="settings_lock_down_proxy_desc" translatable="true">Non è possibile impostare le proxy quando la VPN funziona in modalità solo DNS.</string>
@@ -562,7 +556,7 @@
     <string name="firewall_rule_dns_blocked" translatable="true">DNS bloccato</string>
     <string name="dc_setting_dns_cache_heading" translatable="true">Booster DNS</string>
     <string name="settings_allow_lan_desc" translatable="true">Escludere rotte LAN, loopback, multicast e link-local dal tunnel VPN di Keepout.</string>
-    <string name="settings_general_customize" translatable="true">personalizza</string>
+    <string name="settings_general_customize" translatable="true">Personalizza</string>
     <string name="cd_dns_alg_desc" translatable="true">Applicare le regole del dominio solo quando le applicazioni si connettono</string>
     <string name="dc_setting_dns_cache_desc" translatable="true">Accorpare le richieste, memorizzare le risposte nella cache, gestire gli errori in modo resiliente</string>
     <string name="lbl_configure" translatable="true">Configura</string>
@@ -580,7 +574,7 @@
     <string name="lbl_sec" translatable="true">sec</string>
     <string name="lbl_hour" translatable="true">hr</string>
     <string name="lbl_persistent_keepalive" translatable="true">Mantenimento persistente</string>
-    <string name="lbl_save" translatable="true">salva</string>
+    <string name="lbl_save" translatable="true">Salva</string>
     <string name="lbl_optional" translatable="true">(opzionale)</string>
     <string name="public_key_copy_toast_msg" translatable="true">Chiave pubblica copiata.</string>
     <string name="lbl_delete" translatable="true">Elimina</string>
@@ -684,4 +678,36 @@
     <string name="dns_median_lookup">Tempo mediano di risoluzione</string>
     <string name="dns_recent_lookups">Ultime richieste</string>
     <string name="dns_no_lookups_yet">Ancora nessuna richiesta</string>
+    <string name="ac_desync" translatable="true">Desync</string>
+    <string name="ac_desync_desc" translatable="true">Invia pacchetti esca secondo necessità.</string>
+    <string name="ac_never_split_desc" translatable="true">Non modificare i pacchetti.</string>
+    <string name="ac_retry_options_after_split_desc" translatable="true">Applica sempre le tecniche anti censura.</string>
+    <string name="ac_retry_options_desc" translatable="true">Imposta il modo in cui riprovare le connessioni censurate.</string>
+    <string name="ac_retry_options_never_desc" translatable="true">Se fallisce non ritentare mai le tecniche anti censura.</string>
+    <string name="ac_retry_options_with_split_desc" translatable="true">Applica le tecniche anti censura quando necessario.</string>
+    <string name="ac_split_auto_desc" translatable="true">Alterare i pacchetti secondo necessità.</string>
+    <string name="ac_split_tcp" translatable="true">TCP</string>
+    <string name="ac_split_tcp_desc" translatable="true">Altera i pacchetti TCP.</string>
+    <string name="ac_split_tls" translatable="true">TCP/TLS</string>
+    <string name="ac_split_tls_desc" translatable="true">Altera pacchetti TCP o TLS.</string>
+    <string name="ac_toast_retry_disabled" translatable="true">Scegli un\'opzione anti censura per definire la strategia.</string>
+    <string name="anti_censorship_title" translatable="true">Anti censura</string>
+    <string name="blocklist_not_available_toast" translatable="true">Per aggionarnare le liste di blocco, scaricare l\'ultima versione dell\'app.</string>
+    <string name="cd_split_dns_desc" translatable="true">Inoltra le richieste DNS dalle app con proxy ai server DNS del proxy.</string>
+    <string name="cd_split_dns_heading" translatable="true">Dividi DNS (sperimentale)</string>
+    <string name="dc_filtering_heading" translatable="true">filtraggio</string>
+    <string name="dns_desc" translatable="true">Scegli tra più di 190 liste per bloccare pubblicità, tracciatori, e malware.</string>
+    <string name="download_ip_info_title" translatable="true">Mostra informazioni provider</string>
+    <string name="exclude_no_package_err_toast" translatable="true">Escludere app richiede un nome di pacchetto .</string>
+    <string name="firewall_rule_private_dns" translatable="true">DNS privato</string>
+    <string name="hop_failure_toast" translatable="true">Errore di trasmissione: %1$s -&gt; %2$s</string>
+    <string name="lbl_action" translatable="true">Azione</string>
+    <string name="lbl_always" translatable="true">Sempre</string>
+    <string name="lbl_connect" translatable="true">Connette</string>
+    <string name="lbl_criteria" translatable="true">Criterio</string>
+    <string name="lbl_experimental" translatable="true">(sperimentale)</string>
+    <string name="lbl_manual" translatable="true">Manuale</string>
+    <string name="lbl_test" translatable="true">Test</string>
+    <string name="wg_setting_use_on_mobile" translatable="true">Solo dati mobili</string>
+    <string name="wg_setting_use_on_mobile_desc" translatable="true">Usa questa VPN wireguard con i dati mobili.</string>
 </resources>

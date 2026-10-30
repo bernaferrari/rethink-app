@@ -209,7 +209,7 @@
     <string name="settings_http_proxy_error_text3" translatable="true">نام میزبان خالی است</string>
     <string name="lbl_listen_port" translatable="true">پورت‌های مشغول</string>
     <string name="settings_autostart_bootup_heading" translatable="true">Auto-start on power-up (experimental)</string>
-    <string name="settings_general_header" translatable="true">general</string>
+    <string name="settings_general_header" translatable="true">کلی</string>
     <string name="settings_https_disabled_error" translatable="true">Connected to %1$s. Turn it off to continue.</string>
     <string name="settings_autostart_bootup_desc" translatable="true">On device power-up, start Keepout if it was running before shut down.</string>
     <string name="settings_custom_downloader_desc" translatable="true">If disabled, Android\'s built-in Download Manager is used</string>
@@ -296,7 +296,7 @@
     <string name="about_email" translatable="true">ایمیل به ما</string>
     <string name="about_bug_report_dialog_positive_btn" translatable="true">ارسال ایمیل</string>
     <string name="about_app" translatable="true">برنامه</string>
-    <string name="about_web" translatable="true">لینک ها</string>
+    <string name="about_web" translatable="true">پیوند‌ها</string>
     <string name="hs_biometeric_error" translatable="true">خطای احراز هویت بیومتریک</string>
     <string name="hsf_pause_vpn_failure" translatable="true">نمی‌توان مکث کرد: Keepout فعال نیست</string>
     <string name="dc_block_heading" translatable="true">قوانین</string>
@@ -581,4 +581,8 @@
     <string name="dns_median_lookup">میانه زمان پرس‌وجو</string>
     <string name="dns_recent_lookups">آخرین پرس‌وجوها</string>
     <string name="dns_no_lookups_yet">هنوز پرس‌وجویی نیست</string>
+    <string name="firewall_rule_no_rule_desc" translatable="true">هیچ قانون دیوار آتشی با این اتصال مطابقت ندارد.</string>
+    <string name="firewall_rule_private_dns" translatable="true">DNS خصوصی</string>
+    <string name="firewall_rule_proxied" translatable="true">پراکسی شده</string>
+    <string name="pause_desc" translatable="true">توجه: برنامه‌های مسدودشده (%1$s) همچنان تحت محافظت دیوار‌آتش باقی خواهند ماند.</string>
 </resources>

@@ -757,4 +757,14 @@
     <string name="dns_median_lookup">查詢時間中位數</string>
     <string name="dns_recent_lookups">最近查詢</string>
     <string name="dns_no_lookups_yet">尚無查詢</string>
+    <string name="ac_desync" translatable="true">不同步</string>
+    <string name="ac_split_tcp" translatable="true">TCP</string>
+    <string name="ac_split_tls" translatable="true">TCP/TLS</string>
+    <string name="anti_censorship_title" translatable="true">反審查</string>
+    <string name="copied_clipboard" translatable="true">已複製</string>
+    <string name="lbl_always" translatable="true">總是</string>
+    <string name="smart_dns" translatable="true">智慧 DNS</string>
+    <string name="title_database_dump" translatable="true">資料庫</string>
+    <string name="vpn_policy_fixed" translatable="true">保守</string>
+    <string name="vpn_policy_sensitive" translatable="true">敏感</string>
 </resources>

@@ -15,7 +15,7 @@
     <string name="about_mail_to">hello@celzero.com</string>
     <string name="exclude">исключить</string>
     <string name="notification_action_stop_vpn">СТОП</string>
-    <string name="about_app">Приложение</string>
+    <string name="about_app">приложение</string>
     <string name="orbot_status_arg_2">TCP</string>
     <string name="notification_action_dns_mode">DNS</string>
     <string name="about_twitter_handle">https://twitter.com/rethinkdns</string>
@@ -25,7 +25,7 @@
     <string name="dns_mode_info_title">DNS</string>
     <string name="about_docs_link">https://docs.rethinkdns.com/</string>
     <string name="notification_action_resume_vpn">ПРОДОЛЖИТЬ</string>
-    <string name="dc_block_heading">Правила</string>
+    <string name="dc_block_heading">правила</string>
     <string name="always_on_dialog_positive">Остановить</string>
     <string name="orbot_install_dialog_positive">Установить</string>
     <string name="rdns_plus">RDNS Plus</string>
@@ -33,7 +33,7 @@
     <string name="warning_title" description="Status indicator text shown in a warning notification.">Предупреждение: Keepout был деактивирован</string>
     <string name="notification_action_dns_firewall_mode">DNS + Брандмауэр</string>
     <string name="settings_theme_heading">Внешний вид</string>
-    <string name="dc_other_dns_heading">Используемый DNS</string>
+    <string name="dc_other_dns_heading">тип</string>
     <string name="settings_app_list_default_app">Ничего</string>
     <string name="untracked">неотслеживаемый</string>
     <string name="local_blocklist_redownload">Актуально!</string>
@@ -44,7 +44,7 @@
     <string name="status_dns_server_down">DNS-сервер не работает</string>
     <string name="app_name" translatable="false">Keepout</string>
     <string name="title_settings">Настройки</string>
-    <string name="finish">Закончить</string>
+    <string name="finish">Готово</string>
     <string name="hybrid_mode_notification_title">Защищен! Подключен к DNS + брандмауэр.</string>
     <string name="bypass_universal">обход универсальный</string>
     <string name="notification_content" description="Indicates what will happen if the user taps the notification.">Нажмите, чтобы изменить настройки защиты</string>
@@ -73,7 +73,7 @@
     <string name="doh_custom_url_remove_dialog_message">Удалите конечную точку DNS через Https из сохраненной конфигурации.</string>
     <string name="dns_crypt_url_remove_dialog_message">Удалите резолвер DNSCrypt из сохраненной конфигурации.</string>
     <string name="dns_crypt_relay_remove_dialog_message">Удаление ретрансляции DNSCrypt из сохраненной конфигурации.</string>
-    <string name="local_blocklist_download_desc">Скачать списки блокировки (около 60 МБ) для использования этой возможности\?</string>
+    <string name="local_blocklist_download_desc">Скачать списки блокировки (около 60 МБ) для использования этой возможности?</string>
     <string name="about_connect">Связь с нами</string>
     <string name="settings_ip_text_ipv4">IPv4</string>
     <string name="settings_ip_text_ipv6">IPv6</string>
@@ -103,14 +103,14 @@
     <string name="rt_dialog_neutral">Продолжить</string>
     <string name="blocklist_update_check_failure">Что-то пошло не так. Повторите попытку позже!</string>
     <string name="copy_clipboard_label">URL</string>
-    <string name="doh_custom_url_remove_dialog_title">Удалить конечную точку DoH\?</string>
+    <string name="doh_custom_url_remove_dialog_title">Удалить конечную точку DoH?</string>
     <string name="network_log_app_name_unknown">Неизвестно</string>
     <string name="cd_dns_crypt_dialog_stamp">Штамп</string>
     <string name="always_on_dialog_heading">Отключить постоянно включенную VPN</string>
     <string name="local_blocklist_redownload_desc">Списки блокировки на устройстве уже обновлены до последней версии v%1$s.</string>
     <string name="lbl_add">добавить</string>
-    <string name="conn_track_clear_logs_title">Удалить все сетевые журналы\?</string>
-    <string name="dns_crypt_custom_url_remove_dialog_title">Удалить резолвер DNSCrypt\?</string>
+    <string name="conn_track_clear_logs_title">Удалить все сетевые журналы?</string>
+    <string name="dns_crypt_custom_url_remove_dialog_title">Удалить резолвер DNSCrypt?</string>
     <string name="dns_proxy_remove_dialog_message">Удалить DNS-прокси из сохраненной конфигурации.</string>
     <string name="fapps_filter_parent_system">Системные</string>
     <string name="fapps_info_dialog_positive_btn">ОК</string>
@@ -159,7 +159,7 @@
     <string name="download_update_dialog_failure_message">Либо наши серверы не работают, либо не удалось установить соединение. Пожалуйста, повторите попытку через некоторое время.</string>
     <string name="download_update_dialog_failure_title">Что-то пошло не так!</string>
     <string name="search_universal_ips">Поиск IP</string>
-    <string name="download_update_dialog_message">Новая версия приложения доступна для загрузки с сайта. Вы хотите продолжить\?</string>
+    <string name="download_update_dialog_message">Новая версия приложения доступна для загрузки с сайта. Вы хотите продолжить?</string>
     <string name="search_custom_domains">Поиск доменных имен</string>
     <string name="download_update_dialog_message_ok">Вы уже используете последнюю версию.</string>
     <string name="http_proxy_dialog_heading">Установить HTTP(S) CONNECT прокси</string>
@@ -186,7 +186,7 @@
     <string name="firewall_rule_block_app_new_install">Новое приложение</string>
     <string name="firewall_rule_block_dns_bypass">Обход DNS</string>
     <string name="firewall_rule_exempt_dns_proxied">Прокси-сервер DNS</string>
-    <string name="firewall_rule_no_rule_desc">Никакие правила брандмауэра не соответствуют этому соединению.</string>
+    <string name="firewall_rule_no_rule_desc">Для этого соединения нет правил брандмауэра.</string>
     <string name="firewall_rule_block_app_mobile_desc"><![CDATA[Установленное пользователем правило брандмауэра блокировало это приложение при попытке подключения в сети Metered.]]></string>
     <string name="firewall_rule_block_app_univ_mobile_desc"><![CDATA[Установленное пользователем правило универсального брандмауэра блокировало это приложение при попытке подключения в сети Metered (Mobile).]]></string>
     <string name="firewall_rule_univ_block_metered">Дозированная (универсальная)</string>
@@ -250,7 +250,7 @@
     <string name="brbs_title">Резервное копирование и восстановление</string>
     <string name="rt_dialog_title">Сохранить изменения</string>
     <string name="radio_max_btn">🪂 Приватный сервер</string>
-    <string name="rt_dialog_message">Вы хотите применить новые настроенные списки блокировки\?</string>
+    <string name="rt_dialog_message">Вы хотите применить новые настроенные списки блокировки?</string>
     <string name="rt_chip_check_update">Проверить обновления</string>
     <string name="brbs_backup_dialog_message">Резервное копирование настроек приложения, сети и логов DNS в файл. Это перезапустит VPN.</string>
     <string name="brbs_restore_dialog_message">Восстановить настройки приложения, сети и логи DNS из файла резервной копии. Это перезапустит приложение.</string>
@@ -277,8 +277,8 @@
     <string name="settings_ip_dialog_ipv46">Авто (экспериментально)</string>
     <string name="settings_protocol_translation_dns_inactive">Переключитесь в режим DNS/DNS+Firewall, чтобы включить эту настройку</string>
     <string name="firewall_status_whitelisted">Обходит универсальные правила брандмауэра</string>
-    <string name="about_docs">Читать документацию</string>
-    <string name="about_twitter">Посетите нашу страницу в Twitter</string>
+    <string name="about_docs">Документация</string>
+    <string name="about_twitter">Twitter</string>
     <string name="hsf_notification_permission_failure">Включить разрешение на уведомления на экране Настройки</string>
     <string name="dc_check_update_heading">Уведомление об обновлении списка блокировки</string>
     <string name="dc_dns_website_desc">Получает иконки сайтов с nextdns.io и duckduckgo.com. Потребляет до 350 мб дискового пространства</string>
@@ -286,9 +286,9 @@
     <string name="dc_dns_leaks_heading">Предотвращение утечек DNS</string>
     <string name="about_bug_no_log_dialog_positive_btn">Отправить письмо</string>
     <string name="dc_dns_leaks_desc">При включении этой функции, Keepout перехватывает все пакеты на 53-м порту и перенаправляет их на заданную пользователем конечную точку DNS</string>
-    <string name="about_website">Посетите rethinkdns.com</string>
+    <string name="about_website">Сайт</string>
     <string name="about_faq">Просмотреть часто задаваемые вопросы</string>
-    <string name="about_email">Отправьте нам электронное письмо</string>
+    <string name="about_email">Почта</string>
     <string name="about_settings_notification">Параметры уведомлений</string>
     <string name="about_mozilla">Rethink поддерживается благодаря Mozilla Builders, FOSS United Foundation, FLOSS/fund.</string>
     <string name="about_dialog_positive_button">Поехали</string>
@@ -299,10 +299,8 @@
     <string name="no_browser_error">Невозможно открыть веб-страницу из браузера.</string>
     <string name="univ_view_blocked_ip">Правила для IP и портов</string>
     <string name="dns_connected_rethink_plus">Подключено. Используется списков блокировки: %1$s</string>
-    <string name="dns_proxy_dialog_message_no_app">IP-адрес: %1$s
-\n
-\nНомер порта: %2$s</string>
-    <string name="univ_firewall_rule_3">Блокировать, когда исходное приложение неизвестно</string>
+    <string name="dns_proxy_dialog_message_no_app">IP-адрес: %1$s \n \nНомер порта: %2$s</string>
+    <string name="univ_firewall_rule_3">Блокировать, если приложение неизвестно</string>
     <string name="dns_proxy_name">Имя доверенного лица</string>
     <string name="fapps_filter_parent_installed">Установленные</string>
     <string name="fapps_firewall_filter_excluded">Исключено</string>
@@ -318,7 +316,7 @@
     <string name="rules_load_failure_desc">Правила брандмауэра не найдены</string>
     <string name="network_log_app_name_unnamed">Неназванный (%1$s)</string>
     <string name="ci_dialog_error_invalid_ip">Неверный IP-адрес, подсеть или порт.</string>
-    <string name="ada_noapp_dialog_message">Информация о приложении отсутствует. Возможно, это приложение было удалено\?</string>
+    <string name="ada_noapp_dialog_message">Информация о приложении отсутствует. Возможно, это приложение было удалено?</string>
     <string name="ada_app_status_block_wifi">Заблокировано в Wi-Fi</string>
     <string name="ada_app_status_unknown">Неизвестно</string>
     <string name="ada_app_metered">Моб.сеть</string>
@@ -350,7 +348,7 @@
     <string name="brbs_restore_dialog_positive">Восстановить</string>
     <string name="brbs_backup_dialog_failure_message">Не удалось выполнить резервное копирование. Попробовать еще раз\?</string>
     <string name="brbs_backup_dialog_failure_positive">Повторное резервное копирование</string>
-    <string name="brbs_restore_dialog_failure_message">Не удалось восстановить. Попробовать еще раз\?</string>
+    <string name="brbs_restore_dialog_failure_message">Не удалось восстановить. Попробовать еще раз?</string>
     <string name="brbs_restore_dialog_failure_positive">Повторное восстановление</string>
     <string name="settings_http_proxy_error_text1">Диапазон портов должен быть в пределах 1024-65535</string>
     <string name="settings_http_proxy_toast_success">HTTP-прокси установлен</string>
@@ -371,9 +369,9 @@
     <string name="about_bug_report">Сообщить об ошибке</string>
     <string name="about_bug_report_dialog_positive_btn">Отправить письмо</string>
     <string name="about_bug_no_log_dialog_title">Сообщить об ошибке</string>
-    <string name="about_bug_no_log_dialog_message">Не удалось получить лог файл сбоя. Вы хотите вручную сообщить о ошибке\?</string>
-    <string name="about_github">Внесение вклада на GitHub’е</string>
-    <string name="about_privacy_policy">Ознакомиться с политикой конфиденциальности</string>
+    <string name="about_bug_no_log_dialog_message">Не удалось получить лог файл сбоя. Вы хотите вручную сообщить о ошибке?</string>
+    <string name="about_github">GitHub</string>
+    <string name="about_privacy_policy">Конфиденциальность</string>
     <string name="about_settings_app_info">О приложении</string>
     <string name="about_settings_vpn_profile">Профиль VPN</string>
     <string name="about_whats_new">Что нового в %1$s</string>
@@ -397,11 +395,7 @@
     <string name="dns_connected">Подключено</string>
     <string name="dns_proxy_desc">%1$s:%2$s, %3$s</string>
     <string name="dns_proxy_desc_no_app">%1$s:%2$s</string>
-    <string name="dns_proxy_dialog_message">Название приложения: %1$s
-\n
-\nIP-адрес: %2$s
-\n
-\nНомер порта: %3$s</string>
+    <string name="dns_proxy_dialog_message">Название приложения: %1$s \n \nIP-адрес: %2$s \n \nНомер порта: %3$s</string>
     <string name="dns_query_latency">%1$sms</string>
     <string name="dns_proxy_dialog_header_dns">Добавить DNS-прокси</string>
     <string name="dns_proxy_port">Номер порта</string>
@@ -431,7 +425,7 @@
     <string name="category_name_installed">Установленные приложения</string>
     <string name="orbot_socks5">Прокси-сервер только для TCP</string>
     <string name="univ_accessibility_dialog_negative">Отклонить</string>
-    <string name="orbot_app_issue">Не удалось запустить Orbot. Он установлен\?</string>
+    <string name="orbot_app_issue">Не удалось запустить Orbot. Он установлен?</string>
     <string name="orbot_stop_dialog_dns_message">Keepout настроен на пересылку DNS-запросов в Orbot. Измените по мере необходимости.</string>
     <string name="settings_https_disabled_error">Подключен к %1$s. Выключите его, чтобы продолжить.</string>
     <string name="settings_orbot_notification_action">Открыть Orbot</string>
@@ -466,7 +460,7 @@
 \n
 \n%2$s</string>
     <string name="settings_check_update_heading">Проверять наличие обновлений</string>
-    <string name="orbot_install_dialog_title">Установить Orbot\?</string>
+    <string name="orbot_install_dialog_title">Установить Orbot?</string>
     <string name="settings_socks5_vpn_disabled_error">Запустите Keepout, чтобы продолжить работу.</string>
     <string name="settings_orbot_notification_content">Сбой при запуске Tor-as-a-Proxy. Откройте приложение Orbot, чтобы запустить его вручную.</string>
     <string name="cd_custom_doh_url_name">DoH %1$s</string>
@@ -606,7 +600,7 @@
     <string name="unknown_error" translatable="true">Неизвестная ошибка</string>
     <string name="add_remove_apps" translatable="true">Добавить / Удалить приложения (%1$s)</string>
     <string name="add_peer" translatable="true">Добавить пир</string>
-    <string name="config_delete_dialog_desc">Вы уверены, что хотите удалить данную конфигурацию\?</string>
+    <string name="config_delete_dialog_desc">Вы уверены, что хотите удалить данную конфигурацию?</string>
     <string name="config_delete_dialog_title">Удалить конфигурацию</string>
     <string name="wireguard_enabled_failure">Остановите другие активные прокси чтобы включить WireGuard</string>
     <string name="wireguard_no_config_msg">Нет конфигураций WireGuard VPNов. Добавьте один чтобы начать.</string>
@@ -628,7 +622,7 @@
     <string name="lbl_listen_port" translatable="true">Слушать порт</string>
     <string name="lbl_select_all" translatable="true">выбрать все</string>
     <string name="lbl_active" translatable="true">Активно</string>
-    <string name="lbl_inactive" translatable="true">Деактивировано</string>
+    <string name="lbl_inactive" translatable="true">Выключено</string>
     <string name="lbl_socks5" translatable="true">SOCKS5</string>
     <string name="lbl_http" translatable="true">HTTP</string>
     <string name="lbl_http_socks5" translatable="true">HTTPS &amp; SOCKS5</string>
@@ -793,8 +787,8 @@
     <string name="ssid_permission_explanation" translatable="true">Для Keepout нужно разрешение местоположения чтобы видеть названия Wi-Fi сетей (%1$s).</string>
     <string name="location_enable_explanation" translatable="true">Чтобы узнать названия Wi-Fi сетей (%1$s), включите службу определения местоположения.</string>
     <string name="wg_ssid_dialog_description" translatable="true">Включено когда сеть Wi-Fi (%2$s) равен %3$s, тогда этот VPN WireGuard %1$s.</string>
-    <string name="wg_ssid_type_exact" translatable="true">Точно</string>
-    <string name="wg_ssid_type_wildcard" translatable="true">Частично</string>
+    <string name="wg_ssid_type_exact" translatable="true">Совпадает точно</string>
+    <string name="wg_ssid_type_wildcard" translatable="true">Совпадает частично</string>
     <string name="wg_ssid_invalid_error" translatable="true">Идентификаторы Wi-Fi (%1$s) должны быть до 32 символов.</string>
     <string name="settings_firebase_error_reporting_heading" translatable="true">Программа стабилизации</string>
     <string name="settings_firebase_error_reporting_desc" translatable="true">Отправлять журнал ошибок чтобы помочь улучшить стабильность приложения.</string>

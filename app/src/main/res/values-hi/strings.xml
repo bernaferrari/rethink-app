@@ -32,12 +32,12 @@
     <string name="always_on_dialog_stop_heading" translatable="true">हमेशा-ऑन वीपीएन</string>
     <string name="always_on_dialog_neutral" translatable="true">सेटिंग्स</string>
     <string name="firewall_act_universal_tab" translatable="true">यूनीवर्सल</string>
-    <string name="doh_custom_url_remove_dialog_title" translatable="true">डीओएच समापन-बिंदु हटाएं\?</string>
+    <string name="doh_custom_url_remove_dialog_title" translatable="true">डीओएच समापन-बिंदु हटाएं?</string>
     <string name="doh_custom_url_remove_dialog_message" translatable="true">सहेजे गए कॉन्फ़िगरेशन से डीएनएस ओवर एचटीटीपीएस समापन-बिंदु हटाएं।</string>
     <string name="doh_custom_url_remove_success" translatable="true">समापन-बिंदु हटा दिया गया।</string>
-    <string name="dns_crypt_custom_url_remove_dialog_title" translatable="true">डीएनएसक्रिप्ट रिज़ॉल्वर हटाएं\?</string>
+    <string name="dns_crypt_custom_url_remove_dialog_title" translatable="true">डीएनएसक्रिप्ट रिज़ॉल्वर हटाएं?</string>
     <string name="local_blocklist_download" translatable="true">ब्लॉकलिस्ट डाउनलोड करें</string>
-    <string name="local_blocklist_download_desc" translatable="true">इस सुविधा का उपयोग करने के लिए ब्लॉकलिस्ट (लगभग 60 एमबी) डाउनलोड करें\?</string>
+    <string name="local_blocklist_download_desc" translatable="true">इस सुविधा का उपयोग करने के लिए ब्लॉकलिस्ट (लगभग 60 एमबी) डाउनलोड करें?</string>
     <string name="http_proxy_dialog_heading" translatable="true">एचटीटीपी(एस) कनेक्ट प्रॉक्सी सेट करें</string>
     <string name="dns_proxy_remove_success" translatable="true">डीएनएस प्रॉक्सी हटा दिया गया।</string>
     <string name="download_update_dialog_message_ok" translatable="true">आप पहले से ही नवीनतम संस्करण पर हैं।</string>
@@ -78,7 +78,7 @@
     <string name="default_dns_name" translatable="true">आरडीएनएस डिफ़ॉल्ट</string>
     <string name="custom_url_error_invalid_url" translatable="true">अमान्य यूआरएल</string>
     <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit." translatable="true">सुरक्षित नहीं</string>
-    <string name="conn_track_clear_logs_title" translatable="true">सारा नेटवर्क लॉग मिटाए\?</string>
+    <string name="conn_track_clear_logs_title" translatable="true">सारा नेटवर्क लॉग मिटाए?</string>
     <string name="conn_track_clear_logs_message" translatable="true">ये नेटवर्क लॉग मिटाता है लेकिन फ़ायरवॉल नियम नहीं। यह ऑपरेशन प्रतिवर्ती नहीं है। क्या आप आगे बढ़ना चाहते हैं\?</string>
     <string name="bsct_app_info" translatable="true">ऐप जानकारी</string>
     <string name="always_on_dialog_heading" translatable="true">हमेशा-ऑन वीपीएन अक्षम करे</string>
@@ -101,7 +101,7 @@
     <string name="blocklist_update_check_not_required" translatable="true">ब्लॉकलिस्ट पहले से ही नवीनतम संस्करण पे हैं।</string>
     <string name="refresh_complete" translatable="true"><!-- use dc_refresh_toast -->ऐप सूची पुन: समन्वयन खत्म।</string>
     <string name="download_update_dialog_title" translatable="true">नई अपडेट!</string>
-    <string name="download_update_dialog_message" translatable="true">ऐप का एक नया संस्करण वेबसाइट से डाउनलोड के लिए उपलब्ध है। क्या आप आगे बढ़ना चाहते हैं\?</string>
+    <string name="download_update_dialog_message" translatable="true">ऐप का एक नया संस्करण वेबसाइट से डाउनलोड के लिए उपलब्ध है। क्या आप आगे बढ़ना चाहते हैं?</string>
     <string name="download_update_dialog_message_ok_title" translatable="true">आधुनिक!</string>
     <string name="download_update_dialog_failure_title" translatable="true">कुछ गलत हो गया!</string>
     <string name="download_update_dialog_failure_message" translatable="true">या तो हमारे सर्वर डाउन हैं या कनेक्शन स्थापित नहीं किया जा सका। कृपया कुछ समय बाद पुन: प्रयास करें।</string>
@@ -115,7 +115,7 @@
     <string name="orbot_stop_dialog_title" translatable="true">मैन्युअल हस्तक्षेप की आवश्यकता</string>
     <string name="orbot_stop_dialog_dns_message" translatable="true">रीथिंक डीएनएस सवालों को ऑर्बोट को फॉरवर्ड करने के लिए सेटअप है। ज़रुरत के हिसाब से बदलें।</string>
     <string name="orbot_title" translatable="true">ऑर्बोट और प्रॉक्सी</string>
-    <string name="orbot_install_dialog_title" translatable="true">ऑर्बोट इंस्टॉल करे\?</string>
+    <string name="orbot_install_dialog_title" translatable="true">ऑर्बोट इंस्टॉल करे?</string>
     <string name="orbot_install_dialog_neutral" translatable="true">वेबसाइट</string>
     <string name="settings_orbot_disabled_error" translatable="true">टॉर-एक-प्रॉक्सी-के-रूप-में सेटअप के साथ जारी रखने के लिए एचटीटीपी(एस) और/या सॉक्स5 प्रॉक्सी को बंद करें।</string>
     <string name="settings_https_disabled_error" translatable="true">%1$s से जुड़ा है। जारी रखने के लिए इसे बंद करें।</string>
@@ -177,9 +177,7 @@
     <string name="univ_accessibility_dialog_negative" translatable="true">मना करे</string>
     <string name="dns_info_positive" translatable="true">ठीक है</string>
     <string name="dns_query_latency" translatable="true">%1$sमीली</string>
-    <string name="dns_proxy_dialog_message_no_app" translatable="true">आईपी पता: %1$s
-\n
-\nपोर्ट नंबर: %2$s</string>
+    <string name="dns_proxy_dialog_message_no_app" translatable="true">आईपी पता: %1$s \n \nपोर्ट नंबर: %2$s</string>
     <string name="dns_proxy_dialog_header_dns" translatable="true">डीएनएस प्रॉक्सी जोड़ें</string>
     <string name="dns_proxy_name" translatable="true">प्रॉक्सी नाम</string>
     <string name="dns_proxy_port" translatable="true">पोर्ट संख्या</string>
@@ -249,7 +247,7 @@
     <string name="brbs_restore_title" translatable="true">रीस्टोर</string>
     <string name="brbs_restore_desc" translatable="true">बैकअप फ़ाइल से पुनर्स्थापित करें</string>
     <string name="brbs_restore_dialog_failure_title" translatable="true">पुनर्स्थापना विफल</string>
-    <string name="brbs_restore_dialog_failure_message" translatable="true">रीस्टोर नहीं हो सका। पुनः प्रयास करें\?</string>
+    <string name="brbs_restore_dialog_failure_message" translatable="true">रीस्टोर नहीं हो सका। पुनः प्रयास करें?</string>
     <string name="brbs_restore_dialog_failure_positive" translatable="true">रीस्टोर प्रयास वापिस करे</string>
     <string name="settings_protocol_translation_dns_inactive" translatable="true">इस सेटिंग को सक्षम करने के लिए डीएनएस/डीएनएस+फ़ायरवॉल मोड पर स्विच करें</string>
     <string name="firewall_status_unknown" translatable="true">अज्ञात</string>
@@ -277,11 +275,7 @@
     <string name="hs_download_negative_default" translatable="true">मुझे बाद में याद दिलाना</string>
     <string name="univ_firewall_rule_1" translatable="true">डिवाइस लॉक होने पर सभी ऐप्स को ब्लॉक करें</string>
     <string name="univ_firewall_rule_2" translatable="true">उपयोग में नहीं आने वाले किसी भी ऐप को ब्लॉक करें</string>
-    <string name="dns_proxy_dialog_message" translatable="true">ऐप नाम: %1$s
-\n
-\nआईपी पता: %2$s
-\n
-\nपोर्ट नंबर: %3$s</string>
+    <string name="dns_proxy_dialog_message" translatable="true">ऐप नाम: %1$s \n \nआईपी पता: %2$s \n \nपोर्ट नंबर: %3$s</string>
     <string name="fapps_info_isolate_msg" translatable="true">विश्वसनीय आईपी को छोड़कर सभी को अवरोधित करें।</string>
     <string name="fapps_unmetered_block_dialog_title" translatable="true">बिनमीटर को ब्लॉक करें</string>
     <string name="fapps_unmetered_block_dialog_message" translatable="true">सूचीबद्ध ऐप्स के लिए अनमीटर्ड (वाईफाई) नेटवर्क पर कनेक्शन ब्लॉक करें\?</string>
@@ -311,7 +305,7 @@
     <string name="ci_dialog_error_invalid_ip" translatable="true">अमान्य आईपी पता, सबनेट, या पोर्ट।</string>
     <string name="ci_trust_rule" translatable="true">विश्वास</string>
     <string name="rt_dialog_title" translatable="true">बदलाव सेव कीजिये</string>
-    <string name="rt_dialog_message" translatable="true">क्या आप नई कॉन्फ़िगर की गई ब्लॉकलिस्ट लागू करना चाहते हैं\?</string>
+    <string name="rt_dialog_message" translatable="true">क्या आप नई कॉन्फ़िगर की गई ब्लॉकलिस्ट लागू करना चाहते हैं?</string>
     <string name="network_dns" translatable="true">सिस्टम डीएनएस</string>
     <string name="notif_download_content_title" translatable="true">ऑन-डिवाइस ब्लॉकलिस्ट डाउनलोड</string>
     <string name="notif_download_content_text" translatable="true">डाउनलोड चल रहा है…</string>
@@ -338,7 +332,7 @@
     <string name="ssv_most_blocked_ips_heading" description="This label will appear on the stats screen as a header for most blocked ips" translatable="true">सबसे ज्यादा अवरुद्ध आईपी</string>
     <string name="settings_https_desc" translatable="true">कनेक्शन को HTTP(S) CONNECT समापन बिंदु पर भेजें।</string>
     <string name="orbot_bs_status_2" translatable="true">HTTP प्रॉक्सी सेट है।</string>
-    <string name="orbot_app_issue" translatable="true">ऑर्बोट को लॉन्च नहीं किया जा सकाI क्या वह स्थापित है\?</string>
+    <string name="orbot_app_issue" translatable="true">ऑर्बोट को लॉन्च नहीं किया जा सकाI क्या वह स्थापित है?</string>
     <string name="orbot_bs_status_3" translatable="true">%1$s को ऑर्बोट पे फोरवर्ड कर रहे है, एचटीटीपी प्रॉक्सी भी सेट है।</string>
     <string name="orbot_stop_dialog_message" translatable="true">रीथिंक ने ऑर्बोट को कनेक्शन फॉरवर्ड करना बंद कर दिया है, लेकिन ऑर्बोट शायद बैकग्राउंड में चल रहा है।</string>
     <string name="orbot_stop_dialog_negative" translatable="true">ऑर्बोट बंद करे</string>
@@ -402,7 +396,7 @@
     <string name="about_bug_report" translatable="true">बग रिपोर्ट</string>
     <string name="about_bug_report_dialog_positive_btn" translatable="true">ईमेल भेजें</string>
     <string name="about_bug_no_log_dialog_title" translatable="true">बग रिपोर्ट</string>
-    <string name="about_bug_no_log_dialog_message" translatable="true">क्रैश लॉग नहीं लाए जा सके। क्या आप अपने बग की मैन्युअल रूप से रिपोर्ट करना चाहते हैं\?</string>
+    <string name="about_bug_no_log_dialog_message" translatable="true">क्रैश लॉग नहीं लाए जा सके। क्या आप अपने बग की मैन्युअल रूप से रिपोर्ट करना चाहते हैं?</string>
     <string name="about_faq" translatable="true">अक्सर पूछे जाने वाले प्रश्न देखें</string>
     <string name="about_docs" translatable="true">दस्तावेज़ पढ़ें</string>
     <string name="about_connect" translatable="true">संपर्क करे</string>
@@ -501,7 +495,7 @@
     <string name="cd_no_rules_text" translatable="true">कोई डोमेन नियम नहीं।</string>
     <string name="firewall_rule_exempt_orbot_setup_desc" translatable="true">इस कनेक्शन की अनुमति दी गई थी क्योंकि ऑर्बोट के माध्यम से एक-क्लिक टॉर-एज-ए-प्रॉक्सी सेटअप प्रगति पर था।</string>
     <string name="ada_noapp_dialog_title" translatable="true">ऐसा कोई ऐप नही</string>
-    <string name="ada_noapp_dialog_message" translatable="true">ऐप जानकारी लापता। शायद इसे अनइंस्टाल कर दिया गया\?</string>
+    <string name="ada_noapp_dialog_message" translatable="true">ऐप जानकारी लापता। शायद इसे अनइंस्टाल कर दिया गया?</string>
     <string name="ada_app_status_block_md" translatable="true">मोबाइल डेटा पर ब्लॉक किया गया</string>
     <string name="firewall_rule_bypass_universal_ip_desc" translatable="true">इस कनेक्शन की अनुमति दी गई थी क्योंकि गंतव्य आईपी सभी यूनीवर्सल फ़ायरवॉल नियमों को बायपास करने के लिए सेट है।<br/><br/> बदलने के लिए आईपी नियम में जाए जो यूनीवर्सल टैब में है।</string>
     <string name="firewall_rule_block_app_mobile_desc" translatable="true">अनमीटर्ड नेटवर्क पर कनेक्ट करने का प्रयास करते समय एक उपयोगकर्ता-सेट फ़ायरवॉल नियम ने इस ऐप को अवरुद्ध कर दिया। <br/> <br/> बदलने के लिए सभी ऐप्स टैब पर जाएं।</string>
@@ -735,4 +729,5 @@
     <string name="dns_median_lookup">मध्य लुकअप समय</string>
     <string name="dns_recent_lookups">हाल के लुकअप</string>
     <string name="dns_no_lookups_yet">अभी तक कोई लुकअप नहीं</string>
+    <string name="lbl_test" translatable="true">मूल्यांकन</string>
 </resources>

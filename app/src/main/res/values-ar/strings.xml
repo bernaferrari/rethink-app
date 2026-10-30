@@ -3,20 +3,16 @@
     <string name="alert_firewall_accessibility_regrant_explanation">توقفت خدمة إمكانية الوصول RethinkDNS أو تعطلت.   انتقل إلى الإعدادات وفرض الإيقاف   أعد التفكير في DNS وابدأ مرة أخرى لاستخدام  احظر أي تطبيق غير مستخدم .
 \n
 \nيستخدم RethinkDNS خدمة إمكانية الوصول لتتبع التطبيقات قيد الاستخدام (المقدمة) مقابل التطبيقات غير المستخدمة (الخلفية).</string>
-    <string name="default_dns_name">RDNS افتراضي</string>
+    <string name="default_dns_name">RDNS المبدئي</string>
     <string name="about_settings_vpn_profile">ملف تعريف VPN</string>
-    <string name="dns_proxy_dialog_message">اسم التطبيق: %1$s
-\n
-\nعنوان IP: %2$s
-\n
-\nرقم المنفذ: %3$s</string>
+    <string name="dns_proxy_dialog_message">اسم التطبيق: %1$s \n \nعنوان IP: %2$s \n \nرقم المنفذ: %3$s</string>
     <string name="ada_ip_no_connection">لا توجد سجلات شبكة لهذا التطبيق.</string>
     <string name="settings_enable_logs">تمكين التسجيل على الجهاز</string>
     <string name="refresh_complete"><!-- use dc_refresh_toast --> إكتملت إعادة مزامنة قائمة التطبيقات.</string>
     <string name="new_app_notification_action_deny">استمر فى الحجز</string>
     <string name="ada_app_bypass_univ">تجاوز عالمي</string>
     <string name="lbl_advanced">متقدم</string>
-    <string name="dns_crypt_relay_remove_dialog_message">حذف مرحل DNSCrypt من التكوين المحفوظ.</string>
+    <string name="dns_crypt_relay_remove_dialog_message">احذف مرحل DNSCrypt من التكوين المحفوظ.</string>
     <string name="orbot_install_dialog_title">تثبيت Orbot؟</string>
     <string name="settings_check_update_desc">تحقق تلقائيًا من تحديثات التطبيق مرة واحدة في الأسبوع.</string>
     <string name="hsf_vpn_prepare_failure">إما إذن VPN مفقود ، أو أن هناك تطبيقًا آخر في وضع VPN قيد التشغيل دائمًا.</string>
@@ -76,7 +72,7 @@
     <string name="txt_home">الصفحة الرئيسية</string>
     <string name="allow">اسمح</string>
     <string name="custom_url_error_invalid_url">العنوان خاطئ</string>
-    <string name="conn_track_clear_logs_title">هل تريد حذف كافة سجلات الشبكة؟</string>
+    <string name="conn_track_clear_logs_title">حذف كل سجلات الشبكة؟</string>
     <string name="conn_track_clear_logs_message">يؤدي هذا إلى حذف سجلات الشبكة فقط وليس قواعد جدار الحماية. هذه العملية غير قابلة للعكس. هل تريد المتابعة؟</string>
     <string name="bsct_app_info">معلومات التطبيق</string>
     <string name="dns_proxy_remove_dialog_title">هل تريد حذف وكيل DNS؟</string>
@@ -89,7 +85,7 @@
     <string name="about_settings_notification">إعدادات الإشعار</string>
     <string name="about_whats_new">ما الجديد في %1$s</string>
     <string name="about_twitter">تابعنا على تويتر</string>
-    <string name="about_mozilla">يتم دعم Rethink بواسطة Mozilla Builders وFOSS United Foundation.</string>
+    <string name="about_mozilla">يحظى مشروع Rethink بدعم من Mozilla Builders و FOSS United Foundation و FLOSS/fund.</string>
     <string name="about_app_update_check">تحقق من وجود تحديثات التطبيق</string>
     <string name="about_dialog_positive_button">لنذهب</string>
     <string name="ci_block">حظر</string>
@@ -97,7 +93,7 @@
     <string name="firewall_mode_info_title">جدار الحماية</string>
     <string name="firewall_act_network_monitor_tab">سجلات الشبكة</string>
     <string name="orbot">Orbot</string>
-    <string name="orbot_none">لا شيء (افتراضي)</string>
+    <string name="orbot_none">لا شيء (المبدئي)</string>
     <string name="orbot_title">Orbot و Proxies</string>
     <string name="settings_network_all_networks">استخدم جميع الشبكات المتاحة (تجريبي)</string>
     <string name="settings_ip_dialog_ipv46">تلقائي (تجريبي)</string>
@@ -149,9 +145,7 @@
     <string name="error_loading_log_file">خطأ في تحميل ملف السجل</string>
     <string name="cd_dns_proxy_mode_internal">داخلي</string>
     <string name="dns_proxy_ip_address">عنوان الإنترنت (IP address)</string>
-    <string name="dns_proxy_dialog_message_no_app">عنوان IP: %1$s
-\n
-\nرقم المنفذ: %2$s</string>
+    <string name="dns_proxy_dialog_message_no_app">عنوان IP: %1$s \n \nرقم المنفذ: %2$s</string>
     <string name="fapps_unmetered_unblock_dialog_title">السماح في حالة عدم القياس</string>
     <string name="fapps_unmetered_block_dialog_message">هل تريد حظر الاتصالات على شبكة (WiFi) غير المحسوبة لتطبيقات  المدرجة ؟</string>
     <string name="dns_crypt_connection_failure">خطأ في الاتصال بخادم DNSCrypt.</string>
@@ -162,7 +156,7 @@
     <string name="always_on_dialog_neutral">الإعدادات</string>
     <string name="dns_crypt_relay_remove_dialog_title">هل تريد حذف DNSCrypt Relay؟</string>
     <string name="download_update_dialog_title">تحديث جديد!</string>
-    <string name="settings_proxy_header">وكيل (بروكسي)</string>
+    <string name="settings_proxy_header">وكيل</string>
     <string name="settings_https_disabled_error">متصل بـ %1$s. قم بإيقاف تشغيله للمتابعة.</string>
     <string name="settings_http_proxy_desc">إعادة توجيه إلى %1$s</string>
     <string name="about_mail_bugreport_share_title">حدد مزود البريد الإلكتروني</string>
@@ -187,7 +181,7 @@
     <string name="download_update_dialog_trylater_message">لا يمكن تنفيذ التحديث الآن ، يرجى المحاولة مرة أخرى لاحقًا.</string>
     <string name="orbot_stop_dialog_negative">أوقف Orbot</string>
     <string name="settings_http_proxy_error_text3">اسم المضيف فارغ</string>
-    <string name="settings_socks_forwarding_default_desc">قم بإعادة توجيه الاتصالات إلى نقطة نهاية SOCKS5.</string>
+    <string name="settings_socks_forwarding_default_desc">أعد توجيه الاتصالات إلى نقطة نهاية SOCKS5.</string>
     <string name="dc_block_heading">قواعد</string>
     <string name="dc_local_block_heading">قوائم الحظر على الجهاز</string>
     <string name="about_bug_no_log_dialog_message">تعذر جلب سجلات التعطل. هل تريد الإبلاغ عن الخطأ الخاص بك يدويًا؟</string>
@@ -255,7 +249,7 @@
     <string name="brbs_backup_title">نسخة احتياطية</string>
     <string name="brbs_backup_desc">نسخ احتياطي لإعدادات التطبيق، الشبكة و سجلات dns</string>
     <string name="notification_action_dns_mode">DNS</string>
-    <string name="doh_custom_url_remove_success">تم حذف نقطة النهاية.</string>
+    <string name="doh_custom_url_remove_success">حُذف نقطة النهاية.</string>
     <string name="info_dialog_url_copy_toast_msg">تم نسخ URL</string>
     <string name="settings_allow_bypass_heading">تمكين رؤية الشبكة</string>
     <string name="settings_https_heading">إعداد وكيل HTTP(S) CONNECT</string>
@@ -263,7 +257,7 @@
     <string name="orbot_app_issue">تعذر تشغيل Orbot. هل تم تركيبه؟</string>
     <string name="always_on_dialog_stop_message">تم تمكين Always-on VPN لـ Keepout. هل أنت متأكد أنك تريد إيقاف Keepout بأية حال؟</string>
     <string name="settings_dns_proxy_dialog_header">تعيين بروكسي SOCKS5</string>
-    <string name="settings_ip_dialog_ipv4">IPv4 (افتراضي)</string>
+    <string name="settings_ip_dialog_ipv4">IPv4 (المبدئي)</string>
     <string name="about_bug_report_desc">سجلات أعطال البريد الإلكتروني</string>
     <string name="about_bug_no_log_dialog_title">تقرير الشوائب</string>
     <string name="about_website">قم بزيارة rethinkdns.com</string>
@@ -295,19 +289,19 @@
     <string name="notif_channel_proxy_failure">تنبيهات الوكيل</string>
     <string name="bsac_title_desc">تنطبق القواعد على هذا التطبيق فقط.</string>
     <string name="dc_dns_proxy">وكيل DNS</string>
-    <string name="lbbs_search">البحث في المجالات في قوائم الحظر</string>
+    <string name="lbbs_search">ابحث في النطاقات في قوائم الحظر</string>
     <string name="download_update_dialog_trylater_title">لا يمكن التحديث الآن</string>
     <string name="orbot_bs_status_3">إعادة توجيه %1$s إلى Orbot ، تم تعيين وكيل HTTP أيضًا.</string>
     <string name="orbot_bs_status_4">بنقرة واحدة إعداد Tor-as-a-Proxy (Orbot).</string>
     <string name="settings_orbot_notification_content">فشل بدء Tor-a-Proxy. افتح تطبيق Orbot لبدء تشغيله يدويًا.</string>
     <string name="dc_other_dns_heading">النوع</string>
-    <string name="about_connect">اتصل</string>
+    <string name="about_connect">تواصل</string>
     <string name="firewall_rule_isolate">عزل</string>
     <string name="firewall_rule_block_app_desc">حظرت قاعدة جدار الحماية التي حددها المستخدم تطبيق  . <br/> <br/> للتغيير ، انتقل إلى علامة التبويب  جميع التطبيقات .</string>
     <string name="new_app_bulk_notification_title">انتباه</string>
     <string name="brbs_backup_dialog_failure_positive">أعد محاولة النسخ الاحتياطي</string>
     <string name="alert_permission_accessibility">إذن - إمكانية الوصول</string>
-    <string name="dns_crypt_url_remove_success">تم حذف محلل DNSCrypt.</string>
+    <string name="dns_crypt_url_remove_success">حُذف محلل DNSCrypt.</string>
     <string name="settings_socks5_disabled_error">متصل بـ %1$s. قم بإيقاف تشغيله للمتابعة.</string>
     <string name="settings_general_header">جنرال لواء</string>
     <string name="settings_socks_forwarding_desc">إعادة التوجيه إلى %1$s: %2$s ، %3$s</string>
@@ -326,7 +320,7 @@
     <string name="brbs_restore_dialog_failure_positive">أعد محاولة الاستعادة</string>
     <string name="radio_sky_btn">⛅ Sky</string>
     <string name="notification_action_dns_firewall_mode">DNS + جدار الحماية</string>
-    <string name="doh_custom_url_remove_dialog_title">هل تريد حذف نقطة نهاية DoH؟</string>
+    <string name="doh_custom_url_remove_dialog_title">حذف نقطة نهاية DoH؟</string>
     <string name="settings_autostart_bootup_heading">بدء التشغيل التلقائي عند التشغيل (تجريبي)</string>
     <string name="settings_dns_proxy_dialog_app_desc">سيتم استبعاد التطبيق المحدد من VPN للسماح له باتصالات الوكيل نيابة عنك.</string>
     <string name="settings_app_list_default_app">لا شيء</string>
@@ -366,7 +360,7 @@
     <string name="brbs_restore_complete_toast">اكتملت الاستعادة ، إعادة تشغيل التطبيق …</string>
     <string name="ctbs_app_other_apps">%1$s + %2$s تطبيق (تطبيقات) أخرى</string>
     <string name="cd_dns_proxy_error_text_3">المنفذ غير صالح</string>
-    <string name="cd_dnscrypt_relay_heading">المرحلات</string>
+    <string name="cd_dnscrypt_relay_heading">المُرحلات</string>
     <string name="fapps_filter_clear_btn">امسح</string>
     <string name="cd_doh_dialog_heading">أضف DNS عبر HTTPS</string>
     <string name="ctbs_app_info_not_available_toast">صفحة إعدادات التطبيق غير موجودة</string>
@@ -426,19 +420,19 @@
 \n
 \nلا يجمع Keepout أي معلومات أو يتجسس عليك بأي شكل من الأشكال.</string>
     <string name="settings_https_desc">إعادة توجيه الاتصالات إلى نقطة نهاية HTTP(S) CONNECT.</string>
-    <string name="cd_dns_crypt_relay_heading">تناوب</string>
+    <string name="cd_dns_crypt_relay_heading">مُرحل</string>
     <string name="orbot_bs_status_2">تم تعيين وكيل HTTP.</string>
     <string name="whats_new_version_update">&lt;b&gt;متعدد اللغات!&lt;/b&gt;&lt;br/&gt;&lt;br/&gt; 1. إعادة دعم Android 6.&lt;br/&gt;2. تجديد RDNS + UI.&lt;br/&gt; 3. تجديد محرك الشبكة وجدار الحماية.&lt;br/&gt; 4. &lt;i&gt;ميزة جديدة&lt;/i&gt;: الترجمة لأكثر من 15 لغة&lt;br/&gt; 5. &lt;i&gt;ميزة جديدة&lt;/i&gt;: ايقونات متكيفة&lt;br/&gt; 6. &lt;i&gt;ميزة جديدة&lt;/i&gt;: إظهار أسماء النطاقات في سجلات شبكة التطبيق.&lt;br/&gt; 7. إصلاح الاشعارات المفقودة في Android 13.&lt;br/&gt; 8. إصلاح سلوك Orbot DNS المتضمن.&lt;br/&gt; 9. شاشة التطبيقات متاحة الآن في نمط DNS-only.&lt;br/&gt; 10. تحسينات كبيرة على مدير التنزيل المدمج.&lt;br/&gt;&lt;br/&gt; &lt;a href=https://hosted.weblate.org/projects/rethink-dns-firewall/app/&gt;ساعدنا في ترجمة هذا التطبيق&lt;/a&gt;</string>
     <string name="bsct_block_ip">حظر ، تجاوز  عنوان IP هذا  لـ  هذا التطبيق </string>
     <string name="orbot_stop_dialog_message">توقف Keepout عن إعادة توجيه الإتصالات إلى Orbot ، ولكن ربما يعمل Orbot في الخلفية.</string>
     <string name="cd_dns_crypt_dialog_name">الاسم</string>
     <string name="always_on_dialog_lockdown_stop_message">يقوم Keepout بتشغيل VPN في وضع  الإغلاق . قد يؤدي إيقافه إلى فقدان الإتصال بالأنترنت في ملف تعريف المستخدم هذا. هل تريد المتابعة على أية حال؟</string>
-    <string name="dns_crypt_custom_url_remove_dialog_title">هل تريد حذف محلل DNSCrypt؟</string>
-    <string name="dns_crypt_url_remove_dialog_message">حذف محلل DNSCrypt من التكوين المحفوظ.</string>
+    <string name="dns_crypt_custom_url_remove_dialog_title">حذف محلل DNSCrypt؟</string>
+    <string name="dns_crypt_url_remove_dialog_message">احذف محلل DNSCrypt من التكوين المحفوظ.</string>
     <string name="download_update_dialog_failure_title">هناك خطأ ما !</string>
     <string name="download_update_dialog_failure_message">إما أن خوادمنا معطلة أو لا يمكن إنشاء الاتصال. من فضلك حاول مرة أخرى بعد بعض من الوقت.</string>
     <string name="settings_http_proxy_error_text1">يجب أن يتراوح نطاق المنفذ بين 1024 و 65535</string>
-    <string name="local_blocklist_redownload_desc">قوائم الحظر على الجهاز موجودة بالفعل في أحدث إصدار v %1$s.</string>
+    <string name="local_blocklist_redownload_desc">قوائم الحظر على الجهاز موجودة بالفعل في أحدث إصدار %1$s.</string>
     <string name="blocklist_update_check_failure">هناك خطأ ما. حاول مرة أخرى في وقت لاحق!</string>
     <string name="info_dialog_rethink_toast_msg">تم نسخه كـ RDNS + DNS-over-HTTPS URL</string>
     <string name="orbot_stop_dialog_dns_message">تم إعداد Keepout لإعادة توجيه استعلامات DNS إلى Orbot. قم بالتغيير على النحو المطلوب.</string>
@@ -491,13 +485,13 @@
     <string name="hsf_notification_permission_failure">فعّل إذن الإشعار من شاشة الإعدادات</string>
     <string name="private_dns_dialog_heading">قم بإيقاف تشغيل DNS الخاص</string>
     <string name="private_dns_dialog_positive">اذهب للاعدادات</string>
-    <string name="ada_delete_logs_dialog_desc" description="Appears as dialog description to clear the logs in app specific screen">امسح جميع السجلات المتعلقة بهذا التطبيق.</string>
+    <string name="ada_delete_logs_dialog_desc" description="Appears as dialog description to clear the logs in app specific screen">امحُ كل السجلات المتعلقة بهذا التطبيق.</string>
     <string name="rbl_privacy_desc" description="The text appears as blocklists description in configure screen">حظر برامج الانتباه وبرامج التجسس وبرامج الرعب.</string>
     <string name="rsv_blocklist_count_text" description="This label will appear in rethink configure simple view screen which shows number of blocklists for each category">%1$s قوائم الحظر</string>
     <string name="private_dns_dialog_desc">تم تجاوز إعدادات DNS الخاصة بـ Keepout بواسطة DNS الخاص بنظام Android.
 \n
 \nلاستخدام DNS الخاص بـ Keepout، انتقل إلى إعدادات Android وقم بإيقاف تشغيل \"Private DNS\".</string>
-    <string name="ada_delete_logs_dialog_title" description="Appears as dialog title to clear the logs in app specific screen">مسح السجلات</string>
+    <string name="ada_delete_logs_dialog_title" description="Appears as dialog title to clear the logs in app specific screen">امحُ السجلات</string>
     <string name="rbl_security_desc" description="The text appears as blocklists description in configure screen">حظر البرامج الضارة وبرامج الفدية وبرامج التشفير والمخادعين والتهديدات الأخرى.</string>
     <string name="rbl_parental_control_desc" description="The text appears as blocklists description in configure screen">حظر مواقع البالغين والمحتوى المقرصن، مواقع المقامرة عبر الإنترنت والمواعدة، ووسائل التواصل الاجتماعي.</string>
     <string name="title_statistics">الإحصائيات</string>
@@ -522,7 +516,7 @@
     <string name="lbl_ip_rules" translatable="true">قواعد IP</string>
     <string name="lbl_create" translatable="true">إنشاء</string>
     <string name="lbl_qr_code" translatable="true">رمز QR</string>
-    <string name="lbl_network" translatable="true">شبكة</string>
+    <string name="lbl_network" translatable="true">الشبكة</string>
     <string name="lbl_starting" translatable="true">البدء</string>
     <string name="lbl_private" translatable="true">خاص</string>
     <string name="lbl_secure" translatable="true">آمن</string>
@@ -535,11 +529,11 @@
     <string name="hs_biometeric_error" translatable="true">خطأ في المصادقة البيومترية</string>
     <string name="cd_dns_alg_heading" translatable="true">تصفية DNS المتقدمة (تجريبي)</string>
     <string name="fapps_info_isolate_msg" translatable="true">حظر الكل باستثناء عناوين IPs الموثوقة.</string>
-    <string name="config_delete_dialog_title" translatable="true">حذف</string>
+    <string name="config_delete_dialog_title" translatable="true">احذف</string>
     <string name="lbl_addresses" translatable="true">العناوين</string>
     <string name="lbl_dns_servers" translatable="true">خوادم DNS</string>
     <string name="lbl_wireguard" translatable="true">WireGuard</string>
-    <string name="lbl_delete" translatable="true">حذف</string>
+    <string name="lbl_delete" translatable="true">احذف</string>
     <string name="lbl_select_all" translatable="true">حدد الكل</string>
     <string name="lbl_mtu" translatable="true">MTU</string>
     <string name="lbl_auto" translatable="true">(تلقائي)</string>
@@ -555,7 +549,7 @@
     <string name="lbl_http_socks5" translatable="true">HTTPS و SOCKS5</string>
     <string name="lbl_insecure" translatable="true">(غير آمن)</string>
     <string name="lbl_optional" translatable="true">(اختياري)</string>
-    <string name="lbl_save" translatable="true">حفظ</string>
+    <string name="lbl_save" translatable="true">احفظ</string>
     <string name="fapps_info_bypass_dns_firewall_msg" translatable="true">تجاوز قواعد DNS وجدار الحماية.</string>
     <string name="hs_biometeric_desc" translatable="true">استخدم المصادقة البيومترية لإلغاء قفل Keepout</string>
     <string name="lbl_status" translatable="true">الحالة</string>
@@ -579,7 +573,7 @@
     <string name="catch_all_wg_dialog_title" translatable="true">دائمًا متصل</string>
     <string name="catch_all_wg_dialog_desc" translatable="true">سيتم توجيه جميع الاتصالات والتطبيقات التي لم يتم توجيهها بواسطة شبكات WireGuard VPN الأخرى بواسطة هذه الشبكة.</string>
     <string name="routing_remaining_apps" translatable="true">توجيه التطبيقات المتبقية</string>
-    <string name="config_delete_dialog_desc" translatable="true">هل أنت متأكد أنك تريد حذف تكوين WireGuard VPN هذا؟</string>
+    <string name="config_delete_dialog_desc" translatable="true">أمتأكد أنك تريد حذف تكوين WireGuard VPN هذا؟</string>
     <string name="config_add_success_toast" translatable="true">تم</string>
     <string name="wireguard_enabled_failure" translatable="true">أوقف الوكلاء النشطين الآخرين لتفعيل WireGuard</string>
     <string name="wireguard_no_config_msg" translatable="true">لا توجد شبكات WireGuard VPN. أضف بعضًا للبدء.</string>
@@ -721,4 +715,14 @@
     <string name="dns_median_lookup">متوسط زمن الاستعلام</string>
     <string name="dns_recent_lookups">آخر الاستعلامات</string>
     <string name="dns_no_lookups_yet">لا توجد استعلامات بعد</string>
+    <string name="cd_doh_dialog_checkbox_desc" translatable="true">لا تتحقق من صحة شهادات TLS الخاصة بالخادم (فعِّل هذا الخيار فقط إذا كنت تعرف ما تفعله)</string>
+    <string name="fapps_bypass_dns_firewall_dialog_title" translatable="true">تجاوز التطبيقات</string>
+    <string name="fapps_isolate_block_dialog_title" translatable="true">اعزل التطبيقات</string>
+    <string name="firewall_rule_private_dns" translatable="true">DNS خاص</string>
+    <string name="firewall_rule_proxied" translatable="true">موكّل</string>
+    <string name="lbl_action" translatable="true">الإجراء</string>
+    <string name="lbl_connect" translatable="true">اتصل</string>
+    <string name="lbl_criteria" translatable="true">معايير</string>
+    <string name="local_blocklist_delete_desc" translatable="true">حذف قائمة حجب على الجهاز محليًا؟</string>
+    <string name="toast_allow_bypass_disabled" translatable="true">عُطِّل %1$s نظرًا لأن الوكلاء نشطون</string>
 </resources>

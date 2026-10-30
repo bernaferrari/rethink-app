@@ -75,10 +75,10 @@
 \nPara gamitin ang Keepout\'s DNS pumunta sa Android Settings at i-off ang \"Private DNS.\"</string>
     <string name="private_dns_dialog_positive" translatable="true">Pumunta sa Mga Setting</string>
     <string name="firewall_act_network_monitor_tab" translatable="true">Network</string>
-    <string name="doh_custom_url_remove_dialog_title" translatable="true">I-delete ang endpoint ng DoH\?</string>
+    <string name="doh_custom_url_remove_dialog_title" translatable="true">I-delete ang endpoint ng DoH?</string>
     <string name="doh_custom_url_remove_success" translatable="true">Tinanggal ang endpoint.</string>
     <string name="doh_custom_url_remove_dialog_message" translatable="true">Alisin ang endpoint ng DNS over Https mula sa nakalagay na konfigurasyon.</string>
-    <string name="dns_crypt_custom_url_remove_dialog_title" translatable="true">Tanggalin ang DNSCrypt resolver\?</string>
+    <string name="dns_crypt_custom_url_remove_dialog_title" translatable="true">Tanggalin ang DNSCrypt resolver?</string>
     <string name="dns_crypt_url_remove_dialog_message" translatable="true">Tanggalin ang DNSCrypt resolver mula sa mga na-save na konfigurasyon.</string>
     <string name="dns_crypt_url_remove_success" translatable="true">Ang DNSCrypt resolver ay tinanggal.</string>
     <string name="dns_crypt_relay_remove_dialog_title" translatable="true">Tanggalin ang DNSCrypt Relay\?</string>
@@ -88,7 +88,7 @@
     <string name="dns_proxy_remove_dialog_message" translatable="true">Tanggalin ang DNS Proxy mula sa naka-save na konfigurasyon.</string>
     <string name="dns_proxy_remove_success" translatable="true">Tinanggal ang DNS Proxy.</string>
     <string name="local_blocklist_download" translatable="true">I-download ang Mga Blocklist</string>
-    <string name="local_blocklist_download_desc" translatable="true">Mag-download ng mga blocklist (mga 60MB) para magamit ang feature na ito\?</string>
+    <string name="local_blocklist_download_desc" translatable="true">Mag-download ng mga blocklist (mga 60MB) para magamit ang feature na ito?</string>
     <string name="local_blocklist_redownload" translatable="true">Napapanahon!</string>
     <string name="local_blocklist_redownload_desc" translatable="true">Ang mga blocklist sa device ay nasa pinakabagong bersyon na v%1$s.</string>
     <string name="blocklist_update_check_failure" translatable="true">May nangyaring mali. Pakisubukan muli mamaya!</string>

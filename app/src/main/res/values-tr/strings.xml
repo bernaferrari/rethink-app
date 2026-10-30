@@ -50,7 +50,7 @@
     <string name="about_email">Bize e-posta gönderin</string>
     <string name="settings_custom_downloader_heading">Uygulama içi indiriciyi kullanın</string>
     <string name="settings_ip_dialog_title">IP sürümünü seçin</string>
-    <string name="about_connect">Iletişim</string>
+    <string name="about_connect">İletişim</string>
     <string name="about_whats_new">Yenilikler %1$s</string>
     <string name="about_mail_bugreport_share_title">E-posta sağlayıcısını seçin</string>
     <string name="cd_dns_crypt_dialog_heading">DNSCrypt Çözümleyici veya Aktarıcı Ekleme</string>
@@ -73,7 +73,7 @@
     <string name="firewall_rule_block_metered">Ölçülü (Mobil)</string>
     <string name="firewall_rule_foreground">Kullanılmayan Uygulama</string>
     <string name="firewall_rule_block_http">Güvensiz HTTP</string>
-    <string name="rt_list_simple_btn_txt">basit</string>
+    <string name="rt_list_simple_btn_txt">Basit</string>
     <string name="dc_local_block_enabled">Etkin</string>
     <string name="brbs_backup_dialog_positive">Yedekle</string>
     <string name="bsct_app_info">Uygulama Bilgisi</string>
@@ -83,7 +83,7 @@
     <string name="settings_ip_text_ipv4">IPv4</string>
     <string name="dc_custom_dns_radio">Diğer DNS</string>
     <string name="about_settings_app_info">Uygulama Bilgisi</string>
-    <string name="cd_dns_crypt_title">çözücüler</string>
+    <string name="cd_dns_crypt_title">Çözücüler</string>
     <string name="cd_dns_crypt_name_default">DNSCrypt</string>
     <string name="cd_dns_crypt_relay_heading">Aktarım</string>
     <string name="hs_download_negative_default">Daha sonra anımsat</string>
@@ -153,12 +153,12 @@
     <string name="brbs_restore_dialog_failure_positive">Yeniden Dene Geri Yükle</string>
     <string name="brbs_restore_complete_toast">Geri yükleme tamamlandı, uygulama yeniden başlatılıyor…</string>
     <string name="always_on_dialog_stop_heading">Her zaman açık VPN</string>
-    <string name="firewall_act_universal_tab">genel</string>
+    <string name="firewall_act_universal_tab">Genel</string>
     <string name="orbot_status_arg_2">TCP</string>
     <string name="orbot_both">TCP + HTTP Proxy</string>
     <string name="settings_socks_forwarding_desc_no_app">%1$s adresine yönlendirme:%2$s</string>
     <string name="about_bug_no_log_dialog_positive_btn">E-posta gönder</string>
-    <string name="about_app">App, uygulama</string>
+    <string name="about_app">Uygulama</string>
     <string name="vpn_profile_error">VPN profili başlatılamadı.</string>
     <string name="fapps_firewall_filter_excluded">Hariç tutulan</string>
     <string name="dns_crypt_connection_failure">DNSCrypt sunucusuna bağlanırken hata oluştu.</string>
@@ -172,7 +172,7 @@
     <string name="download_update_dialog_title">Yeni Güncelleme!</string>
     <string name="search_universal_ips">IP\'leri arayın</string>
     <string name="info_dialog_copy_toast_msg">IP adresi kopyalandı.</string>
-    <string name="orbot_install_dialog_title">Orbot kurulsun mu\?</string>
+    <string name="orbot_install_dialog_title">Orbot kurulsun mu?</string>
     <string name="dc_entries">%1$s girişler</string>
     <string name="about_bug_no_log_dialog_title">Hata raporu</string>
     <string name="cd_doh_dialog_heading">HTTPS üzerinden DNS ekleme</string>
@@ -208,7 +208,7 @@
     <string name="default_dns_name">RDNS Varsayılan</string>
     <string name="always_on_dialog_stop_message">Keepout için her zaman açık VPN etkinleştirildi. Yine de Keepout\'i durdurmak istediğinizden emin misiniz\?</string>
     <string name="firewall_act_network_monitor_tab">Ağ</string>
-    <string name="dns_crypt_custom_url_remove_dialog_title">DNSCrypt çözümleyicisi silinsin mi\?</string>
+    <string name="dns_crypt_custom_url_remove_dialog_title">DNSCrypt çözümleyicisi silinsin mi?</string>
     <string name="dns_crypt_relay_remove_success">DNSCrypt Aktarıcısı silindi.</string>
     <string name="download_update_dialog_trylater_message">Güncelleme şu anda gerçekleştirilemiyor, lütfen daha sonra tekrar deneyin.</string>
     <string name="settings_dns_proxy_dialog_app_desc">Seçilen uygulama, sizin adınıza bağlantıları proxy\'lemesine izin vermek için VPN\'den hariç tutulacaktır.</string>
@@ -222,14 +222,14 @@
     <string name="rethink_sky_desc">280+ konum; daha yüksek çalışma süresi; cloudflare.com üzerinde çalışan saplama çözümleyici</string>
     <string name="lbbs_configure">Yapılandır</string>
     <string name="about_mail_to_string">mailto:</string>
-    <string name="brbs_restore_dialog_failure_message">Geri yüklenemedi. Tekrar deneyelim mi\?</string>
-    <string name="conn_track_clear_logs_title">Tüm ağ günlükleri silinsin mi\?</string>
+    <string name="brbs_restore_dialog_failure_message">Geri yüklenemedi. Tekrar deneyelim mi?</string>
+    <string name="conn_track_clear_logs_title">Tüm ağ günlükleri silinsin mi?</string>
     <string name="always_on_dialog_positive">Dur</string>
-    <string name="refresh_complete">&lt;!‐‐ dc_yenileme_tostu’nu kullan ‐‐&gt;Uygulama listesinin yeniden senkronizasyonu tamamlandı.</string>
+    <string name="refresh_complete"> Uygulama listesinin yeniden senkronizasyonu tamamlandı.</string>
     <string name="download_update_dialog_message_ok_title">Güncel!</string>
     <string name="orbot_none">Yok (varsayılan)</string>
     <string name="settings_socks5_disabled_error">%1$s\'a bağlandı. Devam etmek için kapatın.</string>
-    <string name="settings_general_header">genel</string>
+    <string name="settings_general_header">Genel</string>
     <string name="about_bug_report_desc">e-posta çökme günlükleri</string>
     <string name="about_dialog_positive_button">Hadi gidelim</string>
     <string name="error_loading_log_file">Günlük dosyası yüklenirken hata oluştu</string>
@@ -281,7 +281,7 @@
     <string name="brbs_restore_desc">Yedekleme dosyasından geri yükle</string>
     <string name="always_on_dialog_positive_btn">Ayarlara git</string>
     <string name="local_blocklist_redownload_desc">Cihaz üzerindeki engelleme listeleri zaten en son v%1$s sürümündedir.</string>
-    <string name="settings_proxy_header">vekil sunucu</string>
+    <string name="settings_proxy_header">Vekil Sunucu</string>
     <string name="settings_orbot_notification_content">Tor-as-a-Proxy başlatılamıyor. Manuel olarak başlatmak için Orbot uygulamasını açın.</string>
     <string name="dc_dns_leaks_heading">DNS sızıntılarını önleyin</string>
     <string name="cd_dns_crypt_dialog_desc">Açıklama (isteğe bağlı)</string>
@@ -293,7 +293,7 @@
     <string name="ada_app_status_block_md">Mobil veride engellendi</string>
     <string name="notif_download_content_text">İndirme işlemi devam ediyor…</string>
     <string name="rt_chip_check_update">Güncellemeleri denetle</string>
-    <string name="lbl_advanced">gelişmiş</string>
+    <string name="lbl_advanced">Gelişmiş</string>
     <string name="lbbs_search">Blok listelerindeki alan adlarını arama</string>
     <string name="about_docs_link">https://docs.rethinkdns.com/</string>
     <string name="radio_sky_btn">⛅ Gökyüzü</string>
@@ -352,7 +352,7 @@
     <string name="notif_dialog_pause_dialog_positive">Devam ettir</string>
     <string name="dc_doh">HTTPS üzerinden Dns</string>
     <string name="cd_dns_crypt_relay_name">DNSRelay %1$s</string>
-    <string name="lbl_add">ekle</string>
+    <string name="lbl_add">Ekle</string>
     <string name="hsf_pause_vpn_failure">Duraklatılamıyor: Keepout etkin değil</string>
     <string name="about_docs">Dokümanları okuyun</string>
     <string name="about_settings_notification">Bildirim ayarları</string>
@@ -382,22 +382,22 @@
     <string name="always_on_dialog">Bu cihazda \"Her Zaman Açık VPN\" etkinleştirilmiştir. Keepout\'i başlatmak için lütfen Ayarlar uygulamasına gidin ve \"Her Zaman Açık VPN \"i devre dışı bırakın.</string>
     <string name="always_on_dialog_lockdown_stop_message">Keepout, VPN\'i Lockdown modunda çalıştırıyor. Durdurulması, bu kullanıcı profilinde İnternet bağlantısının kaybına neden olur. Yine de devam etmek istiyor musunuz\?</string>
     <string name="dns_crypt_url_remove_dialog_message">DNSCrypt çözümleyicisini kayıtlı yapılandırmadan silin.</string>
-    <string name="doh_custom_url_remove_dialog_title">DoH uç noktası silinsin mi\?</string>
+    <string name="doh_custom_url_remove_dialog_title">DoH uç noktası silinsin mi?</string>
     <string name="doh_custom_url_remove_dialog_message">Https uç noktasındaki DNS\'yi kayıtlı yapılandırmadan silin.</string>
     <string name="doh_custom_url_remove_success">Uç nokta silindi.</string>
     <string name="blocklist_update_check_failure">Bir şeyler ters gitti. Daha sonra tekrar deneyin!</string>
     <string name="dns_crypt_url_remove_success">DNSCrypt çözümleyici silindi.</string>
-    <string name="local_blocklist_download_desc">Bu özelliği kullanmak için gereken engelleme listeleri (~60MB) indirilsin mi\?</string>
+    <string name="local_blocklist_download_desc">Bu özelliği kullanmak için gereken engelleme listeleri (~60MB) indirilsin mi?</string>
     <string name="dc_other_dns_heading">Tür</string>
     <string name="settings_allow_bypass_desc">İsteyen uygulamaların bütün kullanılabilir ağlara bağlanmasına izin verin. Bu uygulamalar Keepout’in VPN tünelini isteğe bağlı olarak atlayabilir. Zoom ve Meet gibi bazı sesli/görüntülü konferans uygulamalarının düzgün çalışması için gerekebilir.</string>
-    <string name="download_update_dialog_message">Uygulamanın yeni sürümü web sitesinden indirilebilir. Devam etmek istiyor musunuz\?</string>
+    <string name="download_update_dialog_message">Uygulamanın yeni sürümü web sitesinden indirilebilir. Devam etmek istiyor musunuz?</string>
     <string name="download_update_dialog_message_ok">Zaten en son sürümü kullanıyorsunuz.</string>
     <string name="info_dialog_url_copy_toast_msg">URL kopyalandı</string>
     <string name="whats_new_version_update">&lt;b&gt;Azami çaba&lt;/b&gt;&lt;br/&gt;&lt;br/&gt; 1. Yeni: Kullanıcı hata raporlarında ağ motoru hatalarını yakalayın.&lt;i&gt;Maksimum&lt;/i&gt;.&lt;br/&gt;2. Yeni: \"DNS sızıntılarını engelle\" seçeneği açık olduğunda, delegelenmemiş alan adları için Sistem DNS\'ini kullanma.&lt;br/&gt; 3. Geliştirme: İkili yığın (IPv4 + IPv6) WireGuard bağlantısı.&lt;br/&gt; 4. Geliştirme: Ağ motoru yanıt vermediğinde arayüz öğelerinin engellenmesini önleme.&lt;br/&gt; 5. Düzeltme: Gelişmiş DNS filtreleme açıkken bağlantı zaman aşımı sorunları.&lt;br/&gt; 6. Düzeltme: Domain adlarına sahip WireGuard peer uç noktaları, ağ değişikliklerinde donuyor.&lt;br/&gt;&lt;br/&gt; &lt;a href=https://svc.rethinkdns.com/r/translate&gt;Bu uygulamanın çevirisine yardımcı olun&lt;/a&gt;</string>
     <string name="orbot_http">HTTP Vekili</string>
     <string name="orbot_bs_status_2">HTTP Vekili ayarlandı.</string>
     <string name="orbot_stop_dialog_title">Manuel müdahale gerekli</string>
-    <string name="orbot_app_issue">Orbot başlatılamadı. Yüklü mü\?</string>
+    <string name="orbot_app_issue">Orbot başlatılamadı. Yüklü mü?</string>
     <string name="orbot_bs_status_trying_connect">Orbot kurulumu…</string>
     <string name="orbot_explanation">Orbot, diğer uygulamaların İnterneti daha güvenli kullanmasını sağlayan ücretsiz bir proxy uygulamasıdır.\nOrbot, İnternet trafiğinizi şifrelemek için Tor kullanır ve böylece sansürü aşmanıza yardımcı olur ve kişisel özgürlük ile mahremiyeti tehdit eden ağ gözetimi türlerine karşı savunma sağlar.\nTCP Proxy: Keepout, yalnızca dahil edilen uygulamaların TCP bağlantılarını Orbot\'a yönlendirir.\nHTTP Proxy: Keepout, Orbot\'a HTTP CONNECT tüneli kurar ve yalnızca dahil edilen uygulamaların TCP bağlantılarını yönlendirir.</string>
     <string name="orbot_status_arg_3">DNS ve TCP</string>
@@ -409,19 +409,17 @@
 \n
 \nKeepout herhangi bir şekilde bilgi toplamaz veya sizi gözetlemez.</string>
     <string name="dc_dns_website_desc">Web sitesi simgelerini nextdns.io ve duckduckgo.com adresinden alır. 350 mb\'a kadar disk alanı tüketir</string>
-    <string name="about_bug_no_log_dialog_message">Kilitlenme günlükleri alınamadı. Hatanızı manuel olarak bildirmek ister misiniz\?</string>
+    <string name="about_bug_no_log_dialog_message">Kilitlenme günlükleri alınamadı. Hatanızı manuel olarak bildirmek ister misiniz?</string>
     <string name="about_faq">SSS\'leri Görüntüle</string>
     <string name="about_web">Bağlantılar</string>
     <string name="about_bug_report">Hata raporu</string>
     <string name="collecting_logs_progress_text">Yakalanıyor…</string>
     <string name="rbl_privacy">Gizlilik</string>
-    <string name="rt_dialog_message">Yeni yapılandırılmış blok listelerini uygulamak istiyor musunuz\?</string>
+    <string name="rt_dialog_message">Yeni yapılandırılmış blok listelerini uygulamak istiyor musunuz?</string>
     <string name="cd_doh_dialog_resolver_url">Çözümleyici URL\'si</string>
     <string name="firewall_rule_block_app_unmetered_desc"><![CDATA[Kullanıcı tarafından belirlenen güvenlik duvarı kuralı bu uygulamanın Ölçülmemiş ağda bağlantı kurma girişimini engelledi. Değiştirmek için Tüm Uygulamalar sekmesine gidin.]]></string>
     <string name="firewall_rule_block_ip_univ_desc"><![CDATA[Kullanıcı tarafından belirlenen güvenlik duvarı kuralı hedef IP / Port adresini engelledi.]]></string>
-    <string name="dns_proxy_dialog_message_no_app">IP adresi: %1$s
-\n
-\nLiman numarası: %2$s</string>
+    <string name="dns_proxy_dialog_message_no_app">IP adresi: %1$s \n \nLiman numarası: %2$s</string>
     <string name="ada_app_status_block">Engellendi</string>
     <string name="ada_app_unmetered">Ölçülmeyen</string>
     <string name="network_dns">Sistem DNS</string>
@@ -436,13 +434,7 @@
     <string name="fapps_info_dialog_positive_btn">Tamam</string>
     <string name="update_complete_snack_message">Yeni sürüm indirildi.</string>
     <string name="firewall_rule_exempt_dns_proxied">DNS Proxy\'li</string>
-    <string name="fapps_info_dialog_message">Uygulamaların internete bağlanmasını engelleyin. İnternete erişimi sınırlamak, yersiz veri kullanımını önlemeye ve pil tasarrufu sağlamaya yardımcı olur.
-\n
-\nÖlçülü (Mobil) / Ölçüsüz (WiFi) güvenlik duvarı kuralları şu durumlarda yerine getirilmeyecektir:
-\n
-\n1. VPN kilitleme modunda (yani, VPN olmadan bağlantıları engelle etkinleştirildi).
-\n
-\n2. Kullanılabilir tüm ağları kullan ayarı etkinleştirilir.</string>
+    <string name="fapps_info_dialog_message">Uygulamaların internete bağlanmasını engelleyin. İnternet erişimini sınırlamak, gereksiz veri kullanımını önlemenin yanı sıra pil tasarrufu da sağlar.</string>
     <string name="firewall_rule_foreground_desc"><![CDATA[Bu bağlantı güvenlik duvarı tarafından engellendi çünkü kaynak uygulama ön planda değildi. Bu davranışı değiştirmek için Evrensel sekmesine gidin.]]></string>
     <string name="firewall_rule_unknown_desc"><![CDATA[Bu bağlantı güvenlik duvarı tarafından engellendi çünkü kaynak uygulama belirlenemedi. Bu davranışı değiştirmek için Evrensel sekmesine gidin.]]></string>
     <string name="firewall_rule_exempt_app_bypass_univ_desc"><![CDATA[Bu bağlantıya izin verildi çünkü kaynak uygulama evrensel güvenlik duvarı kurallarını atla olarak ayarlandı. Değiştirmek için Uygulamaya Özel Güvenlik Duvarı ekranına gidin.]]></string>
@@ -458,19 +450,14 @@
     <string name="firewall_rule_trusted_ip_desc"><![CDATA[Bu bağlantıya izin verildi çünkü hedef IP Güvenilir IP olarak ayarlandı.]]></string>
     <string name="ada_app_status_allow">İzin verildi</string>
     <string name="ci_no_rule">Kural Yok</string>
-    <string name="ada_noapp_dialog_message">Uygulama bilgisi kayıp.
-\nBu uygulama silinmiş olabilir mi?</string>
+    <string name="ada_noapp_dialog_message">Uygulama bilgisi kayıp. Bu uygulama silinmiş olabilir mi?</string>
     <string name="ada_app_status_whitelist">Evrensel güvenlik duvarı kurallarını atlar</string>
     <string name="ada_app_status_isolate">İzole: yalnızca güvenilir IP\'lere ve alan adlarına izin verilir</string>
     <string name="ada_app_status_unknown">Bilinmiyor</string>
     <string name="ada_app_bypass_univ">Bypass Evrensel</string>
     <string name="ada_app_exclude">Dışarıda tut</string>
     <string name="bsac_title_desc">Kurallar sadece bu uygulama için geçerlidir.</string>
-    <string name="dns_proxy_dialog_message">Uygulama adı: %1$s
-\n
-\nIP adresi: %2$s
-\n
-\nLiman numarası: %3$s</string>
+    <string name="dns_proxy_dialog_message">Uygulama adı: %1$s \n \nIP adresi: %2$s \n \nLiman numarası: %3$s</string>
     <string name="notif_download_success_content">Başarılı indir.</string>
     <string name="rbl_security">Güvenlik</string>
     <string name="ada_ip_no_connection">Bu kategori için ağ kaydı yok.</string>
@@ -511,7 +498,7 @@
     <string name="bsct_block_domain" translatable="true">Engelle, bu uygulama için alan adlarına güven</string>
     <string name="lbl_configure" translatable="true">Yapılandır</string>
     <string name="lbl_logs" translatable="true">Günlükler</string>
-    <string name="lbl_network" translatable="true">ağ</string>
+    <string name="lbl_network" translatable="true">Ağ</string>
     <string name="bypass_dns_firewall" translatable="true">dns &amp; güvenlik duvarını atla</string>
     <string name="title_statistics" translatable="true">İstatistikler</string>
     <string name="lbl_domain" translatable="true">Alan adı</string>
@@ -562,7 +549,7 @@
     <string name="add_peer" translatable="true">Eş Ekle</string>
     <string name="cloudflare_family_dns_desc" translatable="true">Kötü amaçlı yazılımları ve yetişkinlere yönelik içeriği engeller. Cloudflare\'in 1.1.1.3 DNS uç noktasını kullanır.</string>
     <string name="crypt_quad9_security_desc" translatable="true">Quad9 (anycast) dnssec/no–log/filter 9.9.9.9 – 149.112.112.9 – 149.112.112.112</string>
-    <string name="lbl_save" translatable="true">kaydet</string>
+    <string name="lbl_save" translatable="true">Kaydet</string>
     <string name="dc_setting_dns_cache_heading" translatable="true">DNS güçlendirici (deneysel)</string>
     <string name="lbl_optional" translatable="true">(opsiyonel)</string>
     <string name="cleanbrowsing_family_dns_desc" translatable="true">Aile filtresi, tüm yetişkin, pornografik ve açık sitelere erişimi engeller. Ayrıca filtrelerimizi atlamak için kullanılabilecek proxy ve VPN alan adlarını da engeller. Karışık içerikli siteler (örneğin Reddit) de engellenir. Google, Bing ve Youtube Güvenli Mod\'a ayarlanmıştır.</string>
@@ -596,7 +583,7 @@
     <string name="bad_config_reason_missing_section" translatable="true">Eksik bölüm</string>
     <string name="brbs_backup_restore_desc" translatable="true">Uygulama sürümleri arasında çalışmıyor</string>
     <string name="wireguard_no_config_msg">WireGuard VPNleri yok. Başlamak için bazılarını ekleyin.</string>
-    <string name="settings_general_customize" translatable="true">özelleştir</string>
+    <string name="settings_general_customize" translatable="true">Özelleştir</string>
     <string name="bad_config_context" translatable="true">%1$s\'s %2$s</string>
     <string name="firewall_rule_block_domain_desc" translatable="true"><![CDATA[Kullanıcı tarafından belirlenen güvenlik duvarı kuralı alan adını engelledi. Değiştirmek için Uygulamaya Özel Güvenlik Duvarı ekranına gidin.]]></string>
     <string name="ssv_app_blocked_heading" description="This label will appear on the stats screen as a header for blocked applications." translatable="true">En çok engellenmiş uygulamalar</string>
@@ -651,7 +638,7 @@
     <string name="lbl_select_all" translatable="true">tümünü seç</string>
     <string name="firewall_rule_dns_blocked_desc" translatable="true"><![CDATA[Bu bağlantı engellendi çünkü alan adı kullanıcının tercih ettiği DNS tarafından engellendi. Bu davranışı değiştirmek için DNS Yapılandır sekmesine gidin.]]></string>
     <string name="cleanbrowsing_adult_dns_desc" translatable="true">Yetişkin filtresi, tüm yetişkin, pornografik ve açık sitelere erişimi engeller. Proxy veya VPN\'leri, karışık içerikli siteleri engellemez. Reddit gibi sitelere izin verir. Google ve Bing Güvenli Mod\'a ayarlanmıştır.</string>
-    <string name="config_delete_dialog_desc">Bu Konfigürasyonu silmek istediğinizden emin misiniz\?</string>
+    <string name="config_delete_dialog_desc">Bu Konfigürasyonu silmek istediğinizden emin misiniz?</string>
     <string name="parse_error_reason" translatable="true">%1$s \"%2$s\" ayrıştırılamıyor</string>
     <string name="firewall_rule_dns_blocked" translatable="true">DNS Engellendi</string>
     <string name="parse_error_generic" translatable="true">dizge</string>
@@ -709,10 +696,10 @@
     <string name="memory_notification_text">Keepout düşük bellekle çalışıyor. Sistem eylemleri sınırlı olabilir.</string>
     <string name="settings_exclude_proxy_apps_heading" translatable="true">Loopback proxy yönlendirme uygulamaları</string>
     <string name="settings_connectivity_checks_desc" translatable="true">Bağlantı kontrolleri, erişilebilirliği doğrulamak için gönderilir.</string>
-    <string name="toast_allow_bypass_disabled" translatable="true">%1$s, proxy\'ler aktif olduğu için devre dışı bırakıldı.</string>
+    <string name="toast_allow_bypass_disabled" translatable="true">%1$s, proxy\'ler aktif olduğu için devre dışı bırakıldı</string>
     <string name="exclude_apps_from_proxy">Uygulamayı tüm proxy\'lerden hariç tut</string>
     <string name="exclude_apps_from_proxy_failure_toast">Bu uygulama proxy\'leri atlar (bypass)</string>
-    <string name="lbl_test" translatable="true">test</string>
+    <string name="lbl_test" translatable="true">Test</string>
     <string name="lbl_experimental" translatable="true">(deneysel)</string>
     <string name="lbl_service_providers" translatable="true">Hizmet Sağlayıcıları</string>
     <string name="lbl_manual" translatable="true">Talimatlar</string>
@@ -800,8 +787,8 @@
     <string name="ssid_permission_explanation" translatable="true">Keepout\'in Wi‑Fi tanımlayıcılarına (%1$s) erişmek için konum iznine ihtiyacı var.</string>
     <string name="location_enable_explanation" translatable="true">Wi‑Fi tanımlayıcılarına (%1$s) erişmek için Konum servisini açın.</string>
     <string name="wg_ssid_dialog_description" translatable="true">Etkin Wi-Fi Tanımlayıcısı (%2$s) %3$s olduğunda bu WireGuard VPN\'ini %1$s.</string>
-    <string name="wg_ssid_type_exact" translatable="true">Tam olarak</string>
-    <string name="wg_ssid_type_wildcard" translatable="true">Kısmen</string>
+    <string name="wg_ssid_type_exact" translatable="true">Tam eşleşen</string>
+    <string name="wg_ssid_type_wildcard" translatable="true">Kısmen eşleşen</string>
     <string name="wg_ssid_invalid_error" translatable="true">Wi-Fi tanımlayıcıları (%1$s) 32 karakter veya daha az olmalıdır.</string>
     <string name="settings_firebase_error_reporting_heading" translatable="true">Kararlılık programı</string>
     <string name="settings_firebase_error_reporting_desc" translatable="true">Kararlılığı artırmaya yardımcı olmak için hata günlüklerini yakala.</string>
