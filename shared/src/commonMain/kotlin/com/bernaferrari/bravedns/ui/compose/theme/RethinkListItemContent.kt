@@ -41,6 +41,7 @@ internal fun RethinkListItemContent(
     alpha: Float,
     singleLineHeadline: Boolean,
     showTrailingChevron: Boolean,
+    interactionModifier: Modifier,
 ) {
     // The expressive ListItem overload centers trailing controls (switches, radios) even on
     // three-line rows, where the legacy one top-aligns them.
@@ -72,7 +73,7 @@ internal fun RethinkListItemContent(
             else -> null
         },
         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-        modifier = Modifier.clip(shape).padding(vertical = 1.dp),
+        modifier = Modifier.clip(shape).then(interactionModifier).padding(vertical = 1.dp),
     )
 }
 

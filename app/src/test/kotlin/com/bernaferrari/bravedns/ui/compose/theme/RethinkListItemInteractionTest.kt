@@ -10,6 +10,8 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.bernaferrari.bravedns.ui.TestDialogActivity
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
@@ -80,6 +82,24 @@ class RethinkListItemInteractionTest {
         composeRule.onNodeWithText("Name").assertIsDisplayed()
         composeRule.onNodeWithContentDescription("Package").assertIsDisplayed().performClick()
         composeRule.runOnIdle { assertEquals(listOf(2), selections) }
+    }
+
+
+    @Test
+    fun actionRowLabelOwnsItsClickAndLongClickActions() {
+        var clicks = 0
+        var longClicks = 0
+        composeRule.setContent {
+            RethinkTheme {
+                RethinkListItem(headline = "Details", onClick = { clicks++ }, onLongClick = { longClicks++ })
+            }
+        }
+        composeRule.onNodeWithText("Details").performClick()
+            .performSemanticsAction(SemanticsActions.OnLongClick) { it() }
+        composeRule.runOnIdle {
+            assertEquals(1, clicks)
+            assertEquals(1, longClicks)
+        }
     }
 
 }

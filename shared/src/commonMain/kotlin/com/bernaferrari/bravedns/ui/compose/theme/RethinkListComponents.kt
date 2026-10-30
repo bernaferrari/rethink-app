@@ -190,11 +190,11 @@ fun RethinkListItem(
     val headlineColor = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
 
     val surfaceModifier = Modifier.rethinkGroupedRow(position)
-    val content: @Composable () -> Unit = {
+    val content: @Composable (Modifier) -> Unit = { interactionModifier ->
         RethinkListItemContent(
             headline, headlineAnnotated, supporting, supportingAnnotated, contentOffset,
             leadingIcon, leadingContent, trailing, colors, headlineColor, shape, alpha,
-            singleLineHeadline, showTrailingChevron && onClick != null && enabled,
+            singleLineHeadline, showTrailingChevron && onClick != null && enabled, interactionModifier,
         )
     }
 

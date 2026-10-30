@@ -1,13 +1,11 @@
-@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
-
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.theme
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Surface
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
@@ -22,63 +20,34 @@ internal fun RethinkListItemSurface(
     onClick: (() -> Unit)?, onLongClick: (() -> Unit)?,
     interactionSource: MutableInteractionSource, shape: Shape,
     containerColor: Color, surfaceModifier: Modifier,
-    content: @Composable () -> Unit,
+    content: @Composable (Modifier) -> Unit,
 ) {
-    if (selection != null) {
-        val controlModifier = if (selection.role == Role.RadioButton) {
+    val interaction = when {
+        selection != null -> if (selection.role == Role.RadioButton) {
             Modifier.selectable(
-                selected = selection.checked,
-                interactionSource = interactionSource,
-                indication = ripple(),
-                enabled = enabled,
-                role = selection.role,
+                selected = selection.checked, interactionSource = interactionSource,
+                indication = ripple(), enabled = enabled, role = selection.role,
                 onClick = { selection.onCheckedChange(true) },
             )
         } else {
             Modifier.toggleable(
-                value = selection.checked,
-                interactionSource = interactionSource,
-                indication = ripple(),
-                enabled = enabled,
-                role = selection.role,
+                value = selection.checked, interactionSource = interactionSource,
+                indication = ripple(), enabled = enabled, role = selection.role,
                 onValueChange = selection.onCheckedChange,
             )
         }
-        Surface(
-            shape = shape,
-            color = containerColor,
-            modifier = surfaceModifier.then(controlModifier),
-            content = content,
+        onClick != null && onLongClick != null -> Modifier.combinedClickable(
+            interactionSource = interactionSource, indication = ripple(), enabled = enabled,
+            onLongClick = onLongClick, onClick = onClick, role = Role.Button,
         )
-    } else if (onClick != null && onLongClick != null) {
-        Surface(
-            shape = shape,
-            color = containerColor,
-            modifier = surfaceModifier.combinedClickable(
-                interactionSource = interactionSource,
-                indication = ripple(),
-                enabled = enabled,
-                onLongClick = onLongClick,
-                onClick = onClick,
-            ),
-            content = content,
+        onClick != null -> Modifier.clickable(
+            interactionSource = interactionSource, indication = ripple(), enabled = enabled, onClick = onClick, role = Role.Button,
         )
-    } else if (onClick != null) {
-        Surface(
-            onClick = onClick,
-            enabled = enabled,
-            interactionSource = interactionSource,
-            shape = shape,
-            color = containerColor,
-            modifier = surfaceModifier,
-            content = content,
-        )
-    } else {
-        Surface(
-            shape = shape,
-            color = containerColor,
-            modifier = surfaceModifier,
-            content = content,
-        )
+        else -> Modifier
+    }
+    Surface(shape = shape, color = containerColor, modifier = surfaceModifier) {
+        // Expressive ListItem owns its own merged label node. Put interactions on that
+        // same node so TalkBack receives the label, role, state and actions together.
+        content(interaction)
     }
 }
