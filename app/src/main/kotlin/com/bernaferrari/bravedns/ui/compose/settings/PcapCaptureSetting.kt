@@ -18,6 +18,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.util.PcapMode
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -25,7 +26,7 @@ import org.koin.compose.koinInject
 import java.io.File
 
 @Composable
-internal fun PcapCaptureSetting() {
+internal fun PcapCaptureSetting(operationDispatcher: CoroutineDispatcher = Dispatchers.IO) {
     val manager = koinInject<PcapCaptureManager>()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -38,11 +39,12 @@ internal fun PcapCaptureSetting() {
     val title = stringResource(R.string.port_capture_title)
     val shareTitle = stringResource(R.string.port_capture_share)
     fun perform(action: suspend () -> Boolean) {
+        if (busy) return
         busy = true
         scope.launch {
             try {
-                failed = !withContext(Dispatchers.IO) { action() }
-                files = withContext(Dispatchers.IO) { manager.files() }
+                failed = !withContext(operationDispatcher) { action() }
+                files = withContext(operationDispatcher) { manager.files() }
             } catch (cancelled: kotlinx.coroutines.CancellationException) {
                 throw cancelled
             } catch (error: java.io.IOException) {
