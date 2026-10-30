@@ -36,19 +36,19 @@
     <string name="lbl_blocked" translatable="true">Blocked</string>
     <string name="lbl_disabled" translatable="true">Disabled</string>
     <string name="lbl_domain" translatable="true">Domain</string>
-    <string name="lbl_action_required" translatable="true">Action Required</string>
+    <string name="lbl_action_required" translatable="true">Action required</string>
     <string name="lbl_rules" translatable="true">Rules</string>
     <string name="lbl_configure" translatable="true">Configure</string>
     <string name="lbl_logs" translatable="true">Logs</string>
     <string name="lbl_network" translatable="true">Network</string>
     <string name="lbl_create" translatable="true">Create</string>
-    <string name="lbl_qr_code" translatable="true">QR Code</string>
+    <string name="lbl_qr_code" translatable="true">QR code</string>
     <string name="lbl_wireguard" translatable="true">WireGuard</string>
-    <string name="lbl_public_key" translatable="true">Public Key</string>
+    <string name="lbl_public_key" translatable="true">Public key</string>
     <string name="lbl_addresses" translatable="true">Addresses</string>
-    <string name="lbl_dns_servers" translatable="true">DNS Servers</string>
-    <string name="lbl_ip_rules" translatable="true">IP Rules</string>
-    <string name="lbl_domain_rules" translatable="true">Domain Rules</string>
+    <string name="lbl_dns_servers" translatable="true">DNS servers</string>
+    <string name="lbl_ip_rules" translatable="true">IP rules</string>
+    <string name="lbl_domain_rules" translatable="true">Domain rules</string>
     <string name="lbl_delete" translatable="true">Delete</string>
     <string name="cd_filter" translatable="true">Filter</string>
     <string name="cd_refresh" translatable="true">Refresh</string>
@@ -59,8 +59,8 @@
     <string name="lbl_listen_port" translatable="true">Listen port</string>
     <string name="lbl_mtu" translatable="true">MTU</string>
     <string name="lbl_auto" translatable="true">(auto)</string>
-    <string name="lbl_select_all" translatable="true">Select All</string>
-    <string name="lbl_unselect_all" translatable="true">Unselect All</string>
+    <string name="lbl_select_all" translatable="true">Select all</string>
+    <string name="lbl_unselect_all" translatable="true">Unselect all</string>
     <string name="lbl_active" translatable="true">Active</string>
     <string name="lbl_inactive" translatable="true">Inactive</string>
     <string name="rpn_availability_title" translatable="true">RPN availability</string>
@@ -81,15 +81,15 @@
     <string name="checkout_plan_6m_title" translatable="true">6 Months / 5.99</string>
     <string name="checkout_plan_6m_subtitle" translatable="true">( 0.99 / month )</string>
     <string name="checkout_purchase" translatable="true">purchase</string>
-    <string name="checkout_restore" translatable="true">Restore Purchase</string>
-    <string name="checkout_terms_title" translatable="true">Terms and Conditions</string>
+    <string name="checkout_restore" translatable="true">Restore purchase</string>
+    <string name="checkout_terms_title" translatable="true">Terms and conditions</string>
     <string name="checkout_terms_body" translatable="true">Rethink DNS + Firewall are anti-surveillance tools first and foremost: It is absolutely against our ethos, then, to track users of our apps and services, or sell any information whatsoever to any third-party in any form, pseudo-anonymized, de-anonymized, anonymized, aggregated, or otherwise. We do not collect, sell, license, share any data (personally identifiable or otherwise) from the Rethink DNS + Firewall Android app. The code is open source so you may inspect it yourself or deploy to your servers.\nPersonally identifiable information: Any data that can be traced back to the user including (but not limited to) a combination of IP addresses, name, device-id, advertisement-id, and location.\n\nNon personally identifiable information: Aggregated (summarized) data and anonymized data scrubbed off any personally identifiable information.\nCollect: Data stored by Keepout.\nSell: Data sold to third parties.\nLicense: Restricted access to data collected by Keepout to third parties.\nShare: Data shared with third parties.\nAggregate: Data combined with other data to form a summary of information.\nAnonymize: Data scrubbed off any personally identifiable information.\nDe-anonymize: Data scrubbed off any personally identifiable information.\nShare: Permanent access to data collected by Keepout to third parties.\n\nWe do not collect, sell, license, share any data (personally identifiable or otherwise) from the Rethink DNS + Firewall Android app. The code is open source so you may inspect it yourself or deploy to your servers.</string>
-    <string name="checkout_payment_success_title" translatable="true">Payment Successful</string>
+    <string name="checkout_payment_success_title" translatable="true">Payment successful</string>
     <string name="checkout_payment_success_message" translatable="true">Your payment was successful. You can now enjoy the proxy features of Keepout.</string>
     <string name="checkout_payment_success_button" translatable="true">continue</string>
     <string name="checkout_payment_awaiting_title" translatable="true">Awaiting payment</string>
     <string name="checkout_payment_awaiting_message" translatable="true">Please wait while we process your payment. This may take a few seconds.</string>
-    <string name="checkout_payment_failed_title" translatable="true">Payment Failed</string>
+    <string name="checkout_payment_failed_title" translatable="true">Payment failed</string>
     <string name="checkout_payment_failed_message" translatable="true">Your payment failed. Please try again.</string>
     <string name="checkout_payment_failed_button" translatable="true">try again</string>
     <string name="vpn_not_active_dialog_title" translatable="true">VPN not active</string>
@@ -147,7 +147,7 @@
     <string name="lbl_reddit" translatable="false">Reddit</string>
     <string name="lbl_test" translatable="true">test</string>
     <string name="lbl_experimental" translatable="true">(experimental)</string>
-    <string name="lbl_service_providers" translatable="true">Service Providers</string>
+    <string name="lbl_service_providers" translatable="true">Service providers</string>
     <string name="lbl_search" translatable="false">Search</string>
     <string name="lbl_ipinfo_inc" translatable="false">IPinfo Inc.</string>
     <string name="lbl_manual" translatable="true">Manual</string>
@@ -208,11 +208,11 @@
 
     <string name="allow" translatable="true">allow</string>
     <string name="block" translatable="true">block</string>
-    <string name="bypass_universal" translatable="true">Bypass Universal</string>
+    <string name="bypass_universal" translatable="true">Bypass universal rules</string>
     <string name="exclude" translatable="true">exclude</string>
     <string name="isolate" translatable="true">isolate</string>
     <string name="untracked" translatable="true">untracked</string>
-    <string name="bypass_dns_firewall" translatable="true">Bypass DNS &amp; Firewall</string>
+    <string name="bypass_dns_firewall" translatable="true">Bypass DNS and firewall</string>
 
     <string name="warning_title" description="Status indicator text shown in a warning notification." translatable="true">
     Warning: Keepout has been deactivated
@@ -279,7 +279,7 @@
     <string name="notification_action_pause_vpn" translatable="true">PAUSE</string>
     <string name="notification_action_stop_vpn" translatable="true">STOP</string>
     <string name="notification_action_dns_mode" translatable="true">DNS</string>
-    <string name="notification_action_dns_firewall_mode" translatable="true">DNS + Firewall</string>
+    <string name="notification_action_dns_firewall_mode" translatable="true">DNS + firewall</string>
     <string name="dns_mode_info_title" translatable="true">DNS</string>
 
 
@@ -290,7 +290,7 @@
 
 
 
-    <string name="alert_permission_accessibility" translatable="true">Permission - Accessibility</string>
+    <string name="alert_permission_accessibility" translatable="true">Permission: accessibility</string>
     <string name="alert_firewall_accessibility_explanation" translatable="true">Keepout uses accessibility service to track which apps are in-use (foreground) versus those that are not in-use (background).\n\nKeepout does not collect any information or spy on you in any way.</string>
     <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Keepout accessibility service has stopped or crashed. <i><b>Goto Settings and Force Stop</b></i> Keepout and start it again to use <i>Block any app not in use</i> feature.\n\nKeepout uses accessibility service to track which apps are in-use (foreground) versus those that are not in-use (background).</string>
 
@@ -303,13 +303,13 @@
     <string name="conn_track_clear_logs_message" translatable="true">This only deletes network logs but not firewall rules. This operation is not reversible. Do you want to proceed?</string>
 
 
-    <string name="bsct_app_info" translatable="true">App Info</string>
+    <string name="bsct_app_info" translatable="true">App info</string>
     <string name="bsct_block_ip" translatable="true">Block, trust &lt;u>this IP&lt;/u> for &lt;u>this app&lt;/u></string>
     <string name="bsct_block_domain" translatable="true">Block, trust &lt;u>domain(s)&lt;/u> for &lt;u>this app&lt;/u></string>
 
-    <string name="always_on_dialog_heading" translatable="true">Disable Always-on VPN</string>
+    <string name="always_on_dialog_heading" translatable="true">Disable always-on VPN</string>
     <string name="always_on_dialog" translatable="true">\"Always-On VPN\" is enabled on this device. To start Keepout, please go to Settings app and disable \"Always-on VPN\".</string>
-    <string name="always_on_dialog_positive_btn" translatable="true">Go to Settings</string>
+    <string name="always_on_dialog_positive_btn" translatable="true">Go to settings</string>
 
     <string name="always_on_dialog_stop_heading" translatable="true">Always-on VPN</string>
     <string name="always_on_dialog_stop_message" translatable="true">Always-on VPN is enabled for Keepout. Are you sure you want to stop Keepout anyway?</string>
@@ -317,9 +317,9 @@
     <string name="always_on_dialog_positive" translatable="true">Stop</string>
     <string name="always_on_dialog_neutral" translatable="true">Settings</string>
 
-    <string name="private_dns_dialog_heading" translatable="true">Turn off Private DNS</string>
+    <string name="private_dns_dialog_heading" translatable="true">Turn off private DNS</string>
     <string name="private_dns_dialog_desc" translatable="true">Keepout\'s DNS settings are overridden by Android\'s Private DNS.\n\nTo use Keepout\'s DNS go to Android Settings and turn off \"Private DNS\".</string>
-    <string name="private_dns_dialog_positive" translatable="true">Go to Settings</string>
+    <string name="private_dns_dialog_positive" translatable="true">Go to settings</string>
 
     <string name="firewall_act_universal_tab" translatable="true">Universal</string>
 
@@ -338,7 +338,7 @@
     <string name="dns_crypt_url_remove_dialog_message" translatable="true">Delete the DNSCrypt resolver from saved configuration.</string>
     <string name="dns_crypt_url_remove_success" translatable="true">DNSCrypt resolver deleted.</string>
 
-    <string name="dns_crypt_relay_remove_dialog_title" translatable="true">Delete DNSCrypt Relay?</string>
+    <string name="dns_crypt_relay_remove_dialog_title" translatable="true">Delete DNSCrypt relay?</string>
     <string name="dns_crypt_relay_remove_dialog_message" translatable="true">Delete the DNSCrypt relay from saved configuration.</string>
     <string name="dns_crypt_relay_remove_success" translatable="true">DNSCrypt Relay deleted.</string>
 
@@ -346,13 +346,13 @@
     <string name="dns_proxy_remove_dialog_message" translatable="true">Delete the DNS Proxy from saved configuration.</string>
     <string name="dns_proxy_remove_success" translatable="true">DNS Proxy deleted.</string>
 
-    <string name="local_blocklist_download" translatable="true">Download Blocklists</string>
+    <string name="local_blocklist_download" translatable="true">Download blocklists</string>
     <string name="local_blocklist_download_desc" translatable="true">Download blocklists (around 60MB) to use this feature?</string>
 
     <string name="local_blocklist_redownload" translatable="true">Up-to-date!</string>
     <string name="local_blocklist_redownload_desc" translatable="true">On-device blocklists are already at the latest version v%1$s.</string>
 
-    <string name="blocklist_update_check_failure" translatable="true">Something went wrong. Try again later!</string>
+    <string name="blocklist_update_check_failure" translatable="true">Something went wrong. Try again later.</string>
     <string name="blocklist_update_check_not_required" translatable="true">Blocklists are already at latest version.</string>
 
     <string name="refresh_complete" translatable="true"><!-- use dc_refresh_toast --> App list re-sync complete.</string>
@@ -362,7 +362,7 @@
     <string name="http_proxy_dialog_heading" translatable="true">Set HTTP(S) CONNECT Proxy</string>
     <string name="http_proxy_dialog_desc" translatable="true">Setup URL of form, &lt;protocol>://&lt;username>:&lt;password>@&lt;domain-or-ip>:&lt;port>&lt;path>. Example: http://proxy.example.com:8080/</string>
 
-    <string name="download_update_dialog_title" translatable="true">New Update!</string>
+    <string name="download_update_dialog_title" translatable="true">New update</string>
     <string name="download_update_dialog_message" translatable="true">A new version of the app is available for download from the website. Do you want to proceed?</string>
     <string name="download_update_dialog_message_ok_title" translatable="true">Up-to-date!</string>
     <string name="download_update_dialog_message_ok" translatable="true">You are already on the latest version.</string>
@@ -432,7 +432,7 @@
     <string name="settings_connectivity_checks" translatable="true">Perform connectivity checks</string>
     <string name="settings_connectivity_checks_desc" translatable="true">Connectivity checks are sent to ascertain reachability.</string>
 
-    <string name="settings_allow_lan_heading" translatable="true">Do not route Private IPs (experimental)</string>
+    <string name="settings_allow_lan_heading" translatable="true">Do not route private IPs (experimental)</string>
     <string name="settings_allow_lan_desc" translatable="true">Exclude LAN, loopback, multicast, link-local routes from Keepout\'s VPN tunnel.</string>
 
 
@@ -473,7 +473,7 @@
     <string name="orbot_stop_dialog_negative" translatable="true">Stop Orbot</string>
     <string name="orbot_stop_dialog_neutral" translatable="true">Change DNS</string>
 
-    <string name="orbot_title" translatable="true">Orbot and Proxies</string>
+    <string name="orbot_title" translatable="true">Orbot and proxies</string>
     <string name="orbot_explanation" translatable="true">
             Orbot is a free proxy app that empowers other apps to use the Internet more &lt;u>securely&lt;/u>.
             \nOrbot uses &lt;u>Tor&lt;/u> to encrypt your Internet traffic which helps you &lt;u>bypass censorship&lt;/u> and defend against forms of &lt;u>network surveillance&lt;/u> that threaten personal freedom and privacy.
@@ -618,7 +618,7 @@
 
     <string name="hsf_vpn_prepare_failure" translatable="true">Either VPN permission missing, or another app is in Always-on VPN mode.</string>
 
-    <string name="hsf_notification_permission_failure" translatable="true">Enable notification permission from Settings screen</string>
+    <string name="hsf_notification_permission_failure" translatable="true">Allow notifications in Settings</string>
 
 
 
@@ -661,7 +661,7 @@
     <string name="dc_proxy_dns_heading" translatable="true">Never proxy DNS</string>
     <string name="dc_proxy_dns_desc" translatable="true">Do not proxy DNS over Always-on WireGuard, SOCKS5, HTTP proxies.</string>
 
-    <string name="dc_use_sys_dns_undelegated_heading" translatable="true">Use System DNS for undelegated domains</string>
+    <string name="dc_use_sys_dns_undelegated_heading" translatable="true">Use system DNS for undelegated domains</string>
     <string name="dc_use_sys_dns_undelegated_desc" translatable="true">Use System DNS for undelgated domains like <i>.lan</i>, <i>.internal</i>, etc.</string>
 
     <string name="dc_filtering_heading" translatable="true">Filtering</string>
@@ -676,7 +676,7 @@
     <string name="about_bug_no_log_dialog_positive_btn" translatable="true">Send email</string>
 
     <!-- Bug Report Files Bottom Sheet -->
-    <string name="bug_report_deselect_all" translatable="false">Deselect All</string>
+    <string name="bug_report_deselect_all" translatable="false">Deselect all</string>
     <string name="bug_report_no_files_selected" translatable="false">Please select at least one file</string>
     <string name="bug_report_creating_zip" translatable="false">Creating archive…</string>
     <string name="bug_report_file_not_found" translatable="false">File not found</string>
@@ -689,20 +689,20 @@
     <string name="about_web" translatable="true">Links</string>
     <string name="about_website" translatable="true">Visit rethinkdns.com</string>
     <string name="about_github" translatable="true">Contribute on GitHub</string>
-    <string name="about_faq" translatable="true">View FAQs</string>
+    <string name="about_faq" translatable="true">FAQ</string>
     <string name="about_docs" translatable="true">Read docs</string>
     <string name="about_privacy_policy" translatable="true">Read privacy policy</string>
     <string name="about_connect" translatable="true">Contact</string>
     <string name="about_app" translatable="true">App</string>
     <string name="about_email" translatable="true">Email us</string>
-    <string name="about_settings_app_info" translatable="true">App Info</string>
-    <string name="about_settings_vpn_profile" translatable="true">VPN Profile</string>
-    <string name="about_settings_notification" translatable="true">Notification Settings</string>
+    <string name="about_settings_app_info" translatable="true">App info</string>
+    <string name="about_settings_vpn_profile" translatable="true">VPN profile</string>
+    <string name="about_settings_notification" translatable="true">Notification settings</string>
     <string name="about_whats_new" translatable="true">What\'s new in %1$s</string>
     <string name="about_twitter" translatable="true">Follow us on Twitter</string>
     <string name="about_mozilla" translatable="true">Rethink is supported by Mozilla Builders, FOSS United Foundation, FLOSS/fund.</string>
     <string name="about_app_update_check" translatable="true">Check for app updates</string>
-    <string name="about_dialog_positive_button" translatable="true">Let\'s Go</string>
+    <string name="about_dialog_positive_button" translatable="true">Let\'s go</string>
     <string name="about_mail_to" translatable="true">bernaferrari2@gmail.com</string>
     <string name="about_mail_to_string" translatable="true">mailto:</string>
     <string name="about_mail_subject" translatable="true">[Rethink]:</string>
@@ -751,7 +751,7 @@
     <string name="cd_dns_crypt_name" translatable="true">DNSCrypt %1$s</string>
     <string name="cd_dns_crypt_relay_name" translatable="true">DNSRelay %1$s</string>
 
-    <string name="cd_dns_crypt_dialog_heading" translatable="true">Add DNSCrypt Resolver or Relay</string>
+    <string name="cd_dns_crypt_dialog_heading" translatable="true">Add DNSCrypt resolver or relay</string>
     <string name="cd_dns_crypt_resolver_heading" translatable="true">Resolver</string>
     <string name="cd_dns_crypt_relay_heading" translatable="true">Relay</string>
     <string name="cd_dns_crypt_dialog_name" translatable="true">Name</string>
@@ -759,7 +759,7 @@
     <string name="cd_dns_crypt_dialog_desc" translatable="true">Description (optional)</string>
 
     <string name="cd_doh_dialog_heading" translatable="true">Add DNS over HTTPS</string>
-    <string name="cd_doh_dialog_resolver_name" translatable="true">Resolver Name</string>
+    <string name="cd_doh_dialog_resolver_name" translatable="true">Resolver name</string>
     <string name="cd_doh_dialog_resolver_url" translatable="true">Resolver URL</string>
     <string name="cd_doh_dialog_checkbox_desc" translatable="true">Do not validate server TLS certificates (enable only if you know what you are doing)</string>
 
@@ -777,7 +777,7 @@
     <string name="cd_allowed_dns_record_types_heading" translatable="false">Allowed DNS record types</string>
     <string name="cd_allowed_dns_record_types_desc" translatable="false">Select which DNS resource record types to allow.</string>
 
-    <string name="dns_record_types_auto_mode_status" translatable="true">Auto (All types)</string>
+    <string name="dns_record_types_auto_mode_status" translatable="true">Auto (all types)</string>
 
     <!-- Connection Tracker fragment string -->
 
@@ -787,7 +787,7 @@
     <string name="ctbs_app_info_not_available_toast" translatable="true">App settings page not found</string>
     <string name="ctbs_app_other_apps" translatable="true">%1$s + %2$s other app(s)</string>
     <string name="ctbs_block_other_apps" translatable="true">Rules applied for %1$s will also be applicable for %2$s other apps</string>
-    <string name="ctbs_dialog_negative_btn" translatable="true">Go Back</string>
+    <string name="ctbs_dialog_negative_btn" translatable="true">Go back</string>
     <!-- DNS Log fragment -->
 
 
@@ -814,16 +814,16 @@
     <string name="univ_firewall_rule_9" translatable="true">Block on metered (mobile) network</string>
     <string name="univ_firewall_rule_10" translatable="true">Block all except bypassed apps and IPs</string>
 
-    <string name="univ_view_blocked_ip" translatable="true">IP &amp; Port rules</string>
+    <string name="univ_view_blocked_ip" translatable="true">IP &amp; port rules</string>
     <string name="univ_view_blocked_ip_desc" translatable="true">Modify blocked or trusted Domain, IP / Port rules.</string>
 
 
-    <string name="univ_accessibility_crash_dialog_positive" translatable="true">Goto Settings</string>
+    <string name="univ_accessibility_crash_dialog_positive" translatable="true">Go to settings</string>
     <string name="univ_accessibility_dialog_positive" translatable="true">Grant</string>
     <string name="univ_accessibility_dialog_negative" translatable="true">Deny</string>
 
     <string name="univ_firewall_heading" translatable="true">Universal firewall rules</string>
-    <string name="app_ip_domain_rules" translatable="true">Per app IP / Domain rules</string>
+    <string name="app_ip_domain_rules" translatable="true">Per-app IP and domain rules</string>
     <string name="app_ip_domain_rules_desc" translatable="true">Modify per app IP / Domain rules.</string>
 
     <!-- DNS adapters -->
@@ -842,9 +842,9 @@
     <string name="dns_query_latency" translatable="true">%1$sms</string>
 
     <string name="dns_proxy_dialog_header_dns" translatable="true">Add DNS Proxy</string>
-    <string name="dns_proxy_name" translatable="true">Proxy Name</string>
-    <string name="dns_proxy_ip_address" translatable="true">IP Address</string>
-    <string name="dns_proxy_port" translatable="true">Port Number</string>
+    <string name="dns_proxy_name" translatable="true">Proxy name</string>
+    <string name="dns_proxy_ip_address" translatable="true">IP address</string>
+    <string name="dns_proxy_port" translatable="true">Port number</string>
 
     <!-- Firewall -->
     <string name="fapps_filter_categories_heading" translatable="true">Categories</string>
@@ -944,41 +944,41 @@
     <!-- Home screen bottom sheet -->
 
     <!-- Firewall rules -->
-    <string name="firewall_rule_no_rule" translatable="true">No Rule</string>
-    <string name="firewall_rule_block_app" translatable="true">App Blocked</string>
-    <string name="firewall_rule_block_unmetered" translatable="true">Unmetered (WiFi)</string>
-    <string name="firewall_rule_block_metered" translatable="true">Metered (Mobile)</string>
-    <string name="firewall_rule_univ_block_metered" translatable="true">Metered (Universal)</string>
+    <string name="firewall_rule_no_rule" translatable="true">No rule</string>
+    <string name="firewall_rule_block_app" translatable="true">App blocked</string>
+    <string name="firewall_rule_block_unmetered" translatable="true">Unmetered (Wi-Fi)</string>
+    <string name="firewall_rule_block_metered" translatable="true">Metered (mobile)</string>
+    <string name="firewall_rule_univ_block_metered" translatable="true">Metered (universal)</string>
     <string name="firewall_rule_isolate" translatable="true">Isolate</string>
     <string name="firewall_rule_bypass_dns_firewall" translatable="true">Bypassed App</string>
     <string name="firewall_rule_block_app_new_install" translatable="true">New App</string>
     <string name="firewall_rule_block_app_exception" translatable="true">Error</string>
-    <string name="firewall_rule_block_ip" translatable="true">IP / Port (App)</string>
-    <string name="firewall_rule_block_univ_ip" translatable="true">IP / Port (Universal)</string>
+    <string name="firewall_rule_block_ip" translatable="true">IP / port (app)</string>
+    <string name="firewall_rule_block_univ_ip" translatable="true">IP / port (universal)</string>
     <string name="firewall_rule_trusted_ip" translatable="true">Trusted IP</string>
     <string name="firewall_rule_bypass_universal_ip" translatable="true">Bypassed IP</string>
-    <string name="firewall_rule_device_lock" translatable="true">Device Locked</string>
-    <string name="firewall_rule_foreground" translatable="true">App Not-in-Use</string>
-    <string name="firewall_rule_unknown" translatable="true">Source Unknown</string>
-    <string name="firewall_rule_block_udp_ntp" translatable="true">UDP Blocked</string>
-    <string name="firewall_rule_block_dns_bypass" translatable="true">DNS Bypassed</string>
+    <string name="firewall_rule_device_lock" translatable="true">Device locked</string>
+    <string name="firewall_rule_foreground" translatable="true">App not in use</string>
+    <string name="firewall_rule_unknown" translatable="true">Source unknown</string>
+    <string name="firewall_rule_block_udp_ntp" translatable="true">UDP blocked</string>
+    <string name="firewall_rule_block_dns_bypass" translatable="true">DNS bypassed</string>
     <string name="firewall_rule_exempt_app_bypass_univ" translatable="true">Bypassed App</string>
-    <string name="firewall_rule_exempt_dns_proxied" translatable="true">DNS Proxied</string>
-    <string name="firewall_rule_exempt_orbot_setup" translatable="true">Orbot Setup</string>
+    <string name="firewall_rule_exempt_dns_proxied" translatable="true">DNS proxied</string>
+    <string name="firewall_rule_exempt_orbot_setup" translatable="true">Orbot setup</string>
     <string name="firewall_rule_block_http" translatable="true">Insecure HTTP</string>
     <string name="firewall_rule_global_lockdown" translatable="true">Lockdown</string>
-    <string name="firewall_rule_trusted_domain" translatable="true">Trusted Domain (App)</string>
+    <string name="firewall_rule_trusted_domain" translatable="true">Trusted domain (app)</string>
     <string name="firewall_rule_block_domain" translatable="true">Domain (App)</string>
-    <string name="firewall_rule_dns_blocked" translatable="true">DNS Blocked</string>
-    <string name="firewall_rule_domain_blocked_univ" translatable="true">Domain (Univ)</string>
-    <string name="firewall_rule_domain_trusted_univ" translatable="true">Trusted Domain (Univ)</string>
+    <string name="firewall_rule_dns_blocked" translatable="true">DNS blocked</string>
+    <string name="firewall_rule_domain_blocked_univ" translatable="true">Domain (universal)</string>
+    <string name="firewall_rule_domain_trusted_univ" translatable="true">Trusted domain (universal)</string>
     <string name="firewall_rule_proxied" translatable="true">Proxied</string>
     <string name="firewall_rule_private_dns" translatable="true">Private DNS</string>
     <string name="firewall_rule_bypass_proxy" translatable="true">Bypass Proxy</string>
-    <string name="firewall_rule_paused_app" translatable="true">App Paused</string>
+    <string name="firewall_rule_paused_app" translatable="true">App paused</string>
     <string name="firewall_rule_lockdown_wg" translatable="true">Lockdown Proxy</string>
-    <string name="firewall_rule_proxy_error" translatable="true">Proxy Error</string>
-    <string name="firewall_rule_temp_allow" translatable="false">Temporary Allow</string>
+    <string name="firewall_rule_proxy_error" translatable="true">Proxy error</string>
+    <string name="firewall_rule_temp_allow" translatable="false">Temporarily allowed</string>
 
     <string name="firewall_rule_no_rule_desc" translatable="true">No firewall rules matched this connection.</string>
     <string name="firewall_rule_block_app_desc" translatable="true"><![CDATA[A user-set firewall rule blocked this <i>app</i>.<br/><br/> To change go to <i>All Apps</i> tab.]]></string>
@@ -1031,23 +1031,23 @@
     <!-- Notification label names -->
     <string name="notif_channel_vpn_notification" translatable="true">Active VPN </string>
     <string name="notif_channel_vpn_failure" translatable="true">Inactive VPN</string>
-    <string name="notif_channel_firewall_alerts" translatable="true">Firewall Alerts</string>
-    <string name="notif_channel_proxy_failure" translatable="true">Proxy Alerts</string>
-    <string name="notif_channel_download" translatable="true">Download Alerts</string>
+    <string name="notif_channel_firewall_alerts" translatable="true">Firewall alerts</string>
+    <string name="notif_channel_proxy_failure" translatable="true">Proxy alerts</string>
+    <string name="notif_channel_download" translatable="true">Download alerts</string>
 
     <string name="notif_channel_desc_vpn_notification" translatable="true">Inform when Keepout is active and running in the background</string>
     <string name="notif_channel_desc_vpn_failure" translatable="true">Inform when Keepout is stopped by Android or by another VPN app</string>
-    <string name="notif_channel_desc_firewall_alerts" translatable="true">Alert on Firewall errors and anomalies</string>
+    <string name="notif_channel_desc_firewall_alerts" translatable="true">Alerts on firewall errors and anomalies</string>
     <string name="notif_channel_desc_proxy_failure" translatable="true">Alert on Proxy errors and anomalies</string>
     <string name="notif_channed_desc_download" translatable="true">Alert on Download Progress for On-device blocklists</string>
     <string name="alerts_empty_state" translatable="true">Alerts are not available yet.</string>
 
     <!-- Category constants -->
-    <string name="category_name_sys_components" translatable="true">System Components</string>
-    <string name="category_name_sys_apps" translatable="true">System Apps</string>
+    <string name="category_name_sys_components" translatable="true">System components</string>
+    <string name="category_name_sys_apps" translatable="true">System apps</string>
     <string name="category_name_others" translatable="true">Other</string>
-    <string name="category_name_non_app_sys" translatable="true">System Services</string>
-    <string name="category_name_installed" translatable="true">Installed Apps</string>
+    <string name="category_name_non_app_sys" translatable="true">System services</string>
+    <string name="category_name_installed" translatable="true">Installed apps</string>
 
     <!-- Build flavor constants -->
     <string name="build__flavor_website" translatable="true">website</string>
@@ -1071,7 +1071,7 @@
 
 
 
-    <string name="ci_no_rule" translatable="true">No Rule</string>
+    <string name="ci_no_rule" translatable="true">No rule</string>
     <string name="ci_block" translatable="true">Block</string>
     <string name="ci_trust_rule" translatable="true">Trust</string>
     <string name="ci_desc" translatable="false">%1$s %2$s</string>
@@ -1125,7 +1125,7 @@
     <string name="network_dns" translatable="true">System DNS</string>
 
     <!-- custom download -->
-    <string name="notif_download_content_title" translatable="true">On-Device Blocklist download</string>
+    <string name="notif_download_content_title" translatable="true">On-device blocklist download</string>
     <string name="notif_download_content_text" translatable="true">Download in progress…</string>
     <string name="notif_download_failure_content" translatable="true">Download failed. Try again.</string>
     <string name="notif_download_cancel_content" translatable="true">Download cancelled.</string>
@@ -1133,7 +1133,7 @@
 
     <!-- rethink blocklist heading -->
 
-    <string name="rbl_parental_control" description="The text appears as part of the blocklist setup screen as categories or headlines" translatable="true">Parental Control</string>
+    <string name="rbl_parental_control" description="The text appears as part of the blocklist setup screen as categories or headlines" translatable="true">Parental control</string>
     <string name="rbl_parental_control_desc" description="The text appears as blocklists description in configure screen" translatable="true">Block adult &amp; pirated content, online gambling &amp; dating, and social media.</string>
     <string name="rbl_privacy" description="The text appears as part of the blocklist setup screen as categories or headlines" translatable="true">Privacy</string>
     <string name="rbl_privacy_desc" description="The text appears as blocklists description in configure screen" translatable="true">Block attentionware, spyware, scareware.</string>
@@ -1141,7 +1141,7 @@
     <string name="rbl_security_desc" description="The text appears as blocklists description in configure screen" translatable="true">Block malware, ransomware, cryptoware, phishers, and other threats.</string>
 
     <!-- Rethink list fragment -->
-    <string name="rt_dialog_title" translatable="true">Save Changes</string>
+    <string name="rt_dialog_title" translatable="true">Save changes</string>
     <string name="rt_dialog_message" translatable="true">Do you want to apply newly configured blocklists?</string>
     <string name="rt_dialog_neutral" translatable="true">Continue</string>
 
@@ -1233,12 +1233,12 @@
     <string name="brbs_restore_dialog_positive" translatable="true">Restore</string>
 
     <string name="brbs_backup_dialog_failure_title" translatable="true">Backup failed</string>
-    <string name="brbs_backup_dialog_failure_message" translatable="true">Could not backup. Try again?</string>
-    <string name="brbs_backup_dialog_failure_positive" translatable="true">Retry Backup</string>
+    <string name="brbs_backup_dialog_failure_message" translatable="true">Could not back up. Try again?</string>
+    <string name="brbs_backup_dialog_failure_positive" translatable="true">Retry backup</string>
 
     <string name="brbs_restore_dialog_failure_title" translatable="true">Restore failed</string>
     <string name="brbs_restore_dialog_failure_message" translatable="true">Could not restore. Try again?</string>
-    <string name="brbs_restore_dialog_failure_positive" translatable="true">Retry Restore</string>
+    <string name="brbs_restore_dialog_failure_positive" translatable="true">Retry restore</string>
 
     <string name="brbs_restore_complete_toast" translatable="true">Restore completed, restarting app…</string>
     <string name="brbs_backup_complete_toast" translatable="true">Backup completed</string>
@@ -1256,8 +1256,8 @@
     <string name="ssv_most_contacted_ips_heading" description="This label will appear on the stats screen as a header for most visited ips" translatable="true">Most contacted ips</string>
     <string name="ssv_most_blocked_ips_heading" description="This label will appear on the stats screen as a header for most blocked ips" translatable="true">Most blocked ips</string>
     <string name="ssv_toast_start_rethink" description="This label will appear on the stats screen as toast to start Rethink app" translatable="true">Start Keepout to proceed</string>
-    <string name="ssv_see_more" translatable="true">Show All</string>
-    <string name="ssv_see_less" translatable="true">Show Less</string>
+    <string name="ssv_see_more" translatable="true">Show all</string>
+    <string name="ssv_see_less" translatable="true">Show less</string>
 
     <!-- wireguard -->
     <string name="bad_config_reason_invalid_key" translatable="true">Invalid key</string>
@@ -1308,9 +1308,9 @@
     <string name="catch_all_wg_dialog_desc" translatable="true">All connections and apps not routed by other WireGuard VPNs will be routed by this one.</string>
 
 
-    <string name="add_remove_apps" translatable="true">Add / Remove (%1$s apps)</string>
+    <string name="add_remove_apps" translatable="true">Add or remove (%1$s apps)</string>
     <string name="routing_remaining_apps" translatable="true">Routing remaining apps</string>
-    <string name="add_peer" translatable="true">Add Peer</string>
+    <string name="add_peer" translatable="true">Add peer</string>
 
     <string name="config_delete_dialog_desc" translatable="true">Are you sure you want to delete this WireGuard VPN configuration?</string>
     <string name="config_delete_dialog_title" translatable="true">Delete</string>
@@ -1359,7 +1359,7 @@
     <string name="crypt_relay_singapore" translatable="true">Anonymized DNS relay hosted in Singapore.</string>
 
     <!-- console logs -->
-    <string name="console_log_title" translatable="true">App Logs</string>
+    <string name="console_log_title" translatable="true">App logs</string>
 
     <!-- advanced settings -->
 
@@ -1390,7 +1390,7 @@
     <string name="tcp_proxy_warp_active_error" translatable="true">Warp is active. Please disable it first.</string>
     <string name="tcp_proxy_no_apps_error" translatable="true">Please add at least one app to enable Rethink Proxy.</string>
     <string name="tcp_proxy_rethink_proxy_title" translatable="true">Rethink\'s Proxy</string>
-    <string name="tcp_proxy_enable_udp_relay" translatable="true">Enable UDP Relay</string>
+    <string name="tcp_proxy_enable_udp_relay" translatable="true">Enable UDP relay</string>
     <string name="tcp_proxy_cloudflare_warp_title" translatable="true">Cloudflare WARP</string>
     <string name="tcp_proxy_cloudflare_warp_desc" translatable="true">Modern, fast, and secure way to connect to a VPN server. Secure all your internet traffic with an ultra-secure, lightning-quick VPN service that lets you connect with the WireGuard protocol.</string>
 
@@ -1423,14 +1423,14 @@
 
 
     <string name="hop_failure_toast" translatable="true">Relay error: %1$s -> %2$s</string>
-    <string name="hop_failure_notification_title" translatable="false">Relay Failure Notifications</string>
+    <string name="hop_failure_notification_title" translatable="false">Relay failure notifications</string>
 
     <string name="wg_setting_use_on_mobile" translatable="true">Mobile only</string>
     <string name="wg_setting_use_on_mobile_desc" translatable="true">Use this WireGuard VPN over mobile data.</string>
 
-    <string name="hop_add_remove_title" translatable="true">Add / Remove Relay</string>
+    <string name="hop_add_remove_title" translatable="true">Add or remove relay</string>
 
-    <string name="about_terms_of_service" translatable="true">Terms of Service</string>
+    <string name="about_terms_of_service" translatable="true">Terms of service</string>
 
     <string name="lbl_amnezia" translatable="false">Amnezia</string>
 
@@ -1442,7 +1442,7 @@
     <string name="most_blocked_asn" translatable="true">Most blocked providers</string>
 
 
-    <string name="set_auto_dial_title" translatable="false">Set Auto Dial</string>
+    <string name="set_auto_dial_title" translatable="false">Set auto dial</string>
     <string name="set_auto_dial_desc" translatable="false">Use parallel dialing to connect to multiple servers at once.</string>
 
     <string name="download_ip_info_title" translatable="true">Show provider information</string>
@@ -1451,7 +1451,7 @@
 
     <string name="top_active_conns" translatable="true">Top active connections</string>
 
-    <string name="close_conns_dialog_title" translatable="true">Close Connections</string>
+    <string name="close_conns_dialog_title" translatable="true">Close connections</string>
     <string name="close_conns_dialog_desc" translatable="true">Close all connections for %1$s?</string>
 
     <string name="local_blocklist_delete_desc" translatable="true">Delete on-device blocklists?</string>
@@ -1533,11 +1533,11 @@
     <string name="tombstone_app_title" translatable="true">Remember uninstalled apps</string>
     <string name="tombstone_app_desc" translatable="true">When enabled, keep app rules for 7 days.</string>
 
-    <string name="firewall_bubble_title" translatable="false">Firewall Bubble</string>
+    <string name="firewall_bubble_title" translatable="false">Firewall bubble</string>
     <string name="firewall_bubble_subtitle" translatable="false">Review blocked apps and allow them temporarily.</string>
     <string name="firewall_bubble_desc" translatable="false">Show a floating bubble with recently blocked apps.</string>
-    <string name="firewall_bubble" translatable="false">Firewall Bubble</string>
-    <string name="firewall_bubble_channel_name" translatable="false">Firewall Bubble Notifications</string>
+    <string name="firewall_bubble" translatable="false">Firewall bubble</string>
+    <string name="firewall_bubble_channel_name" translatable="false">Firewall bubble notifications</string>
     <string name="firewall_bubble_channel_desc" translatable="false">Shows bubble notification for blocked apps</string>
     <string name="firewall_bubble_text" translatable="false">Tap to see recently blocked apps</string>
 
@@ -1564,7 +1564,7 @@
     <string name="settings_allow_incoming_wg_packets_desc" translatable="true">When enabled, allow incoming connections initiated by WireGuard peers.</string>
 
     <string name="lockdown_download_message" translatable="true">Android\'s built-in <i>Download Manager</i> may fail as VPN is in <i>Lockdown</i> mode. Enable Keepout\'s downloader instead?</string>
-    <string name="lockdown_download_enable_inapp" translatable="true">Enable Downloader</string>
+    <string name="lockdown_download_enable_inapp" translatable="true">Enable downloader</string>
 
     <string name="settings_jumbo_packets" translatable="true">Bandwidth booster</string>
     <string name="settings_jumbo_packets_desc" translatable="true">Uses <i>jumbo packets</i> within Keepout\'s VPN tunnel.</string>
@@ -1574,7 +1574,7 @@
 
 
     <!-- Event Logs -->
-    <string name="event_logs_title" translatable="false">Event Logs</string>
+    <string name="event_logs_title" translatable="false">Event logs</string>
     <string name="no_events_recorded" translatable="false">No events recorded yet</string>
     <string name="no_events_desc" translatable="false">Event logs will appear here once the app starts recording system activities</string>
 
@@ -1630,9 +1630,9 @@
     <string name="time_window_seven_days_short" translatable="true">7d</string>
     <string name="summary_connections_count" translatable="true">Connections: %1$d</string>
     <string name="checkout_unavailable_desc" translatable="true">Checkout is unavailable in this build.</string>
-    <string name="db_corruption_notif_title" translatable="false">Database Error</string>
+    <string name="db_corruption_notif_title" translatable="false">Database error</string>
     <string name="db_corruption_notif_desc" translatable="false">The app database appears to be corrupted. Rebuilding it restores functionality but may reset some app settings.</string>
-    <string name="db_corruption_action_clear" translatable="false">Clear &amp; Rebuild</string>
+    <string name="db_corruption_action_clear" translatable="false">Clear &amp; rebuild</string>
     <string name="db_corruption_action_dismiss" translatable="false">Dismiss</string>
     <string name="block_free_dns_mode_title">Trusted DNS bypass</string>
     <string name="bfdm_option_auto_label">Automatic</string>
