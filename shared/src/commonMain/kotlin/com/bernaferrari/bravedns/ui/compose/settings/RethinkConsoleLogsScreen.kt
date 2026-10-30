@@ -32,6 +32,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkModalBottomSheet
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSheetHeader
@@ -56,6 +59,12 @@ data class RethinkConsoleLogStrings(
     val reportLabel: String,
     val cancelLabel: String,
     val filterOptions: List<String>,
+    val pauseLabel: String = "Pause live updates",
+    val resumeLabel: String = "Resume live updates",
+    val pausedDescription: String = "Paused: filtering a frozen snapshot of up to 5,000 entries.",
+    val pausingDescription: String = "Freezing log snapshot…",
+    val clearingDescription: String = "Deleting console logs…",
+
 )
 
 /**
@@ -72,6 +81,11 @@ fun RethinkConsoleLogsScreen(
     onClearClick: () -> Unit,
     onBackClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
+    paused: Boolean = false,
+    pauseBusy: Boolean = false,
+    pauseError: String? = null,
+    onPauseToggle: (() -> Unit)? = null,
+    clearBusy: Boolean = false,
     content: @Composable BoxScope.() -> Unit,
 ) {
     var query by remember { mutableStateOf("") }
@@ -110,6 +124,7 @@ fun RethinkConsoleLogsScreen(
             confirmText = strings.deleteLabel,
             dismissText = strings.cancelLabel,
             isConfirmDestructive = true,
+            confirmEnabled = !clearBusy,
             onConfirm = {
                 showDeleteDialog = false
                 onClearClick()
@@ -130,7 +145,7 @@ fun RethinkConsoleLogsScreen(
                     RethinkOverflowMenu(
                         moreDescription = strings.moreDescription,
                         items = listOf(
-                            RethinkOverflowItem(strings.clearDescription, MaterialSymbols.Filled.DeleteOutline) {
+                            RethinkOverflowItem(strings.clearDescription, MaterialSymbols.Filled.DeleteOutline, enabled = !clearBusy) {
                                 showDeleteDialog = true
                             },
                         ),
@@ -153,12 +168,19 @@ fun RethinkConsoleLogsScreen(
                 query = query,
                 strings = strings,
                 onQueryChange = { query = it },
-                filterActive = selectedLogLevel != initialLogLevel,
-                onFilterClick = {
-                    selectedLogLevel = initialLogLevel
-                    filterVisible = true
-                },
+                filterActive = selectedLogLevel > 0,
+                onFilterClick = { filterVisible = true },
+                pauseAction = onPauseToggle?.let { action -> {
+                    RethinkToolbarIconToggle(
+                        icon = if (paused) MaterialSymbols.Filled.PlayArrow else MaterialSymbols.Filled.PauseCircle,
+                        contentDescription = if (paused) strings.resumeLabel else strings.pauseLabel,
+                        selected = paused,
+                        enabled = !pauseBusy,
+                        onClick = action,
+                    )
+                } },
             )
+            ConsoleUpdatesStatus(strings, paused, pauseBusy, pauseError, clearBusy)
             Box(Modifier.fillMaxSize()) { content() }
         }
     }
@@ -171,6 +193,7 @@ private fun RethinkConsoleLogSearchRow(
     onQueryChange: (String) -> Unit,
     filterActive: Boolean,
     onFilterClick: () -> Unit,
+    pauseAction: (@Composable () -> Unit)? = null,
 ) {
     RethinkToolbarRow(
         modifier = Modifier.padding(
@@ -185,11 +208,31 @@ private fun RethinkConsoleLogSearchRow(
             clearQueryContentDescription = strings.clearSearchDescription,
             modifier = Modifier.weight(1f),
         )
+        pauseAction?.invoke()
         RethinkToolbarIconToggle(
             icon = MaterialSymbols.Filled.FilterList,
             contentDescription = strings.filterDescription,
             selected = filterActive,
             onClick = onFilterClick,
+        )
+    }
+}
+
+@Composable
+private fun ConsoleUpdatesStatus(strings: RethinkConsoleLogStrings, paused: Boolean, busy: Boolean, error: String?, clearing: Boolean) {
+    val status = error ?: when {
+        clearing -> strings.clearingDescription
+        busy -> strings.pausingDescription
+        paused -> strings.pausedDescription
+        else -> null
+    }
+    status?.let { message ->
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodySmall,
+            color = if (error != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = SharedDimensions.screenPaddingHorizontal, vertical = SharedDimensions.spacingXs)
+                .semantics { liveRegion = LiveRegionMode.Polite },
         )
     }
 }

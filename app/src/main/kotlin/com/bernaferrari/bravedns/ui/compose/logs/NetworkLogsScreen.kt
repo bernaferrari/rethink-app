@@ -805,7 +805,8 @@ private fun DnsLogDetailsSheet(
             LogDetailEntry(stringResource(R.string.dns_detail_latency), "${log.latency}ms"),
             LogDetailEntry(stringResource(R.string.lbl_status), status, isError = log.isBlocked)
         ),
-        onDismiss = onDismiss
+        onDismiss = onDismiss,
+        actions = { DnsLogRuleActions(log) },
     )
 }
 
@@ -822,7 +823,8 @@ private fun LogDetailsSheet(
     appPackageName: String,
     appDisplayName: String,
     details: List<LogDetailEntry>,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    actions: (@Composable () -> Unit)? = null,
 ) {
     RethinkLogDetailsSheet(
         title = title,
@@ -830,6 +832,7 @@ private fun LogDetailsSheet(
         dismissLabel = stringResource(R.string.lbl_dismiss),
         onDismiss = onDismiss,
         appIcon = { AppIcon(appPackageName, appName = appDisplayName) },
+        actions = actions,
     )
 }
 

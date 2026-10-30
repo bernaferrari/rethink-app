@@ -114,6 +114,7 @@ fun SummaryStatisticsScreen(
             collapsed = stringResource(R.string.state_collapsed),
         ),
         onWindowSelected = { viewModel.timeCategoryChanged(it.toAndroidTimeCategory()) },
+        actions = { CloseAllConnectionsAction() },
     )
 }
 

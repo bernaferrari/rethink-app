@@ -5,6 +5,8 @@ package com.bernaferrari.bravedns.ui.compose.logs
 
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSheetHeader
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkKeyValueRow
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -37,10 +39,11 @@ fun RethinkLogDetailsSheet(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
     appIcon: (@Composable () -> Unit)? = null,
+    actions: (@Composable () -> Unit)? = null,
 ) {
     RethinkModalBottomSheet(onDismissRequest = onDismiss, includeBottomSpacer = true) { dismissSheet ->
         Column(
-            modifier = modifier.fillMaxWidth(),
+            modifier = modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
         ) {
             RethinkSheetHeader(title = title, leading = appIcon)
@@ -54,6 +57,7 @@ fun RethinkLogDetailsSheet(
                 )
             }
 
+            actions?.invoke()
             Spacer(modifier = Modifier.height(SharedDimensions.spacingXl))
             TextButton(onClick = dismissSheet, modifier = Modifier.align(Alignment.End)) {
                 Text(text = dismissLabel)

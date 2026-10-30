@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="console_pause_updates">Pause live updates</string>
+    <string name="console_resume_updates">Resume live updates</string>
+    <string name="console_paused_description">Paused: filtering a frozen snapshot of up to %1$d entries. Logging continues.</string>
+    <string name="console_pausing_description">Freezing log snapshot…</string>
+    <string name="console_pause_failed">Could not pause the log view. Live updates continue; try again.</string>
+    <string name="dns_rule_scope_app">This app (UID %1$d)</string>
+    <plurals name="dns_rule_scope_shared">
+        <item quantity="one">Shared UID %1$d (%2$d app)</item>
+        <item quantity="other">Shared UID %1$d (%2$d apps)</item>
+    </plurals>
+    <string name="dns_rule_scope_global">All apps</string>
+    <string name="dns_rule_invalid_query">This query cannot be saved as an exact domain rule.</string>
+    <string name="dns_rule_save_failed">Could not save the domain rule. Try again.</string>
+    <string name="dns_rule_saving">Saving domain rule…</string>
+    <string name="stats_close_connections">Close all active connections</string>
+    <string name="stats_close_connections_description">Closes current connections for all apps. Apps may reconnect immediately. Protection stays on.</string>
+    <string name="stats_close_connections_stopped">Protection stopped. No connections were closed.</string>
+    <string name="stats_close_connections_failed">Could not request connection closure. Try again.</string>
+    <string name="console_clear_failed">Could not delete console logs. Try again.</string>
+    <string name="dns_rule_scope_uid">UID %1$d</string>
+    <string name="console_clearing_description">Deleting console logs…</string>
+</resources>

@@ -136,6 +136,7 @@ fun RethinkSummaryStatisticsScreen(
     strings: RethinkSummaryStatisticsStrings,
     onWindowSelected: (RethinkStatisticsWindow) -> Unit,
     modifier: Modifier = Modifier,
+    actions: (@Composable () -> Unit)? = null,
 ) {
     // Once the window selector scrolls away, the window rides in the top bar so it stays visible and switchable.
     val listState = rememberLazyListState()
@@ -147,6 +148,7 @@ fun RethinkSummaryStatisticsScreen(
             modifier = Modifier.fillMaxWidth(),
             listState = listState,
             topBarActions = {
+                actions?.invoke()
                 AnimatedVisibility(
                     visible = selectorHidden,
                     enter = if (reducedMotion) EnterTransition.None else fadeIn() + scaleIn(initialScale = 0.9f),

@@ -34,8 +34,11 @@ interface ConsoleLogDAO {
     @RawQuery
     suspend fun getLogsCursor(query: RoomRawQuery): List<ConsoleLog>
 
-    @Query("select * from ConsoleLog where message like :input order by id desc")
-    fun getLogs(input: String): PagingSource<Int, ConsoleLog>
+    @Query("SELECT * FROM ConsoleLog WHERE message GLOB :input AND level >= :minLevel ORDER BY id DESC")
+    fun getLogs(input: String, minLevel: Long): PagingSource<Int, ConsoleLog>
+
+    @Query("SELECT * FROM ConsoleLog ORDER BY id DESC LIMIT :limit")
+    suspend fun newestLogs(limit: Int): List<ConsoleLog>
 
     @Query("DELETE FROM ConsoleLog WHERE timestamp < :to")
     suspend fun deleteOldLogs(to: Long)

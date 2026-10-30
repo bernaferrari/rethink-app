@@ -12,6 +12,11 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
@@ -25,8 +30,11 @@ import com.bernaferrari.bravedns.service.PersistentState
 import com.bernaferrari.bravedns.ui.compose.logs.ConsoleLogRow
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.viewmodel.ConsoleLogViewModel
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /** Android service and paging adapter for the target-neutral console-log renderer. */
 @Composable
@@ -39,10 +47,21 @@ fun ConsoleLogScreen(
     onBackClick: (() -> Unit)? = null,
 ) {
     val scope = rememberCoroutineScope()
+    val pause by viewModel.pauseState.collectAsState()
+    var clearFailed by remember { mutableStateOf(false) }
+    var clearing by remember { mutableStateOf(false) }
+    LaunchedEffect(pause.error) {
+        pause.error?.let { Logger.e(LOG_TAG_BUG_REPORT, "Unable to freeze console logs", it) }
+    }
     LaunchedEffect(viewModel) { viewModel.setLogLevel(Logger.uiLogLevel) }
     RethinkConsoleLogsScreen(
         strings = RethinkConsoleLogStrings(
             title = stringResource(R.string.console_log_title),
+            pauseLabel = stringResource(R.string.console_pause_updates),
+            resumeLabel = stringResource(R.string.console_resume_updates),
+            pausedDescription = stringResource(R.string.console_paused_description, ConsoleLogViewModel.MAX_PAUSED_ROWS),
+            pausingDescription = stringResource(R.string.console_pausing_description),
+            clearingDescription = stringResource(R.string.console_clearing_description),
             searchHint = stringResource(R.string.lbl_search),
             filterDescription = stringResource(R.string.cd_filter),
             clearDescription = stringResource(R.string.console_log_delete_all_cd),
@@ -64,16 +83,26 @@ fun ConsoleLogScreen(
                 stringResource(R.string.settings_gologger_dialog_option_7),
             ),
         ),
-        initialLogLevel = Logger.uiLogLevel.toInt(),
+        initialLogLevel = consoleLogSelectionIndex(Logger.uiLogLevel),
+        clearBusy = clearing,
+        paused = pause.paused,
+        pauseBusy = pause.loading,
+        pauseError = when {
+            clearFailed -> stringResource(R.string.console_clear_failed)
+            pause.error != null -> stringResource(R.string.console_pause_failed)
+            else -> null
+        },
+        onPauseToggle = { viewModel.setPaused(!pause.paused) },
         onFilterChange = viewModel::setFilter,
-        onLogLevelSelected = { level ->
-            Logger.uiLogLevel = level.toLong()
+        onLogLevelSelected = { selectedIndex ->
+            val level = consoleLogSelectedLevel(selectedIndex)
+            Logger.uiLogLevel = level
             GoVpnAdapter.setLogLevel(
                 persistentState.goLoggerLevel.toInt(),
                 Logger.uiLogLevel.toInt(),
                 persistentState.includeFileTrace,
             )
-            viewModel.setLogLevel(level.toLong())
+            viewModel.setLogLevel(level)
             if (level < Logger.LoggerLevel.ERROR.id) {
                 consoleLogRepository.setStartTimestamp(System.currentTimeMillis())
             }
@@ -81,10 +110,29 @@ fun ConsoleLogScreen(
         },
         onShareClick = onShareClick,
         onClearClick = {
-            scope.launch(Dispatchers.IO) {
-                Logger.i(LOG_TAG_BUG_REPORT, "deleting all console logs")
-                consoleLogRepository.deleteAllLogs()
-                onDeleteComplete()
+            if (!clearing) {
+                clearing = true
+                clearFailed = false
+                scope.launch {
+                    try {
+                        // Complete deletion and private-copy removal together even if this screen closes.
+                        withContext(NonCancellable + Dispatchers.IO) {
+                            consoleLogRepository.deleteAllLogs()
+                            withContext(Dispatchers.Main) { viewModel.onLogsCleared() }
+                        }
+                        onDeleteComplete()
+                    } catch (cancelled: CancellationException) {
+                        throw cancelled
+                    } catch (error: androidx.sqlite.SQLiteException) {
+                        Logger.e(LOG_TAG_BUG_REPORT, "Unable to delete console logs", error)
+                        clearFailed = true
+                    } catch (error: IllegalStateException) {
+                        Logger.e(LOG_TAG_BUG_REPORT, "Console database unavailable", error)
+                        clearFailed = true
+                    } finally {
+                        clearing = false
+                    }
+                }
             }
         },
         onBackClick = onBackClick,
