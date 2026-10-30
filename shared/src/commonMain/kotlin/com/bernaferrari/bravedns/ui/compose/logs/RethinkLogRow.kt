@@ -307,7 +307,7 @@ private fun VerdictBadge(blocked: Boolean, ringColor: Color, modifier: Modifier 
         contentAlignment = Alignment.Center,
     ) {
         Icon(
-            if (blocked) MaterialSymbols.Filled.Close else MaterialSymbols.Filled.Check,
+            if (blocked) MaterialSymbols.Filled.Remove else MaterialSymbols.Filled.Check,
             contentDescription = null,
             tint = if (blocked) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.surface,
             modifier = Modifier.size(10.dp),
