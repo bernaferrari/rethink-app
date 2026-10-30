@@ -42,6 +42,8 @@ internal class RpnWinEntitlementStore(
     private val tag: String = "RpnMgr",
 ) {
 
+    private fun internalFolder(): File = File(context.filesDir, folderName)
+
     fun configFileName(id: Int): String {
         return when (id) {
             winId -> stateFileName
@@ -75,26 +77,7 @@ internal class RpnWinEntitlementStore(
             }
 
             val fileName = jsonResponseFileName(winId)
-            val folder = context.getExternalFilesDir(folderName)
-            if (folder == null) {
-                Logger.e(LOG_TAG_PROXY, "$tag; storeWinEntitlement: failed to get external files dir")
-                return
-            }
-
-            if (!folder.exists()) {
-                val created = try {
-                    folder.mkdirs()
-                } catch (e: Exception) {
-                    e.rethrowCancellation()
-                    Logger.e(LOG_TAG_PROXY, "$tag; storeWinEntitlement: exception creating folder: ${e.message}", e)
-                    false
-                }
-                if (!created) {
-                    Logger.e(LOG_TAG_PROXY, "$tag; storeWinEntitlement: failed to create folder: ${folder.absolutePath}")
-                    return
-                }
-            }
-
+            val folder = internalFolder()
             val file = File(folder, fileName)
             val res = try {
                 EncryptedFileManager.write(context, ws, file)
@@ -165,8 +148,9 @@ internal class RpnWinEntitlementStore(
 
     suspend fun getWinEntitlement(): ByteArray? {
         val proxy = db.getProxyById(winId) ?: return null
-        val file = File(proxy.serverResPath)
-        if (!file.exists()) return null
+        val file = File(internalFolder(), entitlementFileName)
+        // An identity reset clears this association; never revive leftover local credentials.
+        if (proxy.serverResPath != file.absolutePath || !file.exists()) return null
         return try {
             val bytes = EncryptedFileManager.readByteArray(context, file)
             if (bytes.isNotEmpty()) {
@@ -183,10 +167,8 @@ internal class RpnWinEntitlementStore(
 
     suspend fun getWinExistingData(): ByteArray? {
         val proxy = db.getProxyById(winId) ?: return null
-        val cfg = proxy.configPath
-        if (cfg.isEmpty()) return null
-        val file = File(cfg)
-        if (!file.exists()) return null
+        val file = File(internalFolder(), stateFileName)
+        if (proxy.configPath != file.absolutePath || !file.exists()) return null
         return try {
             val bytes = EncryptedFileManager.readByteArray(context, file)
             if (bytes.isNotEmpty()) bytes else null
@@ -203,28 +185,8 @@ internal class RpnWinEntitlementStore(
         }
         return try {
             val fileName = configFileName(winId)
-            val folder = context.getExternalFilesDir(folderName)
-            if (folder == null) {
-                Logger.e(LOG_TAG_PROXY, "$tag; updateWinConfigState: failed to get external files dir")
-                return false
-            }
-
-            if (!folder.exists()) {
-                val created = try {
-                    folder.mkdirs()
-                } catch (e: Exception) {
-                    e.rethrowCancellation()
-                    Logger.e(LOG_TAG_PROXY, "$tag; updateWinConfigState: exception creating folder: ${e.message}", e)
-                    false
-                }
-                if (!created) {
-                    Logger.e(LOG_TAG_PROXY, "$tag; updateWinConfigState: failed to create folder: ${folder.absolutePath}")
-                    return false
-                }
-            }
-
+            val folder = internalFolder()
             val file = File(folder, fileName)
-            if (file.exists()) file.delete()
             val ok = try {
                 EncryptedFileManager.write(context, byteArray, file)
             } catch (e: Exception) {

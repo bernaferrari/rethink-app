@@ -30,7 +30,6 @@ import com.bernaferrari.bravedns.database.SubscriptionStatusRepository
 import com.bernaferrari.bravedns.iab.BillingBackendClient
 import com.bernaferrari.bravedns.iab.InAppBillingHandler
 import com.bernaferrari.bravedns.iab.PurchaseDetail
-import com.bernaferrari.bravedns.service.EncryptedFileManager
 import com.bernaferrari.bravedns.service.PersistentState
 import com.bernaferrari.bravedns.service.ProxyManager
 import com.bernaferrari.bravedns.service.VpnController
@@ -761,46 +760,17 @@ object RpnProxyManager : KoinComponent {
                     return@forEach
                 }
 
-                val cfgFile = File(it.configPath)
-                if (!cfgFile.exists() && it.id != WIN_ID) { // win proxy is handled differently
+                if (it.id != WIN_ID && !File(it.configPath).exists()) { // WIN uses canonical internal paths
                     Logger.w(LOG_TAG_PROXY, "$TAG; load, file not found: ${it.configPath} for ${it.name}")
                     return@forEach
                 }
                 when (it.id) {
                     WIN_ID -> {
-                        // read the win entitlement file
-                        if (it.serverResPath.isEmpty()) {
-                            Logger.w(LOG_TAG_PROXY, "$TAG; load, win serverResPath is empty")
-                            return@forEach
-                        }
-                        val entitlementFile = File(it.serverResPath)
-                        val entitlement = if (entitlementFile.exists()) {
-                            try {
-                                EncryptedFileManager.readByteArray(applicationContext, entitlementFile)
-                            } catch (e: Exception) {
-                                Logger.e(LOG_TAG_PROXY, "$TAG; load, error reading win entitlement file: ${e.message}")
-                                byteArrayOf()
-                            }
-                        } else {
-                            Logger.w(LOG_TAG_PROXY, "$TAG; load, win entitlement file not found: ${it.serverResPath}")
-                            byteArrayOf()
-                        }
-
-                        Logger.i(LOG_TAG_PROXY, "$TAG; load, win entitlement loaded, size: ${entitlement.size} bytes")
-
-                        val state = if (cfgFile.exists()) {
-                            try {
-                                EncryptedFileManager.readByteArray(applicationContext, cfgFile)
-                            } catch (e: Exception) {
-                                Logger.e(LOG_TAG_PROXY, "$TAG; load, error reading win state file (${cfgFile.absolutePath}): ${e.message}")
-                                byteArrayOf()
-                            }
-                        } else {
-                            Logger.d(LOG_TAG_PROXY, "$TAG; load, win state file not found: ${it.configPath}")
-                            byteArrayOf()
-                        }
-
-                        Logger.i(LOG_TAG_PROXY, "$TAG; load, win state loaded, size: ${state.size} bytes")
+                        // Canonical internal files are selected by the store, never by imported
+                        // absolute DB paths. Fresh installs need no external-storage relocation.
+                        val entitlement = getWinEntitlement() ?: byteArrayOf()
+                        val state = getWinExistingData() ?: byteArrayOf()
+                        Logger.i(LOG_TAG_PROXY, "$TAG; load, WIN entitlement/state sizes: ${entitlement.size}/${state.size}")
                     }
                 }
             } catch (e: Exception) {
