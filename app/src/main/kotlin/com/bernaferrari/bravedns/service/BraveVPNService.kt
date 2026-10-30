@@ -920,6 +920,9 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
         return cap.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
     }
 
+    private fun isCachedIfaceWifi(dst: String? = null): Boolean =
+        underlyingNetworks.isKnownWifi(dst?.let { ':' in it || it == "0.0.0.0" })
+
     private fun isIfaceMetered(dst: String): Boolean {
         val dest = IPAddressString(dst)
         if (dest.isEmpty) {
@@ -1178,6 +1181,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
             normalizeUid = { FirewallManager.appId(it, isPrimaryUser()) },
             isCaptivePortal = ::useCaptivePortalDns,
             isActiveCellular = ::isActiveIfaceCellular,
+            isActiveWifi = { isCachedIfaceWifi() },
         )
 
         underlyingNetworkManager.initialize()
@@ -3003,7 +3007,8 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
                 connTracker.query ?: "",
                 isIfaceCellular(connTracker.destIP),
                 ssid,
-                baseOrExit
+                baseOrExit,
+                isWifiActive = isCachedIfaceWifi(connTracker.destIP),
             )
 
         val decision =
@@ -3082,12 +3087,14 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
     suspend fun removeWireGuardProxy(id: Int) {
         logd("remove wg from tunnel: $id")
         vpnAdapter?.removeWgProxy(id)
+        refreshOrPauseOrResumeOrReAddProxies()
     }
 
     suspend fun addWireGuardProxy(id: String, force: Boolean = false) {
         vpnAdapter?.invalidateProxyProbes()
         logd("add wg from tunnel: $id")
         vpnAdapter?.addWgProxy(id, force)
+        refreshOrPauseOrResumeOrReAddProxies()
     }
 
     suspend fun pauseMobileOnlyWireGuardOnNoNw() {
@@ -3122,6 +3129,8 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
         }
     }
 
+    suspend fun applySmartDnsProfile() = vpnAdapter?.applySmartDnsProfile()
+
     suspend fun refreshOrPauseOrResumeOrReAddProxies() {
         withContext(CoroutineName("ref-pro") + serializer) {
             logd("refresh wg config")
@@ -3132,9 +3141,11 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
             val v4Mobile = v4first?.capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ?: false
             val v6Mobile = v6first?.capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ?: false
             val isActiveMobile = v4Mobile || (v4first == null && v6Mobile)
+            val selected = v4first ?: v6first
+            val isActiveWifi = selected?.capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true
             val activeSsid = getUnderlyingSsid() ?: ""
             Logger.v(LOG_TAG_VPN, "refreshOrPauseOrResumeOrReAddProxies: canResumeMobileOnlyWg? $isActiveMobile, curr-ssid: $activeSsid")
-            io("refreshWg") { vpnAdapter?.refreshOrPauseOrResumeOrReAddProxies(isActiveMobile, activeSsid) }
+            io("refreshWg") { vpnAdapter?.refreshOrPauseOrResumeOrReAddProxies(isActiveMobile, activeSsid, isActiveWifi) }
         }
     }
 
@@ -3379,7 +3390,9 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
     }
 
     suspend fun removeHop(src: String): Pair<Boolean, String> {
-        return vpnAdapter?.removeHop(src) ?: Pair(false, "vpn not active")
+        val result = vpnAdapter?.removeHop(src) ?: Pair(false, "vpn not active")
+        refreshOrPauseOrResumeOrReAddProxies()
+        return result
     }
 
     suspend fun getRpnProps(type: RpnType): Pair<RpnProxyManager.RpnProps?, String?> {
@@ -3441,7 +3454,9 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
     }
 
     suspend fun createWgHop(origin: String, hop: String): Pair<Boolean, String> {
-        return (vpnAdapter?.createHop(origin, hop)) ?: Pair(false, "adapter is null")
+        val result = vpnAdapter?.createHop(origin, hop) ?: Pair(false, "adapter is null")
+        refreshOrPauseOrResumeOrReAddProxies()
+        return result
     }
     suspend fun vpnStats(): String {
         return vpnServiceDiagnostics.vpnStats(builderStats())

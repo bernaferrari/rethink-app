@@ -794,6 +794,9 @@ object RpnProxyManager : KoinComponent {
     }
 
     // This function is called from RpnProxiesUpdateWorker
+    suspend fun recoverMissingWin(isCurrent: suspend () -> Boolean): Boolean =
+        registrationCoordinator.register(isCurrent = { isRpnActive() && isCurrent() })
+
     suspend fun registerProxy(type: RpnType): Boolean {
         // in case of update failure, call register with null
         when (type) {
@@ -1601,7 +1604,8 @@ object RpnProxyManager : KoinComponent {
         port: Int,
         domain: String,
         usesMobileNw: Boolean,
-        ssid: String
+        ssid: String,
+        isWifiActive: Boolean = ssid.isNotEmpty(),
     ): List<String> {
         val allProxyIdsForApp = try {
             ProxyManager.getProxyIdsForApp(uid)
@@ -1622,6 +1626,7 @@ object RpnProxyManager : KoinComponent {
             allProxyIdsForApp = allIds,
             rpnProxyIdsForApp = rpnProxyIdsForApp,
             servers = servers,
+            isWifiActive = isWifiActive,
             resolveAutoId = { VpnController.getWinByKey("")?.id() ?: Backend.Block },
         )
     }

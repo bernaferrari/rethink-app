@@ -88,7 +88,7 @@ fun RethinkEndpointEditorDialog(onDismiss: () -> Unit, content: @Composable () -
  * scrollable region, so a longer DNS form never hides Cancel/Add behind the gesture area.
  */
 @Composable
-private fun RethinkEndpointEditorForm(
+internal fun RethinkEndpointEditorForm(
     title: String,
     error: String,
     strings: RethinkEndpointEditorStrings,
@@ -104,6 +104,7 @@ private fun RethinkEndpointEditorForm(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .weight(1f, fill = false)
                 .heightIn(max = SharedDimensions.sheetContentMaxHeight)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSmMd),

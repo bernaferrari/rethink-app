@@ -181,6 +181,7 @@ fun RpnWinProxyDetailsScreen(
             wifiOnly = stringResource(R.string.rpn_server_wifi_only),
             editWifi = stringResource(R.string.rpn_server_edit_wifi),
             selectApps = selectAppsLabel,
+            relayNetworkPolicy = stringResource(R.string.rpn_relay_network_policy),
         ),
         onBackClick = onBackClick,
         onHopChanged = { enabled -> serverConfig?.let { config ->

@@ -191,6 +191,10 @@ class VpnPrefObservers(
                 }
             }
 
+            PersistentState.SMART_DNS_PROFILE -> {
+                io("smartDnsProfile") { adapter()?.applySmartDnsProfile() }
+            }
+
             PersistentState.DNS_CHANGE -> {
                 io("dnsChange") {
                     dnsTransport.onDnsTypeChanged()

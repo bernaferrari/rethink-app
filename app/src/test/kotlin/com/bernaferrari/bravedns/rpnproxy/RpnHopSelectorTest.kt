@@ -59,12 +59,12 @@ class RpnHopSelectorTest {
     }
 
     @Test
-    fun `metered-only passes only on mobile with empty ssid`() {
+    fun `mobile-only follows selected cellular despite connected wifi`() {
         val servers = listOf(server("k1", mobileOnly = true))
         assertTrue(
             selector.isEligibleForNetwork("k1", usesMobileNw = true, ssid = "", mobileOnlySetting = true, ssidEnabled = false, servers = servers)
         )
-        assertFalse(
+        assertTrue(
             selector.isEligibleForNetwork("k1", usesMobileNw = true, ssid = "Home", mobileOnlySetting = true, ssidEnabled = false, servers = servers)
         )
         assertFalse(
@@ -219,10 +219,9 @@ class RpnHopSelectorTest {
     }
 
     @Test
-    fun `ssid lookup does not strip the rpn prefix`() {
+    fun `SSID eligibility uses the same config for native prefix and stored key`() {
         val servers = listOf(server("k1", ssidBased = true, ssids = ""))
-        // Historical quirk: eligibility looks up the full proxy id, which misses key-only rows.
-        assertFalse(
+        assertTrue(
             selector.isEligibleForNetwork(
                 id = prefix + "k1",
                 usesMobileNw = false,
@@ -243,4 +242,21 @@ class RpnHopSelectorTest {
             )
         )
     }
+    @Test fun `relays inherit AUTO mobile policy and missing AUTO fails closed`() {
+        val country = server("country", mobileOnly = false).copy(hopEnabled = true)
+        val auto = server("AUTO", id = "AUTO", mobileOnly = true)
+        assertFalse(selector.canUseConfig(prefix + "country", "app", false, "Home", listOf(country, auto), isWifiActive = true))
+        assertTrue(selector.canUseConfig(prefix + "country", "app", true, "Home", listOf(country, auto), isWifiActive = true))
+        assertFalse(selector.canUseConfig(prefix + "country", "app", true, "", listOf(country), isWifiActive = false))
+    }
+
+    @Test fun `empty SSID policy requires known wifi and named policy rejects unavailable names`() {
+        val wifi = server("wifi", ssidBased = true)
+        assertTrue(selector.canUseConfig(prefix + "wifi", "app", false, "", listOf(wifi), isWifiActive = true))
+        assertFalse(selector.canUseConfig(prefix + "wifi", "app", false, "", listOf(wifi), isWifiActive = false))
+        assertFalse(selector.canUseConfig(prefix + "wifi", "app", false, "Home", listOf(wifi), isWifiActive = false))
+        val named = wifi.copy(ssids = "[{\"name\":\"Home\",\"type\":\"equal_exact\"}]")
+        assertFalse(selector.canUseConfig(prefix + "wifi", "app", false, "", listOf(named), isWifiActive = true))
+    }
+
 }

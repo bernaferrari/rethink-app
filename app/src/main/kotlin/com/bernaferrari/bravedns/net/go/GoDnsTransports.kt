@@ -187,7 +187,9 @@ internal class GoDnsTransports(
                 return
             }
             url = doh.dohURL
-            val ips: String = callbacks.ipString(url)
+            val ips = com.bernaferrari.bravedns.data.DnsBootstrapAddresses.parse(doh.bootstrapIps)
+                ?.ifEmpty { callbacks.ipString(url) }
+                ?: throw IllegalArgumentException("Invalid DNS bootstrap IP addresses")
             // change the url from https to http if the isSecure is false
             if (!doh.isSecure) {
                 Logger.d(LOG_TAG_VPN, "$TAG changing url from https to http for $url")

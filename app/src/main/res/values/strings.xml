@@ -1860,4 +1860,22 @@
     <string name="custom_rules_domain_hint">example.com</string>
     <string name="exclude_apps_from_proxy_desc">This app connects directly, never through a proxy.</string>
     <string name="flight_recording_started">Flight recording started</string>
+    <string name="doh_bootstrap_ips_label">Bootstrap IP addresses (optional)</string>
+    <string name="doh_bootstrap_ips_description">Enter up to 16 IPv4 or IPv6 addresses, separated by commas. The resolver URL still identifies and authenticates the server. Leave empty to use the existing defaults.</string>
+    <string name="doh_bootstrap_ips_invalid">Enter up to 16 numeric IPv4 or IPv6 addresses, without ports or network prefixes.</string>
+    <string name="smart_dns_profile_heading">Smart DNS filtering</string>
+    <string name="smart_dns_profile_none">No filtering</string>
+    <string name="smart_dns_profile_security">Security</string>
+    <string name="smart_dns_profile_privacy">Privacy</string>
+    <string name="smart_dns_profile_family">Family</string>
+    <string name="smart_dns_profile_none_desc">Choose providers without a preset filter.</string>
+    <string name="smart_dns_profile_security_desc">Prefer providers that filter malicious and unsafe domains.</string>
+    <string name="smart_dns_profile_privacy_desc">Prefer providers that filter unsafe domains, ads, and trackers.</string>
+    <string name="smart_dns_profile_family_desc">Prefer providers with family-friendly filtering. This is not a parental-control guarantee.</string>
+    <string name="smart_dns_profile_saved">Saved. Applies when Smart DNS protection starts.</string>
+    <string name="smart_dns_profile_queued">Waiting for the DNS resolver to accept this profile.</string>
+    <string name="smart_dns_profile_settling">Updating resolver choices. The previous profile may serve requests for up to 10 seconds. Existing DNS answers can remain cached until their normal expiry.</string>
+    <string name="smart_dns_profile_active">Active for new resolver choices. Existing DNS answers can remain cached until their normal expiry.</string>
+    <string name="smart_dns_profile_failed">Could not apply this profile. Select it again to retry.</string>
+    <string name="rpn_relay_network_policy">Network restrictions currently inherit AUTO. These saved mobile and Wi-Fi controls apply when relay is disabled.</string>
 </resources>

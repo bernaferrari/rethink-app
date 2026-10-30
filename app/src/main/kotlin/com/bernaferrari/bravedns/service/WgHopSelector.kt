@@ -18,6 +18,7 @@ package com.bernaferrari.bravedns.service
 import Logger
 import Logger.LOG_TAG_PROXY
 import com.bernaferrari.bravedns.database.WgConfigFilesImmutable
+import com.bernaferrari.bravedns.net.go.ProxyNetworkPolicy
 import com.bernaferrari.bravedns.service.ProxyManager.ID_WG_BASE
 
 /**
@@ -31,7 +32,7 @@ import com.bernaferrari.bravedns.service.ProxyManager.ID_WG_BASE
 internal class WgHopSelector(
     private val wgPrefix: String = ID_WG_BASE,
     private val invalidId: Int = WireguardManager.INVALID_CONF_ID,
-    private val matchesSsid: (ssidList: String, ssid: String) -> Boolean = WgSsidMatcher::matchesSsidList,
+    private val matchesSsid: (ssidList: String, ssid: String) -> Boolean = { list, name -> WgSsidMatcher.matchesSsidList(list, name, emptyMatchesAll = false) },
 ) {
 
     fun convertStringIdToId(id: String): Int {
@@ -51,12 +52,14 @@ internal class WgHopSelector(
         mobileOnlySetting: Boolean,
         ssidEnabled: Boolean,
         mappings: Collection<WgConfigFilesImmutable>,
+        isWifiActive: Boolean = ssid.isNotEmpty(),
     ): Boolean {
         if (!mobileOnlySetting && !ssidEnabled) return true
 
-        val passMobileOnly = mobileOnlySetting && usesMobileNw
-        val passSsid = ssidEnabled && !usesMobileNw && matchesSsidListForConfig(id, ssid, mappings)
-        return passMobileOnly || passSsid
+        val config = mappings.find { it.id == id }
+        if (ssidEnabled && config == null) return mobileOnlySetting && usesMobileNw
+        return ProxyNetworkPolicy(mobileOnlySetting, ssidEnabled, config?.ssids.orEmpty(), matchesSsid)
+            .allows(usesMobileNw, isWifiActive, ssid)
     }
 
     fun matchesSsidListForConfig(
@@ -69,7 +72,7 @@ internal class WgHopSelector(
             Logger.e(LOG_TAG_PROXY, "matchesSsidListForConfig: wg not found, id: $id, ${mappings.size}")
             return false
         }
-        return matchesSsid(config.ssids, ssid)
+        return ProxyNetworkPolicy(false, true, config.ssids, matchesSsid).allows(false, true, ssid)
     }
 
     fun canUseConfig(
@@ -78,6 +81,7 @@ internal class WgHopSelector(
         usesMobileNw: Boolean,
         ssid: String,
         mappings: Collection<WgConfigFilesImmutable>,
+        isWifiActive: Boolean = ssid.isNotEmpty(),
     ): Boolean {
         if (idStr.isEmpty()) {
             return false
@@ -92,12 +96,12 @@ internal class WgHopSelector(
 
         val lockdown = config.isLockdown
 
-        if (lockdown && isEligibleForNetwork(id, usesMobileNw, ssid, config.useOnlyOnMetered, config.ssidEnabled, mappings)) {
+        if (lockdown && isEligibleForNetwork(id, usesMobileNw, ssid, config.useOnlyOnMetered, config.ssidEnabled, mappings, isWifiActive)) {
             Logger.d(LOG_TAG_PROXY, "lockdown wg for $type => return $idStr")
             return true
         }
 
-        if (config.isActive && isEligibleForNetwork(id, usesMobileNw, ssid, config.useOnlyOnMetered, config.ssidEnabled, mappings)) {
+        if (config.isActive && isEligibleForNetwork(id, usesMobileNw, ssid, config.useOnlyOnMetered, config.ssidEnabled, mappings, isWifiActive)) {
             Logger.d(LOG_TAG_PROXY, "active wg for $type => add $idStr")
             return true
         }
@@ -131,30 +135,13 @@ internal class WgHopSelector(
         oneWireGuardId: Int?,
         wgProxyIdsForApp: List<String>,
         mappings: Collection<WgConfigFilesImmutable>,
+        isWifiActive: Boolean = ssid.isNotEmpty(),
     ): List<String> {
         val proxyIds: MutableList<String> = mutableListOf()
 
-        if (oneWireGuardId != null) {
-            if (oneWireGuardId == invalidId) {
-                Logger.e(LOG_TAG_PROXY, "canAdd: one-wg not found, id: $oneWireGuardId, return empty")
-                return emptyList()
-            }
-
-            proxyIds.add(wgPrefix + oneWireGuardId)
-            if (mappings.find { it.id == oneWireGuardId }?.isSplitProxy == true && default.isNotEmpty()) {
-                proxyIds.add(default)
-            }
-            Logger.i(LOG_TAG_PROXY, "one-wg enabled, return $proxyIds")
-            return proxyIds
-        }
-
-        if (wgProxyIdsForApp.isNotEmpty()) {
-            for (pid in wgProxyIdsForApp) {
-                val canUse = canUseConfig(pid, "app($uid)", usesMobileNw, ssid, mappings)
-                if (canUse) {
-                    proxyIds.add(pid)
-                }
-            }
+        if (oneWireGuardId != null) return oneWireGuardProxyIds(oneWireGuardId, default, mappings)
+        for (pid in wgProxyIdsForApp) {
+            if (canUseConfig(pid, "app($uid)", usesMobileNw, ssid, mappings, isWifiActive)) proxyIds.add(pid)
         }
 
         if (isAnyProxyLockdown(proxyIds, mappings)) {
@@ -164,7 +151,7 @@ internal class WgHopSelector(
 
         val cac = mappings.filter { it.isActive && it.isCatchAll }
         cac.forEach {
-            if (isEligibleForNetwork(it.id, usesMobileNw, ssid, it.useOnlyOnMetered, it.ssidEnabled, mappings) &&
+            if (isEligibleForNetwork(it.id, usesMobileNw, ssid, it.useOnlyOnMetered, it.ssidEnabled, mappings, isWifiActive) &&
                 !proxyIds.contains(wgPrefix + it.id)
             ) {
                 proxyIds.add(wgPrefix + it.id)
@@ -183,15 +170,19 @@ internal class WgHopSelector(
             return if (default.isEmpty()) emptyList() else listOf(default)
         }
 
-        val isAnyIdLockdown = proxyIds.any { id ->
-            val confId = convertStringIdToId(id)
-            val conf = mappings.find { it.id == confId }
-            conf?.isLockdown ?: false
-        }
-
-        if (default.isNotEmpty() && !isAnyIdLockdown) proxyIds.add(default)
+        if (default.isNotEmpty() && !isAnyProxyLockdown(proxyIds, mappings)) proxyIds.add(default)
 
         Logger.i(LOG_TAG_PROXY, "returning proxy ids for $uid, $ip, $port, $domain: $proxyIds")
         return proxyIds
     }
+    private fun oneWireGuardProxyIds(id: Int, default: String, mappings: Collection<WgConfigFilesImmutable>): List<String> {
+        if (id == invalidId) {
+            Logger.e(LOG_TAG_PROXY, "one-wg not found, id: $id")
+            return emptyList()
+        }
+        val ids = mutableListOf(wgPrefix + id)
+        if (mappings.find { it.id == id }?.isSplitProxy == true && default.isNotEmpty()) ids.add(default)
+        return ids
+    }
+
 }

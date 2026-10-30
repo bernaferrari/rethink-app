@@ -290,6 +290,7 @@ object WireguardManager : KoinComponent {
         usesMobileNw: Boolean,
         ssid: String,
         default: String,
+        isWifiActive: Boolean = ssid.isNotEmpty(),
     ): List<String> {
         val oneWgId = if (oneWireGuardEnabled()) {
             getOneWireGuardProxyId() ?: INVALID_CONF_ID
@@ -308,6 +309,7 @@ object WireguardManager : KoinComponent {
             oneWireGuardId = oneWgId,
             wgProxyIdsForApp = wgProxyIdsForApp,
             mappings = registry.mappings,
+            isWifiActive = isWifiActive,
         )
     }
 

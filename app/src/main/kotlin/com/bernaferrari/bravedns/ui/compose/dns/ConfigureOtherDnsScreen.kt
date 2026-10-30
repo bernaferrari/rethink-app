@@ -222,6 +222,9 @@ private fun DohListContent(
     val dohNameTemplate = stringResource(R.string.cd_custom_doh_url_name)
     val checkboxLabel = stringResource(R.string.cd_doh_dialog_checkbox_desc)
     val invalidUrlMessage = stringResource(R.string.custom_url_error_invalid_url)
+    val bootstrapLabel = stringResource(R.string.doh_bootstrap_ips_label)
+    val bootstrapDescription = stringResource(R.string.doh_bootstrap_ips_description)
+    val invalidBootstrap = stringResource(R.string.doh_bootstrap_ips_invalid)
     var dialogName by remember { mutableStateOf(defaultName) }
 
     DnsEndpointListWithFab(
@@ -239,7 +242,7 @@ private fun DohListContent(
 
     if (showDialog) {
         RethinkEndpointEditorDialog(onDismiss = { showDialog = false }) {
-            RethinkUrlEndpointEditor(
+            RethinkDohEndpointEditor(
                 title = heading,
                 nameLabel = nameLabel,
                 endpointLabel = urlLabel,
@@ -247,15 +250,20 @@ private fun DohListContent(
                 initialEndpoint = "https://",
                 insecureLabel = checkboxLabel,
                 strings = endpointEditorStrings(),
-                onSubmit = { name, url, isSecure ->
-                    if (checkUrl(url)) {
-                        scope.launch(Dispatchers.IO) {
-                            insertDoHEndpoint(appConfig, name, url, isSecure)
+                bootstrapLabel = bootstrapLabel,
+                bootstrapDescription = bootstrapDescription,
+                onSubmit = { name, url, isSecure, bootstrap ->
+                    val ips = com.bernaferrari.bravedns.data.DnsBootstrapAddresses.parse(bootstrap)
+                    when {
+                        !checkUrl(url) -> invalidUrlMessage
+                        ips == null -> invalidBootstrap
+                        else -> {
+                            scope.launch(Dispatchers.IO) {
+                                insertDoHEndpoint(appConfig, name, url, isSecure, ips)
+                            }
+                            showDialog = false
+                            null
                         }
-                        showDialog = false
-                        null
-                    } else {
-                        invalidUrlMessage
                     }
                 },
                 onDismiss = { showDialog = false }
@@ -264,7 +272,7 @@ private fun DohListContent(
     }
 }
 
-private suspend fun insertDoHEndpoint(appConfig: AppConfig, name: String, url: String, isSecure: Boolean) {
+private suspend fun insertDoHEndpoint(appConfig: AppConfig, name: String, url: String, isSecure: Boolean, bootstrapIps: String) {
     var dohName = name
     if (name.isBlank()) {
         dohName = url
@@ -274,6 +282,7 @@ private suspend fun insertDoHEndpoint(appConfig: AppConfig, name: String, url: S
         dohName,
         url,
         dohExplanation = "",
+        bootstrapIps = bootstrapIps,
         isSelected = false,
         isCustom = true,
         isSecure = isSecure,

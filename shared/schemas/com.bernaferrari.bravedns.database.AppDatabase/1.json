@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "326f38957770905be47bfdfea0d20b0c",
+    "identityHash": "4b632862fa163fe8f725835216042f9a",
     "entities": [
       {
         "tableName": "AppInfo",
@@ -214,7 +214,7 @@
       },
       {
         "tableName": "DoHEndpoint",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `dohName` TEXT NOT NULL, `dohURL` TEXT NOT NULL, `dohExplanation` TEXT, `isSelected` INTEGER NOT NULL, `isCustom` INTEGER NOT NULL, `isSecure` INTEGER NOT NULL, `modifiedDataTime` INTEGER NOT NULL, `latency` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `dohName` TEXT NOT NULL, `dohURL` TEXT NOT NULL, `dohExplanation` TEXT, `isSelected` INTEGER NOT NULL, `isCustom` INTEGER NOT NULL, `isSecure` INTEGER NOT NULL, `modifiedDataTime` INTEGER NOT NULL, `latency` INTEGER NOT NULL, `bootstrapIps` TEXT NOT NULL DEFAULT '')",
         "fields": [
           {
             "fieldPath": "id",
@@ -268,6 +268,13 @@
             "columnName": "latency",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "bootstrapIps",
+            "columnName": "bootstrapIps",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "''"
           }
         ],
         "primaryKey": {
@@ -1747,7 +1754,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '326f38957770905be47bfdfea0d20b0c')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '4b632862fa163fe8f725835216042f9a')"
     ]
   }
 }

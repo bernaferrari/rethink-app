@@ -82,6 +82,7 @@ data class RethinkRpnWinProxyDetailsStrings(
     val wifiOnly: String,
     val editWifi: String,
     val selectApps: String,
+    val relayNetworkPolicy: String,
 )
 
 /** Shared RPN Windows proxy detail screen. Android supplies service state and persists option changes. */
@@ -206,5 +207,11 @@ private fun RethinkRpnWinServerOptions(
                 onClick = onEditSsids,
             )
         }
+        if (options.hopEnabled) Text(
+            strings.relayNetworkPolicy,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = SharedDimensions.spacingMd, vertical = SharedDimensions.spacingSm),
+        )
     }
 }

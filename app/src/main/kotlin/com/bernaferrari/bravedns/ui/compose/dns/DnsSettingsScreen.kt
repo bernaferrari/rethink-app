@@ -49,7 +49,10 @@ fun DnsSettingsScreen(
             onRecordTypes = onAllowedRecordTypesClick,
             onTrustedEndpoint = onBlockFreeDnsClick,
         ),
-        additionalSettings = { CaptivePortalSetting() },
+        additionalSettings = {
+            if (uiState.isSmartDnsEnabled) SmartDnsProfileSetting()
+            CaptivePortalSetting()
+        },
         state = uiState.toRethinkDnsSettingsState(),
         strings = androidDnsSettingsStrings(),
         onCustomDownloaderChange = onCustomDownloaderChange,

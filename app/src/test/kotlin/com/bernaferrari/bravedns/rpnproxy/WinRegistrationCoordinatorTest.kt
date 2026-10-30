@@ -63,4 +63,25 @@ class WinRegistrationCoordinatorTest {
         assertFalse(WinRegistrationCoordinator(backend, mutex).register())
         coVerify { backend.expired("old") }
     }
+    @Test fun `recovery invalidated during material fetch cannot register`() = runTest {
+        val backend = mockk<WinRegistrationBackend>(relaxed = true)
+        var current = true
+        coEvery { backend.isRegistered() } returns false
+        coEvery { backend.material(false) } coAnswers {
+            current = false
+            WinRegistrationMaterial(byteArrayOf(1), "device", true)
+        }
+        assertFalse(WinRegistrationCoordinator(backend).register(isCurrent = { current }))
+        coVerify(exactly = 0) { backend.register(any(), any()) }
+    }
+    @Test fun `recovery invalidated by native completion discards its registration`() = runTest {
+        val backend = mockk<WinRegistrationBackend>(relaxed = true)
+        var current = true
+        coEvery { backend.isRegistered() } returns false
+        coEvery { backend.material(false) } returns WinRegistrationMaterial(byteArrayOf(1), "device", true)
+        coEvery { backend.register(any(), any()) } coAnswers { current = false; byteArrayOf(2) }
+        assertFalse(WinRegistrationCoordinator(backend).register(isCurrent = { current }))
+        coVerify(exactly = 1) { backend.unregister() }
+        coVerify(exactly = 0) { backend.persistState(any()) }
+    }
 }

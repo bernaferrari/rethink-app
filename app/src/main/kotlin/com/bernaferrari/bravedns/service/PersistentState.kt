@@ -15,6 +15,8 @@
  */
 package com.bernaferrari.bravedns.service
 
+import com.bernaferrari.bravedns.data.SmartDnsApplyStatus
+import com.bernaferrari.bravedns.data.SmartDnsProfile
 import android.content.Context
 import android.os.Handler
 import kotlinx.coroutines.flow.SharedFlow
@@ -55,6 +57,7 @@ class PersistentState(context: Context) {
         const val PROXY_TYPE = "proxy_proxytype"
         const val NETWORK = "add_all_networks_to_vpn"
         const val NOTIFICATION_ACTION = "notification_action"
+        const val SMART_DNS_PROFILE = "smart_dns_profile"
         const val DNS_CHANGE = "connected_dns_name"
         const val INTERNET_PROTOCOL = "internet_protocol"
         const val PROTOCOL_TRANSLATION = "protocol_translation"
@@ -291,6 +294,27 @@ class PersistentState(context: Context) {
     var appTestMode by store.boolean("app_test_mode", false)
 
     var blockFreeDns by store.string("block_free_dns", "")
+
+    private var smartDnsStatusOwner: Any? = null
+    @Synchronized internal fun claimSmartDnsStatus(owner: Any) { smartDnsStatusOwner = owner }
+    @Synchronized internal fun publishSmartDnsStatus(owner: Any, status: SmartDnsApplyStatus) {
+        if (smartDnsStatusOwner === owner) _smartDnsApplyStatus.value = status
+    }
+    @Synchronized internal fun releaseSmartDnsStatus(owner: Any) {
+        if (smartDnsStatusOwner === owner) {
+            smartDnsStatusOwner = null
+            _smartDnsApplyStatus.value = SmartDnsApplyStatus.Saved
+        }
+    }
+    private val _smartDnsApplyStatus = MutableStateFlow<SmartDnsApplyStatus>(
+        SmartDnsApplyStatus.Saved)
+
+    val smartDnsApplyStatus: StateFlow<SmartDnsApplyStatus> = _smartDnsApplyStatus.asStateFlow()
+    @Synchronized internal fun queueSmartDnsProfile(profile: SmartDnsProfile) {
+        _smartDnsApplyStatus.value = if (smartDnsStatusOwner == null) SmartDnsApplyStatus.Saved else SmartDnsApplyStatus.Queued(profile)
+    }
+
+    var smartDnsProfile by store.int(SMART_DNS_PROFILE, SmartDnsProfile.None.value)
 
     var blockFreeDnsMode by store.int("block_free_dns_mode", BlockFreeDnsMode.AUTO.mode)
     var floodWireGuard by store.boolean("flood_wireguard", false)

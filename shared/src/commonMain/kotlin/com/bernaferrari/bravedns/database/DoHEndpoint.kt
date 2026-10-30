@@ -33,17 +33,21 @@ class DoHEndpoint {
     var isSecure: Boolean = true
     var modifiedDataTime: Long = INIT_TIME_MS
     var latency: Int = 0
+    @androidx.room3.ColumnInfo(defaultValue = "''")
+    var bootstrapIps: String = ""
 
     override fun equals(other: Any?): Boolean {
         if (other !is DoHEndpoint) return false
         if (isSelected != other.isSelected) return false
         if (dohURL != other.dohURL) return false
+        if (bootstrapIps != other.bootstrapIps) return false
         return true
     }
 
     override fun hashCode(): Int {
         var result = this.dohURL.hashCode()
         result += result * 31 + this.isSelected.hashCode()
+        result += result * 31 + bootstrapIps.hashCode()
         return result
     }
 
@@ -56,7 +60,8 @@ class DoHEndpoint {
         isCustom: Boolean,
         isSecure: Boolean,
         modifiedDataTime: Long,
-        latency: Int
+        latency: Int,
+        bootstrapIps: String = ""
     ) {
         // Room auto-increments id when its set to zero.
         // A non-zero id overrides and sets caller-specified id instead.
@@ -70,6 +75,7 @@ class DoHEndpoint {
         if (modifiedDataTime != INIT_TIME_MS) this.modifiedDataTime = modifiedDataTime
         else this.modifiedDataTime = currentTimeMillis()
         this.latency = latency
+        this.bootstrapIps = bootstrapIps
     }
 
     fun isDeletable(): Boolean {

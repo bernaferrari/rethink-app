@@ -43,6 +43,7 @@ class VpnDnsQueryRouter(
     private val normalizeUid: (Int) -> Int = { it },
     private val isCaptivePortal: () -> Boolean = { false },
     private val isActiveCellular: () -> Boolean = { false },
+    private val isActiveWifi: () -> Boolean = { !getUnderlyingSsid().isNullOrEmpty() },
 ) {
     companion object {
         private const val TAG = "VpnService;"
@@ -322,7 +323,7 @@ class VpnDnsQueryRouter(
                 return Pair(defaultTid, "")
             }
             val ssid = getUnderlyingSsid() ?: ""
-            val ids = WireguardManager.getAllPossibleConfigIdsForApp(uid, ip = "", port = 0, domain, isActiveCellular(), ssid, defaultTid)
+            val ids = WireguardManager.getAllPossibleConfigIdsForApp(uid, ip = "", port = 0, domain, isActiveCellular(), ssid, defaultTid, isWifiActive = isActiveWifi())
             val wgOrDefaultTid = if (ids.isEmpty()) {
                 Logger.d(LOG_TAG_VPN, "(onQuery-pid)no wg found, return $defaultTid")
                 defaultTid
@@ -446,7 +447,8 @@ class VpnDnsQueryRouter(
                 domain,
                 isActiveCellular(),
                 ssid,
-                defaultProxy
+                defaultProxy,
+                isWifiActive = isActiveWifi(),
             )
             if (ids.isEmpty()) {
                 Logger.d(LOG_TAG_VPN, "(onQuery-pid)no wg found, return $defaultProxy")

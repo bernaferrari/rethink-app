@@ -40,6 +40,7 @@ class AppDatabaseCatalogTest {
             assertEquals(selected.url, fallback.url)
             assertEquals(7, db.rethinkEndpointDao().getCount())
             assertEquals(7, db.dohEndpointsDAO().getCount())
+            assertTrue(db.dohEndpointsDAO().getAllDefaultDoHEndpoints().all { it.bootstrapIps.isEmpty() })
             assertEquals(5, db.dnsCryptEndpointDAO().getCount())
             assertEquals(5, db.dnsCryptRelayEndpointDAO().getCount())
             assertEquals(7, db.dnsProxyEndpointDAO().getCount())

@@ -16,6 +16,7 @@
  */
 package com.bernaferrari.bravedns.net.go
 
+import com.bernaferrari.bravedns.data.SmartDnsProfile
 import Logger
 import Logger.LOG_TAG_PROXY
 import Logger.LOG_TAG_VPN
@@ -119,6 +120,7 @@ class GoVpnAdapter(
     private val appConfig: AppConfig,
     private val connTrackerDb: ConnectionTrackerRepository,
     private val eventLogger: EventLogger,
+    private val installProxyDns: (Tunnel, Proxy) -> Unit = { session, proxy -> Intra.addProxyDNS(session, proxy) },
 ) {
     // The Intra session object from go-tun2socks.  Initially null.
     private var tunnel: Tunnel
@@ -203,6 +205,7 @@ class GoVpnAdapter(
 
         // TODO: ideally the values required for transport, alg and rdns should be set in the
         // opts itself.
+        applySmartDnsProfile()
         setRDNS()
         addTransport()
         // Plus do not throw exception if the dns is not added, so check the status for client err
@@ -275,6 +278,7 @@ class GoVpnAdapter(
     }
 
     suspend fun addTransport() {
+        applySmartDnsProfile()
         dnsTransports().addTransport()
     }
 
@@ -545,7 +549,9 @@ class GoVpnAdapter(
         }
     }
 
-    suspend fun removeHop(src: String): Pair<Boolean, String> {
+    suspend fun removeHop(src: String): Pair<Boolean, String> = proxyRecovery().mutate { removeHopLocked(src) }
+
+    private suspend fun removeHopLocked(src: String): Pair<Boolean, String> {
         var err = ""
         try {
             tunnel.proxies.hop("", src)
@@ -610,20 +616,24 @@ class GoVpnAdapter(
         }
     }
 
-    private suspend fun setWireGuardDns(id: String) {
+    private suspend fun setWireGuardDns(id: String): Boolean {
         try {
             val p = getProxies()?.getProxy(id)
             if (p == null) {
                 Logger.w(LOG_TAG_VPN, "$TAG wireguard proxy not found for id: $id")
-                return
+                return false
             }
-            Intra.addProxyDNS(tunnel, p) // dns transport has same id as the proxy (p)
+            installProxyDns(tunnel, p) // dns transport has same id as the proxy (p)
             logEvent(Severity.LOW, "set wireguard dns", "set wireguard dns for id: $id")
+            return true
+        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+            throw cancelled
         } catch (e: Exception) {
             Logger.e(LOG_TAG_VPN, "$TAG wireguard dns failure($id)", e)
             removeResolver(id)
             showDnsFailureToast(id)
             logEvent(Severity.HIGH, "set wireguard dns error", "wireguard dns failure for id: $id, reason: ${e.message}" )
+            return false
         }
     }
 
@@ -714,7 +724,9 @@ class GoVpnAdapter(
         }
     }
 
-    suspend fun removeWgProxy(id: Int) {
+    suspend fun removeWgProxy(id: Int) = proxyRecovery().mutate { removeWgProxyLocked(id) }
+
+    private suspend fun removeWgProxyLocked(id: Int) {
         if (!tunnel.isConnected) {
             Logger.e(LOG_TAG_VPN, "$TAG no tunnel, skip remove wg")
             logEvent(Severity.CRITICAL, "remove wg proxy", "removeWgProxy called with no tunnel")
@@ -733,6 +745,16 @@ class GoVpnAdapter(
     }
 
     suspend fun addWgProxy(id: String, force: Boolean = false) {
+        val numericId = id.removePrefix(ID_WG_BASE).toIntOrNull() ?: return
+        val mapping = WireguardManager.getConfigFilesById(numericId) ?: return
+        if (!mapping.isActive) return
+        if (!mapping.oneWireGuard) checkAndAddProxyForHopIfNeeded(id)
+        proxyRecovery().mutate {
+            if (wgRecoveryPolicy(numericId) != null) addWgProxyLocked(id, force)
+        }
+    }
+
+    private suspend fun addWgProxyLocked(id: String, force: Boolean) {
         if (!tunnel.isConnected) {
             Logger.e(LOG_TAG_VPN, "$TAG no tunnel, skip add wg")
             logEvent(Severity.CRITICAL, "add wg proxy", "addWgProxy called with no tunnel")
@@ -755,7 +777,6 @@ class GoVpnAdapter(
 
             val wgConfig = WireguardManager.getConfigById(proxyId)
             val isOneWg = WireguardManager.getOneWireGuardProxyId() == proxyId
-            if (!isOneWg) checkAndAddProxyForHopIfNeeded(id)
             val skipListenPort = !isOneWg && persistentState.randomizeListenPort
             val wgUserSpaceString = wgConfig?.toWgUserspaceString(skipListenPort)
             val p = getProxies()?.addProxy(id, wgUserSpaceString)
@@ -842,194 +863,259 @@ class GoVpnAdapter(
         Logger.i(LOG_TAG_VPN, "$TAG close connection: $connIds, res: $res")
     }
 
-    private suspend fun refreshWgProxy(id: String) {
-        if (!tunnel.isConnected) {
-            Logger.e(LOG_TAG_VPN, "$TAG no tunnel, skip refreshing wg")
-            return
-        }
+    private var proxyRecoveryOrNull: ProxyRecoveryCoordinator? = null
+    private fun proxyRecovery(): ProxyRecoveryCoordinator = synchronized(this) {
+        proxyRecoveryOrNull ?: ProxyRecoveryCoordinator { Logger.e(LOG_TAG_VPN, "$TAG native proxy rollback failed", it) }.also { proxyRecoveryOrNull = it }
+    }
 
-        try {
-            getProxies()?.getProxy(id)?.refresh()
-            Logger.i(LOG_TAG_VPN, "$TAG wg proxy refreshed: $id")
-            logEvent(Severity.LOW, "refresh wg proxy", "refreshed wg proxy with id: $id")
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_VPN, "$TAG err refreshing wg proxy: ${e.message}", e)
-            logEvent(Severity.HIGH, "refresh wg proxy error", "err refreshing wg proxy with id: $id, reason: ${e.message}" )
+    suspend fun refreshOrPauseOrResumeOrReAddProxies(
+        isMobileActive: Boolean,
+        ssid: String,
+        isWifiActive: Boolean = ssid.isNotEmpty(),
+    ) {
+        val coordinator = proxyRecovery()
+        val token = coordinator.invalidate()
+        if (!tunnel.isConnected) return
+        proxyReconcileStep("refresh") { getProxies()?.refreshProxies() }
+        val activeWg = WireguardManager.getActiveConfigs()
+        val deferred = mutableSetOf<Int>()
+        for (config in activeWg) {
+            if (!coordinator.isCurrent(token)) return
+            proxyReconcileStep("wg${config.getId()}") {
+                reconcileWg(config.getId(), token, isMobileActive, isWifiActive, ssid) { deferred.add(config.getId()) }
+            }
+        }
+        recoverDeferredWg(deferred, token, isMobileActive, isWifiActive, ssid)
+        // A hop may have resumed later in the first pass; revisit origins without recreating anything.
+        for (config in activeWg) {
+            proxyReconcileStep("wg hop ${config.getId()}") { applyWgPolicy(config.getId(), token, isMobileActive, isWifiActive, ssid) }
+        }
+        if (!RpnProxyManager.isRpnActive()) return
+        proxyReconcileStep("AUTO") { recoverRpnRoot(token, isMobileActive, isWifiActive, ssid) }
+        for (config in RpnProxyManager.getEnabledConfigs()) {
+            if (!coordinator.isCurrent(token)) return
+            proxyReconcileStep(config.key) {
+                reconcileRpn(config.key, token, isMobileActive, isWifiActive, ssid)
+            }
+        }
+        for (config in RpnProxyManager.getEnabledConfigs().filter { it.hopEnabled }) {
+            proxyReconcileStep("RPN hop ${config.key}") { restoreActiveRpnHop(config.key, token) }
         }
     }
 
-    suspend fun refreshOrPauseOrResumeOrReAddProxies(isMobileActive: Boolean, ssid: String) {
-        if (!tunnel.isConnected) {
-            Logger.e(LOG_TAG_VPN, "$TAG no tunnel, skip refreshing proxies")
-            return
+    private suspend fun recoverRpnRoot(token: Long, mobile: Boolean, wifi: Boolean, ssid: String) {
+        val coordinator = proxyRecovery()
+        val auto = RpnProxyManager.getCountryConfigByKey(AUTO_SERVER_ID)
+        val allowed = auto != null && ProxyNetworkPolicy.forRpn(auto, auto)?.allows(mobile, wifi, ssid) == true
+        if (allowed && coordinator.isCurrent(token) && getWinByKey("") == null) {
+            RpnProxyManager.recoverMissingWin {
+                coordinator.isCurrent(token) && tunnel.isConnected &&
+                    RpnProxyManager.getCountryConfigByKey(AUTO_SERVER_ID)?.let { ProxyNetworkPolicy.forRpn(it, it) }
+                        ?.allows(mobile, wifi, ssid) == true
+            }
         }
+    }
+
+    private suspend fun proxyReconcileStep(id: String, action: suspend () -> Unit) {
         try {
-            // refresh proxies should never return error/exception
-            val res = getProxies()?.refreshProxies()
-            Logger.i(LOG_TAG_VPN, "$TAG wg refresh proxies: $res, mobile? $isMobileActive, ssid? $ssid")
-            // re-add the proxies if the not available in the tunnel
-            val wgConfigs: List<Config> = WireguardManager.getActiveConfigs()
-            val rpnConfigs: Set<CountryConfig> = RpnProxyManager.getEnabledConfigs()
-            if (wgConfigs.isEmpty() && rpnConfigs.isEmpty()) {
-                Logger.i(LOG_TAG_VPN, "$TAG no active wg-configs found")
-                return
-            }
-            // re-add wireguard proxies in case of failure, consider proxy stats TNT as a failure
-            // TNT means proxy UP but not responding
-            wgConfigs.forEach {
-                val id = ID_WG_BASE + it.getId()
-                val files = WireguardManager.getConfigFilesById(it.getId())
-                // skip one-wg proxy, mobile-only doesn't apply
-                val isWireGuardMobileOnly = files?.useOnlyOnMetered == true && !files.oneWireGuard
-                val canResumeMobileWg = isWireGuardMobileOnly && isMobileActive
-
-                val useOnlyOnSsid = files?.ssidEnabled == true && !files.oneWireGuard
-                val configuredSsids = files?.ssids.orEmpty()
-                val ssidMatch = WireguardManager.matchesSsidList(configuredSsids, ssid) && ssid.isNotEmpty()
-                val canResumeSsidWg = useOnlyOnSsid && ssidMatch && !isMobileActive
-                val shouldPauseSsidWg = useOnlyOnSsid && (isMobileActive || !ssidMatch)
-
-                val canResume = canResumeMobileWg || canResumeSsidWg
-
-                Logger.d(
-                    LOG_TAG_VPN,
-                    "$TAG refresh proxy: $id, mobileOnly: $isWireGuardMobileOnly, " +
-                        "canResumeMobileWg: $canResumeMobileWg, canResumeSsidWg: $canResumeSsidWg, isMobileActive: $isMobileActive, " +
-                        "useOnlyOnSsid: $useOnlyOnSsid, ssidMatch: $ssidMatch, ssid: $ssid, canResume: $canResume, wg-ssids: $configuredSsids"
-                )
-                val stats = getProxyStatusById(id).first
-                if (stats == null || stats == Backend.TNT) {
-                    Logger.w(LOG_TAG_VPN, "$TAG proxy stats for $id is null or tnt, $stats, refreshing")
-                    // TNT / missing stats: refresh rather than re-add until go-tun handles it
-                    // (github.com/celzero/firestack/blob/61187f88c1/intra/ipn/wgproxy.go#L404)
-                    refreshWgProxy(id)
-                }
-                if (stats == Backend.TPU && canResume) {
-                    // if the proxy is paused, then resume it
-                    // this is needed when the tunnel is reconnected and the proxies are paused
-                    // so resume them, also when there is switch in wg-config for useOnlyOnMetered
-                    // or ssid change for ssidEnabled wgs
-                    val res = resumeWireguard(id)
-                    Logger.i(LOG_TAG_VPN, "$TAG resumed proxy: $id, res: $res")
-                    logEvent(
-                        Severity.LOW,
-                        "wireguard proxy resumed",
-                        "Wireguard proxy with id $id resumed"
-                    )
-                } else if (isWireGuardMobileOnly && !isMobileActive && !canResume) {
-                    // if the proxy is not paused, then pause it
-                    // this is needed when the network is on mobile data
-                    // and the wg-config is set to useOnlyOnMetered
-                    val res = pauseWireguard(id)
-                    Logger.i(LOG_TAG_VPN, "$TAG paused proxy (mobile): $id, res: $res")
-                    logEvent(
-                        Severity.LOW,
-                        "wireguard proxy paused",
-                        "Wireguard proxy with id $id paused, reason: mobile data"
-                    )
-                } else if (shouldPauseSsidWg && !canResume) {
-                    // when the ssidEnabled is set and the ssid does not match
-                    val res = pauseWireguard(id)
-                    Logger.i(LOG_TAG_VPN, "$TAG paused proxy (ssid): $id, res: $res")
-                    logEvent(
-                        Severity.LOW,
-                        "wireguard proxy paused",
-                        "Wireguard proxy with id $id paused, reason: ssid mismatch"
-                    )
-                }
-
-                if (stats == Backend.TPU && !isWireGuardMobileOnly && !useOnlyOnSsid) {
-                    // if the proxy is paused, then resume it
-                    // this is needed when the tunnel is reconnected and the proxies are paused
-                    val res = getProxies()?.getProxy(id)?.resume()
-                    logEvent(
-                        Severity.LOW,
-                        "wireguard proxy resumed",
-                        "Wireguard proxy with id $id resumed successfully"
-                    )
-                    Logger.i(LOG_TAG_VPN, "$TAG resumed proxy (non-metered/ssid): $id, res: $res")
-                }
-            }
-            if (!RpnProxyManager.isRpnActive()) {
-                return
-            }
-            rpnConfigs.forEach {
-                val key = if (it.key.contains(AUTO_SERVER_ID, ignoreCase = true)) {
-                    ""
-                } else {
-                    it.key
-                }
-                val isWireGuardMobileOnly = it.mobileOnly
-                val canResumeMobileWg = isWireGuardMobileOnly && isMobileActive
-
-                val useOnlyOnSsid = it.ssidBased
-                val configuredSsids = it.ssids
-                val ssidMatch = RpnProxyManager.matchesSsidList(configuredSsids, ssid) && ssid.isNotEmpty()
-                val canResumeSsidWg = useOnlyOnSsid && ssidMatch && !isMobileActive
-                val shouldPauseSsidWg = useOnlyOnSsid && (isMobileActive || !ssidMatch)
-
-                val canResume = canResumeMobileWg || canResumeSsidWg
-                val rpn = getWinByKey(key)
-                val status = rpn?.status()
-                if (status == Backend.TNT) {
-                    refreshRpnProxy(key)
-                    Logger.i(LOG_TAG_VPN, "$TAG refreshed rpn proxy: $key")
-                    logEvent(
-                        Severity.LOW,
-                        "refresh rpn proxy",
-                        "refreshed rpn proxy with key: $key"
-                    )
-                }
-
-                if (status == Backend.TPU && canResume) {
-                    // if the proxy is paused, then resume it
-                    // this is needed when the tunnel is reconnected and the proxies are paused
-                    // so resume them, also when there is switch in wg-config for useOnlyOnMetered
-                    // or ssid change for ssidEnabled wgs
-                    val res = rpn.resume()
-                    Logger.i(LOG_TAG_VPN, "$TAG resumed proxy: $key, res: $res")
-                    logEvent(
-                        Severity.LOW,
-                        "rpn proxy resumed",
-                        "rpn proxy with id $key resumed"
-                    )
-                } else if (isWireGuardMobileOnly && !isMobileActive && !canResume) {
-                    // if the proxy is not paused, then pause it
-                    // this is needed when the network is on mobile data
-                    // and the wg-config is set to useOnlyOnMetered
-                    val res = rpn?.pause()
-                    Logger.i(LOG_TAG_VPN, "$TAG paused proxy (mobile): $key, res: $res")
-                    logEvent(
-                        Severity.LOW,
-                        "rpn proxy paused",
-                        "rpn proxy with id $key paused, reason: mobile data"
-                    )
-                } else if (shouldPauseSsidWg && !canResume) {
-                    // when the ssidEnabled is set and the ssid does not match
-                    val res = rpn?.pause()
-                    Logger.i(LOG_TAG_VPN, "$TAG paused proxy (ssid): $key, res: $res")
-                    logEvent(
-                        Severity.LOW,
-                        "rpn proxy paused",
-                        "rpn proxy with id $key paused, reason: ssid mismatch"
-                    )
-                }
-
-                if (status == Backend.TPU && !isWireGuardMobileOnly && !useOnlyOnSsid) {
-                    // if the proxy is paused, then resume it
-                    // this is needed when the tunnel is reconnected and the proxies are paused
-                    val res = rpn.resume()
-                    logEvent(
-                        Severity.LOW,
-                        "rpn proxy resumed",
-                        "rpn proxy with id $key resumed successfully"
-                    )
-                    Logger.i(LOG_TAG_VPN, "$TAG resumed proxy (non-metered/ssid): $key, res: $res")
-                }
-            }
+            action()
+        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+            throw cancelled
         } catch (e: Exception) {
-            Logger.e(LOG_TAG_VPN, "$TAG err refreshing proxies: ${e.message}", e)
-            logEvent(Severity.HIGH, "refresh proxies error", "err refreshing proxies, reason: ${e.message}")
+            Logger.e(LOG_TAG_VPN, "$TAG cannot reconcile proxy $id", e)
+            logEvent(Severity.HIGH, "refresh proxy error", "Cannot reconcile $id: ${e.message}")
+        }
+    }
+
+    private fun wgRecoveryPolicy(id: Int): ProxyNetworkPolicy? {
+        val mapping = WireguardManager.getConfigFilesById(id) ?: return null
+        if (!mapping.isActive) return null
+        return ProxyNetworkPolicy(mapping.useOnlyOnMetered && !mapping.oneWireGuard,
+            mapping.ssidEnabled && !mapping.oneWireGuard, mapping.ssids)
+    }
+
+    private suspend fun wgStillWanted(id: Int, token: Long, mobile: Boolean, wifi: Boolean, ssid: String,
+        defer: () -> Unit = {}): Boolean {
+        if (!proxyRecovery().isCurrent(token) || !tunnel.isConnected || wgRecoveryPolicy(id)?.allows(mobile, wifi, ssid) != true) return false
+        val hop = WgHopManager.getHop(ID_WG_BASE + id)
+        if (hop.isEmpty()) return true
+        val hopId = hop.removePrefix(ID_WG_BASE).toIntOrNull()
+        val proxies = getProxies()
+        val ready = hopId != null && wgRecoveryPolicy(hopId) != null && proxies?.hasProxy(hop) == true &&
+            proxies.getProxy(hop).status() != Backend.TPU
+        if (!ready) defer()
+        return ready
+    }
+
+    private suspend fun recoverDeferredWg(initial: Set<Int>, token: Long, mobile: Boolean, wifi: Boolean, ssid: String) {
+        var pending = initial
+        while (pending.isNotEmpty() && proxyRecovery().isCurrent(token)) {
+            val next = mutableSetOf<Int>()
+            for (id in pending) proxyReconcileStep("deferred WG$id") {
+                reconcileWg(id, token, mobile, wifi, ssid) { next.add(id) }
+            }
+            if (next.size >= pending.size) return // Missing/disabled hops or cycles stay unavailable.
+            pending = next
+        }
+    }
+
+    private suspend fun reconcileWg(id: Int, token: Long, mobile: Boolean, wifi: Boolean, ssid: String, defer: () -> Unit) {
+        val nativeId = ID_WG_BASE + id
+        val coordinator = proxyRecovery()
+        coordinator.recover(token,
+            wanted = { wgStillWanted(id, token, mobile, wifi, ssid, defer) },
+            exists = { getProxies()?.hasProxy(nativeId) != false },
+            install = install@{
+                val config = WireguardManager.getConfigById(id) ?: return@install
+                val mapping = WireguardManager.getConfigFilesById(id) ?: return@install
+                val nativeConfig = config.toWgUserspaceString(!mapping.oneWireGuard && persistentState.randomizeListenPort)
+                if (!wgStillWanted(id, token, mobile, wifi, ssid, defer)) return@install
+                val proxy = checkNotNull(getProxies()?.addProxy(nativeId, nativeConfig))
+                if (wgStillWanted(id, token, mobile, wifi, ssid)) {
+                    ensureWgHop(id, token, proxy)
+                    val dnsReady = setWireGuardDns(nativeId)
+                    check(dnsReady || !wgDnsRequired(id)) { "Cannot restore required WireGuard DNS" }
+                }
+            },
+            discard = { try { getProxies()?.removeProxy(nativeId) } finally { removeResolver(nativeId) } })
+        applyWgPolicy(id, token, mobile, wifi, ssid)
+    }
+
+    private suspend fun applyWgPolicy(id: Int, token: Long, mobile: Boolean, wifi: Boolean, ssid: String) {
+        val coordinator = proxyRecovery()
+        coordinator.applyIfCurrent(token) {
+            if (wgRecoveryPolicy(id) == null) return@applyIfCurrent
+            val proxies = getProxies() ?: return@applyIfCurrent
+            if (!proxies.hasProxy(ID_WG_BASE + id)) return@applyIfCurrent
+            val proxy = proxies.getProxy(ID_WG_BASE + id)
+            val status = proxy.status()
+            if (!coordinator.isCurrent(token)) return@applyIfCurrent
+            val policy = wgRecoveryPolicy(id) ?: return@applyIfCurrent
+            if (!policy.allows(mobile, wifi, ssid)) { pauseOwnedProxy(proxy, token); return@applyIfCurrent }
+            if (status == Backend.TNT) proxy.refresh()
+            if (!ensureWgHop(id, token, proxy)) return@applyIfCurrent
+            val dnsReady = ensureWgDns(ID_WG_BASE + id) { wgStillWanted(id, token, mobile, wifi, ssid) }
+            if (!dnsReady && wgDnsRequired(id)) {
+                pauseOwnedProxy(proxy, token)
+                return@applyIfCurrent
+            }
+            if (!wgStillWanted(id, token, mobile, wifi, ssid)) return@applyIfCurrent
+            if (status == Backend.TPU) proxy.resume()
+        }
+    }
+
+    /** Mirrors VpnDnsQueryRouter DF selection, including the unknown-UID one-WG path. */
+    private fun wgDnsRequired(id: Int): Boolean {
+        if (!appConfig.getBraveMode().isDnsFirewallMode()) return false
+        val selectedOneWg = WireguardManager.getOneWireGuardProxyId()
+        if (selectedOneWg != null) return selectedOneWg == id
+        if (WireguardManager.oneWireGuardEnabled()) return false
+        val mapping = WireguardManager.getConfigFilesById(id) ?: return false
+        if (!mapping.isActive || mapping.oneWireGuard) return false
+        return persistentState.splitDns && WireguardManager.isAdvancedWgActive()
+    }
+
+    private suspend fun ensureWgDns(id: String, isCurrent: suspend () -> Boolean): Boolean {
+        val resolver = getResolver() ?: return false
+        val exists = try {
+            resolver.get(id) != null
+        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+            throw cancelled
+        } catch (e: Exception) {
+            Logger.w(LOG_TAG_VPN, "$TAG missing WireGuard DNS alias for $id", e)
+            false
+        }
+        return exists || (isCurrent() && setWireGuardDns(id))
+    }
+
+    /** Called under the mutation owner, before a recovered/paused origin can be used unhopped. */
+    private suspend fun ensureWgHop(id: Int, token: Long, origin: Proxy): Boolean {
+        val coordinator = proxyRecovery()
+        if (!coordinator.isCurrent(token)) return false
+        val hop = WgHopManager.getHop(ID_WG_BASE + id)
+        if (hop.isEmpty()) return true
+        return try {
+            val hopId = hop.removePrefix(ID_WG_BASE).toIntOrNull() ?: return pauseOwnedProxy(origin, token)
+            val proxies = getProxies() ?: return pauseOwnedProxy(origin, token)
+            if (wgRecoveryPolicy(hopId) == null || !proxies.hasProxy(hop)) return pauseOwnedProxy(origin, token)
+            if (proxies.getProxy(hop).status() == Backend.TPU) return pauseOwnedProxy(origin, token)
+            val via = nativeHopId(origin)
+            if (!coordinator.isCurrent(token) || wgRecoveryPolicy(id) == null || wgRecoveryPolicy(hopId) == null) return false
+            if (via != hop) proxies.hop(hop, ID_WG_BASE + id)
+            true
+        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+            throw cancelled
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG cannot restore configured hop for WG$id", e)
+            pauseOwnedProxy(origin, token)
+        }
+    }
+
+    private fun pauseOwnedProxy(proxy: Proxy, token: Long): Boolean {
+        if (proxyRecovery().isCurrent(token) && proxy.status() != Backend.TPU) proxy.pause()
+        return false
+    }
+
+    private fun nativeHopId(proxy: Proxy): String? = try {
+        proxy.router().via()?.id()
+    } catch (cancelled: kotlinx.coroutines.CancellationException) {
+        throw cancelled
+    } catch (e: Exception) {
+        Logger.w(LOG_TAG_VPN, "$TAG cannot read current native hop", e)
+        null
+    }
+
+    private suspend fun restoreActiveRpnHop(key: String, token: Long) {
+        val coordinator = proxyRecovery()
+        coordinator.applyIfCurrent(token) {
+            val root = getWinByKey("") ?: return@applyIfCurrent
+            val hop = Backend.RpnWin + key
+            if (nativeHopId(root) == hop) return@applyIfCurrent
+            val config = RpnProxyManager.getEnabledConfigs().firstOrNull { it.key == key } ?: return@applyIfCurrent
+            if (!config.hopEnabled || rpnRecoveryPolicy(key) == null || !coordinator.isCurrent(token)) return@applyIfCurrent
+            if (tunnel.proxies.rpn().win().has(key)) tunnel.proxies.hop(hop, root.id())
+        }
+    }
+
+    private suspend fun rpnRecoveryPolicy(key: String): ProxyNetworkPolicy? {
+        if (!RpnProxyManager.isRpnActive()) return null
+        val config = RpnProxyManager.getEnabledConfigs().firstOrNull { it.key == key } ?: return null
+        val auto = if (config.hopEnabled) RpnProxyManager.getCountryConfigByKey(AUTO_SERVER_ID) else null
+        return ProxyNetworkPolicy.forRpn(config, auto)
+    }
+
+    private suspend fun rpnStillWanted(key: String, token: Long, mobile: Boolean, wifi: Boolean, ssid: String): Boolean =
+        proxyRecovery().isCurrent(token) && tunnel.isConnected && rpnRecoveryPolicy(key)?.allows(mobile, wifi, ssid) == true
+
+    private suspend fun reconcileRpn(key: String, token: Long, mobile: Boolean, wifi: Boolean, ssid: String) {
+        val nativeKey = if (key.equals(AUTO_SERVER_ID, true)) "" else key
+        val coordinator = proxyRecovery()
+        if (nativeKey.isNotEmpty()) coordinator.recover(token,
+            wanted = { rpnStillWanted(key, token, mobile, wifi, ssid) },
+            exists = { tunnel.proxies.rpn().win()?.has(nativeKey) != false },
+            install = {
+                val result = addNewWinServerLocked(nativeKey) {
+                    rpnStillWanted(key, token, mobile, wifi, ssid)
+                }
+                check(result.first) { result.second }
+                if (rpnStillWanted(key, token, mobile, wifi, ssid)) addRpnDns(nativeKey)
+            },
+            discard = { removeWinServerLocked(nativeKey) })
+        coordinator.applyIfCurrent(token) {
+            val proxy = getWinByKey(nativeKey) ?: return@applyIfCurrent
+            val policy = rpnRecoveryPolicy(key)
+            if (policy == null) {
+                // A relay without AUTO policy cannot become unrestricted.
+                proxy.pause()
+                return@applyIfCurrent
+            }
+            val status = proxy.status()
+            if (!coordinator.isCurrent(token)) return@applyIfCurrent
+            val currentPolicy = rpnRecoveryPolicy(key)
+            if (currentPolicy == null) { proxy.pause(); return@applyIfCurrent }
+            if (status == Backend.TNT) proxy.refresh()
+            if (!currentPolicy.allows(mobile, wifi, ssid)) proxy.pause()
+            else if (status == Backend.TPU) proxy.resume()
         }
     }
 
@@ -1231,6 +1317,12 @@ class GoVpnAdapter(
     }
 
     suspend fun closeTun() = pcapMutex.withLock {
+        smartDnsControllerOrNull?.close()
+        persistentState.releaseSmartDnsStatus(this)
+        proxyRecovery().close { closeTunLocked() }
+    }
+
+    private fun closeTunLocked() {
         captureBackendIdentity = Any()
         nativeProbes.close()
         try {
@@ -1517,6 +1609,10 @@ class GoVpnAdapter(
     }
 
     suspend fun restartTunnel(tunFd: Long, mtu: Int, nwMtu: Int, proto: Long): Boolean = pcapMutex.withLock {
+        proxyRecovery().mutate { restartTunnelLocked(tunFd, mtu, nwMtu, proto) }
+    }
+
+    private fun restartTunnelLocked(tunFd: Long, mtu: Int, nwMtu: Int, proto: Long): Boolean {
         if (!tunnel.isConnected) {
             Logger.e(LOG_TAG_VPN, "$TAG restartTunnel: tunnel is not connected, returning")
             logEvent(
@@ -1524,7 +1620,7 @@ class GoVpnAdapter(
                 "restart tunnel failed",
                 "Tunnel is not connected"
             )
-            return@withLock false
+            return false
         }
 
         Logger.i(LOG_TAG_VPN, "$TAG restarting tunnel with fd(${tunFd}) mtu: $mtu, nwMtu: $nwMtu, proto: $proto")
@@ -1539,7 +1635,7 @@ class GoVpnAdapter(
                 "restart tunnel",
                 "Tunnel restarted successfully"
             )
-            return@withLock true
+            return true
         } catch (cancelled: kotlinx.coroutines.CancellationException) {
             throw cancelled
         } catch (e: Exception) {
@@ -1549,7 +1645,7 @@ class GoVpnAdapter(
                 "restart tunnel failed",
                 "Error: ${e.message}"
             )
-            return@withLock false
+            return false
         }
     }
 
@@ -2231,13 +2327,15 @@ class GoVpnAdapter(
                 Logger.w(LOG_TAG_VPN, "$TAG addRpnProxyDns; rpn proxy not found for id: $id")
                 return
             }
-            Intra.addProxyDNS(tunnel, p)
+            installProxyDns(tunnel, p)
             val type = persistentState.rpnDnsTunTypes
             logEvent(
                 Severity.LOW,
                 "rpn dns($id) added",
                 "id: $id, selected: $type"
             )
+        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+            throw cancelled
         } catch (e: Exception) {
             Logger.e(LOG_TAG_VPN, "$TAG addRpnProxyDns: dns err;", e)
             logEvent(
@@ -2484,7 +2582,11 @@ class GoVpnAdapter(
         }
     }
 
-    suspend fun addNewWinServer(key: String): Pair<Boolean, String> {
+    suspend fun addNewWinServer(key: String): Pair<Boolean, String> = proxyRecovery().mutate {
+        addNewWinServerLocked(key)
+    }
+
+    private suspend fun addNewWinServerLocked(key: String, isCurrent: suspend () -> Boolean = { true }): Pair<Boolean, String> {
         if (!tunnel.isConnected) {
             Logger.i(LOG_TAG_PROXY, "$TAG no tunnel, skip add new win(rpn) server")
             return Pair(false, "No tunnel connected")
@@ -2517,9 +2619,12 @@ class GoVpnAdapter(
             Logger.i(LOG_TAG_PROXY, "$TAG kids: $kids")
 
             Logger.d(LOG_TAG_PROXY, "$TAG init add new win(rpn) server: $key")
+            if (!isCurrent()) return Pair(false, "Server selection changed during recovery")
             val res = win.fork(key)
             logEvent(Severity.MEDIUM, "add new win(rpn) server", "Added new server: $key, id? ${res.id()}")
             return Pair(true, "Added new server: $key")
+        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+            throw cancelled
         } catch (e: Exception) {
             Logger.e(LOG_TAG_PROXY, "$TAG err add new win(rpn) server: ${e.message}", e)
             logEvent(Severity.CRITICAL, "add new win(rpn) server", "Error adding new server: ${e.message}")
@@ -2539,7 +2644,10 @@ class GoVpnAdapter(
         return removeResolver(id)
     }
 
-    suspend fun handleRpnHop(hopId: String, configChanged: Boolean = false): Pair<Boolean, String> {
+    suspend fun handleRpnHop(hopId: String, configChanged: Boolean = false): Pair<Boolean, String> =
+        proxyRecovery().mutate { handleRpnHopLocked(hopId, configChanged) }
+
+    private suspend fun handleRpnHopLocked(hopId: String, configChanged: Boolean): Pair<Boolean, String> {
         val config = RpnProxyManager.getCountryConfigByKey(hopId)
         if (config == null) {
             Logger.w(LOG_TAG_PROXY, "$TAG no rpn config found for hop id: $hopId")
@@ -2549,7 +2657,7 @@ class GoVpnAdapter(
             addRpnHop(hopId)
         } else if (configChanged){
             val rpnWinId = Backend.RpnWin + hopId
-            removeHop(rpnWinId)
+            removeHopLocked(rpnWinId)
         } else {
             Logger.i(LOG_TAG_PROXY, "$TAG hop not enabled for $hopId, skipping add/remove")
             Pair(true, "Hop not enabled, skipping add/remove")
@@ -2585,7 +2693,11 @@ class GoVpnAdapter(
         }
     }
 
-    suspend fun removeWinServer(key: String): Pair<Boolean, String> {
+    suspend fun removeWinServer(key: String): Pair<Boolean, String> = proxyRecovery().mutate {
+        removeWinServerLocked(key)
+    }
+
+    private suspend fun removeWinServerLocked(key: String): Pair<Boolean, String> {
         if (!tunnel.isConnected) {
             Logger.i(LOG_TAG_PROXY, "$TAG no tunnel, skip remove win(rpn) server")
             return Pair(false, "No tunnel connected")
@@ -2624,6 +2736,7 @@ class GoVpnAdapter(
     }
 
     suspend fun unregisterWin(): Boolean {
+        proxyRecovery().invalidate()
         if (!tunnel.isConnected) {
             Logger.i(LOG_TAG_PROXY, "$TAG no tunnel, skip unregister win(rpn)")
             return false
@@ -2840,7 +2953,9 @@ class GoVpnAdapter(
         }
     }
 
-    suspend fun createHop(origin: String, hop: String): Pair<Boolean, String> {
+    suspend fun createHop(origin: String, hop: String): Pair<Boolean, String> = proxyRecovery().mutate { createHopLocked(origin, hop) }
+
+    private suspend fun createHopLocked(origin: String, hop: String): Pair<Boolean, String> {
         if (!tunnel.isConnected) {
             Logger.e(LOG_TAG_VPN, "$TAG createHop; no tunnel, skip create hop")
             logEvent(
@@ -2886,6 +3001,7 @@ class GoVpnAdapter(
             return
         }
 
+        applySmartDnsProfile()
         Logger.vv(LOG_TAG_VPN, "$TAG smart-dns; add multiple doh & dots")
         // DoH endpoints
         val dohList = appConfig.getAllDefaultDoHEndpoints()
@@ -2896,7 +3012,9 @@ class GoVpnAdapter(
                 // default transport-id(Plus), append index & individual id with this
                 val id = Backend.Plus + DOH_INDEX + doh.id
 
-                val ips: String = getIpString(context, url)
+                val ips = com.bernaferrari.bravedns.data.DnsBootstrapAddresses.parse(doh.bootstrapIps)
+                    ?.ifEmpty { getIpString(context, url) }
+                    ?: throw IllegalArgumentException("Invalid DNS bootstrap IP addresses")
                 if (ips.isEmpty()) {
                     Logger.i(LOG_TAG_VPN, "$TAG smart-dns; ips empty for $url, skip adding to plus doh")
                     return@forEach
@@ -3022,13 +3140,24 @@ class GoVpnAdapter(
         return false
     }
 
-    fun setPlusStrategy(option: Long): Tunnel {
-        // Settings.PlusFilterSafest, Settings.PlusOrderFastest
-        // default value for PlusStrategy is Safest, which is the safest strategy
-        // fastest is another strategy, which is not used for now (v055n)
-        Settings.setPlusStrategy(option, Settings.PlusFilterAdblock)
-        return tunnel
+    private var smartDnsControllerOrNull: SmartDnsProfileController? = null
+    private fun smartDnsController(): SmartDnsProfileController = synchronized(this) {
+        smartDnsControllerOrNull ?: run {
+            persistentState.claimSmartDnsStatus(this)
+            SmartDnsProfileController(
+            scope = externalScope,
+            desired = { SmartDnsProfile.fromValue(persistentState.smartDnsProfile) },
+            smartEnabled = appConfig::isSmartDnsEnabled,
+            ownsSession = { tunnel.isConnected },
+            install = { SmartDnsStrategy.apply(it.value) },
+            refresh = { checkNotNull(getResolver()) { "DNS resolver unavailable" }.refresh() },
+            publish = { persistentState.publishSmartDnsStatus(this, it) },
+            failure = { Logger.e(LOG_TAG_VPN, "$TAG cannot apply Smart DNS profile", it) },
+        ).also { smartDnsControllerOrNull = it }
+        }
     }
+
+    suspend fun applySmartDnsProfile() = smartDnsController().apply()
 
     fun tunMtu(): Int {
         if (!tunnel.isConnected) {

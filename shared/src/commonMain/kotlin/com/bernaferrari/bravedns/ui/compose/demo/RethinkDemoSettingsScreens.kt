@@ -242,6 +242,7 @@ internal fun DemoRpnServerDetailsScreen(modifier: Modifier, key: String, onBack:
             wifiOnly = "Specific Wi‑Fi networks",
             editWifi = "Edit Wi‑Fi networks",
             selectApps = "Select apps",
+            relayNetworkPolicy = "Network restrictions currently inherit AUTO. These saved mobile and Wi-Fi controls apply when relay is disabled.",
         ),
         onBackClick = onBack,
         onHopChanged = { options = options.copy(hopEnabled = it) },

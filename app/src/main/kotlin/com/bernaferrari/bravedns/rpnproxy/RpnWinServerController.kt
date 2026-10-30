@@ -146,6 +146,8 @@ internal class RpnWinServerController(
         try {
             countryConfigRepo.update(config)
             Logger.i(LOG_TAG_PROXY, "$tag; setHopForWinServer: set hopEnabled=$enabled for server: $key")
+        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+            throw cancelled
         } catch (e: Exception) {
             Logger.e(LOG_TAG_PROXY, "$tag; setHopForWinServer: failed to update DB for $key: ${e.message}", e)
             // Revert on DB failure
@@ -164,9 +166,12 @@ internal class RpnWinServerController(
             } else {
                 Logger.w(LOG_TAG_PROXY, "$tag; setHopForWinServer: tunnel failed to update hop for server $key, ${if (res.second != null) "error: ${res.second}" else "no error message"}")
             }
+        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+            throw cancelled
         } catch (e: Exception) {
             Logger.e(LOG_TAG_PROXY, "$tag; setHopForWinServer: error updating tunnel for $key: ${e.message}", e)
         }
+        refreshProxies() // Relay changes which saved automation policy governs this server.
     }
 
     suspend fun getSelectedCCs(): Set<CountryConfig> {
@@ -786,6 +791,8 @@ internal class RpnWinServerController(
             winCacheMutex.withLock {
                 winServersCache.find { it.key == key }
             }
+        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+            throw cancelled
         } catch (e: Exception) {
             Logger.e(LOG_TAG_PROXY, "$tag; error getting country config for $key: ${e.message}", e)
             null

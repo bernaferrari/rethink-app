@@ -415,6 +415,8 @@ object VpnController : KoinComponent {
         braveVpnService?.addWireGuardProxy(id, force)
     }
 
+    suspend fun applySmartDnsProfile() = braveVpnService?.applySmartDnsProfile()
+
     suspend fun refreshOrPauseOrResumeOrReAddProxies() {
         braveVpnService?.refreshOrPauseOrResumeOrReAddProxies()
     }

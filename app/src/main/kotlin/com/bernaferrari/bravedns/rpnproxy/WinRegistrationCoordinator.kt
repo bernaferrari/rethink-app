@@ -25,9 +25,10 @@ internal class WinRegistrationCoordinator(
     private val backend: WinRegistrationBackend,
     private val mutex: Mutex = Mutex(),
 ) {
-    suspend fun register(forceRefresh: Boolean = false): Boolean {
+    suspend fun register(forceRefresh: Boolean = false, isCurrent: suspend () -> Boolean = { true }): Boolean {
         var expiredToken: String? = null
         val result = mutex.withLock {
+            if (!isCurrent()) return@withLock false
             val registered = backend.isRegistered()
             val stale = registered && backend.isStale()
             if (registered && !stale && !forceRefresh) return@withLock true
@@ -36,7 +37,8 @@ internal class WinRegistrationCoordinator(
                 expiredToken = material.purchaseToken
                 return@withLock false
             }
-            replaceRegistration(registered, material as WinRegistrationMaterial)
+            if (!isCurrent()) return@withLock false
+            replaceRegistration(registered, material as WinRegistrationMaterial, isCurrent)
         }
         // State-machine publication may acquire stateLock: never do it while holding
         // registration mutex, since activation can acquire these locks in reverse order.
@@ -44,11 +46,13 @@ internal class WinRegistrationCoordinator(
         return result
     }
 
-    private suspend fun replaceRegistration(registered: Boolean, material: WinRegistrationMaterial): Boolean {
+    private suspend fun replaceRegistration(registered: Boolean, material: WinRegistrationMaterial, isCurrent: suspend () -> Boolean): Boolean {
         if (registered && !material.serverVerified) return false
         if (registered && !backend.unregister()) return false
         val saved = if (material.serverVerified) null else backend.savedState()
+        if (!isCurrent()) return false
         val state = backend.register(material, saved) ?: return false
+        if (!isCurrent()) { backend.unregister(); return false }
         if (!backend.isRegistered() || backend.isStale()) return false
         return backend.persistState(state)
     }

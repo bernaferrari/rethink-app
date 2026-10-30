@@ -231,4 +231,14 @@ class WgHopSelectorTest {
         assertEquals(12, selector.convertStringIdToId(ID_WG_BASE + "12"))
         assertEquals(WireguardManager.INVALID_CONF_ID, selector.convertStringIdToId(ID_WG_BASE + "abc"))
     }
+    @Test fun `empty SSID allows known wifi without name but cannot infer wifi from noncellular`() {
+        val wifi = mapping(1, ssidEnabled = true)
+        val id = ID_WG_BASE + 1
+        assertTrue(selector.canUseConfig(id, "app", false, "", listOf(wifi), isWifiActive = true))
+        assertFalse(selector.canUseConfig(id, "app", false, "", listOf(wifi), isWifiActive = false))
+        assertFalse(selector.canUseConfig(id, "app", false, "Home", listOf(wifi), isWifiActive = false))
+        val named = wifi.copy(ssids = "[{\"name\":\"Home\",\"type\":\"equal_exact\"}]")
+        assertFalse(selector.canUseConfig(id, "app", false, "", listOf(named), isWifiActive = true))
+    }
+
 }

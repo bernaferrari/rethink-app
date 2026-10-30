@@ -46,10 +46,10 @@ internal object WgSsidMatcher {
         }
     }
 
-    fun matchesSsidList(ssidList: String, ssid: String): Boolean {
+    fun matchesSsidList(ssidList: String, ssid: String, emptyMatchesAll: Boolean = true): Boolean {
         val ssidItems = SsidItem.parseStorageList(ssidList)
         if (ssidItems.isEmpty()) { // treat empty as match all
-            return true
+            return emptyMatchesAll
         }
 
         val equalItems = ssidItems.filter { it.type.isEqual }

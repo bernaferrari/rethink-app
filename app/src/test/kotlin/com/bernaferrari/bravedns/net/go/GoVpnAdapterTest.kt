@@ -53,6 +53,9 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.koin.test.KoinTest
+import org.koin.core.context.startKoin
+import org.koin.core.context.stopKoin
+import org.koin.dsl.module
 import org.objenesis.ObjenesisStd
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
@@ -67,40 +70,12 @@ class GoVpnAdapterTest : KoinTest {
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()
 
-    private val dispatcher = StandardTestDispatcher()
-
-    private lateinit var context: Context
-    private lateinit var persistentState: PersistentState
-    private lateinit var appConfig: AppConfig
-    private lateinit var connTracker: ConnectionTrackerRepository
-    private lateinit var eventLogger: EventLogger
-
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(dispatcher)
-
-        context = RuntimeEnvironment.getApplication()
-        persistentState = mockk(relaxed = true)
-        appConfig = mockk(relaxed = true)
-        connTracker = mockk(relaxed = true)
-        eventLogger = mockk(relaxed = true)
-
-        every { eventLogger.log(any(), any(), any(), any(), any(), any()) } just Runs
-        every { appConfig.getPcapFilePath() } returns ""
-        every { appConfig.getDnsType() } returns AppConfig.DnsType.DOH
-        every { appConfig.isSmartDnsEnabled() } returns false
-        every { persistentState.localBlocklistStamp } returns ""
-        every { persistentState.rpnDnsTunTypes } returns ""
-
-        // no-op: delegates are injected directly in newAdapter()
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-        unmockkAll()
-        clearAllMocks()
-    }
+    private val fixture = GoVpnAdapterTestFixture()
+    private val context get() = fixture.context
+    private val persistentState get() = fixture.persistentState
+    private val appConfig get() = fixture.appConfig
+    @Before fun setUp() = fixture.setUp()
+    @After fun tearDown() = fixture.tearDown()
 
     private fun tunnelOptions(
         dnsMode: AppConfig.TunDnsMode = AppConfig.TunDnsMode.NONE,
@@ -122,55 +97,7 @@ class GoVpnAdapterTest : KoinTest {
         )
     }
 
-    private fun newAdapter(tunnel: Tunnel): GoVpnAdapter {
-        val adapter = ObjenesisStd().newInstance(GoVpnAdapter::class.java)
-        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-
-        // Manually wire constructor deps since Intra.connect is bypassed via Objenesis.
-        GoVpnAdapter::class.java.getDeclaredField("persistentState").apply {
-            isAccessible = true
-            set(adapter, persistentState)
-        }
-        GoVpnAdapter::class.java.getDeclaredField("appConfig").apply {
-            isAccessible = true
-            set(adapter, appConfig)
-        }
-        GoVpnAdapter::class.java.getDeclaredField("connTrackerDb").apply {
-            isAccessible = true
-            set(adapter, connTracker)
-        }
-        GoVpnAdapter::class.java.getDeclaredField("eventLogger").apply {
-            isAccessible = true
-            set(adapter, eventLogger)
-        }
-
-        GoVpnAdapter::class.java.getDeclaredField("context").apply {
-            isAccessible = true
-            set(adapter, context)
-        }
-        GoVpnAdapter::class.java.getDeclaredField("externalScope").apply {
-            isAccessible = true
-            set(adapter, scope)
-        }
-        GoVpnAdapter::class.java.getDeclaredField("tunnel").apply {
-            isAccessible = true
-            set(adapter, tunnel)
-        }
-
-        GoVpnAdapter::class.java.getDeclaredField("captureBackendIdentity").apply {
-            isAccessible = true; set(adapter, Any())
-        }
-        GoVpnAdapter::class.java.getDeclaredField("pcapMutex").apply {
-            isAccessible = true; set(adapter, kotlinx.coroutines.sync.Mutex())
-        }
-        GoVpnAdapter::class.java.getDeclaredField("proxyGeneration").apply {
-            isAccessible = true; set(adapter, java.util.concurrent.atomic.AtomicLong())
-        }
-        GoVpnAdapter::class.java.getDeclaredField("nativeProbes").apply {
-            isAccessible = true; set(adapter, NativeProbeRunner())
-        }
-        return adapter
-    }
+    private fun newAdapter(tunnel: Tunnel, dnsInstaller: (Tunnel, Proxy) -> Unit = { _, _ -> }) = fixture.newAdapter(tunnel, dnsInstaller)
 
     @Test
     fun `native restart and close invalidate capture backend identity`() = runTest {
@@ -460,6 +387,3 @@ class GoVpnAdapterTest : KoinTest {
         assertTrue(threw)
     }
 }
-
-
-
