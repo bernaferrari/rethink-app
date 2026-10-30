@@ -1712,6 +1712,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
                     // create a new vpn adapter
                     val ifaceAddresses = getAddresses()
                     Logger.i(LOG_TAG_VPN, "vpn-adapter doesn't exists, create one, fd: $fd, lockdown: $lockdown, protos: $protos, ifaddr: $ifaceAddresses, opts: $opts, mtu: $mtu, nwMtu: $nwMtu")
+                    (application as? com.bernaferrari.bravedns.RethinkDnsApplication)?.initializeNativeReporting()
                     vpnAdapter = GoVpnAdapter(
                         ctx,
                         vpnScope,

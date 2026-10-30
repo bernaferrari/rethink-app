@@ -97,13 +97,18 @@ object FirebaseErrorReporting : KoinComponent {
      * Record a non-fatal exception to Firebase Crashlytics
      */
     fun recordException(throwable: Throwable) {
-        if (!persistentState.firebaseErrorReportingEnabled) return
+        tryRecordException(throwable)
+    }
 
-        try {
-            val crashlytics = FirebaseCrashlytics.getInstance()
-            crashlytics.recordException(throwable)
+    /** True only after Crashlytics accepted the event; callers retain failed crash files. */
+    fun tryRecordException(throwable: Throwable): Boolean {
+        if (!persistentState.firebaseErrorReportingEnabled) return false
+        return try {
+            FirebaseCrashlytics.getInstance().recordException(throwable)
+            true
         } catch (e: IllegalStateException) {
             Logger.w(LOG_FIREBASE, "err; rec-ex to crashlytics: ${e.message}", e)
+            false
         }
     }
 

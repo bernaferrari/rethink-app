@@ -43,6 +43,8 @@ open class RethinkDnsApplication : Application(), AppFunctionConfiguration.Provi
         var DEBUG: Boolean = false
     }
 
+    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     override val appFunctionConfiguration: AppFunctionConfiguration
         get() = AppFunctionProvider.configuration
 
@@ -59,7 +61,7 @@ open class RethinkDnsApplication : Application(), AppFunctionConfiguration.Provi
 
         // Read the preferences store on IO while the process keeps starting; until it is in
         // memory, Logger stays at its default level instead of reading it on the main thread.
-        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+        applicationScope.launch {
             get<PersistentState>()
             Logger.preferencesReady = true
             FirebaseErrorReporting.initialize()
@@ -70,6 +72,17 @@ open class RethinkDnsApplication : Application(), AppFunctionConfiguration.Provi
         GlobalExceptionHandler.initialize(this)
 
         turnOnStrictMode()
+    }
+
+    private var nativeReportingInitialized = false
+
+    /** Called when the VPN first needs native code; startup/capture never loads the engine. */
+    @Synchronized
+    fun initializeNativeReporting() {
+        if (nativeReportingInitialized) return
+        nativeReportingInitialized = com.bernaferrari.bravedns.util.GoReportingHandler(
+            applicationContext, get<PersistentState>(), applicationScope
+        ).initialize()
     }
 
     /** Periodic background jobs; the store-capture build schedules none. */

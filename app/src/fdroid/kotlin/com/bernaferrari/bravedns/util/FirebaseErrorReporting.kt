@@ -58,6 +58,8 @@ object FirebaseErrorReporting : KoinComponent {
     /**
      * Record a non-fatal exception - no-op for fdroid variant
      */
+    fun tryRecordException(@Suppress("UNUSED_PARAMETER") throwable: Throwable): Boolean = false
+
     fun recordException(throwable: Throwable) {
         // no-op: firebase not available in fdroid variant
     }
