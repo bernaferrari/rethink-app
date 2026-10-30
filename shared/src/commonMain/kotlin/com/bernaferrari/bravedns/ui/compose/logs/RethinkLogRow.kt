@@ -252,10 +252,11 @@ private fun LogHeader(model: RethinkLogRowModel, cardColor: Color, chevron: Floa
                         size = RethinkPillSize.Small,
                         modifier = Modifier.weight(1f, fill = false),
                     )
+                    // The resolved address, plain: monospace already reads as an address, and an arrow
+                    // here would echo the download arrow on network rows with a different meaning.
                     answer != null -> RethinkPill(
                         text = answer,
                         size = RethinkPillSize.Small,
-                        leadingIcon = MaterialSymbols.AutoMirrored.Filled.ArrowForward,
                         monospace = true,
                         modifier = Modifier.weight(1f, fill = false),
                     )
