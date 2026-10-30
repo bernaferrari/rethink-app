@@ -463,6 +463,10 @@ androidComponents {
             variant.sources.java?.addStaticSourceDirectory("src/billing/kotlin")
             variant.sources.kotlin?.addStaticSourceDirectory("src/billing/kotlin")
             variant.sources.res?.addStaticSourceDirectory("src/billing/res")
+            variant.hostTests.values.forEach { tests ->
+                tests.sources.java?.addStaticSourceDirectory("src/testBilling/kotlin")
+                tests.sources.kotlin?.addStaticSourceDirectory("src/testBilling/kotlin")
+            }
         }
     }
 
