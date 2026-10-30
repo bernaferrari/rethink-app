@@ -11,7 +11,7 @@
  "phone|light|DNS#1": "0.0.0.0.0.0.0.2.1",
  "phone|light|Filter.*#0": "0.0.0.0.0.0.0.1.0",
  "phone|light|Glyph Keyboard#0": "0.0.0.0.0.0.0.2.9.1",
- "phone|light|Logs#0": "0.0.0.0.0.0.0.8.0.1",
+ "phone|light|Logs#0": "0.0.0.0.0.0.0.8.1",
  "phone|light|Settings#0": "0.0.0.0.1.0.2.0.0",
  "phone|light|Settings#1": "0.0.0.0.0.0.1.1.0.0",
  "phone|light|Settings#2": "0.0.0.0.0.0.1.1.0.0",
