@@ -8,6 +8,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -132,6 +133,9 @@ fun <T> RethinkConnectedChoiceGroup(
                 modifier = Modifier
                     .then(if (fillWidth) Modifier.weight(weight) else Modifier.animateContentSize())
                     .heightIn(min = if (compact) SharedDimensions.buttonHeightSm else SharedDimensions.touchTargetMin)
+                    // A segment narrower than the touch target gets invisible side padding from
+                    // Material, which shows as wide gaps; at the target width the 2dp gap holds.
+                    .then(if (compact) Modifier.widthIn(min = SharedDimensions.touchTargetMin) else Modifier)
                     .semantics { role = Role.RadioButton },
             ) {
                 val icon = if (isSelected) option.selectedIcon else option.icon
