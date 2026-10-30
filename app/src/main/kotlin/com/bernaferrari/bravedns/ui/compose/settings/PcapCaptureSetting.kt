@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -29,7 +30,7 @@ internal fun PcapCaptureSetting() {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var open by remember { mutableStateOf(false) }
-    val active by manager.activeFlow.collectAsState(initial = manager.active)
+    val active by manager.activeFlow.collectAsStateWithLifecycle(initialValue = manager.active)
     var files by remember { mutableStateOf(emptyList<File>()) }
     var busy by remember { mutableStateOf(false) }
     var failed by remember { mutableStateOf(false) }
@@ -55,9 +56,9 @@ internal fun PcapCaptureSetting() {
     }
     RethinkListItem(headline = title, supporting = stringResource(R.string.port_capture_description),
         position = CardPosition.Single, onClick = { open = true; perform { true } })
-    if (open) AlertDialog(
+    if (open) com.bernaferrari.bravedns.ui.compose.theme.RethinkDialogScaffold(
         onDismissRequest = { if (!busy) open = false },
-        title = { Text(title) },
+        title = title,
         text = { LazyColumn(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
             item { Text(stringResource(R.string.port_capture_privacy)) }
             if (failed) item { Text(stringResource(R.string.port_capture_error), color = MaterialTheme.colorScheme.error) }
@@ -99,7 +100,7 @@ internal fun PcapCaptureSetting() {
         confirmButton = { TextButton(enabled = !busy, onClick = { open = false }) { Text(stringResource(R.string.lbl_done)) } },
     )
     pendingDelete?.let { file ->
-        AlertDialog(onDismissRequest = { pendingDelete = null }, title = { Text(stringResource(R.string.port_capture_delete)) },
+        com.bernaferrari.bravedns.ui.compose.theme.RethinkDialogScaffold(onDismissRequest = { pendingDelete = null }, title = stringResource(R.string.port_capture_delete),
             text = { Text(file.name) }, confirmButton = { TextButton(onClick = {
                 pendingDelete = null; perform { manager.delete(file) }
             }) { Text(stringResource(R.string.lbl_delete)) } },

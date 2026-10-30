@@ -65,7 +65,10 @@ fun AppListScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    var sortOrder by rememberSaveable { mutableStateOf(RethinkAppSort.Name) }
+    val preferences = org.koin.compose.koinInject<com.bernaferrari.bravedns.service.PersistentState>()
+    var sortOrder by rememberSaveable {
+        mutableStateOf(RethinkAppSort.entries.firstOrNull { it.name == preferences.appListSortName } ?: RethinkAppSort.Name)
+    }
     val refreshCompleteText = stringResource(R.string.refresh_complete)
     var queryText by remember { mutableStateOf("") }
     var isRefreshing by remember { mutableStateOf(false) }
@@ -192,11 +195,9 @@ fun AppListScreen(
     }
 
     RethinkFirewallAppListScreen(
-        sorting = com.bernaferrari.bravedns.ui.compose.firewall.RethinkAppSorting(sortOrder) { sortOrder = it },
+        filterState = com.bernaferrari.bravedns.ui.compose.firewall.RethinkAppListFilterState(queryText, currentFilters.status, currentFilters),
+        sorting = com.bernaferrari.bravedns.ui.compose.firewall.RethinkAppSorting(sortOrder) { sortOrder = it; preferences.appListSortName = it.name },
         apps = portableApps,
-        query = queryText,
-        selectedQuickFilter = currentFilters.status,
-        filters = currentFilters,
         activeBulkActions = buildSet {
             if (bulkWifi) add(RethinkFirewallBulkAction.Wifi)
             if (bulkMobile) add(RethinkFirewallBulkAction.Mobile)

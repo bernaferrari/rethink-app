@@ -2,7 +2,7 @@ package com.bernaferrari.bravedns.database
 
 import android.app.Application
 import androidx.room3.Room
-import androidx.sqlite.driver.bundled.BundledSQLiteDriver
+import androidx.sqlite.driver.AndroidSQLiteDriver
 import androidx.test.core.app.ApplicationProvider
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
@@ -17,7 +17,7 @@ class AppNotesTest {
     @Test fun notesAreScopedToPackageEvenWhenUidIsShared() = runBlocking {
         val db = Room.inMemoryDatabaseBuilder(ApplicationProvider.getApplicationContext<Application>()) {
             AppDatabaseConstructor.initialize()
-        }.setDriver(BundledSQLiteDriver()).build()
+        }.setDriver(AndroidSQLiteDriver()).build()
         try {
             val dao = db.appInfoDAO()
             dao.insert(AppInfo(packageName = "first", uid = 10001))

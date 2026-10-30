@@ -350,10 +350,8 @@ internal fun DemoFirewallAppListScreen(
         apps = apps.map { if (it.id == updated.id) updated else it }
     }
     RethinkFirewallAppListScreen(
+        filterState = com.bernaferrari.bravedns.ui.compose.firewall.RethinkAppListFilterState(query, filters.status, filters),
         apps = visibleApps,
-        query = query,
-        selectedQuickFilter = filters.status,
-        filters = filters,
         activeBulkActions = activeBulkActions,
         strings = demoFirewallAppListStrings,
         isRefreshing = isRefreshing,
@@ -476,7 +474,7 @@ internal fun DemoAppInfoScreen(modifier: Modifier, app: RethinkFirewallApp?, onB
         },
         onProxyExcludedChange = { proxyExcluded = it },
         onTempAllowChange = { tempAllowed = it },
-        onSystemAppInfo = {}, onIpRules = {}, onDomainRules = {}, activeLogActions = com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoLogActions(), domainLogActions = com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoLogActions(), ipLogActions = com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoLogActions(),
+        onSystemAppInfo = {}, onIpRules = {}, onDomainRules = {}, logActions = com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoLogsActions(com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoLogActions(), com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoLogActions(), com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoLogActions()),
         titleLeading = {
             RethinkWebDemoAppIcon(
                 current.packageName,

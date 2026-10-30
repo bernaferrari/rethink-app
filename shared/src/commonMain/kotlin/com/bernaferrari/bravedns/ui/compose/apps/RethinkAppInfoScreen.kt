@@ -133,6 +133,12 @@ data class RethinkAppInfoStrings(
     val empty: String,
 )
 
+data class RethinkAppInfoLogsActions(
+    val active: RethinkAppInfoLogActions,
+    val domains: RethinkAppInfoLogActions,
+    val ips: RethinkAppInfoLogActions,
+)
+
 data class RethinkAppInfoLogActions(
     val onOpen: (() -> Unit)? = null,
     val onEntry: ((RethinkAppInfoLogItem) -> Unit)? = null,
@@ -155,13 +161,14 @@ fun RethinkAppInfoScreen(
     onSystemAppInfo: () -> Unit,
     onIpRules: () -> Unit,
     onDomainRules: () -> Unit,
-    activeLogActions: RethinkAppInfoLogActions,
-    domainLogActions: RethinkAppInfoLogActions,
-    ipLogActions: RethinkAppInfoLogActions,
+    logActions: RethinkAppInfoLogsActions,
     titleLeading: (@Composable () -> Unit)? = null,
     modifier: Modifier = Modifier,
     appNotes: (@Composable () -> Unit)? = null,
 ) {
+    val activeLogActions = logActions.active
+    val domainLogActions = logActions.domains
+    val ipLogActions = logActions.ips
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),

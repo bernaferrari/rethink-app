@@ -279,7 +279,7 @@ class OrbotHelper(
         val pendingIntent =
             getActivityPendingIntent(
                 context,
-                Intent(context, HomeScreenActivity::class.java),
+                Intent(context, HomeScreenActivity::class.java).setAction("${context.packageName}.notification.orbot-error"),
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
                 mutable = false
             )

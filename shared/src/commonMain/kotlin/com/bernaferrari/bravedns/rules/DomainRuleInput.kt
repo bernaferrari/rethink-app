@@ -15,7 +15,8 @@ object DomainRuleInput {
         } else value.removePrefix("*.")
         val normalized = host.trimEnd('.')
         val labels = normalized.split('.')
-        if (normalized.length > 253 || (!wildcard && labels.size < 2) || labels.any(::invalidLabel)) return null
+        if (normalized.length > 253 || labels.any(::invalidLabel)) return null
+        if (!wildcard && labels.size < 2) return null
         return if (wildcard) "*.$normalized" else normalized
     }
 

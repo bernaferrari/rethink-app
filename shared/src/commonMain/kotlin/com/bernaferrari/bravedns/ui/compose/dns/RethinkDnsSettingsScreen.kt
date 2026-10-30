@@ -156,6 +156,7 @@ data class RethinkDnsSettingsStrings(
 
 /** All DNS settings chrome and interactions, portable across Android and the WASM demo. */
 data class RethinkDnsSettingsNavigation(
+    val onRefresh: () -> Unit,
     val onSystemDns: () -> Unit,
     val onSystemDnsInfo: () -> Unit,
     val onCustomDns: () -> Unit,
@@ -173,7 +174,6 @@ fun RethinkDnsSettingsScreen(
     state: RethinkDnsSettingsState,
     strings: RethinkDnsSettingsStrings,
     navigation: RethinkDnsSettingsNavigation,
-    onRefresh: () -> Unit,
     onCustomDownloaderChange: (Boolean) -> Unit,
     onPeriodicUpdateChange: (Boolean) -> Unit,
     onDnsAlgChange: (Boolean) -> Unit,
@@ -205,7 +205,7 @@ fun RethinkDnsSettingsScreen(
         modifier = modifier,
         listState = listState,
         topBarActions = {
-            IconButton(onClick = onRefresh, enabled = !state.isRefreshing) {
+            IconButton(onClick = navigation.onRefresh, enabled = !state.isRefreshing) {
                 if (state.isRefreshing) {
                     LoadingIndicator(Modifier.size(SharedDimensions.iconSizeMd))
                 } else {

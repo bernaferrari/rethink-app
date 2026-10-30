@@ -20,6 +20,7 @@ class PcapCaptureManager(
     private val context: Context,
     private val appConfig: AppConfig,
     private val persistentState: PersistentState,
+    private val getScheduler: () -> WorkManager = { WorkManager.getInstance(context) },
 ) {
     private val mutex = Mutex()
     private val directory get() = File(context.filesDir, "pcap").apply { mkdirs() }
@@ -43,7 +44,7 @@ class PcapCaptureManager(
         val request = OneTimeWorkRequestBuilder<PcapStopWorker>()
             .setInputData(workDataOf(CAPTURE_ID to captureId))
             .setInitialDelay(MAX_CAPTURE_HOURS, TimeUnit.HOURS).build()
-        val scheduler = WorkManager.getInstance(context)
+        val scheduler = getScheduler()
         try {
             // Persist the deadline before native capture can start.
             scheduler.enqueueUniqueWork(STOP_WORK, ExistingWorkPolicy.REPLACE, request).await()

@@ -2,6 +2,9 @@ package com.bernaferrari.bravedns.ui.compose.app
 
 import Logger
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.Modifier
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -16,7 +19,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
-internal fun AppNotesEditor(app: AppInfo) {
+internal fun AppNotesEditor(
+    app: AppInfo,
+    saveNotes: suspend (String) -> Boolean = { FirewallManager.updateNotes(app.uid, app.packageName, it) },
+) {
     var open by rememberSaveable(app.uid, app.packageName) { mutableStateOf(false) }
     var draft by rememberSaveable(app.uid, app.packageName) { mutableStateOf(app.notes) }
     var savedNotes by remember(app.uid, app.packageName) { mutableStateOf(app.notes) }
@@ -26,12 +32,12 @@ internal fun AppNotesEditor(app: AppInfo) {
     val title = stringResource(R.string.port_notes)
     RethinkListItem(headline = title, supporting = savedNotes.ifBlank { stringResource(R.string.port_notes_hint) },
         position = CardPosition.Single, onClick = { open = true })
-    if (open) AlertDialog(
+    if (open) com.bernaferrari.bravedns.ui.compose.theme.RethinkDialogScaffold(
         onDismissRequest = { if (!saving) open = false },
-        title = { Text(title) },
-        text = { Column {
+        title = title,
+        text = { Column(Modifier.verticalScroll(rememberScrollState())) {
             OutlinedTextField(value = draft, onValueChange = { if (it.length <= 500) { draft = it; failed = false } },
-                label = { Text(title) }, enabled = !saving,
+                label = { Text(title) }, enabled = !saving, maxLines = 6,
                 supportingText = { Text("${draft.length}/500") }, isError = failed)
             if (failed) Text(stringResource(R.string.port_notes_error), color = MaterialTheme.colorScheme.error)
         } },
@@ -39,7 +45,7 @@ internal fun AppNotesEditor(app: AppInfo) {
             saving = true
             scope.launch {
                 try {
-                    val success = withContext(Dispatchers.IO) { FirewallManager.updateNotes(app.uid, app.packageName, draft) }
+                    val success = withContext(Dispatchers.IO) { saveNotes(draft) }
                     if (success) { savedNotes = draft; open = false } else failed = true
                 } catch (cancelled: kotlinx.coroutines.CancellationException) {
                     throw cancelled
@@ -51,7 +57,7 @@ internal fun AppNotesEditor(app: AppInfo) {
                     failed = true
                 } finally { saving = false }
             }
-        }) { Text(stringResource(R.string.port_save)) } },
+        }) { Text(stringResource(if (saving) R.string.port_saving else R.string.port_save)) } },
         dismissButton = { TextButton(enabled = !saving, onClick = { open = false }) { Text(stringResource(R.string.lbl_cancel)) } },
     )
 }

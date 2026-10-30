@@ -638,6 +638,7 @@ internal fun DemoDnsSettingsScreen(modifier: Modifier, onBack: () -> Unit, onCus
     fun update(transform: (RethinkDnsSettingsState) -> RethinkDnsSettingsState) { state = transform(state) }
     RethinkDnsSettingsScreen(
         navigation = com.bernaferrari.bravedns.ui.compose.dns.RethinkDnsSettingsNavigation(
+            onRefresh = {},
             onSystemDns = { update { it.copy(isSystemDnsEnabled = true, isSmartDnsEnabled = false, isRethinkDnsConnected = false) } },
             onSystemDnsInfo = {},
             onCustomDns = { update { it.copy(isSystemDnsEnabled = false, isSmartDnsEnabled = false, isRethinkDnsConnected = false) }; onCustomDns() },
@@ -650,7 +651,6 @@ internal fun DemoDnsSettingsScreen(modifier: Modifier, onBack: () -> Unit, onCus
         ),
         state = state,
         strings = demoDnsSettingsStrings,
-        onRefresh = {},
         onCustomDownloaderChange = { value -> update { it.copy(useCustomDownloadManager = value) } },
         onPeriodicUpdateChange = { value -> update { it.copy(periodicallyCheckBlocklistUpdate = value) } },
         onDnsAlgChange = { value -> update { it.copy(enableDnsAlg = value, showSplitDns = value, showBypassDnsBlock = value) } },

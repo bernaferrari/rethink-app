@@ -23,7 +23,11 @@ object RuleImportService {
             explicitPort -> line.substringBeforeLast(':')
             else -> line
         }
-        if (bracketed && (!line.contains(']') || line.substringAfter(']').let { it.isNotEmpty() && !it.startsWith(':') })) return null
+        if (bracketed) {
+            if (!line.contains(']')) return null
+            val suffix = line.substringAfter(']')
+            if (suffix.isNotEmpty() && !suffix.startsWith(':')) return null
+        }
         val port = if (explicitPort) line.substringAfterLast(':').toIntOrNull()?.takeIf { it in 0..65535 } ?: return null else 0
         val normalized = IpRuleNormalizer.trieKey(addressText) ?: return null
         return "[$normalized]:$port"

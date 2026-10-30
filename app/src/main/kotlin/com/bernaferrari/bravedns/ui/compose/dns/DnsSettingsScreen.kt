@@ -38,6 +38,7 @@ fun DnsSettingsScreen(
 ) {
     RethinkDnsSettingsScreen(
         navigation = com.bernaferrari.bravedns.ui.compose.dns.RethinkDnsSettingsNavigation(
+            onRefresh = onRefreshClick,
             onSystemDns = onSystemDnsClick,
             onSystemDnsInfo = onSystemDnsInfoClick,
             onCustomDns = onCustomDnsClick,
@@ -51,7 +52,6 @@ fun DnsSettingsScreen(
         additionalSettings = { CaptivePortalSetting() },
         state = uiState.toRethinkDnsSettingsState(),
         strings = androidDnsSettingsStrings(),
-        onRefresh = onRefreshClick,
         onCustomDownloaderChange = onCustomDownloaderChange,
         onPeriodicUpdateChange = onPeriodicUpdateChange,
         onDnsAlgChange = onDnsAlgChange,

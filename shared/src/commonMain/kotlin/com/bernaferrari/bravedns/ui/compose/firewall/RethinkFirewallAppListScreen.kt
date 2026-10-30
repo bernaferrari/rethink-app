@@ -119,6 +119,8 @@ enum class RethinkFirewallFilter { All, Allowed, Blocked, Bypass, Excluded, Lock
 
 enum class RethinkAppSort { Name, Package, Uid }
 
+data class RethinkAppListFilterState(val query: String, val selectedQuickFilter: RethinkFirewallFilter, val filters: RethinkFirewallFilters)
+
 data class RethinkAppSorting(val order: RethinkAppSort = RethinkAppSort.Name, val onChange: (RethinkAppSort) -> Unit = {})
 
 enum class RethinkFirewallTopLevelFilter { Installed, System, All }
@@ -190,9 +192,7 @@ private const val FAST_SCROLLER_MIN_MARKS = 4
 @Composable
 fun RethinkFirewallAppListScreen(
     apps: List<RethinkFirewallApp>,
-    query: String,
-    selectedQuickFilter: RethinkFirewallFilter,
-    filters: RethinkFirewallFilters,
+    filterState: RethinkAppListFilterState,
     activeBulkActions: Set<RethinkFirewallBulkAction>,
     strings: RethinkFirewallAppListStrings,
     isRefreshing: Boolean,
@@ -210,6 +210,9 @@ fun RethinkFirewallAppListScreen(
     modifier: Modifier = Modifier,
     sorting: RethinkAppSorting = RethinkAppSorting(),
 ) {
+    val query = filterState.query
+    val selectedQuickFilter = filterState.selectedQuickFilter
+    val filters = filterState.filters
     val sortOrder = sorting.order
     var showFilters by remember { mutableStateOf(false) }
     var showRules by remember { mutableStateOf(false) }

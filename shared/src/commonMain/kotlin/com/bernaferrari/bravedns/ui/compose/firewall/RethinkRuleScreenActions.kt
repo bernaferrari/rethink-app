@@ -28,7 +28,8 @@ internal fun RethinkRulesTopBar(
 internal fun RethinkRulesAddButton(
     selecting: Boolean, mode: RethinkRulesMode, loading: Boolean, count: Int, label: String, onAdd: () -> Unit,
 ) {
-    if (!selecting && mode == RethinkRulesMode.SELECTED_UID && (loading || count > 0)) {
+    if (selecting || mode != RethinkRulesMode.SELECTED_UID) return
+    if (loading || count > 0) {
         ExtendedFloatingActionButton(onClick = onAdd,
             icon = { Icon(MaterialSymbols.Filled.Add, null) }, text = { Text(label) })
     }

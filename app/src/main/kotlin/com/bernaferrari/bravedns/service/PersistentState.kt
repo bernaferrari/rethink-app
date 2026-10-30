@@ -117,6 +117,7 @@ class PersistentState(context: Context) {
 
     var pcapStartedAt by store.long("pcap_started_at", 0L)
     var pcapCaptureId by store.string("pcap_capture_id", "")
+    var appListSortName by store.string("app_list_sort", "Name")
 
     // the last-set app version; useful to detect an update where the current
     // app version is going to be greater than the one stored, and so, update flow

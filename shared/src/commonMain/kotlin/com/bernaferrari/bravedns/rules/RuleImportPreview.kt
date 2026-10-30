@@ -20,11 +20,11 @@ object RuleImportParser {
         var limited = false
         for ((index, raw) in lines.withIndex()) {
             if (index >= MAX_ENTRIES) { limited = true; break }
-            if (raw.length > MAX_LINE_LENGTH) {
-                invalid++
-            } else {
-                val line = raw.substringBefore('#').trim()
-                if (line.isNotEmpty()) {
+            val line = raw.substringBefore('#').trim()
+            when {
+                raw.length > MAX_LINE_LENGTH -> invalid++
+                line.isEmpty() -> Unit
+                else -> {
                     val value = normalize(line)
                     if (value.isNullOrBlank()) invalid++ else if (!entries.add(value)) duplicates++
                 }

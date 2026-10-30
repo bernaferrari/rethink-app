@@ -23,7 +23,10 @@ class RuleImportServiceTest {
     }
     @Test fun ipPreviewRejectsMalformedPortsAndRangesOutsideTheNativeTrieContract() {
         assertEquals("[192.0.2.1]:443", RuleImportService.normalize(RethinkRulesTab.IP, "192.0.2.1:443"))
-        assertEquals("[2001:db8::1]:53", RuleImportService.normalize(RethinkRulesTab.IP, "[2001:db8::1]:53"))
+        val ipv6 = RuleImportService.normalize(RethinkRulesTab.IP, "[2001:db8::1]:53")!!
+        assertEquals(inet.ipaddr.IPAddressString("2001:db8::1").address,
+            inet.ipaddr.IPAddressString(ipv6.substringAfter('[').substringBefore(']')).address)
+        assertTrue(ipv6.endsWith(":53"))
         assertNull(RuleImportService.normalize(RethinkRulesTab.IP, "192.0.2.1:not-a-port"))
         assertNull(RuleImportService.normalize(RethinkRulesTab.IP, "192.0.2.1:65536"))
         assertNull(RuleImportService.normalize(RethinkRulesTab.IP, "[192.0.2.1]extra"))

@@ -317,17 +317,19 @@ fun AppInfoScreen(
     }
 
     RethinkAppInfoScreen(
-        ipLogActions = com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoLogActions(
+        logActions = com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoLogsActions(
+        ips = com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoLogActions(
             onOpen = { onAppWiseIpLogsClick(uid, false) },
             onEntry = { entry -> ipPreview.getOrNull(entry.id.toIntOrNull() ?: -1)?.let { selectedIp = it.ipAddress; selectedDomains = it.appOrDnsName.orEmpty(); showIpRulesSheet = true } },
         ),
-        domainLogActions = com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoLogActions(
+        domains = com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoLogActions(
             onOpen = { onAppWiseDomainLogsClick(uid) },
             onEntry = { entry -> domainPreview.getOrNull(entry.id.toIntOrNull() ?: -1)?.let { selectedDomain = it.appOrDnsName.orEmpty(); showDomainRulesSheet = true } },
         ),
-        activeLogActions = com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoLogActions(
+        active = com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoLogActions(
             onOpen = { onAppWiseIpLogsClick(uid, false) },
             onEntry = { entry -> activePreview.getOrNull(entry.id.toIntOrNull() ?: -1)?.let { closeDialogConn = it } },
+        ),
         ),
         appNotes = info?.let { app -> { AppNotesEditor(app) } },
         state = RethinkAppInfoState(

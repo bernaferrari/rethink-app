@@ -30,4 +30,5 @@
     <string name="port_captive_title">Use system DNS for captive portals</string>
     <string name="port_captive_description">Temporarily use the network’s DNS to sign in to public Wi-Fi. DNS filtering resumes after sign-in.</string>
     <string name="port_sort_title">Sort apps</string>
+    <string name="port_saving">Saving…</string>
 </resources>
