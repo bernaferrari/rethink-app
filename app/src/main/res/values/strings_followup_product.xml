@@ -2,7 +2,10 @@
 <resources>
     <string name="console_pause_updates">Pause live updates</string>
     <string name="console_resume_updates">Resume live updates</string>
-    <string name="console_paused_description">Paused: filtering a frozen snapshot of up to %1$d entries. Logging continues.</string>
+    <plurals name="console_paused_description">
+        <item quantity="one">Paused: filtering a frozen snapshot of up to %1$d entry. Logging continues.</item>
+        <item quantity="other">Paused: filtering a frozen snapshot of up to %1$d entries. Logging continues.</item>
+    </plurals>
     <string name="console_pausing_description">Freezing log snapshot…</string>
     <string name="console_pause_failed">Could not pause the log view. Live updates continue; try again.</string>
     <string name="dns_rule_scope_app">This app (UID %1$d)</string>

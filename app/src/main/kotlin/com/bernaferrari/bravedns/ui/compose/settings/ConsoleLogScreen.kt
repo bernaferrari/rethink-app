@@ -22,6 +22,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.database.ConsoleLogRepository
@@ -59,7 +60,11 @@ fun ConsoleLogScreen(
             title = stringResource(R.string.console_log_title),
             pauseLabel = stringResource(R.string.console_pause_updates),
             resumeLabel = stringResource(R.string.console_resume_updates),
-            pausedDescription = stringResource(R.string.console_paused_description, ConsoleLogViewModel.MAX_PAUSED_ROWS),
+            pausedDescription = pluralStringResource(
+                R.plurals.console_paused_description,
+                ConsoleLogViewModel.MAX_PAUSED_ROWS,
+                ConsoleLogViewModel.MAX_PAUSED_ROWS,
+            ),
             pausingDescription = stringResource(R.string.console_pausing_description),
             clearingDescription = stringResource(R.string.console_clearing_description),
             searchHint = stringResource(R.string.lbl_search),
