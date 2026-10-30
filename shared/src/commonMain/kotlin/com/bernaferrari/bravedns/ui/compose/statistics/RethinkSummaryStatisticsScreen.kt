@@ -62,9 +62,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.derivedStateOf
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkMenuChip
 
 private val ShareBarWidth = 48.dp
 private val ShareBarHeight = 4.dp
@@ -154,7 +152,13 @@ fun RethinkSummaryStatisticsScreen(
                     enter = if (reducedMotion) EnterTransition.None else fadeIn() + scaleIn(initialScale = 0.9f),
                     exit = if (reducedMotion) ExitTransition.None else fadeOut() + scaleOut(targetScale = 0.9f),
                 ) {
-                    RethinkStatisticsWindowMenu(selectedWindow, strings, onWindowSelected, Modifier.padding(end = SharedDimensions.spacingSm))
+                    RethinkStatisticsWindowSelector(
+                        selectedWindow,
+                        strings,
+                        onWindowSelected,
+                        Modifier.padding(end = SharedDimensions.spacingSm),
+                        inTopBar = true,
+                    )
                 }
             },
         ) {
@@ -204,46 +208,23 @@ private fun RethinkSummaryStatisticsStrings.windowOptions() = listOf(
 )
 
 @Composable
-private fun RethinkStatisticsWindowMenu(
-    selectedWindow: RethinkStatisticsWindow,
-    strings: RethinkSummaryStatisticsStrings,
-    onWindowSelected: (RethinkStatisticsWindow) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val options = strings.windowOptions()
-    RethinkMenuChip(
-        label = options.first { it.first == selectedWindow }.second,
-        selected = true,
-        modifier = modifier,
-    ) { dismiss ->
-        options.forEach { (window, label) ->
-            DropdownMenuItem(
-                text = { Text(label) },
-                trailingIcon = if (window == selectedWindow) {
-                    { Icon(MaterialSymbols.Filled.Check, null) }
-                } else {
-                    null
-                },
-                onClick = {
-                    dismiss()
-                    onWindowSelected(window)
-                },
-            )
-        }
-    }
-}
-
-@Composable
 private fun RethinkStatisticsWindowSelector(
     selectedWindow: RethinkStatisticsWindow,
     strings: RethinkSummaryStatisticsStrings,
     onWindowSelected: (RethinkStatisticsWindow) -> Unit,
+    modifier: Modifier = Modifier,
+    /** The same tabs, compact, for the collapsed top bar once the full-width row scrolls away. */
+    inTopBar: Boolean = false,
 ) {
     val options = strings.windowOptions()
     RethinkConnectedChoiceGroup(
         options = options.map { (window, label) -> RethinkChoiceOption(window, label) },
         selected = selectedWindow,
         onSelect = onWindowSelected,
+        modifier = modifier,
+        fillWidth = !inTopBar,
+        compact = inTopBar,
+        unselectedContainerColor = if (inTopBar) MaterialTheme.colorScheme.surfaceContainerHighest else MaterialTheme.colorScheme.surfaceContainerLow,
     )
 }
 

@@ -78,6 +78,8 @@ fun <T> RethinkConnectedChoiceGroup(
     labels: RethinkChoiceLabels = RethinkChoiceLabels.Always,
     /** Lift this one tone when the group sits on a surfaceContainerLow card. */
     unselectedContainerColor: Color = MaterialTheme.colorScheme.surfaceContainerLow,
+    /** Shorter segments with smaller type, for a group that sits inside a top bar. */
+    compact: Boolean = false,
 ) {
     val motion = LocalRethinkMotion.current
     val spatial = MaterialTheme.motionScheme.defaultSpatialSpec<Float>()
@@ -122,10 +124,14 @@ fun <T> RethinkConnectedChoiceGroup(
                 border = null,
                 // Equal-width segments are already centered by weight; the default side padding
                 // only steals room from the label ("Allow…", "Block…") on phones.
-                contentPadding = if (fillWidth) FillWidthContentPadding else ButtonDefaults.ContentPadding,
+                contentPadding = when {
+                    compact -> CompactContentPadding
+                    fillWidth -> FillWidthContentPadding
+                    else -> ButtonDefaults.ContentPadding
+                },
                 modifier = Modifier
                     .then(if (fillWidth) Modifier.weight(weight) else Modifier.animateContentSize())
-                    .heightIn(min = SharedDimensions.touchTargetMin)
+                    .heightIn(min = if (compact) SharedDimensions.buttonHeightSm else SharedDimensions.touchTargetMin)
                     .semantics { role = Role.RadioButton },
             ) {
                 val icon = if (isSelected) option.selectedIcon else option.icon
@@ -140,7 +146,7 @@ fun <T> RethinkConnectedChoiceGroup(
                     if (icon != null) Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
                     Text(
                         text = option.label,
-                        style = MaterialTheme.typography.labelLarge,
+                        style = if (compact) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelLarge,
                         fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -151,6 +157,7 @@ fun <T> RethinkConnectedChoiceGroup(
     }
 }
 
+private val CompactContentPadding = PaddingValues(horizontal = SharedDimensions.spacingMd)
 private val FillWidthContentPadding = PaddingValues(
     horizontal = SharedDimensions.spacingSm,
     vertical = SharedDimensions.spacingSm,
