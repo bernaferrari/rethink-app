@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -17,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkConnectedRowShape
 
 data class RethinkUsageOverview(
     val download: String,
@@ -45,29 +45,16 @@ fun RethinkUsageOverviewCard(
             Modifier.fillMaxWidth().height(IntrinsicSize.Min),
             horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile),
         ) {
-            UsageTile(downloadLabel, overview.download, MaterialTheme.colorScheme.primary, UsageTilePosition.Leading, Modifier.weight(1f).fillMaxHeight())
-            UsageTile(uploadLabel, overview.upload, MaterialTheme.colorScheme.tertiary, UsageTilePosition.Middle, Modifier.weight(1f).fillMaxHeight())
-            UsageTile(connectionsLabel, overview.connections, MaterialTheme.colorScheme.onSurface, UsageTilePosition.Trailing, Modifier.weight(1f).fillMaxHeight())
+            UsageTile(downloadLabel, overview.download, MaterialTheme.colorScheme.primary, 0, Modifier.weight(1f).fillMaxHeight())
+            UsageTile(uploadLabel, overview.upload, MaterialTheme.colorScheme.tertiary, 1, Modifier.weight(1f).fillMaxHeight())
+            UsageTile(connectionsLabel, overview.connections, MaterialTheme.colorScheme.onSurface, 2, Modifier.weight(1f).fillMaxHeight())
         }
     }
 }
 
-private enum class UsageTilePosition { Leading, Middle, Trailing }
-
-private fun usageTileShape(position: UsageTilePosition): RoundedCornerShape {
-    val outer = SharedDimensions.groupCornerRadius
-    val inner = SharedDimensions.cornerRadiusSm
-    return RoundedCornerShape(
-        topStart = if (position == UsageTilePosition.Leading) outer else inner,
-        bottomStart = if (position == UsageTilePosition.Leading) outer else inner,
-        topEnd = if (position == UsageTilePosition.Trailing) outer else inner,
-        bottomEnd = if (position == UsageTilePosition.Trailing) outer else inner,
-    )
-}
-
 @Composable
-private fun UsageTile(label: String, value: String, valueColor: Color, position: UsageTilePosition, modifier: Modifier) {
-    Surface(modifier = modifier, shape = usageTileShape(position), color = MaterialTheme.colorScheme.surfaceContainerLow) {
+private fun UsageTile(label: String, value: String, valueColor: Color, index: Int, modifier: Modifier) {
+    Surface(modifier = modifier, shape = rethinkConnectedRowShape(index, count = 3), color = MaterialTheme.colorScheme.surfaceContainerLow) {
         RethinkMetric(
             value = value,
             label = label,

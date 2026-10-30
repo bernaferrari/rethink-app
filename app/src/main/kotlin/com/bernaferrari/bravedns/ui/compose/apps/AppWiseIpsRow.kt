@@ -21,7 +21,7 @@ import com.bernaferrari.bravedns.data.AppConnection
 import com.bernaferrari.bravedns.service.IpRulesManager
 import com.bernaferrari.bravedns.ui.compose.logs.RethinkAppConnectionItem
 import com.bernaferrari.bravedns.ui.compose.logs.RethinkAppConnectionRow
-import com.bernaferrari.bravedns.ui.compose.logs.RethinkConnectionRuleState
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkFirewallRuleStatus
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.util.Utilities
 
@@ -47,13 +47,13 @@ fun IpRow(
 
     val ruleState =
         if (isAsn) {
-            RethinkConnectionRuleState.None
+            RethinkFirewallRuleStatus.None
         } else {
             when (IpRulesManager.getMostSpecificRuleMatch(conn.uid, conn.ipAddress)) {
-                IpRulesManager.IpRuleStatus.NONE -> RethinkConnectionRuleState.None
-                IpRulesManager.IpRuleStatus.BLOCK -> RethinkConnectionRuleState.Block
-                IpRulesManager.IpRuleStatus.BYPASS_UNIVERSAL -> RethinkConnectionRuleState.Bypass
-                IpRulesManager.IpRuleStatus.TRUST -> RethinkConnectionRuleState.Trust
+                IpRulesManager.IpRuleStatus.NONE -> RethinkFirewallRuleStatus.None
+                IpRulesManager.IpRuleStatus.BLOCK -> RethinkFirewallRuleStatus.Block
+                IpRulesManager.IpRuleStatus.BYPASS_UNIVERSAL -> RethinkFirewallRuleStatus.Bypass
+                IpRulesManager.IpRuleStatus.TRUST -> RethinkFirewallRuleStatus.Trust
             }
         }
     val activity =

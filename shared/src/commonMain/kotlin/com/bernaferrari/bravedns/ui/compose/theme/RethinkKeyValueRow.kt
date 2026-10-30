@@ -97,15 +97,10 @@ fun RethinkKeyValueListItem(
     monospace: Boolean = false,
     selectable: Boolean = false,
 ) {
-    val topGap = if (position == CardPosition.First || position == CardPosition.Single) {
-        SharedDimensions.spacingNone
-    } else {
-        SharedDimensions.spacingGridTile
-    }
     Surface(
         shape = rethinkGroupedListShape(position),
         color = LocalRethinkListContainerColor.current ?: MaterialTheme.colorScheme.surfaceContainerLow,
-        modifier = modifier.fillMaxWidth().padding(top = topGap),
+        modifier = modifier.rethinkGroupedRow(position),
     ) {
         Row(
             Modifier

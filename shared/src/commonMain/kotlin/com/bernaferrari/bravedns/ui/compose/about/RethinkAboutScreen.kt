@@ -13,6 +13,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWellContainerColor
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWellDefaults
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillDefaults
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillSize
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.clickable
@@ -242,7 +243,7 @@ private fun AboutIdentityHero(
             ) {
                 Text(appName, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                 version?.let {
-                    RethinkPill(it, colors = RethinkPillDefaults.status(MaterialTheme.colorScheme.onPrimaryContainer), fontWeight = FontWeight.SemiBold)
+                    RethinkPill(it, colors = RethinkPillDefaults.onContainer(MaterialTheme.colorScheme.onPrimaryContainer), size = RethinkPillSize.Large)
                 }
             }
         }

@@ -24,6 +24,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusColors
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListShape
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedRow
 
 data class RethinkConsoleLogItem(
     val level: Char,
@@ -74,12 +75,8 @@ fun RethinkConsoleLogRow(
     val severity = rethinkConsoleLogSeverity(item.level)
     val tint = severity.tint()
     val shape = position?.let(::rethinkGroupedListShape) ?: RoundedCornerShape(SharedDimensions.cornerRadiusMdLg)
-    val topGap = when (position) {
-        null, CardPosition.First, CardPosition.Single -> SharedDimensions.spacingNone
-        else -> SharedDimensions.spacingGridTile
-    }
     Surface(
-        modifier = modifier.fillMaxWidth().padding(top = topGap),
+        modifier = if (position != null) modifier.rethinkGroupedRow(position) else modifier.fillMaxWidth(),
         shape = shape,
         color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {

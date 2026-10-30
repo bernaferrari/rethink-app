@@ -6,7 +6,6 @@ package com.bernaferrari.bravedns.ui.compose.bubble
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillDefaults
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
@@ -110,7 +109,7 @@ fun RethinkBubbleScreen(
 
 @Composable
 private fun BubbleSectionHeader(title: String, count: Int) {
-    SectionHeader(title, trailing = { RethinkPill(count.toString(), colors = RethinkPillDefaults.secondary()) })
+    SectionHeader(title, trailing = { RethinkPill(count.toString(), colors = RethinkPillDefaults.primary()) })
 }
 
 @Composable

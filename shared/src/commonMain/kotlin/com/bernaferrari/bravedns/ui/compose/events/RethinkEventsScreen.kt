@@ -34,17 +34,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -85,6 +82,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListShape
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedRow
 
 enum class RethinkEventFilterMode { All, Severity, Source }
 
@@ -257,12 +255,6 @@ private fun RethinkEventControls(
                 label = strings.all,
                 selected = filters.mode == RethinkEventFilterMode.All,
                 onClick = { onFiltersChange(RethinkEventFilters(RethinkEventFilterMode.All)) },
-                minHeight = SharedDimensions.touchTargetMin,
-                // Same tonal family as the connected groups and toolbar toggles in Logs.
-                selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                textStyle = MaterialTheme.typography.labelLarge,
-                selectedLabelWeight = FontWeight.SemiBold,
             )
             val severity = filters.severity.takeIf { filters.mode == RethinkEventFilterMode.Severity }
             RethinkEventMenuChip(
@@ -338,30 +330,11 @@ private fun RethinkEventMenuChip(
 ) {
     var expanded by remember { mutableStateOf(false) }
     Box {
-        FilterChip(
+        RethinkFilterChip(
+            label = label,
             selected = selected,
             onClick = { expanded = true },
-            label = {
-                Text(
-                    label,
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            },
             trailingIcon = { Icon(MaterialSymbols.Filled.KeyboardArrowDown, null, Modifier.size(FilterChipDefaults.IconSize)) },
-            shape = RoundedCornerShape(SharedDimensions.cornerRadiusMdLg),
-            border = null,
-            colors = FilterChipDefaults.filterChipColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                selectedTrailingIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
-            ),
-            modifier = Modifier.heightIn(min = SharedDimensions.touchTargetMin),
         )
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             menuContent { expanded = false }
@@ -402,10 +375,8 @@ fun RethinkEventCard(
         shape = shape,
         color = if (expanded) MaterialTheme.colorScheme.surfaceContainer else MaterialTheme.colorScheme.surfaceContainerLow,
         modifier = modifier
-            .fillMaxWidth()
-            .padding(top = if (position == CardPosition.First || position == CardPosition.Single) SharedDimensions.spacingNone else SharedDimensions.spacingGridTile)
             .scale(scale)
-            .clip(shape)
+            .rethinkGroupedRow(position)
             .combinedClickable(
                 interactionSource = interactionSource,
                 indication = ripple(),

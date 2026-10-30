@@ -17,7 +17,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -25,6 +24,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListShape
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedRow
 
 /** Portable connection-summary row. Hosts provide platform artwork and the navigation action. */
 @Composable
@@ -46,7 +46,7 @@ fun RethinkStatisticsSummaryItem(
     Surface(
         onClick = onClick ?: {},
         enabled = onClick != null,
-        modifier = modifier.fillMaxWidth().padding(top = if (position == CardPosition.First || position == CardPosition.Single) SharedDimensions.spacingNone else SharedDimensions.spacingGridTile).clip(rowShape),
+        modifier = modifier.rethinkGroupedRow(position),
         shape = rowShape,
         color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {

@@ -27,9 +27,13 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 
-/** Container + content pair of a [RethinkPill]. Build one through [RethinkPillDefaults]. */
+/**
+ * Container + content pair of a [RethinkPill], plus the label weight that goes with it: verdicts,
+ * statuses and emphasized counts read SemiBold, plain metadata Medium. Build one through
+ * [RethinkPillDefaults].
+ */
 @Immutable
-data class RethinkPillColors(val container: Color, val content: Color)
+data class RethinkPillColors(val container: Color, val content: Color, val fontWeight: FontWeight = FontWeight.Medium)
 
 /**
  * Pill density.
@@ -52,13 +56,15 @@ object RethinkPillDefaults {
     fun status(accent: Color): RethinkPillColors = RethinkPillColors(
         container = accent.copy(alpha = STATUS_CONTAINER_ALPHA),
         content = accent,
+        fontWeight = FontWeight.SemiBold,
     )
 
-    /** Emphasized counts (active filters, non-empty sections). */
+    /** Emphasized counts (active filters, section and result counts): the one count colour. */
     @Composable @ReadOnlyComposable
     fun primary(): RethinkPillColors = RethinkPillColors(
         container = MaterialTheme.colorScheme.primaryContainer,
         content = MaterialTheme.colorScheme.onPrimaryContainer,
+        fontWeight = FontWeight.SemiBold,
     )
 
     /** Selection/summary information (protocol, "N selected", config chips). */
@@ -80,6 +86,7 @@ object RethinkPillDefaults {
     fun allowed(): RethinkPillColors = RethinkPillColors(
         container = RethinkStatusColors.allowedContainer,
         content = RethinkStatusColors.onAllowedContainer,
+        fontWeight = FontWeight.SemiBold,
     )
 
     /** A verdict: blocked traffic, on the error container. */
@@ -87,9 +94,21 @@ object RethinkPillDefaults {
     fun blocked(): RethinkPillColors = RethinkPillColors(
         container = RethinkStatusColors.blockedContainer,
         content = RethinkStatusColors.onBlockedContainer,
+        fontWeight = FontWeight.SemiBold,
+    )
+
+    /**
+     * Facts on a coloured hero card (resolver, protocol, version): [content] on a faint wash of
+     * itself, so the pill takes the card's own colour in every state. Use [RethinkPillSize.Large].
+     */
+    fun onContainer(content: Color): RethinkPillColors = RethinkPillColors(
+        container = content.copy(alpha = ON_CONTAINER_ALPHA),
+        content = content,
+        fontWeight = FontWeight.SemiBold,
     )
 
     private const val STATUS_CONTAINER_ALPHA = 0.14f
+    private const val ON_CONTAINER_ALPHA = 0.1f
 }
 
 /**
@@ -106,7 +125,7 @@ fun RethinkPill(
     leadingIcon: ImageVector? = null,
     /** A status dot before the text; ignored when [leadingIcon] is set. */
     dotColor: Color? = null,
-    fontWeight: FontWeight = FontWeight.Medium,
+    fontWeight: FontWeight = colors.fontWeight,
     monospace: Boolean = false,
     /** Long free-form values (proxy details) may wrap instead of ellipsizing. */
     maxLines: Int = 1,

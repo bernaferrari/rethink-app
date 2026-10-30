@@ -67,6 +67,9 @@ import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListShape
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkLatencyTone
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkLatencyBand
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkLatencyBand
 
 data class RethinkLogDetail(
     val label: String,
@@ -328,7 +331,6 @@ private fun VerdictPill(model: RethinkLogRowModel) {
         colors = if (model.isBlocked) RethinkPillDefaults.blocked() else RethinkPillDefaults.allowed(),
         size = RethinkPillSize.Small,
         leadingIcon = if (model.isBlocked) MaterialSymbols.Filled.Block else MaterialSymbols.Filled.Check,
-        fontWeight = FontWeight.SemiBold,
     )
 }
 
@@ -452,11 +454,12 @@ internal fun LogDetailsPanel(model: RethinkLogRowModel, inPane: Boolean = false)
 @Composable
 private fun LogLatency(latency: Long, strings: RethinkLogLatencyStrings?) {
     val scheme = MaterialTheme.colorScheme
-    val (color, quality) = when {
-        latency in 1..10 -> RethinkStatusColors.allowed to strings?.fast
-        latency in 11..50 -> scheme.tertiary to strings?.ok
-        latency > 50 -> scheme.error to strings?.slow
-        else -> scheme.onSurfaceVariant to null
+    val color = rethinkLatencyTone(latency)
+    val quality = when (rethinkLatencyBand(latency)) {
+        RethinkLatencyBand.Fast -> strings?.fast
+        RethinkLatencyBand.Ok -> strings?.ok
+        RethinkLatencyBand.Slow -> strings?.slow
+        RethinkLatencyBand.Unknown -> null
     }
     val label = if (quality.isNullOrBlank()) "${latency}ms" else "${latency}ms · $quality"
     val fraction = (latency.toFloat() / 100f).coerceIn(0.04f, 1f)

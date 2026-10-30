@@ -29,7 +29,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.text.font.FontWeight
 import com.bernaferrari.bravedns.ui.compose.common.RethinkAdaptiveWidth
 import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
 import com.bernaferrari.bravedns.ui.compose.common.RethinkLoadingState
@@ -90,7 +89,6 @@ fun RethinkDetailedStatisticsScreen(
                                 Modifier.padding(end = SharedDimensions.spacingSm),
                                 colors = RethinkPillDefaults.primary(),
                                 size = RethinkPillSize.Large,
-                                fontWeight = FontWeight.SemiBold,
                             )
                         }
                     },
@@ -106,7 +104,6 @@ fun RethinkDetailedStatisticsScreen(
                     itemCount == 0 -> RethinkEmptyState(
                         icon = MaterialSymbols.Filled.Info,
                         title = strings.empty,
-                        message = "",
                         contained = true,
                         modifier = Modifier.align(Alignment.Center).padding(horizontal = SharedDimensions.screenPaddingHorizontal),
                     )

@@ -26,7 +26,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -147,7 +146,6 @@ private fun PaneContent(model: RethinkLogRowModel, groups: List<RethinkLogGroup>
                 colors = if (model.isBlocked) RethinkPillDefaults.blocked() else RethinkPillDefaults.allowed(),
                 size = RethinkPillSize.Large,
                 leadingIcon = if (model.isBlocked) MaterialSymbols.Filled.Block else MaterialSymbols.Filled.CheckCircle,
-                fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.weight(1f, fill = false),
             )
             RethinkPill(model.typeLabel, size = RethinkPillSize.Large, fontWeight = FontWeight.Bold)

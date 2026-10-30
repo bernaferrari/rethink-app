@@ -40,3 +40,39 @@ object RethinkStatusColors {
     val idle: Color
         @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.onSurfaceVariant
 }
+
+/**
+ * A firewall rule's verdict on an IP, domain or connection. Platform adapters map their
+ * rule-manager enums here; [accent] is its one colour everywhere it shows.
+ */
+enum class RethinkFirewallRuleStatus { Block, Trust, Bypass, None }
+
+@Composable @ReadOnlyComposable
+fun RethinkFirewallRuleStatus.accent(): Color = when (this) {
+    RethinkFirewallRuleStatus.Block -> RethinkStatusColors.blocked
+    RethinkFirewallRuleStatus.Trust -> RethinkStatusColors.allowed
+    RethinkFirewallRuleStatus.Bypass -> RethinkStatusColors.mixed
+    RethinkFirewallRuleStatus.None -> RethinkStatusColors.idle
+}
+
+/** How fast one lookup answered; shared by the DNS latency bars and the log rows' meter. */
+enum class RethinkLatencyBand { Unknown, Fast, Ok, Slow }
+
+fun rethinkLatencyBand(ms: Long): RethinkLatencyBand = when {
+    ms <= 0 -> RethinkLatencyBand.Unknown
+    ms < FAST_LATENCY_MS -> RethinkLatencyBand.Fast
+    ms < SLOW_LATENCY_MS -> RethinkLatencyBand.Ok
+    else -> RethinkLatencyBand.Slow
+}
+
+/** Latency reads as a status: fast is allowed, sluggish mixed, slow blocked, unknown idle. */
+@Composable @ReadOnlyComposable
+fun rethinkLatencyTone(ms: Long): Color = when (rethinkLatencyBand(ms)) {
+    RethinkLatencyBand.Unknown -> RethinkStatusColors.idle
+    RethinkLatencyBand.Fast -> RethinkStatusColors.allowed
+    RethinkLatencyBand.Ok -> RethinkStatusColors.mixed
+    RethinkLatencyBand.Slow -> RethinkStatusColors.blocked
+}
+
+private const val FAST_LATENCY_MS = 50L
+private const val SLOW_LATENCY_MS = 150L

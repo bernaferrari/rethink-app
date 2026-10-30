@@ -22,7 +22,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusColors
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkFirewallRuleStatus
+import com.bernaferrari.bravedns.ui.compose.theme.accent
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListShape
 
@@ -32,12 +33,10 @@ data class RethinkAppConnectionItem(
     val title: String,
     val supporting: String? = null,
     val count: String,
-    val ruleState: RethinkConnectionRuleState = RethinkConnectionRuleState.None,
+    val ruleState: RethinkFirewallRuleStatus = RethinkFirewallRuleStatus.None,
     /** Null omits the lightweight activity indicator. */
     val activity: Float? = null,
 )
-
-enum class RethinkConnectionRuleState { None, Trust, Block, Bypass }
 
 /**
  * Expressive, shared row used for domain, IP, and ASN connection histories.
@@ -50,12 +49,7 @@ fun RethinkAppConnectionRow(
     modifier: Modifier = Modifier,
     position: CardPosition = CardPosition.Single,
 ) {
-    val accent = when (item.ruleState) {
-        RethinkConnectionRuleState.Block -> RethinkStatusColors.blocked
-        RethinkConnectionRuleState.Trust -> RethinkStatusColors.allowed
-        RethinkConnectionRuleState.Bypass -> RethinkStatusColors.mixed
-        RethinkConnectionRuleState.None -> RethinkStatusColors.idle
-    }
+    val accent = item.ruleState.accent()
     // Grouped-list row: the host's list supplies the 2dp gap, the shape carries the grouping.
     val rowShape = rethinkGroupedListShape(position)
     Surface(
@@ -94,7 +88,7 @@ fun RethinkAppConnectionRow(
                         Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
-                RethinkPill(item.count, colors = RethinkPillDefaults.status(accent), fontWeight = FontWeight.SemiBold)
+                RethinkPill(item.count, colors = RethinkPillDefaults.status(accent))
             }
             item.activity?.let { activity ->
                 LinearProgressIndicator(

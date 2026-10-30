@@ -59,7 +59,8 @@ private fun StateContainer(contained: Boolean, modifier: Modifier, content: @Com
 @Composable
 fun RethinkEmptyState(
     title: String,
-    message: String,
+    /** A second line under [title]; blank when the title says it all. */
+    message: String = "",
     modifier: Modifier = Modifier,
     icon: ImageVector? = null,
     ctaLabel: String? = null,

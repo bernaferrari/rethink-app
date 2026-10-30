@@ -51,6 +51,7 @@ import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
@@ -93,20 +94,51 @@ fun rethinkGroupedListShape(position: CardPosition): RoundedCornerShape = when (
     CardPosition.Middle -> RoundedCornerShape(SharedDimensions.cornerRadiusSm)
 }
 
+/**
+ * One cell of an expressive grid group: the group radius only on corners that touch the group's
+ * outside, the small inner radius everywhere else. [rowPosition] is the cell's row in the group.
+ */
+fun rethinkGroupedGridCellShape(
+    column: Int,
+    columns: Int,
+    rowPosition: CardPosition,
+): RoundedCornerShape {
+    val isTopRow = rowPosition == CardPosition.First || rowPosition == CardPosition.Single
+    val isBottomRow = rowPosition == CardPosition.Last || rowPosition == CardPosition.Single
+    val isStart = column == 0
+    val isEnd = column == columns - 1
+    fun corner(outer: Boolean) = if (outer) SharedDimensions.groupCornerRadius else SharedDimensions.cornerRadiusSm
+    return RoundedCornerShape(
+        topStart = corner(isStart && isTopRow),
+        topEnd = corner(isEnd && isTopRow),
+        bottomEnd = corner(isEnd && isBottomRow),
+        bottomStart = corner(isStart && isBottomRow),
+    )
+}
+
 /** The matching shape for one tile in a two-column expressive group. */
 fun rethinkGroupedListPairShape(
     isLeadingTile: Boolean,
     position: CardPosition,
-): RoundedCornerShape {
-    val hasTopOuterCorner = position == CardPosition.First || position == CardPosition.Single
-    val hasBottomOuterCorner = position == CardPosition.Last || position == CardPosition.Single
-    return RoundedCornerShape(
-        topStart = if (isLeadingTile && hasTopOuterCorner) SharedDimensions.groupCornerRadius else SharedDimensions.cornerRadiusSm,
-        topEnd = if (!isLeadingTile && hasTopOuterCorner) SharedDimensions.groupCornerRadius else SharedDimensions.cornerRadiusSm,
-        bottomEnd = if (!isLeadingTile && hasBottomOuterCorner) SharedDimensions.groupCornerRadius else SharedDimensions.cornerRadiusSm,
-        bottomStart = if (isLeadingTile && hasBottomOuterCorner) SharedDimensions.groupCornerRadius else SharedDimensions.cornerRadiusSm,
-    )
-}
+): RoundedCornerShape = rethinkGroupedGridCellShape(if (isLeadingTile) 0 else 1, columns = 2, rowPosition = position)
+
+/** One tile of a single horizontal connected row (quick actions, usage tiles). */
+fun rethinkConnectedRowShape(index: Int, count: Int): RoundedCornerShape =
+    rethinkGroupedGridCellShape(index, columns = count, rowPosition = CardPosition.Single)
+
+/** Gap above a grouped row: none for the group's first row, [SharedDimensions.spacingGridTile] otherwise. */
+fun rethinkGroupedRowTopGap(position: CardPosition): Dp =
+    if (position == CardPosition.First || position == CardPosition.Single) SharedDimensions.spacingNone else SharedDimensions.spacingGridTile
+
+/**
+ * Full-width row of an expressive grouped list: the [rethinkGroupedRowTopGap] above it, then
+ * clipped to [rethinkGroupedListShape] so ripples and highlights follow the row's corners. Custom
+ * rows apply this before their Surface; [RethinkListItem] already does.
+ */
+fun Modifier.rethinkGroupedRow(position: CardPosition): Modifier =
+    fillMaxWidth()
+        .padding(top = rethinkGroupedRowTopGap(position))
+        .clip(rethinkGroupedListShape(position))
 
 @Composable
 fun RethinkListGroup(
@@ -183,10 +215,7 @@ fun RethinkListItem(
     val containerColor = lerp(defaultContainerColor, highlightContainerColor, highlightAlpha)
     val headlineColor = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
 
-    val surfaceModifier = Modifier
-        .fillMaxWidth()
-        .padding(top = if (position == CardPosition.First || position == CardPosition.Single) 0.dp else SharedDimensions.spacingGridTile)
-        .clip(shape)
+    val surfaceModifier = Modifier.rethinkGroupedRow(position)
     // Highlight (deep-link focus, selection) is tonal only: grouped rows never draw borders.
     val border: BorderStroke? = null
     val content: @Composable () -> Unit = {

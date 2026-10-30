@@ -57,6 +57,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListPairShape
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedGridCellShape
 
 enum class RethinkConfigureLayout { GridFour, GridTriad, List }
 
@@ -258,8 +259,6 @@ private fun AdaptiveTileGrid(entries: List<RethinkConfigureEntry>, columns: Int)
     val rows = entries.chunked(columns)
     Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile)) {
         rows.forEachIndexed { rowIndex, row ->
-            val isFirstRow = rowIndex == 0
-            val isLastRow = rowIndex == rows.lastIndex
             Row(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile),
@@ -267,7 +266,7 @@ private fun AdaptiveTileGrid(entries: List<RethinkConfigureEntry>, columns: Int)
                 row.forEachIndexed { column, entry ->
                     GridTile(
                         entry,
-                        configureGridCellShape(column, columns, isFirstRow, isLastRow),
+                        rethinkGroupedGridCellShape(column, columns, cardPositionFor(rowIndex, rows.lastIndex)),
                         Modifier.weight(1f),
                         rowIndex * columns + column,
                     )
@@ -278,21 +277,6 @@ private fun AdaptiveTileGrid(entries: List<RethinkConfigureEntry>, columns: Int)
     }
 }
 
-private fun configureGridCellShape(
-    column: Int,
-    columns: Int,
-    isFirstRow: Boolean,
-    isLastRow: Boolean,
-): Shape {
-    val outer = SharedDimensions.groupCornerRadius
-    val inner = SharedDimensions.cornerRadiusSm
-    return RoundedCornerShape(
-        topStart = if (column == 0 && isFirstRow) outer else inner,
-        topEnd = if (column == columns - 1 && isFirstRow) outer else inner,
-        bottomStart = if (column == 0 && isLastRow) outer else inner,
-        bottomEnd = if (column == columns - 1 && isLastRow) outer else inner,
-    )
-}
 @Composable private fun GridRow(
     first: RethinkConfigureEntry,
     second: RethinkConfigureEntry,

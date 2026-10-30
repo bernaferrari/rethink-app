@@ -11,8 +11,6 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillDefaults
 import androidx.compose.material3.SwipeToDismissBoxValue
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.foundation.shape.CircleShape
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListShape
 import androidx.compose.foundation.background
 import androidx.compose.ui.semantics.semantics
@@ -47,8 +45,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
 import com.bernaferrari.bravedns.ui.compose.common.RethinkLoadingState
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
@@ -60,11 +56,14 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormTextField
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkModalBottomSheet
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSearchField
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusColors
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkFirewallRuleStatus
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWellDefaults
+import com.bernaferrari.bravedns.ui.compose.theme.accent
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedRowTopGap
 
 /** The portable custom-rules screen supports both universal and app-specific rule scopes. */
 enum class RethinkRulesTab(val value: Int) {
@@ -93,8 +92,6 @@ enum class RethinkRulesMode(val value: Int) {
         fun fromValue(value: Int): RethinkRulesMode = entries.firstOrNull { it.value == value } ?: SELECTED_UID
     }
 }
-
-enum class RethinkFirewallRuleStatus { Block, Trust, Bypass, None }
 
 data class RethinkFirewallRule(
     val id: String,
@@ -496,7 +493,6 @@ private fun RethinkRulesEmptyState(
     ) {
         RethinkEmptyState(
             title = if (tab == RethinkRulesTab.IP) strings.noIpRules else strings.noDomainRules,
-            message = "",
             icon = if (tab == RethinkRulesTab.IP) MaterialSymbols.Filled.Public else MaterialSymbols.Filled.Language,
             ctaLabel = strings.add,
             onCtaClick = onAddRule,
@@ -538,7 +534,6 @@ private fun RethinkFirewallRuleRow(
     val swipeState = rememberSwipeToDismissBoxState()
     val scope = rememberCoroutineScope()
     val shape = rethinkGroupedListShape(position)
-    val topGap = if (position == CardPosition.First || position == CardPosition.Single) 0.dp else SharedDimensions.spacingGridTile
     SwipeToDismissBox(
         state = swipeState,
         enableDismissFromStartToEnd = false,
@@ -555,7 +550,7 @@ private fun RethinkFirewallRuleRow(
             if (swipeState.dismissDirection == SwipeToDismissBoxValue.EndToStart) Box(
                 Modifier
                     .fillMaxSize()
-                    .padding(top = topGap)
+                    .padding(top = rethinkGroupedRowTopGap(position))
                     .background(MaterialTheme.colorScheme.errorContainer, shape)
                     .padding(horizontal = SharedDimensions.spacingXl),
                 contentAlignment = Alignment.CenterEnd,
@@ -580,11 +575,10 @@ private fun RethinkFirewallRuleRow(
                 else -> MaterialSymbols.Filled.Language
             },
             leadingIconTint = if (selected) MaterialTheme.colorScheme.onPrimary else accent,
-            leadingIconContainerColor = if (selected) MaterialTheme.colorScheme.primary else accent.copy(alpha = .14f),
-            leadingIconContainerShape = CircleShape,
+            leadingIconContainerColor = if (selected) MaterialTheme.colorScheme.primary else RethinkIconWellDefaults.tinted(accent),
             highlighted = selected,
             position = position,
-            trailing = { RethinkPill(rule.status.label(strings), colors = RethinkPillDefaults.status(accent), fontWeight = FontWeight.SemiBold) },
+            trailing = { RethinkPill(rule.status.label(strings), colors = RethinkPillDefaults.status(accent)) },
             onClick = onClick,
             onLongClick = onLongClick,
         )
@@ -596,14 +590,6 @@ private fun RethinkFirewallRuleStatus.label(strings: RethinkCustomRulesStrings):
     RethinkFirewallRuleStatus.Trust -> strings.trust
     RethinkFirewallRuleStatus.Bypass -> strings.bypass
     RethinkFirewallRuleStatus.None -> strings.noRule
-}
-
-@Composable
-private fun RethinkFirewallRuleStatus.accent(): Color = when (this) {
-    RethinkFirewallRuleStatus.Block -> RethinkStatusColors.blocked
-    RethinkFirewallRuleStatus.Trust -> RethinkStatusColors.allowed
-    RethinkFirewallRuleStatus.Bypass -> RethinkStatusColors.mixed
-    RethinkFirewallRuleStatus.None -> RethinkStatusColors.idle
 }
 
 /** Per-rule actions: the discoverable home of Delete (and the entry into multi-select). */
@@ -632,7 +618,7 @@ private fun RethinkRuleActionsSheet(
                     Text(strings.port(it), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
-            RethinkPill(rule.status.label(strings), colors = RethinkPillDefaults.status(accent), fontWeight = FontWeight.SemiBold)
+            RethinkPill(rule.status.label(strings), colors = RethinkPillDefaults.status(accent))
         }
         RethinkListGroup {
             RethinkListItem(

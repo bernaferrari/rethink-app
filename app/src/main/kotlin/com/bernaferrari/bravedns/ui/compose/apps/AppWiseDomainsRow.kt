@@ -26,7 +26,7 @@ import com.bernaferrari.bravedns.service.DomainRulesManager
 import com.bernaferrari.bravedns.service.VpnController
 import com.bernaferrari.bravedns.ui.compose.logs.RethinkAppConnectionItem
 import com.bernaferrari.bravedns.ui.compose.logs.RethinkAppConnectionRow
-import com.bernaferrari.bravedns.ui.compose.logs.RethinkConnectionRuleState
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkFirewallRuleStatus
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.util.Utilities.showToastUiCentered
@@ -42,12 +42,12 @@ fun DomainRow(
 ) {
     val ruleState =
         if (conn.appOrDnsName.isNullOrEmpty()) {
-            RethinkConnectionRuleState.None
+            RethinkFirewallRuleStatus.None
         } else {
             when (DomainRulesManager.status(conn.appOrDnsName.orEmpty(), uid)) {
-                DomainRulesManager.Status.NONE -> RethinkConnectionRuleState.None
-                DomainRulesManager.Status.BLOCK -> RethinkConnectionRuleState.Block
-                DomainRulesManager.Status.TRUST -> RethinkConnectionRuleState.Trust
+                DomainRulesManager.Status.NONE -> RethinkFirewallRuleStatus.None
+                DomainRulesManager.Status.BLOCK -> RethinkFirewallRuleStatus.Block
+                DomainRulesManager.Status.TRUST -> RethinkFirewallRuleStatus.Trust
             }
         }
     val activity =

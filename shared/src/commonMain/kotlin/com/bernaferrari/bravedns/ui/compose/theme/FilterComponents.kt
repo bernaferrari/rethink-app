@@ -62,9 +62,11 @@ fun RethinkFilterChip(
     selectedLeadingIconColor: Color = selectedLabelColor, leadingIconColor: Color = labelColor, border: BorderStroke? = null,
     minHeight: Dp = SharedDimensions.buttonHeightSm, selectedLabelWeight: FontWeight = FontWeight.Medium, defaultLabelWeight: FontWeight = FontWeight.Medium,
     labelMaxLines: Int = 1, labelOverflow: TextOverflow = TextOverflow.Ellipsis,
+    /** A trailing caret marks a chip that opens a menu rather than toggling. */
+    trailingIcon: (@Composable () -> Unit)? = null,
 ) = FilterChip(
     modifier = modifier.heightIn(min = minHeight), selected = selected, onClick = onClick,
     label = { Text(label, fontWeight = if (selected) selectedLabelWeight else defaultLabelWeight, style = textStyle, maxLines = labelMaxLines, overflow = labelOverflow) },
-    leadingIcon = leadingIcon, shape = shape, border = border,
-    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = selectedContainerColor, selectedLabelColor = selectedLabelColor, containerColor = containerColor, labelColor = labelColor, selectedLeadingIconColor = selectedLeadingIconColor, iconColor = leadingIconColor),
+    leadingIcon = leadingIcon, trailingIcon = trailingIcon, shape = shape, border = border,
+    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = selectedContainerColor, selectedLabelColor = selectedLabelColor, containerColor = containerColor, labelColor = labelColor, selectedLeadingIconColor = selectedLeadingIconColor, iconColor = leadingIconColor, selectedTrailingIconColor = selectedLeadingIconColor),
 )

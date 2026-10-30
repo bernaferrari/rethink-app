@@ -17,8 +17,6 @@ import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
-import androidx.compose.ui.semantics.stateDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -95,6 +93,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkOverflowItem
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListShape
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedRow
 
 /** Data the portable firewall app-list renderer needs from a host. */
 data class RethinkFirewallApp(
@@ -505,11 +504,7 @@ private fun RethinkFirewallAppRow(
     Surface(
         onClick = onClick,
         interactionSource = interaction,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = if (position == CardPosition.First || position == CardPosition.Single) SharedDimensions.spacingNone else SharedDimensions.spacingGridTile)
-            .scale(scale)
-            .clip(shape),
+        modifier = Modifier.scale(scale).rethinkGroupedRow(position),
         shape = shape,
         color = if (LocalSelectedFirewallAppUid.current == app.uid) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
@@ -541,7 +536,7 @@ private fun RethinkFirewallAppRow(
                         horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
                     ) {
                         if (statusLabel.isNotBlank()) {
-                            RethinkPill(statusLabel, colors = RethinkPillDefaults.status(accent), size = RethinkPillSize.Small, fontWeight = FontWeight.SemiBold)
+                            RethinkPill(statusLabel, colors = RethinkPillDefaults.status(accent), size = RethinkPillSize.Small)
                         }
                         if (app.proxyEnabled) {
                             RethinkPill(proxyLabel, colors = RethinkPillDefaults.tertiary(), size = RethinkPillSize.Small, fontWeight = FontWeight.SemiBold)
@@ -670,7 +665,7 @@ fun RethinkFirewallNetworkToggle(
         },
         label = "firewall_network_toggle_press",
     )
-    // Hit box is 48.dp; visual bubble/icon stay 30 / 18.dp. Springs run only via
+    // Hit box is 48.dp; visual bubble/icon stay 34 / 18.dp. Springs run only via
     // graphicsLayer so on/off never remeasure the row.
     val stateTransition = androidx.compose.animation.core.updateTransition(
         targetState = blocked,

@@ -16,6 +16,7 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.bernaferrari.bravedns.R
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkFirewallRuleStatus
 import com.bernaferrari.bravedns.database.CustomDomain
 import com.bernaferrari.bravedns.database.CustomIp
 import com.bernaferrari.bravedns.database.EventSource
