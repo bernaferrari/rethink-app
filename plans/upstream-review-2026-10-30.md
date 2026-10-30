@@ -167,9 +167,11 @@ Unmodified Linux actuals are archived as regression inputs, not replacement refe
 Eight additional contract tests exercise all five original Linux failures and reject single-pixel
 RGB delta 3, alpha delta 1, one-pixel dimension/text/layout changes, and a changed solid status fill.
 They also verify that the other 12 fixtures and unknown names retain the original comparator.
-The reviewed reference PNGs remain unchanged; intentional future changes to these five visuals
-must refresh and review their matching Linux regression inputs too. Application source and release
-artifacts are untouched by this test-only correction; fresh remote CI remains the host-portability check.
+The reviewed visual reference PNGs remained unchanged at this point. A later maintenance correction
+froze the matching historical Mac and Linux images together as numerical comparator regression
+inputs. Those historical pairs stay unchanged during intentional UI redesigns; current visual goldens
+are reviewed and refreshed independently. Application source and release artifacts are untouched
+by these test-only corrections; fresh remote CI remains the host-portability check.
 
 Local follow-up verification passed all eight new contract tests and all 17 screenshot tests;
 app/shared Detekt also passed. The original 17 golden PNGs are byte-for-byte unchanged.

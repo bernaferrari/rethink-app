@@ -106,7 +106,8 @@ class NativeRoundingImageComparatorTest {
         return options.resultValidator(options.imageComparator.compare(PngImage(expected), PngImage(actual)))
     }
 
-    private fun reference(name: String): BufferedImage = ImageIO.read(File("src/test/screenshots/$name.png"))
+    private fun reference(name: String): BufferedImage = requireNotNull(javaClass.classLoader)
+        .getResourceAsStream("roborazzi/mac/$name.png").use { ImageIO.read(requireNotNull(it)) }
     private fun linux(name: String): BufferedImage = requireNotNull(javaClass.classLoader)
         .getResourceAsStream("roborazzi/linux/$name.png").use { ImageIO.read(requireNotNull(it)) }
 }
