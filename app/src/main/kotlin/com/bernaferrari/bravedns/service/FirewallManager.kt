@@ -690,6 +690,17 @@ object FirewallManager : KoinComponent {
         return !locked && inForegroundList
     }
 
+    suspend fun updateNotes(uid: Int, packageName: String, notes: String): Boolean {
+        require(notes.length <= 500)
+        val saved = mutex.withLock {
+            if (!db.updateNotes(uid, packageName, notes)) return@withLock false
+            appInfos.get(uid).firstOrNull { it.packageName == packageName }?.notes = notes
+            true
+        }
+        if (saved) publishAppList()
+        return saved
+    }
+
     suspend fun updateFirewalledApps(uid: Int, connectionStatus: ConnectionStatus) {
         invalidateFirewallStatus(uid, FirewallStatus.NONE, connectionStatus)
         db.updateFirewallStatusByUid(uid, FirewallStatus.NONE.id, connectionStatus.id)

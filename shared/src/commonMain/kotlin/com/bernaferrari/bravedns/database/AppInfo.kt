@@ -26,7 +26,8 @@ data class AppInfo(
     var tombstoneTs: Long = 0,
     var modifiedTs: Long = 0,
     var tempAllowEnabled: Boolean = false,
-    var tempAllowExpiryTime: Long = 0
+    var tempAllowExpiryTime: Long = 0,
+    var notes: String = ""
 ) {
     /** Detached observer value: mutable cache entries never alias emitted snapshots. */
     fun snapshot(): AppInfo = copy()

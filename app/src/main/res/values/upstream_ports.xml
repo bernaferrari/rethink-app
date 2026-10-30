@@ -1,4 +1,32 @@
 <resources>
     <string name="port_disable">Disable</string>
     <string name="port_ssid_background_explanation">SSID automation needs location access while Keepout runs in the background. First allow precise location, then open app permissions and choose Allow all the time. Location services must also be on.</string>
+    <string name="port_log_retention">Keep connection logs</string>
+    <string name="port_notes">App notes</string>
+    <string name="port_notes_hint">Remember why you trusted, blocked or excluded this app.</string>
+    <string name="port_notes_error">Could not save notes. Your draft is still here; try again.</string>
+    <string name="port_save">Save</string>
+    <string name="port_sort_name">Sort: name</string>
+    <string name="port_sort_package">Sort: package</string>
+    <string name="port_sort_uid">Sort: UID</string>
+    <plurals name="port_hours"><item quantity="one">%1$d hour</item><item quantity="other">%1$d hours</item></plurals>
+    <plurals name="port_days"><item quantity="one">%1$d day</item><item quantity="other">%1$d days</item></plurals>
+    <string name="port_capture_title">Packet capture</string>
+    <string name="port_capture_description">Capture, share or delete diagnostic files</string>
+    <string name="port_capture_privacy">Captures may contain private network data. Capture stops automatically after about three hours. Stop capture before sharing or deleting a file.</string>
+    <string name="port_capture_start">Capture to file</string>
+    <string name="port_capture_logcat">Capture to system log</string>
+    <string name="port_capture_stop">Stop capture</string>
+    <string name="port_capture_share">Share capture</string>
+    <string name="port_capture_delete">Delete this capture?</string>
+    <string name="port_capture_error">Capture could not be changed. Make sure protection is running, then try again.</string>
+    <string name="port_import_rules">Import rules</string>
+    <string name="port_import_preview">%1$d valid · %2$d duplicates · %3$d invalid</string>
+    <string name="port_import_policy">Import adds block rules to this app or universal scope. Existing rules are kept. Use one IP, CIDR or domain per line; comments start with #. Files are limited to 4 MB and 10,000 lines.</string>
+    <string name="port_import_limit">Only the first 10,000 lines were read.</string>
+    <string name="port_import_error">Could not import the file. Check its size and format, then try again. Rules already saved are kept; retry skips duplicates.</string>
+    <string name="port_import_summary">Imported %1$d rules; skipped %2$d existing rules.</string>
+    <string name="port_wg_duplicate">Another active tunnel uses the same key and peer. Disable it before enabling this tunnel.</string>
+    <string name="port_captive_title">Use system DNS for captive portals</string>
+    <string name="port_captive_description">Temporarily use the network’s DNS to sign in to public Wi-Fi. DNS filtering resumes after sign-in.</string>
 </resources>

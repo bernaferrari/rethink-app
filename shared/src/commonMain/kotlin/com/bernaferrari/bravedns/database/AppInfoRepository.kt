@@ -26,6 +26,11 @@ class AppInfoRepository(private val appInfoDAO: AppInfoDAO) {
         const val NO_PACKAGE_PREFIX = "no_package_"
     }
 
+    suspend fun updateNotes(uid: Int, packageName: String, notes: String): Boolean {
+        require(notes.length <= 500)
+        return appInfoDAO.updateNotes(uid, packageName, notes) == 1
+    }
+
     suspend fun delete(appInfo: AppInfo) {
         appInfoDAO.delete(appInfo)
     }

@@ -186,6 +186,7 @@ fun RethinkCustomRulesScreen(
     onRuleOwnerVisible: (Int) -> Unit = {},
     onBackClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
+    importAction: (@Composable () -> Unit)? = null,
 ) {
     val canSwitchScope = uid == RETHINK_UID_EVERYBODY
     val effectiveMode = if (canSwitchScope) selectedMode else RethinkRulesMode.SELECTED_UID
@@ -224,7 +225,9 @@ fun RethinkCustomRulesScreen(
                     },
                 )
             } else {
-                RethinkTopBar(title = title, onBackClick = onBackClick)
+                RethinkTopBar(title = title, onBackClick = onBackClick, actions = {
+                    if (effectiveMode == RethinkRulesMode.SELECTED_UID) importAction?.invoke()
+                })
             }
         },
         floatingActionButton = {

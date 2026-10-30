@@ -37,6 +37,7 @@ fun DnsSettingsScreen(
     onBackClick: (() -> Unit)? = null,
 ) {
     RethinkDnsSettingsScreen(
+        additionalSettings = { CaptivePortalSetting() },
         state = uiState.toRethinkDnsSettingsState(),
         strings = androidDnsSettingsStrings(),
         onRefresh = onRefreshClick,

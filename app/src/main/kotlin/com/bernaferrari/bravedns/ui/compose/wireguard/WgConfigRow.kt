@@ -124,6 +124,7 @@ private data class WgUiState(
 private data class WgStatusColors(val error: Color, val neutral: Color, val ok: Color)
 
 private data class WgStrings(
+    val duplicateConfig: String,
     val disabled: String,
     val failing: String,
     val waiting: String,
@@ -444,6 +445,10 @@ private suspend fun enableWgIfPossible(
         WireguardManager.updateOneWireGuardConfig(config.id, owg = true)
         config.oneWireGuard = true
     }
+    if (WireguardManager.getConflictingActiveConfigId(config.id) != null) {
+        showLongToast(context, strings.duplicateConfig)
+        return false
+    }
     WireguardManager.enableConfig(config.toImmutable())
     withContext(Dispatchers.Main) { onDnsStatusChanged() }
     logEvent(eventLogger, if (type == WgType.ONE_WG) "One-WireGuard enabled" else "WireGuard enabled", config.id)
@@ -499,6 +504,7 @@ private fun logEvent(eventLogger: EventLogger, msg: String, configId: Int) {
 
 @Composable
 private fun rememberWgStrings(): WgStrings {
+    val duplicateConfig = stringResource(R.string.port_wg_duplicate)
     val disabled = stringResource(R.string.lbl_disabled)
     val failing = stringResource(R.string.status_failing)
     val waiting = stringResource(R.string.status_waiting)
@@ -551,10 +557,10 @@ private fun rememberWgStrings(): WgStrings {
         wgEnabledFailure,
         disableFailureRelay,
         disableFailure,
-        startRethinkToast
+        startRethinkToast, duplicateConfig
     ) {
         WgStrings(
-            disabled = disabled,
+            duplicateConfig = duplicateConfig,            disabled = disabled,
             failing = failing,
             waiting = waiting,
             active = active,

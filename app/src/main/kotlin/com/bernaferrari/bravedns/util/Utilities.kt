@@ -622,8 +622,7 @@ object Utilities {
         requestCode: Int,
         intent: Intent,
         flag: Int,
-        mutable: Boolean,
-        requestCode: Int = 0,
+        mutable: Boolean
     ): PendingIntent {
         return if (isAtleastS()) {
             val sFlag = flag or if (mutable) PendingIntent.FLAG_MUTABLE else PendingIntent.FLAG_IMMUTABLE

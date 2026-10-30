@@ -158,6 +158,7 @@ fun RethinkAppInfoScreen(
     onIpEntry: ((RethinkAppInfoLogItem) -> Unit)?,
     titleLeading: (@Composable () -> Unit)? = null,
     modifier: Modifier = Modifier,
+    appNotes: (@Composable () -> Unit)? = null,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     Scaffold(
@@ -188,6 +189,7 @@ fun RethinkAppInfoScreen(
             }
         }
         val rules: LazyListScope.() -> Unit = {
+            if (appNotes != null) item { appNotes() }
             item {
                 RethinkFormSection(strings.rules) {
                     RethinkListGroup {

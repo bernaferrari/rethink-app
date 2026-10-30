@@ -93,6 +93,7 @@ fun CustomRulesScreen(
     }
 
     RethinkCustomRulesScreen(
+        importAction = { RulesImportAction(uid, selectedTab) },
         uid = uid,
         selectedTab = selectedTab,
         selectedMode = effectiveMode,
@@ -107,7 +108,7 @@ fun CustomRulesScreen(
         onAddRule = { tab, value ->
             when (tab) {
                 RethinkRulesTab.IP -> {
-                    val address = IPAddressString(value).address
+                    val address = IPAddressString(value).address?.takeIf { IpRulesManager.isIpRuleEnforceable(value) }
                         ?: return@RethinkCustomRulesScreen RethinkRulesAddResult(
                             accepted = false,
                             error = invalidIpMessage,

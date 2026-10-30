@@ -486,9 +486,13 @@ androidComponents {
             val abi = output.filters.find {
                 it.filterType == com.android.build.api.variant.FilterConfiguration.FilterType.ABI
             }?.identifier
-            val multiplier = versionCodes[abi] ?: versionCodes.getValue("arm64-v8a")
+            val multiplier = if (abi == null) versionCodes.getValue("arm64-v8a")
+                else requireNotNull(versionCodes[abi]) { "Unknown output ABI: $abi" }
             val base = output.versionCode.get()
-            output.versionCode.set(multiplier * 10_000_000 + base)
+            require(base in 0 until 10_000_000) { "VERSION_CODE must be between 0 and 9,999,999" }
+            val encoded = multiplier * 10_000_000L + base
+            require(encoded <= Int.MAX_VALUE) { "APK version code overflow" }
+            output.versionCode.set(encoded.toInt())
         }
     }
 }

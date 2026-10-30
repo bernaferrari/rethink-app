@@ -117,6 +117,8 @@ val LocalSelectedFirewallAppUid = androidx.compose.runtime.compositionLocalOf<In
 
 enum class RethinkFirewallFilter { All, Allowed, Blocked, Bypass, Excluded, Lockdown, BlockedWifi, BlockedMobile }
 
+enum class RethinkAppSort { Name, Package, Uid }
+
 enum class RethinkFirewallTopLevelFilter { Installed, System, All }
 
 enum class RethinkFirewallBulkAction { Wifi, Mobile, Bypass, BypassDns, Exclude, Lockdown }
@@ -164,6 +166,7 @@ data class RethinkFirewallAppListStrings(
     val statusLabel: @Composable (RethinkFirewallAppStatus) -> String,
     /** Content description of the top-bar overflow button that holds the bulk-rules entry. */
     val moreOptions: String = "More options",
+    val sortLabels: List<String> = emptyList(),
 )
 
 /**
@@ -202,6 +205,8 @@ fun RethinkFirewallAppListScreen(
     appIcon: @Composable (RethinkFirewallApp) -> Unit,
     onBackClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
+    sortOrder: RethinkAppSort = RethinkAppSort.Name,
+    onSortChange: (RethinkAppSort) -> Unit = {},
 ) {
     var showFilters by remember { mutableStateOf(false) }
     var showRules by remember { mutableStateOf(false) }
@@ -212,15 +217,11 @@ fun RethinkFirewallAppListScreen(
 
     // Hosts may return packages in install/UID order. Keep the renderer deterministic so the
     // letter headers, fast scroller, and rows always describe the same alphabetical sequence.
-    val orderedApps = remember(apps) {
-        apps.sortedWith(
-            compareBy(
-                { it.appName.ifBlank { it.packageName }.trim().lowercase() },
-                { it.packageName.lowercase() },
-            ),
-        )
+    val orderedApps = remember(apps, sortOrder) { orderFirewallApps(apps, sortOrder) }
+    val alphabetical = sortOrder == RethinkAppSort.Name
+    val scrollerMarks = remember(orderedApps, alphabetical) {
+        if (alphabetical) rethinkFirewallScrollerMarks(orderedApps) else emptyList()
     }
-    val scrollerMarks = remember(orderedApps) { rethinkFirewallScrollerMarks(orderedApps) }
     // The search row and the list share one end inset so their right edges line up, whether or
     // not the fast scroller is shown.
     val endGutter = if (scrollerMarks.size >= FAST_SCROLLER_MIN_MARKS) FastScrollerGutter else 0.dp
@@ -233,6 +234,11 @@ fun RethinkFirewallAppListScreen(
                 title = strings.title,
                 onBackClick = onBackClick,
                 actions = {
+                    if (strings.sortLabels.size == RethinkAppSort.entries.size) {
+                        TextButton(onClick = {
+                            onSortChange(RethinkAppSort.entries[(sortOrder.ordinal + 1) % RethinkAppSort.entries.size])
+                        }) { Text(strings.sortLabels[sortOrder.ordinal]) }
+                    }
                     RethinkFirewallTopBarActions(
                         isRefreshing = isRefreshing,
                         strings = strings,
@@ -257,6 +263,7 @@ fun RethinkFirewallAppListScreen(
                 modifier = Modifier.weight(1f),
                 apps = orderedApps,
                 scrollerMarks = scrollerMarks,
+                alphabetical = alphabetical,
                 endGutter = endGutter,
                 query = query,
                 strings = strings,
@@ -370,6 +377,7 @@ private fun RethinkFirewallAppControls(
 private fun RethinkFirewallAppList(
     apps: List<RethinkFirewallApp>,
     scrollerMarks: List<RethinkFastScrollerMark>,
+    alphabetical: Boolean,
     endGutter: Dp,
     query: String,
     strings: RethinkFirewallAppListStrings,
@@ -394,6 +402,7 @@ private fun RethinkFirewallAppList(
         RethinkFirewallAppRows(
             apps = apps,
             state = state,
+            alphabetical = alphabetical,
             endGutter = endGutter,
             query = query,
             strings = strings,
@@ -415,6 +424,7 @@ private fun RethinkFirewallAppList(
 private fun RethinkFirewallAppRows(
     apps: List<RethinkFirewallApp>,
     state: LazyListState,
+    alphabetical: Boolean,
     endGutter: Dp,
     query: String,
     strings: RethinkFirewallAppListStrings,
@@ -433,10 +443,10 @@ private fun RethinkFirewallAppRows(
         ),
     ) {
         apps.forEachIndexed { index, app ->
-            val initial = appInitial(app)
-            val previousInitial = apps.getOrNull(index - 1)?.let(::appInitial)
-            val nextInitial = apps.getOrNull(index + 1)?.let(::appInitial)
-            if (index == 0 || initial != previousInitial) {
+            val initial = if (alphabetical) appInitial(app) else ""
+            val previousInitial = if (alphabetical) apps.getOrNull(index - 1)?.let(::appInitial) else if (index > 0) "" else null
+            val nextInitial = if (alphabetical) apps.getOrNull(index + 1)?.let(::appInitial) else if (index < apps.lastIndex) "" else null
+            if (alphabetical && (index == 0 || initial != previousInitial)) {
                 // The same initial can legitimately appear in separate groups after filtering;
                 // include the source position so LazyColumn never receives duplicate keys.
                 stickyHeader(key = "firewall_header_${initial}_$index", contentType = "header") {
@@ -1024,7 +1034,7 @@ fun rethinkFirewallScrollerMarks(apps: List<RethinkFirewallApp>): List<RethinkFa
     var listIndex = 0
     var previous: String? = null
     apps.forEach { app ->
-        val initial = appInitial(app)
+        val initial = if (alphabetical) appInitial(app) else ""
         if (previous != initial) {
             marks += RethinkFastScrollerMark(initial, listIndex)
             listIndex++

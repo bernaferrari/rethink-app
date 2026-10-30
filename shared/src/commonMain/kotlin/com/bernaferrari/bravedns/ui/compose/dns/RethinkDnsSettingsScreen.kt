@@ -184,6 +184,7 @@ fun RethinkDnsSettingsScreen(
     onBackClick: (() -> Unit)? = null,
     focusedSettingId: String? = null,
     modifier: Modifier = Modifier,
+    additionalSettings: (@Composable () -> Unit)? = null,
 ) {
     val motion = LocalRethinkMotion.current
     val listState = rememberLazyListState()
@@ -289,6 +290,7 @@ fun RethinkDnsSettingsScreen(
                 )
             }
         }
+        if (additionalSettings != null) item { additionalSettings() }
         rethinkSection(strings.advancedSection) {
             val rows = listOf(
                 RethinkDnsToggle(strings.favicons, strings.faviconsDescription, state.fetchFavIcon, MaterialSymbols.Filled.Language, "dns_advanced_favicon", onFaviconsChange),

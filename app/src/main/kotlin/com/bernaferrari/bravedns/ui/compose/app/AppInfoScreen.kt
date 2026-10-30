@@ -317,6 +317,7 @@ fun AppInfoScreen(
     }
 
     RethinkAppInfoScreen(
+        appNotes = info?.let { app -> { AppNotesEditor(app) } },
         state = RethinkAppInfoState(
             appAvailable = info != null,
             title = title,

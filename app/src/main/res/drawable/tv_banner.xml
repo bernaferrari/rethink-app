@@ -1,0 +1,7 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="320dp" android:height="180dp" android:viewportWidth="320" android:viewportHeight="180">
+    <path android:fillColor="#173D37" android:pathData="M0,0h320v180h-320z" />
+    <path android:fillColor="#B4F0CF" android:pathData="M56,36L104,54v40c0,29 -22,47 -48,57c-26,-10 -48,-28 -48,-57V54z" />
+    <path android:fillColor="#173D37" android:pathData="M35,66h10v21l22,-21h14l-28,27l29,30h-14l-23,-24v24h-10z" />
+    <!-- Geometric Keepout lettering, kept as vectors so the TV banner scales cleanly. -->
+    <path android:fillColor="#F2FFF8" android:pathData="M126,72h5v14l12,-14h7l-15,17l16,19h-7l-13,-16v16h-5z M154,82h20v5h-15v6h13v5h-13v5h15v5h-20z M180,82h20v5h-15v6h13v5h-13v5h15v5h-20z M206,82h11q10,0 10,9q0,10 -10,10h-6v7h-5z M211,87v9h6q5,0 5,-5q0,-4 -5,-4z M233,82h16v5h-11v16h11v5h-16z M249,87h5v16h-5z M260,82h5v21h10v-21h5v26h-20z M285,82h25v5h-10v21h-5v-21h-10z" />
+</vector>

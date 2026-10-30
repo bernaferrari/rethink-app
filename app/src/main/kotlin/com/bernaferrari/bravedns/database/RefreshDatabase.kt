@@ -540,6 +540,7 @@ internal constructor(
             insertUnknownApp(uid)
             logEvent(Severity.MEDIUM, "new unknown app installed", "inserted unknown app, uid: $uid")
         }
+        if (pkg == ctx.packageName || ai == null || isSystemComponent(ai)) return
         showNewAppNotificationIfNeeded(FirewallManager.AppInfoTuple(uid, pkg))
     }
 
@@ -707,7 +708,9 @@ internal constructor(
         // need not notify if "block newly installed apps" is off: insertApp() & insertUnkownApp()
         if (!persistentState.getBlockNewlyInstalledApp()) return
 
-        val appCount = apps.count()
+        val others = apps.filter { it.packageName != ctx.packageName }
+        if (others.isEmpty()) return
+        val appCount = others.size
         // Show bulk notification when the app size is greater than NEW_APP_BULK_CHECK_COUNT(5)
         if (appCount > NOTIF_BATCH_NEW_APPS_THRESHOLD) {
             showNewAppsBulkNotificationIfNeeded(appCount)
@@ -715,7 +718,7 @@ internal constructor(
         }
 
         // show notification for particular app (less than NEW_APP_BULK_CHECK_COUNT)
-        apps.forEach { showNewAppNotificationIfNeeded(it) }
+        others.forEach { showNewAppNotificationIfNeeded(it) }
     }
 
     private fun showNewAppsBulkNotificationIfNeeded(appSize: Int) {
@@ -726,7 +729,7 @@ internal constructor(
             ctx.getSystemService(VpnService.NOTIFICATION_SERVICE) as NotificationManager
         Logger.d(LOG_TAG_VPN, "Number of new apps: $appSize, show notification")
 
-        val intent = Intent(ctx, HomeScreenActivity::class.java)
+        val intent = Intent(ctx, HomeScreenActivity::class.java).setAction("${ctx.packageName}.notification.new-apps")
         intent.putExtra(
             Constants.NOTIF_INTENT_EXTRA_NEW_APP_NAME,
             Constants.NOTIF_INTENT_EXTRA_NEW_APP_VALUE
@@ -790,6 +793,7 @@ internal constructor(
         }
 
         val appInfo = Utilities.getApplicationInfo(ctx, pkgName)
+        if (pkgName == ctx.packageName || appInfo == null || isSystemComponent(appInfo)) return
         val appName =
             if (appInfo == null) {
                 app.uid
@@ -806,7 +810,7 @@ internal constructor(
             ctx.getSystemService(VpnService.NOTIFICATION_SERVICE) as NotificationManager
         Logger.d(LOG_TAG_VPN, "New app installed: $appName, show notification")
 
-        val intent = Intent(ctx, HomeScreenActivity::class.java)
+        val intent = Intent(ctx, HomeScreenActivity::class.java).setAction("${ctx.packageName}.notification.new-app.${app.uid}")
         intent.putExtra(
             Constants.NOTIF_INTENT_EXTRA_NEW_APP_NAME,
             Constants.NOTIF_INTENT_EXTRA_NEW_APP_VALUE
@@ -888,7 +892,7 @@ internal constructor(
             return
         }
 
-        val intent = Intent(ctx, HomeScreenActivity::class.java)
+        val intent = Intent(ctx, HomeScreenActivity::class.java).setAction("${ctx.packageName}.notification.empty-rules")
         val nm = ctx.getSystemService(VpnService.NOTIFICATION_SERVICE) as NotificationManager
         val pendingIntent =
             getActivityPendingIntent(

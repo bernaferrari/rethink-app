@@ -30,6 +30,9 @@ interface AppInfoDAO {
 
     @Update suspend fun update(appInfo: AppInfo): Int
 
+    @Query("UPDATE AppInfo SET notes = :notes WHERE uid = :uid AND packageName = :packageName")
+    suspend fun updateNotes(uid: Int, packageName: String, notes: String): Int
+
     @Query(
         "update AppInfo set firewallStatus = :firewallStatus, connectionStatus = :connectionStatus, modifiedTs = :modifiedTs where uid = :uid"
     )

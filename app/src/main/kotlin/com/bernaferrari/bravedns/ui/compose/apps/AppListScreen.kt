@@ -13,6 +13,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import com.bernaferrari.bravedns.ui.compose.firewall.RethinkAppSort
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
@@ -63,6 +65,7 @@ fun AppListScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    var sortOrder by rememberSaveable { mutableStateOf(RethinkAppSort.Name) }
     val refreshCompleteText = stringResource(R.string.refresh_complete)
     var queryText by remember { mutableStateOf("") }
     var isRefreshing by remember { mutableStateOf(false) }
@@ -189,6 +192,8 @@ fun AppListScreen(
     }
 
     RethinkFirewallAppListScreen(
+        sortOrder = sortOrder,
+        onSortChange = { sortOrder = it },
         apps = portableApps,
         query = queryText,
         selectedQuickFilter = currentFilters.status,
@@ -289,6 +294,7 @@ private fun androidFirewallAppListStrings(dialogs: AndroidBulkDialogCopy): Rethi
     val wifi = stringResource(R.string.ada_app_unmetered)
     val mobile = stringResource(R.string.lbl_mobile_data)
     return RethinkFirewallAppListStrings(
+        sortLabels = listOf(stringResource(R.string.port_sort_name), stringResource(R.string.port_sort_package), stringResource(R.string.port_sort_uid)),
         title = stringResource(R.string.apps_info_title),
         searchHint = { count -> stringResource(R.string.search_apps_count_placeholder, count) },
         refresh = stringResource(R.string.cd_refresh),
