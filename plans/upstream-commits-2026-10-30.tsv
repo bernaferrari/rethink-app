@@ -1,0 +1,1115 @@
+07fe5373f8aec3b68344db98223a145c404ed386	2026-10-25	set entitlementFromServer only when the server ws object was extracted
+4fa7291eccc08704b467a0b9ad8fb29a8ddb8f5e	2026-10-25	bump version code
+54df2cfe48dc557ce2071d17c0b02161133699e2	2026-10-25	rpn: handle stale entitlement while registering
+41701686338e0a5b58066746d73d2652e78f845d	2026-10-24	refresh-db: skip new-app firewall notifications for rethink
+68a65f3a765ed8f327cdb4914618d519855e4bb2	2026-10-24	rpn: register with the verified server bytes
+d41466a6842a7f39635970919c56c662ac88fd4e	2026-10-24	bump app version code to 72
+9e1999ebf42ef12ceb1eb9eccaf71c7886a51d3e	2026-10-24	tun: correct stmt in event logger for close conns
+95cbbe0264a44cc991553ab5a3b85bf18b991d76	2026-10-24	rethink: exempt rethink by default on install
+9c7199668d5f067b449f0714ca13c6778af33f3d	2026-10-24	ui: fix margin bottom on rpn purchase screen
+cc727890c4df64f052f66bb06488ea1adb6e6dde	2026-10-24	ui: fix vpn service notif handler
+636bbf97a606f1def0e37e87a0638cfc1c447cdf	2026-10-24	rpn: more improvements on rpn reg/unreg/ent handling
+9062e75324ddaa612d3c689c47ebddd32b6ee82a	2026-10-24	logger: preserve the fallback when crash output setup fail
+d88ff74ad7eba93f42f4dd49cc638f2f4d358423	2026-10-24	events: nw and close conns in event logs
+df702a42dc1b2887d7d10dc5435cae0ed4929019	2026-10-24	fix: rmv current file from deletion
+f1c6bc93a38ca7ee0c429b6e2def430767326b68	2026-10-24	ui: fix email subject for rpn support
+2d0d680b49e4283ddc0b666cddfe5edfeeb46f4f	2026-10-24	ui: home screen nav icon fix
+191bf606ee1c73b7920f175b61c1b4a073182d76	2026-10-24	ui: change in dolphin anim - Rethink plus fragment
+f95409b41964eedd97d1d8a1c6f904de991762d2	2026-10-24	ui: home screen proxy inactive text, status monochorme
+c93bd8329d7253c0148fb1611ec717ffff2a3c41	2026-10-24	bug-rpt: enhanced go-log auto reporting for play
+c5d458122fb8ab0055517a60e6ae3341b942ffed	2026-10-24	ui: show multiple response ip in dns btm sht
+74048ff6b0327df6c149ff14647b551d77d7791a	2026-10-24	minor: rmv/change about-stats/general titles
+a6f7c661951c0952836107027cd30d41c63adac5	2026-10-24	fix: add notif action for dismiss/disable in bubble helper
+aa3b4d838dcee5e2a36a0e73d5773412b4d0aafd	2026-10-24	add permission for hide_overlay, requires for some builds
+fb7488ef5959b6664e02ba1037ab56024b19fbb0	2026-10-24	rmv kt exception handler for play versions
+7c4f29c98246aa5188a89a8e86dcd978bfde676a	2026-10-24	tv: more changes in rpn screens for tv variant
+9e122556b96c0e40385a5ae17b487993321c59a3	2026-10-24	fix: #3192 add okhttp3.internal.idn in proguard
+b422ef48766ec2f679abb602325148f6dc9e1f05	2026-10-24	impl: socks5/http server from RPN in debug mode
+5f4de66b5d56892dee6a9755b293b1564fa30010	2026-10-24	impl: new simulate connection results screen for debug
+62eac970ef866ecc7dba150330189f1f79950162	2026-10-24	impl: #337 notif action protection for 12+
+d240ca693d08e88f87476dd53fbf8afbf1e8e544	2026-10-24	ui: proper request code for activity pending intent
+0796564824faf5d5f38378bcbd7d8b178f04c268	2026-10-24	fix #3195: on demand initialization of WorkManager
+ada446146590d0be6cad5c8524a3e9a142838ed3	2026-10-24	fix #3209: temp -allow cache expiry for the app info desc
+a121d02a6c25e1b0391b7afb0fb029ee84413a93	2026-10-24	rmv on-demand work mgr init, fallback to def
+64b59c9ebaa49cff2d4aa73ef258f0ea30b10ff3	2026-10-24	test: additional test for wg interface dns
+7896efec1152babc4885226d9a317ea9f75eaf25	2026-10-24	fix #3209: close existing conns of temp allow
+07a92d175b4232ae55d6a0423d56d9ca79ad24e5	2026-10-24	fix #3214, add default dns in case config has none
+4a448fb5f6570ef1e99eba9038e798034f2f497f	2026-10-24	ui: fix nested scrollview illegal arg exception
+8f287280d2b891ffbb1a70b67c1653bc2a397a64	2026-10-24	fix #3195: initialize workmgr if self init never ran on this device
+6082f1aa0ca656aa4f01420425d385ee21681a4d	2026-10-23	ui: compressed screenshots
+36c4472af17fce54cf6cbf361f7cd52f6caedfaa	2026-10-18	Fix stale home-screen imports after rebase
+79f0de1a5051cea2d63c06b15844ce441b013dc2	2026-10-18	Configure plugin resolution repositories
+75082895001e23d9396f5efe9ccbcf7950a1e4c0	2026-10-18	Register custom app build types lazily to avoid eager configuration
+c7e7262760d040a3617f53ead1f951ed3b48f0de	2026-10-18	Restore logging functionality to before gradle.kts migration
+a2e0a92620f67ca7512e2c9c37578876ab0e9b4f	2026-10-18	Apply code rabbit suggestion of rejecting invalid version code value
+3b06e79c55086f98c48466b58d0122b8d0766c00	2026-10-18	Use configuration caching's stable counterpart
+5ac157a00c6fa725a9f601001b9344934544f1a6	2026-10-18	android.useAndroidX is enabled by default in AGP 9.0.0+
+8db35e63894dafd0b9f2bbe012780bb3373b79ac	2026-10-18	With built-in Kotlin, you don't need to set kotlin.compilerOptions.jvmTarget because its value defaults to android.compileOptions.targetCompatibility
+f6790cff39be23528a7c502fe57f723fce8c63a2	2026-10-18	Move rest of the plugins to lib.toml
+abf350a2f8cfbc5c7e381375ed4b10386885a235	2026-10-18	Use compile,min and target Sdk from lib.toml in benchmark module
+f02900a4dbbb8a6bb11b40d18d065e1e66e195ad	2026-10-18	Derive kotlin compiler language from kotlin version
+838e355d223b7f0e038afe96f9740f75a9000114	2026-10-18	Rename all com.github.kirich1409.viewbindingpropertydelegate imports to dev.androidbroadcast.vbpd
+e91befb1c03ed8e0594e23cf5e2479b0a7130141	2026-10-18	Migrate from com.github.kirich1409.viewbindingpropertydelegate to dev.androidbroadcast.vbpd
+6eb4683b5fcb49d6ada7ce2916a5435787c08219	2026-10-18	Move compile,min and target Sdk to lib.toml
+594e777beadf21d13f6aa3f7e89a7c9fab7f4612	2026-10-18	Create the download configuration explicitly instead of deprecated creating
+34919ef9ee8f272eb398e9f7d3815076fe205879	2026-10-18	Reuse appVersionCode
+43cfadfb277b0b2b5dc3a0490c35829f447cfde9	2026-10-18	Resolve VERSION_CODE through Gradle providers instead of deprecated properties
+6ea062bd51b0954de85693d3a7489250657d2af0	2026-10-18	build: use signing configs when available, increase heap size for tests
+fb6a00aba6fe05a028733e97ee2ff78f6dd14332	2026-10-18	fix: #3203: fix null ptr on internet permission check
+136c96ed25f7660dcc8d2f6559471db334614d7e	2026-10-18	fix #309: do not cache transient onion failures
+51cb70b6574373447e5c31dd2f3331dff941150c	2026-10-18	ui: rmv setting content view twice in fragment host activity
+2b54e98dad19f3f43ca1785d252e44a286fbf50c	2026-10-18	vpn: make sure probe returns after configured seconds
+b89a62dffd5e68c6f4969f26d896f33a19b835a3	2026-10-18	tunnel: detach the blocking call to tunnel
+d50d13bd3437c34af952b979ec86ef27781484b9	2026-10-18	fix: changelog formatting
+e1ec4acbea3b495cfde36b2b8c3b5d4f1edc8795	2026-10-18	fastlane: update screenshots and changelog
+fa7c9c52301113c60caf8fc27106d8d1aee93b8f	2026-10-18	fix #3029: ui clipping, insets fix
+f88b133a4c10d1d96c18037f9e1a7f655965062a	2026-10-18	fix: handle empty pkg names in automations
+ff76830e0f48e6b4c053ab5e968f5ec8f6cc959d	2026-10-18	impl #309: use OSv3 DuckDuckGo favicon url for orbot
+4db4335a80d5a9bc7de75592bd79a40c9a2081d5	2026-10-18	fix #3029: add edge-edge, apply proper insets
+3b9b311e20ade411bfd251d398721ddc09190594	2026-10-18	ui: rmv max width constrain from home screen ui
+b5a792035ca9b5a17b2b36ccb3affde43eeb75cf	2026-10-18	impl: perform connectivity checks for proxies
+2ec76d52055b586dcadc9fab92a3c5c6cb530942	2026-10-17	Merge pull request #3199 from mvanhorn/fix/3197-vpn-control-intent-identity-fallback
+51f12c1e2c68c181bf36ebb013e8cc9cb872635e	2026-10-17	fix: restore external intent control when sender identity is absent
+3dc18accfd20171c8b38555ac189b8e1bf686712	2026-10-16	Merge pull request #3157 from Huge/fix/rpn-ack-malformed-2xx
+304fd1b6febf8b360fbe28e7ed2172a2675bf955	2026-10-16	Merge branch 'main' into fix/rpn-ack-malformed-2xx
+fd2ee1c56b7dc516b93b2391b32be8f27dff4dde	2026-10-15	Merge pull request #3186 from hussainmohd-a/v058
+c8a119de6b28edfb8e2039947523cba1762aaf5a	2026-10-15	ssid: improved check on ssid pause/resume
+212f829dfed81ad9edc53e93b24cfb144af3646c	2026-10-15	build: bump app version to 71
+2873d75ec0847fd875dcc1b92c7b8c3f7a6cec0f	2026-10-15	ui: rpn: adjust height of the purchase btn layout
+cb05b4620c50cf20e999a27cf4a9c0fcf9fd66e8	2026-10-15	proxy: override invalid ip6 report from proxies.router
+00f93c9c4b0e50c2c2f69e501fa2efcd1176813a	2026-10-15	ui: rmv constraint of 600dp
+b750334a363065b94f83e818ac5dc38048713c1f	2026-10-13	Merge pull request #3180 from hussainmohd-a/v058
+4a05bfbdace07a1ec12b926538ed29e39259b151	2026-10-13	Merge branch 'main' into v058
+627c6d14d4224e7eaa3e752f8650d96087be0af0	2026-10-13	build: gradle changes for izzy, website no crashlytics
+7a6a3684e4a8b0ba267186625c7cace1db44bdd5	2026-10-13	Merge pull request #3139 from hussainmohd-a/v058
+955eef574d68cb6aec6fa8a3eb229fd4617b3d5a	2026-10-13	v058: bump version name and number for v058
+afaea16187824f5b5684d7d9926cd182a662afbe	2026-10-13	ui: rmv unused margin value from configure fragment
+3e2b82fb2506c1854253ea9076dd725668b55c8f	2026-10-13	tests: fix test err
+2bf8bae5bb3bfbcf7f48c1163cc274bb2bb25da2	2026-10-13	pcap: add getter/setter to the listener
+c0b01561701f8c680e8810c27e6b286607165f42	2026-10-13	rpn: minor improvements on payment progress handling
+d54f618a5fc707a5c7e8e3ff608f216a9a2f6e89	2026-10-13	ui: usage of proper scope on pcap btmsht
+bee885cfe630ede435422e5b457934f77c1c9381	2026-10-13	fix: update captive portal only for the active network
+6ac2ec9cce3fb166a4afdcb6d6ba985cf4fefe45	2026-10-13	dao: fix usage of not like in conn tracker queries
+bc8ac3d9403c7eb9448b99c24f850f3a39e37f6a	2026-10-13	ui: rmv server count indicator in rpn screen
+d088424ffe62877e0ba15b68d568c65f1a1c4b79	2026-10-13	impl: bmtsht to exclude recent apps connected via rpn
+55c6bdc42c4f607c1b45038cd366517ec785fb36	2026-10-13	build: fix univ apk version, upload native symbol on google builds
+935b6f9027ddff26eaf9bc43b418689818a885a9	2026-10-13	impl: new setting to use sys dns on captive portal, #59
+4c35c554211b1fb80eeed0de267912d743c45de4	2026-10-12	strings: new strings for pcap, console, anti-censorship
+382edbcdf16e5401d5a369015f98c3ad76bd6d5d	2026-10-12	ui: show correct log level on selection
+5f946dc3bb090f8d7ad67599cba1571e1838521d	2026-10-12	ui: add rpn device auth reset btn in btmsht
+5b4af91341c3a1e12ac9ca7da51ef3e3bbdfdaac	2026-10-12	ui: add pcap off timing in btmsht desc
+8e913531250812c5460b6cbdfd285d1856d6f77a	2026-10-12	test: toggle test mode instead of just enabling
+4c320aa294c70f05011caebd1d4d5499ac28030e	2026-10-12	fix: additional check on dga domains for fav icon
+48803d3ec476134fe29797a38ee439a8c8ae9f06	2026-10-12	ui: make title same in stats, configure and about screen
+5f6b111432885c0ee713393a360b0d2768c7cf02	2026-10-12	ui: show proper id for the console logs in debug mode
+99c20d479471b8a29287c2fc0bce0106845904d6	2026-10-12	ui: change title text for anti censorship screen
+188912ea0230475f5a7d6680fd748b237a3a1893	2026-10-12	add param annotation to app resource ref
+b91eb583f8018a92bfe0796e766b74602f3c95e7	2026-10-12	fix: #3177, rmv floating text-selection toolbar on select devices
+31774d858626435ca505ae13728cc669876675fe	2026-10-12	ui: home screen firewall card height fix
+d9a59b54aebf25f29d23b9c4498fcab3aff4c081	2026-10-12	tests: more tests on rpn, tunnel dns mgr
+7ab6facc9f8beca6461ee065450c97ca7b4a82b6	2026-10-12	rpn: cid, did reconcillation, err handling
+3875e9e8340a42b239f8b7e4e23fcda3c6ff0b73	2026-10-08	minor: change logger level on proxy status check
+2cd29c705ca717bd04b01779453e4a1fa764dbe2	2026-10-08	ui: match about screen licence, version to sponsor texts
+1a533cebdc960208acb6d594480da73c2a414b62	2026-10-07	ui: home screen border animation minor fix
+66730ecbd665b44b2f287eb403619c6d05f7d6b1	2026-10-07	impl: #3162, option to view and delete pcap, auto stop capture after ~3h
+de5f63619ccb6601cd655b588ceb15bf221b355e	2026-10-07	ui: home screen alignment fix
+4090304897439bc42b2508766c93c3553aea7213	2026-10-06	bump firestack version
+258933d4049240d085b02f0eb4a51971e5ccad7c	2026-10-06	bump firestack version
+5a456d3cd804cdc1d121ca71017e354c79abdd9c	2026-10-06	fix: RPN logs order to match the merge contrac
+a341700823835c07310d7cb4c91ca218dfec021e	2026-10-06	fix: RPN logs order to match the merge contrac
+f22206b134046958d631b89daa38d252c7b468cc	2026-10-06	automation: handle empty allowlist when the field is cleared
+bc79933f7044655cc7bd187f18a2762d9c156633	2026-10-06	do not close the tombstone stream while drain work is queued
+736421c116ce9ffa2b0e12259bcd8d694c2f814d	2026-10-06	strings: err and warning dialog string
+12014eb7af9c2f5a7812537e47f1f973c7bc8251	2026-10-06	automation: run with the broadcast receiver scope
+5be79c952c0251fb06f0c84fdc05c41f820b06e1	2026-10-06	ui: unregister holders whose endpoint is no longer selected
+fb1ac5b8215479a6e8e891a5ee8f3d9538eefc9e	2026-10-06	bump firestack version, fix signature change
+028733428034dff83d6e407b00bf793c878d2f8f	2026-10-06	fix: #3131, change limitation to warning dialog
+a44245e386aec2fbac8c8d5cb44d0298bae9e51a	2026-10-06	ui: fix proxy title and impl stopped count for wgs
+ae8b6616cd1cef5b6a854b183970e543f49e61cb	2026-10-05	fix#3169: handle lifecycle race and allow onCreate to complete
+c9d3b571f0a12f1294f07a6d6dbe1a058b00dd97	2026-10-05	ui: set log level, replace automation with btmsht
+95f2ca34b916a39327ee9d76d332ad7f052fac49	2026-10-05	ui: fix#3141; force refresh the log aggregators
+8dd8fa035cfb874b76850c940ff57adf1cd6ed41	2026-10-05	wg: automations; manifest, vpn and strings
+00a609b52f2847ed195da72b3f3b0c674ebfb6f9	2026-10-05	ui: fix#3153, handle start time properly in detailed screen
+d96e33dc67f79bbedba1d05c0e34905b3570147d	2026-10-05	fix: #3131, check for both private key and peers key match
+06073d72b9d2445857590dd1b34501f368c5b530	2026-10-05	wg: impl external automation for start/stop/pause/resume
+33b7f4786c01bdbad5a7008aaef81593aad6c6ef	2026-10-05	add rpn in-mem to the view module
+f7a654d7936591051f40ecda2dce93282e935045	2026-10-05	fix:#3155 preserve list positions during merged-source refreshes
+843f4d8333f84f4bd5ca27d8bd49f957573f0637	2026-10-05	check for location when wg-ssid is added
+b99acd306917430e5ed891be8941940a78a1905c	2026-10-05	ui: add ipv4, ipv6 columns in rpn country config
+91473f5b7dce91ed95fec3bda42a88d5d6e9f278	2026-10-05	impl: minor fixes to limit battery usage
+5d659a455fa4f3834b774ad87ca39ddaaf4434ab	2026-10-05	fix: add rpn related requests in wirelogs
+45c3af905aadc40d86bd28644dbe22078d2f6d7f	2026-10-05	ui: fix alignment on the home screen logs count
+3519f34f20b1c39f5f7b19c6605fce9fb177e483	2026-10-05	ui: new in-mem log db for rpn logs
+b52a5e3dafbfc9b3a65a3abbfa1e0e6eca587dda	2026-10-05	tests: more tests on vpn service and other core modules
+d0b7d6827871c41282564b89107c065796afd1d5	2026-10-05	ui: repeating status check are made in a common place
+622ed352c43718a002102ab0b8e666993f140683	2026-10-05	ui: fix #3132 ui clipping in multiple xmls
+5c13819fa2310d79b748a8ceb367559e11c35a74	2026-10-04	ui: fix #3132 ui clipping in multiple xmls
+cd88e02f2385bdbf8e097d3e8e50156798707cd1	2026-10-02	iab: treat a missing or non-JSON 2xx billing response as an error
+a54361ebf1f1237be70e7dd428d62ca12f132857	2026-09-24	readme: update release cert markdown
+3d92d38268d6e1a76b4a6e9c4f6b4c6428b2721f	2026-09-22	Merge pull request #3130 from celzero/hussainmohd-a-patch-3
+776cdb4088ec8e28a6e00472082ad80e4ae83d89	2026-09-22	readme: Izzy flavour information
+cc032270376140021ae623b047fe37c1e7f734b7	2026-09-22	Merge pull request #3111 from master-bob/patch-1
+cd3c0beea9257eab6806996866ae17eecbdeac3f	2026-09-22	Merge branch 'main' into patch-1
+b7949063de51f59951e4c1519093e565677d21c4	2026-09-22	Merge pull request #3092 from HrBDev/version-catalog
+1d7d5170cbadc38f8a46ddead5acdbe180fd3ca6	2026-09-22	Merge branch 'main' into version-catalog
+deee0727a2e570b63e931161c8dd200e7e4ed937	2026-09-22	Merge pull request #2812 from HrBDev/gradle-kts
+8d37142ee850dea4ed3122479f96b194f48610b1	2026-09-21	Delete leftover build.gradle
+060580659e339df287b86a8f465120642a3f5202	2026-09-21	Align shared Android dependency versions
+8b4b4476a97265cd7e64251ac4d008983d871656	2026-09-21	Use lib.toml for dependency version management
+be2fd67139551c31974eaee9442c6efd03de6f86	2026-09-21	Delete leftover build.gradle
+5e5444a91c1c87b446bee33434cb11a45275f0b2	2026-09-21	Rebase on main
+52273c7276dc67186d3ebecaae7a15837c599847	2026-09-21	Rebase on main
+580b57a0ec19d1ab25040cce280c424978adb2b8	2026-09-21	Convert benchmark's build.gradle to gradle.kts
+a2478339516f13b1e35823ff403ced47652090f3	2026-09-21	Update AGP and gradle
+c3876bc92959741c8a47e4b9562f90dc18f482e1	2026-09-21	Expose migration 30-to-31 to instrumentation tests
+32d493bb9538c193438a796c4235280b7198183d	2026-09-21	Add missing test dependencies
+a60cecf54cac73611034c0365dd53adb8d96790c	2026-09-21	Fix WrongGradleMethod lint
+b33684978d3b40480e1c212414407aaaa03fc8a0	2026-09-21	Replace println with logger.info in app/build.gradle.kts
+63f81a55fcb001914471675a6669a295d42cab6d	2026-09-21	Migrate build scripts to kotlin dsl and update sdk versions to 37
+070232086fab5e436c1a20dfbc90b31c8eb84e00	2026-09-20	Merge pull request #3120 from hussainmohd-a/dev-v055y
+c812e0f90f95d44a8a8526ec3557b8269f2c4ca5	2026-09-20	v057: bump firestack version
+232e32bd28b64b899fb8a53d4d2e6f8c5787baa1	2026-09-20	bk/restore: improvised backup/restore to handle failures
+43dcb8bce434e96220be1e1176cf33f902f8bece	2026-09-20	ui: rpn, hide quicktile, search card on rethink stopped
+574a943d014adf7ec89e238ee4bacc13cda1b49d	2026-09-20	ui: hide log aggregator ui when rethink is stopped
+6f715048c2a99f136c569b62bb49918298960b4b	2026-09-20	ui: restore ui of allowBypass and privateIps in the proxy-lockdown check
+9a89f47947677242cf2a27c38335be216a23c78e	2026-09-20	ui: clear the cached mask when peakAlphaOverride was active
+15945d5d80751d37f50d02d60e94e355379cbf7c	2026-09-20	ui: animate the capacity indicator only when it becomes visible
+0a7c24f5c4e08b0cca2a6df428a2cd63764afeb3	2026-09-20	tun:add new unimplmented param in addDohTaddDoh()
+5544b92bc1af7c561f157f58a4aba5999fac754f	2026-09-20	ui: rmv fade-in, fade_out anim
+bd23f95072cc6f587c0882b63f0e2964ad1a1fb5	2026-09-20	ui: rpn, adjust spacing between chip
+72b3f5012d616e030ac158a30ddc611503ff2f87	2026-09-20	ui: rpn loading, selected server revamp
+d59b28157693ea771b9cb8b3df7e67a970812445	2026-09-20	ui: bring back allow-bypass setting
+5e48a4ae05a06e52870de506aab72a23928e809b	2026-09-20	Merge branch 'celzero:main' into dev-v055y
+2b28f6bb7cfd889640829323c34d086d7abd6e45	2026-09-20	Merge pull request #3057 from kazimurtaza/allow-bypass-2685
+4d8d6b6f2caa9beda8102dfb502e0afd4cc520a2	2026-09-20	Merge branch 'main' into allow-bypass-2685
+acb1918471c7e738e8d3b4423223e1f33ecfee2a	2026-09-20	ui: change def smart dns to privacy
+f7f728961686e548ae33fdcb4284a8d6fa989ac0	2026-09-20	wg: handle same config enabling checks in ui
+4655ff0a34d0e3f37ed0d6432181809486aecb04	2026-09-20	ui: minor improvements in stats screen
+162433b7e05a8342750c11c4073063e8d13a5da1	2026-09-20	ui: fix marquee for app names in app list
+d223ce3891b4418898899bf398079931f7ea4913	2026-09-20	ui: replace no record illustrator icon for log aggregator btmsht
+b8d1555956d94439f551e7d8de0edb6376b22126	2026-09-20	Merge branch 'celzero:main' into dev-v055y
+1fbb4f233df2f969175e9cd047130d278f7dd217	2026-09-20	firestack: bump firestack version
+86ab9adcf633ca9fc15f22ee1851fd5ee1fc2736	2026-09-20	v057: migrate def smart dns users to smart dns sec
+988b5081fb7cf89d80f8361f6254795c00be46cf	2026-09-20	ui: show selected dns in top for smart dns, similar to other dns list
+e33321fee340445725ffde87abc6db480d108c6f	2026-09-20	ui: home screen histogram hr fix
+4987d32662e596f8caaac2b71e2eb23f1fc9680f	2026-09-20	ui: fix flag on larger displays in dns screens
+3759cb72d1cddce48199e5de599538c9cc691d4b	2026-09-20	ui: app list ui minor font, proxy icon fix
+f90ee68a32e41df39bec448b6c4e997c9fc73133	2026-09-20	ui: stats screen filter, new blocklists stats
+3780fc03448dfdc6e1b8b8125c327c7d2f3505cc	2026-09-20	ui: app info screen ui overhaul
+631be77f48a3ac92c846750e284db8b7c968ca46	2026-09-20	ui: make heatmap as default in home screen
+a4992582b1ef78a05b2b924765139be5598bd578	2026-09-18	ui: show hint for bypassed domain/ip in dns logs
+4a49331b00e8d0fb61e5e9f39ef9b4c43f3e4bf0	2026-09-18	Merge pull request #3118 from hussainmohd-a/dev-v055y
+844612e0861e4bc4dd4592a946d3a6f5fc04ac1d	2026-09-18	Merge branch 'celzero:main' into dev-v055y
+e2e7bd0bd18c7b76f8e1c83781d74dc24a31a8da	2026-09-18	actions: mobsf - fix ignore rules for hiddenui error
+de8cb085269ead3542ebf8c427f56cbcba5475a8	2026-09-18	Merge pull request #3117 from hussainmohd-a/dev-v055y
+50a0fbaeab147d9ba075d47aebd70730d679ffc3	2026-09-18	actions: add rule to disable hiddenui error
+1589a5dc67ec3ac6bc0e19c2de348dc449a9716b	2026-09-18	Merge pull request #3113 from hussainmohd-a/dev-v055y
+4cfa112fd64cb46cbaa8db857b0d54e3d6eaa629	2026-09-18	actions: make the detekt version fixed
+cab8c7ecc847efac84dcdba98a85dabb0e61f24f	2026-09-18	detekt: fix warning from static analyser
+94e35269006b39429b07cbd6c3cd6f94bbaa4d47	2026-09-18	actions: fix detekt with baseline, auto fetch latest release
+98ad7a53f70f33f9b4a608b85e2afe66b941322e	2026-09-17	ui: fix fav icon clickable size in location recycler
+f8afe0ee0f444b38d1be5319c090d8ad84c4a05a	2026-09-17	ui:rpn prevent stale results in heatmap
+98ccce149df40423c80618671a4513df65051ba1	2026-09-17	ui: fix vpn status/ip margins
+8b64fbe6a16b61087b6d88c00497be5fe3d4d9fc	2026-09-17	Merge branch 'celzero:main' into dev-v055y
+79deadf57165acea73e66114a86ffed65fc4d429	2026-09-17	Merge pull request #3112 from weblate/weblate-rethink-dns-firewall-android
+1ca72aee567bdfb36fe94ceee1b641065e9001d2	2026-09-17	ui: minor ui changes, clip icon in histogram
+0235084577af6a407f695b3a782f880c65ce81f6	2026-09-17	vpn: get primary user uid in preflow
+e1feaad10cc975b9dbeeab51428340b4d21827bc	2026-09-17	ui: rpn flag alignment, chip bg, carosal fix
+c751d262f65d92d776d633a35d32cc2e6d8a056c	2026-09-17	Weblate: Romanian
+bba4ed389cde4662e3b562ea05a6713fcecb076e	2026-09-17	Weblate: Chinese (Simplified Han script)
+805d15568de5a8fb35c34fd284494ea46f25f2fc	2026-09-17	Weblate: German
+8976b85cd2bdb05b780477664380dc37c300cbbc	2026-09-17	Weblate: German
+5864ec99bf00172c146d0822f04816ca483aa74b	2026-09-17	Weblate: Update translation files
+759f5acacb8e1c7eefebed3e4d3e2e1ae3ad75ad	2026-09-17	ui: rpn heatmap changes, similar to home screen
+05e1e1534ef3143492c0c7dba275036c920400ff	2026-09-17	ui: rmv animation from logs card in home screen
+3bed884c291e027195384644eb05f077127da46f	2026-09-17	tests: fix new param addition(isSplitProxy) in wg tests
+65a5cd5dab1622a23d28ac1e45b19376528e2a81	2026-09-17	rpn: force reconcile rpn entitlement with server
+68af303e8159b92b9bed67fdf650393ba55e4021	2026-09-16	fix lint long running time
+5b0dc9f371e4e1aa1b0fcb8354772cc323a1539a	2026-09-16	Merge branch 'celzero:main' into dev-v055y
+9c27dc32282be460262ca14f2c6807a658f83ce6	2026-09-16	build: rmv test related build changes
+dc8da1013e104ed8ce652f3357433190f1594043	2026-09-16	bump firestack version
+117db654a5b371a3fe26157f7fa4e9cc2e5a2d67	2026-09-16	strings: add/remove/modify string literals
+7a7f4bce53d7e80e6b6051af39f5492e7a457d9b	2026-09-16	strings: add/remove/modify string literals
+26511c31da0997e510847aadd43fbfdf89ffdcfd	2026-09-16	ui: rmv stats from quick tile
+c8a7a5403a13d41c06d8a7794b9b7bf41261cdaa	2026-09-16	ui: rmv stats from quick tile
+26b543620993bdb551bcceaacf765bb8f3e16ed2	2026-09-16	Merge pull request #3105 from hussainmohd-a/dev-v055y
+25e62fc31a928593a2d4b5a87569d34d185a27c7	2026-09-16	change firestack repo to ossrh
+e1baad336707f8aa377882290234f2df491467ca	2026-09-16	ui: explicitly close polling jobs from adapters
+eceb12b7c34dd30fbb682d84a3bcdc5f15f2e6df	2026-09-16	build: skip tests on lint, unit test fixes
+39f41f6b1cd00494ecb9fa5cc2a1ff10d5084ef9	2026-09-16	minor: scope, alignment, borders and other ui improvements
+90429935f33379aea3f403ba4fd1935322b0615b	2026-09-16	impl: fix notification action receiver, pause activity scope usage
+632253214a478387993598e5803f54364130b834	2026-09-16	ui: minor adapter improvements
+c28113a72cca720a11fde937348f28f27f27c477	2026-09-16	bump firestack version for v057
+10b480e88bb09f6bebd6a3f6fd96330564b609e3	2026-09-16	ui: add material dialog for automation config setting
+2a0c9e04e759652563bab756e977b9e91290e6d2	2026-09-16	fix:#2902: add defaults only when the one-wg is split proxy
+93276f3607c297e2e1ed796542cfa7770dcf0d9b	2026-09-16	ui: minor home screen histogram, logs improvements
+6b0512cfb7f2e9ce24d54e2206a95ac8c07d217a	2026-09-16	ui: more rpn ui revamp, improvements
+708f456d9dfac8493a81d6749b5eee5bf60ac1ed	2026-09-16	rmv okhttplogging, obj, scope, initial load failure handling
+1be667ddac035828cf69becd2bb93b8e047b950e	2026-09-16	ui: frost theme fix, rmv random card elevations
+c4783f7442ef22cad59d3781c4a5a4851ab30383	2026-09-16	test: fix unit test failures, def inits
+db1d58188561a4dbf67ab6fe46f4fdca261aea97	2026-09-16	ui: minor font change, margin, border adjustments
+2aaf19811570569eff64ff7bea1232fd22989320	2026-09-16	vpn: unimplemented onPreQuery()
+16da78d7734091e978923db944d612c766939065	2026-09-16	Merge branch 'celzero:main' into dev-v055y
+91c3a02e17676ef26caa248943cab16072956670	2026-09-16	Merge pull request #3107 from weblate/weblate-rethink-dns-firewall-android
+aac5f0787e91ffd1e04d9b867e124854bf02c63a	2026-09-15	Weblate: Romanian
+f790e7564d2f9b255d7ee33159bcfccb5c22bf24	2026-09-15	Weblate: Update translation files
+031781439476492a76b3acf37d1644b14b41143f	2026-09-15	Weblate: Romanian
+6e325247359e6b14010881b645d6669d62342a03	2026-09-15	Weblate: Persian
+53188a1c084c1a9f17fe4bc6d38097fedf63bbbd	2026-09-15	Weblate: German
+5566e15738c8eff640346bd775d10dedd0a05a15	2026-09-14	docs:README center badges
+ce06d2ce7e69478c3c38bbcb9887444eb08f34f9	2026-09-14	docs:README made certifate SHAs one-click copyable
+f5f711f0ab7b33669f55bad6df47a0d2cd122a66	2026-09-13	bump app version for v057
+a66885b7e9b5c88efbe44d04798fede474af00e0	2026-09-13	ui: attr, colors, dimens,styles and strings
+a1ac44c916a61a33f845bfa713529fcb76990d14	2026-09-13	ui: check tunnel connected on smart dns addition
+fecf82c050dd9f4e52157a03442a1d0dce64f2c7	2026-09-13	ui: add desc to smart dns
+da5e4ca43e4c7ccf99d3b739adc518e6076f37ae	2026-09-13	ui: dns/nw btm sheet ui revamp
+0648a99736876d2a5ac7bc6be7d28ea8a5d58fe9	2026-09-13	ui: rpn reduce money back guarentee size
+c4e1d8f4c9dff873877ef4bcc3c97da8b1c3952c	2026-09-13	ui: rpn: subtle dolphin anim, embed flag
+40a5957b5773f9be28d6e1c7c4f632fece08eccd	2026-09-13	ui: home screen stats histogram on apps
+c926e45690f9e40b7c8739bd19305d7b6643a5ff	2026-09-13	wg: show waiting as error status
+95635a9c5c820662cd5a6eb3b26264334e054a38	2026-09-13	ui: dns option screen fix for foldable/tablet
+6eeed960a7da33d693a14aca4bbce8cc01df0af3	2026-09-13	add/modify ips to the default dns resolvers
+3eb37ce427c582b3383693bdae345f1040a62313	2026-09-13	add/modify ips to the default dns resolvers
+6493d1fa12ab82adcfcf7fa7100c1f3a3c0e528b	2026-09-13	rpn: more dolphins, animations and minor improvements
+d03958f28b5d9fb3a287706f977db72582d8bfe0	2026-09-13	ui: revamp log aggregator btm sheet ui
+fd133ff64fb0160172d86219f3c41cf0e5d1bec9	2026-09-13	rpn: pause the relayed proxy if rpn auto is paused
+f3061ac2f4d4086dbcf05f2fac69083df2ea134c	2026-09-13	use proper rpn id for proxy check
+bb261e8186773db72e434d5cf02d07ef4fb8d923	2026-09-13	dns: show the blocked reason in dns bottom sheet
+3c37990f9ec17026740fcd8578c7e8eb944c32af	2026-09-13	ui: fix dialog size for foldable/tablet
+493be4813e76e5dcee62bd26c9458f648e153343	2026-09-13	ui: set alpha for active and blocked indicator in nw logs
+8f44d22beb021020c89f7f7a2f4154c6e071594a	2026-09-13	ui: home screen fragment redesign for foldable/tablet
+818d8d0e99182234f705b5c63aba0392e537f701	2026-09-13	ui: show btm sheet fully on foldable/tablets
+b81620f71b92fde54b34bc03e0ad8174263ced32	2026-09-13	add new lang: lao, persian, swedish. fix:#3101
+69c2cd6e40c60d1f6d71fc518c177c972472f935	2026-09-13	Merge pull request #3100 from weblate/weblate-rethink-dns-firewall-android
+f9502b4df56e9fbb05166fb1499b0c125765032c	2026-09-12	Translated using Weblate (Lao)
+42b2c17601a01cb876d79046e89fa6a4ea5b6cac	2026-09-12	Translated using Weblate (Swedish)
+dba34b663155a2085f7456b9b0b2a48161ee6014	2026-09-12	Weblate: Korean
+1116a3ec80397ba4d378b0b88c909888d0cc4722	2026-09-12	Weblate: Chinese (Simplified Han script)
+384010caf2f848254f4476e5284b0a636c13ec04	2026-09-12	Weblate: Indonesian
+22e129d7277cc19899219aee116814371a5fda01	2026-09-10	Merge pull request #3096 from hussainmohd-a/dev-v055y
+a1a32a8c4e8625d0c9a560b078f47e258862c05a	2026-09-10	fix: invalid chars in translation strings
+ad0a915141e93669b33ef88d041eb030985b553d	2026-09-10	ui: guided tour strings changes, dolphin quotes
+cb31ab13df08fd942eaab14169ce294de8f4f781	2026-09-10	ui: rearrange sponsor logs and embed them
+f2c1c11e01cfec422b4625cc8479fde1801e9087	2026-09-10	ui: fix dialogs using right width on all screens
+29103be92d32257f721c5020fb47e17ee39d877a	2026-09-10	fix: fetch & set correct smart dns mode
+77eb5c56d9bdcac68626ac9289e046d05e88cfa0	2026-09-10	ui: rpn embed dolphin imgs, minor ui improvements
+fbba3d995f01f36c0dc5738700b42575120b3b69	2026-09-10	Merge pull request #3093 from weblate/weblate-rethink-dns-firewall-android
+2553143264ac07a6ac796d919d0d9669497406e0	2026-09-09	Weblate: Swedish
+5889012d528e85425d4008d1976470ad7d2f877f	2026-09-09	Weblate: Korean
+e834f21447f489067a9443f03b141359098c3691	2026-09-09	Weblate: Thai
+9f4cc48d03daef7743e8f8619c3596794045f9a5	2026-09-09	Weblate: Vietnamese
+78e1e073718f521d72b1a14d8ce9e4e128186b8e	2026-09-09	Weblate: Ukrainian
+eb28fed9bf8aa39c31128a8e04b09f4ef99599de	2026-09-09	Weblate: Indonesian
+a253a24ba863005489d0188f6af0e8d08c3024da	2026-09-09	Weblate: Romanian
+a0adcc6f04491c2e731b265aea202424f78c5758	2026-09-09	Weblate: Persian
+251108eaf0405f455d6373df8a6ca0a20a3b7127	2026-09-09	Merge pull request #3081 from hussainmohd-a/dev-v055y
+dd600873b93775dc6f37b19fa4530fd679e8a926	2026-09-09	ui: home screen logs count font size change
+b445d1af34cb096c497c95ac8f8e49d55cc61032	2026-09-09	lint: tile update api, lint fix
+60f168a8cb42a6fbc8a05961fa4bb1b27256d72b	2026-09-09	bump firestack version
+69a8e57a4e1ba714e04cc8913aee8dc60d074b67	2026-09-09	strings: more string literals for v057
+c203ac73a642a6634efda89086f3dff931ff8f50	2026-09-09	ui: home screen logs count change
+ae856bec757af3aa986bf31fb9397c23950be993	2026-09-09	ui: rpn, always Auto on top, cc is always white
+542250bc9d1899685976f8a1d4032156442ee96f	2026-09-09	ui: swap text and sponsor icons in about screen
+4e899c4c4b448c1b876d7f428cc72d1a0199f722	2026-09-09	bk/res: handle the restore process on restart
+668c09335b23a72a9b36f1029cdad21e9b9feb04	2026-09-09	ui: home screen fragment ui fixes/improvements
+a4f6856c09e3e1203f2ffab74721016276fc9c58	2026-09-09	tv: handle vpn lockdown illegal state exception
+c514044d6f1fff96f0816771fe09a8f8a5117237	2026-09-09	ui: rpn; gate against automation/relay options
+ea126589397f79e944799102dd9d37117c1ebeb2	2026-09-09	bk/restore: handle db failures during restore, cap the WAL file size (32MB)
+ee72a405c39d25c827e1654f9e0fc5f174ee58bd	2026-09-09	download: improve blocklist downloads, inform errs to users
+96113849296c97cda1cc73dfb1d4ddb9675e138f	2026-09-09	ui: show illustrator on no data in log activity btmsht
+9c15eb45aa99b0deb8f76a2936c5502815fc1174	2026-09-09	ui: add closeAll option for insights view in stats screen
+25a6d2a6ca3d7d0140870117a2cae6c4a44b0548	2026-09-09	ui: more ui improvements for rpn screens
+bf52dc769feee19f1157e53c5dee421ea0bad91f	2026-09-09	ui: replace dns selection ui from check box to custom
+ad2e955cca3190e4f2bb841baebfda6219c97917	2026-09-09	fix: handle exception during VpnService.prepare(); #2984
+b31f2f912d39d9f7bd210214bec2250fada03c03	2026-09-09	ui: impl rpn onboarding hover
+e992ce704f8ba3f68a0145605d59b7989c946a64	2026-09-06	db: fix migration id and name typo
+3e3e04883e62009aa87da3beca36960584c02232	2026-09-06	#2977: disallow DNS53 with proxy app
+0d176f325dd8d8e7e1ccb38530d92775d424a6cf	2026-09-06	ui: skip resetting the same icon
+8077503d328a8d94869a1af3183f83f695a14834	2026-09-06	fix: remove api which doesnt support in android 23
+48f0e41500fc392ff9003cd07c08131531c8c685	2026-09-06	vpn: handle bubble cancellation exception
+4a0aa2b9bfa89dcb2f2bab2823128eb51347d831	2026-09-06	fix:#2971, add more padding in recycler btm to skip fab
+76dc2262137a4b7c1d00842c5f8d74a9cde04fb6	2026-09-06	gradle: bump firestack version
+4ce81ba92358b68f348df425e9b965579616b75c	2026-09-06	string: v057 string literals
+3ec35427f6f286f516235672d4d45b0906de5902	2026-09-06	db: migration; replace mullvad with controlD, update quad9 stamps, fix: #3079,#3082
+bbfe10329df2e98e2013240944855f4aa1a04f63	2026-09-06	ui: show insights view as default for stats
+6b22358651925b0214303f919f85e41150ea8fb6	2026-09-06	ui: rpn drawable for hop
+11fee663bf2bdea8a05401ba7a6c8d88e300ba74	2026-09-06	rpn: fix stats not showing for all rpn ids
+e26c897341bcab74792eeb88749527980c3cd93f	2026-09-06	ui: minor ui corrections and improvements
+9174132cc40cf0f948336ce1d721e4f81c28d41d	2026-09-06	migration: smart dns migration from persistent to d
+314cc14dc60fdb485c312de31eb1aea7683ef9e5	2026-09-06	db: show default dns in the top
+8b8471e4e7d3c7f175bd99a45ca7b692eafb1daf	2026-09-06	ui: use db name for display
+8e9d5dd65265915d6fe6143008af13151ed29426	2026-09-06	strings: rmv/replace/reuse strings
+e1b304f61a0b2a477e5ecffde1a751421cf4f508	2026-09-06	fix: #3037, handle unknown app with proper uid
+f3a0dc3c3891708218ebe6694f8c9d1306c51fa4	2026-09-06	strings: rmv/replace/reuse strings
+91d14ad61176e72df2591ead1f78bdc931771b67	2026-09-06	ip: add nul safety check before string op
+4aa4e9095d2251a48c6aebd7772856f93cb4b17e	2026-09-06	log: use trySend instead of send, fix: #2794
+aa1bb52ae1ca3bf6a39dda83fc84f18fae9b100d	2026-09-06	rpn: auto in lockdown and always-on
+2e9390f5aaae6555b811b0238585c6fea6b382b4	2026-09-06	improved enhanced bug report and add tests
+f42919e42f709779424fc5a75b5edbfbe4e99930	2026-09-06	ui: replace glide with already available AppIconCache #3007
+7cd84245e39ec4854bf3c1151fd627c1e5de27a6	2026-09-06	fix: #2975, remove tooltip for bypass dns & firewall
+c9fafee6dd677eb566887a47a3c8b232016707f8	2026-09-06	fix: #3005, initialize bubble from IO instead of main
+97c83ff07d4712f5a6e57917cd61e6e07f639d8d	2026-09-06	Merge branch 'celzero:main' into dev-v055y
+b1938116e63d74a8d41858b137dab6dfac9d37df	2026-09-06	Merge pull request #3086 from weblate/weblate-rethink-dns-firewall-android
+dc06741fa3371bcf6d67697dd6749b4fb26b44bf	2026-09-06	Merge branch 'main' into dev-v055y
+3b75605c123e3135fadcfef19281a64e6d28c35e	2026-09-05	Weblate: Add Lao
+2b9f5b2f8830476af9806cbd745f89cee571c003	2026-09-06	Merge pull request #3071 from mvanhorn/fix/2990-preserve-tombstone-stacktraces
+9d362dfe1f36802f31e5da69b6f88236a9fc07b0	2026-09-06	ui: adjust about screen from btm nav view
+33b4466f45208f06b7609f3a1513a8b0ce959308	2026-09-06	ui: sponsor ui minor btn fix
+72490d882622ca82bbe45eb4833d2e23817849c5	2026-09-06	fix: #2976, disable HTTP/SOCKS5 proxy if proxy fwdr apps added on proxy-lockdown
+ca8224d88d58ad2a6bd1c186d90b118dd90f5804	2026-09-06	ui: fix dialog overflows on smaller and foldable screens
+834ac015fb5e29b179be46b887b7a4480e729e63	2026-09-06	ui: about fragmet handle progress dialog dismis gracefully
+656f7d7e922f3b2922553d1d2125af87afbf805d	2026-09-06	ui: stability program available only for play version
+e34ac15e7d89b3f71cfc37aff9bc9c9db7757d8c	2026-09-06	ui: hide firebase ui from website flavour
+cdc0e5c8184625548330b6fb1e7c75fb962b67b6	2026-09-06	ui: show blocklists count in home screen for rdns
+8dfef8e071b7a82995d1849e34d5274335d164a0	2026-09-06	ui: fix country flag issue, adjust layout orientation
+3ea118df8b5e05c23faaea053b3d8a29836c75f5	2026-09-06	ui: log aggregator btm sheet shows icons instead of initials
+02a0876f69806a0f50efbf7f8b33f86929d65135	2026-09-06	ui: proper ui update with scope after io
+b80a989cb58049d390d06b0d657ce13e39e9c64b	2026-09-06	ui: rpn related logs retrieval from connection tracker
+e5c0618e08ae965dfaa8066bae0803d51f50f4e1	2026-09-06	ui: fix multiple adapter ui issues
+5e7e3cc9b754bf709f8dd340cd8751e7239c5bb0	2026-09-06	vpn:skip applying rules for system components (DNS and ANDROID) on Android 11
+cb4c1e1946b1251c7f04874d992580f70f212f49	2026-09-06	rdns: fix rdns plus stamp potential err
+ea803b100a77979c508d37a9e9df6225892c7f31	2026-09-06	rpn: more improvements in rpn-ui
+adcd6380ad29cf98934cc7c10f2299a55a984d59	2026-09-06	fix: initialize possible disk, db operations in IO on init
+616d19ecb696168a93e96b51ced639ddf411cf2b	2026-09-06	download: handle error states on download failure
+5ec893f793934e5b95fb76dac8102d242a14ace9	2026-09-06	ui: do not show notification on android def components
+bdc0e15c139dfabc593361780b3ed0b3b9e6189b	2026-09-06	ui: stats screen font size fix
+4a0122300aa0866059a8587b083f80696c3370d0	2026-09-06	ui: show rpn/wg badge in dns logs
+c09a4fc4f89ceb9ff4b23291224b6a762f834408	2026-09-06	ui: show rpn/wg badge in dns logs
+6c7f6e8072e0dca93b60d4adeea0c35811a66c89	2026-09-06	ui: fix ip/domain add dialog for small screens
+79736d2f68786cdf5daccf380017f2ca43fca774	2026-09-06	stat: log aggreator improvements
+aeb15fa97e42205cc5a0cfbb7fd65058913265e0	2026-09-06	proguard: move to app.keep as per agp 9.3
+3d0577c6965db2287aace89a088b94ea2b5c310b	2026-09-06	build: agp 9.3 optimization changes
+9646b47126c5ab2a7a68a8bd731332d8dace663f	2026-09-06	ui: make ui consistent on all screens for foldable
+e10b9da394d3b4ba8035732389869c6c0dc762a7	2026-09-06	ui: home screen ui improvements, fixes
+e9b6817f2e8f87476df698bf3221411c4890f425	2026-09-06	build: rmv firebase from website builds
+9ca19bf5525de4318ffcf61907f65a632010083d	2026-09-06	tests: more tests on rpn and log aggregator
+fc17b2a7a5427db3408926dcbe7b676199cf3b6b	2026-09-06	ui: rpn config screen apps, logs btn ui color
+a488869e902567126958c184e74219a1cddbae2d	2026-09-06	logs: add proc/mem/thread info in logs, user selection
+294fcadfd590b8dc59f3b00da73638e99c72bb56	2026-09-06	stats: new togglable ui for stats screen
+f443f60414d06619147d9ac8684f6a4b929ef925	2026-09-06	daemons: release the executor worker thread once done
+aab87aa989d78e5cc9bdf5ec70920c19364d506d	2026-09-06	logs: add proc/mem/thread info in logs, user selection
+e7e3fce5432fa53e783206c5cf98746869a51807	2026-09-06	ui: add bottom padding/margin for nav view bar
+7c5e4c994841462a3752be9d2dd12e670a0bcccf	2026-09-06	ip/dom: show right count in home screen, handle ip-cidr errs everywhere
+438560aeb3d9a94d0cd35c6ba4afefad9c218fed	2026-09-06	fix: show correct app count in home screen
+b35ff33ed6fa1db78a98928a01307bc8a8d9d9e1	2026-09-06	fix: smart dns selection fix
+937448383c132d9dda91c635cefa24c80e786509	2026-09-06	tv: new ui changes for rpn in tv flavor
+69cf91b4b6775dbeebab0e9a1cb0dab5da254e31	2026-09-06	manifest: add newly added activity to manifest
+5c42c59506e27325aa47ef65b05a9b43e35edc5e	2026-09-06	db: dao/repo new or changes for log aggrgator
+60e4b5deee4b3bb3815f76f6fa071b7b01d7ee59	2026-09-06	add user-agent to the header of okhttp requests
+edfe7a4fd0f274ab8ff5aff214415e90d3a6d4c7	2026-09-06	ui: rpn screns, revamp, new screens, stats and other improvements
+2abdfaff0578f140ac364c3137604e649b2e0d58	2026-09-06	ui: log summary btm sheet improvements
+40a0a2e7054b3001acdc953ba5ebb916a8358d1f	2026-09-06	ui: proxy title change, grid touch listener
+70e2d0c200e5a8f8a6389257e56492f8844da05f	2026-09-06	ui: use default color for domains/ips with no rules
+d32887376031c8ee1697df595d455c747c4910cd	2026-09-06	fix: #3078, wrap custom dialogs into scrollview
+228f835320e8173d314fb533fddd1e0c081ca7ab	2026-09-06	ui: new activity smartdns added in tv version
+f8b7cceb916fde583ba16e3e8221b87f1b57352d	2026-09-06	ui: restore defaults in dns and network settings
+2092a498e1096416f164a119d924d864ee29ba44	2026-09-06	impl: new smart dns options
+4cdf4923590ee394f909cde02271ec391f5fd3c2	2026-09-06	tun: set default smart dns options
+0477aa62a3cddd6db733c963d3e0969ee3d6cb27	2026-09-06	fix: #2988, best effort exception parser
+32e3389f9f71590410d713f3564f2cd2de1d60f2	2026-09-06	ui: drawable for grid in home screen
+203d4fd62f1e5e9ecf899ef6b52c2eb938e8a57a	2026-09-06	rpn: multiple ui improvements in rpn related screens
+feb41cb078483399a5ae0d23e161efc2c064cdf7	2026-09-06	tests: fix rpn test failures
+1d846765e8d9523b6a149e9068f78322eb52f771	2026-09-06	ui: minor ui, string changes in log btm sht
+0b5f6e3a5309ef8d67e4b05070041f7ff370ed70	2026-09-06	bkup: rmv unwanted tables during restore
+d8afd76707cf9ab32499782c773a97303d0c134d	2026-09-06	apps: fix sys components addition during refresh
+05127b683479ae932ac56bebc253f7ce6cce74d7	2026-09-06	ui: rename email in console log screen
+0ecc107548f357bbf017e19b1321ce995a0ceec9	2026-09-06	ui: rmv unused drawables
+7c5d17eafb9719f007e486468174d8814f26684f	2026-09-06	ui: minor improvements in home screen
+dc111d81499367e4a68971d925a834ab619b7678	2026-09-04	Merge branch 'celzero:main' into dev-v055y
+63afc372a7a07600be1360af38761001cc8cc2dd	2026-09-04	Merge branch 'main' into fix/2990-preserve-tombstone-stacktraces
+24fc1870dd3ddcc3b661e27306134ccb2bd9f50d	2026-09-04	Merge pull request #2959 from weblate/weblate-rethink-dns-firewall-android
+db8ee861bf41d0de2508ce8bda2603b87f3d3ff9	2026-09-03	Weblate: Serbian
+380b49bf6b1fd2b23fccc4067942a638b0947397	2026-09-03	Weblate: Turkish
+f72a2f552bbba80d0539a3f2ed4ce89e9767deb9	2026-09-03	Weblate: Indonesian
+8165e18936ed4b03da9bd85aa20343321e06a7a1	2026-09-03	Weblate: Dutch
+453ce3ce668192fa252155f44f0a9118c4004f11	2026-09-03	Translated using Weblate (Italian)
+a85330254fbd429b2025079a56f74337f0dbb6c1	2026-09-03	Weblate: French
+ce3ab778ab8a1721549b9a370f8c530720f46901	2026-09-03	Weblate: German
+fac78ffcaeb0ada69f4b89bb2ed3885229f0c702	2026-09-03	Weblate: Portuguese (Brazil)
+b61aeca0ac1b282ffdc8d4796d33ecfc658eed50	2026-09-03	Weblate: Romanian
+13bc937887a868d4214eddd33c43ebe9ed12996b	2026-09-03	Weblate: Dutch
+82045c39669e73a11f626e6dcf5cd192649fc1a7	2026-09-03	Weblate: Czech
+94b9e956134c4bb6949c4bae9cbccff8919b1457	2026-09-03	Translated using Weblate (Czech)
+20be716611ad88e4bc25ad7e9c5b955756d705ab	2026-09-03	Weblate: Korean
+748dcdca022784fad3e82e22e4c1ca63e7b68c34	2026-09-03	Weblate: Chinese (Simplified Han script)
+3e38ab3a0e49ad7e42dcff5fb1530bef1ad52b97	2026-08-28	fix: preserve tombstone stack traces in Crashlytics
+46496a1d554fb4a67a09c6cf591f0e8399559da0	2026-08-29	fix: #3019, do not resolve wg-endpoint in kotlin layer
+d3460dee0946407021fc02d3907972ebd01daf05	2026-08-29	ui: rpn, add more filter for the locations
+b42c3532ae9e9f92ec49fba4b278242bdb87f265	2026-08-29	fix: #3070, add guards in places where updates return from diff ctx to ui ctx
+1396c6e8deb45680ed71d2961cf2e41b33f7f5d8	2026-08-29	ui: fix filter dialog border color
+392d645add26eddb08ef19529e52f658e351c6a5	2026-08-29	fix:#3064, skip global pinned proxy from okhttp
+7370124880d4e2372d33caf7ea39055e394f8b17	2026-08-29	ui: fix location filter text, bg colors
+20644621095876714f71cce9d37b5f105b901ffb	2026-08-29	fix: #3066, handle app bar collapses with listener
+39d659af5f910cf7df137e2f47f252b67deff612	2026-08-29	fix: #3060, ip2cidr handle invalid cidr
+cbf8fb0e9ffefd0c83763e80e6eb12277ad0196f	2026-08-29	vpn: fix: #3063, post notification in main thread
+57588fcc57f68b1f16fbde6d3d086a0987fefb7c	2026-08-29	ui: rmv pkg-name from app list
+6d0b9aee4d69eede9133cd073f94dc107ece1649	2026-08-29	build: move firestack fetch to dependencyResolutionManagement
+f4e994891da725a485ed354de1114bd43305018a	2026-08-28	fix: #3062, handle appInfo crash from pkgMgr
+881d9fd0192d94ae670b7b9fd2b7b29daaf37b46	2026-08-28	ui: fix title upper case issue
+dd47df31b3de9075f0ce777d2de7cefb298b8679	2026-08-28	fix: #3000, handle all uiCtx with guard
+0a2755390886a7c41e4cfa13933a855177f4ca09	2026-08-28	fix: #3000, handle all uiCtx with guard
+99eec5fdce87169ebb653b3d0b3099ecb04a4f7b	2026-08-28	tun: fix#3013 handle univ trusted domains in onQuery
+7f58499f4c1e85876564fe61ab25ba36a0d2efce	2026-08-28	do not block sys components on add
+35045c3f3374ab3dcc2badb10d26c5d1a5f959b3	2026-08-28	pxm: improve handling of apps in proxy mapping
+99ecc4e20470a3e37491afc702cceb361df8ff55	2026-08-28	fix: #1167 add system components by default
+ae7db00f2e14768ee4fc03398bc523232d049c00	2026-08-28	vpn-controller: rmv unnecessary .toString()
+46c7da01ef1dd38c3717b0c34f392c8fdde47e08	2026-08-28	ui: log aggregator missing changes
+3d8201a1573c0ea8389e7df56ae343b2b83d2b19	2026-08-28	local-blocklist: improvements in download of local blocklists
+5b1dffe1daa70aa3c4d76f4cd7de76d28b3137d9	2026-08-28	module: add log activity agregator
+17f1d02212c44e56030be9d97d118ea19d053875	2026-08-28	wg: do not throw ex on unknown params in wg conf
+e37babaad4cf42dd07b4757f242784551ea5603d	2026-08-28	module-provider: add coroutine context
+0276ed20a31de49d2eef67c19e922092b5efe856	2026-08-28	manifest: add newly added activity in manifest
+766534a734ed0628f4afee9ec34ffdb74c98623f	2026-08-28	ui: new drawables, fix styles, add dimens, colors
+696c4efee94ef225f353c9c19a61906d2ec95462	2026-08-28	ui: revamp rpn screens
+d9fb59b1c93902f45848710f2004ab8ceb296949	2026-08-28	vpn: minor changes in bind for logging
+2f43678009315526f4c344ee5c0a3c070159022a	2026-08-28	ui: complete revamp of home screen fragment
+d8e164319f4e673dc02e399cf5e9c83ac86e2e4d	2026-08-28	tests: more tests for proxy, local blocklist download
+62a4280e108b238f89ce674223d15ccaf2bc155b	2026-08-28	ui: impl: #3015, new field to add ips to DoH
+0b8d95dd2546171409a2b16e14bc8506950608e9	2026-08-28	blocklists: fix##1152, improve handling of local blocklist download
+228f4ae58fc173a1e2216f05bc980339e717c024	2026-08-26	Fix docstring insertion that broke five function declarations Previous commit's scripted insertion mangled the declarations; restored them and re-verified the build compiles. Refs #2685
+941255b3408fcc8e527bfd7938e83c045c8e660b	2026-08-26	Document remaining functions near the allowBypass hunks Completes docstring coverage for the diff context on PR #3057. Refs #2685
+6be587c2a616887ffc3ce1446522fbc8a642766c	2026-08-26	Document the remaining functions in the diff context Brings docstring coverage over the pre-merge threshold on PR #3057. Refs #2685
+7f9013b5fabbfb7087e6c200bb67e948fe9f96fb	2026-08-26	Add docstrings to the functions touched by the allowBypass change Addresses the docstring-coverage pre-merge check on PR #3057. Refs #2685
+e9d0535de860f87ddd522d53a0a0611f317f3b11	2026-08-26	Wire the dormant allowBypass pref into the VPN builder; add phone-UI toggle The allowBypass persistent preference and its settings strings exist, and the TV build exposes a toggle, but BraveVPNService never calls VpnService.Builder.allowBypass() — the pref is dead on phones. Wireless Android Auto refuses to negotiate its Wi-Fi-Direct transport when the default network is a non-bypassable VPN, so Rethink users cannot use wireless AA at all (workarounds like app-level Exclude don't help; the check inspects the network object, not tunnel membership). - BraveVPNService.newBuilder(): call builder.allowBypass() when the pref is   set and VPN is not in lockdown mode (platform forbids bypass in lockdown) - BraveVPNService.onSharedPreferenceChanged: restart the tunnel on change,   like the privateIps toggle - TunnelSettingsActivity + layout: 'Enable network visibility' toggle using   the already-shipped settings_allow_bypass_heading/_desc strings Fixes #2685
+27c446a227fb45f0fb578485b360cefb3ae6b583	2026-08-25	ui: fix:#3029, remove clip children from layout explicitly
+24d7db2a9047c858968c7b139ba2ba6d889f79e8	2026-08-23	ui: fix #3029, attempt to fix ui clipping
+8f74c522531f5d8a2862c882ba7e237d9b7aabc4	2026-08-23	ui: rmv dependency of use available nw on loopback, fix#1758
+190b7fb3cbc83b921f49ef8251815b3d44a03956	2026-08-22	Merge branch 'celzero:main' into dev-v055y
+b2ec0fb2bff37bca519f061c6b990ef65275bee7	2026-08-22	ui: fix: #3029, more spacing in about fragment
+9592a07caa366e4ce0a11e54d1383298b236eef4	2026-08-22	ui: fix #3029, realign configure fragment
+a6d64c4c660874c5a60426c2d97794c70d4f6c2f	2026-08-22	build: bump agp version
+c1b8349d357e861acb76725817e8e1e9b082dc20	2026-08-21	Merge pull request #3033 from celzero/hussainmohd-a-patch-3
+3170e556a8e508a25d4c35a5e23546fe5a041605	2026-08-21	actions-izzy: update workflow permissions
+1cbaa1016f601f20d2633ab4bfce8d3bd1e4d5a6	2026-08-21	Merge pull request #3031 from celzero/hussainmohd-a-patch-3
+d78514b50b7d0bd2145bcfef9f38abec74682e34	2026-08-21	actions-izzy: update apk renaming and upload steps
+39c30b780ce561328cbc14a03f0b218c507bdc3a	2026-08-21	Merge pull request #3030 from celzero/hussainmohd-a-patch-3
+bd6ae596794d2d5e134781cd72ccc69a0ceeeb09	2026-08-21	actions-dizzy: update workflow for tagging and cleanup
+0a752261570179804ca9c57db677e9914f5d8b8e	2026-08-21	Merge pull request #3027 from celzero/hussainmohd-a-patch-4
+a3ebd490f56f1213b10cbb3c70e1965bfcd68030	2026-08-21	Merge pull request #3026 from celzero/hussainmohd-a-patch-3
+82ad67d5709ec605e672af38ec171890e43c2cb1	2026-08-21	actions: rev unused var from workflow
+76a6699795c894b8577126fca324e79612016f2e	2026-08-21	build: update keyPassword environment var
+eff852614b2668041af9d1eeef81c31acea16677	2026-08-21	Merge pull request #3025 from celzero/hussainmohd-a-patch-3
+e8bb12775290ef3993b25b6e2646a0214cb0a52b	2026-08-21	actions-izzy: add signing key validation step to workflow
+f422856c04ca33492b16a51ffd769d3116941260	2026-08-21	Merge pull request #3024 from celzero/hussainmohd-a-patch-3
+cb1869a81089c0c40e9f15ba194aaa2755128dfe	2026-08-21	actions-izzy: update keystore file path
+1bedbb6dac404cdfc1a3060afe9f2e74d5f7d8f1	2026-08-21	Merge pull request #3023 from celzero/hussainmohd-a-patch-3
+f45e3ef385d2c6b165599df5a731feb1ddfeb786	2026-08-21	actions: izzyondroid; fix additional parameter
+fa67de9595b0011ee50366516680a3a984d2d576	2026-08-21	Merge pull request #3022 from celzero/hussainmohd-a-patch-3
+4fbcd31692ccc58e720388ea6b85b97042d8d71d	2026-08-21	build: add more debug logs
+47901b7cd5e202942171fbb761e289d1de63fd94	2026-08-20	Merge pull request #3021 from celzero/hussainmohd-a-patch-3
+dfbb2aadf236c1cc0fd38cc22bde89e40886d61c	2026-08-20	Merge branch 'main' into hussainmohd-a-patch-3
+e9a1976aeb2349161f67b5dadd6aa6955ffc1b42	2026-08-20	actions: workflow for IzzyOnDroid build
+7413b476d869faa3ac05b3810a294eca5cd19692	2026-08-20	Merge pull request #3020 from hussainmohd-a/dev-v055y
+e52a4736260901646613c1758468b98095254ad9	2026-08-20	Merge branch 'main' into dev-v055y
+98f7a6a5dc35fc2b0e500bb5a8dbb7a7b7b58099	2026-08-20	build: add signing key conf for izzyondroid
+c7081e9a2063f4cdea5da1d6ffda4c903dec8b95	2026-08-20	ui: add apps refresh in home screen btm sheet
+9a449ed063bf4c63cddd20ce7491044aaa6fcd6a	2026-08-20	ui: untangle rethink local and remote blocklist selection logic
+88ec23a537338ed733a10cf8b2f80dfbb1f77b20	2026-08-19	Merge pull request #3018 from hussainmohd-a/dev-v055y
+3da34ccf7166089b42ef94c6251fb9a94c4705c2	2026-08-19	ui: mv rethink blocklists ui to M3
+b2e5c74aa1fb9a7633ad56535dd45093a93c6829	2026-08-19	ui: rmv unused illustration
+692925acdaf6551e9dd0fae50a5e5925ea166ebe	2026-08-19	ui: fix missing string literal in play version
+a58b1fb49dfdd48482f6052a1efc1e3ff4b1e9cb	2026-08-19	ui: update icon for perform protocol translation setting
+2d3f49dda2bc47dcdd69f5b64878f2d712ce0e35	2026-08-19	Merge branch 'main' into dev-v055y
+282b22412265a7c8b8eb3950d633358c358ba4d8	2026-08-19	bump dependency versions to latest
+105e0c090a5cf91ac5b0b711e5e7f434aca8242f	2026-08-19	proguard: remove donot optimize from rules
+dfd8372092674ca4430164bbc14c292135d2f748	2026-08-19	ui: rpn; improve purchase screen
+6f96e45c2d9bf4f3b426227c1e9488912229c4af	2026-08-19	Merge pull request #3014 from hussainmohd-a/dev-v055y
+7588356a0191e6a3c8609a8f1dc610958800083b	2026-08-19	remove full java folders, fix tv variant
+3dca99979398c479e1b4ef77e0234a938e810955	2026-08-18	Merge pull request #3009 from hussainmohd-a/dev-v055y
+1341f842dbb4a5ba77848d2cee182f90e12af06d	2026-08-18	fix: agp 9+ kotlin built-in support, rmv kotlin-android
+e8571cda612c3ef58ae7c215f969450468394419	2026-08-18	Merge pull request #2682 from ezelab/tv-variant
+2e3558dab63ce80d52b6943820f66c436d8cc951	2026-08-18	Merge branch 'main' into tv-variant
+fc39bfadce177e44fddad21fed3ee9e079800e9f	2026-08-18	Merge pull request #2833 from mvanhorn/feat/2815-firewall-log-allow-reason
+52065b84f3d33c964e1c642ea452b6843b70a620	2026-08-18	Merge pull request #2719 from HrBDev/main
+d4b777cbaacc8f79adb1e76925a880be9ff235cb	2026-08-18	Merge branch 'main' into main
+a6b225853d748dba65cb2e3bed7b7a8a7c3a9f8c	2026-08-18	Merge pull request #2905 from ayeeeruben/main
+de39866233a93e24ca003487bb6c0c6b08afb189	2026-08-18	Merge pull request #2957 from LeoPrissberg/issue1178_revisions
+679d4b1c18008c0b45e9cff71552a9ff5562636d	2026-08-16	FIX: Notes saved to other app with the same UID
+7918308ce33880dd2c2abd68f0387a7cb0bf4ae7	2026-08-13	Fixed indent
+46ed81d7c6a8be843676babefa175371b8ed5ab3	2026-08-13	Added my changes from before, notes counter.
+ea7f40b4ec2f25f4112a3ad77d42da2d63a35489	2026-08-13	FIX: scroll position would not reset when changing filters which resulted in being in the middle of the list after switching sorting option
+da9137bcdf94d198958af4cedef91b4062b16006	2026-08-13	Changed list_item_firewall_app.xml to the new look
+a7e12fc9837cbd16ecfa2abe54e9ea9725a43374	2026-08-13	FIX: conflicts with UI
+af81b35d96e4f2a35f353be30abf71fa5bb4071c	2026-08-13	Merge pull request #14 from ayeeeruben/test-merge
+1bc7afc111b536e198b36adb344cdb3bca6f57fd	2026-08-13	Merge branch 'main' into test-merge
+e9f8daf0c5afdd1570c4fc8787bd46ad4444bf43	2026-08-11	Copied fernandov list_item_firewall_app.xml onto this test of main-2.0
+db63cf3bec9c2478475315bd18dcce624d5ccb4f	2026-08-10	gradle changes
+841765658d6bf08b186c9fb74a4d12680ef03fb7	2026-08-10	update: converted purgeInterval from hours to minutes
+57effbe2671a8dcc05a69b4feafe237495fe83c7	2026-08-10	fix: update log lifespan content description in activity_misc_settings.xml
+aca2ad0c5006289c94e3dfe269931dc250470c6f	2026-08-10	Merge branch 'celzero:main' into issue1178_revisions
+71c255a693fb15194df09b1533b64a97ae75c668	2026-08-09	Merge branch 'main' into main
+e78a0928ab82963932c08a120ea7c2cb143b714a	2026-08-09	FIX: fixed issue caused by merege
+43d6b86d921a217ebb948c8d980ee141d8e6de79	2026-08-09	FIX: merge connflicts addressesd
+fe7f343bfa3b51ed8cc3b88b3f104e9969fbae6a	2026-08-09	Merge branch 'main' into main
+022f114e7304ac6439c06db4c548775147320598	2026-08-09	Merge pull request #13 from ayeeeruben/fernandov
+dca96bc96dea70867ca19b78e599720f656334b3	2026-08-09	Added new migration to set max notes length within the database, fix any future issues
+84fc757bf09ea0a82740cda95929fa7510e773f8	2026-08-09	Added word counter
+045c330ca818129258d02609e2d3511010ed0f64	2026-08-09	Serialize per-uid db / cache updates and prevented lock-map leaks
+9a9110cbc5c37eb6d92f0fe235a98558fde0a116	2026-08-09	AppInfoRepository.getAppInfoByUidAndPackage() now calls from suspend DAO method
+d2eaef17f49d946d9364e0bebf7f548b8f8db143	2026-08-09	Prevents overwriting notes from async save
+21b8206b778f46ea2a5193f80b0414188ac78608	2026-08-09	Merge pull request #2966 from hussainmohd-a/dev-v055y
+fac1e287e90a1a8bd59f5d089739d52092565bf5	2026-08-09	v056: bump version code
+cd35d774b46c2fe3982b8f8debf57526c191df8f	2026-08-09	Merge pull request #2965 from hussainmohd-a/dev-v055y
+3bce3bf3959e45745434361f2d9903f37cd70f30	2026-08-09	fix: rmv about screen unused whatsnew ui
+22e46d1be9d617ed34b1a03396496347e0620328	2026-08-09	Merge pull request #2964 from hussainmohd-a/dev-v055y
+741be6272f0f969b9fdadd6d7b3de0bdc3fb5e3a	2026-08-09	ui: fix play version, restore purchase
+505b9db6d232876aaf3b664957b723b547c62572	2026-08-09	v056: bump firestack version
+7804c5a0d34ce65fecd7b34905b52f1c6fbd1bf9	2026-08-09	Merge pull request #2961 from hussainmohd-a/dev-v055y
+b6ddfaa568763ff3199ba6dadab3e25260f93844	2026-08-09	ui: sponsor ui corrections, home srn click listener fix
+a36b0c66214df9381ed6b2df9372aa8fdb5ef611	2026-08-09	ui: rpn adjust show tag for onetime purchase
+d38a5c3c052b64099fbc17ce2b84fcd8aaaf5c3a	2026-08-09	ui: rpn new hero banner desc
+620235ae2541b15d2b09ab42cb97d53226b35ad3	2026-08-09	ui: rpn screen active text changes
+ecb36188445c84b23b33e47210cef29db4effe65	2026-08-09	vpn: update conn state to working on vpn started
+b4e672e5034625b279167d9308ca619bf8a023e2	2026-08-09	string: rpn string split
+cbf01b8107164332a0d8cd45cdcd17c636a6e72a	2026-08-09	vpn: update conn state to working on vpn started
+b91ba828dc129580c88812ffb1912e77e2720b09	2026-08-09	ui: minor ui changes, rpn screen font, string changes
+1d07adb3480f3554aa1fbac46c08b97f40821504	2026-08-09	actions-ocr: comment out review on pr
+85c8d8767c1db2dcca513a13cbcab9ede5a038e5	2026-08-09	ui: home screen stat updates
+71de4d5808920fa32a74b3e4d8b5fd698a74c87e	2026-08-09	ui: rpn screen font, string changes
+ffd8e46f690d3416e2b8805a6a44a1d079ea3f30	2026-08-09	bump target & compile version to 37
+5122ffc94202dceba58f4770a721998bba1940e9	2026-08-09	Update app/src/full/java/com/celzero/bravedns/ui/bottomsheet/FirewallAppFilterBottomSheet.kt
+a2075e128a2cd5b2740aaed852ae157233b21e65	2026-08-09	fixed import issue
+2232c5f4a4ccffd6009625da1f9bb170c154efbe	2026-08-09	Update app/src/full/java/com/celzero/bravedns/viewmodel/AppInfoViewModel.kt
+88e29273054aafc09f02528ebd96349900a172df	2026-08-09	fixed indentation
+a64ca9b75775b7788f832b0d955c84a0e47a1d15	2026-08-09	Update app/src/full/java/com/celzero/bravedns/adapter/FirewallAppListAdapter.kt
+c2ba2c5bda4838cb7e3a7823d0bcd92245089d08	2026-08-09	FIX: added a missing import
+549cf2371ebeb97ee20b3c35b63199abaa89bb29	2026-08-09	FIX: added a string in the xml and fixed more formatting
+4cad8f95232a103fce53e71cbf66c3a54fdf7b72	2026-08-09	Update app/src/full/java/com/celzero/bravedns/adapter/FirewallAppListAdapter.kt
+1ae91183f5e0b29ade738f8cccc6c94d0850c9b5	2026-08-09	minor improvements, rmv incorrect purge
+81c656a4431cbdfffc93291f91da03c6fa5ecdbe	2026-08-09	Update app/src/full/java/com/celzero/bravedns/adapter/FirewallAppListAdapter.kt
+8bc2beeacb451ef93a7aac2ab67042224d5c8406	2026-08-09	FIX: formatting
+01b4385adf1252468de205d66585a82fd8d81fd9	2026-08-09	Update app/src/full/java/com/celzero/bravedns/ui/bottomsheet/FirewallAppFilterBottomSheet.kt
+c8f2bb98fd53b9cbb7ed9eede6b63bba2c082393	2026-08-09	Merge pull request #12 from ayeeeruben/fernandov
+e1dc137f2518b548a746ad2f80534536af5f14a9	2026-08-09	Merge branch 'main' into fernandov
+ed79c728784fde2b706cf1a648922bda7e7b2909	2026-08-09	Restored / loaded notes won't bypass character limit
+f41717f6ec96e44818c5a64568ba4415d464b2d2	2026-08-09	Serialize app updates per uid, keeps db and cache ordered
+613c0484ffbde2c4115f714d77136a6d698a2597	2026-08-09	Treat 0-row updates as failure, UI success happen when real row updates occurs
+3ddc49f63ca9bd9b428b72b12748f681d2eeb5c4	2026-08-09	Keeps the draft of your notes
+9dff354d928a1aa1c8608fcb588562ccc51c9100	2026-08-09	Removed hardcoded failed to save notes text
+950a7c2bb6dd4de0a1074ef9bdfea47180bb11c5	2026-08-09	Took off the variable from the queries since we do not know which ones would need to be changed in the future, variable would be good if they do not need to be changed.
+ab2a555434f5e567a6cacde5c695b18eef2d3ffc	2026-08-08	Logs runDbUpdate instead of updateAppInfoField now
+49fbd2b4350f272b998d70e774d4859d85967351	2026-08-08	Logs cache misses
+74f786d90a5eb09c070f24215df978d0d3c3cccb	2026-08-09	rpn: auto server will always be available
+175244cf8650d3eeed21c2ce347ade352e56865a	2026-08-09	v055z+: changes from improvements, suggestions
+5a3475af4fe25bf410043f498378a58bdb1325d0	2026-08-09	Resolve copilot review issues
+b6847d086237c93f8ea8c3dd73c6db00f4216d9d	2026-08-08	FIX: optimized this code to allow better readbility
+20572a5e9e82379a244b31b26c856bb0a41ad0ca	2026-08-08	FIX: parsed :sort through lower to prevent errors due to caps
+3f0d2ed1bfa738d76fd1113d0f9c21b69018b2c6	2026-08-08	Update app/src/main/java/com/celzero/bravedns/database/AppInfoDAO.kt
+4c6306255c48f45f71c8c3703c235e677e687a8f	2026-08-09	ui: update the completion block to pass appCtx in about screen
+53c9c66ca9f5c7fb15933a290822ab2be662021f	2026-08-09	rmv usage of synchronized from code
+9d206eb0e2bd6a7b68e3923e0e7d829d82584232	2026-08-09	ui: disable the lan switch during system lockdown
+1aa519ad37d85e1145170b5437b18226c46f96da	2026-08-09	ui: remove experimental tags for few settings
+3428fcdf75abf15deb3fd4ac900f5addb642007a	2026-08-08	Merge pull request #11 from ayeeeruben/fernandov
+d5016754eabeb5aeb68e23e0d26f4341f39e1534	2026-08-08	Changed it to where notes are saved onto it's own app data, instead of a global variable which could go out of sync
+0aeab5c0f831221eda502ddf5a08f38af6b8f426	2026-08-08	Could now rotate your device while typing notes
+a448aa1b9060bcd138f84500c29f473eeac7cea7	2026-08-09	wg: replace the invalid comparison with the intended block detection
+afc0e0f01fbcea25b74c82b720e8a4cfcabc2e7b	2026-08-08	Added try-catch to updateAppNotes()
+d24fbf578ec8cbe20b58e6996e8b1ee18b132c4b	2026-08-08	Split updateIsProxyExcluded() and updateSharedUidCacheField() to track failures easier
+8e0cd689266806463fdd15eda07aba493c335246	2026-08-09	ui: add alpha to the blocked indicator, related #2931
+09a4bfa1a940c195447552a4253ea813584dc094	2026-08-08	Readded withContext(Dispatcher.IO)
+b04c67d3638c18bf3e9c61c89e7b91bae1525410	2026-08-09	bump firestack version
+9a05e9592c8243f8782a113b63587ed172fe48f1	2026-08-09	string literal for v055z+
+4614ea2e6ab6a5832ff655eb6224822e55f96f73	2026-08-09	minor: make play and website variant same for sponsor billing
+b2dab8b0a2f0bb95475bf92e1aa853c5e11f1168	2026-08-09	tests: add more tests for tunnel dns flow
+74844a5a39b8ca9fcde063a9ea65462c58ca3ec4	2026-08-09	rpn: show err codes/reason on rpn load failure, minor ui changes
+d62a630aa305d5accad9893a74ef16bf9f49ad0a	2026-08-08	informObservers() gets called if cache entry was found and updated
+e2ac7ba4f257cdfe1ff1e71b95c08290c9373e82	2026-08-09	tun: fix multiple issues and improvements
+1295825e3ab7941aefb2fa131882ad68f6c73786	2026-08-09	#2960 fix wildcard prefixes resulting in empty rules
+9b4e347ba00c10c17a919bc64af95756a6d6d3ef	2026-08-09	stat: store mem file output file to externaldir
+3ba113848e7a25d8fbdda0b5aa1d70475d1ceec9	2026-08-09	vpn: fix multiple issues and split VPN managers
+05fc6bdf591ca34e2f684278e238837869e7fc15	2026-08-09	log: change label for settings in stats tab
+42df4c582989bd93b24f9830097a993fd6c0d715	2026-08-09	minor: rmv unused const value
+75060090cf9246592b173f9459ae23bdcf12c801	2026-08-09	ui: show appropriate errs when enabling proxy lockdown
+9f59a7084893eac4682b8e97b29d684e670df909	2026-08-09	ui: show appropriate toast on error, fix #2940
+a3196307c78b74ff7838c1d17fd04eba874e1e16	2026-08-08	ui: fix #2624, home screen alignment fix
+d0fb7e4f9ffcb94b833f97c94fe76276fd388f2d	2026-08-08	Merge pull request #10 from ayeeeruben/fernandov
+ea5f0a563311d33b5a35cf404a586056923e1f34	2026-08-08	Changed the 8 list quaries into a DAO-local variable. Removes lines of code that are the same.
+87948dcfc49d29b1836a3bd6d4f707faace5301f	2026-08-08	Split updateAppInfoField into helpers for clarity seperation
+fe2e9ae86c4e194e5cd0790e09614ad39bb7bab1	2026-08-08	Save and error signals are one time events now
+3e499761ba1b740a305f4a79a0995beb3b1295e3	2026-08-08	Added trim() to remove whitespace from the beginning and end of sentences.
+326fddccea647935c7e08ee13e82c7160334b304	2026-08-08	Removed redundant withContext(Dispatchers.IO) and removed the withContext import.
+9ab41d35081f184f20fc8d716f7d649f6b9ce65e	2026-08-08	Added setMaxLines() until you start scrolling and set MAX_NOTE_LENGTH = 500. Could be changed.
+33373ca06a054fb1fe4b2d64978d1f5006429b04	2026-08-08	Shows log if appNotes success, error toast and does not update local notes and not logs if fails
+2ffc3a7ac1ff6c4e5ca047551765a9d26e4760ff	2026-08-08	Throw e to catch a failure
+1d1b29ce6b9c902de021bb798faff18e6fd0c348	2026-08-08	Added try-catch to updateIsProxyExcluded()
+ade0167cb5d5c3ee4e8b2ea35d97314ed8595460	2026-08-08	Merge remote-tracking branch 'origin/main' into fernandov
+935b5ade994c743273aadb7c314367fe51f1c922	2026-08-08	fixed indendation issue 2
+d072cf781a4555b130eb9e7fca9a49ff025ce19f	2026-08-07	Merge remote-tracking branch 'origin/fernandov' into fernandov
+b770c52e9be259f02e9c1cebae39b068121f2c0a	2026-08-07	fixed indendation issue
+b8c2ab45ae97742ccff6010193c6728cc20e4daa	2026-08-07	Added warning log when cache update fails
+1267c5bb543529c8f4e068a6a6e24958cf3f987b	2026-08-07	Added warning log when cache update fails
+4efad9af1f4636ccdfc00c3d71219d62d3e556d4	2026-08-07	FIX: fixed a layout bug
+15c653a4ddd024d43c4e724befe9ea1e7799c10f	2026-08-07	Update app/src/full/res/layout/list_item_firewall_app.xml
+13183ff4dfaad3857f04c3a55b246ffcd252d286	2026-08-07	Update app/src/full/java/com/celzero/bravedns/ui/bottomsheet/FirewallAppFilterBottomSheet.kt
+c3aca66701d53c4933cf758d9f5ee7a9fdbf851d	2026-08-07	Update app/src/main/res/values/strings.xml
+b7d01d2814dc26aee7fc8fd6bf2347ac628930ad	2026-08-07	Update app/src/main/res/values/strings.xml
+7d76a0fd75a2211381aae4cdbc7a1add75f6c40c	2026-08-07	Merge pull request #9 from ayeeeruben/fernandov
+2a3dfa4d953c56a85514d06c63ff698f10e6f497	2026-08-07	Fixed redundant code and minor improvements, also error handling for notes with runCatching and LiveData
+93409699a9142de026880cfa398ca19906889233	2026-08-07	Changed potential bug where apps with the same uid could have the same notes, will only occur if there are a lot of apps, added packageName
+0042b5a2dcd8ca82dc8740b0a57f63cc4708840c	2026-08-07	Removed redundant clause
+4eb0989b62f3f67909a8f36fa09af60dc8492402	2026-08-07	Added try/catch in migration
+ce57dfa1c3fd676f9341f8cbf9ca967d6e870d67	2026-08-07	Shared updateAppInfoField() helper in FirewallManager
+7a188c5d000d19efffb7ac10578fa0016d0d6e0e	2026-08-07	Changed notes field where it grows larger when adding more characters.
+3cece53cd06c0289fe56010b0f35dc4caaa32ee6	2026-08-07	Removed showNotesChip() and fixed updateAppNotes() error when running app
+f268150f4c4ee39e23d7ea118fdd1fd7ed9db7e8	2026-08-07	Update app/src/main/java/com/celzero/bravedns/service/FirewallManager.kt
+15d6b5dbc4bfe4958ef889e6fb865dff13a843ea	2026-08-07	Update app/src/main/java/com/celzero/bravedns/service/FirewallManager.kt
+85c05eb6c3587023da55e892abee823f68a53857	2026-08-07	FIX: Address sort maintainability feedback
+21dfc1c3e0e377321a04ec37d8468488983e86a4	2026-08-07	fixed format issues and fixed sql lines as git bot suggested
+90d06b1d125ee5d399212d4f9f955c90fae058fc	2026-08-07	changed  filters.sort = button.tag as AppInfoViewModel.SortOption to  filters.sort = value
+136b0ff26f9d7a01b6ddebaa1bcc8959b3be593c	2026-08-07	Merge pull request #8 from ayeeeruben/fernandov
+c51a5c88db84e8a4f1f2717b7eb73ffa447094b7	2026-08-07	Removed redundant Notes string and only used one
+e959c4d16e235f5b8efe1dea3b3dd786cc1e58ff	2026-08-07	Fixed notes persistence with database update
+b000959e6ac1bc1564d8b1866dcd70f38261d45b	2026-08-07	Apply suggestion from @github-actions[bot]
+ee4744ddb92abc9f45114572454b6297265ad7e9	2026-08-07	ui: fix #2624 home screen, collapsed list in configure screen
+a8db9224836b57b94681af1b3aa588088ece2b90	2026-08-07	Merge remote-tracking branch 'upstream/main' into tv-variant
+c05c7ae63928e25c63ed2c48334e2ac487d29fbb	2026-08-07	Merge branch 'main' into main
+20b3e290830879cea902f9737c6637e697070703	2026-08-06	Merge branch 'celzero:main' into issue1178_revisions
+392a304807b595bffc78781566e4e94a224d0a3e	2026-08-07	proxy: new global proxy handler to reconsile the proxy between ui and tunnel
+ce3d355b76ea0661b5ad5ce671247004d0842e14	2026-08-07	apps: firewall mgr, handling pxm apps, cloned apps
+ff275a0effefa2c96abaef265de4058c2a8fa90d	2026-08-07	tests: more tests for tunnel dns, firewall flow
+cc446c099bfe4ce21f429d20f19b2bc5e9d915e2	2026-08-07	rpn: make fns open for tests, better handle of expiry
+f654f01724ad10e2ad878ee67eb4d208f20b8dc7	2026-08-07	apps: make sure base id remains for apps in proxyappsmapping
+c0da877d4fc333b60f3440a292725d868f5cb394	2026-08-07	test: make private val to internal for tests
+c973245e11fb822993d85235e8f8f1b2b06dc64a	2026-08-07	ui: #2931, add block indicator in network log
+b73ca0f60b6e394db72084792103770896954dfd	2026-08-06	Merge branch 'issue1178_revisions' of https://github.com/LeoPrissberg/rethink-app into issue1178_revisions
+06af9233536f62fddc5cd22accedb068fe37a025	2026-08-06	Minor style changes: added trailing new line to ic_log_lifespan.xml, changed checkedItem from a var to a val.
+e55b992cb8d14661025e541e264b9cd064329307	2026-08-06	Merge pull request #2632 from weblate/weblate-rethink-dns-firewall-android
+5f928ae28ad890baf2ac7e3645233df6deb42276	2026-08-06	chore: deleted unused import in WorkScheduler.kt
+f7e2fd912463620368637e01d82f03990804236c	2026-08-06	Merge branch 'celzero:main' into issue1178_revisions
+8f3c82471ead7a60f607bcf58b0cc518c1bf48df	2026-08-06	Translated using Weblate (Latvian)
+1ff09942e9e4cd9700d9c5357b8f1e38fe2ba2e2	2026-08-06	Weblate: Portuguese (Brazil)
+a502fcd34798daf63cb18e275dae020acad8d602	2026-08-06	Weblate: Korean
+4b6d58bbf099c58026583119b45d6c749b820838	2026-08-06	Weblate: Turkish
+912f83a876fd0640b92360a3b532c680c7aeb4f3	2026-08-06	Weblate: Indonesian
+4825b3855205c779cfd87be39b5fb5b1f6d57716	2026-08-06	Weblate: Update translation files
+8d5b8e315b261f66c7401a61450977b2ab7e6b86	2026-08-06	Weblate: Burmese
+ba049419bbb4efa20552419b8ce9c8e878c849e8	2026-08-06	Weblate: Danish
+3ce70a80df1341df93765a376c1717d72621ac82	2026-08-06	Weblate: Burmese
+ccfab3aef0171f5a76f29809148dc1b674b55599	2026-08-06	Weblate: Serbian
+66307fa6f265f38f04349585fb77e26cb307fab2	2026-08-06	Weblate: Romanian
+e8e4250c2d3916b9d842a50a71512aa9a696447c	2026-08-06	Weblate: Romanian
+5c27c425e7092c36fc6dab165a2ad3f0e41fbf75	2026-08-06	Weblate: Slovak
+abec58928fd5dbaf8b51d71384f9cd53c31e1fbd	2026-08-06	Weblate: Greek
+86f9e56f76b2adf807991d4283dd2ea36ace1b98	2026-08-06	Weblate: Greek
+00d1bb10a3f440b5daffe1403b893c214c2cb187	2026-08-06	Weblate: Finnish
+560321fbf23305b7172a156e641640f8e9d23cf9	2026-08-06	Weblate: Finnish
+5733cc17cc993b5e4ccb0bb5f215f9c89aa96d2a	2026-08-06	Weblate: Belarusian
+92c0da1344d8124a0d0f022cc24cd842ac5522a1	2026-08-06	Weblate: Czech
+eb6d6d181d0d18b5f21db02835ded02641456aba	2026-08-06	Weblate: Swedish
+9d054f59cf220331838c2d75ac8b224d03aa1be4	2026-08-06	Weblate: Swedish
+c5c64cab61af92aedf1edf923fa0259e5dd0e69e	2026-08-06	Weblate: Korean
+8140f767defeab3a44fb8fd7605b64ff620ccf55	2026-08-06	Weblate: Korean
+ca4c053827be8bc47c04a9c3907a7d4587b5d0de	2026-08-06	Weblate: Korean
+d1156df8561b31905ee3ce04376477eb364b184d	2026-08-06	Weblate: Korean
+f4fbba0f604d726dc719360a797c22bb9d04e7f5	2026-08-06	Weblate: Swedish
+4e9c873cdf870e969d7c948ef1581850baec80e1	2026-08-06	Weblate: Korean
+6aa6bcebe7c1975829dbde5001fb5353a7dcf72b	2026-08-06	Weblate: Korean
+9c0bfade8d675c7c94166fc7da8b511b9c785484	2026-08-06	Weblate: Abkhazian
+a7d55462daf929c39c3f194913aac8668d3b8e27	2026-08-06	Weblate: Abkhazian
+e4c489e9a55a78047b915b26a76d0fc381f5e1db	2026-08-06	Weblate: Abkhazian
+385cbfed8ca328f8a843b4504ecbfac4d8759421	2026-08-06	Weblate: Odia
+7431e890ec3feb4e7319ac4f70c93c7dcb826ca9	2026-08-06	Weblate: Thai
+76db7cfb39f039d9b81a46c87f86013f53b09eee	2026-08-06	Weblate: Hebrew
+4d17fda99cbb5e23766d3f394e6131e870b2b098	2026-08-06	Weblate: Hebrew
+a47c5128b3eba83866a6434aa2435f6ccfb7adc6	2026-08-06	Weblate: Hebrew
+29f60798bfaf62d9e1e52b7d78be4d6b55043db1	2026-08-06	Weblate: Japanese
+73af948ce80ff031ca6918a4fd620dbb82520c2a	2026-08-06	Weblate: Japanese
+c0d3a3de9719e36d892b10f2a8ec740817ca43a1	2026-08-06	Weblate: Japanese
+4725a6633f147583a4632b772a710c3c2d3b2bb5	2026-08-06	Weblate: Hebrew
+b9199f9fbf9f561031a0d252575c1048dfc96967	2026-08-06	Weblate: Japanese
+b8214eeb1dcb5919c9df8327fa57681784d3d488	2026-08-06	Weblate: Tagalog
+1b9175033bb57afd44d3567682a93f236ef2d8b0	2026-08-06	Weblate: Vietnamese
+41871a3a3e1f464770a0d6823e41133bdcc451b8	2026-08-06	Weblate: Vietnamese
+209a74a0f04c07063b1641043911e21bb54d2af9	2026-08-06	Weblate: Vietnamese
+86a80b70ee91f6aa593ef20336af7879370bef9c	2026-08-06	Weblate: Vietnamese
+80ea0a33aed7f8cc730e67e59b0b65732f93d194	2026-08-06	Weblate: Tagalog
+5fd45b12911d05078cbc07ea97feca88b1924977	2026-08-06	Weblate: Vietnamese
+1bb995d6bd682c0a291569b53ab7151483558c30	2026-08-06	Weblate: Bulgarian
+dd2e59fc041636ba4992282273a2be8251b32ae6	2026-08-06	Weblate: Bulgarian
+cea813dcd72e937aa6f354c10a05f81d43637d23	2026-08-06	Weblate: Bulgarian
+b2a7fa759f4010780c8f38b3850bad104c93331d	2026-08-06	Weblate: Tamil
+ebcf3cd755ab6584b761d11b1a80096899c0fa2f	2026-08-06	Weblate: Tamil
+71450b640a52a30494432ca57d6bf6c1a96a3a5f	2026-08-06	Weblate: Tamil
+5983a84a0c61a8346884dcf7961d20628a4b4500	2026-08-06	Weblate: Urdu
+f29f7fb1a989148860ad982e1649ea7b3537e144	2026-08-06	Weblate: Ukrainian
+d1a69d39ee41d0d5a7aa451b63178085919e1c9a	2026-08-06	Weblate: Ukrainian
+8834bbb49e10023b81ad373d94e12f6c79c188f8	2026-08-06	Weblate: Ukrainian
+6a05ba15c6b4d699c841b0093041ad979a474224	2026-08-06	Weblate: Bulgarian
+38ae3ebc5a6509cca5d5492ff669c9b055a86de6	2026-08-06	Weblate: Ukrainian
+4524bc2798650895fc8d9a9c534830be5b7faef5	2026-08-06	Weblate: Ukrainian
+4fbb75a51abc27fcd675241428083cef16ca9663	2026-08-06	Weblate: Hungarian
+5bbde50d9016c169c918f275d0fe40023340ff31	2026-08-06	Weblate: Hungarian
+5f95329bdd4a3a2427b42bd1fd571205a2fbb710	2026-08-06	Weblate: Hungarian
+3db8af82a20dd365a2a390b17dff1093fe916342	2026-08-06	Weblate: Hungarian
+010bc486f3eaef12ee03a76aa7782e6fdbf5159d	2026-08-06	Weblate: Dutch
+ae2da685b8b889b2aa7d4330dfdf5b6a87d46909	2026-08-06	Weblate: Dutch
+a78563127e059d1ca1dd558cff25580b341a9541	2026-08-06	Weblate: Dutch
+122724eebe5eb3a9af41fbfbef8381361213e433	2026-08-06	Weblate: Malayalam
+53711ef2de8f761ba4fc5a3f2960765057ea9650	2026-08-06	Weblate: Hindi
+f6de7e7f2aebd57f90a1a41ffaf2d4a158aae620	2026-08-06	Weblate: Hindi
+07de1d4ca2f93c2ceda5adc09423294a9399b0ce	2026-08-06	Weblate: Malayalam
+731fa9e505598d56da87e82db020d92a6e126250	2026-08-06	Weblate: Hindi
+f40de4e3c626093b153638941ce133210efc0f69	2026-08-06	Translated using Weblate (Italian)
+632a3d43d41b8722070566361475d0565e0687c2	2026-08-06	Weblate: Italian
+4f1ce34c15efdb3012319ac7c2d06a11e84c7d93	2026-08-06	Weblate: Italian
+3928bba8baf5ed0bf8c60208d908183077dc41da	2026-08-06	Weblate: Italian
+75ae8353a79ee71747e0b24a14ecfb13d9806aa4	2026-08-06	Weblate: Italian
+d52be83e585ff74939d2511950db3bc1a5c681b0	2026-08-06	Weblate: Chinese (Traditional Han script, Hong Kong)
+3651d782526a27514ea100ec742fad02c3b46cfa	2026-08-06	Weblate: Chinese (Traditional Han script, Hong Kong)
+c9e73d053a10a3529c2ec8b8866de951497e295f	2026-08-06	Weblate: Polish
+ce743c30c2ab08d19f2cd5e9658250bcefe37b93	2026-08-06	Weblate: Polish
+8f5528686cdfb36bbac5ae0e776b39632993c13c	2026-08-06	Weblate: Polish
+914b1659920e6b22515772275e39468c1616bb05	2026-08-06	Weblate: Polish
+b477dd433da6ffe53a03d7d0ed4afdeef0bedb4f	2026-08-06	Weblate: Polish
+0dce60e311857655466bcb8266701e5bcb65c95f	2026-08-06	Weblate: Polish
+131b4f3b16a52a9736bb8fab06cfa965376fcbe9	2026-08-06	Weblate: Polish
+575ac0c5637fb8ae7ea1bc69cb05d41e8547137f	2026-08-06	Weblate: Portuguese (Brazil)
+8fe32254433cfa2d7c70ead15fb42fcd87607ee7	2026-08-06	Weblate: Portuguese (Brazil)
+79e08d5c08c61be68022ce5de357adc65f6056c9	2026-08-06	Weblate: Portuguese (Brazil)
+cdebe884663c7a4b9bd6416dc4bef8e86931d477	2026-08-06	Weblate: Portuguese (Brazil)
+26cb1dce16d42fff8d989ae83a8d6783e3e667c9	2026-08-06	Weblate: Portuguese (Brazil)
+0582732b2853188f7c821e3c8111c2012d785ced	2026-08-06	Weblate: Portuguese (Brazil)
+9fc8310ee8d7488efcc8c34daf54770214769cde	2026-08-06	Weblate: Lithuanian
+c328293ec4943fa0171d8cd8dcd107ccdfecd112	2026-08-06	Weblate: Lithuanian
+b52b80d33d7055f68a7770ad70ac7ce975c9aa3c	2026-08-06	Weblate: Chinese (Traditional Han script)
+c59c4bf73ff386ef8d02b414530a13b9f7664844	2026-08-06	Weblate: Chinese (Traditional Han script)
+cef6497d434c4bcf027ca9008dbf52991eabaf4a	2026-08-06	Weblate: Chinese (Traditional Han script, Hong Kong)
+6c38330cd9256d228aca54c1f4dcb03e041c66ae	2026-08-06	Weblate: Chinese (Simplified Han script)
+9049e741abd6733ae2f46e5297e5adccfaca5af1	2026-08-06	Weblate: Chinese (Simplified Han script)
+3964efe94905d4c120bdc2fdcd3d1f1bf43640c7	2026-08-06	Weblate: Chinese (Simplified Han script)
+e97e5c9ccf5b3bb97598bed483863d881e779542	2026-08-06	Weblate: Bengali
+fbbb1034f8f5f6d69e16a86f57f47b036df2f0f0	2026-08-06	Weblate: Chinese (Simplified Han script)
+000e593c3b557c5f02a2d5a413a6f726ca665a5c	2026-08-06	Weblate: Turkish
+e45c3948e59ba7487d11505c8949eddc501dbf12	2026-08-06	Weblate: Turkish
+d729a19794b83b0446da8de1238220f261d0e4e7	2026-08-06	Weblate: Turkish
+561480c8c2d0b66b669cc6c1a8f839d3c66af84c	2026-08-06	Weblate: Turkish
+f5ef7cb131b42f5cce0ed931a17753bb938e260d	2026-08-06	Weblate: Turkish
+2d950cf3d390268d5acc3686519ed2c3801253b3	2026-08-06	Weblate: Turkish
+446b83c638b8165297f4766956ed2cd2db4d8bfe	2026-08-06	Weblate: Russian
+54980bd15db27e601cb8a0ef9f823bbff08f672e	2026-08-06	Weblate: Russian
+c5b5f1c1124905bf12b84a3e43d7457a617f0f0b	2026-08-06	Weblate: Russian
+def93be7f9dff142028b71e0321ef28f8f919bd6	2026-08-06	Weblate: Russian
+3349e036fbe4c4d8f0a70c01301ea16bb451fd10	2026-08-06	Weblate: Russian
+b8889f02ceb9eb2da5a30b8333161cbe90fb3473	2026-08-06	Weblate: Russian
+6dd1668260649c98695c9e9b13c6e9034a7a2e9f	2026-08-06	Weblate: Russian
+38c0dc5283f110f0251585ceb1e34f7662d62c87	2026-08-06	Weblate: Portuguese (Brazil)
+7bb9a8f8e883c11223e346b907786e1594a5e810	2026-08-06	Translated using Weblate (Portuguese)
+4b79f304d0f6abe582eb6ad8794f269964f43814	2026-08-06	Weblate: Portuguese
+000653b8afa64a8b76c74ddeca1efc977046f12b	2026-08-06	Weblate: Portuguese
+06e062430461902491fab843d59aa3c68c2de2fa	2026-08-06	Weblate: Turkish
+c0c283ecce5b847b1debda28f079732cf38dcb97	2026-08-06	Weblate: Portuguese
+278d9f68ea197813a169703d81aa762911d1bc90	2026-08-06	Weblate: Portuguese
+23813aa5e390fd21078216465a655a85a5608f3a	2026-08-06	Weblate: Norwegian Bokmål
+efd5de0338e1b1b314e8832e4139020220222ded	2026-08-06	Weblate: Indonesian
+49808571f8168743f0614f12a9a06c4958306b65	2026-08-06	Weblate: Indonesian
+783fc8e0651ea0da8af393a7fe7566f7b7918a6b	2026-08-06	Weblate: Indonesian
+5b939b8b7cae81effddb829690234d4bb334a6c8	2026-08-06	Weblate: Indonesian
+93c9d8e5f537aa1b2a959d6f18b6a1674d3edeb3	2026-08-06	Weblate: Indonesian
+9775bd020a3db9195c7a5b353eeae3594bd2d167	2026-08-06	Weblate: Indonesian
+cc1250db33ed6ea441f9e8fe5b1f572649679878	2026-08-06	Weblate: Norwegian Bokmål
+b53eb6aca8111605f637da2e047ab509580fd3e7	2026-08-06	Weblate: Indonesian
+0d313b9459c499cb32511ceec26b42758958310c	2026-08-06	Weblate: Indonesian
+49b02a988d0e4b0e93a22f74f8b143b076a2484a	2026-08-06	Weblate: French
+837698ae98ca4ed877d9b4979704e4fa55c34a4c	2026-08-06	Weblate: French
+fffde9771b4ca5289d5b1419634a9b3330b8d305	2026-08-06	Weblate: French
+be0a955f132fa54fbee0d1a2fce2f4ddf6d9424c	2026-08-06	Weblate: French
+78d5f1b77c02de25e1c400d83bd8323128d9230b	2026-08-06	Weblate: French
+5c394f6b32ccd651c4bf5e31c9dddad25293c529	2026-08-06	Weblate: French
+0158487ab8b4666283cec05f09ca03403494d6e7	2026-08-06	Weblate: French
+74b079161aa252e7b7bb04d9f2524e33d11c623e	2026-08-06	Weblate: Persian
+fbf835142b648b6b7ce2c4db293b79d0fcc283b7	2026-08-06	Weblate: Persian
+0ee65c88e47b9cf372d7470384bb48cf24314b37	2026-08-06	Weblate: Persian
+85772dfc957ad215b04c8dc9ff9cb5a371dfc1d2	2026-08-06	Weblate: Persian
+a24413f0473717a24ca78a1ff07549c7b8873020	2026-08-06	Weblate: Persian
+15a4c1ae6a20f774734b9804dcd8228d0f19ec90	2026-08-06	Weblate: Persian
+8b8eaa0158179b681d59b7636705e79d0d1923a2	2026-08-06	Weblate: Spanish
+4517d118bc9d4b1d24cd77ed60727158cf221427	2026-08-06	Weblate: Spanish
+6f743ac9a7575b3510def951d94ed9625f15f369	2026-08-06	Weblate: Spanish
+ec09f0c8e09f1b12ff09862a3231768a1a6ad73d	2026-08-06	Weblate: Spanish
+9ccd6e4ec11b4be59e4c8fb96de7bdafe54e2637	2026-08-06	Weblate: German
+c56130765faeb248ac0648e9a8df8d6843315ff8	2026-08-06	Weblate: German
+24c3e2c49d199537cffcd6f4a9370a711750ddfd	2026-08-06	Weblate: Polish
+a7e6c4a7c5ef4a15eec6344ab089af920a341e25	2026-08-06	Weblate: German
+f39d1385f2fba8f798f8538e3fc6f33a18674157	2026-08-06	Weblate: German
+7f72103d326c1e26e50245d40f998a82131e9977	2026-08-06	Weblate: German
+2f6d78c4ac128f5a2a859b34f25899a009f6dcf5	2026-08-06	Weblate: German
+d223c13c53850bbd15becd7ded8f762209a63c3a	2026-08-06	Weblate: German
+acd25356deb45f82dd03cb9a2d167358d8f47e36	2026-08-06	Weblate: Persian
+c7035b02bbda5a11d70044151d5eb6bacfba7af2	2026-08-06	Weblate: German
+4ca151d8c0759cf7fdaf7a06198337cfe71c1186	2026-08-06	Weblate: German
+9632af0d81da0bab80d09537f2d8ecc33ead209d	2026-08-06	Weblate: Arabic
+8662c481c10d8455955f246f638db1f7504b8ed4	2026-08-06	Weblate: Arabic
+d9e74866adda60f1bc4d48752bb7b1768b867e69	2026-08-06	Weblate: Arabic
+c19875745ecbc5b108eefcc34df1cbbfb103fa40	2026-08-06	Weblate: Arabic
+b9570a492b139e561a828a62182063bd25883fa5	2026-08-06	Weblate: Arabic
+4d4277ebf93aea579118ed5c664a541c351d1d81	2026-08-06	Weblate: Arabic
+62bffddcd5eb32a06d9a3988bbe8750754926aa3	2026-08-06	Weblate: Arabic
+d16aeca4b6bc266282dfb6a796cf376620353fc6	2026-08-06	Weblate: Bengali
+3fe176ebea49f7957d287262e049ea86695da422	2026-08-06	Weblate: Add Burmese
+026842243760d21b2666e95f1ea6c455d716d779	2026-08-06	Merge pull request #2954 from hussainmohd-a/dev-v055y
+575605e039f0df503b13cdfa8f9daf2de3e33dc2	2026-08-06	tests: more tests, adding benchmark testing; pass1
+97d498c1f88caab054f1a30fe9b8dd37dba1b3de	2026-08-06	Reformatted ic_log_lifespan.xml to match format of similar files.
+beda6fbb8318417f5bc4c07cc5900b3031d93ab6	2026-08-06	Created unique icon for log lifespan option.
+b0844d6376d419da58bffb44ff4b7ffdd07eb7e7	2026-08-05	Created unique icon for log lifespan option.
+8a1a819cca1b25ac5b31f231f4db9ee6f83d54d3	2026-08-05	test: cover getAllowReason
+6eb8383c70024bc62e526d8766820487df1c5803	2026-08-05	Save app notes with the DAO update
+0f9eb4388595cf637e0fbce65fa21f8081413f85	2026-08-05	tv: move sources under com.celzero.bravedns.tv
+ca2ad8b5a2cf0ca0d73165240c676d0282f3c168	2026-08-05	Fixed possible TypeCastException within notes
+d510cdc5819caea3399e1e4f43b44c5b163d3bd4	2026-08-05	Removed commented out code and put an import in abc order
+385b4739ef16e4dda0c00feabf2735bea144816e	2026-08-05	Changed string values to match better what notes is for.
+ba1224523a0f8d1f4f9094bb49dea1f6cfcd1be5	2026-08-05	Chip has proper touch feedback
+76b76c1c5de1bd378c3bd8f5191f3954ed90f2d6	2026-08-05	Connected log lifespan dialog options to LogLifespan.kt. Created default description for log lifespan layout. Added contentDescription and importantForAccessibility data to log lifespan layout.
+09e0e0e15712e07763eae9d006bde5ef00823308	2026-08-05	Gave each logLifespan option a numerical id to reference them more easily.
+4017493cd594f3bb413fdc83a17c5e6a7c44b612	2026-08-05	Created enum class called LogLifespan.kt in order to transfer logic into one class and to simplify changing and adding lifespan options.
+ed715d6949ea6f1138d200fe1b0a3cfbeb2c51ba	2026-08-05	mark Gradle wrapper scripts as linguist-generated in .gitattributes to avoid showing changes in PRs
+1fb6ad9d4bb00efd086a681bf8736e251842363a	2026-08-05	use layout.buildDirectory instead of deprecated rootProject.buildDir
+79686683cb101500a6904766dd796073fe0fb801	2026-08-05	bump dependency versions
+9eef254b31bd11c809316070894e07a5a2643194	2026-08-05	update ksp to 2.3.9, migrate to androidComponents and kotlin compiler options
+f2f50e10bc7661d6ed5eee0598717631d1bd31dd	2026-08-05	move repository management to settings.gradle
+89b34d09de344c1e341f36dfaf7d12aa6799cfff	2026-08-05	bump kotlin, agp and gradle versions
+c4f0ac998b882768e7484f3820877f72c8aa519c	2026-08-05	update Gradle wrapper scripts and properties
+49e8559c2454523975384c4a7f9f3fcd09782929	2026-08-05	logger: add addl params to error reporting
+76e0d302ece8c7b5a8ae5cf028ba3752d493ab7e	2026-08-04	fix: fold the allow reason into the existing rule chip
+cd0088cecc9b806120f841620e6e7fa57b0e7ef5	2026-08-04	addressed all github bot issues
+17a42405cdfa6803e3f0297cacc7610db71d2b10	2026-08-04	Merge pull request #7 from ayeeeruben/dev
+2f38474292afa89f81f30f480866236c9db88aeb	2026-08-04	Deleted extra space in strings.xml
+e9f65083635ee4a1291e823d7043a6e1fbc53bbd	2026-08-05	firewall: add app-specific domain rules from dns btm sheet
+b34060704d8680a3aa360f389393de549384ee74	2026-08-05	ui: fix potential index out of exception
+2ef4bfd8be373f0b3dc4254173a6bf351132a85c	2026-08-05	fix#2950: use firewallMgr to clear rules instead of direct db access
+eac68982e444df5676995a467b1d24b2391502a1	2026-08-04	Merge branch 'celzero:main' into issue1178
+9eb86f3445651041ab05e7b37fc86c431bac7c8d	2026-08-04	fix: shortened purgeInterval for 1 hour log lifespan option to every 30 minutes
+7e32101fd7dd5ab517ea821e7a3287ce0f86dd0e	2026-08-04	fix: shortened purgeInterval for 1 hour log lifespan option to 15 minutes
+8df88defa03f45524074f0a513205f4237eb437f	2026-08-04	fix: WorkScheduler now uses existing koin singleton for persistentState
+14da392b8baadaea2c3f64e00a27aadacc7509e4	2026-08-04	chore: deleted dead constant NUMBER_OF_DAYS_TO_PURGE_EVENTS
+22e60a6d8fb36cb0031354ff632330288f54c7d0	2026-08-04	fix: settings log lifespan dialog options are now derived from the same source of truth
+658395acac66435375f72db3e1d0acc7a4d0c779	2026-08-03	Merge pull request #6 from ayeeeruben/fernandov
+3266f88c99e5e25e767712781cf4cf3bc7f7e0d7	2026-08-03	Changed the look of the Notes chip to make it more like other buttons.
+6a40613e5e1a3cf3a3d668f288aa0c0c3700a66e	2026-08-03	Only adds a column when it's missing in the database
+160b77c5db75d1d4f54de30dfeef4a36ad1a89ae	2026-08-03	Fixed bug where it did not save and went back to app selection, since we changed to viewModelScope, the database was not up to date with the changes.
+2bc2749622cb67f23014e8191a668d018666a869	2026-08-03	Changed from lifecycleScope to viewModelScope
+b9a82818d991e6a59e6cda73996a4bb858432582	2026-08-03	Changed updateNotesChipVisibility() to showNotesChip()
+f33d76cd2620120edd7423882fdb01f3d467de9b	2026-08-03	Merge pull request #5 from ayeeeruben/sorting-feat
+67002baa174d829c2b46d4ec2c826501f6e691e8	2026-08-03	FIX: Update app info display and replace sort strings with enums
+607e3fa1354de862c92a4fd630d1b223debb79ac	2026-08-02	Merge pull request #2938 from hussainmohd-a/dev-v055y
+9b79bc2741e041c0883bcee8155125d37d35260b	2026-08-02	v055z: bump firestack build version number
+ebbb807c49d8eb3e767e9026c38e869f60be492e	2026-08-02	gh-actions:  /ocr trigger for ocr.yml (#2937)
+b21b857f0bff480d18eb57b8d75834545799b825	2026-08-02	Merge pull request #2935 from hussainmohd-a/dev-v055y
+b8a4947d0351c4a4ca3f5da92229d1eada31d168	2026-08-02	Merge branch 'main' into dev-v055y
+3b5cf289da3b8a41f181ecbdf7676184792e2164	2026-08-02	gh-actions: ocr handling closed PRs mk2 (#2936)
+e01ff4da56f10b71477bd8de2d2177caa14607e4	2026-08-02	review: rpn, readability checks
+1b107f0e8024078876ae20920b74edeed05f5d0c	2026-08-02	review: fix the tests for GoVpnAdapter
+de62bc8ba38740669b7bf3d5508013c9a9f6b43d	2026-08-02	review: fix the rpn related deviceId fetch
+e68dc156f181cf28de2ba5819dffb65de9dceb47	2026-08-02	review: fix comment
+79c0d6af6ad2d3ef6f90897b96bfce7ab052fa78	2026-08-02	review: rmv unused drawable padding
+19a3687d5630f9090f7495736293d46c06b38139	2026-08-02	review: match log char with go-val
+fc285eab8d7bab514db0203d110191350d76f90b	2026-08-02	review: fix possible cause of TOCTOU in RpnMgr
+381ad34394205c4685bb9a7fdeba9e39d9058be2	2026-08-02	review: log fix in TunDnsManager
+15192dbb9da413b47700f06b94d901331b2f7255	2026-08-02	review: catch cancellation ex in GoMemLog
+f3187401d790a50ea206fc960a5eac66b5af6301	2026-08-02	review: minor; comment update
+3c6d0a1f0def9b74f72bbeeb7dc728eb31c036bc	2026-08-02	ui: viewmodel err hadling
+67fd738e96c7eaab85de32a90805febae0c4ccd8	2026-08-02	ui: entitlement minor ui fixes, post review
+9a57fb2ed1f9f1900460974a9a7a0375dc9c9f00	2026-08-02	ui: use app:cardBg instead of android:bg for cardview
+6f2ff45fc64611cf7df3074487d8f2aa7c9396ce	2026-08-02	minor: rmv time calc from RpnProxyManager.kt
+376ddee42f442805d73084423407f6b596218b49	2026-08-02	rpn: fix rename const values in play build
+87bafbdb98a549534e9714fa8298e51d020aed60	2026-08-02	vpn: rmv exec time calc, use internal lib
+9789ba910fa2c8b4eda6ed8008b5fbb89982f2a3	2026-08-02	vpn: calc exec time only in debug
+0c15ed982b28ddfd4091b2bf96366e283c6dc0e2	2026-08-02	build: bump firestack version
+9bc66e755dd1e96ed32862bc6685a62996967c04	2026-08-02	ui: rpn setting btm sheet, match card bg
+05ab5057e151474445b7449f1cc77b49c36d6262	2026-08-02	ui: add borders to info in entitlement btm sheet
+9e9e265745ff00e9072bad7e9dc0303e9b17b1d4	2026-08-02	rpn: registerWin api change, entitlement compare
+f252d69b57b557a61c511d8c4c55afb3bcbd4a4b	2026-08-02	ui: update emoji in rpn server config stats ui
+5e2df7aa70973f18571c6fd57baad4215de7e4ae	2026-08-02	ui: rpn server detail screen, stats revamp
+ba4a2d0ab1b41a5aafb3a6472b0c93fe82645d65	2026-08-02	logger: rmv netlogbatcher on go log batch writes
+75293fab92a3f58b228a60f791f399ec5a553e9d	2026-08-02	logger: rmv netlogbatcher on go log batch writes
+b0a4a974b341053f56ec2e272efdb3b89654b6ce	2026-08-02	vpn: print exec time for onQuery in debug builds
+2ba93b91c2f77863598f1bbd9dc4011aa82e9d9e	2026-08-02	tun: readd wg/rpn in case of status is null
+66f5d0cf463af643c2f92b4bfa361c5bdf28132a	2026-08-02	rpn: use right base and fallback url for prod & test
+6cc3a09c22a5778cd79783ae48c6b9077be66924	2026-08-02	Merge branch 'celzero:main' into dev-v055y
+d9140d3cbe09ce5e5a9411b7bf0a111993f4eebd	2026-08-02	gh-actions: closed PR branch ref for ocr (#2934)
+424ca05cee82ee52b36755d294deef9ff43cabf3	2026-08-02	Merge branch 'celzero:main' into dev-v055y
+fd928b1d631075e241d6a588c6e4592f6c8738f6	2026-08-02	gh-actions: opencode review (#2932)
+d6d4862919e5a759bb490f4fd86a900cd7247afb	2026-08-01	ui: add new icon for about-profile memory
+dc3fdb703ce9cb85d5ab6663d18efc12cc74629b	2026-08-01	filetag: update latest filetag.json in asset
+97b9958b8ad703b645519359fa9fecd6404456ae	2026-08-01	vpn: bind/protect changes, fix tidcsv in DNSOpts
+e65626905bd37c40a868a838e84bfbe240deaf2b	2026-08-01	ip-domain rules import, pass3
+36fc92679b30eec36b6fb8dc35aaec989b9afa7c	2026-07-31	rpn: mv enc file to locals dir, handle errs
+4ef94f3060b4db0970b31d826f5d642305f44ed6	2026-07-31	vpn: rmv execution time calc from logs
+3029946ad238adebdcac9e45940fb0cff0322277	2026-07-31	Merge pull request #2924 from hussainmohd-a/dev-v055y
+72bb653a06a1cb67de20275eaa4e72208440f439	2026-07-31	Merge branch 'main' into dev-v055y
+5fb4646185c6fcf4b45ec7df7e9047179bdc726d	2026-07-31	vpn: skip protect/bind when proxy is exit and rinr
+5300b465e449b0f2f695cd029d2ea9371940615d	2026-07-31	minor: fix comments
+6f545ff776320a2fe9b1b5d579604a5f110dae27	2026-07-31	ui: rmv hardcoded content-description
+e26aed3017092f9af8f6db557108aeda7b0cc387	2026-07-31	vpn: add nw pause/resume automaton in serializer
+7e06f7fc56faf0ceab2cd5e92fd087570fa13d54	2026-07-31	vpn: add nw pause/resume automaton in serializer
+23fabbb77cd4fe257846534eee4d5aec33020f36	2026-07-31	vpn: always unlink before tunFd creation on lockdown mode
+94cba6770a68a9e306508bdbace9657b2667328c	2026-07-31	tun: split refreshOrPauseOrResumeOrReAddProxies() into two
+b1d2857536eff1c3fb796c86f2abfc426dbdddd5	2026-07-31	test: add missing methods in NoOpIpTree
+1a8d18570ec6543765257b504274187f21258010	2026-07-31	handle nw callback reg of wifi, mob separately
+26e4abf79975140286a1364fa79a3943de00a389	2026-07-31	ui: fix frost override on home screen card color
+14adf36eb5346739392db92f661d30b866f0a082	2026-07-31	tun: dns; simplify no proxy check
+70bb0ce98e9e921926e4159de9d651c5dd2bc05b	2026-07-31	ip-rule: fix bulk import, pass2
+d5a95ee0c456a6d77527e46da95480bccadf2f0e	2026-07-31	ui: fix correct default value in xml
+b6d7a5e6f1eb63a61add4dae76b9aeadbd0d03b0	2026-07-31	sponsor: option to sponsor again
+e3cadd2c8d0f10d5c1c7a9656c80f6ededd744b2	2026-07-31	ui: anim visible atleast for min duration
+7b92ee20f3044121de725fe190e69d912fcad33c	2026-07-31	minor: comment update in build.gradle
+a49191be9c3506450808ced6bc016d0d633c5f42	2026-07-30	strings: string literals for v055z
+45a5beaa9e5a9b7b575449b433702eb3a520edb8	2026-07-30	build: bump firstack version for v055z
+5581fd69c02cde9dad13acdac349927ac0c5cbbc	2026-07-30	import: bulk import option for ip/domain, pass1
+bb32edbc3f19c75ade846d12094507dcbd718da4	2026-07-30	ui: fix wg, rpn detail screen titles
+c04ff22e88923e1c9bc434cd95cd3143a0379209	2026-07-30	minor: update comment
+23eddd239c0ec45ce738c3fd50088c6ac7d739ea	2026-07-30	vpn: multiple improvements for v055z
+16e78dab5bdd225ed4ddffb8903762b4d507a455	2026-07-30	ui: attempt to make home scn tile more frosty
+6e7be7f8ac1d7b2d7fe74e0a0c151f9e5411bb1c	2026-07-30	sponsor: fix multiple products handling for sponsor
+f178637a4c1ef79fbff62db93ad1b4533194ba89	2026-07-30	ui: adv setting to override pt mode
+baf25c724a4507c8a974be56e7a5b2193648cec6	2026-07-30	ui: fix ip not showing properly in rpn server list
+7bacdc9dfe216648b0803ca05b03c0669a98f98d	2026-07-30	ui: refresh option in home screen btm sht
+d54bcacb8b9825094b6c7f90d5f7d4b8315efeaa	2026-07-26	wg: fix the check for selected proxy is wg proxy
+d20e98bf3fe0589a3a087e80aa83403a17a6054b	2026-07-26	ui: minor, add lowercase to status text
+7c59e18d7fe8d5cdf419358e23200939c60fb6ab	2026-07-26	ui: make msg selectable in dns btmsht
+91d6bbe036645dfb50fd7f541e5ca329874a03b6	2026-07-26	force-egress: impl two new modes FORCE46, FORCE
+d7e06dc0f8e21fb2c2c7bf615e7d18cdfa65ba03	2026-07-26	vpn: rmv channel used to track the vpn state (new/pause)
+2ef0c2e13ecdf2e40ec5b017018624423e6a38c5	2026-07-26	logs: fix console logs pause and search during pause
+2dde8ecabb35f6d75829020ee874e8cacc5b7c0e	2026-07-26	ui: add spacing between flag and name in rethink dns list
+76287a5be5e8bfe2fd28a69f0231af224894c6c1	2026-07-26	ui: change sponsor badge in about screen
+7cc815b3e1add88024964ff7bfe11a29c272e836	2026-07-26	ui: server list screen hero banner spacing fix
+4ac3e993b67f5300ac565a179f26450f9d2dd3c8	2026-07-26	ui: add skip exempt option in rinr btmsht
+c8862de9a08330ab7d0295c23f1155a50e8df1cc	2026-07-25	ui: home screen revamp
+fc70808ef0f440250cb1c736dc10e4cb3dda1474	2026-07-25	ui: show flag for rethink dns
+bc94b60b06c19454e0bfbc134a36aab3e48e2cdb	2026-07-25	ui: about-stats, multi selection copy
+5ad1579a1682319628b62afa50448baa60c39692	2026-07-25	ui: fix sponsored badge alignment in homescreen
+7a13a3bed1852cd8abd75f110fa66b79c18783e4	2026-07-25	ui: material3 design change for app list screen
+f276203ffa019d77e880bc666af03a49489b6243	2026-07-25	build: fix build failure in github actions (#2914)
+1b705c802cd7ccfc5b234a261180ba7fb6ce942c	2026-07-25	build: fix potential npe
+e08fdf8907df4c406674c975a172ec0b9e19cf5f	2026-07-25	build: fix typo, comment
+934097ec81a8fdea842e41d7fb4abc3f1bc6184e	2026-07-25	build: fix build failure in github actions
+e10de192a3cb7649491f6d42b03fb41a9d37910a	2026-07-24	Merge pull request #2899 from Surfoo/patch-1
+801a89b42db324d1f019f688722a777c6c468766	2026-07-24	Merge pull request #2912 from hussainmohd-a/dev-v055y
+1d9c810b9dae13491d6243b8f65c42b0d7ea5dd4	2026-07-24	v055z: bump version code for v055z
+c39d6fa300ab771984fc668823d9d33f06375110	2026-07-24	fix: #2913, rename fallback to bootstrap
+f95029046d8b04f709eb3ae4396b49f43ce586d7	2026-07-24	strings: string literals for v055z
+90b550be67e3dcab21f653944d5651b935f38823	2026-07-24	tests: more tests for rpn, state machine
+6cd3a121946386942e2ee992f9babd0c122087a1	2026-07-24	ui: manage rpn ui overhaul, err handlers
+6851dead584d107e5c8f7322806d2d8e570cfb49	2026-07-24	rpn: improved logic, better handling of payments, rpn servers
+92622767fd35154ed2a1cdcc78651132fce7700d	2026-07-24	alpha: no need to check for services.json for alpha builds
+6cfde5e82bd52d13a3822479d9e1f879c263bdf2	2026-07-24	sponsor: limit number of products in play console
+2978fc25c906ff939d4e4c3747571d220ef2c945	2026-07-24	minor: add logs, reorder imports
+e805f4ab50c1683dbe1976b6883a33a9bf84c22e	2026-07-24	rmv unused files related to stripe
+16dc4b8c87f1084703ee729024ff7febfb8436df	2026-07-24	build: add services.json based on the build type
+1e35581035ceb0c7f18064c2beea3f483fdee845	2026-07-24	misc: change fallback url, rmv usused xml comp
+040955374c8e72afe58bcbb9478158a723145cf0	2026-07-24	vpn: multiple improvements in vpn service
+95797ed41ecb674e6a7cea163882bcc9740b86ea	2026-07-24	impl: improved bg location handling for ssid
+469c449b99dc0aa18a2194455785ea6a64466503	2026-07-23	encrypt: better handling of i/o errors
+35ed2e4100405c46303e709756417131f0dcd69e	2026-07-23	db: better handling of db initial load, add v31.db
+4d653d761b0ca7c11aff07d9d4f10550418e86b8	2026-07-23	ui: style for slider used in sponsor screen
+96535ea529adbdd14a084571546033a3dafffa20	2026-07-23	tun: dns-ips, mem-prof, rmv unused methods in vpnAdapter
+a3f3b42e086eaee7205077757379a1877908e272	2026-07-23	controller: add new api accessed from ui
+5ca1d8ef31e25a2cd2ceb4408497950bb93ed95d	2026-07-23	tests: rmv unused methods, log pkg fix
+128779314d3dbb5fdfa8a97c82cdab92cb085ba4	2026-07-23	ui: home screen dns stats changes
+1c6508a049682fade290aed60a658060c453060d	2026-07-23	ui: make console log item selectable
+2e5391ba21788539d71e7568c86e30a2590d3d0f	2026-07-23	ui: rpn screen minor improvements
+b8e018fb24d1e0feda7420780d41f45bd542cf70	2026-07-23	log: assign proper package for Logger.kt, optimize imports
+6046503cd74c4069bbd5f3340a3774ba7e80734f	2026-07-23	impl: add missing dao for sponsor
+81e124d3494cd0161da597f8e537f39fb7480329	2026-07-23	impl: show list of possible blocks on global pxy lockdown
+24c07dbf205f8abc0fa4fab6745761e592f4b87e	2026-07-23	logs: improve network logs after merging rethink logs
+9d8bdcd54399e04552286e1a4e49fd931244b819	2026-07-23	stats: more stats in general tab
+bd71dcd8ae95d8e78e023b779cc99543f832c0e0	2026-07-23	minor: use already available method instead of direct api calling
+e48192da7d6cbbac569e151055bc74181bfd27a6	2026-07-23	impl: sponsor from google play instead of stripe link
+33537b5f1d5e72e4a973ab7b933f7d1394bcf2b9	2026-07-23	log: assign proper package for Logger.kt, optimize imports
+3ed5d468d010d19cf17ffc0ce024ea4b632453cc	2026-07-22	update: comments now reflect code changes in PurgeConnectionLogs.kt
+d5f5261c2418d203dd383233c852bec3c2439348	2026-07-22	fix: changed hoursToPurge to positive value for scheduleAutoPurge function; negative value led to forced event log purge on app restart
+dd555b71860a8eb6c9db34cd4c0b208d0e03eedd	2026-07-21	dns: api change for ips fetch from tun
+15fd0f08e568b80e770970d6ccfb50f2f1430948	2026-07-21	mem-utils: show mem info as is
+519bdae2f05c4addf310599bd3c1258519714197	2026-07-21	logger: add addl check on closed loopers
+86150d37130d422b42e8152f1d67cc42b755864c	2026-07-21	firewall: consider uid is firewalled when both wifi n metered is firewalled
+5782f240359939b2025f6067dedb5b78b5a5bca4	2026-07-21	fix: #2321 retain state on wg edits
+7947852d14a03e663601e9decfb67123774912c1	2026-07-21	ui: fix recycler animator in rethink dns list
+bd4b697915800e96ae166f54847d9d59d8f37c37	2026-07-21	fix: remote blocklist not selecting proper list in advanced mode
+98b6c3ffee22724a7a2bca2c1b8e7d7a967cee60	2026-07-21	ui: improved frost theme
+12811c830147b11c60ed911fff0099b1494a4e27	2026-07-21	fix: remote blocklist not selecting proper list in advanced mode
+055eec7d1f53e7dd4fa25af369dd61621db912a7	2026-07-21	tun: rmv updating dns status on each requests
+cb26696fdd41029e0bdd98a24c410300711e6eb4	2026-07-21	ui: show flag for wg list
+864899148b8c9cade02f2e65e46c8956499d8b6e	2026-07-21	ui: handle uiCtx better in btmsheets
+e10fb19996bbfff5a89a539ea49c969da820a096	2026-07-21	ui: disable/enabled blockfree dns based on split dns
+c4a525486fe01af35985c704b9270c712d76e4cb	2026-07-21	ui: add flags to dns which is active / has preset ips
+0feeda74d4ae14abbbacccc8d0da619e930f01c4	2026-07-21	tests: add more tests, pass1
+7d1ab197194b54db0d7e4e18f6328d4ba0819402	2026-07-21	bubble: multiple improvements in handle firewall bubble
+bdea07fbeec594c0ca4e520904d70730ac1f4c0a	2026-07-21	rmv unused res, add more tests
+3d539ad74beb73f73b3208bc7b2d0893c0e267bb	2026-07-19	Merge pull request #4 from ayeeeruben/dev
+bb6707e714aa3c675f8f87acbb3fe298cc1e886a	2026-07-19	Merge pull request #3 from ayeeeruben/sorting-feat
+9d1a765d6025a056880910f28500b9ca7663bd14	2026-07-19	Connected Notes chip with database, notes now save when closing and leaving.
+a71ec48769a3f3ba2df73bfc871389e56e5d0d0a	2026-07-19	Notes added, trying to connect to database
+df8c374aca157a509c0032516df6626386362230	2026-07-19	feat: added sorting option inside the filter icon inside app lists. Should now support sorting with Name, Package Name, and UID
+33802184c2054fb455c8e3bf1ed0f3340b3130e5	2026-07-19	Merge pull request #2 from ayeeeruben/fernandov
+6e9a7cdbca6c0183ef83fa641c799cedce7fb36a	2026-07-19	Connected Notes chip with database, notes now save when closing and leaving.
+820553f9d97ee06479fac51ad15594ff5754c9b4	2026-07-19	Notes added, trying to connect to database
+f82b8fdcf6cb243e853e1350f83680f05a373aca	2026-07-17	Reschedules purge connection logs upon changing log lifespan.
+62637ba2f65b70e84ef95ea26777957649c4e291	2026-07-17	Merge pull request #1 from ayeeeruben/dev
+6c65631907246fbd032cd6b670c72cbc477143a7	2026-07-17	Merge remote-tracking branch 'origin/Settings' into Settings
+8d49a3f3fbe465b9141e8f257e0fd2f1cc1bb930	2026-07-17	Changed hoursToPurge variable in workScheduler to include shorter intervals.
+3cf6d1e9c7f18748f2e0f4378f794632e6be370f	2026-07-17	Merge branch 'Settings' of https://github.com/LeoPrissberg/rethink-app into Settings
+32d0cab4fc601e6ec921024962ae07016a4ce8a1	2026-07-17	update: changed event log purging to use same purge interval as connection logs
+cf7ffba11827c14134cba9a1acb3476bde6b36ad	2026-07-17	log-tracker: rmv unused code
+0ae5cd382699508f042fb1f760555a2cb57ae941	2026-07-17	utils: rmv redudant code getRelativeTimeSpanString()
+a0bcace7742b0c3a311115bc7bba104db3489478	2026-07-17	repo: new guard for update app
+f0e476bccef41cb34497863f15bcf487a7603ae6	2026-07-17	ui: ping test, all auto even when rpn is not enabled
+6f1154be9542fcbb2cfc45e78de373cbc77add8b	2026-07-17	ui: adv settings, flip ptmode setting
+5fe7b1c37a5aeb46ccdf39fad16c716cf9c56bac	2026-07-17	feat: added UUID to show along side technical name
+500049914fb7401c6738cf47d971e7f32bf5885c	2026-07-17	wg: stats, rmv unused methods
+3af7e6f6cf998e750e84144ca3ba5fcac391de8c	2026-07-17	proxy: stats, improve updateApps()
+a9066de4c8beab9fc85c0c133b0ba8514cd26614	2026-07-17	update: changed WorkScheduler to run based on user configured time intervals
+862c7c6e73c3a0ea29589ecbe0e555db0b12fb41	2026-07-17	Update French translation for save label
+fac57a556e69f76c2f0428f95c4b573a85e2bc9e	2026-07-16	update: changed log message to accurately report purge interval
+835774a9669fdfb0d5e3352dae5b005cb9eea997	2026-07-16	fix: changed daysToPurge to hoursToPurge to accomodate shorter purge intervals
+a2971946931c707dae251bdc06214e7e53c21a39	2026-07-16	Created separate icon for log lifespan. (Currently looks the same as the one for log level)
+ec3f4e5db39447d2f30b4e9919ac6a510267ae41	2026-07-16	feat: changed daysToPurge to be mutable persistentState variable
+95955a21cdb48a8be091274ad93626eeeb0a9654	2026-07-16	Changed variable names from purge logs to log lifespan for clarity. Changed description in Log Lifespan option to be current selected lifespan.
+dc4b2ea72fae156565b1d596ea914d763b7831d4	2026-07-16	Merge branch 'main' into Settings
+c9d0a3accee338371f48070fa96eabb85f80b855	2026-07-16	Saves log lifespan to persistent state.
+457b5541a25849472d438fdfd77c361100cfaeaf	2026-07-15	Opens popup upon clicking new button in settings.
+8206b362863e9cf2efb16e13007886e1e95054db	2026-07-14	Added new button in settings. Doesn't do anything yet.
+25332f4b6f0e1f8a7e950cb074779b7ee79d21cb	2026-07-15	ui: better handling of recycler views
+6b5bea5ef349f78e897b1794c45722ac55106782	2026-07-15	ui: minor improvements, rmv unused code
+160dd9aeb427da74342a601fd798ac493c5c1890	2026-07-15	ui: latency; consider cache+transport when dns booster is enabled
+2c9428a85eccc12dff93c3d79a4782aec85a9d65	2026-07-15	ui: revamp dns configure screens to material3
+30fbf0ff917139ca12c7aba16b65308f2b9b0300	2026-07-14	fix: index out of bounds on notify dataset
+7f8345ca7b4189ca5bd2cd5c2c0c1dcf2c37c5df	2026-07-11	wg/rpn: rmv client info from stats dialog
+90550740cb2b578c093ff9f649ad6c0e6693bf9e	2026-07-11	proc: rmv unused methods from KernelProc
+a90ce670b6257fae8101aefbbc9c60c588d0636a	2026-07-08	vpn: rename braveVpnService to rpn in VpnController
+2a49d2102e3d9f465693fb6ac8062c5d7f3fad34	2026-07-08	rpn: get status via rpn instead of proxies
+0bfcb39cf5650fbe32740f156e96cd975b042737	2026-07-08	ech: show emoji on ech conns
+e381d6c44c60787789cbeb210232a519d58271fe	2026-06-29	feat: surface allow/bypass reason in connection log bottomsheet
+59d2c9ce17c92c914bd26358d5213a3b151e9183	2026-06-05	tv: empty taskAffinity on TvHomeActivity (StrandHogg mitigation)
+387e9cc9fae41cc384019037b8c8fd4aca4905dc	2026-05-22	tv-variant: drop fork-only infra so the diff is upstream-ready
+59ef6e68f9f77a240070ef9d1574225aceee5c1f	2026-05-22	tv: fix VPN start crash + keep focus on the Home toggle button
+301c354d8740ca20cbc1bceadcad755b9888836b	2026-05-22	tv: add compose-runtime to base implementation so phone build keeps compiling
+212b03325cb4906be7cd3a33f182ecde7ed1eb57	2026-05-22	Merge remote-tracking branch 'upstream/main'
+342d4e6f7e9b54db75be25bd495314cc05f0a7ed	2026-05-20	tv: make Surface respond to mouse/touch taps
+7df8a8ad150499b6648edcd7318e154212975e6d	2026-05-19	fix(tv,nav): anchor rail focus on parent destination after sub-screen nav
+13f8914c6917452a57061c2601a68123a2e828c1	2026-05-19	fix(tv,nav): replace broken tv-material NavigationDrawer with hand-rolled Row+rail
+4980f755e9143551c285b9f716857f5dc5804852	2026-05-18	feat(tv,parity): wave 3 — diagnostics, drill-downs, custom endpoints, WG import
+60f56404e6c205b93466007d80e08bc436d09dd1	2026-05-18	feat(tv,proxy): WireGuard tunnel detail + SOCKS5/HTTP editors
+612170a72cf38ae572fe6bcd975277739cf251f5	2026-05-18	feat(tv,rules): custom domain + IP rule lists
+e3dba87e34f712591d93dd4f038faaeb7675d87e	2026-05-18	feat(tv,logs): free-text search + per-app filter
+d7c916c348fed95a581aca20d9add661718f1558	2026-05-18	feat(tv,polish): first-run welcome banner + consent-failure toast
+3aff1037c3cbe42d3a549920f4009fe82aae458e	2026-05-18	feat(tv,stats): top apps / domains / IPs / blocked tabs
+c3fd2d45d24bb03880499bb352667839a31c4f44	2026-05-18	feat(tv,proxy): WireGuard tunnel list + SOCKS5/HTTP/Orbot status
+fbab751520abc17e04ff698152f506eff13f0add	2026-05-18	feat(tv,logs): connection & DNS log viewer via paging-compose
+79590e0bd69d9fcbc9ec6ca76bf1cf313be6ec05	2026-05-18	feat(tv,dns): encrypted DNS picker — DoH / DoT / ODoH tabs
+3fab82c0a41cf098fcf808a96bf5daafe39b4526	2026-05-18	feat(tv,apps): per-app firewall — grid + detail with status selectors
+7f5c60ef4124cc7f1462c35917430a6a96b9dde7	2026-05-17	feat(tv,settings): expand to tunnel / wg / reliability / boot toggles
+4074269c063139ac3d58b9d0bafc1c1692a2d44f	2026-05-17	feat(tv,firewall): universal firewall toggles
+82fdfde5b6801277383b95553453e049f4981922	2026-05-17	feat(tv,home): dashboard cards — status, DNS, counters
+60cb86e685a9da21d83b392a2c2d9d3a8e6f4e59	2026-05-17	feat(tv): reset UI scaffold and add 8-destination nav skeleton
+4a57b258a17d088f1bfc7541778c74ccbe4cd32e	2026-05-10	fix(tv): live UI refresh on Streams + initial focus on tab row
+40aebba5dcb83d72ce0f126df3fc854f4494315b	2026-05-10	chore(sync): warn on AndroidManifest drift between full/ and tv/
+ecf2e009f147a4dcc34ceefd52adbebcdbaef45e	2026-05-10	feat(tv): Streams tab — per-app VPN bypass for streamers
+8a6d7adfc78abb3530c102a9d07e8f26da1f751a	2026-05-10	feat(tv): add Tab nav with Home / Settings / About destinations
+3f5fb4e880ef35e86ace65714453e739417b39e1	2026-05-10	feat(tv): Compose-for-TV launcher with VPN start/stop (Phase 5 MVP)
+8e56a7e3cd766d88267796e10b56ad4042c02d0d	2026-05-10	ci(tv): add workflow_dispatch trigger to Android TV CI
+c992906f50716cde4c856f744d68d05ccbd259a7	2026-05-10	feat(tv): add upstream-sync tooling (script + workflow + docs)
+c61312f6186f54359c174363a76aa42596277c3a	2026-05-10	fix(tv): replace backtick-escapes in build.gradle release log strings
+33e3893d6128654e450c885c9e881391fb0aa854	2026-05-10	feat(tv): add signed-release pipeline for fdroidTvRelease
+43b5b9a7feaff52aa403faeab7ad5be2608d2578	2026-05-10	fix(tv): inherit full/ source set to resolve KSP Room error
+8c5e6b1a84587d27d167e57942b3282ac7ff2fb3	2026-05-10	ci(tv): enable --stacktrace on TV CI build
+ea2cd8df7bc9c2736e68ded4f6f91be28d28ef29	2026-05-10	feat(tv): add Android TV product flavor scaffold
+046427bed46f40fb1ec00cc7f5d8aaa7c9def401	2026-05-10	docs: mark this as a fork of celzero/rethink-app for Android TV

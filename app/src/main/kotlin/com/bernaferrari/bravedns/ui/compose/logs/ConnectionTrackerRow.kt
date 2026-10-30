@@ -200,7 +200,7 @@ private fun summaryInfo(context: Context, ct: ConnectionTracker): Summary {
     val meteredLabel = stringResource(R.string.ada_app_metered)
     val durationText = getDurationInHumanReadableFormat(context, ct.duration)
     val download = stringResource(R.string.log_data_down, formatByteCount(ct.downloadBytes))
-    val upload = "\u2191 ${formatByteCount(ct.uploadBytes)}"
+    val upload = stringResource(R.string.log_data_up, formatByteCount(ct.uploadBytes))
     val metered = if (connType.isMetered()) meteredLabel else ""
 
     if (ct.duration == 0 && ct.downloadBytes == 0L && ct.uploadBytes == 0L && ct.message.isEmpty()) {

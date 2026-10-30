@@ -429,7 +429,8 @@ private fun RethinkAppNetworkTile(
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = SharedDimensions.spacingMd, vertical = SharedDimensions.spacingMd),
+                // 16dp in from the start, like the list rows' leading icons below it.
+                .padding(start = SharedDimensions.spacingLg, end = SharedDimensions.spacingMd, top = SharedDimensions.spacingMd, bottom = SharedDimensions.spacingMd),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
         ) {

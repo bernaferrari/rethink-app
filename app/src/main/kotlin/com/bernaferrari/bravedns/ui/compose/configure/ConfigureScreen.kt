@@ -95,7 +95,7 @@ fun ConfigureScreen(
             add(entry("logs", stringResource(R.string.lbl_logs), R.drawable.ic_logs_accent, onLogsClick, keywords = listOf("logs", "events", "console"), accent = ConfigureAccents.logs))
             add(entry("anti-censorship", stringResource(R.string.anti_censorship_title), R.drawable.ic_anti_dpi, onAntiCensorshipClick, keywords = listOf("anti censorship", "dpi"), accent = ConfigureAccents.antiCensorship))
             if (isDebug) add(entry("advanced", advanced, R.drawable.ic_advanced_settings, onAdvancedClick, keywords = listOf("advanced", "experimental", "debug"), accent = ConfigureAccents.advanced))
-        }, RethinkConfigureLayout.List),
+        }, RethinkConfigureLayout.GridFour),
     )
     val deepSearch = buildSettingsSearchIndex(isDebug).map { source ->
         RethinkConfigureSearchEntry(

@@ -8,6 +8,7 @@ package com.bernaferrari.bravedns.ui.compose.statistics
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -71,7 +72,7 @@ private fun AppConnection.toRethinkDetailedStatistic(type: SummaryStatisticsType
     val fallbackName = stringResource(R.string.network_log_app_name_unknown)
     val title = appOrDnsName?.takeIf { it.isNotBlank() } ?: ipAddress.takeIf { it.isNotBlank() } ?: fallbackName
     val metric = buildString {
-        append(stringResource(R.string.summary_connections_count, count))
+        append(pluralStringResource(R.plurals.summary_connections_count, count, count))
         totalBytes?.takeIf { it > 0L }?.let { bytes ->
             append(" · ")
             append(formatByteCount(bytes))

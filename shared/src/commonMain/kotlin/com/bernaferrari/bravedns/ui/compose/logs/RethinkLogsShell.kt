@@ -116,7 +116,7 @@ private fun RethinkLogsTabSwitch(
         onSelect = onTabSelected,
         modifier = modifier,
         fillWidth = false,
-        labels = RethinkChoiceLabels.SelectedIcon,
+        labels = RethinkChoiceLabels.SelectedLabel,
     )
 }
 

@@ -1,0 +1,1038 @@
+M	.gitattributes
+A	.github/.mobsf
+A	.github/workflows/android-tv.yml
+M	.github/workflows/codeql.yml
+A	.github/workflows/izzyondroid.yml
+M	.github/workflows/mobsf.yml
+A	.github/workflows/ocr.yml
+M	.github/workflows/sa.yml
+M	README.md
+D	app/build.gradle
+A	app/build.gradle.kts
+A	app/src/androidTest/java/com/celzero/bravedns/database/AppDatabaseMigrationTest.kt
+A	app/src/androidTest/java/com/celzero/bravedns/database/AppInfoDAOTest.kt
+A	app/src/androidTest/java/com/celzero/bravedns/database/ConnectionTrackerDAOTest.kt
+A	app/src/androidTest/java/com/celzero/bravedns/database/CustomIpDaoTest.kt
+A	app/src/androidTest/java/com/celzero/bravedns/database/DnsLogDAOTest.kt
+A	app/src/androidTest/java/com/celzero/bravedns/database/WgConfigFilesDAOTest.kt
+A	app/src/androidTest/java/com/celzero/bravedns/ui/CoreNavigationTest.kt
+M	app/src/androidTest/java/com/celzero/bravedns/ui/HomeScreenActivityDialogInstrumentedTest.kt
+A	app/src/androidTest/java/com/celzero/bravedns/ui/activity/AppListActivityTest.kt
+A	app/src/androidTest/java/com/celzero/bravedns/ui/activity/ConfigChangeTest.kt
+A	app/src/androidTest/java/com/celzero/bravedns/ui/activity/DnsDetailAccessibilityTest.kt
+A	app/src/androidTest/java/com/celzero/bravedns/ui/activity/DnsDetailNavigationTest.kt
+A	app/src/androidTest/java/com/celzero/bravedns/ui/activity/DnsListActivityTest.kt
+A	app/src/androidTest/java/com/celzero/bravedns/ui/activity/FirewallActivityTest.kt
+A	app/src/androidTest/java/com/celzero/bravedns/ui/activity/HomeScreenActivityTest.kt
+A	app/src/androidTest/java/com/celzero/bravedns/ui/activity/NetworkLogsActivityTest.kt
+A	app/src/androidTest/java/com/celzero/bravedns/ui/activity/ProxySettingsActivityTest.kt
+A	app/src/androidTest/java/com/celzero/bravedns/ui/activity/ThemeChangeTest.kt
+A	app/src/androidTest/java/com/celzero/bravedns/ui/activity/WelcomeActivityTest.kt
+A	app/src/androidTest/java/com/celzero/bravedns/ui/activity/WgMainActivityTest.kt
+A	app/src/androidTest/java/com/celzero/bravedns/ui/fragment/DnsSettingsFragmentTest.kt
+A	app/src/androidTest/java/com/celzero/bravedns/ui/fragment/FirewallSettingsFragmentTest.kt
+A	app/src/androidTest/java/com/celzero/bravedns/ui/fragment/SummaryStatisticsFragmentTest.kt
+M	app/src/fdroid/java/com/celzero/bravedns/iab/BillingBackendClient.kt
+M	app/src/fdroid/java/com/celzero/bravedns/iab/DeviceNotRegisteredNotifier.kt
+M	app/src/fdroid/java/com/celzero/bravedns/iab/InAppBillingHandler.kt
+M	app/src/fdroid/java/com/celzero/bravedns/iab/PurchaseConflictNotifier.kt
+M	app/src/fdroid/java/com/celzero/bravedns/iab/SubscriptionCheckWorker.kt
+M	app/src/fdroid/java/com/celzero/bravedns/iab/stripe/PricesAdapter.kt
+M	app/src/fdroid/java/com/celzero/bravedns/iab/stripe/RetrofitInstance.kt
+A	app/src/fdroid/java/com/celzero/bravedns/sponsor/SponsorModule.kt
+A	app/src/fdroid/java/com/celzero/bravedns/sponsor/billing/SponsorBillingManagerImpl.kt
+A	app/src/fdroid/java/com/celzero/bravedns/sponsor/provider/DeGoogledSponsorProvider.kt
+M	app/src/fdroid/java/com/celzero/bravedns/ui/fragment/RethinkPlusFragment.kt
+M	app/src/fdroid/java/com/celzero/bravedns/util/FirebaseErrorReporting.kt
+M	app/src/fdroid/java/com/celzero/bravedns/viewmodel/SubscriptionUiState.kt
+A	app/src/fdroidTv/java/com/celzero/bravedns/tv/ui/rpn/RpnPurchaseRoute.kt
+M	app/src/full/AndroidManifest.xml
+D	app/src/full/java/com/celzero/bravedns/download/DownloadWatcher.kt
+D	app/src/full/java/com/celzero/bravedns/receiver/VPNControlReceiver.kt
+D	app/src/full/java/com/celzero/bravedns/scheduler/PurgeConsoleLogs.kt
+D	app/src/full/java/com/celzero/bravedns/service/ProxyManager.kt
+D	app/src/full/java/com/celzero/bravedns/ui/activity/DomainConnectionsActivity.kt
+D	app/src/full/java/com/celzero/bravedns/ui/adapter/VpnServerAdapter.kt
+D	app/src/full/java/com/celzero/bravedns/ui/bottomsheet/EntitlementDetailBottomSheet.kt
+D	app/src/full/java/com/celzero/bravedns/ui/bottomsheet/ManageRpnPurchaseBtmSht.kt
+D	app/src/full/java/com/celzero/bravedns/ui/dialog/WgIncludeAppsDialog.kt
+D	app/src/full/java/com/celzero/bravedns/ui/fragment/HomeScreenFragment.kt
+D	app/src/full/java/com/celzero/bravedns/ui/fragment/RethinkPlusDashboardFragment.kt
+D	app/src/full/java/com/celzero/bravedns/ui/fragment/ServerSelectionFragment.kt
+D	app/src/full/java/com/celzero/bravedns/ui/fragment/SummaryStatisticsFragment.kt
+D	app/src/full/java/com/celzero/bravedns/util/CrashReporter.kt
+D	app/src/full/java/com/celzero/bravedns/viewmodel/ConsoleLogViewModel.kt
+A	app/src/full/res/color/chip_toggle_stroke.xml
+A	app/src/full/res/color/chip_toggle_text.xml
+A	app/src/full/res/color/conn_tracker_segment_stroke.xml
+A	app/src/full/res/color/conn_tracker_segment_text.xml
+A	app/src/full/res/color/time_segment_fill.xml
+A	app/src/full/res/color/time_segment_stroke.xml
+A	app/src/full/res/color/time_segment_text_color.xml
+A	app/src/full/res/drawable/bg_activity_avatar.xml
+A	app/src/full/res/drawable/bg_status_dot.xml
+D	app/src/full/res/layout-sw600dp/fragment_home_screen.xml
+A	app/src/full/res/layout-w600dp/fragment_home_screen.xml
+M	app/src/full/res/layout/activity_advanced_setting.xml
+M	app/src/full/res/layout/activity_app_details.xml
+M	app/src/full/res/layout/activity_block_free_dns.xml
+M	app/src/full/res/layout/activity_bubble.xml
+M	app/src/full/res/layout/activity_console_log.xml
+M	app/src/full/res/layout/activity_home_screen.xml
+M	app/src/full/res/layout/activity_misc_settings.xml
+M	app/src/full/res/layout/activity_tunnel_settings.xml
+M	app/src/full/res/layout/bottom_sheet_conn_track.xml
+M	app/src/full/res/layout/bottom_sheet_dns_log.xml
+M	app/src/full/res/layout/bottom_sheet_firewall_sort_filter.xml
+M	app/src/full/res/layout/bottom_sheet_home_screen.xml
+A	app/src/full/res/layout/bottom_sheet_log_activity_interval.xml
+M	app/src/full/res/layout/dialog_add_custom_domain.xml
+D	app/src/full/res/layout/dialog_default_dns_list.xml
+A	app/src/full/res/layout/dialog_import_confirm.xml
+A	app/src/full/res/layout/dialog_lockdown_check.xml
+M	app/src/full/res/layout/dialog_set_custom_doh.xml
+M	app/src/full/res/layout/dialog_set_custom_odoh.xml
+M	app/src/full/res/layout/dialog_set_dns_crypt.xml
+M	app/src/full/res/layout/dialog_set_dns_proxy.xml
+D	app/src/full/res/layout/dialog_set_http_proxy.xml
+M	app/src/full/res/layout/fragment_custom_domain.xml
+M	app/src/full/res/layout/fragment_custom_ip.xml
+M	app/src/full/res/layout/fragment_dns_crypt_list.xml
+M	app/src/full/res/layout/fragment_dns_proxy_list.xml
+M	app/src/full/res/layout/fragment_doh_list.xml
+M	app/src/full/res/layout/fragment_dot_list.xml
+M	app/src/full/res/layout/fragment_firewall_settings.xml
+M	app/src/full/res/layout/fragment_home_screen.xml
+M	app/src/full/res/layout/fragment_odoh_list.xml
+M	app/src/full/res/layout/fragment_proxy_configure.xml
+M	app/src/full/res/layout/fragment_rethink_list.xml
+A	app/src/full/res/layout/fragment_sponsor.xml
+A	app/src/full/res/layout/fragment_sponsor_success.xml
+A	app/src/full/res/layout/item_home_firewall_rules_page.xml
+A	app/src/full/res/layout/item_lockdown_check.xml
+A	app/src/full/res/layout/item_log_activity_app.xml
+A	app/src/full/res/layout/item_log_activity_conn.xml
+M	app/src/full/res/layout/list_item_block_free_dns.xml
+M	app/src/full/res/layout/list_item_firewall_app.xml
+M	app/src/full/res/layout/list_item_rethink_blocklist_simple.xml
+M	app/src/full/res/layout/rethink_endpoint_list_item.xml
+A	app/src/full/res/layout/view_home_logs_activity.xml
+A	app/src/full/res/layout/view_home_logs_apps.xml
+A	app/src/full/res/layout/view_sponsor_badge.xml
+M	app/src/full/res/xml/locale_config.xml
+M	app/src/main/AndroidManifest.xml
+R055	app/src/main/assets/database/rethink_v22.db	app/src/main/assets/database/rethink_v31.db
+M	app/src/main/assets/filetag.json
+R098	app/src/full/java/com/celzero/bravedns/NonStoreAppUpdater.kt	app/src/main/java/com/celzero/bravedns/NonStoreAppUpdater.kt
+R084	app/src/full/java/com/celzero/bravedns/RethinkDnsApplication.kt	app/src/main/java/com/celzero/bravedns/RethinkDnsApplication.kt
+R087	app/src/full/java/com/celzero/bravedns/ServiceModuleProvider.kt	app/src/main/java/com/celzero/bravedns/ServiceModuleProvider.kt
+R100	app/src/full/java/com/celzero/bravedns/adapter/AlertAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/AlertAdapter.kt
+A	app/src/main/java/com/celzero/bravedns/adapter/AppWiseCountriesAdapter.kt
+R087	app/src/full/java/com/celzero/bravedns/adapter/AppWiseDomainsAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/AppWiseDomainsAdapter.kt
+R077	app/src/full/java/com/celzero/bravedns/adapter/AppWiseIpsAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/AppWiseIpsAdapter.kt
+R100	app/src/full/java/com/celzero/bravedns/adapter/BlockFreeDnsAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/BlockFreeDnsAdapter.kt
+A	app/src/main/java/com/celzero/bravedns/adapter/BlocklistAppsAdapter.kt
+R078	app/src/full/java/com/celzero/bravedns/adapter/BubbleAllowedAppsAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/BubbleAllowedAppsAdapter.kt
+R099	app/src/full/java/com/celzero/bravedns/adapter/BubbleBlockedAppsAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/BubbleBlockedAppsAdapter.kt
+R077	app/src/full/java/com/celzero/bravedns/adapter/ConnectionLogAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/ConnectionLogAdapter.kt
+R094	app/src/full/java/com/celzero/bravedns/adapter/ConnectionTrackerAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/ConnectionTrackerAdapter.kt
+R095	app/src/full/java/com/celzero/bravedns/adapter/ConsoleLogAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/ConsoleLogAdapter.kt
+R097	app/src/full/java/com/celzero/bravedns/adapter/CustomDomainAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/CustomDomainAdapter.kt
+R096	app/src/full/java/com/celzero/bravedns/adapter/CustomIpAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/CustomIpAdapter.kt
+A	app/src/main/java/com/celzero/bravedns/adapter/DecisionStepAdapter.kt
+R061	app/src/full/java/com/celzero/bravedns/adapter/DnsCryptEndpointAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/DnsCryptEndpointAdapter.kt
+R078	app/src/full/java/com/celzero/bravedns/adapter/DnsCryptRelayEndpointAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/DnsCryptRelayEndpointAdapter.kt
+R093	app/src/full/java/com/celzero/bravedns/adapter/DnsLogAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/DnsLogAdapter.kt
+R068	app/src/full/java/com/celzero/bravedns/adapter/DnsProxyEndpointAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/DnsProxyEndpointAdapter.kt
+R064	app/src/full/java/com/celzero/bravedns/adapter/DoTEndpointAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/DoTEndpointAdapter.kt
+R060	app/src/full/java/com/celzero/bravedns/adapter/DohEndpointAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/DohEndpointAdapter.kt
+R095	app/src/full/java/com/celzero/bravedns/adapter/DomainConnectionsAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/DomainConnectionsAdapter.kt
+R098	app/src/full/java/com/celzero/bravedns/adapter/DomainRulesBtmSheetAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/DomainRulesBtmSheetAdapter.kt
+R100	app/src/full/java/com/celzero/bravedns/adapter/EventsAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/EventsAdapter.kt
+R093	app/src/full/java/com/celzero/bravedns/adapter/FirewallAppListAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/FirewallAppListAdapter.kt
+R100	app/src/full/java/com/celzero/bravedns/adapter/FirewallStatusSpinnerAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/FirewallStatusSpinnerAdapter.kt
+R098	app/src/full/java/com/celzero/bravedns/adapter/GenericHopAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/GenericHopAdapter.kt
+R100	app/src/full/java/com/celzero/bravedns/adapter/HopItem.kt	app/src/main/java/com/celzero/bravedns/adapter/HopItem.kt
+R083	app/src/full/java/com/celzero/bravedns/adapter/LocalAdvancedViewAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/LocalAdvancedViewAdapter.kt
+R092	app/src/full/java/com/celzero/bravedns/adapter/LocalSimpleViewAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/LocalSimpleViewAdapter.kt
+R063	app/src/full/java/com/celzero/bravedns/adapter/ODoHEndpointAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/ODoHEndpointAdapter.kt
+R074	app/src/full/java/com/celzero/bravedns/adapter/OneWgConfigAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/OneWgConfigAdapter.kt
+A	app/src/main/java/com/celzero/bravedns/adapter/PingTestHistoryAdapter.kt
+R100	app/src/full/java/com/celzero/bravedns/adapter/PurchaseHistoryAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/PurchaseHistoryAdapter.kt
+R083	app/src/full/java/com/celzero/bravedns/adapter/RemoteAdvancedViewAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/RemoteAdvancedViewAdapter.kt
+R092	app/src/full/java/com/celzero/bravedns/adapter/RemoteSimpleViewAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/RemoteSimpleViewAdapter.kt
+R055	app/src/full/java/com/celzero/bravedns/adapter/RethinkEndpointAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/RethinkEndpointAdapter.kt
+R099	app/src/full/java/com/celzero/bravedns/adapter/RethinkLogAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/RethinkLogAdapter.kt
+R100	app/src/full/java/com/celzero/bravedns/adapter/ServerOrderHistoryAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/ServerOrderHistoryAdapter.kt
+R099	app/src/full/java/com/celzero/bravedns/adapter/ServerWgPeersAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/ServerWgPeersAdapter.kt
+A	app/src/main/java/com/celzero/bravedns/adapter/SmartDnsEndpointAdapter.kt
+R100	app/src/full/java/com/celzero/bravedns/adapter/SsidAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/SsidAdapter.kt
+R059	app/src/full/java/com/celzero/bravedns/adapter/SummaryStatisticsAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/SummaryStatisticsAdapter.kt
+R078	app/src/full/java/com/celzero/bravedns/adapter/WgConfigAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/WgConfigAdapter.kt
+R086	app/src/full/java/com/celzero/bravedns/adapter/WgHopAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/WgHopAdapter.kt
+R092	app/src/full/java/com/celzero/bravedns/adapter/WgIncludeAppsAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/WgIncludeAppsAdapter.kt
+R094	app/src/full/java/com/celzero/bravedns/adapter/WgNwStatsAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/WgNwStatsAdapter.kt
+R094	app/src/full/java/com/celzero/bravedns/adapter/WgPeersAdapter.kt	app/src/main/java/com/celzero/bravedns/adapter/WgPeersAdapter.kt
+R100	app/src/full/java/com/celzero/bravedns/animation/Rotate3dAnimation.kt	app/src/main/java/com/celzero/bravedns/animation/Rotate3dAnimation.kt
+M	app/src/main/java/com/celzero/bravedns/backup/BackupAgent.kt
+M	app/src/main/java/com/celzero/bravedns/backup/BackupHelper.kt
+M	app/src/main/java/com/celzero/bravedns/backup/RestoreAgent.kt
+R100	app/src/full/java/com/celzero/bravedns/customdownloader/DownloadFile.kt	app/src/main/java/com/celzero/bravedns/customdownloader/DownloadFile.kt
+R076	app/src/full/java/com/celzero/bravedns/customdownloader/IBillingServerApi.kt	app/src/main/java/com/celzero/bravedns/customdownloader/IBillingServerApi.kt
+R080	app/src/full/java/com/celzero/bravedns/customdownloader/IBillingServerApiTest.kt	app/src/main/java/com/celzero/bravedns/customdownloader/IBillingServerApiTest.kt
+R100	app/src/full/java/com/celzero/bravedns/customdownloader/IBlocklistDownload.kt	app/src/main/java/com/celzero/bravedns/customdownloader/IBlocklistDownload.kt
+R100	app/src/full/java/com/celzero/bravedns/customdownloader/IIpInfoDownload.kt	app/src/main/java/com/celzero/bravedns/customdownloader/IIpInfoDownload.kt
+R100	app/src/full/java/com/celzero/bravedns/customdownloader/IWireguardWarp.kt	app/src/main/java/com/celzero/bravedns/customdownloader/IWireguardWarp.kt
+R095	app/src/full/java/com/celzero/bravedns/customdownloader/IpInfoDownloader.kt	app/src/main/java/com/celzero/bravedns/customdownloader/IpInfoDownloader.kt
+R077	app/src/full/java/com/celzero/bravedns/customdownloader/LocalBlocklistCoordinator.kt	app/src/main/java/com/celzero/bravedns/customdownloader/LocalBlocklistCoordinator.kt
+R097	app/src/full/java/com/celzero/bravedns/customdownloader/NullOnEmptyConverterFactory.kt	app/src/main/java/com/celzero/bravedns/customdownloader/NullOnEmptyConverterFactory.kt
+R100	app/src/full/java/com/celzero/bravedns/customdownloader/OkHttpDebugLogging.kt	app/src/main/java/com/celzero/bravedns/customdownloader/OkHttpDebugLogging.kt
+R077	app/src/full/java/com/celzero/bravedns/customdownloader/RemoteBlocklistCoordinator.kt	app/src/main/java/com/celzero/bravedns/customdownloader/RemoteBlocklistCoordinator.kt
+R061	app/src/full/java/com/celzero/bravedns/customdownloader/RetrofitManager.kt	app/src/main/java/com/celzero/bravedns/customdownloader/RetrofitManager.kt
+M	app/src/main/java/com/celzero/bravedns/data/AppConfig.kt
+A	app/src/main/java/com/celzero/bravedns/data/BlocklistStatsAggregator.kt
+M	app/src/main/java/com/celzero/bravedns/data/DataModule.kt
+A	app/src/main/java/com/celzero/bravedns/data/RecentRoutedAppRow.kt
+A	app/src/main/java/com/celzero/bravedns/data/RpnConnStatsSummary.kt
+A	app/src/main/java/com/celzero/bravedns/database/ActivityBucketRow.kt
+M	app/src/main/java/com/celzero/bravedns/database/AppDatabase.kt
+M	app/src/main/java/com/celzero/bravedns/database/AppInfo.kt
+M	app/src/main/java/com/celzero/bravedns/database/AppInfoDAO.kt
+M	app/src/main/java/com/celzero/bravedns/database/AppInfoRepository.kt
+A	app/src/main/java/com/celzero/bravedns/database/BlocklistAttribution.kt
+A	app/src/main/java/com/celzero/bravedns/database/BlocklistComboCount.kt
+M	app/src/main/java/com/celzero/bravedns/database/ConnectionTrackerDAO.kt
+M	app/src/main/java/com/celzero/bravedns/database/ConnectionTrackerRepository.kt
+M	app/src/main/java/com/celzero/bravedns/database/ConsoleLogDAO.kt
+M	app/src/main/java/com/celzero/bravedns/database/CountryConfig.kt
+M	app/src/main/java/com/celzero/bravedns/database/CountryConfigDAO.kt
+M	app/src/main/java/com/celzero/bravedns/database/CountryConfigRepository.kt
+M	app/src/main/java/com/celzero/bravedns/database/DatabaseModule.kt
+M	app/src/main/java/com/celzero/bravedns/database/DnsLog.kt
+M	app/src/main/java/com/celzero/bravedns/database/DnsLogDAO.kt
+M	app/src/main/java/com/celzero/bravedns/database/DnsLogRepository.kt
+M	app/src/main/java/com/celzero/bravedns/database/DoHEndpoint.kt
+M	app/src/main/java/com/celzero/bravedns/database/DoHEndpointDAO.kt
+M	app/src/main/java/com/celzero/bravedns/database/DoTEndpointDAO.kt
+M	app/src/main/java/com/celzero/bravedns/database/EventType.kt
+M	app/src/main/java/com/celzero/bravedns/database/LogDatabase.kt
+M	app/src/main/java/com/celzero/bravedns/database/ODoHEndpointDAO.kt
+M	app/src/main/java/com/celzero/bravedns/database/ProxyAppMappingRepository.kt
+M	app/src/main/java/com/celzero/bravedns/database/ProxyApplicationMapping.kt
+M	app/src/main/java/com/celzero/bravedns/database/RefreshDatabase.kt
+M	app/src/main/java/com/celzero/bravedns/database/RethinkLocalFileTagRepository.kt
+M	app/src/main/java/com/celzero/bravedns/database/RethinkLog.kt
+M	app/src/main/java/com/celzero/bravedns/database/RethinkLogDao.kt
+M	app/src/main/java/com/celzero/bravedns/database/RethinkLogRepository.kt
+A	app/src/main/java/com/celzero/bravedns/database/RpnLog.kt
+A	app/src/main/java/com/celzero/bravedns/database/RpnLogDAO.kt
+A	app/src/main/java/com/celzero/bravedns/database/RpnLogDatabase.kt
+A	app/src/main/java/com/celzero/bravedns/database/RpnLogRepository.kt
+A	app/src/main/java/com/celzero/bravedns/database/SmartDnsEndpoint.kt
+A	app/src/main/java/com/celzero/bravedns/database/SmartDnsEndpointDAO.kt
+A	app/src/main/java/com/celzero/bravedns/database/SmartDnsEndpointRepository.kt
+M	app/src/main/java/com/celzero/bravedns/database/StatsSummaryDao.kt
+M	app/src/main/java/com/celzero/bravedns/database/SubscriptionStateHistoryDao.kt
+M	app/src/main/java/com/celzero/bravedns/database/SubscriptionStatus.kt
+M	app/src/main/java/com/celzero/bravedns/database/SubscriptionStatusDao.kt
+M	app/src/main/java/com/celzero/bravedns/database/SubscriptionStatusRepository.kt
+M	app/src/main/java/com/celzero/bravedns/database/WgConfigFiles.kt
+R059	app/src/full/java/com/celzero/bravedns/download/AppDownloadManager.kt	app/src/main/java/com/celzero/bravedns/download/AppDownloadManager.kt
+R097	app/src/full/java/com/celzero/bravedns/download/BlocklistDownloadHelper.kt	app/src/main/java/com/celzero/bravedns/download/BlocklistDownloadHelper.kt
+R100	app/src/full/java/com/celzero/bravedns/download/DownloadConstants.kt	app/src/main/java/com/celzero/bravedns/download/DownloadConstants.kt
+A	app/src/main/java/com/celzero/bravedns/download/DownloadWatcher.kt
+R072	app/src/full/java/com/celzero/bravedns/download/FileHandleWorker.kt	app/src/main/java/com/celzero/bravedns/download/FileHandleWorker.kt
+M	app/src/main/java/com/celzero/bravedns/glide/FavIconDownloader.kt
+M	app/src/main/java/com/celzero/bravedns/glide/RethinkGlideModule.kt
+A	app/src/main/java/com/celzero/bravedns/iab/AckFailureInfo.kt
+A	app/src/main/java/com/celzero/bravedns/iab/DeviceRegistrationGuard.kt
+A	app/src/main/java/com/celzero/bravedns/iab/IdentityRecoveryOutcome.kt
+A	app/src/main/java/com/celzero/bravedns/iab/PrimaryPurchaseResolver.kt
+A	app/src/main/java/com/celzero/bravedns/iab/PurchaseMutationResult.kt
+M	app/src/main/java/com/celzero/bravedns/iab/RefreshIdentityResult.kt
+M	app/src/main/java/com/celzero/bravedns/iab/SecureIdentityStore.kt
+R100	app/src/full/java/com/celzero/bravedns/iab/ServerOrderEntry.kt	app/src/main/java/com/celzero/bravedns/iab/ServerOrderEntry.kt
+M	app/src/main/java/com/celzero/bravedns/net/doh/Transaction.kt
+M	app/src/main/java/com/celzero/bravedns/net/go/GoVpnAdapter.kt
+M	app/src/main/java/com/celzero/bravedns/net/manager/ConnectionTracer.kt
+R096	app/src/full/java/com/celzero/bravedns/receiver/BraveAutoStartReceiver.kt	app/src/main/java/com/celzero/bravedns/receiver/BraveAutoStartReceiver.kt
+R093	app/src/full/java/com/celzero/bravedns/receiver/BubbleDismissReceiver.kt	app/src/main/java/com/celzero/bravedns/receiver/BubbleDismissReceiver.kt
+R054	app/src/full/java/com/celzero/bravedns/receiver/NotificationActionReceiver.kt	app/src/main/java/com/celzero/bravedns/receiver/NotificationActionReceiver.kt
+R094	app/src/full/java/com/celzero/bravedns/receiver/UserPresentReceiver.kt	app/src/main/java/com/celzero/bravedns/receiver/UserPresentReceiver.kt
+A	app/src/main/java/com/celzero/bravedns/receiver/VPNControlReceiver.kt
+A	app/src/main/java/com/celzero/bravedns/receiver/WgAutomationNotifier.kt
+A	app/src/main/java/com/celzero/bravedns/receiver/WgCommands.kt
+M	app/src/main/java/com/celzero/bravedns/rpnproxy/PipKeyManager.kt
+M	app/src/main/java/com/celzero/bravedns/rpnproxy/RpnHopManager.kt
+M	app/src/main/java/com/celzero/bravedns/rpnproxy/RpnProxyManager.kt
+M	app/src/main/java/com/celzero/bravedns/rpnproxy/StateMachineDatabaseSyncService.kt
+M	app/src/main/java/com/celzero/bravedns/rpnproxy/StateMachineFramework.kt
+M	app/src/main/java/com/celzero/bravedns/rpnproxy/SubscriptionStateMachineV2.kt
+A	app/src/main/java/com/celzero/bravedns/rpnproxy/SubscriptionUiStateResolver.kt
+R096	app/src/full/java/com/celzero/bravedns/scheduler/BlocklistUpdateCheckJob.kt	app/src/main/java/com/celzero/bravedns/scheduler/BlocklistUpdateCheckJob.kt
+M	app/src/main/java/com/celzero/bravedns/scheduler/BootStartWorker.kt
+R098	app/src/full/java/com/celzero/bravedns/scheduler/BugReportCollector.kt	app/src/main/java/com/celzero/bravedns/scheduler/BugReportCollector.kt
+R087	app/src/full/java/com/celzero/bravedns/scheduler/BugReportZipper.kt	app/src/main/java/com/celzero/bravedns/scheduler/BugReportZipper.kt
+M	app/src/main/java/com/celzero/bravedns/scheduler/DataUsageUpdater.kt
+R076	app/src/full/java/com/celzero/bravedns/scheduler/EnhancedBugReport.kt	app/src/main/java/com/celzero/bravedns/scheduler/EnhancedBugReport.kt
+R097	app/src/full/java/com/celzero/bravedns/scheduler/LogExportWorker.kt	app/src/main/java/com/celzero/bravedns/scheduler/LogExportWorker.kt
+R096	app/src/full/java/com/celzero/bravedns/scheduler/PaymentWorker.kt	app/src/main/java/com/celzero/bravedns/scheduler/PaymentWorker.kt
+R065	app/src/full/java/com/celzero/bravedns/scheduler/PurgeConnectionLogs.kt	app/src/main/java/com/celzero/bravedns/scheduler/PurgeConnectionLogs.kt
+A	app/src/main/java/com/celzero/bravedns/scheduler/PurgeConsoleLogsAndPcap.kt
+M	app/src/main/java/com/celzero/bravedns/scheduler/RefreshAppsJob.kt
+M	app/src/main/java/com/celzero/bravedns/scheduler/RpnProxyUpdateWorker.kt
+M	app/src/main/java/com/celzero/bravedns/scheduler/ScheduleManager.kt
+M	app/src/main/java/com/celzero/bravedns/scheduler/WgProxyPingController.kt
+R087	app/src/full/java/com/celzero/bravedns/scheduler/WorkScheduler.kt	app/src/main/java/com/celzero/bravedns/scheduler/WorkScheduler.kt
+R100	app/src/full/java/com/celzero/bravedns/service/AppUpdater.kt	app/src/main/java/com/celzero/bravedns/service/AppUpdater.kt
+M	app/src/main/java/com/celzero/bravedns/service/BraveTileService.kt
+M	app/src/main/java/com/celzero/bravedns/service/BraveVPNService.kt
+M	app/src/main/java/com/celzero/bravedns/service/ConnectionMonitor.kt
+A	app/src/main/java/com/celzero/bravedns/service/ConnectionSimulator.kt
+M	app/src/main/java/com/celzero/bravedns/service/DiagnosticsManager.kt
+M	app/src/main/java/com/celzero/bravedns/service/DnsLogTracker.kt
+M	app/src/main/java/com/celzero/bravedns/service/DomainRulesManager.kt
+M	app/src/main/java/com/celzero/bravedns/service/EncryptedFileManager.kt
+M	app/src/main/java/com/celzero/bravedns/service/EventLogger.kt
+M	app/src/main/java/com/celzero/bravedns/service/FdHelper.kt
+M	app/src/main/java/com/celzero/bravedns/service/FirewallManager.kt
+M	app/src/main/java/com/celzero/bravedns/service/FirewallRuleset.kt
+A	app/src/main/java/com/celzero/bravedns/service/GlobalProxyHandler.kt
+M	app/src/main/java/com/celzero/bravedns/service/GoCrashFileDescriptorReader.kt
+M	app/src/main/java/com/celzero/bravedns/service/GoLogFileDescriptorReader.kt
+M	app/src/main/java/com/celzero/bravedns/service/GoMemLogConsumer.kt
+M	app/src/main/java/com/celzero/bravedns/service/IPTracker.kt
+R100	app/src/full/java/com/celzero/bravedns/service/InAppMessageProvider.kt	app/src/main/java/com/celzero/bravedns/service/InAppMessageProvider.kt
+M	app/src/main/java/com/celzero/bravedns/service/IpRulesManager.kt
+A	app/src/main/java/com/celzero/bravedns/service/LogActivityAggregator.kt
+A	app/src/main/java/com/celzero/bravedns/service/LogActivityWindow.kt
+M	app/src/main/java/com/celzero/bravedns/service/NetLogTracker.kt
+A	app/src/main/java/com/celzero/bravedns/service/NetworkLifecycleObserver.kt
+M	app/src/main/java/com/celzero/bravedns/service/PauseTimer.kt
+M	app/src/main/java/com/celzero/bravedns/service/PersistentState.kt
+M	app/src/main/java/com/celzero/bravedns/service/ProbeController.kt
+A	app/src/main/java/com/celzero/bravedns/service/ProxyManager.kt
+A	app/src/main/java/com/celzero/bravedns/service/QuickSettingsTileHelper.kt
+M	app/src/main/java/com/celzero/bravedns/service/RethinkBlocklistManager.kt
+A	app/src/main/java/com/celzero/bravedns/service/RpnLogManager.kt
+M	app/src/main/java/com/celzero/bravedns/service/ServiceModule.kt
+R099	app/src/full/java/com/celzero/bravedns/service/TcpProxyHelper.kt	app/src/main/java/com/celzero/bravedns/service/TcpProxyHelper.kt
+M	app/src/main/java/com/celzero/bravedns/service/TempAllowExpiryWorker.kt
+A	app/src/main/java/com/celzero/bravedns/service/TunFirewallManager.kt
+A	app/src/main/java/com/celzero/bravedns/service/TunFlowManager.kt
+M	app/src/main/java/com/celzero/bravedns/service/VpnController.kt
+M	app/src/main/java/com/celzero/bravedns/service/VpnState.kt
+R089	app/src/full/java/com/celzero/bravedns/service/WireguardConfigFileManager.kt	app/src/main/java/com/celzero/bravedns/service/WireguardConfigFileManager.kt
+R085	app/src/full/java/com/celzero/bravedns/service/WireguardManager.kt	app/src/main/java/com/celzero/bravedns/service/WireguardManager.kt
+A	app/src/main/java/com/celzero/bravedns/sponsor/billing/SponsorBillingManager.kt
+A	app/src/main/java/com/celzero/bravedns/sponsor/database/SponsorDao.kt
+A	app/src/main/java/com/celzero/bravedns/sponsor/database/SponsorEntity.kt
+A	app/src/main/java/com/celzero/bravedns/sponsor/model/SponsorInfo.kt
+A	app/src/main/java/com/celzero/bravedns/sponsor/provider/SponsorProvider.kt
+A	app/src/main/java/com/celzero/bravedns/sponsor/repository/SponsorRepository.kt
+A	app/src/main/java/com/celzero/bravedns/sponsor/ui/SponsorBadgeView.kt
+A	app/src/main/java/com/celzero/bravedns/sponsor/ui/SponsorFragment.kt
+A	app/src/main/java/com/celzero/bravedns/sponsor/ui/SponsorSuccessFragment.kt
+A	app/src/main/java/com/celzero/bravedns/sponsor/viewmodel/SponsorViewModel.kt
+A	app/src/main/java/com/celzero/bravedns/tunnel/TunDnsManager.kt
+R055	app/src/full/java/com/celzero/bravedns/ui/BaseActivity.kt	app/src/main/java/com/celzero/bravedns/ui/BaseActivity.kt
+R076	app/src/full/java/com/celzero/bravedns/ui/HomeScreenActivity.kt	app/src/main/java/com/celzero/bravedns/ui/HomeScreenActivity.kt
+R097	app/src/full/java/com/celzero/bravedns/ui/LauncherSwitcher.kt	app/src/main/java/com/celzero/bravedns/ui/LauncherSwitcher.kt
+A	app/src/main/java/com/celzero/bravedns/ui/MaxWidthFrameLayout.kt
+R098	app/src/full/java/com/celzero/bravedns/ui/NotificationHandlerActivity.kt	app/src/main/java/com/celzero/bravedns/ui/NotificationHandlerActivity.kt
+R081	app/src/full/java/com/celzero/bravedns/ui/activity/AdvancedSettingActivity.kt	app/src/main/java/com/celzero/bravedns/ui/activity/AdvancedSettingActivity.kt
+R100	app/src/full/java/com/celzero/bravedns/ui/activity/AlertsActivity.kt	app/src/main/java/com/celzero/bravedns/ui/activity/AlertsActivity.kt
+R074	app/src/full/java/com/celzero/bravedns/ui/activity/AntiCensorshipActivity.kt	app/src/main/java/com/celzero/bravedns/ui/activity/AntiCensorshipActivity.kt
+R050	app/src/full/java/com/celzero/bravedns/ui/activity/AppInfoActivity.kt	app/src/main/java/com/celzero/bravedns/ui/activity/AppInfoActivity.kt
+R096	app/src/full/java/com/celzero/bravedns/ui/activity/AppListActivity.kt	app/src/main/java/com/celzero/bravedns/ui/activity/AppListActivity.kt
+R085	app/src/full/java/com/celzero/bravedns/ui/activity/AppLockActivity.kt	app/src/main/java/com/celzero/bravedns/ui/activity/AppLockActivity.kt
+R095	app/src/full/java/com/celzero/bravedns/ui/activity/AppWiseDomainLogsActivity.kt	app/src/main/java/com/celzero/bravedns/ui/activity/AppWiseDomainLogsActivity.kt
+R085	app/src/full/java/com/celzero/bravedns/ui/activity/AppWiseIpLogsActivity.kt	app/src/main/java/com/celzero/bravedns/ui/activity/AppWiseIpLogsActivity.kt
+R095	app/src/full/java/com/celzero/bravedns/ui/activity/BlockFreeDnsActivity.kt	app/src/main/java/com/celzero/bravedns/ui/activity/BlockFreeDnsActivity.kt
+R067	app/src/full/java/com/celzero/bravedns/ui/activity/BubbleActivity.kt	app/src/main/java/com/celzero/bravedns/ui/activity/BubbleActivity.kt
+R097	app/src/full/java/com/celzero/bravedns/ui/activity/CheckoutActivity.kt	app/src/main/java/com/celzero/bravedns/ui/activity/CheckoutActivity.kt
+R071	app/src/full/java/com/celzero/bravedns/ui/activity/ConfigureOtherDnsActivity.kt	app/src/main/java/com/celzero/bravedns/ui/activity/ConfigureOtherDnsActivity.kt
+R095	app/src/full/java/com/celzero/bravedns/ui/activity/ConfigureRethinkBasicActivity.kt	app/src/main/java/com/celzero/bravedns/ui/activity/ConfigureRethinkBasicActivity.kt
+A	app/src/main/java/com/celzero/bravedns/ui/activity/ConnectionCheckActivity.kt
+R076	app/src/full/java/com/celzero/bravedns/ui/activity/ConsoleLogActivity.kt	app/src/main/java/com/celzero/bravedns/ui/activity/ConsoleLogActivity.kt
+R097	app/src/full/java/com/celzero/bravedns/ui/activity/CustomRulesActivity.kt	app/src/main/java/com/celzero/bravedns/ui/activity/CustomRulesActivity.kt
+R054	app/src/full/java/com/celzero/bravedns/ui/activity/CustomerSupportActivity.kt	app/src/main/java/com/celzero/bravedns/ui/activity/CustomerSupportActivity.kt
+R077	app/src/full/java/com/celzero/bravedns/ui/activity/DetailedStatisticsActivity.kt	app/src/main/java/com/celzero/bravedns/ui/activity/DetailedStatisticsActivity.kt
+R095	app/src/full/java/com/celzero/bravedns/ui/activity/DnsDetailActivity.kt	app/src/main/java/com/celzero/bravedns/ui/activity/DnsDetailActivity.kt
+R089	app/src/full/java/com/celzero/bravedns/ui/activity/DnsListActivity.kt	app/src/main/java/com/celzero/bravedns/ui/activity/DnsListActivity.kt
+A	app/src/main/java/com/celzero/bravedns/ui/activity/DomainConnectionsActivity.kt
+R098	app/src/full/java/com/celzero/bravedns/ui/activity/EventsActivity.kt	app/src/main/java/com/celzero/bravedns/ui/activity/EventsActivity.kt
+R096	app/src/full/java/com/celzero/bravedns/ui/activity/FirewallActivity.kt	app/src/main/java/com/celzero/bravedns/ui/activity/FirewallActivity.kt
+R095	app/src/full/java/com/celzero/bravedns/ui/activity/FragmentHostActivity.kt	app/src/main/java/com/celzero/bravedns/ui/activity/FragmentHostActivity.kt
+R091	app/src/full/java/com/celzero/bravedns/ui/activity/MiscSettingsActivity.kt	app/src/main/java/com/celzero/bravedns/ui/activity/MiscSettingsActivity.kt
+R098	app/src/full/java/com/celzero/bravedns/ui/activity/NetworkLogsActivity.kt	app/src/main/java/com/celzero/bravedns/ui/activity/NetworkLogsActivity.kt
+R097	app/src/full/java/com/celzero/bravedns/ui/activity/PauseActivity.kt	app/src/main/java/com/celzero/bravedns/ui/activity/PauseActivity.kt
+R061	app/src/full/java/com/celzero/bravedns/ui/activity/PingTestActivity.kt	app/src/main/java/com/celzero/bravedns/ui/activity/PingTestActivity.kt
+R092	app/src/full/java/com/celzero/bravedns/ui/activity/ProxySettingsActivity.kt	app/src/main/java/com/celzero/bravedns/ui/activity/ProxySettingsActivity.kt
+R094	app/src/full/java/com/celzero/bravedns/ui/activity/PurchaseHistoryActivity.kt	app/src/main/java/com/celzero/bravedns/ui/activity/PurchaseHistoryActivity.kt
+A	app/src/main/java/com/celzero/bravedns/ui/activity/RpnBypassAppsActivity.kt
+R056	app/src/full/java/com/celzero/bravedns/ui/activity/RpnConfigDetailActivity.kt	app/src/main/java/com/celzero/bravedns/ui/activity/RpnConfigDetailActivity.kt
+R093	app/src/full/java/com/celzero/bravedns/ui/activity/RpnWinProxyDetailsActivity.kt	app/src/main/java/com/celzero/bravedns/ui/activity/RpnWinProxyDetailsActivity.kt
+R084	app/src/full/java/com/celzero/bravedns/ui/activity/ServerOrderHistoryActivity.kt	app/src/main/java/com/celzero/bravedns/ui/activity/ServerOrderHistoryActivity.kt
+A	app/src/main/java/com/celzero/bravedns/ui/activity/SmartDnsListActivity.kt
+R089	app/src/full/java/com/celzero/bravedns/ui/activity/TcpProxyMainActivity.kt	app/src/main/java/com/celzero/bravedns/ui/activity/TcpProxyMainActivity.kt
+R060	app/src/full/java/com/celzero/bravedns/ui/activity/TunnelSettingsActivity.kt	app/src/main/java/com/celzero/bravedns/ui/activity/TunnelSettingsActivity.kt
+R098	app/src/full/java/com/celzero/bravedns/ui/activity/UniversalFirewallSettingsActivity.kt	app/src/main/java/com/celzero/bravedns/ui/activity/UniversalFirewallSettingsActivity.kt
+R097	app/src/full/java/com/celzero/bravedns/ui/activity/WelcomeActivity.kt	app/src/main/java/com/celzero/bravedns/ui/activity/WelcomeActivity.kt
+R082	app/src/full/java/com/celzero/bravedns/ui/activity/WgConfigDetailActivity.kt	app/src/main/java/com/celzero/bravedns/ui/activity/WgConfigDetailActivity.kt
+R079	app/src/full/java/com/celzero/bravedns/ui/activity/WgConfigEditorActivity.kt	app/src/main/java/com/celzero/bravedns/ui/activity/WgConfigEditorActivity.kt
+A	app/src/main/java/com/celzero/bravedns/ui/activity/WgIncludeAppsActivity.kt
+R097	app/src/full/java/com/celzero/bravedns/ui/activity/WgMainActivity.kt	app/src/main/java/com/celzero/bravedns/ui/activity/WgMainActivity.kt
+A	app/src/main/java/com/celzero/bravedns/ui/adapter/AppActivityAdapter.kt
+R076	app/src/full/java/com/celzero/bravedns/ui/adapter/CountryServerAdapter.kt	app/src/main/java/com/celzero/bravedns/ui/adapter/CountryServerAdapter.kt
+A	app/src/main/java/com/celzero/bravedns/ui/adapter/ServerIpVersionBadge.kt
+A	app/src/main/java/com/celzero/bravedns/ui/adapter/VpnServerAdapter.kt
+R093	app/src/full/java/com/celzero/bravedns/ui/bottomsheet/AppDomainRulesBottomSheet.kt	app/src/main/java/com/celzero/bravedns/ui/bottomsheet/AppDomainRulesBottomSheet.kt
+R091	app/src/full/java/com/celzero/bravedns/ui/bottomsheet/AppIpRulesBottomSheet.kt	app/src/main/java/com/celzero/bravedns/ui/bottomsheet/AppIpRulesBottomSheet.kt
+R098	app/src/full/java/com/celzero/bravedns/ui/bottomsheet/AutoExcludeCountriesBottomSheet.kt	app/src/main/java/com/celzero/bravedns/ui/bottomsheet/AutoExcludeCountriesBottomSheet.kt
+R090	app/src/full/java/com/celzero/bravedns/ui/bottomsheet/BackupRestoreBottomSheet.kt	app/src/main/java/com/celzero/bravedns/ui/bottomsheet/BackupRestoreBottomSheet.kt
+A	app/src/main/java/com/celzero/bravedns/ui/bottomsheet/BaseBottomSheetDialogFragment.kt
+R073	app/src/full/java/com/celzero/bravedns/ui/bottomsheet/BlockFreeDnsModeBottomSheet.kt	app/src/main/java/com/celzero/bravedns/ui/bottomsheet/BlockFreeDnsModeBottomSheet.kt
+R087	app/src/full/java/com/celzero/bravedns/ui/bottomsheet/BugReportFilesBottomSheet.kt	app/src/main/java/com/celzero/bravedns/ui/bottomsheet/BugReportFilesBottomSheet.kt
+R052	app/src/full/java/com/celzero/bravedns/ui/bottomsheet/ConnTrackerBottomSheet.kt	app/src/main/java/com/celzero/bravedns/ui/bottomsheet/ConnTrackerBottomSheet.kt
+R097	app/src/full/java/com/celzero/bravedns/ui/bottomsheet/CustomDomainRulesBtmSheet.kt	app/src/main/java/com/celzero/bravedns/ui/bottomsheet/CustomDomainRulesBtmSheet.kt
+R097	app/src/full/java/com/celzero/bravedns/ui/bottomsheet/CustomIpRulesBtmSheet.kt	app/src/main/java/com/celzero/bravedns/ui/bottomsheet/CustomIpRulesBtmSheet.kt
+R055	app/src/full/java/com/celzero/bravedns/ui/bottomsheet/DeviceAuthErrorBottomSheet.kt	app/src/main/java/com/celzero/bravedns/ui/bottomsheet/DeviceAuthErrorBottomSheet.kt
+R063	app/src/full/java/com/celzero/bravedns/ui/bottomsheet/DeviceNotRegisteredBottomSheet.kt	app/src/main/java/com/celzero/bravedns/ui/bottomsheet/DeviceNotRegisteredBottomSheet.kt
+R052	app/src/full/java/com/celzero/bravedns/ui/bottomsheet/DnsBlocklistBottomSheet.kt	app/src/main/java/com/celzero/bravedns/ui/bottomsheet/DnsBlocklistBottomSheet.kt
+R097	app/src/full/java/com/celzero/bravedns/ui/bottomsheet/DnsRecordTypesBottomSheet.kt	app/src/main/java/com/celzero/bravedns/ui/bottomsheet/DnsRecordTypesBottomSheet.kt
+A	app/src/main/java/com/celzero/bravedns/ui/bottomsheet/EntitlementDetailBottomSheet.kt
+R083	app/src/full/java/com/celzero/bravedns/ui/bottomsheet/FirewallAppFilterBottomSheet.kt	app/src/main/java/com/celzero/bravedns/ui/bottomsheet/FirewallAppFilterBottomSheet.kt
+R072	app/src/full/java/com/celzero/bravedns/ui/bottomsheet/HomeScreenSettingBottomSheet.kt	app/src/main/java/com/celzero/bravedns/ui/bottomsheet/HomeScreenSettingBottomSheet.kt
+R075	app/src/full/java/com/celzero/bravedns/ui/bottomsheet/LocalBlocklistsBottomSheet.kt	app/src/main/java/com/celzero/bravedns/ui/bottomsheet/LocalBlocklistsBottomSheet.kt
+A	app/src/main/java/com/celzero/bravedns/ui/bottomsheet/LogActivityIntervalBottomSheet.kt
+R095	app/src/full/java/com/celzero/bravedns/ui/bottomsheet/OrbotBottomSheet.kt	app/src/main/java/com/celzero/bravedns/ui/bottomsheet/OrbotBottomSheet.kt
+A	app/src/main/java/com/celzero/bravedns/ui/bottomsheet/PcapFilesBottomSheet.kt
+R096	app/src/full/java/com/celzero/bravedns/ui/bottomsheet/ProxyCountriesBtmSheet.kt	app/src/main/java/com/celzero/bravedns/ui/bottomsheet/ProxyCountriesBtmSheet.kt
+R086	app/src/full/java/com/celzero/bravedns/ui/bottomsheet/PurchaseConflictBottomSheet.kt	app/src/main/java/com/celzero/bravedns/ui/bottomsheet/PurchaseConflictBottomSheet.kt
+R057	app/src/full/java/com/celzero/bravedns/ui/bottomsheet/PurchaseProcessingBottomSheet.kt	app/src/main/java/com/celzero/bravedns/ui/bottomsheet/PurchaseProcessingBottomSheet.kt
+A	app/src/main/java/com/celzero/bravedns/ui/bottomsheet/RecentRoutedAppsBottomSheet.kt
+R090	app/src/full/java/com/celzero/bravedns/ui/bottomsheet/RethinkInRethinkWarningBottomSheet.kt	app/src/main/java/com/celzero/bravedns/ui/bottomsheet/RethinkInRethinkWarningBottomSheet.kt
+R092	app/src/full/java/com/celzero/bravedns/ui/bottomsheet/RethinkListBottomSheet.kt	app/src/main/java/com/celzero/bravedns/ui/bottomsheet/RethinkListBottomSheet.kt
+R083	app/src/full/java/com/celzero/bravedns/ui/bottomsheet/RethinkLogBottomSheet.kt	app/src/main/java/com/celzero/bravedns/ui/bottomsheet/RethinkLogBottomSheet.kt
+R092	app/src/full/java/com/celzero/bravedns/ui/bottomsheet/RethinkPlusFilterBottomSheet.kt	app/src/main/java/com/celzero/bravedns/ui/bottomsheet/RethinkPlusFilterBottomSheet.kt
+A	app/src/main/java/com/celzero/bravedns/ui/bottomsheet/RpnLogActivityIntervalBottomSheet.kt
+A	app/src/main/java/com/celzero/bravedns/ui/bottomsheet/RpnRemoteServiceBottomSheet.kt
+A	app/src/main/java/com/celzero/bravedns/ui/bottomsheet/RpnStatsBottomSheet.kt
+R097	app/src/full/java/com/celzero/bravedns/ui/bottomsheet/ServerRemovalNotificationBottomSheet.kt	app/src/main/java/com/celzero/bravedns/ui/bottomsheet/ServerRemovalNotificationBottomSheet.kt
+R097	app/src/full/java/com/celzero/bravedns/ui/bottomsheet/ServerSettingsBottomSheet.kt	app/src/main/java/com/celzero/bravedns/ui/bottomsheet/ServerSettingsBottomSheet.kt
+A	app/src/main/java/com/celzero/bravedns/ui/bottomsheet/SummaryStatsFilterBottomSheet.kt
+A	app/src/main/java/com/celzero/bravedns/ui/bottomsheet/TaskerAutomationBottomSheet.kt
+R096	app/src/full/java/com/celzero/bravedns/ui/bottomsheet/WireguardListBtmSheet.kt	app/src/main/java/com/celzero/bravedns/ui/bottomsheet/WireguardListBtmSheet.kt
+A	app/src/main/java/com/celzero/bravedns/ui/custom/AnimatedBorderCardView.kt
+A	app/src/main/java/com/celzero/bravedns/ui/custom/AppHistogramView.kt
+A	app/src/main/java/com/celzero/bravedns/ui/custom/CountryMapView.kt
+A	app/src/main/java/com/celzero/bravedns/ui/custom/DolphinOceanView.kt
+A	app/src/main/java/com/celzero/bravedns/ui/custom/DonutChartView.kt
+A	app/src/main/java/com/celzero/bravedns/ui/custom/EmbeddedDolphinContent.kt
+A	app/src/main/java/com/celzero/bravedns/ui/custom/EmbeddedDolphinSignature.kt
+A	app/src/main/java/com/celzero/bravedns/ui/custom/FlagWatermarkView.kt
+A	app/src/main/java/com/celzero/bravedns/ui/custom/MoneyBackBadgeView.kt
+A	app/src/main/java/com/celzero/bravedns/ui/custom/RuleStateSwitch.kt
+R099	app/src/full/java/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt	app/src/main/java/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt
+R091	app/src/full/java/com/celzero/bravedns/ui/dialog/DnsCryptRelaysDialog.kt	app/src/main/java/com/celzero/bravedns/ui/dialog/DnsCryptRelaysDialog.kt
+R093	app/src/full/java/com/celzero/bravedns/ui/dialog/GenericHopDialog.kt	app/src/main/java/com/celzero/bravedns/ui/dialog/GenericHopDialog.kt
+R098	app/src/full/java/com/celzero/bravedns/ui/dialog/NetworkReachabilityDialog.kt	app/src/main/java/com/celzero/bravedns/ui/dialog/NetworkReachabilityDialog.kt
+R100	app/src/full/java/com/celzero/bravedns/ui/dialog/RpnProxyHopDialog.kt	app/src/main/java/com/celzero/bravedns/ui/dialog/RpnProxyHopDialog.kt
+R097	app/src/full/java/com/celzero/bravedns/ui/dialog/RpnSsidDialog.kt	app/src/main/java/com/celzero/bravedns/ui/dialog/RpnSsidDialog.kt
+R099	app/src/full/java/com/celzero/bravedns/ui/dialog/SubscriptionAnimDialog.kt	app/src/main/java/com/celzero/bravedns/ui/dialog/SubscriptionAnimDialog.kt
+R096	app/src/full/java/com/celzero/bravedns/ui/dialog/WgAddPeerDialog.kt	app/src/main/java/com/celzero/bravedns/ui/dialog/WgAddPeerDialog.kt
+R100	app/src/full/java/com/celzero/bravedns/ui/dialog/WgHopDialog.kt	app/src/main/java/com/celzero/bravedns/ui/dialog/WgHopDialog.kt
+R098	app/src/full/java/com/celzero/bravedns/ui/dialog/WgSsidDialog.kt	app/src/main/java/com/celzero/bravedns/ui/dialog/WgSsidDialog.kt
+R070	app/src/full/java/com/celzero/bravedns/ui/fragment/AboutFragment.kt	app/src/main/java/com/celzero/bravedns/ui/fragment/AboutFragment.kt
+R099	app/src/full/java/com/celzero/bravedns/ui/fragment/ConfigureFragment.kt	app/src/main/java/com/celzero/bravedns/ui/fragment/ConfigureFragment.kt
+R092	app/src/full/java/com/celzero/bravedns/ui/fragment/ConnectionTrackerFragment.kt	app/src/main/java/com/celzero/bravedns/ui/fragment/ConnectionTrackerFragment.kt
+R069	app/src/full/java/com/celzero/bravedns/ui/fragment/CustomDomainFragment.kt	app/src/main/java/com/celzero/bravedns/ui/fragment/CustomDomainFragment.kt
+R064	app/src/full/java/com/celzero/bravedns/ui/fragment/CustomIpFragment.kt	app/src/main/java/com/celzero/bravedns/ui/fragment/CustomIpFragment.kt
+R077	app/src/full/java/com/celzero/bravedns/ui/fragment/DnsCryptListFragment.kt	app/src/main/java/com/celzero/bravedns/ui/fragment/DnsCryptListFragment.kt
+R096	app/src/full/java/com/celzero/bravedns/ui/fragment/DnsLogFragment.kt	app/src/main/java/com/celzero/bravedns/ui/fragment/DnsLogFragment.kt
+R080	app/src/full/java/com/celzero/bravedns/ui/fragment/DnsProxyListFragment.kt	app/src/main/java/com/celzero/bravedns/ui/fragment/DnsProxyListFragment.kt
+R083	app/src/full/java/com/celzero/bravedns/ui/fragment/DnsSettingsFragment.kt	app/src/main/java/com/celzero/bravedns/ui/fragment/DnsSettingsFragment.kt
+R069	app/src/full/java/com/celzero/bravedns/ui/fragment/DoTListFragment.kt	app/src/main/java/com/celzero/bravedns/ui/fragment/DoTListFragment.kt
+R069	app/src/full/java/com/celzero/bravedns/ui/fragment/DohListFragment.kt	app/src/main/java/com/celzero/bravedns/ui/fragment/DohListFragment.kt
+R098	app/src/full/java/com/celzero/bravedns/ui/fragment/FirewallSettingsFragment.kt	app/src/main/java/com/celzero/bravedns/ui/fragment/FirewallSettingsFragment.kt
+A	app/src/main/java/com/celzero/bravedns/ui/fragment/HomeScreenFragment.kt
+R074	app/src/full/java/com/celzero/bravedns/ui/fragment/ODoHListFragment.kt	app/src/main/java/com/celzero/bravedns/ui/fragment/ODoHListFragment.kt
+R061	app/src/full/java/com/celzero/bravedns/ui/fragment/RethinkBlocklistFragment.kt	app/src/main/java/com/celzero/bravedns/ui/fragment/RethinkBlocklistFragment.kt
+R091	app/src/full/java/com/celzero/bravedns/ui/fragment/RethinkListFragment.kt	app/src/main/java/com/celzero/bravedns/ui/fragment/RethinkListFragment.kt
+R098	app/src/full/java/com/celzero/bravedns/ui/fragment/RethinkLogFragment.kt	app/src/main/java/com/celzero/bravedns/ui/fragment/RethinkLogFragment.kt
+A	app/src/main/java/com/celzero/bravedns/ui/fragment/RethinkPlusDashboardFragment.kt
+A	app/src/main/java/com/celzero/bravedns/ui/fragment/RethinkPlusManagePurchaseFragment.kt
+A	app/src/main/java/com/celzero/bravedns/ui/fragment/RulesImportHelper.kt
+A	app/src/main/java/com/celzero/bravedns/ui/fragment/ServerSelectionFragment.kt
+A	app/src/main/java/com/celzero/bravedns/ui/fragment/SmartDnsListFragment.kt
+A	app/src/main/java/com/celzero/bravedns/ui/fragment/SummaryStatisticsFragment.kt
+R097	app/src/full/java/com/celzero/bravedns/ui/fragment/WgNwStatsFragment.kt	app/src/main/java/com/celzero/bravedns/ui/fragment/WgNwStatsFragment.kt
+A	app/src/main/java/com/celzero/bravedns/ui/stats/CountryInsightsMapper.kt
+A	app/src/main/java/com/celzero/bravedns/ui/stats/StatsInsightsMath.kt
+A	app/src/main/java/com/celzero/bravedns/ui/stats/StatsViewMode.kt
+R094	app/src/full/java/com/celzero/bravedns/ui/tour/GuidedTourManager.kt	app/src/main/java/com/celzero/bravedns/ui/tour/GuidedTourManager.kt
+A	app/src/main/java/com/celzero/bravedns/ui/tour/RpnOnboardingManager.kt
+R083	app/src/full/java/com/celzero/bravedns/ui/tour/SpotlightOverlayView.kt	app/src/main/java/com/celzero/bravedns/ui/tour/SpotlightOverlayView.kt
+R090	app/src/full/java/com/celzero/bravedns/ui/tour/TourOverlayController.kt	app/src/main/java/com/celzero/bravedns/ui/tour/TourOverlayController.kt
+R095	app/src/full/java/com/celzero/bravedns/ui/tour/TourStep.kt	app/src/main/java/com/celzero/bravedns/ui/tour/TourStep.kt
+A	app/src/main/java/com/celzero/bravedns/util/AnimatedBorderDrawable.kt
+R086	app/src/full/java/com/celzero/bravedns/util/BackgroundAccessibilityService.kt	app/src/main/java/com/celzero/bravedns/util/BackgroundAccessibilityService.kt
+M	app/src/main/java/com/celzero/bravedns/util/BubbleHelper.kt
+M	app/src/main/java/com/celzero/bravedns/util/ConnectivityCheckHelper.kt
+M	app/src/main/java/com/celzero/bravedns/util/Constants.kt
+A	app/src/main/java/com/celzero/bravedns/util/CrashReporter.kt
+M	app/src/main/java/com/celzero/bravedns/util/Daemons.kt
+A	app/src/main/java/com/celzero/bravedns/util/ExceptionParser.kt
+M	app/src/main/java/com/celzero/bravedns/util/GlobalExceptionHandler.kt
+A	app/src/main/java/com/celzero/bravedns/util/GoMemoryProfiler.kt
+R079	app/src/full/java/com/celzero/bravedns/util/GoReportingHandler.kt	app/src/main/java/com/celzero/bravedns/util/GoReportingHandler.kt
+M	app/src/main/java/com/celzero/bravedns/util/IPUtil.kt
+M	app/src/main/java/com/celzero/bravedns/util/InternetProtocol.kt
+M	app/src/main/java/com/celzero/bravedns/util/KernelProc.kt
+A	app/src/main/java/com/celzero/bravedns/util/LogLifespan.kt
+M	app/src/main/java/com/celzero/bravedns/util/Logger.kt
+A	app/src/main/java/com/celzero/bravedns/util/MemoryProfiler.kt
+M	app/src/main/java/com/celzero/bravedns/util/MemoryUtils.kt
+M	app/src/main/java/com/celzero/bravedns/util/NetLogBatcher.kt
+R098	app/src/full/java/com/celzero/bravedns/util/NewSettingsManager.kt	app/src/main/java/com/celzero/bravedns/util/NewSettingsManager.kt
+M	app/src/main/java/com/celzero/bravedns/util/OrbotHelper.kt
+A	app/src/main/java/com/celzero/bravedns/util/ProcessInfoCollector.kt
+R098	app/src/full/java/com/celzero/bravedns/util/QrCodeFromFileScanner.kt	app/src/main/java/com/celzero/bravedns/util/QrCodeFromFileScanner.kt
+A	app/src/main/java/com/celzero/bravedns/util/RecyclerViewSpacingDecoration.kt
+R098	app/src/full/java/com/celzero/bravedns/util/RemoteFileTagUtil.kt	app/src/main/java/com/celzero/bravedns/util/RemoteFileTagUtil.kt
+A	app/src/main/java/com/celzero/bravedns/util/RotatingBorderDrawable.kt
+A	app/src/main/java/com/celzero/bravedns/util/SelectionIndicator.kt
+M	app/src/main/java/com/celzero/bravedns/util/SsidPermissionManager.kt
+A	app/src/main/java/com/celzero/bravedns/util/StatusTicker.kt
+A	app/src/main/java/com/celzero/bravedns/util/TextSelectionGuard.kt
+M	app/src/main/java/com/celzero/bravedns/util/Themes.kt
+A	app/src/main/java/com/celzero/bravedns/util/TransportIdDecoder.kt
+R099	app/src/full/java/com/celzero/bravedns/util/TunnelImporter.kt	app/src/main/java/com/celzero/bravedns/util/TunnelImporter.kt
+R085	app/src/full/java/com/celzero/bravedns/util/UIUtils.kt	app/src/main/java/com/celzero/bravedns/util/UIUtils.kt
+M	app/src/main/java/com/celzero/bravedns/util/Utilities.kt
+R081	app/src/full/java/com/celzero/bravedns/util/WindowExtensions.kt	app/src/main/java/com/celzero/bravedns/util/WindowExtensions.kt
+A	app/src/main/java/com/celzero/bravedns/util/WorldMapPaths.kt
+R100	app/src/full/java/com/celzero/bravedns/viewmodel/AlertsViewModel.kt	app/src/main/java/com/celzero/bravedns/viewmodel/AlertsViewModel.kt
+R098	app/src/full/java/com/celzero/bravedns/viewmodel/AllowedAppsBubbleViewModel.kt	app/src/main/java/com/celzero/bravedns/viewmodel/AllowedAppsBubbleViewModel.kt
+R063	app/src/full/java/com/celzero/bravedns/viewmodel/AppConnectionsViewModel.kt	app/src/main/java/com/celzero/bravedns/viewmodel/AppConnectionsViewModel.kt
+R100	app/src/full/java/com/celzero/bravedns/viewmodel/AppCustomIpViewModel.kt	app/src/main/java/com/celzero/bravedns/viewmodel/AppCustomIpViewModel.kt
+R087	app/src/full/java/com/celzero/bravedns/viewmodel/AppInfoViewModel.kt	app/src/main/java/com/celzero/bravedns/viewmodel/AppInfoViewModel.kt
+R100	app/src/full/java/com/celzero/bravedns/viewmodel/BlockFreeDnsViewModel.kt	app/src/main/java/com/celzero/bravedns/viewmodel/BlockFreeDnsViewModel.kt
+R098	app/src/full/java/com/celzero/bravedns/viewmodel/BlockedAppsBubbleViewModel.kt	app/src/main/java/com/celzero/bravedns/viewmodel/BlockedAppsBubbleViewModel.kt
+R091	app/src/full/java/com/celzero/bravedns/viewmodel/ConnectionTrackerViewModel.kt	app/src/main/java/com/celzero/bravedns/viewmodel/ConnectionTrackerViewModel.kt
+A	app/src/main/java/com/celzero/bravedns/viewmodel/ConsoleLogViewModel.kt
+R100	app/src/full/java/com/celzero/bravedns/viewmodel/CustomDomainViewModel.kt	app/src/main/java/com/celzero/bravedns/viewmodel/CustomDomainViewModel.kt
+R100	app/src/full/java/com/celzero/bravedns/viewmodel/CustomIpViewModel.kt	app/src/main/java/com/celzero/bravedns/viewmodel/CustomIpViewModel.kt
+R070	app/src/full/java/com/celzero/bravedns/viewmodel/DetailedStatisticsViewModel.kt	app/src/main/java/com/celzero/bravedns/viewmodel/DetailedStatisticsViewModel.kt
+R100	app/src/full/java/com/celzero/bravedns/viewmodel/DnsCryptEndpointViewModel.kt	app/src/main/java/com/celzero/bravedns/viewmodel/DnsCryptEndpointViewModel.kt
+R100	app/src/full/java/com/celzero/bravedns/viewmodel/DnsCryptRelayEndpointViewModel.kt	app/src/main/java/com/celzero/bravedns/viewmodel/DnsCryptRelayEndpointViewModel.kt
+R100	app/src/full/java/com/celzero/bravedns/viewmodel/DnsLogViewModel.kt	app/src/main/java/com/celzero/bravedns/viewmodel/DnsLogViewModel.kt
+R100	app/src/full/java/com/celzero/bravedns/viewmodel/DnsProxyEndpointViewModel.kt	app/src/main/java/com/celzero/bravedns/viewmodel/DnsProxyEndpointViewModel.kt
+R100	app/src/full/java/com/celzero/bravedns/viewmodel/DoHEndpointViewModel.kt	app/src/main/java/com/celzero/bravedns/viewmodel/DoHEndpointViewModel.kt
+R100	app/src/full/java/com/celzero/bravedns/viewmodel/DoTEndpointViewModel.kt	app/src/main/java/com/celzero/bravedns/viewmodel/DoTEndpointViewModel.kt
+R063	app/src/full/java/com/celzero/bravedns/viewmodel/DomainConnectionsViewModel.kt	app/src/main/java/com/celzero/bravedns/viewmodel/DomainConnectionsViewModel.kt
+A	app/src/main/java/com/celzero/bravedns/viewmodel/EntitlementDetailViewModel.kt
+R094	app/src/full/java/com/celzero/bravedns/viewmodel/LocalBlocklistPacksMapViewModel.kt	app/src/main/java/com/celzero/bravedns/viewmodel/LocalBlocklistPacksMapViewModel.kt
+R050	app/src/full/java/com/celzero/bravedns/viewmodel/ManagePurchaseViewModel.kt	app/src/main/java/com/celzero/bravedns/viewmodel/ManagePurchaseViewModel.kt
+R100	app/src/full/java/com/celzero/bravedns/viewmodel/ODoHEndpointViewModel.kt	app/src/main/java/com/celzero/bravedns/viewmodel/ODoHEndpointViewModel.kt
+R074	app/src/full/java/com/celzero/bravedns/viewmodel/ProxyAppsMappingViewModel.kt	app/src/main/java/com/celzero/bravedns/viewmodel/ProxyAppsMappingViewModel.kt
+R100	app/src/full/java/com/celzero/bravedns/viewmodel/PurchaseHistoryViewModel.kt	app/src/main/java/com/celzero/bravedns/viewmodel/PurchaseHistoryViewModel.kt
+R094	app/src/full/java/com/celzero/bravedns/viewmodel/RemoteBlocklistPacksMapViewModel.kt	app/src/main/java/com/celzero/bravedns/viewmodel/RemoteBlocklistPacksMapViewModel.kt
+A	app/src/main/java/com/celzero/bravedns/viewmodel/RethinkBlocklistViewModel.kt
+R100	app/src/full/java/com/celzero/bravedns/viewmodel/RethinkEndpointViewModel.kt	app/src/main/java/com/celzero/bravedns/viewmodel/RethinkEndpointViewModel.kt
+R082	app/src/full/java/com/celzero/bravedns/viewmodel/RethinkLocalFileTagViewModel.kt	app/src/main/java/com/celzero/bravedns/viewmodel/RethinkLocalFileTagViewModel.kt
+R100	app/src/full/java/com/celzero/bravedns/viewmodel/RethinkLogViewModel.kt	app/src/main/java/com/celzero/bravedns/viewmodel/RethinkLogViewModel.kt
+R082	app/src/full/java/com/celzero/bravedns/viewmodel/RethinkRemoteFileTagViewModel.kt	app/src/main/java/com/celzero/bravedns/viewmodel/RethinkRemoteFileTagViewModel.kt
+R096	app/src/full/java/com/celzero/bravedns/viewmodel/ServerOrderHistoryViewModel.kt	app/src/main/java/com/celzero/bravedns/viewmodel/ServerOrderHistoryViewModel.kt
+R089	app/src/full/java/com/celzero/bravedns/viewmodel/ServerSelectionViewModel.kt	app/src/main/java/com/celzero/bravedns/viewmodel/ServerSelectionViewModel.kt
+A	app/src/main/java/com/celzero/bravedns/viewmodel/SmartDnsEndpointViewModel.kt
+R083	app/src/full/java/com/celzero/bravedns/viewmodel/SummaryStatisticsViewModel.kt	app/src/main/java/com/celzero/bravedns/viewmodel/SummaryStatisticsViewModel.kt
+R083	app/src/full/java/com/celzero/bravedns/viewmodel/ViewModelModule.kt	app/src/main/java/com/celzero/bravedns/viewmodel/ViewModelModule.kt
+R100	app/src/full/java/com/celzero/bravedns/viewmodel/WgConfigViewModel.kt	app/src/main/java/com/celzero/bravedns/viewmodel/WgConfigViewModel.kt
+R100	app/src/full/java/com/celzero/bravedns/viewmodel/WgNwActivityViewModel.kt	app/src/main/java/com/celzero/bravedns/viewmodel/WgNwActivityViewModel.kt
+M	app/src/main/java/com/celzero/bravedns/wireguard/InetEndpoint.kt
+M	app/src/main/java/com/celzero/bravedns/wireguard/Peer.kt
+M	app/src/main/java/com/celzero/bravedns/wireguard/WgHopManager.kt
+M	app/src/main/java/com/celzero/bravedns/wireguard/WgInterface.kt
+R070	app/proguard-rules.pro	app/src/main/keepRules/app.keep
+D	app/src/main/res/anim/fade_scale_in.xml
+D	app/src/main/res/anim/slide_in_bottom.xml
+D	app/src/main/res/color/bottom_nav_icon_color.xml
+A	app/src/main/res/color/qs_tile_off_bg.xml
+R064	app/src/main/res/drawable/bg_premium_header_gradient.xml	app/src/main/res/drawable/about_sponsor_blend.xml
+D	app/src/main/res/drawable/badge_connected_bg.xml
+A	app/src/main/res/drawable/bg_app_icon_circle.xml
+A	app/src/main/res/drawable/bg_avatar_circle.xml
+A	app/src/main/res/drawable/bg_capacity_pill.xml
+A	app/src/main/res/drawable/bg_country_avatar.xml
+R072	app/src/main/res/drawable/shimmer_placeholder_circle.xml	app/src/main/res/drawable/bg_filter_badge.xml
+A	app/src/main/res/drawable/bg_firewall_action_outlined.xml
+D	app/src/main/res/drawable/bg_glow_ring.xml
+A	app/src/main/res/drawable/bg_heatmap_surface.xml
+A	app/src/main/res/drawable/bg_heatmap_swatch.xml
+A	app/src/main/res/drawable/bg_plus_action_tile.xml
+A	app/src/main/res/drawable/bg_plus_hero_gradient.xml
+A	app/src/main/res/drawable/bg_plus_status_chip.xml
+R079	app/src/main/res/drawable/bg_vpn_header_gradient_dark.xml	app/src/main/res/drawable/bg_premium_sky_gradient.xml
+A	app/src/main/res/drawable/bg_qs_action_pill.xml
+A	app/src/main/res/drawable/bg_qs_tile.xml
+A	app/src/main/res/drawable/bg_qs_tile_badge.xml
+A	app/src/main/res/drawable/bg_search_pill.xml
+A	app/src/main/res/drawable/bg_selection_orbital.xml
+A	app/src/main/res/drawable/bg_selection_switch.xml
+A	app/src/main/res/drawable/bg_server_avatar_circle.xml
+A	app/src/main/res/drawable/bg_sponsor_emblem.xml
+D	app/src/main/res/drawable/bg_vpn_header_gradient.xml
+D	app/src/main/res/drawable/bg_vpn_premium_gradient.xml
+A	app/src/main/res/drawable/bg_vpn_server_add_tile.xml
+A	app/src/main/res/drawable/bg_vpn_server_chip.xml
+A	app/src/main/res/drawable/bg_vpn_server_chip_positive.xml
+D	app/src/main/res/drawable/brave_mode_info.xml
+A	app/src/main/res/drawable/dolphin_dive.webp
+A	app/src/main/res/drawable/dolphin_free.webp
+A	app/src/main/res/drawable/dolphin_happy_globe.webp
+A	app/src/main/res/drawable/dolphin_happy_relay.webp
+A	app/src/main/res/drawable/dolphin_happy_shield.webp
+A	app/src/main/res/drawable/dolphin_happy_swirl.webp
+A	app/src/main/res/drawable/dolphin_happy_waves.webp
+A	app/src/main/res/drawable/dolphin_relay.webp
+A	app/src/main/res/drawable/dolphin_sad_1.webp
+A	app/src/main/res/drawable/dolphin_sad_2.webp
+A	app/src/main/res/drawable/dolphin_sad_3.webp
+A	app/src/main/res/drawable/dolphin_sad_4.webp
+A	app/src/main/res/drawable/dolphin_secure.webp
+A	app/src/main/res/drawable/dolphin_waves.webp
+D	app/src/main/res/drawable/dot_selector.xml
+D	app/src/main/res/drawable/fast_scoller_bubble.xml
+D	app/src/main/res/drawable/fast_scroller_handle.xml
+M	app/src/main/res/drawable/home_screen_cards_bg.xml
+M	app/src/main/res/drawable/ic_about.xml
+R099	app/src/main/res/drawable/ic_allow_pass.xml	app/src/main/res/drawable/ic_allow_bypass.xml
+D	app/src/main/res/drawable/ic_arrow_back_24.xml
+D	app/src/main/res/drawable/ic_camera.png
+A	app/src/main/res/drawable/ic_captive_portal_setting.xml
+D	app/src/main/res/drawable/ic_custom_allow_deny.xml
+D	app/src/main/res/drawable/ic_delete_accent.xml
+D	app/src/main/res/drawable/ic_disallowed_16.xml
+A	app/src/main/res/drawable/ic_error_state.xml
+D	app/src/main/res/drawable/ic_firewall_allow.xml
+D	app/src/main/res/drawable/ic_firewall_allow_grey.xml
+D	app/src/main/res/drawable/ic_firewall_block.xml
+D	app/src/main/res/drawable/ic_flag_placeholder.xml
+A	app/src/main/res/drawable/ic_folder.xml
+A	app/src/main/res/drawable/ic_guarantee_sunburst.xml
+M	app/src/main/res/drawable/ic_home_black_24dp.xml
+A	app/src/main/res/drawable/ic_hop.xml
+A	app/src/main/res/drawable/ic_laptop.xml
+D	app/src/main/res/drawable/ic_location_on_24.xml
+A	app/src/main/res/drawable/ic_log_lifespan.xml
+D	app/src/main/res/drawable/ic_microphone.png
+A	app/src/main/res/drawable/ic_profile_memory.xml
+A	app/src/main/res/drawable/ic_protocol_translations.xml
+D	app/src/main/res/drawable/ic_rethink_plus_gradient.xml
+D	app/src/main/res/drawable/ic_right_arrow_chip.xml
+D	app/src/main/res/drawable/ic_save.xml
+M	app/src/main/res/drawable/ic_settings.xml
+D	app/src/main/res/drawable/ic_single_threaded.xml
+A	app/src/main/res/drawable/ic_sponsor_badge.xml
+M	app/src/main/res/drawable/ic_star_outline.xml
+M	app/src/main/res/drawable/ic_statistics.xml
+D	app/src/main/res/drawable/ic_trust_ip.xml
+A	app/src/main/res/drawable/ic_user_icon.xml
+R069	app/src/main/res/drawable/ic_arrow_up.xml	app/src/main/res/drawable/ic_view_chart.xml
+A	app/src/main/res/drawable/ic_view_list.xml
+D	app/src/main/res/drawable/illustrations_download.xml
+D	app/src/main/res/drawable/illustrations_welcome_1.xml
+D	app/src/main/res/drawable/illustrations_welcome_2.xml
+D	app/src/main/res/drawable/new_conf_illustrator.xml
+A	app/src/main/res/drawable/premium_border_gradient.xml
+A	app/src/main/res/drawable/rectangle_border_sharp_background.xml
+D	app/src/main/res/drawable/rounded_corner_button_bg.xml
+D	app/src/main/res/drawable/shimmer_placeholder_light.xml
+D	app/src/main/res/drawable/subscribe_btn_bg.xml
+D	app/src/main/res/drawable/text_view_background.xml
+M	app/src/main/res/drawable/window_background.xml
+D	app/src/main/res/layout-sw600dp/activity_other_dns_list.xml
+M	app/src/main/res/layout/activity_anti_censorship.xml
+M	app/src/main/res/layout/activity_configure_other_dns.xml
+A	app/src/main/res/layout/activity_connection_check.xml
+M	app/src/main/res/layout/activity_customer_support.xml
+M	app/src/main/res/layout/activity_domain_connections.xml
+M	app/src/main/res/layout/activity_other_dns_list.xml
+M	app/src/main/res/layout/activity_ping_test.xml
+M	app/src/main/res/layout/activity_purchase_history.xml
+D	app/src/main/res/layout/activity_rethink_plus_dashboard.xml
+A	app/src/main/res/layout/activity_rpn_bypass_apps.xml
+M	app/src/main/res/layout/activity_rpn_config_detail.xml
+M	app/src/main/res/layout/activity_server_order_history.xml
+A	app/src/main/res/layout/activity_smart_dns_list.xml
+M	app/src/main/res/layout/activity_wg_detail.xml
+M	app/src/main/res/layout/bottom_sheet_block_free_dns_mode.xml
+M	app/src/main/res/layout/bottom_sheet_bug_report_files.xml
+M	app/src/main/res/layout/bottom_sheet_custom_domains.xml
+M	app/src/main/res/layout/bottom_sheet_custom_ips.xml
+A	app/src/main/res/layout/bottom_sheet_pcap_files.xml
+A	app/src/main/res/layout/bottom_sheet_summary_stats_filter.xml
+A	app/src/main/res/layout/bottom_sheet_tasker_automation.xml
+M	app/src/main/res/layout/bottomsheet_auto_exclude_countries.xml
+M	app/src/main/res/layout/bottomsheet_device_auth_error.xml
+M	app/src/main/res/layout/bottomsheet_device_not_registered.xml
+M	app/src/main/res/layout/bottomsheet_entitlement_detail.xml
+D	app/src/main/res/layout/bottomsheet_manage_rpn_purchase.xml
+M	app/src/main/res/layout/bottomsheet_purchase_conflict.xml
+M	app/src/main/res/layout/bottomsheet_purchase_processing.xml
+A	app/src/main/res/layout/bottomsheet_recent_routed_apps.xml
+M	app/src/main/res/layout/bottomsheet_rinr_warning.xml
+A	app/src/main/res/layout/bottomsheet_rpn_remote_service.xml
+A	app/src/main/res/layout/bottomsheet_rpn_stats.xml
+M	app/src/main/res/layout/bottomsheet_server_removal_notification.xml
+M	app/src/main/res/layout/bottomsheet_server_settings.xml
+M	app/src/main/res/layout/dialog_add_custom_ip.xml
+M	app/src/main/res/layout/dialog_dnscrypt_relays.xml
+D	app/src/main/res/layout/dialog_grace_period_layout.xml
+M	app/src/main/res/layout/dialog_rpn_ssid.xml
+D	app/src/main/res/layout/dialog_transaction_error.xml
+D	app/src/main/res/layout/dialog_view_logs.xml
+M	app/src/main/res/layout/dialog_wg_apps.xml
+M	app/src/main/res/layout/dns_crypt_endpoint_list_item.xml
+M	app/src/main/res/layout/dns_proxy_list_item.xml
+M	app/src/main/res/layout/fragment_about.xml
+M	app/src/main/res/layout/fragment_configure.xml
+M	app/src/main/res/layout/fragment_dns_configure.xml
+M	app/src/main/res/layout/fragment_rethink_blocklist.xml
+A	app/src/main/res/layout/fragment_rethink_plus_dashboard.xml
+A	app/src/main/res/layout/fragment_rethink_plus_manage_purchase.xml
+M	app/src/main/res/layout/fragment_rethink_plus_premium.xml
+M	app/src/main/res/layout/fragment_server_selection.xml
+A	app/src/main/res/layout/fragment_smart_dns_list.xml
+M	app/src/main/res/layout/fragment_summary_statistics.xml
+M	app/src/main/res/layout/item_event.xml
+A	app/src/main/res/layout/item_pcap_file.xml
+D	app/src/main/res/layout/item_ping_result_row.xml
+A	app/src/main/res/layout/item_ping_test_history.xml
+D	app/src/main/res/layout/item_rpn_availability_row.xml
+D	app/src/main/res/layout/item_rpn_proxy_dashboard_stats.xml
+A	app/src/main/res/layout/item_section_header.xml
+M	app/src/main/res/layout/item_server_group.xml
+D	app/src/main/res/layout/layout_bubble.xml
+D	app/src/main/res/layout/layout_bubble_icon.xml
+D	app/src/main/res/layout/layout_bubble_popup.xml
+M	app/src/main/res/layout/layout_entitlement_row.xml
+D	app/src/main/res/layout/list_item_alert_registry.xml
+A	app/src/main/res/layout/list_item_app_country_details.xml
+A	app/src/main/res/layout/list_item_blocklist_app_row.xml
+A	app/src/main/res/layout/list_item_blocklist_domain_row.xml
+M	app/src/main/res/layout/list_item_console_log.xml
+M	app/src/main/res/layout/list_item_country_card.xml
+A	app/src/main/res/layout/list_item_decision_step.xml
+M	app/src/main/res/layout/list_item_endpoint.xml
+D	app/src/main/res/layout/list_item_hero_server_ip.xml
+M	app/src/main/res/layout/list_item_play_subs.xml
+A	app/src/main/res/layout/list_item_recent_routed_app.xml
+M	app/src/main/res/layout/list_item_rethink_blocklist_adv.xml
+A	app/src/main/res/layout/list_item_rpn_bypass_app.xml
+D	app/src/main/res/layout/list_item_rpn_countries.xml
+A	app/src/main/res/layout/list_item_rpn_stat_app.xml
+M	app/src/main/res/layout/list_item_shimmer_card.xml
+M	app/src/main/res/layout/list_item_shimmer_server_row.xml
+M	app/src/main/res/layout/list_item_statistics_summary.xml
+M	app/src/main/res/layout/list_item_vpn_server.xml
+A	app/src/main/res/layout/list_item_vpn_server_add.xml
+M	app/src/main/res/layout/list_item_wg_general_interface.xml
+M	app/src/main/res/layout/list_item_wg_include_apps.xml
+M	app/src/main/res/layout/list_item_wg_one_interface.xml
+D	app/src/main/res/layout/list_item_wg_peer_server.xml
+A	app/src/main/res/layout/view_insights_rank_row.xml
+M	app/src/main/res/layout/view_tour_tooltip.xml
+D	app/src/main/res/mipmap-anydpi-v26/ic_notification_icon.png
+D	app/src/main/res/mipmap-hdpi/ic_launcher_foreground.png
+D	app/src/main/res/mipmap-hdpi/ic_notification_icon.png
+D	app/src/main/res/mipmap-mdpi/ic_launcher_foreground.png
+D	app/src/main/res/mipmap-mdpi/ic_notification_icon.png
+D	app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.png
+D	app/src/main/res/mipmap-xhdpi/ic_notification_icon.png
+D	app/src/main/res/mipmap-xxhdpi/ic_launcher_foreground.png
+D	app/src/main/res/mipmap-xxhdpi/ic_notification_icon.png
+D	app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png
+D	app/src/main/res/mipmap-xxxhdpi/ic_notification_icon.png
+D	app/src/main/res/navigation/nav_rethink_plus.xml
+M	app/src/main/res/values-ab/strings.xml
+M	app/src/main/res/values-ang/strings.xml
+M	app/src/main/res/values-ar/strings.xml
+M	app/src/main/res/values-az/strings.xml
+M	app/src/main/res/values-bg/strings.xml
+M	app/src/main/res/values-bn/strings.xml
+M	app/src/main/res/values-cs/strings.xml
+M	app/src/main/res/values-da/strings.xml
+M	app/src/main/res/values-de/strings.xml
+M	app/src/main/res/values-el/strings.xml
+M	app/src/main/res/values-es/strings.xml
+M	app/src/main/res/values-fa/strings.xml
+M	app/src/main/res/values-fi/strings.xml
+M	app/src/main/res/values-fr/strings.xml
+M	app/src/main/res/values-frr/strings.xml
+M	app/src/main/res/values-gay/strings.xml
+M	app/src/main/res/values-hi/strings.xml
+M	app/src/main/res/values-hu/strings.xml
+M	app/src/main/res/values-in/strings.xml
+M	app/src/main/res/values-it/strings.xml
+M	app/src/main/res/values-iw/strings.xml
+M	app/src/main/res/values-ja/strings.xml
+M	app/src/main/res/values-ko/strings.xml
+M	app/src/main/res/values-lir/strings.xml
+A	app/src/main/res/values-lo/strings.xml
+M	app/src/main/res/values-lt/strings.xml
+M	app/src/main/res/values-lv/strings.xml
+M	app/src/main/res/values-ml/strings.xml
+A	app/src/main/res/values-my/strings.xml
+M	app/src/main/res/values-nb-rNO/strings.xml
+M	app/src/main/res/values-nl/strings.xml
+M	app/src/main/res/values-or/strings.xml
+M	app/src/main/res/values-pl/strings.xml
+M	app/src/main/res/values-prg/strings.xml
+M	app/src/main/res/values-pt-rBR/strings.xml
+M	app/src/main/res/values-pt/strings.xml
+M	app/src/main/res/values-ro/strings.xml
+M	app/src/main/res/values-ru/strings.xml
+M	app/src/main/res/values-si/strings.xml
+M	app/src/main/res/values-sk/strings.xml
+M	app/src/main/res/values-sr/strings.xml
+M	app/src/main/res/values-sv/strings.xml
+M	app/src/main/res/values-ta/strings.xml
+M	app/src/main/res/values-th/strings.xml
+M	app/src/main/res/values-tl/strings.xml
+M	app/src/main/res/values-tr/strings.xml
+M	app/src/main/res/values-tts/strings.xml
+M	app/src/main/res/values-uk/strings.xml
+M	app/src/main/res/values-ur/strings.xml
+M	app/src/main/res/values-v27/styles.xml
+D	app/src/main/res/values-v35/values.xml
+M	app/src/main/res/values-vi/strings.xml
+M	app/src/main/res/values-zh-rCN/strings.xml
+M	app/src/main/res/values-zh-rHK/strings.xml
+M	app/src/main/res/values-zh-rTW/strings.xml
+M	app/src/main/res/values/attrs.xml
+M	app/src/main/res/values/colors.xml
+M	app/src/main/res/values/dimens.xml
+M	app/src/main/res/values/server_table.xml
+M	app/src/main/res/values/servers.xml
+M	app/src/main/res/values/strings.xml
+M	app/src/main/res/values/styles.xml
+A	app/src/main/res/values/text_appearance_overrides.xml
+M	app/src/main/res/values/values.xml
+M	app/src/main/res/xml/file_provider_paths.xml
+M	app/src/play/AndroidManifest.xml
+M	app/src/play/java/com/celzero/bravedns/RethinkDnsApplicationPlay.kt
+M	app/src/play/java/com/celzero/bravedns/StoreAppUpdater.kt
+M	app/src/play/java/com/celzero/bravedns/adapter/GooglePlaySubsAdapter.kt
+M	app/src/play/java/com/celzero/bravedns/iab/BillingBackendClient.kt
+M	app/src/play/java/com/celzero/bravedns/iab/BillingListener.kt
+M	app/src/play/java/com/celzero/bravedns/iab/BillingResponse.kt
+M	app/src/play/java/com/celzero/bravedns/iab/DeviceAuthErrorNotifier.kt
+M	app/src/play/java/com/celzero/bravedns/iab/DeviceNotRegisteredNotifier.kt
+M	app/src/play/java/com/celzero/bravedns/iab/InAppBillingHandler.kt
+M	app/src/play/java/com/celzero/bravedns/iab/OneTimePurchaseProcessor.kt
+A	app/src/play/java/com/celzero/bravedns/iab/PendingPurchaseWorker.kt
+M	app/src/play/java/com/celzero/bravedns/iab/PricingPhase.kt
+M	app/src/play/java/com/celzero/bravedns/iab/PurchaseConflictNotifier.kt
+M	app/src/play/java/com/celzero/bravedns/iab/QueryUtils.kt
+M	app/src/play/java/com/celzero/bravedns/iab/Result.kt
+M	app/src/play/java/com/celzero/bravedns/iab/RpnPurchaseAckServerResponse.kt
+M	app/src/play/java/com/celzero/bravedns/iab/ServerOrderHistoryRepository.kt
+M	app/src/play/java/com/celzero/bravedns/iab/SubscriptionCheckWorker.kt
+M	app/src/play/java/com/celzero/bravedns/iab/SubscriptionPurchaseProcessor.kt
+A	app/src/play/java/com/celzero/bravedns/sponsor/SponsorModule.kt
+A	app/src/play/java/com/celzero/bravedns/sponsor/billing/SponsorBillingManagerImpl.kt
+A	app/src/play/java/com/celzero/bravedns/sponsor/billing/SponsorProductIds.kt
+A	app/src/play/java/com/celzero/bravedns/sponsor/provider/GooglePlaySponsorProvider.kt
+M	app/src/play/java/com/celzero/bravedns/ui/fragment/RethinkPlusFragment.kt
+M	app/src/play/java/com/celzero/bravedns/util/FirebaseErrorReporting.kt
+M	app/src/play/java/com/celzero/bravedns/viewmodel/RethinkPlusViewModel.kt
+A	app/src/playTv/java/com/celzero/bravedns/tv/ui/rpn/RpnPurchaseRoute.kt
+M	app/src/test/java/com/celzero/bravedns/adapter/FirewallAppListAdapterTest.kt
+M	app/src/test/java/com/celzero/bravedns/adapter/WgConfigAdapterTest.kt
+A	app/src/test/java/com/celzero/bravedns/database/AppInfoRepositoryTest.kt
+A	app/src/test/java/com/celzero/bravedns/database/ConnectionTrackerDAOTest.kt
+A	app/src/test/java/com/celzero/bravedns/database/ConnectionTrackerRepositoryTest.kt
+A	app/src/test/java/com/celzero/bravedns/database/CustomIpRepositoryTest.kt
+A	app/src/test/java/com/celzero/bravedns/database/DnsLogRepositoryTest.kt
+A	app/src/test/java/com/celzero/bravedns/database/ProxyAppMappingIntegrityTest.kt
+A	app/src/test/java/com/celzero/bravedns/database/ProxyEndpointRepositoryTest.kt
+A	app/src/test/java/com/celzero/bravedns/database/RefreshDatabaseTest.kt
+A	app/src/test/java/com/celzero/bravedns/database/WgConfigFilesRepositoryTest.kt
+A	app/src/test/java/com/celzero/bravedns/download/DownloadWatcherInterpreterTest.kt
+A	app/src/test/java/com/celzero/bravedns/iab/PrimaryPurchaseResolverTest.kt
+M	app/src/test/java/com/celzero/bravedns/net/go/GoVpnAdapterTest.kt
+A	app/src/test/java/com/celzero/bravedns/net/go/MockDnsServer.kt
+A	app/src/test/java/com/celzero/bravedns/net/manager/ConnectionTracerTest.kt
+A	app/src/test/java/com/celzero/bravedns/receiver/VpnControlReceiverTest.kt
+A	app/src/test/java/com/celzero/bravedns/receiver/WgAutomationNotifierTest.kt
+A	app/src/test/java/com/celzero/bravedns/receiver/WgCommandsTest.kt
+M	app/src/test/java/com/celzero/bravedns/rpnproxy/RpnProxyManagerTest.kt
+M	app/src/test/java/com/celzero/bravedns/rpnproxy/SubscriptionStateMachineV2Test.kt
+A	app/src/test/java/com/celzero/bravedns/rpnproxy/SubscriptionUiStateResolverTest.kt
+A	app/src/test/java/com/celzero/bravedns/scheduler/EnhancedBugReportTest.kt
+A	app/src/test/java/com/celzero/bravedns/scheduler/LogExportWorkerTest.kt
+A	app/src/test/java/com/celzero/bravedns/service/BraveVPNServiceLifecycleTest.kt
+M	app/src/test/java/com/celzero/bravedns/service/ConnectionMonitorTest.kt
+A	app/src/test/java/com/celzero/bravedns/service/DnsLogTrackerBlockedClassifierTest.kt
+M	app/src/test/java/com/celzero/bravedns/service/FirewallManagerTest.kt
+M	app/src/test/java/com/celzero/bravedns/service/FirewallRulesetTest.kt
+A	app/src/test/java/com/celzero/bravedns/service/GlobalProxyHandlerTest.kt
+A	app/src/test/java/com/celzero/bravedns/service/IpRulesManagerWildcardTest.kt
+A	app/src/test/java/com/celzero/bravedns/service/LogActivityAggregatorTest.kt
+A	app/src/test/java/com/celzero/bravedns/service/LogActivityWindowTest.kt
+A	app/src/test/java/com/celzero/bravedns/service/NetworkLifecycleObserverTest.kt
+M	app/src/test/java/com/celzero/bravedns/service/ProxyManagerTest.kt
+A	app/src/test/java/com/celzero/bravedns/service/TunFirewallManagerTest.kt
+M	app/src/test/java/com/celzero/bravedns/service/WireguardManagerTest.kt
+A	app/src/test/java/com/celzero/bravedns/shadows/LenientResourcesShadow.kt
+A	app/src/test/java/com/celzero/bravedns/shadows/ShadowBackend.kt
+A	app/src/test/java/com/celzero/bravedns/shadows/ShadowGoJni.kt
+A	app/src/test/java/com/celzero/bravedns/shadows/ShadowGoSeq.kt
+A	app/src/test/java/com/celzero/bravedns/tunnel/TunDnsManagerTest.kt
+M	app/src/test/java/com/celzero/bravedns/ui/activity/MiscSettingsActivityRobolectricTest.kt
+A	app/src/test/java/com/celzero/bravedns/ui/adapter/ServerIpVersionBadgeTest.kt
+A	app/src/test/java/com/celzero/bravedns/ui/bottomsheet/FirewallRuleApplierLifecycleTest.kt
+A	app/src/test/java/com/celzero/bravedns/ui/bottomsheet/TaskerAutomationBottomSheetTest.kt
+M	app/src/test/java/com/celzero/bravedns/ui/fragment/HomeScreenFragmentTest.kt
+A	app/src/test/java/com/celzero/bravedns/ui/fragment/RulesImportHelperFuzzTest.kt
+A	app/src/test/java/com/celzero/bravedns/ui/fragment/RulesImportHelperTest.kt
+A	app/src/test/java/com/celzero/bravedns/ui/fragment/StatsProgressDialogLifecycleTest.kt
+A	app/src/test/java/com/celzero/bravedns/ui/stats/CountryInsightsMapperTest.kt
+A	app/src/test/java/com/celzero/bravedns/ui/stats/StatsInsightsMathTest.kt
+A	app/src/test/java/com/celzero/bravedns/util/ExceptionParserTest.kt
+A	app/src/test/java/com/celzero/bravedns/util/IPUtilTest.kt
+A	app/src/test/java/com/celzero/bravedns/util/LoggerRpnLogTest.kt
+A	app/src/test/java/com/celzero/bravedns/util/RotatingBorderDrawableTest.kt
+A	app/src/test/java/com/celzero/bravedns/util/TextSelectionGuardTest.kt
+A	app/src/test/java/com/celzero/bravedns/util/UtilitiesTest.kt
+A	app/src/test/java/com/celzero/bravedns/util/WorldMapPathsTest.kt
+A	app/src/test/java/com/celzero/bravedns/viewmodel/AppInfoViewModelTest.kt
+A	app/src/test/java/com/celzero/bravedns/viewmodel/ConnectionTrackerViewModelTest.kt
+A	app/src/test/java/com/celzero/bravedns/viewmodel/DetailedStatisticsViewModelTest.kt
+A	app/src/test/java/com/celzero/bravedns/viewmodel/DnsCryptEndpointViewModelTest.kt
+A	app/src/test/java/com/celzero/bravedns/viewmodel/DnsLogViewModelTest.kt
+A	app/src/test/java/com/celzero/bravedns/viewmodel/DoHEndpointViewModelTest.kt
+A	app/src/test/java/com/celzero/bravedns/viewmodel/SummaryStatisticsViewModelTest.kt
+A	app/src/test/java/com/celzero/bravedns/viewmodel/WgConfigViewModelTest.kt
+M	app/src/test/java/com/celzero/bravedns/wireguard/WgHopManagerTest.kt
+A	app/src/test/java/com/celzero/bravedns/wireguard/WgInterfaceTest.kt
+A	app/src/test/resources/robolectric.properties
+A	app/src/testPlay/java/com/celzero/bravedns/iab/BillingBackendClientTest.kt
+R054	app/src/test/java/com/celzero/bravedns/iab/InAppBillingHandlerTest.kt	app/src/testPlay/java/com/celzero/bravedns/iab/InAppBillingHandlerTest.kt
+A	app/src/testPlay/java/com/celzero/bravedns/iab/RpnPurchaseAckServerResponseTest.kt
+A	app/src/testWebsite/java/com/celzero/bravedns/iab/BillingBackendClientTest.kt
+A	app/src/testWebsite/java/com/celzero/bravedns/iab/InAppBillingHandlerTest.kt
+A	app/src/testWebsite/java/com/celzero/bravedns/iab/RpnPurchaseAckServerResponseTest.kt
+A	app/src/tv/AndroidManifest.xml
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/TvHomeActivity.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/apps/AppDetailScreen.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/apps/AppsScreen.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/apps/RpnBypassAppsScreen.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/common/LiveDataCompose.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/common/Onboarding.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/common/SettingToggleRow.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/common/TvScreenScaffold.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/common/TvSurface.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/console/ConsoleLogScreen.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/dns/DnsScreen.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/dns/OdohAddScreen.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/firewall/FirewallScreen.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/home/HomeScreen.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/logs/LogsScreen.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/nav/TvDestination.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/nav/TvNavScaffold.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/proxy/ProxyEditorScreen.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/proxy/ProxyScreen.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/proxy/WgDetailScreen.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/proxy/WgImportScreen.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/proxy/WgIncludeAppsScreen.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/rpn/RpnAddLocationScreen.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/rpn/RpnAppsScreen.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/rpn/RpnCommon.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/rpn/RpnHeatmap.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/rpn/RpnHomeScreen.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/rpn/RpnLocationDetailScreen.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/rpn/RpnManagePurchaseScreen.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/rpn/RpnPlusDashboardScreen.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/rpn/RpnSettingsScreen.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/rpn/RpnStatsScreen.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/rpn/RpnSupportScreen.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/rules/CustomDomainRulesList.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/rules/CustomIpRulesList.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/rules/RulesScreen.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/settings/AntiCensorshipScreen.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/settings/PauseVpnScreen.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/settings/SettingsScreen.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/stats/StatsDetailScreen.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/stats/StatsScreen.kt
+A	app/src/tv/java/com/celzero/bravedns/tv/ui/theme/Theme.kt
+A	app/src/tv/res/values/strings.xml
+M	app/src/website/AndroidManifest.xml
+M	app/src/website/java/com/celzero/bravedns/adapter/GooglePlaySubsAdapter.kt
+M	app/src/website/java/com/celzero/bravedns/iab/BillingBackendClient.kt
+M	app/src/website/java/com/celzero/bravedns/iab/BillingListener.kt
+M	app/src/website/java/com/celzero/bravedns/iab/BillingResponse.kt
+M	app/src/website/java/com/celzero/bravedns/iab/DeviceAuthErrorNotifier.kt
+M	app/src/website/java/com/celzero/bravedns/iab/DeviceNotRegisteredNotifier.kt
+M	app/src/website/java/com/celzero/bravedns/iab/InAppBillingHandler.kt
+M	app/src/website/java/com/celzero/bravedns/iab/OneTimePurchaseProcessor.kt
+A	app/src/website/java/com/celzero/bravedns/iab/PendingPurchaseWorker.kt
+M	app/src/website/java/com/celzero/bravedns/iab/PricingPhase.kt
+M	app/src/website/java/com/celzero/bravedns/iab/PurchaseConflictNotifier.kt
+M	app/src/website/java/com/celzero/bravedns/iab/QueryUtils.kt
+M	app/src/website/java/com/celzero/bravedns/iab/Result.kt
+M	app/src/website/java/com/celzero/bravedns/iab/RpnPurchaseAckServerResponse.kt
+M	app/src/website/java/com/celzero/bravedns/iab/ServerOrderHistoryRepository.kt
+M	app/src/website/java/com/celzero/bravedns/iab/SubscriptionCheckWorker.kt
+M	app/src/website/java/com/celzero/bravedns/iab/SubscriptionPurchaseProcessor.kt
+D	app/src/website/java/com/celzero/bravedns/iab/stripe/PricesAdapter.kt
+D	app/src/website/java/com/celzero/bravedns/iab/stripe/RetrofitInstance.kt
+D	app/src/website/java/com/celzero/bravedns/iab/stripe/StripeApiService.kt
+D	app/src/website/java/com/celzero/bravedns/iab/stripe/SubscriptionViewModel.kt
+A	app/src/website/java/com/celzero/bravedns/sponsor/SponsorModule.kt
+A	app/src/website/java/com/celzero/bravedns/sponsor/billing/SponsorBillingManagerImpl.kt
+A	app/src/website/java/com/celzero/bravedns/sponsor/billing/SponsorProductIds.kt
+A	app/src/website/java/com/celzero/bravedns/sponsor/provider/GooglePlaySponsorProvider.kt
+M	app/src/website/java/com/celzero/bravedns/ui/fragment/RethinkPlusFragment.kt
+M	app/src/website/java/com/celzero/bravedns/util/FirebaseErrorReporting.kt
+M	app/src/website/java/com/celzero/bravedns/viewmodel/RethinkPlusViewModel.kt
+A	app/src/websiteTv/java/com/celzero/bravedns/tv/ui/rpn/RpnPurchaseRoute.kt
+A	benchmark/build.gradle.kts
+A	benchmark/src/main/AndroidManifest.xml
+A	benchmark/src/main/java/com/celzero/bravedns/benchmark/VpnStartupBenchmark.kt
+D	build.gradle
+A	build.gradle.kts
+A	fastlane/metadata/android/cs-CZ/full_description.txt
+D	fastlane/metadata/android/en-US/changelogs/24.txt
+A	fastlane/metadata/android/en-US/changelogs/70.txt
+M	fastlane/metadata/android/en-US/phoneScreenshots/1.png
+M	fastlane/metadata/android/en-US/phoneScreenshots/2.png
+M	fastlane/metadata/android/en-US/phoneScreenshots/3.png
+M	fastlane/metadata/android/en-US/phoneScreenshots/4.png
+M	fastlane/metadata/android/en-US/phoneScreenshots/5.png
+M	fastlane/metadata/android/en-US/phoneScreenshots/6.png
+M	fastlane/metadata/android/en-US/phoneScreenshots/7.png
+M	fastlane/metadata/android/en-US/phoneScreenshots/8.png
+A	fastlane/metadata/android/it-IT/full_description.txt
+A	fastlane/metadata/android/it-IT/short_description.txt
+A	fastlane/metadata/android/it-IT/title.txt
+A	fastlane/metadata/android/lo-LA/full_description.txt
+A	fastlane/metadata/android/lo-LA/short_description.txt
+A	fastlane/metadata/android/lo-LA/title.txt
+M	fastlane/metadata/android/lv/short_description.txt
+M	fastlane/metadata/android/lv/title.txt
+A	fastlane/metadata/android/pt/full_description.txt
+A	fastlane/metadata/android/pt/short_description.txt
+A	fastlane/metadata/android/pt/title.txt
+A	fastlane/metadata/android/sv-SE/full_description.txt
+M	gradle.properties
+A	gradle/lib.toml
+M	gradle/wrapper/gradle-wrapper.jar
+M	gradle/wrapper/gradle-wrapper.properties
+M	gradlew
+M	gradlew.bat
+D	settings.gradle
+A	settings.gradle.kts

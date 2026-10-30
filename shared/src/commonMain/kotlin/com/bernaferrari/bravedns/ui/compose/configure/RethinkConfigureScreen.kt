@@ -60,6 +60,8 @@ import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListPairShape
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedGridCellShape
+import androidx.compose.ui.text.style.LineBreak
+import androidx.compose.ui.text.style.Hyphens
 
 enum class RethinkConfigureLayout { GridFour, GridTriad, List }
 
@@ -265,15 +267,15 @@ private fun AdaptiveTileGrid(entries: List<RethinkConfigureEntry>, columns: Int)
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile),
             ) {
+                // A short last row stretches its tiles across, so an odd count never leaves a hole.
                 row.forEachIndexed { column, entry ->
                     GridTile(
                         entry,
-                        rethinkGroupedGridCellShape(column, columns, cardPositionFor(rowIndex, rows.lastIndex)),
+                        rethinkGroupedGridCellShape(column, row.size, cardPositionFor(rowIndex, rows.lastIndex)),
                         Modifier.weight(1f),
                         rowIndex * columns + column,
                     )
                 }
-                repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
             }
         }
     }
@@ -302,9 +304,10 @@ private fun AdaptiveTileGrid(entries: List<RethinkConfigureEntry>, columns: Int)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(SharedDimensions.cardPadding),
+                .padding(horizontal = SharedDimensions.spacingMd, vertical = SharedDimensions.cardPadding),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
+            // Tight enough that a long half-width title ("Anti-censorship") breaks at its hyphen.
+            horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSmMd),
         ) {
             ConfigureIconWell(colors) { entry.icon() }
             Column(modifier = Modifier.weight(1f)) {
@@ -312,7 +315,8 @@ private fun AdaptiveTileGrid(entries: List<RethinkConfigureEntry>, columns: Int)
                 // read as one family; two lines survive large font scales.
                 Text(
                     entry.title,
-                    style = MaterialTheme.typography.bodyLarge,
+                    // Long words hyphenate at syllables instead of breaking anywhere.
+                    style = MaterialTheme.typography.bodyLarge.copy(hyphens = Hyphens.Auto, lineBreak = LineBreak.Heading),
                     fontWeight = FontWeight.Medium,
                     color = colors.title,
                     maxLines = 2,

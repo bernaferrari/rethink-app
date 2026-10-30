@@ -161,25 +161,11 @@
     <string name="two_argument_space" translatable="false">%1$s %2$s</string>
     <string name="two_argument_colon" translatable="false">%1$s: %2$s</string>
     <string name="two_argument" translatable="false">%1$s / %2$s</string>
-    <string name="symbol_heavy" translatable="false">🐘</string>
-    <string name="symbol_turtle" translatable="false">🐢</string>
-    <string name="symbol_currency" translatable="false">💲</string>
-    <string name="symbol_green_circle" translatable="false">🟢</string>
-    <string name="symbol_key" translatable="false">🗝️</string>
-    <string name="symbol_rocket" translatable="false">🚀</string>
-    <string name="symbol_bunny" translatable="false">🐇</string>
-    <string name="symbol_sparkle" translatable="false">✨</string>
     <string name="symbol_hyphen" translatable="false">-</string>
     <string name="symbol_lightening" translatable="false">⚡</string>
     <string name="symbol_star" translatable="false">★</string>
-    <string name="symbol_sky" translatable="false">⛅</string>
-    <string name="symbol_max" translatable="false">🪂</string>
-    <string name="symbol_duck" translatable="false">🦆</string>
-    <string name="symbol_diamond" translatable="false">🔷</string>
     <string name="symbol_mobile" translatable="false">📱</string>
     <string name="symbol_id" translatable="false">🆔</string>
-    <string name="symbol_lock" translatable="false">🔒</string>
-    <string name="symbol_unlock" translatable="false">🔓</string>
 
 
     <string name="slide_2_desc" translatable="true">Keepout is the easiest way to monitor network activity, bypass Internet censorship, and firewall apps on your Android device.</string>
@@ -1602,7 +1588,10 @@
     <string name="time_window_one_hour_short" translatable="true">1h</string>
     <string name="time_window_twenty_four_hours_short" translatable="true">24h</string>
     <string name="time_window_seven_days_short" translatable="true">7d</string>
-    <string name="summary_connections_count" translatable="true">Connections: %1$d</string>
+    <plurals name="summary_connections_count">
+        <item quantity="one">%1$d connection</item>
+        <item quantity="other">%1$d connections</item>
+    </plurals>
     <string name="checkout_unavailable_desc" translatable="true">Checkout is unavailable in this build.</string>
     <string name="db_corruption_notif_title" translatable="false">Database error</string>
     <string name="db_corruption_notif_desc" translatable="false">The app database appears to be corrupted. Rebuilding it restores functionality but may reset some app settings.</string>
@@ -1820,6 +1809,7 @@
     <string name="log_detail_dnssec_valid">Valid</string>
     <string name="log_detail_dnssec_unverified">Unverified</string>
     <string name="log_data_down">↓ %1$s</string>
+    <string name="log_data_up">↑ %1$s</string>
     <string name="log_latency_ms">%1$d ms</string>
     <plurals name="log_blocklists_matched">
         <item quantity="one">%d blocklist matched</item>

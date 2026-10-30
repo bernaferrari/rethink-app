@@ -31,6 +31,10 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.foundation.layout.BoxWithConstraints
 
 /**
  * One option of a [RethinkConnectedChoiceGroup]. [selectedIcon] lets an option swap its glyph
@@ -45,18 +49,15 @@ data class RethinkChoiceOption<T>(
 )
 
 /**
- * How a [RethinkConnectedChoiceGroup] shows its options. Every segment always keeps its label:
- * a row of unlabeled icons reads as a riddle.
- * - [Always]: every option shows icon + label.
- * - [SelectedIcon]: every option shows its label; only the selected one adds its icon. For
- *   crowded rows (log filters, toolbar switches) where an icon on every segment would truncate.
+ * How a [RethinkConnectedChoiceGroup] shows its options.
+ * - [Always]: every option shows icon + label; when a full-width row is too narrow for the
+ *   labels, they drop and the icons stay (labels become content descriptions).
+ * - [SelectedLabel]: the selected option shows icon + label, the others only their icon. Only for
+ *   a two-way switch whose icons are self-evident (Network / DNS), where it reads cleaner.
  */
 enum class RethinkChoiceLabels {
     Always,
-    SelectedIcon,
-
-    @Deprecated("Unselected segments keep their labels now", ReplaceWith("RethinkChoiceLabels.SelectedIcon"))
-    SelectedOnly,
+    SelectedLabel,
 }
 
 /**
@@ -93,6 +94,41 @@ fun <T> RethinkConnectedChoiceGroup(
     /** Shorter segments with smaller type, for a group that sits inside a top bar. */
     compact: Boolean = false,
 ) {
+    val adaptiveLabels = fillWidth && !iconOnly && labels == RethinkChoiceLabels.Always
+    if (!adaptiveLabels || options.any { it.icon == null }) {
+        ChoiceRow(options, selected, onSelect, modifier, fillWidth, iconOnly, onDeselect, labels, unselectedContainerColor, compact)
+        return
+    }
+    // Icons carry the meaning, so when the labels don't fit their segments the text goes and the icons stay.
+    BoxWithConstraints(modifier.fillMaxWidth()) {
+        val measurer = rememberTextMeasurer()
+        val density = LocalDensity.current
+        val style = (if (compact) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelLarge).copy(fontWeight = FontWeight.SemiBold)
+        val padding = if (compact) CompactContentPadding else FillWidthContentPadding
+        val chrome = padding.calculateLeftPadding(LayoutDirection.Ltr) + padding.calculateRightPadding(LayoutDirection.Ltr) +
+            ToggleButtonDefaults.IconSize + ToggleButtonDefaults.IconSpacing
+        val segment = (maxWidth - ButtonGroupDefaults.ConnectedSpaceBetween * (options.size - 1)) / options.size
+        val labelsFit = options.all { option ->
+            with(density) { measurer.measure(option.label, style, maxLines = 1).size.width.toDp() } + chrome <= segment
+        }
+        ChoiceRow(options, selected, onSelect, Modifier, fillWidth = true, iconOnly = !labelsFit, onDeselect, labels, unselectedContainerColor, compact)
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun <T> ChoiceRow(
+    options: List<RethinkChoiceOption<T>>,
+    selected: T?,
+    onSelect: (T) -> Unit,
+    modifier: Modifier,
+    fillWidth: Boolean,
+    iconOnly: Boolean,
+    onDeselect: (() -> Unit)?,
+    labels: RethinkChoiceLabels,
+    unselectedContainerColor: Color,
+    compact: Boolean,
+) {
     Row(
         modifier = modifier
             .then(if (fillWidth) Modifier.fillMaxWidth() else Modifier)
@@ -108,8 +144,7 @@ fun <T> RethinkConnectedChoiceGroup(
         )
         options.forEachIndexed { index, option ->
             val isSelected = option.value == selected
-            @Suppress("DEPRECATION")
-            val iconOnSelectedOnly = labels == RethinkChoiceLabels.SelectedIcon || labels == RethinkChoiceLabels.SelectedOnly
+            val collapsedToIcon = labels == RethinkChoiceLabels.SelectedLabel && option.icon != null && !isSelected
             ToggleButton(
                 checked = isSelected,
                 onCheckedChange = { checked ->
@@ -134,7 +169,7 @@ fun <T> RethinkConnectedChoiceGroup(
                 },
                 modifier = choiceSegmentModifier(fillWidth, compact),
             ) {
-                ChoiceContent(option, isSelected, iconOnly, iconOnSelectedOnly, compact)
+                ChoiceContent(option, isSelected, iconOnly, collapsedToIcon, compact)
             }
         }
     }
@@ -153,21 +188,20 @@ private fun RowScope.choiceSegmentModifier(fillWidth: Boolean, compact: Boolean)
 @Composable
 private fun <T> ChoiceContent(
     option: RethinkChoiceOption<T>, isSelected: Boolean, iconOnly: Boolean,
-    iconOnSelectedOnly: Boolean, compact: Boolean,
+    collapsedToIcon: Boolean, compact: Boolean,
 ) {
     val icon = when {
-        iconOnSelectedOnly && !isSelected -> null
         isSelected -> option.selectedIcon
         else -> option.icon
     }
     if (icon != null) {
         Icon(
             imageVector = icon,
-            contentDescription = if (iconOnly) option.label else null,
+            contentDescription = if (iconOnly || collapsedToIcon) option.label else null,
             modifier = Modifier.size(ToggleButtonDefaults.IconSize),
         )
     }
-    if (!iconOnly || icon == null) {
+    if ((!iconOnly && !collapsedToIcon) || icon == null) {
         if (icon != null) Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
         Text(
             text = option.label,
