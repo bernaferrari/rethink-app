@@ -151,10 +151,10 @@
       "feature": "readme-identity",
       "layout": "hero",
       "file": "readme/hero.jpg",
-      "alt": "Keepout Home, the network log and the app list",
+      "alt": "Keepout stats, Home with protection on, and settings",
       "devices": [
         {
-          "raw": "phone/02-logs.png",
+          "raw": "phone/05-stats.png",
           "role": "left"
         },
         {
@@ -162,7 +162,7 @@
           "role": "center"
         },
         {
-          "raw": "phone/03-apps.png",
+          "raw": "phone/08-settings.png",
           "role": "right"
         }
       ],

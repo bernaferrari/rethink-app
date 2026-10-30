@@ -225,11 +225,11 @@
         "slide": 0,
         "width": 2400,
         "height": 1260,
-        "bytes": 295451,
+        "bytes": 271497,
         "sources": [
-          "raw/phone/02-logs.png",
+          "raw/phone/05-stats.png",
           "raw/phone/01-home.png",
-          "raw/phone/03-apps.png"
+          "raw/phone/08-settings.png"
         ]
       },
       {
@@ -266,7 +266,7 @@
         "slide": 3,
         "width": 2400,
         "height": 1260,
-        "bytes": 382428,
+        "bytes": 346379,
         "sources": [
           "raw/compare/rethink-home.png",
           "raw/phone/01-home.png",
