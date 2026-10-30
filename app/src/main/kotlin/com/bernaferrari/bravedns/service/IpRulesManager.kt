@@ -54,6 +54,17 @@ object IpRulesManager : KoinComponent {
         ExpiringCache(maxSize = CACHE_MAX_SIZE, expireAfterWriteMs = Long.MAX_VALUE / 2)
 
     private val selectedCCs = mutableSetOf<String>()
+    @Volatile private var portRuleUids: Set<Int>? = null
+
+    // A DNS answer has no destination port. Defer while rules are loading or when any
+    // app/global port-specific rule could change the eventual connection verdict.
+    fun hasPortSpecificRules(uid: Int): Boolean = portRuleUids?.let {
+        uid in it || Constants.UID_EVERYBODY in it
+    } ?: true
+
+    private suspend fun refreshPortRuleUids() {
+        portRuleUids = db.getIpRules().filter { it.isActive && it.port > 0 }.map { it.uid }.toSet()
+    }
 
     enum class IPRuleType(val id: Int) {
         IPV4(0),
@@ -132,6 +143,7 @@ object IpRulesManager : KoinComponent {
                 }
             }
         }
+        refreshPortRuleUids()
         return iptree.len()
     }
 
@@ -153,33 +165,10 @@ object IpRulesManager : KoinComponent {
         return treeKey(ipaddr.toNormalizedString())
     }
 
-    private fun treeKey(ipstr: String?): String? {
-        if (ipstr == null) return null
-        // "192/8" -> 0.0.0.192/32
-        // "192.0.0.0" -> 192.0.0.0/32
-        // "*.*" -> 0.0.0.0/0
-        // "*.*.*.*" -> 0.0.0.0/0
-        // "0/24" -> 0.0.0.0/24
-        // "::" -> ::/128
-        // "::/1" -> ::/1
-        // assignPrefixForSingleBlock: equivalent CIDR address with a prefix length for which the
-        // address subnet block matches the range of values in this address.
-        // If no such prefix length exists, returns null.
-        // Examples:
-        // 1.2.3.4 returns 1.2.3.4/32
-        // 1.2.*.* returns 1.2.0.0/16
-        // 1.2.*.0/24 returns 1.2.0.0/16
-        // 1.2.*.4 returns null
-        // 1.2.252-255.* returns 1.2.252.0/22
-        // 1.2.3.4/x returns the same address
-        val pair = hostAddr(ipstr)
-        val ipAddr = pair.first
-        return if (ipstr.contains("*")) {
-            ipAddr.assignPrefixForSingleBlock()?.toCanonicalString()
-        } else {
-            ipAddr.toNormalizedString()
-        }
-    }
+    private fun treeKey(ipstr: String?): String? = ipstr?.let(IpRuleNormalizer::trieKey)
+
+    /** True only for addresses/ranges the native CIDR trie can enforce. */
+    fun isIpRuleEnforceable(ip: String): Boolean = IpRuleNormalizer.trieKey(ip) != null
 
     private fun treeValLike(uid: Int, port: Int): Gostr? {
         return ("$uid$KV_SEP$port").togs()
@@ -201,6 +190,7 @@ object IpRulesManager : KoinComponent {
         if (!k.isNullOrEmpty()) iptree.escLike(k.togs(), treeValLike(uid, port))
 
         resultsCache.invalidateAll()
+        refreshPortRuleUids()
     }
 
     private suspend fun updateRule(ci: CustomIp) {
@@ -215,6 +205,7 @@ object IpRulesManager : KoinComponent {
             iptree.add(k.togs(), treeVal(ci.uid, ci.port, ci.status, ci.proxyId, ci.proxyCC))
         }
         resultsCache.invalidateAll()
+        refreshPortRuleUids()
     }
 
     suspend fun updateBypass(c: CustomIp) {
@@ -248,8 +239,7 @@ object IpRulesManager : KoinComponent {
     }
 
     fun hasRule(uid: Int, ipstr: String, port: Int): IpRuleStatus {
-        val pair = hostAddr(ipstr, port)
-        val ipNetPort = joinIpNetPort(normalize(pair.first) + pair.second)
+        val ipNetPort = joinIpNetPort(ipstr, port)
         val ck = CacheKey(ipNetPort, uid)
 
         resultsCache.getIfPresent(ck)?.let {
@@ -480,6 +470,7 @@ object IpRulesManager : KoinComponent {
         }
         db.deleteRulesByUid(uid)
         resultsCache.invalidateAll()
+        refreshPortRuleUids()
         Logger.i(LOG_TAG_FIREWALL, "deleted all ip rules for uid: $uid")
     }
 
@@ -495,12 +486,14 @@ object IpRulesManager : KoinComponent {
         }
         db.deleteRules(list)
         resultsCache.invalidateAll()
+        refreshPortRuleUids()
     }
 
     suspend fun deleteAllAppsRules() {
         db.deleteAllAppsRules()
         iptree.clear()
         resultsCache.invalidateAll()
+        refreshPortRuleUids()
     }
 
     suspend fun getObj(uid: Int, ipAddress: String, port: Int = 0): CustomIp? {
@@ -567,11 +560,12 @@ object IpRulesManager : KoinComponent {
                 ipStr = padIpv4Cidr(ipaddr.toNormalizedString())
             }
             val pair = hostAddr(ipStr)
-            return normalize(pair.first) ?: ""
+            return normalize(pair.first) ?: ipStr
         } catch (e: NullPointerException) {
             Logger.e(Logger.LOG_TAG_VPN, "Invalid IP address added", e)
         }
-        return "" // empty ips mean its a port-only rule
+        // Unenforceable text must not become a port-only rule.
+        return ipStr
     }
 
     private fun padIpv4Cidr(cidr: String): String {
@@ -631,6 +625,7 @@ object IpRulesManager : KoinComponent {
             Logger.d(LOG_TAG_FIREWALL, "iptree.add($k, ${treeVal(uid, port ?: 0, status.id, proxyId, proxyCC)})")
         }
         resultsCache.invalidateAll()
+        refreshPortRuleUids()
         return c
     }
 
@@ -644,6 +639,7 @@ object IpRulesManager : KoinComponent {
             }
         }
         resultsCache.invalidateAll()
+        refreshPortRuleUids()
         load()
         Logger.i(LOG_TAG_FIREWALL, "ip rules updated")
     }
@@ -651,6 +647,7 @@ object IpRulesManager : KoinComponent {
     suspend fun updateUid(oldUid: Int, newUid: Int) {
         db.updateUid(oldUid, newUid)
         resultsCache.invalidateAll()
+        refreshPortRuleUids()
         load()
         Logger.i(LOG_TAG_FIREWALL, "ip rules updated for $oldUid to $newUid")
     }
@@ -696,6 +693,7 @@ object IpRulesManager : KoinComponent {
             iptree.add(nk.togs(), treeVal(newRule.uid, port ?: 0, newStatus.id, proxyId, proxyCC))
         }
         resultsCache.invalidateAll()
+        refreshPortRuleUids()
     }
 
     // translated from go, net.SplitHostPort()
@@ -799,6 +797,7 @@ object IpRulesManager : KoinComponent {
         }
         db.tombstoneRulesByUid(oldUid, newUid)
         resultsCache.invalidateAll()
+        refreshPortRuleUids()
         load()
     }
 

@@ -67,8 +67,7 @@ class Peer private constructor(builder: Builder) {
         val sb = StringBuilder()
         if (allowedIps.isNotEmpty())
             sb.append("AllowedIPs = ").append(Attribute.join(allowedIps)).append('\n')
-        endpoint?.let { sb.append("Endpoint = ").append(it).append('\n') }
-        unresolvedEndpoint?.let { sb.append("Endpoint = ").append(it).append('\n') }
+        (unresolvedEndpoint ?: endpoint?.toString())?.let { sb.append("Endpoint = ").append(it).append('\n') }
         persistentKeepalive?.let { sb.append("PersistentKeepalive = ").append(it).append('\n') }
         preSharedKey?.let { sb.append("PreSharedKey = ").append(it.base64()).append('\n') }
         sb.append("PublicKey = ").append(publicKey.base64()).append('\n')
@@ -83,8 +82,8 @@ class Peer private constructor(builder: Builder) {
         } else {
             for (allowedIp in allowedIps) sb.append("allowed_ip=").append(allowedIp).append('\n')
         }
-        endpoint?.getResolved()?.let { sb.append("endpoint=").append(it).append('\n') }
-        unresolvedEndpoint?.let { sb.append("endpoint=").append(it).append('\n') }
+        // Firestack resolves hostnames on the chosen underlying network.
+        (unresolvedEndpoint ?: endpoint?.toString())?.let { sb.append("endpoint=").append(it).append('\n') }
         persistentKeepalive?.let {
             sb.append("persistent_keepalive_interval=").append(it).append('\n')
         }

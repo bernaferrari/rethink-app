@@ -131,6 +131,7 @@ class WgInterface private constructor(builder: Builder) {
     fun toWgUserspaceString(skipListenPort: Boolean): String {
         val dnsServerStrings = dnsServers.toMutableList()
         dnsServerStrings.addAll(dnsSearchDomains)
+        if (dnsServerStrings.isEmpty()) dnsServerStrings.add("1.1.1.1")
         val sb = StringBuilder()
         sb.append("private_key=").append(keyPair.getPrivateKey().hex()).append('\n')
         if (!skipListenPort) listenPort?.let { sb.append("listen_port=").append(it).append('\n') }

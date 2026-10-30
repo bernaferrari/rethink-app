@@ -440,9 +440,16 @@ object VpnController : KoinComponent {
         return braveVpnService?.registerAndFetchWinIfNeeded(prevBytes, deviceId)
     }
 
+    suspend fun registerAndFetchWinConfig(entitlementBytes: ByteArray?, stateBytes: ByteArray?, deviceId: String): ByteArray? =
+        braveVpnService?.registerAndFetchWinIfNeeded(entitlementBytes, stateBytes, deviceId)
+
     suspend fun updateWin(): ByteArray? = braveVpnService?.updateWin()
 
     suspend fun isWinRegistered(): Boolean = braveVpnService?.isWinRegistered() ?: false
+
+    suspend fun stopPcapCapture(): Boolean = braveVpnService?.stopPcapCapture() ?: true
+
+    suspend fun getActiveEntitlement(): com.celzero.firestack.backend.RpnEntitlement? = braveVpnService?.getActiveEntitlement()
 
     suspend fun unregisterWin(): Boolean = braveVpnService?.unregisterWin() ?: false
 

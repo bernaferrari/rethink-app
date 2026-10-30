@@ -169,5 +169,7 @@ data class WgConfigFilesImmutable(
     val useOnlyOnMetered: Boolean,
     val isDeletable: Boolean,
     val ssidEnabled: Boolean,
-    val ssids: String
+    val ssids: String,
+    // Runtime-only routing fact; unknown fails closed until the native proxy is inspected.
+    val isSplitProxy: Boolean = false,
 )

@@ -330,7 +330,7 @@ object FirewallManager : KoinComponent {
     }
 
     suspend fun isUidFirewalled(uid: Int): Boolean {
-        return connectionStatus(uid) != ConnectionStatus.ALLOW
+        return connectionStatus(uid) == ConnectionStatus.BOTH
     }
 
     suspend fun isUidSystemApp(uid: Int): Boolean {
