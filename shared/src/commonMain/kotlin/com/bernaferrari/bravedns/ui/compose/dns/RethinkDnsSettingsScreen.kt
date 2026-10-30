@@ -4,7 +4,8 @@
 package com.bernaferrari.bravedns.ui.compose.dns
 
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
-import com.bernaferrari.bravedns.ui.compose.theme.rethinkLatencyTone
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillDefaults
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
@@ -347,7 +348,8 @@ private fun DnsChoiceCard(choice: DnsChoice, highlighted: Boolean, modifier: Mod
             Text(
                 choice.description,
                 style = MaterialTheme.typography.bodySmall,
-                color = if (choice.selected) scheme.onSecondaryContainer.copy(alpha = .8f) else scheme.onSurfaceVariant,
+                // Full emphasis when chosen: a faded description on the selected card read as disabled.
+                color = if (choice.selected) scheme.onSecondaryContainer else scheme.onSurfaceVariant,
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -369,10 +371,15 @@ private fun DnsInUseHero(state: RethinkDnsSettingsState, strings: RethinkDnsSett
     val median = latencies.sorted().let { if (it.isEmpty()) null else it[it.size / 2] }
     val latencyLabel = state.dnsLatency.trim('(', ')', ' ').takeIf { it.isNotBlank() } ?: median?.let { "$it ms" }
     val shape = RoundedCornerShape(SharedDimensions.groupCornerRadius)
+    // The brand palette keeps primaryContainer at the seed's bright tone in dark theme too; the
+    // secondary container is the same hue at a dark tone, so the hero dims with the rest of the UI.
+    val dark = scheme.surface.luminance() < 0.5f
+    val heroContainer = if (dark) scheme.secondaryContainer else scheme.primaryContainer
+    val onHero = if (dark) scheme.onSecondaryContainer else scheme.onPrimaryContainer
     Surface(
         shape = shape,
-        color = if (highlighted) scheme.primaryContainer else scheme.primaryContainer.copy(alpha = .78f),
-        contentColor = scheme.onPrimaryContainer,
+        color = if (highlighted) heroContainer else heroContainer.copy(alpha = .78f),
+        contentColor = onHero,
         modifier = Modifier.fillMaxWidth().clip(shape).then(
             if (onDetails != null) Modifier.clickable(onClickLabel = strings.aboutItem(displayName), onClick = onDetails) else Modifier,
         ),
@@ -389,10 +396,15 @@ private fun DnsInUseHero(state: RethinkDnsSettingsState, strings: RethinkDnsSett
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm), verticalAlignment = Alignment.CenterVertically) {
-                RethinkPill(protocol, colors = RethinkPillDefaults.onContainer(scheme.onPrimaryContainer), size = RethinkPillSize.Large)
-                endpoint.takeIf { it.isNotBlank() }?.let {
-                    RethinkPill(it, Modifier.weight(1f, fill = false), colors = RethinkPillDefaults.onContainer(scheme.onPrimaryContainer), size = RethinkPillSize.Large)
+            // The protocol only when it says something: a bare "DNS", or one that repeats the name, doesn't.
+            val showProtocol = protocol != GENERIC_PROTOCOL && !protocol.equals(displayName, ignoreCase = true)
+            val showEndpoint = endpoint.isNotBlank()
+            if (showProtocol || showEndpoint) {
+                Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm), verticalAlignment = Alignment.CenterVertically) {
+                    if (showProtocol) RethinkPill(protocol, colors = RethinkPillDefaults.onContainer(onHero), size = RethinkPillSize.Large)
+                    if (showEndpoint) {
+                        RethinkPill(endpoint, Modifier.weight(1f, fill = false), colors = RethinkPillDefaults.onContainer(onHero), size = RethinkPillSize.Large)
+                    }
                 }
             }
             Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg)) {
@@ -400,15 +412,18 @@ private fun DnsInUseHero(state: RethinkDnsSettingsState, strings: RethinkDnsSett
                     Text(latencyLabel ?: "—", style = MaterialTheme.typography.displaySmall.copy(fontFeatureSettings = "tnum"), fontWeight = FontWeight.Bold)
                     Text(if (latencies.isEmpty()) strings.noLookupsYet else strings.medianLookup, style = MaterialTheme.typography.bodySmall)
                 }
-                if (latencies.isNotEmpty()) LatencyBars(latencies.reversed(), Modifier.weight(1f).height(LatencyChartHeight))
+                if (latencies.isNotEmpty()) LatencyBars(latencies.reversed(), onHero, Modifier.weight(1f).height(LatencyChartHeight))
             }
         }
     }
 }
 
-/** One rounded bar per recent lookup, oldest to newest, tinted by speed. */
+/**
+ * One rounded bar per recent lookup, oldest to newest, in the hero's own on-colour: height says
+ * the speed, and green/red bars on the coloured container clashed with it.
+ */
 @Composable
-private fun LatencyBars(latencies: List<Long>, modifier: Modifier = Modifier) {
+private fun LatencyBars(latencies: List<Long>, color: Color, modifier: Modifier = Modifier) {
     val max = (latencies.maxOrNull() ?: 1L).coerceAtLeast(1L).toFloat()
     Row(modifier, horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.Bottom) {
         latencies.forEach { ms ->
@@ -416,13 +431,15 @@ private fun LatencyBars(latencies: List<Long>, modifier: Modifier = Modifier) {
                 Modifier
                     .weight(1f)
                     .fillMaxHeight((ms / max).coerceIn(0.08f, 1f))
-                    .background(rethinkLatencyTone(ms), RoundedCornerShape(SharedDimensions.cornerRadiusFull)),
+                    .background(color.copy(alpha = LATENCY_BAR_ALPHA), RoundedCornerShape(SharedDimensions.cornerRadiusFull)),
             )
         }
     }
 }
 
 private const val LATENCY_BARS = 24
+private const val LATENCY_BAR_ALPHA = 0.72f
+private const val GENERIC_PROTOCOL = "DNS"
 private val LatencyChartHeight = 56.dp
 
 private data class RethinkDnsToggle(
@@ -486,7 +503,7 @@ private fun RethinkDnsStatusText(text: String, enabled: Boolean) = RethinkStatus
 )
 
 private fun RethinkDnsType.protocol(endpoint: String): String = when (this) {
-    RethinkDnsType.Doh, RethinkDnsType.RethinkRemote, RethinkDnsType.SmartDns -> if (endpoint.startsWith("https://", true)) "HTTPS" else if (endpoint.startsWith("http://", true)) "HTTP" else "DNS"
+    RethinkDnsType.Doh, RethinkDnsType.RethinkRemote, RethinkDnsType.SmartDns -> if (endpoint.startsWith("https://", true)) "HTTPS" else if (endpoint.startsWith("http://", true)) "HTTP" else GENERIC_PROTOCOL
     RethinkDnsType.Dot -> "DoT"
     RethinkDnsType.Odoh -> "ODoH"
     RethinkDnsType.DnsCrypt -> "DNSCrypt"
