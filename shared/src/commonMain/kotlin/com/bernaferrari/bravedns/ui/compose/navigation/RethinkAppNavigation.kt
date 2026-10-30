@@ -141,7 +141,15 @@ fun RethinkAppNavigation(
     }
 
     fun selectRoot(destination: RethinkRootDestination) {
-        if (destination == liveActiveRoot()) return
+        if (destination == liveActiveRoot()) {
+            // Re-tapping the active tab returns to that tab's root, as on every Android app.
+            val stack = liveBackStack()
+            if (stack.size > 1) {
+                tabTransition = false
+                applyStackOn(stack, currentStack(), listOf(destination.route))
+            }
+            return
+        }
         tabTransition = true
         activeRootName = destination.name
     }
