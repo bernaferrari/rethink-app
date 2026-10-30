@@ -197,7 +197,7 @@ fun RethinkLogRow(
         Column(Modifier.fillMaxWidth()) {
             when (model.kind) {
                 RethinkLogKind.Network -> NetworkLogHeader(model, cardColor, if (inline) chevron else null)
-                RethinkLogKind.Dns -> DnsLogHeader(model, if (inline) chevron else null)
+                RethinkLogKind.Dns -> DnsLogHeader(model, cardColor, if (inline) chevron else null)
             }
             if (inline && keepDetails) {
                 Box(Modifier.fillMaxWidth().logAccordionReveal(detailsProgress)) {
@@ -217,7 +217,6 @@ private val RowPadding = Modifier.padding(
 private val LeadingSize = 44.dp
 private val AppIconSize = 40.dp
 private val VerdictBadgeSize = 18.dp
-private val SmallAppIconSize = 16.dp
 
 /** Network: the app leads, with its verdict as a badge; then where it went and how. */
 @Composable
@@ -228,12 +227,9 @@ private fun NetworkLogHeader(model: RethinkLogRowModel, cardColor: Color, chevro
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
     ) {
-        Box(Modifier.size(LeadingSize)) {
-            Box(Modifier.size(AppIconSize).align(Alignment.Center), contentAlignment = Alignment.Center) {
-                val container = if (model.isBlocked) RethinkStatusColors.blockedContainer else RethinkStatusColors.allowedContainer
-                model.icon?.invoke(container) ?: Box(Modifier.size(AppIconSize).background(container, CircleShape))
-            }
-            VerdictBadge(model.isBlocked, ringColor = cardColor, modifier = Modifier.align(Alignment.BottomEnd))
+        AppVerdictMark(model.isBlocked, cardColor) {
+            val container = if (model.isBlocked) RethinkStatusColors.blockedContainer else RethinkStatusColors.allowedContainer
+            model.icon?.invoke(container) ?: Box(Modifier.size(AppIconSize).background(container, CircleShape))
         }
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile)) {
             TitleAndTime(model.appLabel, model.timeLabel, chevron) { title, mod ->
@@ -267,16 +263,24 @@ private fun NetworkLogHeader(model: RethinkLogRowModel, cardColor: Color, chevro
     }
 }
 
-/** DNS: the name leads, marked by a verdict shape; then the answer or the blocklist; then who asked. */
+/**
+ * DNS: the name leads; then the answer or the blocklist; then who asked. The app that asked is
+ * the mark, with its verdict as a badge like network rows; a query with no app gets the verdict shape.
+ */
 @Composable
-private fun DnsLogHeader(model: RethinkLogRowModel, chevron: Float?) {
+private fun DnsLogHeader(model: RethinkLogRowModel, cardColor: Color, chevron: Float?) {
     val scheme = MaterialTheme.colorScheme
     Row(
         modifier = RowPadding.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
     ) {
-        DnsQueryMark(model.isBlocked, model.icon, LeadingSize)
+        val appIcon = model.appIcon
+        if (appIcon != null) {
+            AppVerdictMark(model.isBlocked, cardColor) { Box(Modifier.size(AppIconSize)) { appIcon() } }
+        } else {
+            DnsQueryMark(model.isBlocked, model.icon, LeadingSize)
+        }
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
             TitleAndTime(model.destination, model.timeLabel, chevron) { title, mod ->
                 Text(rethinkDomainText(title, scheme.onSurface, scheme.onSurfaceVariant), style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = mod)
@@ -297,10 +301,7 @@ private fun DnsLogHeader(model: RethinkLogRowModel, chevron: Float?) {
                 RethinkPill(model.typeLabel, size = RethinkPillSize.Small, fontWeight = FontWeight.Bold)
                 model.facts.firstOrNull()?.let { RethinkPill(it, size = RethinkPillSize.Small) }
             }
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
-                model.appIcon?.let { icon -> Box(Modifier.size(SmallAppIconSize).clip(CircleShape)) { icon() } }
-                Text(model.appLabel, style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            }
+            Text(model.appLabel, style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
 }
@@ -332,6 +333,15 @@ private fun VerdictPill(model: RethinkLogRowModel) {
         size = RethinkPillSize.Small,
         leadingIcon = if (model.isBlocked) MaterialSymbols.Filled.Block else MaterialSymbols.Filled.Check,
     )
+}
+
+/** An app icon with its verdict badged at the bottom end: the lead of network and DNS rows alike. */
+@Composable
+private fun AppVerdictMark(blocked: Boolean, ringColor: Color, icon: @Composable () -> Unit) {
+    Box(Modifier.size(LeadingSize)) {
+        Box(Modifier.size(AppIconSize).align(Alignment.Center), contentAlignment = Alignment.Center) { icon() }
+        VerdictBadge(blocked, ringColor = ringColor, modifier = Modifier.align(Alignment.BottomEnd))
+    }
 }
 
 /** The verdict as a small badge on the app icon, ringed in the card color so it reads as a cut-out. */
