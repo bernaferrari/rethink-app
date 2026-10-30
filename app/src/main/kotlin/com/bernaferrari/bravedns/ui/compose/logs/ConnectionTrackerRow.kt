@@ -51,6 +51,7 @@ import com.bernaferrari.bravedns.util.formatByteCount
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.Locale
+import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 private const val NO_USER_ID = 0
 
@@ -155,11 +156,10 @@ private fun connectionDetails(
     )
 }
 
-/** "↓ 1.2 MB" for allowed connections that received data (the details pane has both directions). */
-@Composable
-private fun dataMoved(ct: ConnectionTracker): String? {
+/** Data received, as a drawn download arrow and the size, for allowed connections (details have both directions). */
+private fun dataMoved(ct: ConnectionTracker): RethinkLogFact? {
     if (ct.isBlocked || ct.downloadBytes <= 0) return null
-    return stringResource(R.string.log_data_down, formatByteCount(ct.downloadBytes))
+    return RethinkLogFact(formatByteCount(ct.downloadBytes), MaterialSymbols.Filled.ArrowDownward)
 }
 
 private fun protocolLabel(http3: String, port: Int, proto: Int): String {
@@ -185,7 +185,7 @@ private data class Summary(
 )
 
 /**
- * Plain-text readouts for the details: data as "↑ up · ↓ down", the duration, and whether the
+ * Plain-text readouts for the details: data as "x sent · y received", the duration, and whether the
  * connection was metered. Speed, size, proxy and relay already have their own detail rows, so
  * the old emoji flags (🐘 🐢 🗝️ 🚀) said nothing those rows don't.
  */

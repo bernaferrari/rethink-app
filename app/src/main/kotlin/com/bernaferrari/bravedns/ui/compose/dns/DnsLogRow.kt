@@ -58,6 +58,7 @@ import com.bernaferrari.bravedns.util.Constants
 import com.bernaferrari.bravedns.util.UIUtils
 import com.bernaferrari.bravedns.ui.compose.common.AppIcon
 import com.celzero.firestack.backend.Backend
+import com.bernaferrari.bravedns.ui.compose.logs.RethinkLogFact
 
 @Composable
 fun DnsLogRow(
@@ -140,7 +141,7 @@ fun dnsLogModel(
         endpoint = firstAnswer(log.responseIps),
         // Blocked rows name their blocklists instead; the latency of a refusal says little.
         facts = listOfNotNull(
-            log.latency.takeIf { it > 0 && !log.isBlocked }?.let { stringResource(R.string.log_latency_ms, it.toInt()) },
+            log.latency.takeIf { it > 0 && !log.isBlocked }?.let { RethinkLogFact(stringResource(R.string.log_latency_ms, it.toInt())) },
         ),
         appIcon = log.packageName
             .takeUnless { it.isEmpty() || it == Constants.EMPTY_PACKAGE_NAME }
