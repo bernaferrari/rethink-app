@@ -126,7 +126,6 @@ fun RethinkBackupRestoreSheet(
                     headline = strings.restoreTitle,
                     supporting = strings.restoreDescription,
                     leadingIcon = MaterialSymbols.Filled.Restore,
-                    destructive = true,
                     position = CardPosition.Last,
                     onClick = { confirmation = RethinkBackupRestoreFailure.Restore },
                 )

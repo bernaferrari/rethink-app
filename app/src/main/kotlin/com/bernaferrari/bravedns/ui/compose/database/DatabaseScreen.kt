@@ -117,8 +117,34 @@ private fun readTables(appDatabase: AppDatabase): List<String> {
 private fun loadTablePreview(appDatabase: AppDatabase, table: String, maxRows: Int = 140): RethinkDatabaseTablePreview {
     val rowCount = tableRowCount(appDatabase, table)
     val columnCount = tableColumnCount(appDatabase, table)
-    return RethinkDatabaseTablePreview(table, rowCount, columnCount, buildTableDump(appDatabase, table, maxRows), rowCount > maxRows)
+    return RethinkDatabaseTablePreview(table, rowCount, columnCount, buildTablePreview(appDatabase, table, maxRows), rowCount > maxRows)
 }
+
+/**
+ * The on-screen preview as an aligned monospace table: padded columns split by " │ " and a rule
+ * under the header, so values line up instead of running together. Copy keeps the TSV dump.
+ */
+private fun buildTablePreview(appDatabase: AppDatabase, table: String, maxRows: Int): String {
+    val cursor = appDatabase.getSupportWrapper().query("SELECT * FROM `${table.safeSqlName()}`")
+    val names = cursor.columnNames.toList()
+    val rows = buildList {
+        while (size < maxRows && cursor.moveToNext()) {
+            add(names.indices.map { index -> cursor.valueAsText(index).replace('\n', ' ').ellipsize(PREVIEW_CELL_MAX) })
+        }
+    }
+    cursor.close()
+    val widths = names.indices.map { column -> maxOf(names[column].length, rows.maxOfOrNull { it[column].length } ?: 0) }
+    fun line(cells: List<String>) = cells.mapIndexed { column, cell -> cell.padEnd(widths[column]) }.joinToString(" │ ").trimEnd()
+    return buildString {
+        append(line(names)).append('\n')
+        append(widths.joinToString("─┼─") { "─".repeat(it) }).append('\n')
+        rows.forEach { append(line(it)).append('\n') }
+    }
+}
+
+private const val PREVIEW_CELL_MAX = 32
+
+private fun String.ellipsize(max: Int): String = if (length <= max) this else take(max - 1) + "…"
 
 private fun tableRowCount(appDatabase: AppDatabase, table: String): Int {
     val cursor = appDatabase.getSupportWrapper().query("SELECT COUNT(*) FROM `${table.safeSqlName()}`")

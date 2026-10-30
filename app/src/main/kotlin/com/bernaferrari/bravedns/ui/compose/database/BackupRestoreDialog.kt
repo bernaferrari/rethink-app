@@ -219,25 +219,13 @@ fun BackupRestoreSheet(
     }
 }
 
-private fun showVersion(activity: ComponentActivity): String {
-    val version = getVersionName(activity)
-    return activity.getString(
-        R.string.about_version_install_source,
-        version,
-        getDownloadSource(activity)
-    )
-}
+/** The app version the backup is written with; the build flavour ("(fdroid)") is noise here. */
+private fun showVersion(activity: ComponentActivity): String = getVersionName(activity)
 
 private fun getVersionName(activity: ComponentActivity): String {
     val pInfo: PackageInfo? =
         Utilities.getPackageMetadata(activity.packageManager, activity.packageName)
     return pInfo?.versionName ?: ""
-}
-
-private fun getDownloadSource(activity: ComponentActivity): String {
-    if (Utilities.isFdroidFlavour()) return activity.getString(R.string.build__flavor_fdroid)
-    if (Utilities.isPlayStoreFlavour()) return activity.getString(R.string.build__flavor_play_store)
-    return activity.getString(R.string.build__flavor_website)
 }
 
 private fun backup(

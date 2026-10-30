@@ -187,12 +187,6 @@ private fun RethinkDatabaseInlineSelector(tables: List<String>, selected: String
                 selected = selected == table,
                 onClick = { if (selected != table) onSelect(table) },
                 minHeight = SharedDimensions.touchTargetMin,
-                // Selection uses the same secondaryContainer as connected groups and toolbar toggles.
-                selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                textStyle = MaterialTheme.typography.labelLarge,
-                selectedLabelWeight = FontWeight.SemiBold,
-                defaultLabelWeight = FontWeight.Medium,
             )
         }
     }
@@ -330,10 +324,13 @@ private fun RethinkDatabaseDetail(
                                 .verticalScroll(rememberScrollState())
                                 .padding(SharedDimensions.cardPadding),
                         ) {
+                            // An aligned table: rows never wrap, wide tables scroll sideways.
                             Text(
                                 preview.dumpPreview,
                                 style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
                                 color = MaterialTheme.colorScheme.onSurface,
+                                softWrap = false,
+                                modifier = Modifier.horizontalScroll(rememberScrollState()),
                             )
                             if (preview.isTruncated) {
                                 Spacer(Modifier.size(SharedDimensions.spacingMd))

@@ -178,7 +178,10 @@ fun RethinkAboutScreen(
     modifier: Modifier = Modifier,
     assets: RethinkAboutAssets = RethinkAboutAssets(),
 ) {
+    // The hero shows the release ("v0.5.5y"), not the git-describe build string
+    // ("v0.5.5y-120-g…-storecapture"); the footer keeps the full string for bug reports.
     val version = uiState.versionName.ifBlank { uiState.slicedVersion }
+        .substringBefore('-')
         .takeIf { it.isNotBlank() }
         ?.let { if (it.startsWith("v", ignoreCase = true)) it else "v$it" }
 
