@@ -23,6 +23,7 @@ class PcapCaptureManager(
     private val getScheduler: () -> WorkManager = { WorkManager.getInstance(context) },
 ) {
     private val mutex = Mutex()
+    @Volatile private var transitionInProgress = false
     private val directory get() = File(context.filesDir, "pcap").apply { mkdirs() }
     val active: Boolean get() = persistentState.pcapMode != PcapMode.NONE.id
     val activeFlow = persistentState.preferenceKeyChanges()
@@ -35,49 +36,56 @@ class PcapCaptureManager(
 
     suspend fun start(mode: PcapMode): Boolean = mutex.withLock {
         if (active || !VpnController.hasTunnel() || mode == PcapMode.NONE) return@withLock false
-        val path = if (mode == PcapMode.EXTERNAL_FILE) {
-            File.createTempFile("capture-", ".pcap", directory).absolutePath
-        } else PcapMode.ENABLE_PCAP_LOGCAT
-        val captureId = java.util.UUID.randomUUID().toString()
-        persistentState.pcapCaptureId = captureId
-        persistentState.pcapStartedAt = System.currentTimeMillis()
-        val request = OneTimeWorkRequestBuilder<PcapStopWorker>()
-            .setInputData(workDataOf(CAPTURE_ID to captureId))
-            .setInitialDelay(MAX_CAPTURE_HOURS, TimeUnit.HOURS).build()
-        val scheduler = getScheduler()
+        transitionInProgress = true
+        var createdFile: File? = null
+        var scheduler: WorkManager? = null
         try {
+            val path = if (mode == PcapMode.EXTERNAL_FILE) {
+                File.createTempFile("capture-", ".pcap", directory).also { createdFile = it }.absolutePath
+            } else PcapMode.ENABLE_PCAP_LOGCAT
+            val captureId = java.util.UUID.randomUUID().toString()
+            persistentState.pcapCaptureId = captureId
+            persistentState.pcapStartedAt = System.currentTimeMillis()
+            val request = OneTimeWorkRequestBuilder<PcapStopWorker>()
+                .setInputData(workDataOf(CAPTURE_ID to captureId))
+                .setInitialDelay(MAX_CAPTURE_HOURS, TimeUnit.HOURS).build()
+            scheduler = getScheduler()
             // Persist the deadline before native capture can start.
             scheduler.enqueueUniqueWork(STOP_WORK, ExistingWorkPolicy.REPLACE, request).await()
-            if (!VpnController.startPcapCapture(mode.id, path)) return@withLock false
+            VpnController.startPcapCapture(mode.id, path)
         } catch (cancelled: CancellationException) {
             withContext(NonCancellable) {
                 if (VpnController.stopPcapCapture()) appConfig.setPcap(PcapMode.NONE.id)
             }
             throw cancelled
         } finally {
-            if (!active) {
-                persistentState.pcapCaptureId = ""
-                persistentState.pcapStartedAt = 0L
-                if (mode == PcapMode.EXTERNAL_FILE) File(path).delete()
-                scheduler.cancelUniqueWork(STOP_WORK)
-            }
+            try {
+                if (!active) {
+                    persistentState.pcapCaptureId = ""
+                    persistentState.pcapStartedAt = 0L
+                    createdFile?.delete()
+                    scheduler?.cancelUniqueWork(STOP_WORK)
+                }
+            } finally { transitionInProgress = false }
         }
-        true
     }
 
     suspend fun stop(expectedCaptureId: String? = null): Boolean = mutex.withLock {
         if (expectedCaptureId != null && expectedCaptureId != persistentState.pcapCaptureId) return@withLock true
-        if (active && !VpnController.stopPcapCapture()) return@withLock false
-        appConfig.setPcap(PcapMode.NONE.id)
-        persistentState.pcapStartedAt = 0L
-        persistentState.pcapCaptureId = ""
-        true
+        transitionInProgress = true
+        try {
+            if (active && !VpnController.stopPcapCapture()) return@withLock false
+            appConfig.setPcap(PcapMode.NONE.id)
+            persistentState.pcapStartedAt = 0L
+            persistentState.pcapCaptureId = ""
+            true
+        } finally { transitionInProgress = false }
     }
 
     private fun ownedRegularFile(file: File): Boolean = file.isFile && file.extension == "pcap" &&
         file.canonicalFile == File(directory.canonicalFile, file.name)
 
-    fun canExpose(file: File): Boolean = !active && ownedRegularFile(file)
+    fun canExpose(file: File): Boolean = !transitionInProgress && !active && ownedRegularFile(file)
 
     fun delete(file: File): Boolean = canExpose(file) && file.delete()
 

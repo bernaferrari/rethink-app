@@ -57,7 +57,7 @@ internal fun PcapCaptureSetting() {
     RethinkListItem(headline = title, supporting = stringResource(R.string.port_capture_description),
         position = CardPosition.Single, onClick = { open = true; perform { true } })
     if (open) com.bernaferrari.bravedns.ui.compose.theme.RethinkDialogScaffold(
-        onDismissRequest = { if (!busy) open = false },
+        onDismissRequest = { open = false },
         title = title,
         text = { LazyColumn(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
             item { Text(stringResource(R.string.port_capture_privacy)) }
@@ -97,7 +97,7 @@ internal fun PcapCaptureSetting() {
                 }
             }
         } },
-        confirmButton = { TextButton(enabled = !busy, onClick = { open = false }) { Text(stringResource(R.string.lbl_done)) } },
+        confirmButton = { TextButton(onClick = { open = false }) { Text(stringResource(R.string.lbl_done)) } },
     )
     pendingDelete?.let { file ->
         com.bernaferrari.bravedns.ui.compose.theme.RethinkDialogScaffold(onDismissRequest = { pendingDelete = null }, title = stringResource(R.string.port_capture_delete),

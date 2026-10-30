@@ -22,6 +22,7 @@ internal fun RulesImportAction(uid: Int, tab: RethinkRulesTab) {
     var busy by remember { mutableStateOf(false) }
     var failed by remember { mutableStateOf(false) }
     var summary by remember { mutableStateOf<Pair<Int, Int>?>(null) }
+    var importJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
             busy = true; failed = false
@@ -40,7 +41,7 @@ internal fun RulesImportAction(uid: Int, tab: RethinkRulesTab) {
         RulesImportPreviewDialog(parsed, busy,
             onImport = {
                 busy = true
-                scope.launch {
+                importJob = scope.launch {
                     try {
                         summary = withContext(Dispatchers.IO) { com.bernaferrari.bravedns.rules.RuleImportService.import(uid, tab, parsed.entries) }
                         preview = null
@@ -53,7 +54,7 @@ internal fun RulesImportAction(uid: Int, tab: RethinkRulesTab) {
                     } finally { busy = false }
                 }
             },
-            onDismiss = { preview = null },
+            onDismiss = { importJob?.cancel(); preview = null },
         )
     }
     if (failed || summary != null) com.bernaferrari.bravedns.ui.compose.theme.RethinkDialogScaffold(

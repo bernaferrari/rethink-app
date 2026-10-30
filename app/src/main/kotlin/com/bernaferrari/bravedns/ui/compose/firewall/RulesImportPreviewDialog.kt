@@ -24,7 +24,7 @@ import java.io.IOException
 @Composable
 internal fun RulesImportPreviewDialog(preview: RuleImportPreview, busy: Boolean, onImport: () -> Unit, onDismiss: () -> Unit) {
     RethinkDialogScaffold(
-        onDismissRequest = { if (!busy) onDismiss() }, title = stringResource(R.string.port_import_rules),
+        onDismissRequest = onDismiss, title = stringResource(R.string.port_import_rules),
         text = { Column(Modifier.verticalScroll(rememberScrollState())) {
             Text(stringResource(R.string.port_import_preview, preview.entries.size, preview.duplicateCount, preview.invalidCount))
             Text(stringResource(R.string.port_import_policy))
@@ -33,7 +33,7 @@ internal fun RulesImportPreviewDialog(preview: RuleImportPreview, busy: Boolean,
             preview.entries.take(5).forEach { Text(it, style = MaterialTheme.typography.bodySmall) }
         } },
         confirmButton = { TextButton(enabled = !busy && preview.entries.isNotEmpty(), onClick = onImport) { Text(stringResource(R.string.port_import_rules)) } },
-        dismissButton = { TextButton(enabled = !busy, onClick = onDismiss) { Text(stringResource(R.string.lbl_cancel)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.lbl_cancel)) } },
     )
 }
 

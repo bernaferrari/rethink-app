@@ -1,5 +1,7 @@
 package com.bernaferrari.bravedns.rules
 
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 
@@ -13,7 +15,11 @@ internal class ConfirmedRuleImporter(
         var duplicates = 0
         for (entry in entries) {
             currentCoroutineContext().ensureActive()
-            if (exists(entry)) duplicates++ else { insertBlock(entry); imported++ }
+            if (exists(entry)) duplicates++ else {
+                // Finish one database + native-cache write before honoring cancellation.
+                withContext(NonCancellable) { insertBlock(entry) }
+                imported++
+            }
         }
         return imported to duplicates
     }

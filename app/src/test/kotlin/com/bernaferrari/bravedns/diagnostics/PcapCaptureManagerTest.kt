@@ -65,6 +65,31 @@ class PcapCaptureManagerTest {
         assertEquals("", captureId)
         assertTrue(manager.files().isEmpty())
     }
+    @Test fun aFileBeingStartedCannotBeExposedBeforeNativeAcknowledgement() = runTest {
+        val acknowledge = CompletableDeferred<Boolean>()
+        coEvery { VpnController.startPcapCapture(any(), any()) } coAnswers {
+            val result = acknowledge.await()
+            if (result) mode = firstArg()
+            result
+        }
+        val start = async { manager.start(PcapMode.EXTERNAL_FILE) }
+        runCurrent()
+        val file = manager.files().single()
+        assertFalse(manager.active)
+        assertFalse(manager.canExpose(file))
+        acknowledge.complete(true)
+        assertTrue(start.await())
+        assertTrue(manager.active)
+        assertFalse(manager.canExpose(file))
+    }
+    @Test fun schedulerFailureCleansTheCreatedFileAndGeneration() = runTest {
+        val broken = PcapCaptureManager(context, mockk(relaxed = true), preferences) { error("scheduler unavailable") }
+        try { broken.start(PcapMode.EXTERNAL_FILE); fail("Expected scheduler failure") }
+        catch (_: IllegalStateException) { }
+        assertEquals("", captureId)
+        assertTrue(broken.files().isEmpty())
+        assertFalse(broken.active)
+    }
     @Test fun staleWorkerCannotStopANewerCapture() = runTest {
         assertTrue(manager.start(PcapMode.EXTERNAL_FILE))
         assertTrue(manager.stop("older-capture"))

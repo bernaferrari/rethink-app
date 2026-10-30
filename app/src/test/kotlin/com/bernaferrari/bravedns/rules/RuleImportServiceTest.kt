@@ -2,6 +2,7 @@ package com.bernaferrari.bravedns.rules
 
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRulesTab
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.launch
 import org.junit.Assert.*
 import org.junit.Test
 import java.io.IOException
@@ -31,6 +32,23 @@ class RuleImportServiceTest {
         assertNull(RuleImportService.normalize(RethinkRulesTab.IP, "192.0.2.1:65536"))
         assertNull(RuleImportService.normalize(RethinkRulesTab.IP, "[192.0.2.1]extra"))
         assertNull(RuleImportService.normalize(RethinkRulesTab.IP, "192.0.2.1-7"))
+    }
+    @Test fun cancellationFinishesOneNativeCacheWriteAndDoesNotImportRemainingEntries() = runTest {
+        val entered = kotlinx.coroutines.CompletableDeferred<Unit>()
+        val finish = kotlinx.coroutines.CompletableDeferred<Unit>()
+        val saved = mutableListOf<String>()
+        val importer = ConfirmedRuleImporter(exists = { false }, insertBlock = {
+            entered.complete(Unit)
+            finish.await()
+            saved += it
+        })
+        val job = launch { importer.import(listOf("first.example", "second.example")) }
+        entered.await()
+        job.cancel()
+        finish.complete(Unit)
+        job.join()
+        assertTrue(job.isCancelled)
+        assertEquals(listOf("first.example"), saved)
     }
     @Test fun confirmedImportPreservesExistingRulesAndRetrySkipsPartialSuccess() = runTest {
         val rules = mutableMapOf("trusted.example" to "trust")

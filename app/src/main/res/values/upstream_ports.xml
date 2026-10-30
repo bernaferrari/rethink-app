@@ -22,7 +22,7 @@
     <string name="port_capture_error">Capture could not be changed. Make sure protection is running, then try again.</string>
     <string name="port_import_rules">Import rules</string>
     <string name="port_import_preview">%1$d valid · %2$d duplicates · %3$d invalid</string>
-    <string name="port_import_policy">Import adds block rules to this app or universal scope. Existing rules are kept. Use one IP, CIDR or domain per line; comments start with #. Files are limited to 4 MB and 10,000 lines.</string>
+    <string name="port_import_policy">Import adds block rules to this app or universal scope. Existing rules are kept. Use one IP, CIDR or domain per line; comments start with #. Files are limited to 4 MB and 10,000 lines. Canceling keeps rules already saved.</string>
     <string name="port_import_limit">Only the first 10,000 lines were read.</string>
     <string name="port_import_error">Could not import the file. Check its size and format, then try again. Rules already saved are kept; retry skips duplicates.</string>
     <string name="port_import_summary">Imported %1$d rules; skipped %2$d existing rules.</string>
