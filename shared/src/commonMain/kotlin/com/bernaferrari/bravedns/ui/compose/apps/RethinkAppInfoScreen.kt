@@ -535,11 +535,11 @@ private fun RethinkAppLogCard(section: RethinkAppInfoLogSection, strings: Rethin
                     horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    RethinkPill(
-                        section.count.toString(),
-                        colors = if (section.count > 0) RethinkPillDefaults.primary() else RethinkPillDefaults.neutral(),
-                        size = RethinkPillSize.Small,
-                    )
+                    // One count style: the primary count pill, and none at zero (the empty
+                    // state below already says so) instead of a grey "0" beside a coloured "3".
+                    if (section.count > 0) {
+                        RethinkPill(section.count.toString(), colors = RethinkPillDefaults.primary(), size = RethinkPillSize.Small)
+                    }
                     if (onOpen != null) Icon(MaterialSymbols.AutoMirrored.Filled.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }

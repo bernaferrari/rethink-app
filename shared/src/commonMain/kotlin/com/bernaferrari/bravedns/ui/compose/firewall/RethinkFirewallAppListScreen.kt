@@ -41,6 +41,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LoadingIndicator
@@ -87,9 +88,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkStatusColors
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkOverflowMenu
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSheetHeader
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkOverflowItem
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListShape
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
@@ -306,7 +305,7 @@ fun RethinkFirewallAppListScreen(
     }
 }
 
-/** Refresh stays visible; the bulk-rules sheet lives in a labelled overflow item. */
+/** Refresh and the bulk-rules sheet as two direct actions: an overflow holding one item hid it. */
 @Composable
 private fun RethinkFirewallTopBarActions(
     isRefreshing: Boolean,
@@ -321,10 +320,9 @@ private fun RethinkFirewallTopBarActions(
             Icon(MaterialSymbols.Filled.Refresh, strings.refresh)
         }
     }
-    RethinkOverflowMenu(
-        moreDescription = strings.moreOptions,
-        items = listOf(RethinkOverflowItem(strings.rules, MaterialSymbols.Filled.Gavel, onClick = onOpenRules)),
-    )
+    IconButton(onClick = onOpenRules) {
+        Icon(MaterialSymbols.Filled.Gavel, strings.rules)
+    }
 }
 
 @Composable
@@ -886,8 +884,6 @@ private fun RethinkFirewallFilterDialog(
                                         publish()
                                     },
                                     minHeight = SharedDimensions.touchTargetMin,
-                                    selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                    selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                                 )
                             }
                         }
@@ -927,10 +923,8 @@ private fun <T> RethinkFirewallFilterOptions(
                 label = label(option),
                 selected = option == selected,
                 onClick = { if (option != selected) onSelect(option) },
-                leadingIcon = icon?.invoke(option)?.let { vector -> @Composable { Icon(vector, null, Modifier.size(SharedDimensions.iconSizeXs)) } },
+                leadingIcon = icon?.invoke(option)?.let { vector -> @Composable { Icon(vector, null, Modifier.size(FilterChipDefaults.IconSize)) } },
                 minHeight = SharedDimensions.touchTargetMin,
-                selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
             )
         }
     }
