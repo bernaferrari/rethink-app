@@ -18,7 +18,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeFlexibleTopAppBar
+import androidx.compose.material3.TwoRowsTopAppBar
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -35,6 +35,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
@@ -43,6 +44,11 @@ import androidx.compose.ui.unit.sp
  */
 val LocalRethinkBackDescription = staticCompositionLocalOf { "Navigate back" }
 
+/**
+ * The large collapsing top bar. Built on the two-row bar's `expanded` flag so the collapsed row
+ * holds only the (optionally icon-led) title: the subtitle and the display-size type belong to the
+ * expanded row, and a subtitle under a 40dp leading icon can't spill out of the 64dp bar.
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun RethinkLargeTopBar(
@@ -55,56 +61,73 @@ fun RethinkLargeTopBar(
     titleLeading: (@Composable () -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
     backDescription: String = LocalRethinkBackDescription.current,
-) = LargeFlexibleTopAppBar(
-    title = {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSmMd),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            titleLeading?.invoke()
-            // Emphasized: the large title is the screen's headline, so it carries bold weight
-            // and slightly tighter tracking at its expanded size.
-            Text(
-                text = title,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                style = LocalTextStyle.current.merge(EmphasizedTitle),
-            )
-        }
-    },
-    subtitle = if (!subtitle.isNullOrBlank()) {
-        {
-            Text(
-                text = subtitle,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                // Body, not label: a sentence under a display-size title reads as prose, and the
-                // bar's subtitle slot already supplies the spacing below the title.
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    } else {
-        null
-    },
-    navigationIcon = {
-        if (onBackClick != null) {
-            IconButton(onBackClick) {
-                Icon(MaterialSymbols.AutoMirrored.Filled.ArrowBack, backDescription)
+) {
+    val hasSubtitle = !subtitle.isNullOrBlank()
+    TwoRowsTopAppBar(
+        title = { expanded ->
+            Row(
+                // The expanded row has no bottom inset of its own; the last line carries it.
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .then(if (expanded && !hasSubtitle) Modifier.padding(bottom = LargeTitleBottomPadding) else Modifier),
+                horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSmMd),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                titleLeading?.invoke()
+                // Emphasized: the large title is the screen's headline, so it carries bold weight
+                // and slightly tighter tracking at its expanded size.
+                Text(
+                    text = title,
+                    maxLines = if (expanded) 2 else 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = if (expanded) MaterialTheme.typography.displaySmall.merge(EmphasizedTitle) else LocalTextStyle.current,
+                )
             }
-        }
-    },
-    actions = actions,
-    scrollBehavior = scrollBehavior,
-    colors = TopAppBarDefaults.topAppBarColors(
-        containerColor = containerColor,
-        scrolledContainerColor = scrolledContainerColor,
-        navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        titleContentColor = MaterialTheme.colorScheme.onSurface,
-        actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-    ),
-)
+        },
+        subtitle = if (hasSubtitle) {
+            { expanded ->
+                if (expanded) {
+                    Text(
+                        text = subtitle.orEmpty(),
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        // Body, not label: a sentence under a display-size title reads as prose.
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = LargeTitleBottomPadding),
+                    )
+                }
+            }
+        } else {
+            null
+        },
+        navigationIcon = {
+            if (onBackClick != null) {
+                IconButton(onBackClick) {
+                    Icon(MaterialSymbols.AutoMirrored.Filled.ArrowBack, backDescription)
+                }
+            }
+        },
+        actions = actions,
+        collapsedHeight = TopAppBarDefaults.LargeAppBarCollapsedHeight,
+        expandedHeight = if (hasSubtitle) {
+            TopAppBarDefaults.LargeFlexibleAppBarWithSubtitleExpandedHeight
+        } else {
+            TopAppBarDefaults.LargeFlexibleAppBarWithoutSubtitleExpandedHeight
+        },
+        scrollBehavior = scrollBehavior,
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = containerColor,
+            scrolledContainerColor = scrolledContainerColor,
+            navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            titleContentColor = MaterialTheme.colorScheme.onSurface,
+            actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        ),
+    )
+}
+
+/** Matches LargeFlexibleTopAppBar's inset under the expanded title block. */
+private val LargeTitleBottomPadding = 28.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
