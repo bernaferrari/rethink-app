@@ -17,7 +17,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceLabels
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceOption
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConnectedChoiceGroup
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
@@ -57,8 +56,7 @@ fun RethinkLogFilterRow(
     onSelected: (RethinkLogFilter) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    // Icon-only until selected (the selected filter expands to icon + label): three full labels
-    // plus the trailing filter actions don't fit a phone row without truncating.
+    // Every filter shows its icon and label, so the row never shifts as the selection moves.
     val options = listOf(
         RethinkChoiceOption(RethinkLogFilter.All, strings.all, MaterialSymbols.AutoMirrored.Filled.Subject),
         RethinkChoiceOption(RethinkLogFilter.Allowed, strings.allowed, MaterialSymbols.Filled.CheckCircle),
@@ -69,7 +67,6 @@ fun RethinkLogFilterRow(
         selected = selected,
         onSelect = onSelected,
         modifier = modifier.fillMaxWidth(),
-        labels = RethinkChoiceLabels.SelectedIcon,
     )
 }
 

@@ -20,7 +20,6 @@ import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.material3.SwipeToDismissBox
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceLabels
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -338,12 +337,10 @@ private fun RethinkRulesControlDeck(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
         ) {
-            val labels = if (canSwitchScope) RethinkChoiceLabels.SelectedIcon else RethinkChoiceLabels.Always
             if (canSwitchScope) {
                 RethinkRuleScopeSelector(
                     selected = selectedMode,
                     strings = strings,
-                    labels = labels,
                     onSelected = onModeChange,
                     modifier = Modifier.weight(1f),
                 )
@@ -351,7 +348,6 @@ private fun RethinkRulesControlDeck(
             RethinkRuleTabSelector(
                 selectedTab,
                 strings,
-                labels = labels,
                 onSelected = onTabChange,
                 modifier = Modifier.weight(1f),
             )
@@ -370,7 +366,6 @@ private fun RethinkRulesControlDeck(
 private fun RethinkRuleTabSelector(
     selected: RethinkRulesTab,
     strings: RethinkCustomRulesStrings,
-    labels: RethinkChoiceLabels,
     modifier: Modifier = Modifier,
     onSelected: (RethinkRulesTab) -> Unit,
 ) {
@@ -384,7 +379,6 @@ private fun RethinkRuleTabSelector(
         selected = selected,
         onSelect = onSelected,
         modifier = modifier,
-        labels = labels,
     )
 }
 
@@ -392,7 +386,6 @@ private fun RethinkRuleTabSelector(
 private fun RethinkRuleScopeSelector(
     selected: RethinkRulesMode,
     strings: RethinkCustomRulesStrings,
-    labels: RethinkChoiceLabels,
     modifier: Modifier = Modifier,
     onSelected: (RethinkRulesMode) -> Unit,
 ) {
@@ -404,7 +397,6 @@ private fun RethinkRuleScopeSelector(
         selected = selected,
         onSelect = onSelected,
         modifier = modifier,
-        labels = labels,
     )
 }
 
