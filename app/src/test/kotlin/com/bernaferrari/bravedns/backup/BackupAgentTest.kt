@@ -25,6 +25,9 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.unmockkAll
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.awaitAll
 import org.junit.After
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -86,6 +89,18 @@ class BackupAgentTest {
     }
 
     @Test
+    fun `production preference writer uses the bounded current codec`() {
+        val values = mapOf("boolean" to true, "integer" to 7, "long" to 9L, "string" to "value")
+        every { persistentState.snapshotPreferences() } returns values
+        val file = tmp.newFile()
+        val method = BackupAgent::class.java.getDeclaredMethod("saveSharedPreferencesToFile", java.io.File::class.java)
+        method.isAccessible = true
+        assertTrue(method.invoke(agent, file) as Boolean)
+        org.junit.Assert.assertEquals(values, PreferenceBackupCodec.read(file))
+        assertTrue(file.path in agent.filesPathToZip)
+    }
+
+    @Test
     fun `CREATED_TIME is wall-clock epoch millis not elapsedRealtime`() {
         val before = System.currentTimeMillis()
         val metadata = invokeBackupMetadata()
@@ -104,14 +119,88 @@ class BackupAgentTest {
     }
 
     @Test
-    fun `backup checkpoints Room databases before copying files`() {
-        val destDir = tmp.newFolder("backup-dest")
-        val method = BackupAgent::class.java.getDeclaredMethod("saveDatabasesToFile", String::class.java)
-        method.isAccessible = true
-        method.invoke(agent, destDir.path)
+    fun `failed snapshot leaves running VPN untouched`() = kotlinx.coroutines.test.runTest {
+        io.mockk.mockkObject(DatabaseSnapshot)
+        io.mockk.mockkObject(com.bernaferrari.bravedns.service.VpnController)
+        every { DatabaseSnapshot.create(any(), any(), any()) } returns false
+        every { com.bernaferrari.bravedns.service.VpnController.isOn() } returns true
+        every { logDatabase.dnsLogDAO().logsCount() } returns kotlinx.coroutines.flow.flowOf(0L)
+        val params = mockk<WorkerParameters>(relaxed = true)
+        every { params.inputData } returns androidx.work.Data.Builder().putString(
+            BackupHelper.DATA_BUILDER_BACKUP_URI, android.net.Uri.fromFile(java.io.File(tmp.root, "backup.zip")).toString()
+        ).build()
+        val worker = BackupAgent(context, params)
+        org.junit.Assert.assertEquals(androidx.work.ListenableWorker.Result.failure(), worker.doWork())
+        coVerify(exactly = 0) {
+            com.bernaferrari.bravedns.service.VpnController.stopAndAwait(any(), any())
+        }
+        io.mockk.verify(exactly = 0) { com.bernaferrari.bravedns.service.VpnController.start(any(), any()) }
+    }
 
-        coVerify(exactly = 1) { appDatabase.checkPoint() }
-        coVerify(exactly = 1) { logDatabase.checkPoint() }
+    @Test
+    fun `overlapping exports use isolated staging and clean failures independently`() = kotlinx.coroutines.test.runTest {
+        io.mockk.mockkObject(DatabaseSnapshot)
+        val directories = java.util.concurrent.CopyOnWriteArrayList<java.io.File>()
+        every { logDatabase.dnsLogDAO().logsCount() } returns kotlinx.coroutines.flow.flowOf(0L)
+        every { DatabaseSnapshot.create(any(), any(), any()) } answers {
+            directories += secondArg<java.io.File>().parentFile
+            false
+        }
+        fun worker(): BackupAgent {
+            val params = mockk<WorkerParameters>(relaxed = true)
+            every { params.id } returns java.util.UUID.randomUUID()
+            every { params.inputData } returns androidx.work.Data.Builder().putString(
+                BackupHelper.DATA_BUILDER_BACKUP_URI, android.net.Uri.fromFile(java.io.File(tmp.root, "backup.zip")).toString()
+            ).build()
+            return BackupAgent(context, params)
+        }
+        val workers = listOf(worker(), worker())
+        workers.map { async { it.doWork() } }.awaitAll()
+        org.junit.Assert.assertEquals(2, directories.distinct().size)
+        directories.forEach { org.junit.Assert.assertFalse(it.exists()) }
+    }
+
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    @Test fun `backup waits for restore ownership before capturing preferences or databases`() = kotlinx.coroutines.test.runTest {
+        val dispatcher = kotlinx.coroutines.test.UnconfinedTestDispatcher(testScheduler)
+        io.mockk.mockkObject(DatabaseSnapshot)
+        every { DatabaseSnapshot.create(any(), any(), any()) } returns false
+        every { logDatabase.dnsLogDAO().logsCount() } returns kotlinx.coroutines.flow.flowOf(0L)
+        var preferenceReads = 0
+        var databaseReads = 0
+        every { persistentState.snapshotPreferences() } answers {
+            preferenceReads++
+            mapOf(PersistentState.APP_VERSION to 30)
+        }
+        coEvery { appDatabase.appInfoDAO().getAppCount() } coAnswers { databaseReads++; 0 }
+        io.mockk.mockkStatic(kotlinx.coroutines.Dispatchers::class)
+        every { kotlinx.coroutines.Dispatchers.IO } returns dispatcher
+        val entered = kotlinx.coroutines.CompletableDeferred<Unit>()
+        val finish = kotlinx.coroutines.CompletableDeferred<Unit>()
+        val restore = launch(dispatcher) {
+            BackupRestoreFileGate.withSourceFiles { entered.complete(Unit); finish.await() }
+        }
+        entered.await()
+        val parameters = mockk<WorkerParameters>(relaxed = true)
+        every { parameters.id } returns java.util.UUID.randomUUID()
+        every { parameters.inputData } returns androidx.work.workDataOf(
+            BackupHelper.DATA_BUILDER_BACKUP_URI to "content://backup/wait.zip")
+        val backup = async(dispatcher) { BackupAgent(context, parameters).doWork() }
+        try {
+            org.junit.Assert.assertFalse(backup.isCompleted)
+            org.junit.Assert.assertEquals(0, preferenceReads)
+            org.junit.Assert.assertEquals(0, databaseReads)
+            finish.complete(Unit)
+            backup.await()
+            org.junit.Assert.assertEquals(1, preferenceReads)
+            org.junit.Assert.assertEquals(1, databaseReads)
+        } finally {
+            finish.complete(Unit)
+            restore.cancel()
+            backup.cancel()
+            restore.join()
+            backup.join()
+        }
     }
 
     private fun invokeBackupMetadata(): String {

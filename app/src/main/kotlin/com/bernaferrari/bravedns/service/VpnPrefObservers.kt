@@ -58,6 +58,7 @@ class VpnPrefObservers(
     private val newTunnelOptions: () -> AppConfig.TunnelOptions,
     private val onOrbotStatus: (Boolean) -> Unit,
     private val logd: (String) -> Unit,
+    private val applyPcapPreferences: (suspend () -> Unit)? = null,
 ) {
     companion object {
         private const val MAX_MTU: Int = 10000
@@ -523,6 +524,7 @@ class VpnPrefObservers(
     }
 
     private suspend fun setPcapMode() {
+        applyPcapPreferences?.let { it(); return }
         val pcapPath = appConfig.getPcapFilePath()
         Logger.i(LOG_TAG_VPN, "pcap mode enabled, path: $pcapPath")
         adapter()?.setPcapMode(pcapPath)

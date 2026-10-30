@@ -204,6 +204,55 @@ class SubscriptionStateMachineV2Test : KoinTest {
     // =========================================================================
 
     @Test
+    fun `late terminal response updates old token without changing current entitlement`() = runBlocking {
+        val current = makeActiveSub(purchaseToken = "current")
+        coEvery { mockDbSyncService.loadStateFromDatabase() } returns
+            makeDatabaseStateInfo(current, SubscriptionStateMachineV2.SubscriptionState.Active)
+        coEvery { mockRepository.getCurrentSubscription() } returns current
+        val machine = createMachine()
+        machine.subscriptionRevoked("old")
+        assertEquals(SubscriptionStateMachineV2.SubscriptionState.Active, machine.getCurrentState())
+        assertEquals("current", machine.getSubscriptionData()?.purchaseToken)
+        coVerify { mockRepository.transitionTerminalPurchase("old", 7, any()) }
+    }
+
+    @Test
+    fun `token-scoped expiry bootstraps the matching current row when data absent`() = runBlocking {
+        val machine = createMachine()
+        val current = makeActiveSub(purchaseToken = "current")
+        coEvery { mockRepository.getCurrentSubscription() } returns current
+        machine.subscriptionExpired("current")
+        assertEquals(SubscriptionStateMachineV2.SubscriptionState.Expired, machine.getCurrentState())
+        assertEquals("current", machine.getSubscriptionData()?.purchaseToken)
+    }
+
+    @Test
+    fun `restored initial recovery row never grants access from imported expiry`() {
+        val imported = makeActiveSub(purchaseToken = "recoverable").also {
+            it.status = SubscriptionStatus.SubscriptionState.STATE_INITIAL.id
+            it.developerPayload = ""
+            it.sessionToken = ""
+            it.deviceId = ""
+        }
+        coEvery { mockDbSyncService.loadStateFromDatabase() } returns
+            makeDatabaseStateInfo(imported, SubscriptionStateMachineV2.SubscriptionState.Initial)
+        coEvery { mockRepository.getCurrentSubscription() } returns imported
+        val machine = createMachine()
+        assertEquals(SubscriptionStateMachineV2.SubscriptionState.Initial, machine.getCurrentState())
+        assertFalse(machine.hasValidSubscription())
+        assertEquals("recoverable", machine.getSubscriptionData()?.purchaseToken)
+        coVerify(exactly = 0) { RpnProxyManager.activateRpn(any()) }
+    }
+
+    @Test
+    fun `blank token response never mutates the current purchase`() = runBlocking {
+        val machine = createMachine()
+        machine.subscriptionRevoked("")
+        assertEquals(SubscriptionStateMachineV2.SubscriptionState.Initial, machine.getCurrentState())
+        coVerify(exactly = 0) { mockRepository.transitionTerminalPurchase(any(), any(), any()) }
+    }
+
+    @Test
     fun `machine is Initial after init when DB is empty`() {
         val machine = createMachine()
         assertEquals(SubscriptionStateMachineV2.SubscriptionState.Initial, machine.getCurrentState())
@@ -521,6 +570,7 @@ class SubscriptionStateMachineV2Test : KoinTest {
             it.lastUpdatedTs = System.currentTimeMillis() - 2 * 24 * 60 * 60 * 1000L
         }
         coEvery { mockRepository.getSubscriptionsByStates(any()) } returns listOf(staleSub)
+        coEvery { mockRepository.getCurrentSubscription() } returns staleSub
 
         repeat(3) {
             machine.reconcileWithPlayBilling(
@@ -543,6 +593,7 @@ class SubscriptionStateMachineV2Test : KoinTest {
             it.lastUpdatedTs = System.currentTimeMillis() - 10 * 60 * 1000L
         }
         coEvery { mockRepository.getSubscriptionsByStates(any()) } returns listOf(recentSub)
+        coEvery { mockRepository.getCurrentSubscription() } returns recentSub
 
         repeat(3) {
             machine.reconcileWithPlayBilling(

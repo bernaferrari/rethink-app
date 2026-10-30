@@ -388,16 +388,40 @@ class SubscriptionStateMachineV2(
         processEventSafely(SubscriptionEvent.PurchaseFailed(error, billingResultCode))
     }
 
-    suspend fun userCancelled() {
-        processEventSafely(SubscriptionEvent.UserCancelled)
+    suspend fun userCancelled(purchaseToken: String? = null) {
+        processForToken(purchaseToken, SubscriptionEvent.UserCancelled)
     }
 
-    suspend fun subscriptionExpired() {
-        processEventSafely(SubscriptionEvent.SubscriptionExpired)
+    suspend fun subscriptionExpired(purchaseToken: String? = null) {
+        processForToken(purchaseToken, SubscriptionEvent.SubscriptionExpired)
     }
 
-    suspend fun subscriptionRevoked() {
-        processEventSafely(SubscriptionEvent.SubscriptionRevoked)
+    suspend fun subscriptionRevoked(purchaseToken: String? = null) {
+        processForToken(purchaseToken, SubscriptionEvent.SubscriptionRevoked)
+    }
+
+    private suspend fun processForToken(token: String?, event: SubscriptionEvent) {
+        stateLock.withLock {
+            if (token != null && token.isBlank()) return@withLock
+            if (token != null && stateMachine.getCurrentData() == null) {
+                subscriptionDb.getCurrentSubscription()?.let { stateMachine.updateData(SubscriptionData(it)) }
+            }
+            if (token != null && stateMachine.getCurrentData()?.purchaseToken != token) {
+                updateInactivePurchase(token, event)
+                return@withLock
+            }
+            applyEvent(event)
+        }
+    }
+
+    private suspend fun updateInactivePurchase(token: String, event: SubscriptionEvent) {
+        val target = when (event) {
+            SubscriptionEvent.UserCancelled -> SubscriptionStatus.SubscriptionState.STATE_CANCELLED.id
+            SubscriptionEvent.SubscriptionExpired -> SubscriptionStatus.SubscriptionState.STATE_EXPIRED.id
+            SubscriptionEvent.SubscriptionRevoked -> SubscriptionStatus.SubscriptionState.STATE_REVOKED.id
+            else -> return
+        }
+        subscriptionDb.transitionTerminalPurchase(token, target, System.currentTimeMillis())
     }
 
     suspend fun restoreSubscription(purchaseDetail: PurchaseDetail) {
@@ -758,11 +782,7 @@ class SubscriptionStateMachineV2(
                 val lastExpired = subsRows.lastOrNull {
                     it.status == SubscriptionStatus.SubscriptionState.STATE_EXPIRED.id
                 }
-                if (lastExpired != null) {
-                    stateMachine.updateData(SubscriptionData(lastExpired))
-                }
-                // Transition the in-memory state machine to Expired once (idempotent).
-                processEventSafely(SubscriptionEvent.SubscriptionExpired)
+                if (lastExpired != null) subscriptionExpired(lastExpired.purchaseToken)
                 Logger.i(LOG_IAB, "$TAG: expireStaleSubsFromDb: expired $expiredCount row(s), state machine transitioned to Expired")
             } else {
                 Logger.d(LOG_IAB, "$TAG: expireStaleSubsFromDb: all rows within guard window, no rows expired")

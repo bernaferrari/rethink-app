@@ -265,7 +265,7 @@ object BubbleHelper {
             .setAutoCancel(false)
             .setOnlyAlertOnce(true)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .addAction(0, "Disable", disableIntent)
+            .addAction(Utilities.notificationAction(context.getString(R.string.port_disable), disableIntent))
             .setBubbleMetadata(bubbleData)
 
         // If not eligible, the system will not bubble. Provide a direct route to the correct
@@ -383,7 +383,7 @@ object BubbleHelper {
                 .setAutoCancel(false)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setOnlyAlertOnce(true)
-                .addAction(0, "Disable", disableIntent)
+                .addAction(Utilities.notificationAction(context.getString(R.string.port_disable), disableIntent))
                 .build()
 
             val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager

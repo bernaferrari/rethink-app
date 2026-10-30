@@ -70,7 +70,7 @@ class VpnNotificationManager(
         val pendingIntent =
             Utilities.getActivityPendingIntent(
                 context,
-                Intent(context, HomeScreenActivity::class.java),
+                Intent(context, HomeScreenActivity::class.java).setAction("${context.packageName}.notification.foreground"),
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
                 mutable = false
             )
@@ -227,7 +227,7 @@ class VpnNotificationManager(
     fun showAccessibilityStoppedNotification() {
         Logger.i(LOG_TAG_VPN, "app not in use failure, show notification")
 
-        val intent = Intent(context, HomeScreenActivity::class.java)
+        val intent = Intent(context, HomeScreenActivity::class.java).setAction("${context.packageName}.notification.accessibility")
         intent.putExtra(
             NOTIF_INTENT_EXTRA_ACCESSIBILITY_NAME,
             NOTIF_INTENT_EXTRA_ACCESSIBILITY_VALUE
@@ -304,7 +304,7 @@ class VpnNotificationManager(
         val pendingIntent =
             Utilities.getActivityPendingIntent(
                 context,
-                Intent(context, HomeScreenActivity::class.java),
+                Intent(context, HomeScreenActivity::class.java).setAction("${context.packageName}.notification.vpn_failure"),
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
                 mutable = false
             )
@@ -328,7 +328,7 @@ class VpnNotificationManager(
         val pendingIntent =
             Utilities.getActivityPendingIntent(
                 context,
-                Intent(context, HomeScreenActivity::class.java),
+                Intent(context, HomeScreenActivity::class.java).setAction("${context.packageName}.notification.network_engine"),
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
                 mutable = false
             )
@@ -348,7 +348,7 @@ class VpnNotificationManager(
         val pendingIntent =
             Utilities.getActivityPendingIntent(
                 context,
-                Intent(context, HomeScreenActivity::class.java),
+                Intent(context, HomeScreenActivity::class.java).setAction("${context.packageName}.notification.memory"),
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
                 mutable = false
             )

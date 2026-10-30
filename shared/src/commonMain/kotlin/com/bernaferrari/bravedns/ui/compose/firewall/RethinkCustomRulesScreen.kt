@@ -3,6 +3,8 @@
 
 package com.bernaferrari.bravedns.ui.compose.firewall
 
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkListItemColors
+
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSheetHeader
@@ -189,6 +191,7 @@ fun RethinkCustomRulesScreen(
     onRuleOwnerVisible: (Int) -> Unit = {},
     onBackClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
+    importAction: (@Composable () -> Unit)? = null,
 ) {
     val canSwitchScope = uid == RETHINK_UID_EVERYBODY
     val effectiveMode = if (canSwitchScope) selectedMode else RethinkRulesMode.SELECTED_UID
@@ -213,31 +216,12 @@ fun RethinkCustomRulesScreen(
         modifier = modifier,
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
-            if (selecting) {
-                RethinkTopBar(
-                    title = strings.selectedCount(selection.size),
-                    onBackClick = { selection = emptyMap() },
-                    backDescription = strings.clearSelection,
-                    navigationIcon = MaterialSymbols.Filled.Close,
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                    actions = {
-                        IconButton(onClick = { pendingDelete = selection.values.toList() }) {
-                            Icon(MaterialSymbols.Filled.DeleteOutline, strings.delete)
-                        }
-                    },
-                )
-            } else {
-                RethinkTopBar(title = title, onBackClick = onBackClick)
-            }
+            RethinkRulesTopBar(selection.size, title, strings, onBackClick,
+                { selection = emptyMap() }, { pendingDelete = selection.values.toList() },
+                effectiveMode == RethinkRulesMode.SELECTED_UID, importAction)
         },
         floatingActionButton = {
-            if (!selecting && effectiveMode == RethinkRulesMode.SELECTED_UID && (rules.isLoading || rules.itemCount > 0)) {
-                ExtendedFloatingActionButton(
-                    onClick = { showAddDialog = true },
-                    icon = { Icon(MaterialSymbols.Filled.Add, null) },
-                    text = { Text(strings.add) },
-                )
-            }
+            RethinkRulesAddButton(selecting, effectiveMode, rules.isLoading, rules.itemCount, strings.add) { showAddDialog = true }
         },
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
@@ -280,22 +264,15 @@ fun RethinkCustomRulesScreen(
             onDelete = { pendingDelete = listOf(rule) },
         )
     }
-    if (pendingDelete.isNotEmpty()) {
-        val single = pendingDelete.singleOrNull()
-        RethinkConfirmDialog(
-            onDismissRequest = { pendingDelete = emptyList() },
-            title = if (single != null) strings.deleteRuleTitle else strings.deleteSelectedTitle(pendingDelete.size),
-            message = single?.let { listOfNotNull(it.value, it.port?.let(strings.port)).joinToString(" · ") } ?: "",
-            confirmText = strings.delete,
-            dismissText = strings.cancel,
-            isConfirmDestructive = true,
-            onConfirm = {
-                pendingDelete.forEach { onDeleteRule(selectedTab, it) }
-                selection = selection - pendingDelete.map { it.id }.toSet()
-                pendingDelete = emptyList()
-            },
-        )
-    }
+    RethinkDeleteRulesDialog(
+        rules = pendingDelete, strings = strings,
+        onDismiss = { pendingDelete = emptyList() },
+        onConfirm = {
+            pendingDelete.forEach { onDeleteRule(selectedTab, it) }
+            selection = selection - pendingDelete.map { it.id }.toSet()
+            pendingDelete = emptyList()
+        },
+    )
 
     if (showAddDialog && effectiveMode == RethinkRulesMode.SELECTED_UID) {
         RethinkAddFirewallRuleDialog(
@@ -566,8 +543,7 @@ private fun RethinkFirewallRuleRow(
                 rule.tab == RethinkRulesTab.IP -> MaterialSymbols.Filled.Public
                 else -> MaterialSymbols.Filled.Language
             },
-            leadingIconTint = if (selected) MaterialTheme.colorScheme.onPrimary else accent,
-            leadingIconContainerColor = if (selected) MaterialTheme.colorScheme.primary else RethinkIconWellDefaults.tinted(accent),
+            colors = rethinkListItemColors(leadingIconTint = if (selected) MaterialTheme.colorScheme.onPrimary else accent, leadingIconContainerColor = if (selected) MaterialTheme.colorScheme.primary else RethinkIconWellDefaults.tinted(accent)),
             highlighted = selected,
             position = position,
             trailing = { RethinkPill(rule.status.label(strings), colors = RethinkPillDefaults.status(accent)) },

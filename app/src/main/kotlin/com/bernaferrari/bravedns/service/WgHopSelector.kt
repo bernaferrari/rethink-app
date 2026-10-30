@@ -24,8 +24,8 @@ import com.bernaferrari.bravedns.service.ProxyManager.ID_WG_BASE
  * Pure WireGuard proxy-id resolution: one-WG short-circuit, app-specific ids,
  * lockdown, catch-all append, then default.
  *
- * Metered-only (`useOnlyOnMetered`) passes only when the network is mobile and
- * SSID is empty. SSID-based passes only on unmetered networks. Missing SSID
+ * Metered-only (`useOnlyOnMetered`) follows the selected mobile underlay, even
+ * when a Wi-Fi interface remains connected. SSID-based passes only on Wi-Fi. Missing SSID
  * mappings fail closed.
  */
 internal class WgHopSelector(
@@ -54,7 +54,7 @@ internal class WgHopSelector(
     ): Boolean {
         if (!mobileOnlySetting && !ssidEnabled) return true
 
-        val passMobileOnly = mobileOnlySetting && (usesMobileNw && ssid.isEmpty())
+        val passMobileOnly = mobileOnlySetting && usesMobileNw
         val passSsid = ssidEnabled && !usesMobileNw && matchesSsidListForConfig(id, ssid, mappings)
         return passMobileOnly || passSsid
     }
@@ -141,7 +141,9 @@ internal class WgHopSelector(
             }
 
             proxyIds.add(wgPrefix + oneWireGuardId)
-            if (default.isNotEmpty()) proxyIds.add(default)
+            if (mappings.find { it.id == oneWireGuardId }?.isSplitProxy == true && default.isNotEmpty()) {
+                proxyIds.add(default)
+            }
             Logger.i(LOG_TAG_PROXY, "one-wg enabled, return $proxyIds")
             return proxyIds
         }

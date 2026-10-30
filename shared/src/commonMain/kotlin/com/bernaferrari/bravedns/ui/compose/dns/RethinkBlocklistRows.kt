@@ -1,6 +1,8 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.dns
 
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkListItemColors
+
 import androidx.compose.ui.semantics.Role
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
 import androidx.compose.foundation.layout.Column
@@ -99,7 +101,7 @@ fun RethinkBlocklistFileTagRow(
             supporting = "$subgroup · $entries",
             position = position,
             highlighted = tag.selected,
-            highlightContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+            colors = rethinkListItemColors(highlightContainerColor = MaterialTheme.colorScheme.secondaryContainer),
             selection = RethinkListSelection(checked = tag.selected, role = Role.Checkbox, onCheckedChange = onToggle),
             trailing = {
                 Row(verticalAlignment = Alignment.CenterVertically) {

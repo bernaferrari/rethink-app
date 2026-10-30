@@ -111,7 +111,7 @@
     <string name="brbs_restore_no_uri_toast" translatable="true">השחזור נכשל; נסה שוב</string>
     <string name="brbs_backup_complete_toast" translatable="true">הגיבוי הושלם</string>
     <string name="brbs_restore_dialog_failure_title" translatable="true">השחזור נכשל</string>
-    <string name="brbs_restore_dialog_failure_message" translatable="true">לא ניתן לשחזר. לנסות שוב\?</string>
+    <string name="brbs_restore_dialog_failure_message" translatable="true">לא ניתן לשחזר. לנסות שוב?</string>
     <string name="brbs_backup_dialog_failure_positive" translatable="true">נסה לגבות שוב</string>
     <string name="brbs_backup_dialog_failure_title" translatable="true">הגיבוי נכשל</string>
     <string name="brbs_restore_dialog_positive" translatable="true">שחזר</string>
@@ -125,13 +125,13 @@
     <string name="always_on_dialog" translatable="true">\"VPN תמיד פועל\" מאופשר במכשיר זה. כדי להפעיל את Keepout, עבור אל אפליקציית ההגדרות והשבת את \"VPN תמיד פועל\".</string>
     <string name="download_update_dialog_message_ok" translatable="true">אתה כבר משתמש בגרסה העדכנית ביותר.</string>
     <string name="download_update_dialog_title" translatable="true">עדכון חדש!</string>
-    <string name="download_update_dialog_message" translatable="true">גרסה חדשה של האפליקציה זמינה להורדה מהאתר. האם אתה רוצה להמשיך\?</string>
+    <string name="download_update_dialog_message" translatable="true">גרסה חדשה של האפליקציה זמינה להורדה מהאתר. האם אתה רוצה להמשיך?</string>
     <string name="download_update_dialog_message_success" translatable="true">הורדת רשימת החסימה הצליחה.</string>
-    <string name="orbot_install_dialog_title" translatable="true">להתקין Orbot\?</string>
+    <string name="orbot_install_dialog_title" translatable="true">להתקין Orbot?</string>
     <string name="settings_network_all_networks_desc" translatable="true">כאשר מופעל, Keepout משתמש בכל הרשתות הזמינות כדי להתחבר לאינטרנט. אם לא, הוא משתמש בכל הרשת שנחשבת ל-פעילה על ידי אנדרואיד.</string>
     <string name="orbot_status_arg_3" translatable="true">DNS ו-TCP</string>
     <string name="orbot_stop_dialog_title" translatable="true">נדרשת התערבות ידנית</string>
-    <string name="orbot_app_issue" translatable="true">לא ניתן להפעיל את Orbot. האם האפליקציה מותקנת\?</string>
+    <string name="orbot_app_issue" translatable="true">לא ניתן להפעיל את Orbot. האם האפליקציה מותקנת?</string>
     <string name="orbot_install_dialog_message" translatable="true">Orbot מביא את התכונות והפונקציונליות של Tor לאנדרואיד.</string>
     <string name="settings_ip_dialog_ipv6" translatable="true">IPv6 (ניסיוני)</string>
     <string name="settings_autostart_bootup_desc" translatable="true">הפעלת Keepout עם הפעלת המכשיר אם הוא פעל לפני הכיבוי.</string>
@@ -400,14 +400,8 @@
     <string name="dns_proxy_dialog_header_dns" translatable="true">הוסף פרוקסי DNS</string>
     <string name="app_ip_domain_rules" translatable="true">כללי IP / Domain לפי אפליקציה</string>
     <string name="app_ip_domain_rules_desc" translatable="true">שינוי כללי IP / Domain שלפי אפליקציה.</string>
-    <string name="dns_proxy_dialog_message" translatable="true">שם האפליקציה: %1$s
-\n
-\nכתובת IP: %2$s
-\n
-\nמספר יציאה: %3$s</string>
-    <string name="dns_proxy_dialog_message_no_app" translatable="true">כתובת IP: %1$s
-\n
-\nמספר יציאה: %2$s</string>
+    <string name="dns_proxy_dialog_message" translatable="true">שם האפליקציה: %1$s \n \nכתובת IP: %2$s \n \nמספר יציאה: %3$s</string>
+    <string name="dns_proxy_dialog_message_no_app" translatable="true">כתובת IP: %1$s \n \nמספר יציאה: %2$s</string>
     <string name="dns_query_latency" translatable="true">%1$sמילי-שניות</string>
     <string name="dns_proxy_name" translatable="true">שם פרוקסי</string>
     <string name="dns_proxy_ip_address" translatable="true">כתובת IP</string>
@@ -578,7 +572,6 @@
     <string name="log_detail_flags">דגלים</string>
     <string name="log_detail_message">הודעה</string>
     <string name="log_detail_resolver">שרת DNS</string>
-    <string name="log_detail_blocklists">רשימות חסימה</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">תקין</string>
     <string name="log_detail_dnssec_unverified">לא מאומת</string>

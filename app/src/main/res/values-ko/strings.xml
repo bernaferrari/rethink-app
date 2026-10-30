@@ -9,7 +9,7 @@
     <string name="finish" translatable="true">끝내기</string>
     <string name="lbl_cancel" translatable="true">취소</string>
     <string name="lbl_apply" translatable="true">적용</string>
-    <string name="conn_track_clear_logs_title" translatable="true">모든 네트워크 로그를 삭제하시겠습니까\?</string>
+    <string name="conn_track_clear_logs_title" translatable="true">모든 네트워크 로그를 삭제하시겠습니까?</string>
     <string name="bsct_block_domain" translatable="true">이 앱의 도메인을 차단 및 신뢰</string>
     <string name="alert_firewall_accessibility_explanation" translatable="true">Rethink는 접근성 서비스를 사용하여 사용 중인 앱(포그라운드)과 사용 중이 아닌 앱(백그라운드)을 추적합니다.
 \n
@@ -27,7 +27,7 @@
     <string name="lbl_proceed" translatable="true">진행</string>
     <string name="notification_action_dns_firewall_mode" translatable="true">DNS + 방화벽</string>
     <string name="lbl_hour" translatable="true">시간</string>
-    <string name="lbl_persistent_keepalive" translatable="true">지속적 킵얼라이브</string>
+    <string name="lbl_persistent_keepalive" translatable="true">지속적인 유지</string>
     <string name="dns_mode_notification_title" translatable="true">보호됐습니다! 빠르고 안전한 DNS에 연결되었습니다.</string>
     <string name="bsct_app_info" translatable="true">앱 정보</string>
     <string name="lbl_save" translatable="true">저장</string>
@@ -172,7 +172,7 @@
     <string name="orbot_install_dialog_message" translatable="true">Orbot은 Tor의 특징과 기능성을 Android로 가져옵니다.</string>
     <string name="settings_socks5_disabled_error" translatable="true">%1$s에 연결되었습니다. 계속하려면 끄세요.</string>
     <string name="settings_general_header" translatable="true">일반</string>
-    <string name="settings_general_customize" translatable="true">사용자 맞춤 설정</string>
+    <string name="settings_general_customize" translatable="true">사용자 지정</string>
     <string name="settings_autostart_bootup_heading" translatable="true">부팅 후 자동 시작 (실험적)</string>
     <string name="settings_check_update_heading" translatable="true">앱 업데이트 확인</string>
     <string name="settings_check_update_desc" translatable="true">1주에 한번 자동으로 앱의 업데이트를 확인합니다.</string>
@@ -198,9 +198,9 @@
     <string name="about_privacy_policy" translatable="true">개인정보 보호 정책 읽기</string>
     <string name="about_connect" translatable="true">연락처</string>
     <string name="about_faq" translatable="true">자주 묻는 질문 보기</string>
-    <string name="about_mozilla" translatable="true">Rethink는 Mozilla Builders, FOSS United Foundation, OSOM Products Inc.가 지원합니다.</string>
+    <string name="about_mozilla" translatable="true">Rethink는 Mozilla Builders, FOSS United Foundation, FLOSS/fund가 지원합니다.</string>
     <string name="about_twitter" translatable="true">Twitter에서 우리를 팔로우 하기</string>
-    <string name="about_whats_new" translatable="true">%1$s에서 새로운 것들</string>
+    <string name="about_whats_new" translatable="true">%1$s의 새로운 기능</string>
     <string name="about_app_update_check" translatable="true">앱 업데이트 확인하기</string>
     <string name="about_mail_to_string" translatable="true">mailto:</string>
     <string name="about_mail_bugreport_subject" translatable="true">[Rethink]: 버그 제보</string>
@@ -243,7 +243,7 @@
     <string name="lbl_secure" translatable="true">안전함</string>
     <string name="lbl_peer" translatable="true">피어</string>
     <string name="hybrid_mode_with_proxy_notification_title" translatable="true">보호되었습니다! DNS + 방화벽 + 프록시에 연결되었습니다.</string>
-    <string name="lbl_idle" translatable="true">유휴 상태</string>
+    <string name="lbl_idle" translatable="true">유휴</string>
     <string name="lbl_split" translatable="true">분할</string>
     <string name="doh_custom_url_remove_dialog_message" translatable="true">저장된 구성에서 DNS over Https 엔드포인트를 삭제합니다.</string>
     <string name="doh_custom_url_remove_success" translatable="true">엔드포인트가 삭제되었습니다.</string>
@@ -259,12 +259,12 @@
     <string name="whats_new_version_update" translatable="true">&lt;b&gt;LAN 파티!&lt;/b&gt;&lt;br/&gt;&lt;br/&gt; 1. &lt;i&gt;새로운 기능&lt;/i&gt;: 사설 IP 제외(LAN / 링크 로컬).&lt;br/&gt; 2. 우회 DNS 만들기 &amp; 방화벽 설정 작업.&lt;br/&gt; 3. 방화벽에 의해 차단되었을 수 있는 도메인에 대한 DNS 로그에 차단 가능성 표시.&lt;br/&gt; 4. 지원되는 경우 적응형 아이콘 표시.&lt;br/&gt; 5. 생체 인증 프롬프트 15분마다 한 번씩.&lt;br/&gt; 6. 6개의 기타 UI 및 성능 개선.&lt;br/&gt;&lt;br/&gt; &lt;a href=https://svc.rethinkdns.com/r/translate&gt;이 앱 번역을 도와주세요.&lt;/ 가&gt;</string>
     <string name="settings_ip_text_ipv6" translatable="true">IPv6</string>
     <string name="settings_default_dns_desc" translatable="true">드물게 사용자 기본 설정 DNS를 확인할 수 없는 경우 폴백 DNS가 사용됩니다.</string>
-    <string name="settings_theme_dialog_themes_3" translatable="true">다크 테마</string>
+    <string name="settings_theme_dialog_themes_3" translatable="true">어둡게</string>
     <string name="settings_ip_dialog_ipv46" translatable="true">자동 (실험적)</string>
     <string name="firewall_status_whitelisted" translatable="true">범용 방화벽 규칙 우회</string>
-    <string name="firewall_act_universal_tab" translatable="true">만능인</string>
+    <string name="firewall_act_universal_tab" translatable="true">전역</string>
     <string name="dns_crypt_url_remove_success" translatable="true">DNSCrypt 리졸버가 삭제되었습니다.</string>
-    <string name="dns_crypt_relay_remove_dialog_message" translatable="true">저장된 구성에서 DNSCrypt 릴레이를 삭제합니다.</string>
+    <string name="dns_crypt_relay_remove_dialog_message" translatable="true">저장된 구성에서 DNSCrypt 중계를 삭제합니다.</string>
     <string name="dns_crypt_custom_url_remove_dialog_title" translatable="true">DNSCrypt 리졸버를 삭제하시겠습니까?</string>
     <string name="dns_crypt_url_remove_dialog_message" translatable="true">저장된 구성에서 DNSCrypt 리졸버를 삭제합니다.</string>
     <string name="dns_crypt_relay_remove_success" translatable="true">DNSCrypt 릴레이가 삭제되었습니다.</string>
@@ -279,7 +279,7 @@
     <string name="settings_socks_forwarding_desc_no_app" translatable="true">%1$s:%2$s로 포워딩</string>
     <string name="settings_socks_forwarding_default_desc" translatable="true">SOCKS5 엔드포인트로 연결을 전달합니다.</string>
     <string name="settings_theme_dialog_themes_1" translatable="true">시스템에서 설정</string>
-    <string name="settings_theme_dialog_themes_2" translatable="true">밝음</string>
+    <string name="settings_theme_dialog_themes_2" translatable="true">밝게</string>
     <string name="settings_ip_dialog_title" translatable="true">IP 버전 선택</string>
     <string name="settings_ip_dialog_ipv4" translatable="true">IPv4(기본값)</string>
     <string name="settings_ip_dialog_ipv6" translatable="true">IPv6(실험적)</string>
@@ -301,7 +301,7 @@
     <string name="hs_biometeric_error" translatable="true">생체인증 오류</string>
     <string name="hsf_notification_permission_failure" translatable="true">설정 화면에서 알림 권한 활성화</string>
     <string name="dc_local_block_desc_1" translatable="true">195개 이상의 차단 목록 중에서 선택하세요. 차단 목록을 다운로드하거나 구성하려면 여기를 클릭하십시오.</string>
-    <string name="dc_local_block_heading" translatable="true">온디바이스 차단 목록</string>
+    <string name="dc_local_block_heading" translatable="true">기기 내 차단 목록</string>
     <string name="dc_dns_website_heading" translatable="true">DNS 로그에 웹사이트 아이콘 표시(실험)</string>
     <string name="dc_dns_website_desc" translatable="true">nextdns.io 및 duckduckgo.com에서 웹사이트 아이콘을 가져옵니다. 최대 350MB의 디스크 공간을 사용합니다</string>
     <string name="dc_dns_leaks_heading" translatable="true">DNS 유출 방지</string>
@@ -325,21 +325,21 @@
     <string name="cd_dns_proxy_error_text_2" translatable="true">포트 범위는 1024~65535여야 합니다</string>
     <string name="dc_proxy_dns_desc" translatable="true">항상 WireGuard, SOCKS5, HTTP 프록시에서 DNS를 프록시하지 마십시오.</string>
     <string name="cd_dns_crypt_dialog_desc" translatable="true">설명 (선택 사항)</string>
-    <string name="cd_dnscrypt_relay_heading" translatable="true">중계서버</string>
+    <string name="cd_dnscrypt_relay_heading" translatable="true">중계</string>
     <string name="cd_dns_crypt_dialog_stamp" translatable="true">우표</string>
     <string name="cd_dns_crypt_name" translatable="true">DNSCrypt %1$s</string>
     <string name="cd_dns_crypt_dialog_heading" translatable="true">DNSCrypt 리졸버 또는 릴레이 추가</string>
     <string name="cd_dns_crypt_resolver_heading" translatable="true">리졸버</string>
-    <string name="cd_dns_crypt_relay_heading" translatable="true">중계서버</string>
+    <string name="cd_dns_crypt_relay_heading" translatable="true">중계</string>
     <string name="cd_dns_crypt_dialog_name" translatable="true">이름</string>
     <string name="cd_doh_dialog_resolver_name" translatable="true">리졸버 이름</string>
     <string name="cd_doh_dialog_resolver_url" translatable="true">리졸버 URL</string>
-    <string name="cd_dns_crypt_relay_name" translatable="true">DNS릴레이 %1$s</string>
+    <string name="cd_dns_crypt_relay_name" translatable="true">DNSRelay %1$s</string>
     <string name="cd_dns_crypt_name_default" translatable="true">DNSCrypt</string>
     <string name="cd_doh_dialog_heading" translatable="true">HTTPS를 통한 DNS 추가</string>
     <string name="cd_doh_dialog_checkbox_desc" translatable="true">서버 TLS 인증서 검증을 하지 마십시오 (무엇을 하고 있는지 알고 있는 경우에만 활성화하십시오)</string>
     <string name="cd_dns_alg_heading" translatable="true">고급 DNS 필터링 (실험적)</string>
-    <string name="cd_dns_alg_desc" translatable="true">DNS 요청당 고유 IP 할당</string>
+    <string name="cd_dns_alg_desc" translatable="true">DNS 요청마다 고유 IP를 할당합니다.</string>
     <string name="ctbs_dialog_negative_btn" translatable="true">뒤로가기</string>
     <string name="ctbs_app_other_apps" translatable="true">%1$s + %2$s 기타 앱</string>
     <string name="ctbs_block_other_apps" translatable="true">%1$s에 적용된 규칙은 %2$s의 다른 앱에도 적용됩니다</string>
@@ -367,7 +367,7 @@
     <string name="univ_view_blocked_ip" translatable="true">IP 및 포트 규칙</string>
     <string name="univ_accessibility_dialog_positive" translatable="true">승인하다</string>
     <string name="univ_accessibility_dialog_negative" translatable="true">거절</string>
-    <string name="univ_firewall_heading" translatable="true">범용 방화벽 규칙</string>
+    <string name="univ_firewall_heading" translatable="true">전역 방화벽 규칙</string>
     <string name="app_ip_domain_rules" translatable="true">앱 IP / 도메인 규칙</string>
     <string name="app_ip_domain_rules_desc" translatable="true">앱 IP / 도메인 규칙 당 수정.</string>
     <string name="dns_query_latency" translatable="true">%1$sms</string>
@@ -384,7 +384,7 @@
     <string name="univ_accessibility_crash_dialog_positive" translatable="true">설정으로 바로 가기</string>
     <string name="dns_proxy_name" translatable="true">프록시 이름</string>
     <string name="fapps_firewall_filter_excluded" translatable="true">제외</string>
-    <string name="fapps_unmetered_unblock_dialog_title" translatable="true">무제한 허용</string>
+    <string name="fapps_unmetered_unblock_dialog_title" translatable="true">비과금 접속 허용</string>
     <string name="fapps_unmetered_unblock_dialog_message">나열된 앱에 대해 무제한(WiFi) 네트워크 연결을 허용하시겠습니까?</string>
     <string name="fapps_bypass_block_dialog_title" translatable="true">앱 우회</string>
     <string name="fapps_unblock_dialog_title" translatable="true">앱 허용</string>
@@ -392,7 +392,7 @@
     <string name="settings_local_blocklist_version" translatable="true">버전: %1$s</string>
     <string name="fapps_info_bypass_msg" translatable="true">범용 방화벽 규칙을 우회합니다.</string>
     <string name="fapps_info_dialog_positive_btn" translatable="true">확인</string>
-    <string name="fapps_unmetered_block_dialog_title" translatable="true">무제한 차단</string>
+    <string name="fapps_unmetered_block_dialog_title" translatable="true">비과금 접속 차단</string>
     <string name="fapps_unmetered_block_dialog_message" translatable="true">나열된 앱에 대해 무제한(WiFi) 네트워크 연결을 차단하시겠습니까?</string>
     <string name="fapps_metered_unblock_dialog_title" translatable="true">측정 시 허용</string>
     <string name="fapps_metered_unblock_dialog_message" translatable="true">나열된 앱에 대해 데이터 통신(모바일) 네트워크 연결을 허용하시겠습니까?</string>
@@ -457,7 +457,7 @@
     <string name="network_log_app_name_unnamed" translatable="true">이름 없는 (%1$s)</string>
     <string name="pause_text" translatable="true">일시 정지</string>
     <string name="firewall_rule_univ_block_metered" translatable="true">종량제 (범용)</string>
-    <string name="firewall_rule_global_lockdown" translatable="true">잠금</string>
+    <string name="firewall_rule_global_lockdown" translatable="true">락다운</string>
     <string name="firewall_rule_proxied" translatable="true">프록시 적용됨</string>
     <string name="dns_info_positive" translatable="true">동의하다</string>
     <string name="firewall_rule_block_app_unmetered_desc" translatable="true">사용자 설정 방화벽 규칙이  종량제  네트워크에 접속하려고 했기 때문에 이  앱 를 차단했습니다. <br/><br/>변경하려면 ,모든 앱탭으로 이동해 주세요.</string>
@@ -491,7 +491,6 @@
     <string name="log_detail_flags">플래그</string>
     <string name="log_detail_message">메시지</string>
     <string name="log_detail_resolver">리졸버</string>
-    <string name="log_detail_blocklists">차단 목록</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">유효</string>
     <string name="log_detail_dnssec_unverified">확인되지 않음</string>
@@ -513,4 +512,183 @@
     <string name="dns_median_lookup">조회 시간 중앙값</string>
     <string name="dns_recent_lookups">최근 조회</string>
     <string name="dns_no_lookups_yet">아직 조회 없음</string>
+    <string name="about_license" translatable="true">Apache-2.0 라이선스</string>
+    <string name="ac_desync" translatable="true">디싱크</string>
+    <string name="ac_desync_desc" translatable="true">필요한 경우 교란 패킷을 보냅니다.</string>
+    <string name="ac_never_split_desc" translatable="true">패킷을 변경하지 않습니다.</string>
+    <string name="ac_retry_options_after_split_desc" translatable="true">항상 검열 저항 기술을 적용합니다.</string>
+    <string name="ac_retry_options_desc" translatable="true">연결이 검열당하면 어떻게 재시도할지 설정합니다.</string>
+    <string name="ac_retry_options_never_desc" translatable="true">실패하면 검열 저항 기술을 절대 재시도하지 않습니다.</string>
+    <string name="ac_retry_options_with_split_desc" translatable="true">필요할 때만 검열 저항 기술을 적용합니다.</string>
+    <string name="ac_split_auto_desc" translatable="true">필요하면 패킷을 변경합니다.</string>
+    <string name="ac_split_tcp" translatable="true">TCP</string>
+    <string name="ac_split_tcp_desc" translatable="true">TCP 패킷을 변경합니다.</string>
+    <string name="ac_split_tls" translatable="true">TCP/TLS</string>
+    <string name="ac_split_tls_desc" translatable="true">TCP나 TLS 패킷을 변경합니다.</string>
+    <string name="ac_toast_retry_disabled" translatable="true">아무 검열 저항 옵션을 골라 전략을 선택하세요.</string>
+    <string name="ada_app_metered" translatable="true">종량제</string>
+    <string name="ada_app_unmetered" translatable="true">비과금</string>
+    <string name="ada_delete_logs_dialog_desc" description="Appears as dialog description to clear the logs in app specific screen" translatable="true">이 애플리케이션과 관련된 모든 로그를 지웁니다.</string>
+    <string name="ada_delete_logs_dialog_title" description="Appears as dialog title to clear the logs in app specific screen" translatable="true">로그 지우기</string>
+    <string name="ada_noapp_dialog_message" translatable="true">앱 정보가 누락되었습니다. 앱이 삭제된 것은 아닙니까?</string>
+    <string name="ada_noapp_dialog_title" translatable="true">앱 없음</string>
+    <string name="anti_censorship_title" translatable="true">검열 저항</string>
+    <string name="bad_config_context" translatable="true">%1$s의 %2$s</string>
+    <string name="bad_config_error" translatable="true">%2$s 안의 %1$s</string>
+    <string name="bad_config_explanation_pka" translatable="true">: 65535를 넘지 않는 양수여야 함</string>
+    <string name="bad_config_explanation_positive_number" translatable="true">: 양수여야 함</string>
+    <string name="bad_config_explanation_udp_port" translatable="true">: 유효한 UDP 포트 숫자여야 함</string>
+    <string name="bad_config_reason_invalid_key" translatable="true">잘못된 키</string>
+    <string name="bad_config_reason_invalid_number" translatable="true">잘못된 숫자</string>
+    <string name="bad_config_reason_invalid_value" translatable="true">잘못된 값</string>
+    <string name="bad_config_reason_missing_attribute" translatable="true">누락된 속성</string>
+    <string name="bad_config_reason_missing_section" translatable="true">누락된 세션</string>
+    <string name="bad_config_reason_syntax_error" translatable="true">문법 오류</string>
+    <string name="bad_config_reason_unknown_attribute" translatable="true">알 수 없는 속성</string>
+    <string name="bad_config_reason_unknown_section" translatable="true">알 수 없는 세션</string>
+    <string name="bad_extension_error" translatable="true">.conf 혹은 .zip 파일이어야 함</string>
+    <string name="blocklist_not_available_toast" translatable="true">차단 목록을 업데이트하려면, 최신 앱 버전을 다운로드하세요.</string>
+    <string name="brbs_backup_complete_toast" translatable="true">백업 완료</string>
+    <string name="brbs_backup_dialog_failure_title" translatable="true">백업 실패</string>
+    <string name="brbs_restore_complete_toast" translatable="true">복원 완료, 앱을 재시작합니다…</string>
+    <string name="brbs_restore_desc" translatable="true">백업 파일로부터 복원</string>
+    <string name="brbs_restore_dialog_failure_message" translatable="true">복원할 수 없습니다. 다시 시도하시겠습니까?</string>
+    <string name="brbs_restore_dialog_failure_title" translatable="true">복원 실패</string>
+    <string name="brbs_restore_dialog_positive" translatable="true">복원</string>
+    <string name="brbs_restore_dialog_title" translatable="true">백업 복원</string>
+    <string name="brbs_restore_no_uri_toast" translatable="true">복원 실패. 다시 시도해 보십시오</string>
+    <string name="brbs_restore_title" translatable="true">복원</string>
+    <string name="brbs_title" translatable="true">백업 및 복원</string>
+    <string name="bsac_title_desc" translatable="true">이 앱에만 적용되는 규칙입니다.</string>
+    <string name="catch_all_wg_dialog_desc" translatable="true">다른 WireGuard VPN으로 라우팅하지 않는 모든 연결과 앱을 여기로 라우팅합니다.</string>
+    <string name="catch_all_wg_dialog_title" translatable="true">항상 켜기</string>
+    <string name="category_name_others" translatable="true">기타</string>
+    <string name="cd_split_dns_desc" translatable="true">프록시한 앱의 DNS 쿼리를 프록시의 DNS 서버로 포워딩합니다.</string>
+    <string name="cd_split_dns_heading" translatable="true">분할 DNS (실험적)</string>
+    <string name="cd_toast_edit" translatable="true">편집 완료</string>
+    <string name="ci_block" translatable="true">차단</string>
+    <string name="ci_dialog_error_invalid_ip" translatable="true">잘못된 IP 주소, 서브넷, 포트입니다.</string>
+    <string name="ci_trust_rule" translatable="true">신뢰</string>
+    <string name="cleanbrowsing_adult_dns_desc" translatable="true">성인 필터는 모든 성인, 음란물, 노골적인 사이트에 대한 접속을 차단합니다. 프록시나 VPN, 일반 콘텐츠와 성인 콘텐츠가 섞인 사이트는 차단하지 않습니다. Reddit같은 사이트는 허용됩니다. Google 및 Bing은 안전 모드로 설정됩니다.</string>
+    <string name="cleanbrowsing_family_dns_desc" translatable="true">가족 필터는 모든 성인, 음란물, 노골적인 사이트로의 접속을 차단합니다. 필터를 우회할 때 쓰이는 프록시 및 VPN 도메인도 차단합니다. 일반 콘텐츠와 성인 콘텐츠가 섞인 (Reddit같은) 사이트도 차단합니다. Google, Bing, YouTube는 안전 모드로 설정됩니다.</string>
+    <string name="close_conns_dialog_desc" translatable="true">%1$s의 모든 연결을 닫습니까?</string>
+    <string name="cloudflare_dns_desc" translatable="true">어떤 DNS 요청도 차단하지 않습니다. Cloudflare의 1.1.1.1 DNS 엔드포인트를 사용합니다.</string>
+    <string name="cloudflare_family_dns_desc" translatable="true">맬웨어 및 성인물을 차단합니다. Cloudflare의 1.1.1.3 DNS 엔드포인트를 사용합니다.</string>
+    <string name="cloudflare_security_dns_desc" translatable="true">유해한 콘텐츠를 차단합니다. CloudFlare의 1.1.1.2 DNS 엔드포인트를 사용합니다.</string>
+    <string name="config_add_success_toast" translatable="true">완료</string>
+    <string name="config_delete_dialog_desc" translatable="true">정말로 이 WireGuard VPN 구성을 삭제하고 싶으십니까?</string>
+    <string name="config_delete_dialog_title" translatable="true">삭제</string>
+    <string name="config_invalid_desc" translatable="true">잘못된 WireGuard 구성</string>
+    <string name="copied_clipboard" translatable="true">복사됨</string>
+    <string name="crypt_adguard_desc" translatable="true">악성코드 등으로부터 기기를 보호합니다.</string>
+    <string name="crypt_adguard_family_desc" translatable="true">세이프서치 및 성인 콘텐츠 차단 기능을 탑재한 Adguard DNS입니다.</string>
+    <string name="crypt_cleanbrowsing_family_desc" translatable="true">모든 성인, 음란물, 노골적인 사이트로의 접속을 차단합니다. 필터를 우회할 때 쓰이는 프록시 및 VPN 도메인도 차단합니다. 일반 콘텐츠와 성인 콘텐츠가 섞인 (Reddit같은) 사이트도 차단합니다. Google, Bing, YouTube는 안전 모드로 설정됩니다.</string>
+    <string name="crypt_quad9_security_desc" translatable="true">Quad9 (anycast) dnssec/no–log/filter 9.9.9.9 – 149.112.112.9 – 149.112.112.112</string>
+    <string name="crypt_relay_france" translatable="true">프랑스 파리의 https://cryptostrom.is/에서 호스팅하는 익명 DNS 중계.</string>
+    <string name="crypt_relay_netherlands" translatable="true">네덜란드에서 호스팅하는 익명 DNS 중계</string>
+    <string name="crypt_relay_singapore" translatable="true">싱가포르에서 호스팅하는 익명 DNS 중계.</string>
+    <string name="crypt_relay_sweden" translatable="true">스웨덴의 https://cryptostrom.is/에서 호스팅하는 익명 DNS 중계.</string>
+    <string name="crypt_relay_us" translatable="true">미국 캘리포니아 로스앤젤레스의 https://cryptostrom.is/에서 호스팅하는 익명 DNS 중계.</string>
+    <string name="dc_filtering_heading" translatable="true">필터링</string>
+    <string name="dc_local_block_enabled" translatable="true">켬</string>
+    <string name="dc_refresh_toast" translatable="true">새로고침 완료</string>
+    <string name="dc_setting_dns_cache_heading" translatable="true">DNS 부스터</string>
+    <string name="download_ip_info_title" translatable="true">제공자 정보 표시</string>
+    <string name="exclude_apps_from_proxy_failure_toast">이 앱은 프록시를 우회합니다</string>
+    <string name="exclude_no_package_err_toast" translatable="true">앱을 제외하려면 패키지 이름이 필요합니다.</string>
+    <string name="fail_open_network_title" translatable="true">네트워크 끊길 시 중단</string>
+    <string name="firewall_rule_private_dns" translatable="true">개인 DNS</string>
+    <string name="generic_error" translatable="true">알 수 없는 “%s” 오류</string>
+    <string name="google_dns_desc" translatable="true">어떤 DNS 요청도 차단하지 않습니다. Google의 DNS 엔드포인트를 사용합니다.</string>
+    <string name="hop_failure_toast" translatable="true">릴레이 오류: %1$s -&gt; %2$s</string>
+    <string name="illegal_filename_error" translatable="true">잘못된 파일 이름 “%s”</string>
+    <string name="import_error" translatable="true">터널 가져오기 실패: %s</string>
+    <string name="invalid_file_error" translatable="true">잘못된 파일</string>
+    <string name="key_contents_error" translatable="true">키에 잘못된 문자 포함</string>
+    <string name="key_length_explanation_base64" translatable="true">: WireGuard base64 키는 반드시 44자(32바이트)여야 함</string>
+    <string name="lbbs_configure" translatable="true">구성</string>
+    <string name="lbbs_copy" translatable="true">RDNS+ URL로 복사</string>
+    <string name="lbbs_enabled" translatable="true">켬</string>
+    <string name="lbbs_heading" translatable="true">195+ 차단 목록 구성</string>
+    <string name="lbbs_search" translatable="true">차단 목록에서 도메인 검색</string>
+    <string name="lbbs_update_check" translatable="true">업데이트 확인</string>
+    <string name="lbl_action" translatable="true">동작</string>
+    <string name="lbl_advanced" translatable="true">고급</string>
+    <string name="lbl_always" translatable="true">항상</string>
+    <string name="lbl_connect" translatable="true">연결</string>
+    <string name="lbl_criteria" translatable="true">조건</string>
+    <string name="lbl_experimental" translatable="true">(실험적)</string>
+    <string name="local_blocklist_delete_desc" translatable="true">기기 내 차단 목록을 삭제합니까?</string>
+    <string name="network_dns" translatable="true">시스템 DNS</string>
+    <string name="new_app_notification_action_deny" translatable="true">계속 차단</string>
+    <string name="new_app_notification_action_toast_allow" translatable="true">앱의 네트워크 연결이 허용되었습니다</string>
+    <string name="new_app_notification_action_toast_deny" translatable="true">앱의 네트워크 연결이 거부되었습니다</string>
+    <string name="no_configs_error" translatable="true">구성을 찾을 수 없음</string>
+    <string name="notif_channel_vpn_failure" translatable="true">VPN 비활성</string>
+    <string name="notif_dialog_pause_dialog_negative" translatable="true">무시</string>
+    <string name="notif_dialog_pause_dialog_positive" translatable="true">재개</string>
+    <string name="notif_download_cancel_content" translatable="true">다운로드 취소.</string>
+    <string name="notif_download_content_text" translatable="true">다운로드하는 중입니다…</string>
+    <string name="notif_download_failure_content" translatable="true">다운로드 실패. 다시 시도하십시오.</string>
+    <string name="notif_download_success_content" translatable="true">다운로드 성공.</string>
+    <string name="one_wg_apps_added" translatable="true">모든 앱 라우팅</string>
+    <string name="parse_error_generic" translatable="true">문자열</string>
+    <string name="parse_error_inet_address" translatable="true">IP 주소</string>
+    <string name="parse_error_inet_endpoint" translatable="true">엔드포인트</string>
+    <string name="parse_error_inet_network" translatable="true">IP 네트워크</string>
+    <string name="parse_error_integer" translatable="true">숫자</string>
+    <string name="parse_error_reason" translatable="true">%1$s “%2$s” 파싱 불가</string>
+    <string name="quad9_dns_desc" translatable="true">Quad9는 전 세계 서버의 보안 네트워크를 통해 DNS 쿼리를 라우팅합니다.</string>
+    <string name="radio_max_btn" translatable="true">🪂 Max</string>
+    <string name="radio_sky_btn" translatable="true">⛅ Sky</string>
+    <string name="rbl_parental_control_desc" description="The text appears as blocklists description in configure screen" translatable="true">성인물과 불법 복제 콘텐츠, 온라인 도박 및 데이팅 서비스, 소셜 미디어를 차단합니다.</string>
+    <string name="rbl_privacy" description="The text appears as part of the blocklist setup screen as categories or headlines" translatable="true">개인정보 보호</string>
+    <string name="rbl_privacy_desc" description="The text appears as blocklists description in configure screen" translatable="true">어텐션웨어, 스파이웨어, 스케어웨어를 차단합니다.</string>
+    <string name="rbl_security" description="The text appears as part of the blocklist setup screen as categories or headlines" translatable="true">보안</string>
+    <string name="rbl_security_desc" description="The text appears as blocklists description in configure screen" translatable="true">맬웨어, 랜섬웨어, 크립토웨어, 피싱 등 위협을 차단합니다.</string>
+    <string name="rethink_max_desc" translatable="true">위치 50곳 이상, 개인정보 보호 강화, fly.io에서 실행하는 재귀 리졸버</string>
+    <string name="rethink_sky_desc" translatable="true">위치 280곳 이상, 긴 가동 시간, cloudflare.com에서 실행하는 스터브 리졸버</string>
+    <string name="routing_remaining_apps" translatable="true">나머지 앱 라우팅</string>
+    <string name="rsv_blocklist_count_text" description="This label will appear in rethink configure simple view screen which shows number of blocklists for each category" translatable="true">차단 목록 %1$s개</string>
+    <string name="rt_chip_check_update" translatable="true">업데이트 확인</string>
+    <string name="rt_chip_update_available" translatable="true">업데이트 가능</string>
+    <string name="rt_dialog_message" translatable="true">새로 구성한 차단 목록을 적용하시겠습니까?</string>
+    <string name="rt_dialog_neutral" translatable="true">계속</string>
+    <string name="rt_download" translatable="true">차단 목록 다운로드</string>
+    <string name="rt_download_desc" translatable="true">이 기능을 이용하려면 차단 목록(약 60MB)을 다운로드합니다.</string>
+    <string name="rt_edit_dialog_positive" translatable="true">편집</string>
+    <string name="rt_filter_parent_selected" translatable="true">선택함</string>
+    <string name="rt_list_simple_btn_txt" translatable="true">간단</string>
+    <string name="rt_re_download" translatable="true">차단 목록 다시 다운로드</string>
+    <string name="settings_allow_incoming_wg_packets" translatable="true">WireGuard P2P</string>
+    <string name="settings_firebase_error_reporting_desc" translatable="true">오류 로그를 캡처하여 안정성 개선을 도와주세요.</string>
+    <string name="settings_firebase_error_reporting_heading" translatable="true">안정성 프로그램</string>
+    <string name="settings_jumbo_packets" translatable="true">대역폭 부스터</string>
+    <string name="smart_dns" translatable="true">스마트 DNS</string>
+    <string name="title_database_dump" translatable="true">데이터베이스</string>
+    <string name="tombstone_app_desc" translatable="true">켠 경우, 앱 규칙을 7일 동안 유지합니다.</string>
+    <string name="tombstone_app_title" translatable="true">삭제한 앱 기억</string>
+    <string name="unknown_error" translatable="true">알 수 없는 오류</string>
+    <string name="vpn_policy_auto_desc" translatable="true">중요한 네트워크 및 연결 변화에 반응합니다.</string>
+    <string name="vpn_policy_fixed" translatable="true">신중</string>
+    <string name="vpn_policy_fixed_desc" translatable="true">네트워크 변화에 최소한으로 반응합니다.</string>
+    <string name="vpn_policy_relaxed" translatable="true">느슨</string>
+    <string name="vpn_policy_relaxed_desc" translatable="true">주요한 연결 상태 변화에 반응합니다.</string>
+    <string name="vpn_policy_sensitive" translatable="true">민감</string>
+    <string name="vpn_policy_sensitive_desc" translatable="true">모든 네트워크 및 연결 상태 변화에 반응합니다.</string>
+    <string name="vpn_policy_title" translatable="true">연결 변경 정책</string>
+    <string name="wg_setting_ssid_title" translatable="true">Wi-Fi 전용</string>
+    <string name="wg_setting_use_on_mobile" translatable="true">모바일 데이터 전용</string>
+    <string name="wg_setting_use_on_mobile_desc" translatable="true">모바일 데이터에서 이 WireGuard VPN을 사용합니다.</string>
+    <string name="wg_ssid_type_exact" translatable="true">완전일치</string>
+    <string name="wg_ssid_type_wildcard" translatable="true">부분일치</string>
+    <string name="wireguard_apps_proxy_map_desc" translatable="true">%1$s의 일부</string>
+    <string name="wireguard_connection_error" translatable="true">WireGuard VPN 연결에 실패하고 있습니다</string>
+    <string name="wireguard_description" translatable="true">WireGuard를 프록시로 이용합니다.</string>
+    <string name="wireguard_disable_failure" translatable="true">\"WireGuard 항상 켜기\"를 끌 수 없음</string>
+    <string name="wireguard_disable_failure_relay" translatable="true">\"WireGuard 중계\"를 끌 수 없음</string>
+    <string name="wireguard_disable_message" translatable="true">모든 켜진 WireGuard VPN을 중단합니까?</string>
+    <string name="wireguard_disable_title" translatable="true">WireGuard 중지</string>
+    <string name="wireguard_disclaimer" translatable="true">DNS를 %1$s에 포워딩했습니다.</string>
+    <string name="wireguard_enabled_failure" translatable="true">WireGuard를 켜려면 다른 모든 프록시를 중단하세요</string>
 </resources>

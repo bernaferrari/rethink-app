@@ -18,7 +18,7 @@
     <string name="lbl_disabled" translatable="true">Онемогућено</string>
     <string name="lbl_action_required" translatable="true">Захтева се радња</string>
     <string name="lbl_rules" translatable="true">правила</string>
-    <string name="lbl_network" translatable="true">мрежа</string>
+    <string name="lbl_network" translatable="true">Мрежа</string>
     <string name="lbl_create" translatable="true">Направи</string>
     <string name="lbl_qr_code" translatable="true">QR код</string>
     <string name="lbl_wireguard" translatable="true">WireGuard</string>
@@ -38,14 +38,14 @@
     <string name="lbl_http_socks5" translatable="true">HTTPS и SOCKS5</string>
     <string name="lbl_fast" translatable="true">брз</string>
     <string name="lbl_slow" translatable="true">спор</string>
-    <string name="lbl_add" translatable="true">додај</string>
+    <string name="lbl_add" translatable="true">Додај</string>
     <string name="lbl_app_wise" translatable="true">по апликацији</string>
     <string name="lbl_sec" translatable="true">сек</string>
     <string name="lbl_hour" translatable="true">сати</string>
     <string name="lbl_preshared_key" translatable="true">Подељен кључ</string>
     <string name="lbl_optional" translatable="true">(опционо)</string>
     <string name="lbl_persistent_keepalive" translatable="true">Стално одржавање</string>
-    <string name="lbl_save" translatable="true">сачувај</string>
+    <string name="lbl_save" translatable="true">Сачувај</string>
     <string name="lbl_status" translatable="true">Статус</string>
     <string name="lbl_remove" translatable="true">Уклони</string>
     <string name="lbl_last" translatable="true">Последње</string>
@@ -198,8 +198,8 @@
     <string name="hsf_vpn_prepare_failure" translatable="true">Или недостају VPN дозволе, или је друга апликација у увек укљученом VPN моду.</string>
     <string name="hsf_notification_permission_failure" translatable="true">Омогућите дозволе за обавештења у екрану подешавања</string>
     <string name="hsf_pause_vpn_failure" translatable="true">Није могуће паузирање: Keepout није активан</string>
-    <string name="dc_block_heading" translatable="true">Правила</string>
-    <string name="dc_other_dns_heading" translatable="true">Врста</string>
+    <string name="dc_block_heading" translatable="true">правила</string>
+    <string name="dc_other_dns_heading" translatable="true">врста</string>
     <string name="dc_custom_dns_radio" translatable="true">Други DNS</string>
     <string name="dc_rethink_dns_radio" translatable="true">Rethink DNS</string>
     <string name="dc_entries" translatable="true">%1$s уноси »</string>
@@ -218,13 +218,13 @@
     <string name="about_bug_report_dialog_positive_btn" translatable="true">Пошаљи е-поруку</string>
     <string name="about_bug_no_log_dialog_title" translatable="true">Извештај о грешки</string>
     <string name="about_bug_no_log_dialog_message" translatable="true">Није успело сакупљање записа о грешки. Да ли желите да ручно пријавите ваш проблем?</string>
-    <string name="about_web" translatable="true">Везе</string>
+    <string name="about_web" translatable="true">везе</string>
     <string name="about_website" translatable="true">Посети rethinkdns.com</string>
     <string name="about_github" translatable="true">Допринеси на GitHub-у</string>
     <string name="about_faq" translatable="true">Погледај ЧПП</string>
     <string name="about_docs" translatable="true">Прочитај документацију</string>
     <string name="about_privacy_policy" translatable="true">Прочитај полису приватности</string>
-    <string name="about_app" translatable="true">Апликација</string>
+    <string name="about_app" translatable="true">апликација</string>
     <string name="about_email" translatable="true">Пошаљи нам е-поруку</string>
     <string name="about_settings_app_info" translatable="true">Информације о апликацији</string>
     <string name="about_settings_vpn_profile" translatable="true">VPN профил</string>
@@ -507,7 +507,7 @@
     <string name="lbl_cancel" translatable="true">Поништи</string>
     <string name="lbl_domain" translatable="true">Домен</string>
     <string name="lbl_configure" translatable="true">Подеси</string>
-    <string name="lbl_logs" translatable="true">записи</string>
+    <string name="lbl_logs" translatable="true">Записи</string>
     <string name="lbl_proceed" translatable="true">Настави</string>
     <string name="lbl_private_key" translatable="true">Приватни кључ</string>
     <string name="lbl_active" translatable="true">Активно</string>
@@ -555,7 +555,7 @@
     <string name="firewall_rule_bypass_universal_ip_desc" translatable="true">Ова конекција је дозвољена јер је одредишна IP подешена да заобиђе сва универзална правила заштитног зида.&lt;br/&gt;&lt;br/&gt; За промену иди на IP правила на картици универзално.</string>
     <string name="hsf_vpn_dialog_message" translatable="true">Keepout-у су потребне дозволе да подеси локални VPN за енкрипцију DNS захтева уређаја, имплементацију монитора мреже, и приморавање правила заштитног зида.\n\nKeepout не сакупља никакве информације нити вас шпијунира ни на који начин.</string>
     <string name="about_bug_no_log_dialog_positive_btn" translatable="true">Пошаљи е-поруку</string>
-    <string name="about_connect" translatable="true">Контактирај</string>
+    <string name="about_connect" translatable="true">контактирај</string>
     <string name="cd_dnscrypt_relay_heading" translatable="true">Релеји</string>
     <string name="notification_screen_error" translatable="true">Није било могуће покренути екран са обавештењем апликације.</string>
     <string name="error_loading_log_file" translatable="true">Грешка при учитавању датотеке записа</string>
@@ -688,7 +688,6 @@
     <string name="log_detail_flags">Заставице</string>
     <string name="log_detail_message">Порука</string>
     <string name="log_detail_resolver">Резолвер</string>
-    <string name="log_detail_blocklists">Блоклисте</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">Важеће</string>
     <string name="log_detail_dnssec_unverified">Непроверено</string>
@@ -714,4 +713,10 @@
     <string name="dns_median_lookup">Медијално време упита</string>
     <string name="dns_recent_lookups">Последњи упити</string>
     <string name="dns_no_lookups_yet">Још нема упита</string>
+    <string name="dns_desc" translatable="true">Одаберите са више од 190 листа да зауставите рекламе, праћења и малвер.</string>
+    <string name="lbl_action" translatable="true">Акција</string>
+    <string name="lbl_connect" translatable="true">Повежите се</string>
+    <string name="lbl_criteria" translatable="true">Критеријуми</string>
+    <string name="lbl_experimental" translatable="true">(експериментално)</string>
+    <string name="lbl_test" translatable="true">Тест</string>
 </resources>

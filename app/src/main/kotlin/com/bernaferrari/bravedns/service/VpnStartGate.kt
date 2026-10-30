@@ -15,7 +15,7 @@ internal class VpnStartGate(private val scope: CoroutineScope) {
 
     // Awaiting native teardown may report any JNI failure; restarting after one is never safe.
     @Suppress("TooGenericExceptionCaught")
-    fun afterStopped(awaitStopped: suspend () -> Unit, start: () -> Unit) = synchronized(lock) {
+    fun afterStopped(awaitStopped: suspend () -> Unit, onFailure: () -> Unit = {}, start: () -> Unit) = synchronized(lock) {
         pending?.cancel()
         val next = scope.launch(start = CoroutineStart.LAZY) {
             try {
@@ -27,6 +27,9 @@ internal class VpnStartGate(private val scope: CoroutineScope) {
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
+                synchronized(lock) {
+                    if (pending === coroutineContext[Job]) onFailure()
+                }
                 Logger.e(Logger.LOG_TAG_VPN, "Cannot restart before VPN teardown completes", e)
             }
         }

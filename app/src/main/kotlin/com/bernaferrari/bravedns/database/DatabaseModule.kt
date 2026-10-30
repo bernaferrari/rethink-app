@@ -15,7 +15,7 @@ import org.koin.core.annotation.Single
 @Module
 class DatabaseModule {
     @Single
-    fun appDatabase(@Provided context: Context): AppDatabase = buildAppDatabase(context)
+    fun appDatabase(@Provided context: Context): AppDatabase = buildConfiguredAppDatabase(context)
 
     @Single
     fun logDatabase(@Provided context: Context): LogDatabase = buildLogDatabase(context)

@@ -33,7 +33,7 @@ import com.bernaferrari.bravedns.util.Utilities
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 
-class WorkScheduler(val context: Context) {
+class WorkScheduler(val context: Context, private val persistentState: com.bernaferrari.bravedns.service.PersistentState) {
     companion object {
         const val APP_EXIT_INFO_ONE_TIME_JOB_TAG = "OnDemandCollectAppExitInfoJob"
         const val APP_EXIT_INFO_JOB_TAG = "ScheduledCollectAppExitInfoJob"
@@ -128,8 +128,8 @@ class WorkScheduler(val context: Context) {
         val purgeLogs =
             PeriodicWorkRequest.Builder(
                 PurgeConnectionLogs::class.java,
-                PURGE_LOGS_TIME_INTERVAL_HOURS,
-                TimeUnit.HOURS
+                com.bernaferrari.bravedns.util.LogRetention.fromHours(persistentState.logRetentionHours).purgeIntervalMinutes,
+                TimeUnit.MINUTES
             )
                 .addTag(PURGE_CONNECTION_LOGS_JOB_TAG)
                 .build()

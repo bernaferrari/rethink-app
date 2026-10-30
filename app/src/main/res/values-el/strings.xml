@@ -141,7 +141,6 @@
     <string name="log_detail_flags">Σημαίες</string>
     <string name="log_detail_message">Μήνυμα</string>
     <string name="log_detail_resolver">Διακομιστής DNS</string>
-    <string name="log_detail_blocklists">Λίστες αποκλεισμού</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">Έγκυρο</string>
     <string name="log_detail_dnssec_unverified">Μη επαληθευμένο</string>

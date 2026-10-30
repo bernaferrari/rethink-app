@@ -222,7 +222,6 @@
     <string name="log_detail_flags">Флагове</string>
     <string name="log_detail_message">Съобщение</string>
     <string name="log_detail_resolver">Резолвер</string>
-    <string name="log_detail_blocklists">Списъци за блокиране</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">Валидно</string>
     <string name="log_detail_dnssec_unverified">Непроверено</string>

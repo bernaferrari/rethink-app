@@ -115,9 +115,7 @@
     <string name="univ_accessibility_dialog_positive" translatable="true">ยินยอม</string>
     <string name="dns_connected_rethink_plus" translatable="true">เชื่อมต่อแล้ว %1$s รายการบล็อคที่ใช้งานอยู่</string>
     <string name="dns_connected" translatable="true">เชื่อมต่อ</string>
-    <string name="dns_proxy_dialog_message_no_app" translatable="true">ที่อยู่ IP: %1$s
-\n
-\nหมายเลขพอร์ต: %2$s</string>
+    <string name="dns_proxy_dialog_message_no_app" translatable="true">ที่อยู่ IP: %1$s \n \nหมายเลขพอร์ต: %2$s</string>
     <string name="dns_info_positive" translatable="true">Ok</string>
     <string name="dns_proxy_dialog_header_dns" translatable="true">เพิ่มพร็อกซี DNS</string>
     <string name="fapps_firewall_filter_bypass_universal" translatable="true">ข้ามไป</string>
@@ -227,11 +225,7 @@
     <string name="about_app_update_check" translatable="true">ตรวจสอบการอัปเดตแอป</string>
     <string name="univ_accessibility_dialog_negative" translatable="true">ปฏิเสธ</string>
     <string name="dns_info_neutral" translatable="true">สำเนา</string>
-    <string name="dns_proxy_dialog_message" translatable="true">ชื่อแอป: %1$s
-\n
-\nที่อยู่ IP: %2$s
-\n
-\nหมายเลขพอร์ต: %3$s</string>
+    <string name="dns_proxy_dialog_message" translatable="true">ชื่อแอป: %1$s \n \nที่อยู่ IP: %2$s \n \nหมายเลขพอร์ต: %3$s</string>
     <string name="fapps_filter_parent_installed" translatable="true">ติดตั้งแล้ว</string>
     <string name="fapps_filter_categories_heading" translatable="true">หมวดหมู่</string>
     <string name="fapps_info_isolate_msg" translatable="true">บล็อคทั้งหมด ยกเว้น IP ที่เชื่อถือได้</string>
@@ -703,7 +697,6 @@
     <string name="log_detail_flags">แฟล็ก</string>
     <string name="log_detail_message">ข้อความ</string>
     <string name="log_detail_resolver">ตัวแปลงชื่อ</string>
-    <string name="log_detail_blocklists">รายการบล็อก</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">ถูกต้อง</string>
     <string name="log_detail_dnssec_unverified">ยังไม่ยืนยัน</string>
@@ -725,4 +718,5 @@
     <string name="dns_median_lookup">เวลาค้นหามัธยฐาน</string>
     <string name="dns_recent_lookups">การค้นหาล่าสุด</string>
     <string name="dns_no_lookups_yet">ยังไม่มีการค้นหา</string>
+    <string name="lbl_test" translatable="true">ทดสอบ</string>
 </resources>

@@ -60,6 +60,12 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
 
+      - name: Prepare synthetic Firebase options for debug CI
+        if: matrix.variant == 'PlayDebug' || matrix.variant == 'WebsiteDebug'
+        run: |
+          python3 -m unittest discover -s scripts/tests -p test_debug_firebase.py -v
+          python3 scripts/prepare-debug-firebase.py
+
       - name: Compile variant + unit tests + detekt
         run: ./gradlew :app:compile${{ matrix.variant }}Kotlin :app:test${{ matrix.variant }}UnitTest :app:detekt --console=plain
 
@@ -99,6 +105,11 @@ jobs:
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
+
+      - name: Prepare synthetic Firebase options for debug CI
+        run: |
+          python3 -m unittest discover -s scripts/tests -p test_debug_firebase.py -v
+          python3 scripts/prepare-debug-firebase.py
 
       - name: Lint (warningsAsErrors, baseline-ratcheted)
         run: ./gradlew :app:lintPlayDebug :app:lintFdroidDebug :app:lintWebsiteDebug --console=plain

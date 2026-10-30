@@ -47,6 +47,9 @@ class BraveTileService : TileService(), KoinComponent {
         super.onCreate()
     }
 
+    private fun isVpnActive(): Boolean = VpnController.hasTunnel() ||
+        (VpnController.sessionActive.value)
+
     private fun updateTile(enabled: Boolean) {
         qsTile?.apply {
             state = if (enabled) Tile.STATE_ACTIVE else Tile.STATE_INACTIVE
@@ -58,14 +61,14 @@ class BraveTileService : TileService(), KoinComponent {
         super.onStartListening()
         try {
             if (vpnEnabledCollectorJob == null) {
-                vpnEnabledCollectorJob = persistentState.vpnEnabled
-                    .onEach { updateTile(it) }
+                vpnEnabledCollectorJob = VpnController.sessionActive
+                    .onEach { updateTile(isVpnActive()) }
                     .launchIn(tileScope)
             }
         } catch (e: IllegalStateException) {
             Logger.w(Logger.LOG_TAG_UI, "Tile: err in observing VPN state", e)
         }
-        updateTile(persistentState.getVpnEnabled())
+        updateTile(isVpnActive())
     }
 
     override fun onStopListening() {
@@ -110,7 +113,7 @@ class BraveTileService : TileService(), KoinComponent {
     override fun onClick() {
         super.onClick()
         // do not start or stop VPN if app lock is enabled
-        if (VpnController.state().activationRequested && !isAppLockEnabled()) {
+        if (isVpnActive() && !isAppLockEnabled()) {
             VpnController.stop("tile",this)
         } else if (VpnService.prepare(this) == null && !isAppLockEnabled()) {
             // Start VPN service when VPN permission has been granted

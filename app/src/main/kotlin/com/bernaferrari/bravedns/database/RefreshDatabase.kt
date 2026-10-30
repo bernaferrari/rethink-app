@@ -106,6 +106,8 @@ internal constructor(
             for (action in actions) {
                 try {
                     process(action)
+                } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                    throw cancelled
                 } catch (e: Exception) {
                     Logger.e(LOG_TAG_APP_DB, "refresh consumer failed, continuing", e)
                 }
@@ -228,6 +230,8 @@ internal constructor(
             refreshDomainRules(packagesToUpdate)
             restoreWireGuardProfilesIfNeeded(action == ACTION_REFRESH_RESTORE)
             Logger.i(LOG_TAG_APP_DB, "refresh done")
+        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+            throw cancelled
         } catch (e: SQLiteConstraintException) {
             Logger.crash(LOG_TAG_APP_DB, "database constraint violation during refresh", e)
             showDatabaseCorruptionNotification()
@@ -267,7 +271,7 @@ internal constructor(
                     .bigText(ctx.getString(R.string.db_corruption_notif_desc))
             )
             .setAutoCancel(true)
-            .addAction(0, ctx.getString(R.string.db_corruption_action_clear), clearIntent)
+            .addAction(Utilities.notificationAction(ctx.getString(R.string.db_corruption_action_clear), clearIntent))
             .addAction(0, ctx.getString(R.string.db_corruption_action_dismiss), dismissIntent)
 
         notificationManager.notify(
@@ -282,6 +286,8 @@ internal constructor(
         try {
             FirewallManager.clearAllApps()
             ProxyManager.clear()
+        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+            throw cancelled
         } catch (e: Exception) {
             Logger.w(LOG_TAG_APP_DB, "clearCoreTablesAndRebuild: failed to clear tables", e)
         }
@@ -540,6 +546,7 @@ internal constructor(
             insertUnknownApp(uid)
             logEvent(Severity.MEDIUM, "new unknown app installed", "inserted unknown app, uid: $uid")
         }
+        if (!NewAppNotificationPolicy.eligible(pkg, ctx.packageName, ai)) return
         showNewAppNotificationIfNeeded(FirewallManager.AppInfoTuple(uid, pkg))
     }
 
@@ -707,7 +714,12 @@ internal constructor(
         // need not notify if "block newly installed apps" is off: insertApp() & insertUnkownApp()
         if (!persistentState.getBlockNewlyInstalledApp()) return
 
-        val appCount = apps.count()
+        val others = apps.filter {
+            NewAppNotificationPolicy.eligible(it.packageName, ctx.packageName,
+                Utilities.getApplicationInfo(ctx, it.packageName))
+        }
+        if (others.isEmpty()) return
+        val appCount = others.size
         // Show bulk notification when the app size is greater than NEW_APP_BULK_CHECK_COUNT(5)
         if (appCount > NOTIF_BATCH_NEW_APPS_THRESHOLD) {
             showNewAppsBulkNotificationIfNeeded(appCount)
@@ -715,7 +727,7 @@ internal constructor(
         }
 
         // show notification for particular app (less than NEW_APP_BULK_CHECK_COUNT)
-        apps.forEach { showNewAppNotificationIfNeeded(it) }
+        others.forEach { showNewAppNotificationIfNeeded(it) }
     }
 
     private fun showNewAppsBulkNotificationIfNeeded(appSize: Int) {
@@ -726,7 +738,7 @@ internal constructor(
             ctx.getSystemService(VpnService.NOTIFICATION_SERVICE) as NotificationManager
         Logger.d(LOG_TAG_VPN, "Number of new apps: $appSize, show notification")
 
-        val intent = Intent(ctx, HomeScreenActivity::class.java)
+        val intent = Intent(ctx, HomeScreenActivity::class.java).setAction("${ctx.packageName}.notification.new-apps")
         intent.putExtra(
             Constants.NOTIF_INTENT_EXTRA_NEW_APP_NAME,
             Constants.NOTIF_INTENT_EXTRA_NEW_APP_VALUE
@@ -790,6 +802,7 @@ internal constructor(
         }
 
         val appInfo = Utilities.getApplicationInfo(ctx, pkgName)
+        if (!NewAppNotificationPolicy.eligible(pkgName, ctx.packageName, appInfo)) return
         val appName =
             if (appInfo == null) {
                 app.uid
@@ -806,7 +819,7 @@ internal constructor(
             ctx.getSystemService(VpnService.NOTIFICATION_SERVICE) as NotificationManager
         Logger.d(LOG_TAG_VPN, "New app installed: $appName, show notification")
 
-        val intent = Intent(ctx, HomeScreenActivity::class.java)
+        val intent = Intent(ctx, HomeScreenActivity::class.java).setAction("${ctx.packageName}.notification.new-app.${app.uid}")
         intent.putExtra(
             Constants.NOTIF_INTENT_EXTRA_NEW_APP_NAME,
             Constants.NOTIF_INTENT_EXTRA_NEW_APP_VALUE
@@ -863,14 +876,12 @@ internal constructor(
                 PENDING_INTENT_REQUEST_CODE_DENY
             )
         val notificationAction: NotificationCompat.Action =
-            NotificationCompat.Action(
-                0,
+            Utilities.notificationAction(
                 ctx.getString(R.string.allow).uppercase(),
                 openIntent1
             )
         val notificationAction2: NotificationCompat.Action =
-            NotificationCompat.Action(
-                0,
+            Utilities.notificationAction(
                 ctx.getString(R.string.new_app_notification_action_deny).uppercase(),
                 openIntent2
             )
@@ -890,7 +901,7 @@ internal constructor(
             return
         }
 
-        val intent = Intent(ctx, HomeScreenActivity::class.java)
+        val intent = Intent(ctx, HomeScreenActivity::class.java).setAction("${ctx.packageName}.notification.empty-rules")
         val nm = ctx.getSystemService(VpnService.NOTIFICATION_SERVICE) as NotificationManager
         val pendingIntent =
             getActivityPendingIntent(
@@ -922,8 +933,7 @@ internal constructor(
         val openIntent =
             makeVpnIntent(NOTIF_ID_LOAD_RULES_FAIL, Constants.NOTIF_ACTION_RULES_FAILURE)
         val notificationAction: NotificationCompat.Action =
-            NotificationCompat.Action(
-                0,
+            Utilities.notificationAction(
                 ctx.getString(R.string.rules_load_failure_reload),
                 openIntent
             )

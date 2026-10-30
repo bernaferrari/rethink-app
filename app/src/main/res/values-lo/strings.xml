@@ -1,0 +1,448 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="about_app" translatable="true">ແອັບ</string>
+    <string name="about_app_update_check" translatable="true">ກວດຫາການອັບເດດແອັບ</string>
+    <string name="about_bug_no_log_dialog_message" translatable="true">ບໍ່ສາມາດດຶງບັນທຶກການເກີດຂໍ້ຜິດພາດ (crash logs) ໄດ້. ທ່ານຕ້ອງການລາຍງານຂໍ້ຜິດພາດດ້ວຍຕົນເອງຫຼືບໍ່?</string>
+    <string name="about_bug_no_log_dialog_positive_btn" translatable="true">ສົ່ງອີເມວ</string>
+    <string name="about_bug_no_log_dialog_title" translatable="true">ລາຍງານຂໍ້ຜິດພາດ</string>
+    <string name="about_bug_report" translatable="true">ລາຍງານຂໍ້ຜິດພາດ</string>
+    <string name="about_bug_report_dialog_positive_btn" translatable="true">ສົ່ງອີເມວ</string>
+    <string name="about_connect" translatable="true">ຕິດຕໍ່</string>
+    <string name="about_dialog_neutral_button" translatable="true">ສະເໜີຄຸນສົມບັດໃໝ່</string>
+    <string name="about_docs" translatable="true">ອ່ານເອກະສານ</string>
+    <string name="about_email" translatable="true">ສົ່ງອີເມວຫາພວກເຮົາ</string>
+    <string name="about_github" translatable="true">ຮ່ວມພັດທະນາໃນ GitHub</string>
+    <string name="about_join_telegram" translatable="true">Telegram</string>
+    <string name="about_license" translatable="true">ອະນຸຍາດພາຍໃຕ້ Apache-2.0</string>
+    <string name="about_mail_bugreport_share_title" translatable="true">ເລືອກຜູ້ໃຫ້ບໍລິການອີເມວ</string>
+    <string name="about_mail_to_string" translatable="true">mailto:</string>
+    <string name="about_mozilla" translatable="true">Rethink ໄດ້ຮັບການສະໜັບສະໜູນຈາກ Mozilla Builders, FOSS United Foundation, ແລະ FLOSS/fund.</string>
+    <string name="about_privacy_policy" translatable="true">ອ່ານນະໂຍບາຍຄວາມເປັນສ່ວນຕົວ</string>
+    <string name="about_twitter" translatable="true">ຕິດຕາມພວກເຮົາໃນ Twitter (X)</string>
+    <string name="about_web" translatable="true">ລິງກ໌</string>
+    <string name="about_website" translatable="true">ເຂົ້າເບິ່ງ rethinkdns.com</string>
+    <string name="about_whats_new" translatable="true">ມີຫຍັງໃໝ່ໃນ %1$s</string>
+    <string name="ac_desync" translatable="true">Desync (ບໍ່ຊິ້ງກັນ)</string>
+    <string name="ac_desync_desc" translatable="true">ສົ່ງແພັກເກັດລວງ (decoy) ຕາມຄວາມຈຳເປັນ.</string>
+    <string name="ac_never_split_desc" translatable="true">ບໍ່ຕ້ອງດັດແກ້ແພັກເກັດ.</string>
+    <string name="ac_retry_options_after_split_desc" translatable="true">ນຳໃຊ້ເຕັກນິກການຕໍ່ຕ້ານການເຊັນເຊີສະເໝີ.</string>
+    <string name="ac_retry_options_desc" translatable="true">ຕັ້ງຄ່າວິທີການລອງໃໝ່ສຳລັບການເຊື່ອມຕໍ່ທີ່ຖືກເຊັນເຊີ.</string>
+    <string name="ac_retry_options_never_desc" translatable="true">ເມື່ອລົ້ມເຫຼວ, ບໍ່ຕ້ອງລອງເຕັກນິກຕໍ່ຕ້ານການເຊັນເຊີອີກ.</string>
+    <string name="ac_retry_options_with_split_desc" translatable="true">ນຳໃຊ້ເຕັກນິກການຕໍ່ຕ້ານການເຊັນເຊີເມື່ອຈຳເປັນ.</string>
+    <string name="ac_split_auto_desc" translatable="true">ດັດແກ້ແພັກເກັດຕາມຄວາມຈຳເປັນ.</string>
+    <string name="ac_split_tcp" translatable="true">TCP</string>
+    <string name="ac_split_tcp_desc" translatable="true">ດັດແກ້ແພັກເກັດ TCP.</string>
+    <string name="ac_split_tls" translatable="true">TCP/TLS</string>
+    <string name="ac_split_tls_desc" translatable="true">ດັດແກ້ແພັກເກັດ TCP ຫຼື TLS.</string>
+    <string name="ac_toast_retry_disabled" translatable="true">ເລືອກຕົວເລືອກການຕໍ່ຕ້ານການເຊັນເຊີເພື່ອເລືອກຍຸດທະສາດ.</string>
+    <string name="ada_app_metered" translatable="true">ຈຳກັດປະລິມານ</string>
+    <string name="ada_app_unmetered" translatable="true">ບໍ່ຈຳກັດປະລິມານ</string>
+    <string name="ada_delete_logs_dialog_desc" description="Appears as dialog description to clear the logs in app specific screen" translatable="true">ລຶບບັນທຶກທັງໝົດທີ່ກ່ຽວຂ້ອງກັບແອັບພລິເຄຊັນນີ້.</string>
+    <string name="ada_delete_logs_dialog_title" description="Appears as dialog title to clear the logs in app specific screen" translatable="true">ລຶບບັນທຶກ</string>
+    <string name="ada_noapp_dialog_message" translatable="true">ບໍ່ມີຂໍ້ມູນແອັບ. ບາງທີແອັບນີ້ອາດຈະຖືກຖອນການຕິດຕັ້ງແລ້ວບໍ?</string>
+    <string name="ada_noapp_dialog_title" translatable="true">ບໍ່ມີແອັບນີ້</string>
+    <string name="always_on_dialog_neutral" translatable="true">ການຕັ້ງຄ່າ</string>
+    <string name="always_on_dialog_positive" translatable="true">ຢຸດ</string>
+    <string name="always_on_dialog_stop_heading" translatable="true">VPN ທີ່ເປີດຕະຫຼອດເວລາ</string>
+    <string name="anti_censorship_title" translatable="true">ຕໍ່ຕ້ານການເຊັນເຊີ</string>
+    <string name="apps_info_title" translatable="true">ແອັບ</string>
+    <string name="bad_config_context" translatable="true">%2$s ຂອງ %1$s</string>
+    <string name="bad_config_error" translatable="true">%1$s ໃນ %2$s</string>
+    <string name="bad_config_explanation_pka" translatable="true">: ຕ້ອງເປັນຄ່າບວກ ແລະ ບໍ່ເກີນ 65535</string>
+    <string name="bad_config_explanation_positive_number" translatable="true">: ຕ້ອງເປັນຄ່າບວກ</string>
+    <string name="bad_config_explanation_udp_port" translatable="true">: ຕ້ອງເປັນໝາຍເລກພອດ UDP ທີ່ຖືກຕ້ອງ</string>
+    <string name="bad_config_reason_invalid_key" translatable="true">ຄີບໍ່ຖືກຕ້ອງ</string>
+    <string name="bad_config_reason_invalid_number" translatable="true">ຕົວເລກບໍ່ຖືກຕ້ອງ</string>
+    <string name="bad_config_reason_invalid_value" translatable="true">ຄ່າບໍ່ຖືກຕ້ອງ</string>
+    <string name="bad_config_reason_missing_attribute" translatable="true">ຂາດຄຸນລັກສະນະ</string>
+    <string name="bad_config_reason_missing_section" translatable="true">ຂາດພາກສ່ວນ</string>
+    <string name="bad_config_reason_syntax_error" translatable="true">ໄວຍະກອນຜິດພາດ</string>
+    <string name="bad_config_reason_unknown_attribute" translatable="true">ບໍ່ຮູ້ຈັກຄຸນລັກສະນະ</string>
+    <string name="bad_config_reason_unknown_section" translatable="true">ບໍ່ຮູ້ຈັກພາກສ່ວນ</string>
+    <string name="bad_extension_error" translatable="true">ໄຟລ໌ຕ້ອງເປັນ .conf ຫຼື .zip</string>
+    <string name="blocklist_not_available_toast" translatable="true">ເພື່ອອັບເດດລາຍຊື່ບລັອກ, ໃຫ້ດາວໂຫຼດແອັບເວີຊັນລ່າສຸດ.</string>
+    <string name="blocklist_update_check_not_required" translatable="true">ລາຍຊື່ບລັອກເປັນເວີຊັນຫຼ້າສຸດແລ້ວ.</string>
+    <string name="brbs_backup_complete_toast" translatable="true">ສຳຮອງຂໍ້ມູນສຳເລັດແລ້ວ</string>
+    <string name="brbs_backup_dialog_failure_title" translatable="true">ການສຳຮອງຂໍ້ມູນລົ້ມເຫຼວ</string>
+    <string name="brbs_restore_complete_toast" translatable="true">ກູ້ຄືນສຳເລັດແລ້ວ, ກຳລັງປິດເປີດແອັບໃໝ່…</string>
+    <string name="brbs_restore_desc" translatable="true">ກູ້ຄືນຈາກໄຟລ໌ສຳຮອງຂໍ້ມູນ</string>
+    <string name="brbs_restore_dialog_failure_message" translatable="true">ບໍ່ສາມາດກູ້ຄືນໄດ້. ລອງໃໝ່ອີກຄັ້ງບໍ?</string>
+    <string name="brbs_restore_dialog_failure_title" translatable="true">ການກູ້ຄືນລົ້ມເຫຼວ</string>
+    <string name="brbs_restore_dialog_positive" translatable="true">ກູ້ຄືນ</string>
+    <string name="brbs_restore_dialog_title" translatable="true">ກູ້ຄືນຂໍ້ມູນສຳຮອງ</string>
+    <string name="brbs_restore_no_uri_toast" translatable="true">ກູ້ຄືນບໍ່ສຳເລັດ; ລອງໃໝ່ອີກຄັ້ງ</string>
+    <string name="brbs_restore_title" translatable="true">ກູ້ຄືນ</string>
+    <string name="brbs_title" translatable="true">ສຳຮອງຂໍ້ມູນ &amp; ກູ້ຄືນ</string>
+    <string name="bsac_title_desc" translatable="true">ກົດນຳໃຊ້ກັບແອັບນີ້ເທົ່ານັ້ນ.</string>
+    <string name="catch_all_wg_dialog_desc" translatable="true">ການເຊື່ອມຕໍ່ ແລະ ແອັບທັງໝົດທີ່ບໍ່ໄດ້ຖືກກຳນົດເສັ້ນທາງໂດຍ WireGuard VPN ອື່ນ ຈະຖືກກຳນົດເສັ້ນທາງໂດຍອັນນີ້.</string>
+    <string name="catch_all_wg_dialog_title" translatable="true">ເປີດໃຊ້ງານຕະຫຼອດ</string>
+    <string name="category_name_others" translatable="true">ອື່ນໆ</string>
+    <string name="cd_custom_dns_proxy_default_app" translatable="true">ບໍ່ມີ</string>
+    <string name="cd_custom_dns_proxy_name" translatable="true">ພຣັອກຊີ %1$s</string>
+    <string name="cd_custom_dns_proxy_name_default" translatable="true">ພຣັອກຊີ</string>
+    <string name="cd_custom_doh_url_name" translatable="true">DoH %1$s</string>
+    <string name="cd_custom_doh_url_name_default" translatable="true">DoH</string>
+    <string name="cd_dns_alg_desc" translatable="true">ກຳນົດ IP ສະເພາະສຳລັບແຕ່ລະການຮ້ອງຂໍ DNS.</string>
+    <string name="cd_dns_alg_heading" translatable="true">ການກັ່ນຕອງ DNS ຂັ້ນສູງ (ທົດລອງ)</string>
+    <string name="cd_dns_crypt_dialog_desc" translatable="true">ຄຳອະທິບາຍ (ເລືອກໃສ່ກໍໄດ້)</string>
+    <string name="cd_dns_crypt_dialog_name" translatable="true">ຊື່</string>
+    <string name="cd_dns_crypt_dialog_stamp" translatable="true">ສະແຕມ</string>
+    <string name="cd_dns_crypt_name" translatable="true">DNSCrypt %1$s</string>
+    <string name="cd_dns_crypt_name_default" translatable="true">DNSCrypt</string>
+    <string name="cd_dns_crypt_relay_heading" translatable="true">ຣີເລ</string>
+    <string name="cd_dns_crypt_relay_name" translatable="true">ລີເລ DNS %1$s</string>
+    <string name="cd_dns_crypt_resolver_heading" translatable="true">ຕົວແປງຊື່</string>
+    <string name="cd_dns_crypt_title" translatable="true">ຕົວແປງຊື່</string>
+    <string name="cd_dns_proxy_error_text_1" translatable="true">ທີ່ຢູ່ IP ບໍ່ຖືກຕ້ອງ</string>
+    <string name="cd_dns_proxy_error_text_2" translatable="true">ຊ່ວງພອດຄວນຢູ່ລະຫວ່າງ 1024–65535</string>
+    <string name="cd_dns_proxy_error_text_3" translatable="true">ພອດບໍ່ຖືກຕ້ອງ</string>
+    <string name="cd_dns_proxy_mode_external" translatable="true">ພາຍນອກ</string>
+    <string name="cd_dns_proxy_mode_internal" translatable="true">ພາຍໃນ</string>
+    <string name="cd_dnscrypt_relay_heading" translatable="true">ຣີເລ</string>
+    <string name="cd_doh_dialog_checkbox_desc" translatable="true">ບໍ່ຕ້ອງກວດສອບໃບຢັ້ງຢືນ TLS ຂອງເຊີບເວີ (ເປີດໃຊ້ສະເພາະຕອນທີ່ເຈົ້າຮູ້ວ່າກຳລັງເຮັດຫຍັງຢູ່)</string>
+    <string name="cd_doh_dialog_heading" translatable="true">ເພີ່ມ DNS over HTTPS</string>
+    <string name="cd_doh_dialog_resolver_url" translatable="true">URL ຕົວແປງຊື່</string>
+    <string name="cd_split_dns_desc" translatable="true">ສົ່ງຕໍ່ການສອບຖາມ DNS ຈາກແອັບທີ່ໃຊ້ພຣັອກຊີໄປຍັງເຊີບເວີ DNS ຂອງພຣັອກຊີ.</string>
+    <string name="cd_split_dns_heading" translatable="true">ແຍກ DNS (ທົດລອງ)</string>
+    <string name="cd_toast_edit" translatable="true">ແກ້ໄຂແລ້ວ</string>
+    <string name="ci_block" translatable="true">ບລັອກ</string>
+    <string name="ci_dialog_error_invalid_ip" translatable="true">ທີ່ຢູ່ IP, ເຄືອຂ່າຍຍ່ອຍ ຫຼື ພອດບໍ່ຖືກຕ້ອງ.</string>
+    <string name="ci_trust_rule" translatable="true">ເຊື່ອຖື</string>
+    <string name="cleanbrowsing_adult_dns_desc" translatable="true">ຕົວກັ່ນຕອງຜູ້ໃຫຍ່ບລັອກການເຂົ້າເຖິງເວັບໄຊສຳລັບຜູ້ໃຫຍ່, ລາມົກ ແລະ ສື່ລາມົກອະນາຈານທັງໝົດ. ມັນຈະບໍ່ບລັອກພຣັອກຊີ, VPN ຫຼື ເວັບໄຊເນື້ອຫາປະສົມ. ເວັບໄຊເຊັ່ນ Reddit ຈະຖືກອະນຸຍາດໃຫ້ເຂົ້າເຖິງ. Google ແລະ Bing ຈະຖືກຕັ້ງເປັນໂໝດປອດໄພ (Safe Mode).</string>
+    <string name="cleanbrowsing_family_dns_desc" translatable="true">ຕົວກັ່ນຕອງຄອບຄົວບລັອກການເຂົ້າເຖິງເວັບໄຊສຳລັບຜູ້ໃຫຍ່, ລາມົກ ແລະ ສື່ລາມົກອະນາຈານທັງໝົດ. ມັນຍັງບລັອກໂດເມນພຣັອກຊີ ແລະ VPN ທີ່ອາດຈະຖືກໃຊ້ເພື່ອຂ້າມຕົວກັ່ນຕອງຂອງພວກເຮົາ. ເວັບໄຊທີ່ມີເນື້ອຫາປະສົມ (ເຊັ່ນ Reddit) ກໍ່ຖືກບລັອກເຊັ່ນກັນ. Google, Bing ແລະ Youtube ຈະຖືກຕັ້ງເປັນໂໝດປອດໄພ (Safe Mode).</string>
+    <string name="close_conns_dialog_desc" translatable="true">ປິດການເຊື່ອມຕໍ່ທັງໝົດສຳລັບ %1$s ບໍ?</string>
+    <string name="cloudflare_dns_desc" translatable="true">ບໍ່ບລັອກຄຳຂໍ DNS ໃດໆ. ໃຊ້ຈຸດສິ້ນສຸດ DNS 1.1.1.1 ຂອງ Cloudflare.</string>
+    <string name="cloudflare_family_dns_desc" translatable="true">ບລັອກມັນແວ ແລະ ເນື້ອຫາສຳລັບຜູ້ໃຫຍ່. ໃຊ້ຈຸດສິ້ນສຸດ DNS 1.1.1.3 ຂອງ Cloudflare.</string>
+    <string name="cloudflare_security_dns_desc" translatable="true">ບລັອກເນື້ອຫາທີ່ເປັນອັນຕະລາຍ. ໃຊ້ຈຸດສິ້ນສຸດ DNS 1.1.1.2 ຂອງ Cloudflare.</string>
+    <string name="collecting_logs_progress_text" translatable="true">ກຳລັງບັນທຶກ…</string>
+    <string name="config_add_success_toast" translatable="true">ສຳເລັດ</string>
+    <string name="config_delete_dialog_desc" translatable="true">ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການລຶບການຕັ້ງຄ່າ WireGuard VPN ນີ້?</string>
+    <string name="config_delete_dialog_title" translatable="true">ລຶບ</string>
+    <string name="config_invalid_desc" translatable="true">ການຕັ້ງຄ່າ WireGuard ບໍ່ຖືກຕ້ອງ</string>
+    <string name="conn_track_clear_logs_title" translatable="true">ລຶບບັນທຶກເຄືອຂ່າຍທັງໝົດບໍ່?</string>
+    <string name="connection_http3" translatable="true">HTTP3</string>
+    <string name="copied_clipboard" translatable="true">ສຳເນົາແລ້ວ</string>
+    <string name="copy_clipboard_label" translatable="true">URL</string>
+    <string name="crypt_adguard_desc" translatable="true">ປົກປ້ອງອຸປະກອນຂອງທ່ານຈາກມັນແວ ແລະ ອື່ນໆ.</string>
+    <string name="crypt_adguard_family_desc" translatable="true">Adguard DNS ທີ່ມາພ້ອມກັບການຄົ້ນຫາທີ່ປອດໄພ ແລະ ການບລັອກເນື້ອຫາຜູ້ໃຫຍ່.</string>
+    <string name="crypt_cleanbrowsing_family_desc" translatable="true">ບລັອກການເຂົ້າເຖິງເວັບໄຊສຳລັບຜູ້ໃຫຍ່, ລາມົກ ແລະ ສື່ລາມົກອະນາຈານທັງໝົດ. ມັນຍັງບລັອກໂດເມນພຣັອກຊີ ແລະ VPN ທີ່ໃຊ້ເພື່ອຂ້າມຕົວກັ່ນຕອງ. ເວັບໄຊເນື້ອຫາປະສົມ (ເຊັ່ນ Reddit) ກໍ່ຖືກບລັອກເຊັ່ນກັນ. Google, Bing ແລະ Youtube ຈະຖືກຕັ້ງເປັນໂໝດປອດໄພ.</string>
+    <string name="crypt_quad9_security_desc" translatable="true">Quad9 (anycast) dnssec/no–log/filter 9.9.9.9 – 149.112.112.9 – 149.112.112.112</string>
+    <string name="crypt_relay_france" translatable="true">ການສົ່ງຕໍ່ DNS ແບບບໍ່ລະບຸຕົວຕົນ ທີ່ໂຮສໃນປາຣີ, ປະເທດຝຣັ່ງ ໂດຍ https://cryptostrom.is/.</string>
+    <string name="crypt_relay_netherlands" translatable="true">ການສົ່ງຕໍ່ DNS ແບບບໍ່ລະບຸຕົວຕົນ ທີ່ໂຮສໃນເນເທີແລນ</string>
+    <string name="crypt_relay_singapore" translatable="true">ການສົ່ງຕໍ່ DNS ແບບບໍ່ລະບຸຕົວຕົນ ທີ່ໂຮສໃນສິງກະໂປ.</string>
+    <string name="crypt_relay_sweden" translatable="true">ການສົ່ງຕໍ່ DNS ແບບບໍ່ລະບຸຕົວຕົນ ທີ່ໂຮສໃນປະເທດສະວີເດັນ ໂດຍ https://cryptostrom.is/.</string>
+    <string name="crypt_relay_us" translatable="true">ການສົ່ງຕໍ່ DNS ແບບບໍ່ລະບຸຕົວຕົນ ທີ່ໂຮສໃນສະຫະລັດອາເມລິກາ - Los Angeles, CA ໂດຍ https://cryptostrom.is/.</string>
+    <string name="ctbs_app_info_not_available_toast" translatable="true">ບໍ່ພົບໜ້າການຕັ້ງຄ່າແອັບ</string>
+    <string name="ctbs_app_other_apps" translatable="true">%1$s + ແອັບອື່ນ %2$s ແອັບ</string>
+    <string name="ctbs_block_other_apps" translatable="true">ກົດລະບຽບທີ່ໃຊ້ກັບ %1$s ຈະມີຜົນກັບແອັບອື່ນ %2$s ແອັບນຳ</string>
+    <string name="custom_url_error_invalid_url" translatable="true">URL ບໍ່ຖືກຕ້ອງ</string>
+    <string name="dc_block_heading" translatable="true">ກົດ</string>
+    <string name="dc_check_update_heading" translatable="true">ແຈ້ງເຕືອນເມື່ອມີການອັບເດດລາຍຊື່ບລັອກ</string>
+    <string name="dc_custom_dns_radio" translatable="true">DNS ອື່ນໆ</string>
+    <string name="dc_dns_leaks_heading" translatable="true">ປ້ອງກັນ DNS ຮົ່ວໄຫຼ</string>
+    <string name="dc_entries" translatable="true">%1$s ລາຍການ »</string>
+    <string name="dc_filtering_heading" translatable="true">ການກັ່ນຕອງ</string>
+    <string name="dc_local_block_enabled" translatable="true">ເປີດໃຊ້ງານແລ້ວ</string>
+    <string name="dc_local_block_heading" translatable="true">ລາຍຊື່ບລັອກໃນອຸປະກອນ</string>
+    <string name="dc_other_dns_heading" translatable="true">ປະເພດ</string>
+    <string name="dc_proxy_dns_desc" translatable="true">ບໍ່ຕ້ອງເຮັດ proxy ໃຫ້ DNS ຜ່ານ Always-on WireGuard, SOCKS5, HTTP proxies.</string>
+    <string name="dc_proxy_dns_heading" translatable="true">ບໍ່ຕ້ອງເຮັດ proxy ໃຫ້ DNS</string>
+    <string name="dc_refresh_toast" translatable="true">ຣີເຟຣຊສຳເລັດແລ້ວ</string>
+    <string name="dc_rethink_dns_radio" translatable="true">Rethink DNS</string>
+    <string name="dc_setting_dns_cache_heading" translatable="true">ຕົວເລັ່ງ DNS</string>
+    <string name="default_dns_name" translatable="true">RDNS ຄ່າເລີ່ມຕົ້ນ</string>
+    <string name="dns_connected" translatable="true">ເຊື່ອມຕໍ່ແລ້ວ</string>
+    <string name="dns_crypt_connection_failure" translatable="true">ເກີດຂໍ້ຜິດພາດໃນການເຊື່ອມຕໍ່ຫາເຊີບເວີ DNSCrypt.</string>
+    <string name="dns_crypt_custom_url_remove_dialog_title" translatable="true">ລຶບຕົວແກ້ໄຂ (resolver) DNSCrypt ບໍ່?</string>
+    <string name="dns_crypt_relay_remove_dialog_message" translatable="true">ລຶບຣີເລຍ໌ DNSCrypt ອອກຈາກການຕັ້ງຄ່າທີ່ບັນທຶກໄວ້.</string>
+    <string name="dns_crypt_url_remove_dialog_message" translatable="true">ລຶບຕົວແກ້ໄຂ DNSCrypt ອອກຈາກການຕັ້ງຄ່າທີ່ບັນທຶກໄວ້.</string>
+    <string name="dns_crypt_url_remove_success" translatable="true">ລຶບຕົວແກ້ໄຂ DNSCrypt ແລ້ວ.</string>
+    <string name="dns_desc" translatable="true">ເລືອກຈາກ 190+ ລາຍການເພື່ອຢຸດໂຄສະນາ, ຕົວຕິດຕາມ ແລະ ມັນແວຣ໌.</string>
+    <string name="dns_info_neutral" translatable="true">ສຳເນົາ</string>
+    <string name="dns_mode_info_title" translatable="true">DNS</string>
+    <string name="dns_proxy_dialog_message" translatable="true">ຊື່ແອັບ: %1$s\n\nທີ່ຢູ່ IP: %2$s\n\nໝາຍເລກພອດ: %3$s</string>
+    <string name="dns_proxy_dialog_message_no_app" translatable="true">ທີ່ຢູ່ IP: %1$s\n\nໝາຍເລກພອດ: %2$s</string>
+    <string name="dns_query_latency" translatable="true">%1$sms</string>
+    <string name="doh_custom_url_remove_dialog_title" translatable="true">ລຶບຈຸດສິ້ນສຸດ DoH ບໍ່?</string>
+    <string name="doh_custom_url_remove_success" translatable="true">ລຶບຈຸດສິ້ນສຸດແລ້ວ.</string>
+    <string name="dot_custom_url_remove_dialog_title" translatable="true">ລຶບຈຸດສິ້ນສຸດ DoT ບໍ່?</string>
+    <string name="download_ip_info_title" translatable="true">ສະແດງຂໍ້ມູນຜູ້ໃຫ້ບໍລິການ</string>
+    <string name="download_update_dialog_message" translatable="true">ມີແອັບເວີຊັນໃໝ່ໃຫ້ດາວໂຫຼດຈາກເວັບໄຊທ໌ແລ້ວ. ທ່ານຕ້ອງການດຳເນີນການຕໍ່ບໍ່?</string>
+    <string name="download_update_dialog_message_ok" translatable="true">ທ່ານກຳລັງໃຊ້ເວີຊັນຫຼ້າສຸດແລ້ວ.</string>
+    <string name="download_update_dialog_message_success" translatable="true">ດາວໂຫຼດລາຍຊື່ບລັອກສຳເລັດແລ້ວ.</string>
+    <string name="download_update_dialog_trylater_title" translatable="true">ບໍ່ສາມາດອັບເດດໄດ້ໃນຕອນນີ້</string>
+    <string name="error_loading_log_file" translatable="true">ເກີດຂໍ້ຜິດພາດໃນການໂຫຼດໄຟລ໌ບັນທຶກ (log file)</string>
+    <string name="exclude_apps_from_proxy_failure_toast">ແອັບນີ້ຂ້າມພຣັອກຊີ</string>
+    <string name="exclude_no_package_err_toast" translatable="true">ການຍົກເວັ້ນແອັບຕ້ອງການຊື່ແພັກເກັດ.</string>
+    <string name="fail_open_network_title" translatable="true">ຢຸດສະງັກເມື່ອເຄືອຂ່າຍຫຼຸດ</string>
+    <string name="fapps_bypass_block_dialog_title" translatable="true">ຂ້າມແອັບ</string>
+    <string name="fapps_bypass_dns_firewall_dialog_title" translatable="true">ຂ້າມແອັບ</string>
+    <string name="fapps_exclude_block_dialog_title" translatable="true">ຍົກເວັ້ນແອັບ</string>
+    <string name="fapps_filter_categories_heading" translatable="true">ໝວດໝູ່</string>
+    <string name="fapps_filter_clear_btn" translatable="true">ລຶບລ້າງ</string>
+    <string name="fapps_filter_parent_installed" translatable="true">ຕິດຕັ້ງແລ້ວ</string>
+    <string name="fapps_filter_parent_system" translatable="true">ລະບົບ</string>
+    <string name="fapps_firewall_filter_bypass_universal" translatable="true">ຂ້າມແລ້ວ</string>
+    <string name="fapps_firewall_filter_excluded" translatable="true">ຍົກເວັ້ນແລ້ວ</string>
+    <string name="fapps_firewall_filter_isolate" translatable="true">ແຍກດ່ຽວແລ້ວ</string>
+    <string name="fapps_info_dialog_message" translatable="true">ບລັອກແອັບບໍ່ໃຫ້ເຊື່ອມຕໍ່ອິນເຕີເນັດ. ການຈຳກັດການເຂົ້າເຖິງອິນເຕີເນັດຊ່ວຍປ້ອງກັນການໃຊ້ຂໍ້ມູນທີ່ບໍ່ຈຳເປັນ ແລະ ຊ່ວຍປະຢັດແບັດເຕີຣີ.</string>
+    <string name="fapps_info_isolate_msg" translatable="true">ບລັອກທັງໝົດຍົກເວັ້ນ IP ທີ່ເຊື່ອຖືໄດ້.</string>
+    <string name="fapps_isolate_block_dialog_title" translatable="true">ແຍກດ່ຽວແອັບ</string>
+    <string name="fapps_metered_block_dialog_title" translatable="true">ບລັອກໃນເຄືອຂ່າຍເກັບຄ່າບໍລິການ</string>
+    <string name="fapps_metered_unblock_dialog_title" translatable="true">ອະນຸຍາດໃນເຄືອຂ່າຍເກັບຄ່າບໍລິການ</string>
+    <string name="fapps_unblock_dialog_title" translatable="true">ອະນຸຍາດແອັບ</string>
+    <string name="fapps_unmetered_block_dialog_title" translatable="true">ບລັອກໃນເຄືອຂ່າຍບໍ່ເກັບຄ່າບໍລິການ</string>
+    <string name="fapps_unmetered_unblock_dialog_title" translatable="true">ອະນຸຍາດໃນເຄືອຂ່າຍບໍ່ເກັບຄ່າບໍລິການ</string>
+    <string name="finish" translatable="true">ສຳເລັດ</string>
+    <string name="firewall_act_network_monitor_tab" translatable="true">ເຄືອຂ່າຍ</string>
+    <string name="firewall_act_universal_tab" translatable="true">ທົ່ວໄປ</string>
+    <string name="firewall_mode_info_title" translatable="true">ໄຟວໍ</string>
+    <string name="firewall_rule_block_app_exception" translatable="true">ຜິດພາດ</string>
+    <string name="firewall_rule_block_http" translatable="true">HTTP ບໍ່ປອດໄພ</string>
+    <string name="firewall_rule_bypass_universal_ip" translatable="true">IP ທີ່ຖືກຂ້າມ</string>
+    <string name="firewall_rule_global_lockdown" translatable="true">ລັອກດາວ</string>
+    <string name="firewall_rule_isolate" translatable="true">ແຍກດ່ຽວ</string>
+    <string name="firewall_rule_no_rule_desc" translatable="true">ບໍ່ມີກົດລະບຽບໄຟວໍທີ່ກົງກັບການເຊື່ອມຕໍ່ນີ້.</string>
+    <string name="firewall_rule_private_dns" translatable="true">DNS ສ່ວນຕົວ</string>
+    <string name="firewall_rule_proxied" translatable="true">ຜ່ານພຣັອກຊີແລ້ວ</string>
+    <string name="firewall_rule_trusted_ip" translatable="true">IP ທີ່ເຊື່ອຖືໄດ້</string>
+    <string name="generic_error" translatable="true">ຂໍ້ຜິດພາດ “%s” ທີ່ບໍ່ຮູ້ຈັກ</string>
+    <string name="google_dns_desc" translatable="true">ບໍ່ບລັອກຄຳຂໍ DNS ໃດໆ. ໃຊ້ຈຸດສິ້ນສຸດ DNS ຂອງ Google.</string>
+    <string name="hop_failure_toast" translatable="true">ການສົ່ງຕໍ່ຜິດພາດ: %1$s -&gt; %2$s</string>
+    <string name="hs_biometeric_error" translatable="true">ເກີດຂໍ້ຜິດພາດໃນການຢືນຢັນຕົວຕົນດ້ວຍຊີວະມິຕິ</string>
+    <string name="hs_download_negative_default" translatable="true">ເຕືອນຂ້ອຍພາຍຫຼັງ</string>
+    <string name="hs_download_positive_website" translatable="true">ເຂົ້າເບິ່ງເວັບໄຊ</string>
+    <string name="hsf_vpn_prepare_failure" translatable="true">ອາດຈະບໍ່ມີສິດອະນຸຍາດ VPN, ຫຼື ແອັບອື່ນກຳລັງຢູ່ໃນໂໝດ Always-on VPN (ເປີດໃຊ້ VPN ຕະຫຼອດເວລາ).</string>
+    <string name="illegal_filename_error" translatable="true">ຊື່ໄຟລ໌ຜິດກົດລະບຽບ “%s”</string>
+    <string name="import_error" translatable="true">ບໍ່ສາມາດນຳເຂົ້າທັນເນວ: %s</string>
+    <string name="info_dialog_copy_toast_msg" translatable="true">ສຳເນົາທີ່ຢູ່ IP ແລ້ວ.</string>
+    <string name="info_dialog_rethink_toast_msg" translatable="true">ສຳເນົາເປັນ RDNS+ DNS-over-HTTPS URL ແລ້ວ</string>
+    <string name="info_dialog_url_copy_toast_msg" translatable="true">ສຳເນົາ URL ແລ້ວ</string>
+    <string name="invalid_file_error" translatable="true">ໄຟລ໌ບໍ່ຖືກຕ້ອງ</string>
+    <string name="key_contents_error" translatable="true">ມີຕົວອັກສອນທີ່ບໍ່ດີໃນຄີ</string>
+    <string name="key_length_explanation_base64" translatable="true">: ຄີ WireGuard base64 ຕ້ອງມີ 44 ຕົວອັກສອນ (32 ໄບຕ໌)</string>
+    <string name="lbbs_configure" translatable="true">ຕັ້ງຄ່າ</string>
+    <string name="lbbs_copy" translatable="true">ສຳເນົາເປັນ URL ຂອງ RDNS+</string>
+    <string name="lbbs_enabled" translatable="true">ເປີດໃຊ້ງານແລ້ວ</string>
+    <string name="lbbs_heading" translatable="true">ຕັ້ງຄ່າ 195+ ລາຍຊື່ບລັອກ</string>
+    <string name="lbbs_search" translatable="true">ຊອກຫາໂດເມນໃນລາຍຊື່ບລັອກ</string>
+    <string name="lbbs_update_check" translatable="true">ກວດຫາການອັບເດດ</string>
+    <string name="lbl_action" translatable="true">ການດຳເນີນການ</string>
+    <string name="lbl_active" translatable="true">ເປີດໃຊ້ງານ</string>
+    <string name="lbl_add" translatable="true">ເພີ່ມ</string>
+    <string name="lbl_addresses" translatable="true">ທີ່ຢູ່</string>
+    <string name="lbl_advanced" translatable="true">ຂັ້ນສູງ</string>
+    <string name="lbl_all" translatable="true">ທັງໝົດ</string>
+    <string name="lbl_allowed" translatable="true">ອະນຸຍາດແລ້ວ</string>
+    <string name="lbl_allowed_ips" translatable="true">IP ທີ່ອະນຸຍາດ</string>
+    <string name="lbl_always" translatable="true">ສະເໝີ</string>
+    <string name="lbl_anonymous" translatable="true">ບໍ່ເປີດເຜີຍຕົວຕົນ</string>
+    <string name="lbl_apply" translatable="true">ນຳໃຊ້</string>
+    <string name="lbl_auto" translatable="true">(ອັດຕະໂນມັດ)</string>
+    <string name="lbl_blocked" translatable="true">ຖືກບລັອກ</string>
+    <string name="lbl_cancel" translatable="true">ຍົກເລີກ</string>
+    <string name="lbl_configure" translatable="true">ກຳນົດຄ່າ</string>
+    <string name="lbl_connect" translatable="true">ເຊື່ອມຕໍ່</string>
+    <string name="lbl_create" translatable="true">ສ້າງ</string>
+    <string name="lbl_criteria" translatable="true">ເງື່ອນໄຂ</string>
+    <string name="lbl_day" translatable="true">ມື້</string>
+    <string name="lbl_delete" translatable="true">ລຶບ</string>
+    <string name="lbl_disabled" translatable="true">ປິດໃຊ້ງານແລ້ວ</string>
+    <string name="lbl_dismiss" translatable="true">ປິດອອກ</string>
+    <string name="lbl_domain" translatable="true">ໂດເມນ</string>
+    <string name="lbl_experimental" translatable="true">(ທົດລອງ)</string>
+    <string name="lbl_fast" translatable="true">ໄວ</string>
+    <string name="lbl_hour" translatable="true">ຊົ່ວໂມງ</string>
+    <string name="lbl_http" translatable="true">HTTP</string>
+    <string name="lbl_http_socks5" translatable="true">HTTPS ແລະ SOCKS5</string>
+    <string name="lbl_idle" translatable="true">ບໍ່ເຮັດວຽກ</string>
+    <string name="lbl_inactive" translatable="true">ປິດໃຊ້ງານ</string>
+    <string name="lbl_insecure" translatable="true">(ບໍ່ປອດໄພ)</string>
+    <string name="lbl_last" translatable="true">ຫຼ້າສຸດ</string>
+    <string name="lbl_listen_port" translatable="true">ພອດຮັບຟັງ</string>
+    <string name="lbl_logs" translatable="true">ບັນທຶກ</string>
+    <string name="lbl_manual" translatable="true">ກຳນົດເອງ</string>
+    <string name="lbl_min" translatable="true">ນາທີ</string>
+    <string name="lbl_mtu" translatable="true">MTU</string>
+    <string name="lbl_network" translatable="true">ເຄືອຂ່າຍ</string>
+    <string name="lbl_optional" translatable="true">(ທາງເລືອກ)</string>
+    <string name="lbl_overall" translatable="true">ລວມ</string>
+    <string name="lbl_peer" translatable="true">ພຽຣ໌</string>
+    <string name="lbl_persistent_keepalive" translatable="true">ຮັກສາຂໍ້ມູນຢ່າງຕໍ່ເນື່ອງ</string>
+    <string name="lbl_preshared_key" translatable="true">ຄີທີ່ແຊໄວ້ລ່ອງໜ້າ</string>
+    <string name="lbl_private" translatable="true">ສ່ວນຕົວ</string>
+    <string name="lbl_private_key" translatable="true">ກະແຈສ່ວນຕົວ</string>
+    <string name="lbl_proceed" translatable="true">ດຳເນີນການຕໍ່</string>
+    <string name="lbl_remove" translatable="true">ເອົາອອກ</string>
+    <string name="lbl_save" translatable="true">ບັນທຶກ</string>
+    <string name="lbl_sec" translatable="true">ວິນາທີ</string>
+    <string name="lbl_secure" translatable="true">ປອດໄພ</string>
+    <string name="lbl_slow" translatable="true">ຊ້າ</string>
+    <string name="lbl_socks5" translatable="true">SOCKS5</string>
+    <string name="lbl_split" translatable="true">ແຍກ</string>
+    <string name="lbl_starting" translatable="true">ກຳລັງເລີ່ມ</string>
+    <string name="lbl_status" translatable="true">ສະຖານະ</string>
+    <string name="lbl_stopped" translatable="true">ຢຸດແລ້ວ</string>
+    <string name="lbl_test" translatable="true">ທົດສອບ</string>
+    <string name="lbl_wireguard" translatable="true">WireGuard</string>
+    <string name="local_blocklist_delete_desc" translatable="true">ລຶບລາຍຊື່ບລັອກໃນອຸປະກອນບໍ?</string>
+    <string name="local_blocklist_download_desc" translatable="true">ດາວໂຫຼດລາຍຊື່ບລັອກ (ປະມານ 60MB) ເພື່ອໃຊ້ຄຸນສົມບັດນີ້ບໍ່?</string>
+    <string name="local_blocklist_redownload_desc" translatable="true">ລາຍຊື່ບລັອກໃນອຸປະກອນເປັນເວີຊັນຫຼ້າສຸດແລ້ວ v%1$s.</string>
+    <string name="logs_card_duration" translatable="true">ຕັ້ງແຕ່ %1$s</string>
+    <string name="network_dns" translatable="true">DNS ຂອງລະບົບ</string>
+    <string name="network_log_app_name_unknown" translatable="true">ບໍ່ຮູ້ຈັກ</string>
+    <string name="network_log_app_name_unnamed" translatable="true">ບໍ່ມີຊື່ (%1$s)</string>
+    <string name="new_app_notification_action_deny" translatable="true">ບລັອກຕໍ່ໄປ</string>
+    <string name="new_app_notification_action_toast_allow" translatable="true">ອະນຸຍາດການເຊື່ອມຕໍ່ເຄືອຂ່າຍສຳລັບແອັບແລ້ວ</string>
+    <string name="new_app_notification_action_toast_deny" translatable="true">ປະຕິເສດການເຊື່ອມຕໍ່ເຄືອຂ່າຍສຳລັບແອັບແລ້ວ</string>
+    <string name="no_browser_error" translatable="true">ບໍ່ສາມາດເປີດໜ້າເວັບຈາກບຣາວເຊີໄດ້.</string>
+    <string name="no_configs_error" translatable="true">ບໍ່ພົບການຕັ້ງຄ່າ</string>
+    <string name="notif_channel_vpn_failure" translatable="true">VPN ທີ່ບໍ່ໄດ້ເຮັດວຽກ</string>
+    <string name="notif_dialog_pause_dialog_negative" translatable="true">ຍົກເລີກ</string>
+    <string name="notif_dialog_pause_dialog_positive" translatable="true">ສືບຕໍ່</string>
+    <string name="notif_download_cancel_content" translatable="true">ຍົກເລີກການດາວໂຫຼດແລ້ວ.</string>
+    <string name="notif_download_content_text" translatable="true">ກຳລັງດາວໂຫຼດ…</string>
+    <string name="notif_download_failure_content" translatable="true">ດາວໂຫຼດບໍ່ສຳເລັດ. ລອງໃໝ່ອີກຄັ້ງ.</string>
+    <string name="notif_download_success_content" translatable="true">ດາວໂຫຼດສຳເລັດແລ້ວ.</string>
+    <string name="notification_action_dns_mode" translatable="true">DNS</string>
+    <string name="one_wg_apps_added" translatable="true">ກຳນົດເສັ້ນທາງທຸກແອັບ</string>
+    <string name="orbot" translatable="true">Orbot</string>
+    <string name="orbot_app_issue" translatable="true">ບໍ່ສາມາດເປີດ Orbot ໄດ້. ໄດ້ຕິດຕັ້ງແລ້ວຫຼືບໍ່?</string>
+    <string name="orbot_bs_status_1" translatable="true">ກຳລັງສົ່ງຕໍ່ການເຊື່ອມຕໍ່ %1$s ໄປຫາ Orbot.</string>
+    <string name="orbot_bs_status_trying_connect" translatable="true">ກຳລັງຕັ້ງຄ່າ Orbot…</string>
+    <string name="orbot_install_dialog_message" translatable="true">Orbot ນຳເອົາຄຸນສົມບັດ ແລະ ການເຮັດວຽກຂອງ Tor ມາສູ່ Android.</string>
+    <string name="orbot_install_dialog_positive" translatable="true">ຕິດຕັ້ງ</string>
+    <string name="orbot_install_dialog_title" translatable="true">ຕິດຕັ້ງ Orbot ບໍ່?</string>
+    <string name="orbot_no_app_toast" translatable="true">ເພີ່ມຢ່າງໜ້ອຍໜຶ່ງແອັບເພື່ອເປີດໃຊ້ງານ Orbot</string>
+    <string name="orbot_none" translatable="true">ບໍ່ມີ (ຄ່າເລີ່ມຕົ້ນ)</string>
+    <string name="orbot_status_arg_2" translatable="true">TCP</string>
+    <string name="orbot_status_arg_3" translatable="true">DNS ແລະ TCP</string>
+    <string name="orbot_stop_dialog_negative" translatable="true">ຢຸດ Orbot</string>
+    <string name="orbot_stop_dialog_neutral" translatable="true">ປ່ຽນ DNS</string>
+    <string name="orbot_stop_dialog_title" translatable="true">ຕ້ອງການດຳເນີນການດ້ວຍຕົນເອງ</string>
+    <string name="other_dns_list_tab1" translatable="true">DoH</string>
+    <string name="parse_error_generic" translatable="true">ສາຍອັກຂະລະ (string)</string>
+    <string name="parse_error_inet_address" translatable="true">ທີ່ຢູ່ IP</string>
+    <string name="parse_error_inet_endpoint" translatable="true">ຈຸດປາຍທາງ (Endpoint)</string>
+    <string name="parse_error_inet_network" translatable="true">ເຄືອຂ່າຍ IP</string>
+    <string name="parse_error_integer" translatable="true">ຕົວເລກ</string>
+    <string name="parse_error_reason" translatable="true">ບໍ່ສາມາດແຍກວິເຄາະ %1$s “%2$s”</string>
+    <string name="pause_desc" translatable="true">ໝາຍເຫດ: ແອັບທີ່ຖືກບລັອກ %1$s ແອັບ ຈະຍັງຄົງຖືກປ້ອງກັນດ້ວຍໄຟວໍຕໍ່ໄປ.</string>
+    <string name="public_key_copy_toast_msg" translatable="true">ສຳເນົາກະແຈສາທາລະນະແລ້ວ.</string>
+    <string name="quad9_dns_desc" translatable="true">Quad9 ກຳນົດເສັ້ນທາງຄຳຂໍ DNS ຂອງທ່ານຜ່ານເຄືອຂ່າຍເຊີບເວີທີ່ປອດໄພທົ່ວໂລກ.</string>
+    <string name="radio_max_btn" translatable="true">🪂 Max</string>
+    <string name="radio_sky_btn" translatable="true">⛅ Sky</string>
+    <string name="rbl_parental_control_desc" description="The text appears as blocklists description in configure screen" translatable="true">ບລັອກເນື້ອຫາຜູ້ໃຫຍ່ &amp; ລະເມີດລິຂະສິດ, ການພະນັນອອນໄລນ໌ &amp; ການຫາຄູ່, ແລະ ສື່ສັງຄົມອອນໄລນ໌.</string>
+    <string name="rbl_privacy" description="The text appears as part of the blocklist setup screen as categories or headlines" translatable="true">ຄວາມເປັນສ່ວນຕົວ</string>
+    <string name="rbl_privacy_desc" description="The text appears as blocklists description in configure screen" translatable="true">ບລັອກຊອບແວລົບກວນ, ສະປາຍແວ, ຊອບແວຫຼອກລວງ.</string>
+    <string name="rbl_security" description="The text appears as part of the blocklist setup screen as categories or headlines" translatable="true">ຄວາມປອດໄພ</string>
+    <string name="rbl_security_desc" description="The text appears as blocklists description in configure screen" translatable="true">ບລັອກມັນແວ, ແຣນຊຳແວ, ຄຣິບໂຕແວ, ການຫຼອກລວງເອົາຂໍ້ມູນ (Phishing) ແລະ ໄພຄຸກຄາມອື່ນໆ.</string>
+    <string name="refresh_complete" translatable="true"> ຊິ້ງຂໍ້ມູນລາຍຊື່ແອັບຄືນໃໝ່ສຳເລັດແລ້ວ.</string>
+    <string name="rethink_max_desc" translatable="true">50+ ທີ່ຕັ້ງ; ເປັນສ່ວນຕົວຫຼາຍຂຶ້ນ; recursive resolver ເຮັດວຽກຢູ່ເທິງ fly.io</string>
+    <string name="rethink_sky_desc" translatable="true">280+ ທີ່ຕັ້ງ; ຄວາມສະຖຽນສູງກວ່າ; stub resolver ເຮັດວຽກຢູ່ເທິງ cloudflare.com</string>
+    <string name="routing_remaining_apps" translatable="true">ກຳນົດເສັ້ນທາງແອັບທີ່ເຫຼືອ</string>
+    <string name="rsv_blocklist_count_text" description="This label will appear in rethink configure simple view screen which shows number of blocklists for each category" translatable="true">%1$s ລາຍຊື່ບລັອກ</string>
+    <string name="rt_chip_check_update" translatable="true">ກວດຫາອັບເດດ</string>
+    <string name="rt_chip_update_available" translatable="true">ມີອັບເດດ</string>
+    <string name="rt_dialog_message" translatable="true">ທ່ານຕ້ອງການນຳໃຊ້ລາຍຊື່ບລັອກທີ່ຕັ້ງຄ່າໃໝ່ບໍ?</string>
+    <string name="rt_dialog_neutral" translatable="true">ສືບຕໍ່</string>
+    <string name="rt_download" translatable="true">ດາວໂຫຼດລາຍຊື່ບລັອກ</string>
+    <string name="rt_download_desc" translatable="true">ດາວໂຫຼດລາຍຊື່ບລັອກ (ປະມານ 60MB) ເພື່ອໃຊ້ຄຸນສົມບັດນີ້.</string>
+    <string name="rt_edit_dialog_positive" translatable="true">ແກ້ໄຂ</string>
+    <string name="rt_filter_parent_selected" translatable="true">ເລືອກແລ້ວ</string>
+    <string name="rt_list_simple_btn_txt" translatable="true">ທຳມະດາ</string>
+    <string name="rt_re_download" translatable="true">ດາວໂຫຼດລາຍຊື່ບລັອກຄືນໃໝ່</string>
+    <string name="rules_load_failure_desc" translatable="true">ບໍ່ພົບກົດລະບຽບໄຟວໍ</string>
+    <string name="rules_load_failure_heading" translatable="true">ໝາຍເຫດ</string>
+    <string name="settings_allow_bypass_heading" translatable="true">ເປີດການເບິ່ງເຫັນເຄືອຂ່າຍ</string>
+    <string name="settings_allow_incoming_wg_packets" translatable="true">WireGuard P2P</string>
+    <string name="settings_app_list_default_app" translatable="true">ບໍ່ມີ</string>
+    <string name="settings_autostart_bootup_heading" translatable="true">ເລີ່ມອັດຕະໂນມັດເມື່ອເປີດເຄື່ອງ (ທົດລອງ)</string>
+    <string name="settings_check_update_desc" translatable="true">ກວດຫາການອັບເດດແອັບອັດຕະໂນມັດອາທິດລະຄັ້ງ.</string>
+    <string name="settings_check_update_heading" translatable="true">ກວດຫາການອັບເດດແອັບ</string>
+    <string name="settings_connectivity_checks" translatable="true">ກວດສອບການເຊື່ອມຕໍ່</string>
+    <string name="settings_connectivity_checks_desc" translatable="true">ການກວດສອບການເຊື່ອມຕໍ່ຈະຖືກສົ່ງໄປເພື່ອຢືນຢັນວ່າສາມາດເຂົ້າເຖິງໄດ້.</string>
+    <string name="settings_custom_downloader_heading" translatable="true">ໃຊ້ຕົວດາວໂຫຼດພາຍໃນແອັບ</string>
+    <string name="settings_dns_proxy_dialog_app" translatable="true">ແອັບ</string>
+    <string name="settings_enable_logs" translatable="true">ເປີດໃຊ້ການບັນທຶກໃນອຸປະກອນ</string>
+    <string name="settings_enable_logs_desc" translatable="true">ເກັບຮັກສາບັນທຶກ DNS ແລະ ໄຟວໍໄວ້ໃນອຸປະກອນ.</string>
+    <string name="settings_exclude_proxy_apps_heading" translatable="true">ແອັບສົ່ງຕໍ່ Loopback proxy</string>
+    <string name="settings_firebase_error_reporting_desc" translatable="true">ບັນທຶກຂໍ້ຜິດພາດເພື່ອຊ່ວຍປັບປຸງຄວາມສະຖຽນ.</string>
+    <string name="settings_firebase_error_reporting_heading" translatable="true">ໂປຣແກຣມຄວາມສະຖຽນ</string>
+    <string name="settings_general_customize" translatable="true">ປັບແຕ່ງ</string>
+    <string name="settings_general_header" translatable="true">ທົ່ວໄປ</string>
+    <string name="settings_http_proxy_desc" translatable="true">ກຳລັງສົ່ງຕໍ່ໄປຫາ %1$s</string>
+    <string name="settings_http_proxy_error_text1" translatable="true">ຊ່ວງພອດ (Port) ຄວນຢູ່ລະຫວ່າງ 1024–65535</string>
+    <string name="settings_http_proxy_error_text2" translatable="true">ພອດບໍ່ຖືກຕ້ອງ</string>
+    <string name="settings_http_proxy_error_text3" translatable="true">ຊື່ໂຮສ (Hostname) ວ່າງເປົ່າ</string>
+    <string name="settings_http_proxy_toast_success" translatable="true">ຕັ້ງຄ່າ HTTP proxy ແລ້ວ</string>
+    <string name="settings_https_desc" translatable="true">ສົ່ງຕໍ່ການເຊື່ອມຕໍ່ໄປຫາປາຍທາງ HTTP(S) CONNECT.</string>
+    <string name="settings_https_disabled_error" translatable="true">ເຊື່ອມຕໍ່ກັບ %1$s ແລ້ວ. ປິດມັນເພື່ອດຳເນີນການຕໍ່.</string>
+    <string name="settings_import_export_desc" translatable="true">ສຳຮອງ ຫຼື ກູ້ຄືນຂໍ້ມູນແອັບ ແລະ ການຕັ້ງຄ່າດ້ວຍຕົນເອງ.</string>
+    <string name="settings_ip_dialog_ipv4" translatable="true">IPv4 (ຄ່າເລີ່ມຕົ້ນ)</string>
+    <string name="settings_ip_dialog_title" translatable="true">ເລືອກເວີຊັນ IP</string>
+    <string name="settings_ip_text_ipv4" translatable="true">IPv4</string>
+    <string name="settings_ip_text_ipv46" translatable="true">ອັດຕະໂນມັດ</string>
+    <string name="settings_ip_text_ipv6" translatable="true">IPv6</string>
+    <string name="settings_jumbo_packets" translatable="true">ຕົວຊ່ວຍເພີ່ມແບນວິດ</string>
+    <string name="settings_local_blocklist_dialog_positive" translatable="true">ດາວໂຫຼດ</string>
+    <string name="settings_local_blocklist_version" translatable="true">ເວີຊັນ: v%1$s</string>
+    <string name="settings_orbot_disabled_error" translatable="true">ປິດ HTTP(S) ແລະ/ຫຼື SOCKS5 proxy ເພື່ອດຳເນີນການຕັ້ງຄ່າ Tor-as-a-proxy ຕໍ່.</string>
+    <string name="settings_orbot_notification_action" translatable="true">ເປີດ Orbot</string>
+    <string name="settings_protocol_translation_dns_inactive" translatable="true">ສະຫຼັບໄປເປັນໂໝດ DNS/DNS+ໄຟວໍ ເພື່ອເປີດໃຊ້ການຕັ້ງຄ່ານີ້</string>
+    <string name="settings_proxy_header" translatable="true">Proxy</string>
+    <string name="settings_socks5_disabled_error" translatable="true">ເຊື່ອມຕໍ່ກັບ %1$s ແລ້ວ. ປິດມັນເພື່ອດຳເນີນການຕໍ່.</string>
+    <string name="settings_socks_forwarding_default_desc" translatable="true">ສົ່ງຕໍ່ການເຊື່ອມຕໍ່ໄປຫາປາຍທາງ SOCKS5.</string>
+    <string name="settings_socks_forwarding_desc" translatable="true">ກຳລັງສົ່ງຕໍ່ໄປຫາ %1$s:%2$s, %3$s</string>
+    <string name="settings_socks_forwarding_desc_no_app" translatable="true">ກຳລັງສົ່ງຕໍ່ໄປຫາ %1$s:%2$s</string>
+    <string name="settings_theme_dialog_themes_2" translatable="true">ແຈ້ງ</string>
+    <string name="settings_theme_dialog_themes_3" translatable="true">ມືດ</string>
+    <string name="settings_theme_heading" translatable="true">ຮູບລັກສະນະ</string>
+    <string name="smart_dns" translatable="true">Smart DNS</string>
+    <string name="system_dns_connection_failure" translatable="true">ບໍ່ສາມາດກຳນົດເຊີບເວີ DNS ປັດຈຸບັນໄດ້</string>
+    <string name="title_about" translatable="true">ກ່ຽວກັບ</string>
+    <string name="title_database_dump" translatable="true">ຖານຂໍ້ມູນ</string>
+    <string name="title_settings" translatable="true">ການຕັ້ງຄ່າ</string>
+    <string name="title_statistics" translatable="true">ສະຖິຕິ</string>
+    <string name="toast_allow_bypass_disabled" translatable="true">%1$s ຖືກປິດໃຊ້ງານເນື່ອງຈາກພຣັອກຊີກຳລັງເຮັດວຽກ</string>
+    <string name="tombstone_app_desc" translatable="true">ເມື່ອເປີດໃຊ້, ຈະຮັກສາກົດຂອງແອັບໄວ້ເປັນເວລາ 7 ມື້.</string>
+    <string name="tombstone_app_title" translatable="true">ຈື່ແອັບທີ່ຖອນການຕິດຕັ້ງແລ້ວ</string>
+    <string name="txt_home" translatable="true">ໜ້າຫຼັກ</string>
+    <string name="univ_accessibility_dialog_negative" translatable="true">ປະຕິເສດ</string>
+    <string name="univ_accessibility_dialog_positive" translatable="true">ອະນຸຍາດ</string>
+    <string name="univ_firewall_heading" translatable="true">ກົດລະບຽບໄຟວໍລວມທົ່ວໄປ</string>
+    <string name="univ_firewall_rule_1" translatable="true">ບລັອກທຸກແອັບເມື່ອອຸປະກອນຖືກລັອກ</string>
+    <string name="univ_firewall_rule_10" translatable="true">ບລັອກທັງໝົດຍົກເວັ້ນແອັບ ແລະ IP ທີ່ຖືກຂ້າມ</string>
+    <string name="univ_firewall_rule_2" translatable="true">ບລັອກແອັບທີ່ບໍ່ໄດ້ໃຊ້ງານ</string>
+    <string name="univ_firewall_rule_3" translatable="true">ບລັອກເມື່ອບໍ່ຮູ້ຈັກແອັບຕົ້ນທາງ</string>
+    <string name="univ_firewall_rule_4" translatable="true">ບລັອກ UDP ຍົກເວັ້ນ DNS ແລະ NTP</string>
+    <string name="univ_firewall_rule_5" translatable="true">ບລັອກເມື່ອ DNS ຖືກຂ້າມ</string>
+    <string name="univ_firewall_rule_6" translatable="true">ບລັອກແອັບທີ່ຕິດຕັ້ງໃໝ່ເປັນຄ່າເລີ່ມຕົ້ນ</string>
+    <string name="univ_firewall_rule_8" translatable="true">ບລັອກການສັນຈອນພອດ 80 (HTTP ທີ່ບໍ່ປອດໄພ)</string>
+    <string name="univ_firewall_rule_9" translatable="true">ບລັອກໃນເຄືອຂ່າຍແບບເກັບຄ່າບໍລິການ (ມືຖື)</string>
+    <string name="unknown_error" translatable="true">ຂໍ້ຜິດພາດທີ່ບໍ່ຮູ້ຈັກ</string>
+    <string name="update_complete_snack_message" translatable="true">ດາວໂຫຼດເວີຊັນໃໝ່ແລ້ວ.</string>
+    <string name="vpn_policy_auto_desc" translatable="true">ຕອບສະໜອງຕໍ່ການປ່ຽນແປງເຄືອຂ່າຍ ແລະ ການເຊື່ອມຕໍ່ທີ່ສຳຄັນ.</string>
+    <string name="vpn_policy_fixed" translatable="true">ສະຫງວນ</string>
+    <string name="vpn_policy_fixed_desc" translatable="true">ຕອບສະໜອງໜ້ອຍທີ່ສຸດຕໍ່ການປ່ຽນແປງເຄືອຂ່າຍ.</string>
+    <string name="vpn_policy_relaxed" translatable="true">ຜ່ອນຄາຍ</string>
+    <string name="vpn_policy_relaxed_desc" translatable="true">ຕອບສະໜອງຕໍ່ການປ່ຽນແປງການເຊື່ອມຕໍ່ທີ່ໜ້າສົນໃຈ.</string>
+    <string name="vpn_policy_sensitive" translatable="true">ອ່ອນໄຫວ</string>
+    <string name="vpn_policy_sensitive_desc" translatable="true">ຕອບສະໜອງຕໍ່ການປ່ຽນແປງເຄືອຂ່າຍ ແລະ ການເຊື່ອມຕໍ່ທັງໝົດ.</string>
+    <string name="vpn_policy_title" translatable="true">ນະໂຍບາຍການປ່ຽນແປງການເຊື່ອມຕໍ່</string>
+    <string name="vpn_profile_error" translatable="true">ບໍ່ສາມາດເປີດໂປຣໄຟລ໌ VPN ໄດ້.</string>
+    <string name="wg_setting_ssid_title" translatable="true">Wi‑Fi ເທົ່ານັ້ນ</string>
+    <string name="wg_setting_use_on_mobile" translatable="true">ມືຖືເທົ່ານັ້ນ</string>
+    <string name="wg_setting_use_on_mobile_desc" translatable="true">ໃຊ້ WireGuard VPN ນີ້ຜ່ານອິນເຕີເນັດມືຖື.</string>
+    <string name="wg_ssid_type_exact" translatable="true">ກົງກັນພໍດີ</string>
+    <string name="wg_ssid_type_wildcard" translatable="true">ກົງກັນບາງສ່ວນ</string>
+    <string name="wireguard_apps_proxy_map_desc" translatable="true">ສ່ວນໜຶ່ງຂອງ %1$s</string>
+    <string name="wireguard_connection_error" translatable="true">WireGuard VPN ບໍ່ສາມາດເຊື່ອມຕໍ່ໄດ້</string>
+    <string name="wireguard_description" translatable="true">WireGuard ເປັນພຣັອກຊີ.</string>
+    <string name="wireguard_disable_failure" translatable="true">\"ເປີດ WireGuard ຕະຫຼອດ\" ບໍ່ສາມາດປິດໄດ້</string>
+    <string name="wireguard_disable_failure_relay" translatable="true">\"ສົ່ງຕໍ່ WireGuard\" ບໍ່ສາມາດປິດໄດ້</string>
+    <string name="wireguard_disable_message" translatable="true">ຢຸດ WireGuard VPN ທີ່ເຮັດວຽກຢູ່ທັງໝົດບໍ?</string>
+    <string name="wireguard_disable_title" translatable="true">ຢຸດ WireGuard</string>
+    <string name="wireguard_disclaimer" translatable="true">DNS ສົ່ງຕໍ່ໄປຍັງ %1$s.</string>
+    <string name="wireguard_enabled_failure" translatable="true">ຢຸດພຣັອກຊີອື່ນທີ່ເຮັດວຽກຢູ່ເພື່ອເປີດໃຊ້ງານ WireGuard</string>
+</resources>

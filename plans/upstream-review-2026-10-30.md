@@ -101,3 +101,43 @@ Suggested sequence:
 Verification for subsequent implementation: `./gradlew :app:compilePlayDebugKotlin :app:testPlayDebugUnitTest :app:detekt :app:lintPlayDebug`; then `:app:compileFdroidDebugKotlin :app:compileWebsiteDebugKotlin :app:lintFdroidDebug :app:lintWebsiteDebug :shared:compileKotlinWasmJs :shared:jvmTest`. Native routing/lifecycle changes also require Android device tests, not just Kotlin compilation.
 
 This report is a selection guide, not approval to implement or a complete implementation plan for every item.
+
+## Implementation and verification appendix — 2026-10-30
+
+The comparison above is historical. The subsequently approved ports and options were adapted in isolated worktrees to Keepout's current architecture, rather than mechanically merging upstream.
+
+Delivered scope includes the paired Firestack upgrade and network/firewall policies (One-WG fallback, IP/CIDR/port rules and cache invalidation, SSID handling, DNS answer policy, reachability, TUN ordering, WG import policy and captive DNS); billing identity/token/entitlement lifecycle; notification and service lifetime fixes; original crash-stack reporting; and consistent backups with atomic restore, device-state reset, bounded primitive preference encoding and coordinated file ownership. Approved options include retention, notes, technical sorting, bounded PCAP management, rule import, shared Android TV navigation, compatible translations/metadata, security workflows and manual signed-artifact generation.
+
+Both databases remain fresh **v1**, with no migrations or upgrade archaeology. Public DNS defaults are seeded on `onCreate`; old database assets and opaque WG/TCP identities were not imported.
+
+### Final local gates
+
+| Gate | Result |
+|---|---|
+| Play unit tests | 712 passed; zero failures/errors/skips |
+| Fdroid unit tests | 659 passed; zero failures/errors/skips |
+| Website unit tests | 659 passed; zero failures/errors/skips |
+| Shared JVM tests | 51 passed; zero failures/errors/skips |
+| All three debug compiles/lints; app/shared Detekt; Wasm compile | Passed |
+| Reviewed screenshots | All 17 verified; intentional current-main Expressive goldens refreshed after visual review, without threshold changes |
+| Debt baselines | App 416 → 416; shared 289 → 281 |
+
+Full-suite XML was archived before screenshot verification overwrote Play's test output. Final application-source validation used `df7e77e78`; subsequent CI configuration and this appendix do not change application source.
+
+All three release variants passed real R8/minification with positive base version code 1 and configuration caching enabled. All **15 APKs** (four ABI splits plus universal per channel) passed identity/version/native-library and 16KB ELF/ZIP checks. The actual signing wrapper signed and verified five representative Fdroid APKs with a temporary dummy key, then removed its key material. No real signing key or publication was used. Workflow syntax checks and all 17 Python tests passed. A clean-worktree synthetic **debug-only** Google configuration made Play/Website debug plugin tasks pass; release tasks still rejected missing release configuration. No generated JSON or real credentials were committed; remote GitHub CI remains a separate check.
+
+### Device evidence
+
+The Android emulator passed **12 UI tests plus one production-default Bundled Room test**. Runtime checks demonstrated native DNS setup and controlled HTTP 200; per-port blocking of 19862 while 19863 remained allowed, with HTTP restored after deletion; and a PCAP containing one global header and 42 valid records through EOF, with no growth after Stop and appropriate share/delete ownership. Minified fresh startup/consent and cold saved-intent presentation also passed.
+
+An actual 44,629-byte archive contained bounded KPRF preferences and two SQLite images passing `integrity_check` at `user_version=1`. After correcting Room maintenance to use a writer outside transactions, the same archive restored through the UI with an active VPN. The exact final dummy-signed R8 APK also restored it successfully: worker success, launcher restart, connection counts of 40 allowed/8 blocked recovered, then explicit Start returned Protected with controlled HTTP 200. This exercised the production driver through minification, beyond mocked storage tests.
+
+### Standards review
+
+Targeted source reviews, including the final maintenance and CI deltas, reported **zero remaining actionable findings**. These were scoped reviews, not exhaustive line-by-line certification or a complete audit of native implementation internals.
+
+### Spec review
+
+Targeted review against the approved ports/options reported **zero remaining actionable findings**. Current Compose/KMP structure, fresh-schema policy, billing wire format, guarded state transitions and synchronous native callback requirements were preserved; the evidence above covers the exercised scenarios.
+
+Live paid RPN, physical WireGuard/captive-portal/TV behavior, and linguistic correctness of every locale remain **unverified**. Emulator D-pad coverage and resource-contract checks do not certify those physical or language scenarios.

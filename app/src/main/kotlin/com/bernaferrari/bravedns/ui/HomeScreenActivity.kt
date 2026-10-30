@@ -274,6 +274,7 @@ class HomeScreenActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        com.bernaferrari.bravedns.util.SensitiveWindowProtection.apply(window)
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.auto(
                 lightScrim = 0x00000000,
@@ -926,7 +927,7 @@ class HomeScreenActivity : FragmentActivity() {
     private fun handleVpnActivation() {
         if (handleAlwaysOnVpn()) return
 
-        if (VpnController.hasTunnel()) {
+        if (VpnController.hasTunnel() || VpnController.sessionActive.value) {
             stopVpnService()
         } else {
             prepareAndStartVpn()

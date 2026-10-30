@@ -57,6 +57,7 @@ fun RethinkMiscSettingsScreen(
     onBackClick: (() -> Unit)? = null,
     focusedSettingId: String? = null,
     modifier: Modifier = Modifier,
+    additionalSettings: (@Composable () -> Unit)? = null,
 ) {
     val motion = LocalRethinkMotion.current
     val listState = rememberLazyListState()
@@ -102,6 +103,7 @@ fun RethinkMiscSettingsScreen(
                 }
             }
         }
+        if (additionalSettings != null) item { additionalSettings() }
         rethinkSection(strings.aboutSection) {
             RethinkListGroup {
                 RethinkListItem(

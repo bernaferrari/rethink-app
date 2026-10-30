@@ -40,6 +40,9 @@ class VpnDnsQueryRouter(
     private val isUidPresentInAnyDnsRequest: () -> Boolean,
     private val markUidPresentInDnsRequest: () -> Unit,
     private val logd: (String) -> Unit,
+    private val normalizeUid: (Int) -> Int = { it },
+    private val isCaptivePortal: () -> Boolean = { false },
+    private val isActiveCellular: () -> Boolean = { false },
 ) {
     companion object {
         private const val TAG = "VpnService;"
@@ -63,7 +66,12 @@ class VpnDnsQueryRouter(
             Logger.w(LOG_TAG_VPN, "onQuery: invalid uid: $uidStr, using default $uid")
         }
 
+        uid = normalizeUid(uid)
         logd("onQuery: rcvd uid: $uid query: $fqdn, qtype: $qtype")
+        if (isCaptivePortal()) {
+            val captive = makeNsOpts(uid, Pair(Backend.System, ""), fqdn, true, rinr, forceBase = true)
+            return checkUserAllowedDnsQtypes(captive, uid, fqdn, qtype, rinr)
+        }
         val appMode = appConfig.getBraveMode()
         if (appMode.isDnsMode()) {
             result = getTransportIdForDnsMode(uid, fqdn, rinr)
@@ -87,6 +95,16 @@ class VpnDnsQueryRouter(
         return checkUserAllowedDnsQtypes(result, uid, fqdn, qtype, rinr = rinr)
     }
 
+    suspend fun bypassAnswer(uid: Int, domain: String, previous: DNSOpts): DNSOpts {
+        val old = Pair(previous.tidcsv, previous.tidseccsv)
+        val clean = Pair(DnsTransportRouting.transportIds(old.first), DnsTransportRouting.transportIds(old.second))
+        val target = getTransportIdToBypass(clean)
+        if (DnsTransportRouting.sameTransports(previous.tidcsv, target.first)) {
+            return if (previous.noblock) DNSOpts() else previous.copy().apply { noblock = true }
+        }
+        return makeNsOpts(uid, target, domain, true, persistentState.routeRethinkInRethink)
+    }
+
     private suspend fun checkUserAllowedDnsQtypes(result: DNSOpts, uid: Int, fqdn: String, qtype: Long, rinr: Boolean): DNSOpts {
         if (result.tidcsv.contains(Backend.BlockAll)) {
             return result
@@ -102,7 +120,8 @@ class VpnDnsQueryRouter(
     }
 
     private fun getTransportIdToBypass(id: Pair<String, String>): Pair<String, String> {
-        val secondary = listOf(id.first, id.second).filter(String::isNotBlank).joinToString(",")
+        val secondary = listOf(id.first, id.second).flatMap { it.split(',') }
+            .filter(String::isNotBlank).distinct().joinToString(",")
         return when (BlockFreeDnsMode.fromMode(persistentState.blockFreeDnsMode)) {
             BlockFreeDnsMode.AUTO -> {
                 if (persistentState.splitDns || persistentState.preventDnsLeaks) {
@@ -303,7 +322,7 @@ class VpnDnsQueryRouter(
                 return Pair(defaultTid, "")
             }
             val ssid = getUnderlyingSsid() ?: ""
-            val ids = WireguardManager.getAllPossibleConfigIdsForApp(uid, ip = "", port = 0, domain, true, ssid, defaultTid)
+            val ids = WireguardManager.getAllPossibleConfigIdsForApp(uid, ip = "", port = 0, domain, isActiveCellular(), ssid, defaultTid)
             val wgOrDefaultTid = if (ids.isEmpty()) {
                 Logger.d(LOG_TAG_VPN, "(onQuery-pid)no wg found, return $defaultTid")
                 defaultTid
@@ -321,7 +340,8 @@ class VpnDnsQueryRouter(
         tid: Pair<String, String>,
         domain: String,
         bypassLocalBlocklists: Boolean = false,
-        rinr: Boolean
+        rinr: Boolean,
+        forceBase: Boolean = false,
     ): DNSOpts {
         val opts = DNSOpts()
         opts.ipcsv = ""
@@ -330,17 +350,18 @@ class VpnDnsQueryRouter(
         val secCsv = if (tid.second.isNotEmpty()) tid.second.split(",").joinToString(",") { appendDnsCacheIfNeeded(it) } else ""
         opts.tidseccsv = secCsv
 
-        if (uid == rethinkUid() && !rinr) {
-            opts.pidcsv = Backend.Base
+        val proxyIds = if (forceBase || (uid == rethinkUid() && !rinr)) {
+            Backend.Base
+        } else if (tid.first.contains(ID_WG_BASE) || tid.second.contains(ID_WG_BASE)) {
+            Backend.Base
         } else {
-            if (tid.first.contains(ID_WG_BASE) || tid.second.contains(ID_WG_BASE)) {
-                opts.pidcsv = Backend.Base
-            } else {
-                opts.pidcsv = proxyIdForOnQuery(uid, domain)
-            }
+            proxyIdForOnQuery(uid, domain)
         }
+        opts.uid = uid.toString()
+        opts.tidcsv = DnsTransportRouting.encode(tidCsv, proxyIds)
+        opts.tidseccsv = DnsTransportRouting.encode(secCsv, proxyIds)
         opts.noblock = bypassLocalBlocklists
-        Logger.vv(LOG_TAG_VPN, "onQuery: uid: $uid, domain: $domain, tid: ${opts.tidcsv}, sec: ${opts.tidseccsv}, pid: ${opts.pidcsv}, noblock: ${opts.noblock}")
+        Logger.vv(LOG_TAG_VPN, "onQuery: uid: $uid, domain: $domain, tid: ${opts.tidcsv}, sec: ${opts.tidseccsv}, noblock: ${opts.noblock}")
         return opts
     }
 
@@ -423,7 +444,7 @@ class VpnDnsQueryRouter(
                 ip = "",
                 port = 0,
                 domain,
-                true,
+                isActiveCellular(),
                 ssid,
                 defaultProxy
             )

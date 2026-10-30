@@ -50,21 +50,22 @@ sealed class RpnPurchaseAckServerResponse {
             if (httpCode !in 200..<300) {
                 val json = parseOrNull(body)
                 val payload = ResponseErr.fromJson(json, httpCode)
-                Logger.d(LOG_IAB, "PlayErr: $payload")
+                Logger.d(LOG_IAB, "Billing response rejected (HTTP $httpCode)")
                 return Err(payload)
             }
 
-            val json = parseOrNull(body)
+            val json = BillingApiJson.parseObjectOrNull(body)
+                ?: return Err(ResponseErr(error = "malformed response", httpCode = httpCode))
 
             // If "error" key is present, or "success" is explicitly false → error
             return if (json.containsKey("error") || json.booleanFieldOrNull("success") == false) {
                 val payload = ResponseErr.fromJson(json, httpCode)
-                Logger.d(LOG_IAB, "PlayErr: $payload")
+                Logger.d(LOG_IAB, "Billing response rejected (HTTP $httpCode)")
                 Err(payload)
             } else {
-                Logger.d(LOG_IAB, "PlayOk: $json")
+
                 val payload = ResponseOk.fromJson(json)
-                Logger.d(LOG_IAB, "PlayOk: $payload")
+                Logger.d(LOG_IAB, "Billing response accepted (HTTP $httpCode)")
                 Ok(payload)
             }
         }

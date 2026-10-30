@@ -13,6 +13,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import com.bernaferrari.bravedns.ui.compose.firewall.RethinkAppSort
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
@@ -63,6 +65,10 @@ fun AppListScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val preferences = org.koin.compose.koinInject<com.bernaferrari.bravedns.service.PersistentState>()
+    var sortOrder by rememberSaveable {
+        mutableStateOf(RethinkAppSort.entries.firstOrNull { it.name == preferences.appListSortName } ?: RethinkAppSort.Name)
+    }
     val refreshCompleteText = stringResource(R.string.refresh_complete)
     var queryText by remember { mutableStateOf("") }
     var isRefreshing by remember { mutableStateOf(false) }
@@ -189,10 +195,9 @@ fun AppListScreen(
     }
 
     RethinkFirewallAppListScreen(
+        filterState = com.bernaferrari.bravedns.ui.compose.firewall.RethinkAppListFilterState(queryText, currentFilters.status, currentFilters),
+        sorting = com.bernaferrari.bravedns.ui.compose.firewall.RethinkAppSorting(sortOrder) { sortOrder = it; preferences.appListSortName = it.name },
         apps = portableApps,
-        query = queryText,
-        selectedQuickFilter = currentFilters.status,
-        filters = currentFilters,
         activeBulkActions = buildSet {
             if (bulkWifi) add(RethinkFirewallBulkAction.Wifi)
             if (bulkMobile) add(RethinkFirewallBulkAction.Mobile)
@@ -289,6 +294,9 @@ private fun androidFirewallAppListStrings(dialogs: AndroidBulkDialogCopy): Rethi
     val wifi = stringResource(R.string.ada_app_unmetered)
     val mobile = stringResource(R.string.lbl_mobile_data)
     return RethinkFirewallAppListStrings(
+        sortTitle = stringResource(R.string.port_sort_title),
+        uidLabel = { stringResource(R.string.port_uid_number, it) },
+        sortLabels = listOf(stringResource(R.string.port_sort_name), stringResource(R.string.port_sort_package), stringResource(R.string.port_sort_uid)),
         title = stringResource(R.string.apps_info_title),
         searchHint = { count -> stringResource(R.string.search_apps_count_placeholder, count) },
         refresh = stringResource(R.string.cd_refresh),

@@ -330,7 +330,7 @@ object FirewallManager : KoinComponent {
     }
 
     suspend fun isUidFirewalled(uid: Int): Boolean {
-        return connectionStatus(uid) != ConnectionStatus.ALLOW
+        return connectionStatus(uid) == ConnectionStatus.BOTH
     }
 
     suspend fun isUidSystemApp(uid: Int): Boolean {
@@ -688,6 +688,17 @@ object FirewallManager : KoinComponent {
             "is app $uid foreground? ${!locked && inForegroundList}, isLocked? $locked, in foreground list? $inForegroundList"
         )
         return !locked && inForegroundList
+    }
+
+    suspend fun updateNotes(uid: Int, packageName: String, notes: String): Boolean {
+        require(notes.length <= 500)
+        val saved = mutex.withLock {
+            if (!db.updateNotes(uid, packageName, notes)) return@withLock false
+            appInfos.get(uid).firstOrNull { it.packageName == packageName }?.notes = notes
+            true
+        }
+        if (saved) publishAppList()
+        return saved
     }
 
     suspend fun updateFirewalledApps(uid: Int, connectionStatus: ConnectionStatus) {

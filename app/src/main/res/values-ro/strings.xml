@@ -19,7 +19,7 @@
     <string name="lbl_inactive" translatable="true">Inactiv</string>
     <string name="lbl_socks5" translatable="true">SOCKS5</string>
     <string name="lbl_slow" translatable="true">lent</string>
-    <string name="lbl_add" translatable="true">adaugă</string>
+    <string name="lbl_add" translatable="true">Adaugă</string>
     <string name="lbl_app_wise" translatable="true">per aplicatie</string>
     <string name="lbl_sec" translatable="true">sec.</string>
     <string name="lbl_min" translatable="true">min.</string>
@@ -35,7 +35,7 @@
     <string name="lbl_remove" translatable="true">Elimină</string>
     <string name="lbl_last" translatable="true">Ultima</string>
     <string name="lbl_starting" translatable="true">Se începe</string>
-    <string name="lbl_overall" translatable="true">Global</string>
+    <string name="lbl_overall" translatable="true">În general</string>
     <string name="crypt_adguard_desc" translatable="true">Protejează-ți dispozitivul de aplicații dăunătoare și nu numai atât.</string>
     <string name="quad9_dns_desc" translatable="true">Quad9 rulează cererile DNS printr-o rețea securizată de servere pe întregul glob pământesc.</string>
     <string name="cleanbrowsing_family_dns_desc" translatable="true">Filtrul Family blochează accesul la toate website-urile pornografice, pentru adulți sau cu conținut explicit. Blochează si conexiunile prin proxy sau VPN folosite pentru a ocoli filtrele. Website-urile cu continut mixt (precum Reddit) sunt, de asemenea, blocate. Google, Bing si YouTube sunt setate pe SafeMode.</string>
@@ -75,9 +75,9 @@
     <string name="lbl_domain" translatable="true">Domeniu</string>
     <string name="lbl_action_required" translatable="true">Actiune ceruta</string>
     <string name="lbl_rules" translatable="true">Reguli</string>
-    <string name="lbl_configure" translatable="true">Configureaza</string>
-    <string name="lbl_logs" translatable="true">jurnale</string>
-    <string name="lbl_network" translatable="true">retea</string>
+    <string name="lbl_configure" translatable="true">Configurează</string>
+    <string name="lbl_logs" translatable="true">Jurnale</string>
+    <string name="lbl_network" translatable="true">Retea</string>
     <string name="lbl_create" translatable="true">Creează</string>
     <string name="lbl_qr_code" translatable="true">Cod QR</string>
     <string name="lbl_wireguard" translatable="true">WireGuard</string>
@@ -116,7 +116,7 @@
     <string name="private_dns_dialog_positive" translatable="true">Mergi la Setări</string>
     <string name="download_update_dialog_title" translatable="true">Actualizare nouă!</string>
     <string name="download_update_dialog_failure_title" translatable="true">Ceva n-a mers bine!</string>
-    <string name="settings_proxy_header" translatable="true">proxy</string>
+    <string name="settings_proxy_header" translatable="true">Proxy</string>
     <string name="orbot" translatable="true">Orbot</string>
     <string name="orbot_http" translatable="true">Proxy HTTP</string>
     <string name="orbot_status_arg_2" translatable="true">TCP</string>
@@ -154,7 +154,7 @@
     <string name="always_on_dialog_heading" translatable="true">Dezactivează VPN Permanent</string>
     <string name="always_on_dialog" translatable="true">\"VPN Permanent\" este activat pe acest dispozitiv. Pentru a porni Keepout, mergi la setările aplicației și dezactivează \"VPN Permanent\".</string>
     <string name="always_on_dialog_stop_heading" translatable="true">VPN Permanent</string>
-    <string name="firewall_act_universal_tab" translatable="true">universal</string>
+    <string name="firewall_act_universal_tab" translatable="true">Universal</string>
     <string name="download_update_dialog_trylater_message" translatable="true">Nu se poate actualiza acum, încearcă din nou mai târziu.</string>
     <string name="search_universal_ips" translatable="true">Caută IP-uri</string>
     <string name="search_custom_domains" translatable="true">Caută nume de domeniu</string>
@@ -315,7 +315,7 @@
     <string name="error_loading_log_file" translatable="true">Eroare la deschiderea fișierului jurnal</string>
     <string name="collecting_logs_progress_text" translatable="true">Se capturează…</string>
     <string name="vpn_profile_error" translatable="true">Nu pot deschide profilul VPN.</string>
-    <string name="cd_dns_crypt_title" translatable="true">rezolvatori</string>
+    <string name="cd_dns_crypt_title" translatable="true">Rezolvatori</string>
     <string name="cd_custom_doh_url_name_default" translatable="true">DoH</string>
     <string name="cd_custom_doh_url_name" translatable="true">DoH %1$s</string>
     <string name="hsf_vpn_dialog_header" translatable="true">Atenție!</string>
@@ -584,8 +584,8 @@
     <string name="rt_chip_update_available" translatable="true">Actualizare disponibilă</string>
     <string name="rt_chip_check_update" translatable="true">Verifică pentru actualizare</string>
     <string name="rt_re_download" translatable="true">Re-descărcare liste de blocat</string>
-    <string name="rt_list_simple_btn_txt" translatable="true">simplu</string>
-    <string name="lbl_advanced" translatable="true">avansat</string>
+    <string name="rt_list_simple_btn_txt" translatable="true">Simplu</string>
+    <string name="lbl_advanced" translatable="true">Avansat</string>
     <string name="lbbs_enabled" translatable="true">Activată</string>
     <string name="lbbs_configure" translatable="true">Configurează</string>
     <string name="lbbs_copy" translatable="true">Copiază ca URL RDNS+</string>
@@ -667,7 +667,7 @@
     <string name="dc_local_block_enabled" translatable="true">Activat</string>
     <string name="lbl_manual" translatable="true">Manual</string>
     <string name="lbl_fallback" translatable="true">Rezervă</string>
-    <string name="lbl_test" translatable="true">test</string>
+    <string name="lbl_test" translatable="true">Test</string>
     <string name="lbl_experimental" translatable="true">(experimental)</string>
     <string name="lbl_service_providers" translatable="true">Furnizori de Internet</string>
     <string name="dns_desc" translatable="true">Alege din peste 190 liste pentru a bloca reclame, trackers și malware.</string>
@@ -692,7 +692,7 @@
     <string name="console_log_title" translatable="true">Jurnale aplicații</string>
     <string name="anti_censorship_title" translatable="true">Anti-cenzură</string>
     <string name="anti_censorship_desc" translatable="true">Alege din variatele tehnici anti-cenzură.</string>
-    <string name="ac_never_split_desc" translatable="true">Nu modifica pachetele.</string>
+    <string name="ac_never_split_desc" translatable="true">Nu modifică pachetele.</string>
     <string name="ac_split_auto_desc" translatable="true">Modifică pachetele la nevoie.</string>
     <string name="ac_split_tcp" translatable="true">TCP</string>
     <string name="ac_split_tcp_desc" translatable="true">Modifică pachetele TCP.</string>
@@ -726,7 +726,7 @@
     <string name="close_conns_dialog_title" translatable="true">Închide conexiunile</string>
     <string name="close_conns_dialog_desc" translatable="true">Închizi toate conexiunile pentru %1$s?</string>
     <string name="local_blocklist_delete_desc" translatable="true">Ștergi listele de blocat de pe dispozitiv?</string>
-    <string name="fail_open_network_title" translatable="true">Blocaj la pierderea rețelei</string>
+    <string name="fail_open_network_title" translatable="true">Blocare la pierderea rețelei</string>
     <string name="fail_open_network_desc" translatable="true">Când este activat, Keepout blochează toate datele când conectivitatea este întreruptă, ca în Modul Avion.</string>
     <string name="about_license" translatable="true">Licențiat sub Apache-2.0</string>
     <string name="smart_dns" translatable="true">Smart DNS</string>
@@ -753,8 +753,8 @@
     <string name="ssid_permission_explanation" translatable="true">Keepout are nevoie de permisiune pentru locație pentru a accesa identificatori Wi-Fi (%1$s).</string>
     <string name="location_enable_explanation" translatable="true">Pentru accesarea identificatorilor Wi-Fi (%1$s), pornește serviciul Locație.</string>
     <string name="wg_ssid_dialog_description" translatable="true">%1$s această VPN Wireguard când este activ identificatorul Wi-Fi (%2$s) %3$s.</string>
-    <string name="wg_ssid_type_exact" translatable="true">Precis</string>
-    <string name="wg_ssid_type_wildcard" translatable="true">Parțial</string>
+    <string name="wg_ssid_type_exact" translatable="true">Potrivire exactă</string>
+    <string name="wg_ssid_type_wildcard" translatable="true">Potrivire parțială</string>
     <string name="wg_ssid_invalid_error" translatable="true">Identificatorii Wi-Fi (%1$s) trebuie să conțină cel mult 32 caractere..</string>
     <string name="settings_firebase_error_reporting_heading" translatable="true">Program stabilitate</string>
     <string name="settings_firebase_error_reporting_desc" translatable="true">Capturează înregistrările erorilor pentru îmbunătățirea stabilității.</string>
@@ -790,7 +790,6 @@
     <string name="log_detail_flags">Indicatori</string>
     <string name="log_detail_message">Mesaj</string>
     <string name="log_detail_resolver">Rezolvator</string>
-    <string name="log_detail_blocklists">Liste de blocat</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">Valid</string>
     <string name="log_detail_dnssec_unverified">Neverificat</string>

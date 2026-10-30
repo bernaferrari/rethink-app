@@ -128,14 +128,17 @@ class WgInterface private constructor(builder: Builder) {
         return sb.toString()
     }
 
+    private fun userspaceDns(): List<String> {
+        val configured = (dnsServers + dnsSearchDomains).toList()
+        return configured.ifEmpty { listOf("1.1.1.1") }
+    }
+
     fun toWgUserspaceString(skipListenPort: Boolean): String {
-        val dnsServerStrings = dnsServers.toMutableList()
-        dnsServerStrings.addAll(dnsSearchDomains)
         val sb = StringBuilder()
         sb.append("private_key=").append(keyPair.getPrivateKey().hex()).append('\n')
         if (!skipListenPort) listenPort?.let { sb.append("listen_port=").append(it).append('\n') }
         sb.append("address=").append(Attribute.join(addresses)).append('\n')
-        sb.append("dns=").append(Attribute.join(dnsServerStrings)).append('\n')
+        sb.append("dns=").append(Attribute.join(userspaceDns())).append('\n')
         sb.append("mtu=").append(mtu ?: DEFAULT_MTU).append('\n')
         clientId?.let { sb.append("client_id=").append(it).append('\n') }
         jc?.let { sb.append("jc=").append(it).append('\n') }

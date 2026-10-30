@@ -27,7 +27,7 @@
     <string name="cd_custom_dns_proxy_default_ip">127.0.0.1</string>
     <string name="cd_custom_dns_proxy_name_default">Proxy</string>
     <string name="hsf_vpn_dialog_header">Atenção!</string>
-    <string name="dc_other_dns_heading">Tipo</string>
+    <string name="dc_other_dns_heading">tipo</string>
     <string name="dc_custom_dns_radio">Outros DNS</string>
     <string name="about_mail_to_string">para:</string>
     <string name="dc_entries">%1$s entradas »</string>
@@ -35,14 +35,14 @@
     <string name="about_dialog_positive_button">Vamos começar</string>
     <string name="dc_rethink_dns_radio">Rethink DNS</string>
     <string name="dc_local_block_desc_1">Escolha entre mais de 195 listas de bloqueio. Clique aqui para baixar ou configurar listas de bloqueio.</string>
-    <string name="dc_block_heading">Regras</string>
+    <string name="dc_block_heading">regras</string>
     <string name="dc_dns_website_heading">Mostrar ícone de sites em registros de DNS (experimental)</string>
     <string name="about_github">Contribuir no GitHub</string>
-    <string name="about_mozilla">O Rethink é apoiado pela Mozilla Builders, FOSS United Foundation.</string>
-    <string name="about_web">Links</string>
+    <string name="about_mozilla">O Rethink conta com o apoio da Mozilla Builders, da FOSS United Foundation e do FLOSS/fund.</string>
+    <string name="about_web">links</string>
     <string name="about_website">Acessar rethinkdns.com</string>
     <string name="about_faq">Perguntas frequentes</string>
-    <string name="about_app">Aplicativo</string>
+    <string name="about_app">aplicativo</string>
     <string name="about_settings_app_info">Detalhes do aplicativo</string>
     <string name="about_whats_new">Novidades na versão %1$s</string>
     <string name="about_settings_vpn_profile">Perfil de VPN</string>
@@ -115,7 +115,7 @@
     <string name="lbl_advanced">avançado</string>
     <string name="brbs_backup_dialog_message">Fazer backup das configurações de aplicativos, rede e registros de DNS para um arquivo. Isso reiniciará a VPN.</string>
     <string name="brbs_backup_dialog_failure_title">Backup falhou</string>
-    <string name="brbs_restore_dialog_failure_message">Não foi possível restaurar. Tente novamente\?</string>
+    <string name="brbs_restore_dialog_failure_message">Não foi possível restaurar. Tente novamente?</string>
     <string name="brbs_restore_dialog_failure_positive">Repetir restauração</string>
     <string name="brbs_restore_complete_toast">Restauração concluída, reiniciando o aplicativo…</string>
     <string name="rdns_plus">RDNS Plus</string>
@@ -154,7 +154,7 @@
     <string name="orbot_explanation">Orbot é um aplicativo de proxy gratuito que permite que outros aplicativos usem a internet com mais segurança. \nOrbot usa o Tor para criptografar seu tráfego de internet, o que ajuda você a ignorar a censura e a se defender contra formas de vigilância de rede que ameaçam a liberdade e a privacidade pessoais. \nProxy TCP: Keepout encaminha apenas conexões TCP de aplicativos incluídos para Orbot. \nProxy HTTP: Keepout estabelece o túnel HTTP CONNECT para Orbot e encaminha apenas conexões TCP de aplicativos incluídos.</string>
     <string name="settings_autostart_bootup_heading">Inicialização automática ao ligar (experimental)</string>
     <string name="settings_https_disabled_error">Conectado ao %1$s. Desligue-o para continuar.</string>
-    <string name="settings_general_header">geral</string>
+    <string name="settings_general_header">Geral</string>
     <string name="settings_autostart_bootup_desc">Ao ligar o dispositivo, inicie o Keepout se ele estava em execução antes de desligar.</string>
     <string name="isolate">isolar</string>
     <string name="txt_home">Início</string>
@@ -196,7 +196,7 @@
     <string name="always_on_dialog_stop_message">A opção \"VPN Sempre Ativa\" nas configurações de VPN do Android está ativada para o Keepout. Quer mesmo encerrar o Keepout?</string>
     <string name="always_on_dialog_positive">Encerrar</string>
     <string name="always_on_dialog_neutral">Configurações</string>
-    <string name="firewall_act_universal_tab">universal</string>
+    <string name="firewall_act_universal_tab">Universal</string>
     <string name="firewall_act_network_monitor_tab">Rede</string>
     <string name="doh_custom_url_remove_dialog_title">Excluir endpoint \"DoH\" ?</string>
     <string name="doh_custom_url_remove_dialog_message">Excluir o endpoint DNS sobre HTTPs da configuração salva.</string>
@@ -210,7 +210,7 @@
     <string name="dns_proxy_remove_dialog_message">Excluir proxy DNS da configuração salva.</string>
     <string name="dns_proxy_remove_success">Proxy DNS excluído.</string>
     <string name="local_blocklist_download">Baixar listas de bloqueio</string>
-    <string name="local_blocklist_download_desc">Baixar listas de bloqueio (cerca de 60MB) para usar esta funcionalidade\?</string>
+    <string name="local_blocklist_download_desc">Baixar listas de bloqueio (cerca de 60MB) para usar esta funcionalidade?</string>
     <string name="blocklist_update_check_failure">Algo deu errado. Tente mais tarde!</string>
     <string name="blocklist_update_check_not_required">As listas de bloqueio já estão na versão mais recente.</string>
     <string name="refresh_complete"><!-- use dc_refresh_toast --> A ressincronização da lista de aplicativos foi concluída.</string>
@@ -228,7 +228,7 @@
     <string name="settings_enable_logs">Ativar registros no dispositivo</string>
     <string name="connection_http3">HTTP3</string>
     <string name="settings_allow_bypass_heading">Habilitar visibilidade da rede</string>
-    <string name="settings_proxy_header">proxy</string>
+    <string name="settings_proxy_header">Proxy</string>
     <string name="settings_socks5_heading">Configurar proxy SOCKS5</string>
     <string name="settings_https_heading">Configurar proxy HTTP(S) CONNECT</string>
     <string name="orbot_http">Proxy HTTP</string>
@@ -298,11 +298,11 @@
     <string name="about_bug_report">Relatar erro</string>
     <string name="about_bug_report_dialog_positive_btn">Enviar email</string>
     <string name="about_bug_no_log_dialog_title">Relatório de erros</string>
-    <string name="about_bug_no_log_dialog_message">Não foi possível obter os registros de falhas. Deseja relatar manualmente seu problema\?</string>
+    <string name="about_bug_no_log_dialog_message">Não foi possível obter os registros de falhas. Deseja relatar manualmente seu problema?</string>
     <string name="about_bug_no_log_dialog_positive_btn">Enviar email</string>
     <string name="dc_dns_leaks_heading">Evitar vazamentos de DNS</string>
     <string name="about_docs">Documentação</string>
-    <string name="about_connect">Contato</string>
+    <string name="about_connect">contato</string>
     <string name="about_email">Envie-nos um e-mail</string>
     <string name="error_loading_log_file">Erro ao carregar o arquivo de registro</string>
     <string name="collecting_logs_progress_text">Obtendo…</string>
@@ -321,7 +321,7 @@
     <string name="cd_dns_crypt_dialog_name">Nome</string>
     <string name="cd_dns_crypt_dialog_stamp">Selo</string>
     <string name="cd_dns_crypt_dialog_desc">Descrição (opcional)</string>
-    <string name="lbl_add">adicionar</string>
+    <string name="lbl_add">Adicionar</string>
     <string name="cd_doh_dialog_heading">Adicionar DNS sobre HTTPS</string>
     <string name="cd_doh_dialog_resolver_name">Nome do resolvedor</string>
     <string name="cd_doh_dialog_resolver_url">URL do resolvedor</string>
@@ -350,14 +350,8 @@
     <string name="dns_info_neutral">Copiar</string>
     <string name="dns_proxy_desc">%1$s:%2$s, %3$s</string>
     <string name="dns_proxy_desc_no_app">%1$s:%2$s</string>
-    <string name="dns_proxy_dialog_message_no_app">Endereço IP: %1$s
-\n
-\nNúmero da porta: %2$s</string>
-    <string name="dns_proxy_dialog_message">Nome do aplicativo: %1$s
-\n
-\nEndereço IP: %2$s
-\n
-\nNúmero da porta: %3$s</string>
+    <string name="dns_proxy_dialog_message_no_app">Endereço IP: %1$s \n \nNúmero da porta: %2$s</string>
+    <string name="dns_proxy_dialog_message">Nome do aplicativo: %1$s \n \nEndereço IP: %2$s \n \nNúmero da porta: %3$s</string>
     <string name="dns_proxy_port">Número da porta</string>
     <string name="dns_proxy_ip_address">Endereço IP</string>
     <string name="fapps_filter_parent_installed">Instalada</string>
@@ -495,7 +489,7 @@
     <string name="private_dns_dialog_positive">Ir para as configurações</string>
     <string name="lbl_apply" translatable="true">Aplicar</string>
     <string name="lbl_disabled" translatable="true">Desativado</string>
-    <string name="title_statistics" translatable="true">Estatísticas</string>
+    <string name="title_statistics" translatable="true">Status</string>
     <string name="fapps_info_isolate_msg" translatable="true">Bloquear todos, exceto IPs de confiança.</string>
     <string name="fapps_isolate_block_dialog_title" translatable="true">Isolar aplicativos</string>
     <string name="lbl_cancel" translatable="true">Cancelar</string>
@@ -509,10 +503,10 @@
     <string name="lbl_dismiss" translatable="true">Descartar</string>
     <string name="lbl_configure" translatable="true">Configurar</string>
     <string name="lbl_rules" translatable="true">Regras</string>
-    <string name="lbl_logs" translatable="true">registros</string>
+    <string name="lbl_logs" translatable="true">Registros</string>
     <string name="bypass_dns_firewall" translatable="true">ignorar dns e firewall</string>
     <string name="bsct_block_domain" translatable="true">Bloquear, confiar domínio(s) para este aplicativo</string>
-    <string name="settings_general_customize" translatable="true">personalizar</string>
+    <string name="settings_general_customize" translatable="true">Personalizar</string>
     <string name="settings_default_dns_heading" translatable="true">Escolher DNS alternativo</string>
     <string name="hs_biometeric_title" translatable="true">Desbloquear o Keepout</string>
     <string name="hs_biometeric_error" translatable="true">Erro de autenticação biométrica</string>
@@ -525,7 +519,7 @@
     <string name="fapps_info_exclude_msg" translatable="true">Excluir do DNS + Firewall.</string>
     <string name="cd_dns_alg_desc" translatable="true">Atribuir IP exclusivo por solicitação de DNS.</string>
     <string name="cd_dns_alg_heading" translatable="true">Filtragem de DNS avançada (experimental)</string>
-    <string name="lbl_network" translatable="true">rede</string>
+    <string name="lbl_network" translatable="true">Rede</string>
     <string name="lbl_qr_code" translatable="true">Código QR</string>
     <string name="lbl_addresses" translatable="true">Endereços</string>
     <string name="lbl_dns_servers" translatable="true">Servidores DNS</string>
@@ -540,7 +534,7 @@
     <string name="lbl_sec" translatable="true">seg</string>
     <string name="fapps_info_bypass_dns_firewall_msg" translatable="true">Ignora as regras de DNS e firewall.</string>
     <string name="lbl_hour" translatable="true">hr</string>
-    <string name="lbl_save" translatable="true">salvar</string>
+    <string name="lbl_save" translatable="true">Salvar</string>
     <string name="public_key_copy_toast_msg" translatable="true">Chave pública copiada.</string>
     <string name="lbl_delete" translatable="true">Excluir</string>
     <string name="app_ip_domain_rules_desc" translatable="true">Modificar regras de IP/domínio por aplicativo.</string>
@@ -705,7 +699,7 @@
     <string name="exclude_apps_from_proxy_failure_toast">Este aplicativo ignora proxies</string>
     <string name="exclude_apps_from_proxy">Ignorar aplicativo de todos os proxies</string>
     <string name="memory_notification_text">Keepout está com pouca memória. As ações do sistema podem ser limitadas.</string>
-    <string name="lbl_test" translatable="true">testar</string>
+    <string name="lbl_test" translatable="true">Testar</string>
     <string name="lbl_experimental" translatable="true">(experimental)</string>
     <string name="lbl_service_providers" translatable="true">Provedores de serviços</string>
     <string name="lbl_manual" translatable="true">Manual</string>
@@ -714,7 +708,7 @@
     <string name="status_no_network" translatable="true">Sem rede</string>
     <string name="dc_use_sys_dns_undelegated_heading" translatable="true">Use DNS do sistema para domínios não delegados</string>
     <string name="dc_use_sys_dns_undelegated_desc" translatable="true">Use o DNS do sistema para domínios não controlados, como .lan, .internal, etc.</string>
-    <string name="dc_filtering_heading" translatable="true">Filtragem</string>
+    <string name="dc_filtering_heading" translatable="true">filtragem</string>
     <string name="cd_split_dns_heading" translatable="true">DNS dividido (experimental)</string>
     <string name="cd_split_dns_desc" translatable="true">Encaminhe consultas DNS de aplicativos proxy para os servidores DNS do proxy.</string>
     <string name="cd_treat_dns_rules_firewall_heading" translatable="true">Tratar regras de DNS como regras de firewall (experimental)</string>
@@ -746,7 +740,6 @@
     <string name="log_detail_flags">Flags</string>
     <string name="log_detail_message">Mensagem</string>
     <string name="log_detail_resolver">Resolvedor</string>
-    <string name="log_detail_blocklists">Listas de bloqueio</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">Válido</string>
     <string name="log_detail_dnssec_unverified">Não verificado</string>
@@ -772,4 +765,54 @@
     <string name="dns_median_lookup">Tempo mediano de consulta</string>
     <string name="dns_recent_lookups">Últimas consultas</string>
     <string name="dns_no_lookups_yet">Nenhuma consulta ainda</string>
+    <string name="about_license" translatable="true">Licenciado sob a Apache-2.0</string>
+    <string name="ac_desync" translatable="true">Desincronizar</string>
+    <string name="ac_desync_desc" translatable="true">Envie pacotes decoy conforme necessário.</string>
+    <string name="ac_never_split_desc" translatable="true">Não altere os pacotes.</string>
+    <string name="ac_retry_options_after_split_desc" translatable="true">Sempre aplicar técnicas anticensura.</string>
+    <string name="ac_retry_options_desc" translatable="true">Defina como as tentativas de reconexão funcionam para conexões censuradas.</string>
+    <string name="ac_retry_options_never_desc" translatable="true">Em caso de falha, nunca tente novamente técnicas anticensura.</string>
+    <string name="ac_retry_options_with_split_desc" translatable="true">Aplique técnicas anticensura quando necessário.</string>
+    <string name="ac_split_auto_desc" translatable="true">Altere os pacotes conforme necessário.</string>
+    <string name="ac_split_tcp" translatable="true">TCP</string>
+    <string name="ac_split_tcp_desc" translatable="true">Altere os pacotes TCP.</string>
+    <string name="ac_split_tls" translatable="true">TCP/TLS</string>
+    <string name="ac_split_tls_desc" translatable="true">Altere os pacotes TCP ou TLS.</string>
+    <string name="ac_toast_retry_disabled" translatable="true">Escolha qualquer opção anticensura para definir a estratégia.</string>
+    <string name="anti_censorship_title" translatable="true">Anticensura</string>
+    <string name="blocklist_not_available_toast" translatable="true">Para atualizar as listas de bloqueio, baixe a versão mais recente do aplicativo.</string>
+    <string name="close_conns_dialog_desc" translatable="true">Feche todas as conexões para%1$s?</string>
+    <string name="config_invalid_desc" translatable="true">Configuração WireGuard Inválida</string>
+    <string name="copied_clipboard" translatable="true">Copiado(a)</string>
+    <string name="download_ip_info_title" translatable="true">Mostrar informações do provedor</string>
+    <string name="exclude_no_package_err_toast" translatable="true">Excluir aplicativos requer o nome do pacote.</string>
+    <string name="fail_open_network_title" translatable="true">Interromper na perda de conexão</string>
+    <string name="hop_failure_toast" translatable="true">Erro de retransmissão: %1$s -&gt; %2$s</string>
+    <string name="lbl_action" translatable="true">Ação</string>
+    <string name="lbl_always" translatable="true">Sempre</string>
+    <string name="lbl_connect" translatable="true">Conectar</string>
+    <string name="lbl_criteria" translatable="true">Criteria</string>
+    <string name="local_blocklist_delete_desc" translatable="true">Excluir listas de bloqueio no dispositivo?</string>
+    <string name="settings_allow_incoming_wg_packets" translatable="true">WireGuard P2P</string>
+    <string name="settings_firebase_error_reporting_desc" translatable="true">Capturar registros de erros para ajudar a melhorar a estabilidade.</string>
+    <string name="settings_firebase_error_reporting_heading" translatable="true">Programa de estabilidade</string>
+    <string name="settings_jumbo_packets" translatable="true">Acelerador de largura de banda</string>
+    <string name="smart_dns" translatable="true">DNS inteligente</string>
+    <string name="title_database_dump" translatable="true">Banco de dados</string>
+    <string name="tombstone_app_desc" translatable="true">Quando habilitado, manter regras do aplicativo por 7 dias.</string>
+    <string name="tombstone_app_title" translatable="true">Lembrar de aplicativos desinstalados</string>
+    <string name="vpn_policy_auto_desc" translatable="true">Reage a alterações importantes na rede e na conectividade.</string>
+    <string name="vpn_policy_fixed" translatable="true">Conservador(a)</string>
+    <string name="vpn_policy_fixed_desc" translatable="true">Reage minimamente a alterações na rede.</string>
+    <string name="vpn_policy_relaxed" translatable="true">Relaxado(a)</string>
+    <string name="vpn_policy_relaxed_desc" translatable="true">Reage a alterações interessantes na conectividade.</string>
+    <string name="vpn_policy_sensitive" translatable="true">Confidencial</string>
+    <string name="vpn_policy_sensitive_desc" translatable="true">Reage a todas as alterações de rede e conectividade.</string>
+    <string name="vpn_policy_title" translatable="true">Política de alteração de conexão</string>
+    <string name="wg_setting_ssid_title" translatable="true">Apenas Wi-Fi</string>
+    <string name="wg_setting_use_on_mobile" translatable="true">Somente para dispositivos móveis</string>
+    <string name="wg_setting_use_on_mobile_desc" translatable="true">Use esta VPN WireGuard em redes móveis.</string>
+    <string name="wg_ssid_type_exact" translatable="true">Corresponde exatamente</string>
+    <string name="wg_ssid_type_wildcard" translatable="true">Corresponde parcialmente</string>
+    <string name="wireguard_disable_failure_relay" translatable="true">\"Relay WireGuard\" não pode ser desativado</string>
 </resources>

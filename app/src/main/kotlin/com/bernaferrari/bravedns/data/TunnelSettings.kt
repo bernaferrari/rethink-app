@@ -84,8 +84,8 @@ class TunnelSettings(
                     path
                 }
             }
-        persistentState.pcapMode = mode
         persistentState.pcapFilePath = pcapFilePath
+        persistentState.pcapMode = mode
     }
 
     override fun getPcapFilePath(): String = pcapFilePath

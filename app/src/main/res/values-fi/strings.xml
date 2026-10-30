@@ -132,7 +132,6 @@
     <string name="log_detail_flags">Liput</string>
     <string name="log_detail_message">Viesti</string>
     <string name="log_detail_resolver">DNS-palvelin</string>
-    <string name="log_detail_blocklists">Estolistat</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">Kelvollinen</string>
     <string name="log_detail_dnssec_unverified">Vahvistamaton</string>

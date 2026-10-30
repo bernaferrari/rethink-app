@@ -71,7 +71,7 @@ object InAppBillingHandler {
     /** Convenience overload: fetches all purchase types. No-op in this build. */
     fun fetchAllPurchases() { /* no-op */ }
 
-    suspend fun getObfuscatedDeviceId(): String = ""
+    suspend fun getObfuscatedDeviceId(@Suppress("UNUSED_PARAMETER") accountId: String? = null): String = ""
 
     fun getRemainingDaysForInApp(): Long? = null
 

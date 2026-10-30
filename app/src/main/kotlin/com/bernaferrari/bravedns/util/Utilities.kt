@@ -594,19 +594,26 @@ object Utilities {
         return p.startsWith(NO_PACKAGE_PREFIX)
     }
 
+    /** Sensitive notification actions require device unlock on Android 12+. */
+    fun notificationAction(title: String, intent: PendingIntent, authenticationRequired: Boolean = true): androidx.core.app.NotificationCompat.Action =
+        androidx.core.app.NotificationCompat.Action.Builder(0, title, intent)
+            .setAuthenticationRequired(authenticationRequired)
+            .build()
+
     // https://medium.com/androiddevelopers/all-about-pendingintents-748c8eb8619
     fun getActivityPendingIntent(
         context: Context,
         intent: Intent,
         flag: Int,
-        mutable: Boolean
+        mutable: Boolean,
+        requestCode: Int = 0,
     ): PendingIntent {
         return if (isAtleastS()) {
             val sFlag = flag or if (mutable) PendingIntent.FLAG_MUTABLE else PendingIntent.FLAG_IMMUTABLE
-            PendingIntent.getActivity(context, 0, intent, sFlag)
+            PendingIntent.getActivity(context, requestCode, intent, sFlag)
         } else {
             val sFlag = flag or PendingIntent.FLAG_IMMUTABLE
-            PendingIntent.getActivity(context, 0, intent, sFlag)
+            PendingIntent.getActivity(context, requestCode, intent, sFlag)
         }
     }
 

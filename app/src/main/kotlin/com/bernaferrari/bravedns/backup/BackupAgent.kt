@@ -32,16 +32,12 @@ import com.bernaferrari.bravedns.backup.BackupHelper.Companion.TEMP_ZIP_FILE_NAM
 import com.bernaferrari.bravedns.backup.BackupHelper.Companion.VERSION
 import com.bernaferrari.bravedns.backup.BackupHelper.Companion.deleteResidue
 import com.bernaferrari.bravedns.backup.BackupHelper.Companion.getFileNameFromPath
-import com.bernaferrari.bravedns.backup.BackupHelper.Companion.getRethinkDatabase
-import com.bernaferrari.bravedns.backup.BackupHelper.Companion.getTempDir
-import com.bernaferrari.bravedns.backup.BackupHelper.Companion.startVpn
 import com.bernaferrari.bravedns.database.AppDatabase
 import com.bernaferrari.bravedns.database.LogDatabase
 import com.bernaferrari.bravedns.service.EncryptedFileManager
 import com.bernaferrari.bravedns.service.PersistentState
 import com.bernaferrari.bravedns.service.WireguardManager
 import com.bernaferrari.bravedns.util.Utilities
-import com.bernaferrari.bravedns.util.Utilities.copyWithStream
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.io.BufferedInputStream
@@ -49,13 +45,14 @@ import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
-import java.io.IOException
-import java.io.InputStream
-import java.io.ObjectOutputStream
-import java.io.OutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.first
 
 // ref:
 // https://gavingt.medium.com/refactoring-my-backup-and-restore-feature-to-comply-with-scoped-storage-e2b6c792c3b
@@ -81,57 +78,19 @@ class BackupAgent(val context: Context, workerParams: WorkerParameters) :
         }
 
         Logger.d(LOG_TAG_BACKUP_RESTORE, "begin backup process with file uri: $backupFileUri")
-        val wasRunning = com.bernaferrari.bravedns.service.VpnController.isOn()
-        backupPreferences = persistentState.snapshotPreferences()
-        return try {
-            if (wasRunning) com.bernaferrari.bravedns.service.VpnController.stopAndAwait("backup", context)
+        return withContext(Dispatchers.IO) {
             if (startBackupProcess(backupFileUri)) Result.success() else Result.failure()
-        } finally {
-            if (wasRunning) kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
-                com.bernaferrari.bravedns.service.VpnController.stopAndAwait("backup-finish", context)
-                startVpn(context)
-            }
         }
     }
 
-    private fun startBackupProcess(backupFileUri: Uri): Boolean {
+    private suspend fun startBackupProcess(backupFileUri: Uri): Boolean {
         var processCompleted: Boolean
+        val tempDir = File(context.cacheDir, "backup-$id")
         try {
-            val tempDir = getTempDir(context)
+            tempDir.deleteRecursively()
+            check(tempDir.mkdirs()) { "Cannot create backup staging directory" }
 
-            val prefsBackupFile = File(tempDir, SHARED_PREFS_BACKUP_FILE_NAME)
-
-            Logger.d(
-                    LOG_TAG_BACKUP_RESTORE,
-                    "backup process, temp file dir: ${tempDir.path}, prefs backup file: ${prefsBackupFile.path}"
-                )
-            processCompleted = saveSharedPreferencesToFile(prefsBackupFile)
-
-            if (processCompleted) {
-                Logger.d(LOG_TAG_BACKUP_RESTORE, "shared pref backup is added to the temp dir")
-            } else {
-                Logger.w(
-                    LOG_TAG_BACKUP_RESTORE,
-                    "failed to add shared pref to temp backup dir, return failure"
-                )
-                return false
-            }
-
-            processCompleted = saveDatabasesToFile(tempDir.path)
-
-            if (processCompleted) {
-                Logger.d(LOG_TAG_BACKUP_RESTORE, "database backup is added to the temp dir")
-            } else {
-                Logger.w(
-                    LOG_TAG_BACKUP_RESTORE,
-                    "failed to add database to temp backup dir, return failure"
-                )
-                return false
-            }
-
-            // no need to check the return value, we can proceed even if the wireguard config backup
-            // fails
-            backupWireGuardConfig(tempDir)
+            if (!snapshotSourceFiles(tempDir)) return false
 
             processCompleted = createMetaData(tempDir)
 
@@ -143,6 +102,8 @@ class BackupAgent(val context: Context, workerParams: WorkerParameters) :
             }
 
             return zipAndCopyToDestination(tempDir, backupFileUri)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
         } catch (e: Exception) {
             Logger.crash(
                 LOG_TAG_BACKUP_RESTORE,
@@ -156,7 +117,26 @@ class BackupAgent(val context: Context, workerParams: WorkerParameters) :
                 deleteResidue(file)
             }
             filesPathToZip.clear()
+            tempDir.deleteRecursively()
         }
+    }
+
+    private suspend fun snapshotSourceFiles(tempDir: File): Boolean = BackupRestoreFileGate.withSourceFiles {
+        if (RestoreRestart.required(context)) return@withSourceFiles false
+        backupPreferences = persistentState.snapshotPreferences()
+        val prefsBackupFile = File(tempDir, SHARED_PREFS_BACKUP_FILE_NAME)
+        if (!saveSharedPreferencesToFile(prefsBackupFile)) {
+            Logger.w(LOG_TAG_BACKUP_RESTORE, "Could not snapshot backup preferences")
+            return@withSourceFiles false
+        }
+        if (!saveDatabasesToFile(tempDir.path)) {
+            Logger.w(LOG_TAG_BACKUP_RESTORE, "Could not snapshot backup databases")
+            return@withSourceFiles false
+        }
+        // Existing behavior allows a backup when no readable WireGuard configs exist.
+        currentCoroutineContext().ensureActive()
+        backupWireGuardConfig(tempDir)
+        true
     }
 
     private fun backupWireGuardConfig(tempDir: File): Boolean {
@@ -229,133 +209,62 @@ class BackupAgent(val context: Context, workerParams: WorkerParameters) :
         return "$VERSION:${persistentState.appVersion}|$PACKAGE_NAME:${context.packageName}|$CREATED_TIME:${System.currentTimeMillis()}"
     }
 
-    private fun zipAndCopyToDestination(tempDir: File, destUri: Uri): Boolean {
-        val bZipSucceeded: Boolean = zip(filesPathToZip, tempDir.path)
-
-        Logger.i(
-            LOG_TAG_BACKUP_RESTORE,
-            "backup zip completed, is success? $bZipSucceeded, proceed to copy $destUri"
-        )
-
-        if (bZipSucceeded) {
-            val tempZipFile = File(tempDir, TEMP_ZIP_FILE_NAME)
-            val zipFileUri: Uri = Uri.fromFile(tempZipFile)
-            val inputStream: InputStream =
-                context.contentResolver.openInputStream(zipFileUri) ?: return false
-            val outputStream: OutputStream =
-                context.contentResolver.openOutputStream(destUri) ?: return false
-
-            // we are passing the streams instead of actual files because we do not have
-            // write access to the destination dir.
-            val copySucceeded: Boolean = copyWithStream(inputStream, outputStream)
-            return if (copySucceeded) {
-                Logger.i(
-                    LOG_TAG_BACKUP_RESTORE,
-                    "Copy completed, delete the temp dir ${tempZipFile.path}"
-                )
-                deleteResidue(tempZipFile)
-                true
-            } else {
-                Logger.w(
-                    LOG_TAG_BACKUP_RESTORE,
-                    "copy failed to destination dir, path: ${zipFileUri.path}"
-                )
-                false
-            }
-        } else {
-            Logger.w(LOG_TAG_BACKUP_RESTORE, "backup zip failed, do not proceed")
-            return false
+    private suspend fun zipAndCopyToDestination(tempDir: File, destUri: Uri): Boolean {
+        if (!zip(filesPathToZip, tempDir.path)) return false
+        val archive = File(tempDir, TEMP_ZIP_FILE_NAME)
+        return copyBackupStream(FileInputStream(archive)) {
+            context.contentResolver.openOutputStream(destUri, "wt")
         }
     }
 
-    private fun saveDatabasesToFile(path: String): Boolean {
-        runBlocking {
-            BackupHelper.checkpointRoomDatabases(appDatabase, logDatabase)
+    internal suspend fun saveDatabasesToFile(path: String): Boolean {
+        // Room opens lazily; a fresh install still needs schema-bearing backup files.
+        appDatabase.appInfoDAO().getAppCount()
+        logDatabase.dnsLogDAO().logsCount().first()
+        val names = listOf(AppDatabase.DATABASE_NAME, LogDatabase.LOGS_DATABASE_NAME)
+        // Each snapshot includes committed WAL contents. The databases have no
+        // cross-database transaction contract; neither live WAL is copied.
+        val snapshots = names.map { File(path, it) }
+        val succeeded = names.zip(snapshots).all { (name, target) ->
+            currentCoroutineContext().ensureActive()
+            DatabaseSnapshot.create(context.getDatabasePath(name), target)
         }
-        val files = getRethinkDatabase(context)?.listFiles() ?: return false
-
-        for (f in files) {
-            Logger.d(
-                    LOG_TAG_BACKUP_RESTORE,
-                    "file ${f.name} found in database dir (${f.absolutePath})"
-                )
-            val databaseFile =
-                backUpFile(f.absolutePath, File(path, f.name).path) ?: return false
-            Logger.i(LOG_TAG_BACKUP_RESTORE, "file ${databaseFile.name} added to backup dir")
-            filesPathToZip.add(databaseFile.absolutePath)
+        if (!succeeded) {
+            snapshots.forEach { it.delete() }
+            return false
         }
-
+        filesPathToZip.addAll(snapshots.map { it.path })
         return true
     }
 
     private fun saveSharedPreferencesToFile(prefFile: File): Boolean {
-        var output: ObjectOutputStream? = null
-
         Logger.i(LOG_TAG_BACKUP_RESTORE, "begin shared pref copy, file path:${prefFile.path}")
-
         try {
-            output = ObjectOutputStream(FileOutputStream(prefFile))
-            val allPrefs = backupPreferences ?: persistentState.snapshotPreferences()
-            output.writeObject(allPrefs)
-        } catch (e: Exception) {
-            Logger.crash(LOG_TAG_BACKUP_RESTORE, "exception during shared pref backup, ${e.message}", e)
+            PreferenceBackupCodec.write(prefFile, backupPreferences ?: persistentState.snapshotPreferences())
+        } catch (error: java.io.IOException) {
+            Logger.e(LOG_TAG_BACKUP_RESTORE, "Cannot write preference backup", error)
             return false
-        } finally {
-            try {
-                if (output != null) {
-                    output.flush()
-                    output.close()
-                }
-            } catch (_: IOException) {
-                // no-op
-            }
+        } catch (error: IllegalArgumentException) {
+            Logger.e(LOG_TAG_BACKUP_RESTORE, "Invalid preference backup values", error)
+            return false
         }
         filesPathToZip.add(prefFile.absolutePath)
         return true
     }
 
-    private fun backUpFile(backupFilePath: String?, destFilePath: String?): File? {
-        if (backupFilePath == null || destFilePath == null) {
-            Logger.w(
-                LOG_TAG_BACKUP_RESTORE,
-                "invalid backup info during db backup, file: $backupFilePath, destination: $destFilePath"
-            )
-            return null
-        }
-        val isCopySuccess = Utilities.copy(backupFilePath, destFilePath)
-        if (isCopySuccess) return File(destFilePath)
 
-        return null
-    }
-
-    private fun zip(files: List<String>, zipDirectory: String): Boolean {
-        val outputFileName = zipDirectory + File.separator + TEMP_ZIP_FILE_NAME
-        Logger.d(LOG_TAG_BACKUP_RESTORE, "files: $files, output: $outputFileName")
-        return try {
-            val dest = FileOutputStream(outputFileName)
-            val out = ZipOutputStream(BufferedOutputStream(dest))
-            val bufferSize = 80000
-            var origin: BufferedInputStream
-            val data = ByteArray(bufferSize)
-            for (file in files) {
-                val fi = FileInputStream(file)
-                origin = BufferedInputStream(fi, bufferSize)
-                val entry = ZipEntry(getFileNameFromPath(file))
-                out.putNextEntry(entry)
-                var count: Int
-                while (origin.read(data, 0, bufferSize).also { count = it } != -1) {
-                    out.write(data, 0, count)
+    private suspend fun zip(files: List<String>, zipDirectory: String): Boolean {
+        val archive = File(zipDirectory, TEMP_ZIP_FILE_NAME)
+        ZipOutputStream(BufferedOutputStream(FileOutputStream(archive))).use { output ->
+            for (path in files) {
+                currentCoroutineContext().ensureActive()
+                output.putNextEntry(ZipEntry(getFileNameFromPath(path)))
+                BufferedInputStream(FileInputStream(path)).use { input ->
+                    copyBackupBytes(input, output)
                 }
-                origin.close()
-                Logger.d(LOG_TAG_BACKUP_RESTORE, "$file added to zip, path: $file")
+                output.closeEntry()
             }
-            out.close()
-            out.close()
-            Logger.i(LOG_TAG_BACKUP_RESTORE, "$files added to zip")
-            true
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_BACKUP_RESTORE, "error while adding files to zip dir, ${e.message}", e)
-            false
         }
+        return true
     }
 }

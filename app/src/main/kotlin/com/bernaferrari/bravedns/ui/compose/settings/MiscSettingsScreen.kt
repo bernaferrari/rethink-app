@@ -72,6 +72,7 @@ fun MiscSettingsScreen(
             aboutTitle = stringResource(R.string.settings_misc_about_app, stringResource(R.string.app_name)),
             aboutDescription = stringResource(R.string.settings_misc_about_desc),
         ),
+        additionalSettings = { androidx.compose.foundation.layout.Column { LogRetentionSetting(persistentState); PcapCaptureSetting() } },
         toggles = toggles,
         onToggleChange = { id, enabled ->
             when (id) {

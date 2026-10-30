@@ -39,7 +39,7 @@
 \nRethinkDNS korzysta z usługi ułatwień dostępu, aby śledzić, które aplikacje są używane (pierwszy plan), a które nie są używane (w tle).</string>
     <string name="default_dns_name">RDNS Ustawienie Domyślne</string>
     <string name="custom_url_error_invalid_url">Nieprawidłowy URL</string>
-    <string name="conn_track_clear_logs_title">Usunąć wszystkie logi sieciowe\?</string>
+    <string name="conn_track_clear_logs_title">Usunąć wszystkie logi sieciowe?</string>
     <string name="conn_track_clear_logs_message">Powoduje to usunięcie tylko dzienników sieciowych, ale nie reguł zapory sieciowej. Ta operacja nie jest odwracalna. Czy chcesz kontynuować\?</string>
     <string name="bsct_app_info">Informacje o Aplikacji</string>
     <string name="dns_mode_info_title">DNS</string>
@@ -55,7 +55,7 @@
     <string name="dns_crypt_url_remove_dialog_message">Usuń resolver DNSCrypt z zapisanej konfiguracji.</string>
     <string name="doh_custom_url_remove_dialog_message">Usuń punkt końcowy DNS over Https z zapisanej konfiguracji.</string>
     <string name="private_dns_dialog_positive">Przejdź do ustawień</string>
-    <string name="dns_crypt_custom_url_remove_dialog_title">Usunąć resolver DNSCrypt\?</string>
+    <string name="dns_crypt_custom_url_remove_dialog_title">Usunąć resolver DNSCrypt?</string>
     <string name="dns_crypt_relay_remove_success">DNSCrypt Relay usunięty.</string>
     <string name="always_on_dialog_positive">Stop</string>
     <string name="dns_crypt_url_remove_success">DNSCrypt resolver usunięty.</string>
@@ -67,7 +67,7 @@
     <string name="always_on_dialog_neutral">Ustawienia</string>
     <string name="firewall_act_universal_tab">Uniwersalny</string>
     <string name="firewall_act_network_monitor_tab">Logi sieciowe</string>
-    <string name="doh_custom_url_remove_dialog_title">Usunąć punkt końcowy DoH\?</string>
+    <string name="doh_custom_url_remove_dialog_title">Usunąć punkt końcowy DoH?</string>
     <string name="dns_crypt_relay_remove_dialog_title">Usunąć DNSCrypt Relay\?</string>
     <string name="dns_crypt_relay_remove_dialog_message">Usuń przekaźnik DNSCrypt z zapisanej konfiguracji.</string>
     <string name="rsv_blocklist_count_text" description="This label will appear in rethink configure simple view screen which shows number of blocklists for each category">%1$s listy blokowania</string>
@@ -95,13 +95,13 @@
     <string name="local_blocklist_redownload" translatable="true">Aktualny!</string>
     <string name="local_blocklist_redownload_desc" translatable="true">Listy blokowania na urządzeniu są już w najnowszej wersji v% 1$s.</string>
     <string name="refresh_complete" translatable="true">Ponowna synchronizacja listy aplikacji zakończona.</string>
-    <string name="local_blocklist_download_desc" translatable="true">Pobierz listy zablokowanych (około 60MB), aby korzystać z tej funkcji\?</string>
+    <string name="local_blocklist_download_desc" translatable="true">Pobierz listy zablokowanych (około 60MB), aby korzystać z tej funkcji?</string>
     <string name="http_proxy_dialog_heading" translatable="true">Ustawienie HTTP(S) CONNECT Proxy</string>
     <string name="download_update_dialog_title" translatable="true">Nowa aktualizacja!</string>
     <string name="download_update_dialog_trylater_message" translatable="true">Aktualizacja nie może zostać wykonana teraz, spróbuj ponownie później.</string>
     <string name="search_universal_ips" translatable="true"> Wyszukiwanie adresów IP</string>
     <string name="search_custom_domains" translatable="true">Wyszukaj nazwy domen</string>
-    <string name="download_update_dialog_message" translatable="true">Nowa wersja aplikacji jest dostępna do pobrania ze strony internetowej. Czy chcesz kontynuować\?</string>
+    <string name="download_update_dialog_message" translatable="true">Nowa wersja aplikacji jest dostępna do pobrania ze strony internetowej. Czy chcesz kontynuować?</string>
     <string name="download_update_dialog_failure_message" translatable="true">Albo nasze serwery są wyłączone, albo nie można nawiązać połączenia. Spróbuj ponownie za jakiś czas.</string>
     <string name="info_dialog_copy_toast_msg" translatable="true">Zkopiowano adres IP.</string>
     <string name="info_dialog_url_copy_toast_msg" translatable="true">Skopiowano URL</string>
@@ -135,7 +135,7 @@
     <string name="settings_proxy_header" translatable="true">proxy serwer</string>
     <string name="orbot" translatable="true">Orbot</string>
     <string name="always_on_dialog_stop_message" translatable="true">Zawsze włączona sieć VPN jest włączona dla Keepout. Czy na pewno i tak chcesz zatrzymać Keepout\?</string>
-    <string name="orbot_app_issue" translatable="true">Nie można uruchomić programu Orbot. Czy jest zainstalowany\?</string>
+    <string name="orbot_app_issue" translatable="true">Nie można uruchomić programu Orbot. Czy jest zainstalowany?</string>
     <string name="orbot_bs_status_trying_connect" translatable="true">Konfigurowanie Orbot…</string>
     <string name="orbot_stop_dialog_title" translatable="true">Wymagana ręczna interwencja</string>
     <string name="orbot_stop_dialog_dns_message" translatable="true">Keepout jest skonfigurowany do przekazywania zapytań DNS do Orbota. Zmień zgodnie z wymaganiami.</string>
@@ -149,7 +149,7 @@
     <string name="orbot_status_arg_2" translatable="true">TCP</string>
     <string name="orbot_status_arg_3" translatable="true">DNS i TCP</string>
     <string name="orbot_stop_dialog_message" translatable="true">Keepout przestał przekazywać połączenia do Orbota, ale Orbot może działać w tle.</string>
-    <string name="orbot_install_dialog_title" translatable="true">Zainstalować Orbot\?</string>
+    <string name="orbot_install_dialog_title" translatable="true">Zainstalować Orbot?</string>
     <string name="settings_http_proxy_desc" translatable="true">Przekierowuję do: %1$s</string>
     <string name="orbot_stop_dialog_message_combo" translatable="true">%1$s
 \n
@@ -180,7 +180,7 @@
 \nKeepout nie zbiera żadnych informacji ani nie szpieguje użytkownika w żaden sposób.</string>
     <string name="about_docs" translatable="true">Przeczytaj dokumenty</string>
     <string name="about_privacy_policy" translatable="true">Polityka prywatności</string>
-    <string name="about_connect" translatable="true">Kontakt</string>
+    <string name="about_connect" translatable="true">kontakt</string>
     <string name="about_email" translatable="true">Napisz do nas</string>
     <string name="about_settings_app_info" translatable="true">Informacje o aplikacji</string>
     <string name="about_settings_vpn_profile" translatable="true">Profil VPN</string>
@@ -219,7 +219,7 @@
     <string name="settings_ip_text_ipv46" translatable="true">Automatycznie</string>
     <string name="settings_default_dns_heading" translatable="true">Wybierz rezerwowy DNS</string>
     <string name="settings_default_dns_desc" translatable="true">W rzadkich przypadkach, gdy nie można było ustalić preferowanego przez użytkownika DNS, używany jest rezerwowy DNS.</string>
-    <string name="dc_other_dns_heading" translatable="true">Typ</string>
+    <string name="dc_other_dns_heading" translatable="true">typ</string>
     <string name="dc_check_update_heading" translatable="true">Komunikat o aktualizacji listy bloków</string>
     <string name="error_loading_log_file" translatable="true">Błąd ładowania pliku dziennika</string>
     <string name="fapps_bypass_dns_firewall_dialog_title" translatable="true">Pomiń aplikacje</string>
@@ -242,9 +242,7 @@
     <string name="univ_accessibility_dialog_negative" translatable="true">Odrzuć</string>
     <string name="dns_info_neutral" translatable="true">Kopiuj</string>
     <string name="dns_info_positive" translatable="true">Ok</string>
-    <string name="dns_proxy_dialog_message_no_app" translatable="true">Adres IP: %1$s
-\n
-\nNumer portu: %2$s</string>
+    <string name="dns_proxy_dialog_message_no_app" translatable="true">Adres IP: %1$s \n \nNumer portu: %2$s</string>
     <string name="fapps_filter_clear_btn" translatable="true">Oczyść</string>
     <string name="fapps_firewall_filter_excluded" translatable="true">Wykluczony</string>
     <string name="fapps_unmetered_block_dialog_message" translatable="true">Zablokować połączenia w sieci WiFi dla wymienionych aplikacji\?</string>
@@ -302,7 +300,7 @@
     <string name="brbs_restore_dialog_message" translatable="true">Przywróć ustawienia aplikacji, logi sieci i dns z pliku kopii zapasowej. Spowoduje to ponowne uruchomienie aplikacji.</string>
     <string name="brbs_backup_dialog_failure_positive" translatable="true">Powtórzenie kopii zapasowej</string>
     <string name="brbs_restore_dialog_failure_positive" translatable="true">Spróbuj ponownie przywrócić</string>
-    <string name="brbs_restore_dialog_failure_message" translatable="true">Nie można przywrócić. Spróbuj jeszcze raz\?</string>
+    <string name="brbs_restore_dialog_failure_message" translatable="true">Nie można przywrócić. Spróbuj jeszcze raz?</string>
     <string name="brbs_backup_complete_toast" translatable="true">Zakończono tworzenie kopii zapasowej</string>
     <string name="brbs_restore_complete_toast" translatable="true">Przywracanie zakończone, ponowne uruchomienie aplikacji…</string>
     <string name="firewall_status_whitelisted" translatable="true">Omija uniwersalne reguły firewalla</string>
@@ -320,7 +318,7 @@
     <string name="about_bug_report" translatable="true">Zgłoszenie błędu</string>
     <string name="about_bug_report_dialog_positive_btn" translatable="true">Wyślij e-mail</string>
     <string name="about_bug_no_log_dialog_title" translatable="true">Zgłoszenie błędu</string>
-    <string name="about_bug_no_log_dialog_message" translatable="true">Nie można pobrać logów awarii (błędów). Czy chcesz ręcznie zgłosić swój błąd\?</string>
+    <string name="about_bug_no_log_dialog_message" translatable="true">Nie można pobrać logów awarii (błędów). Czy chcesz ręcznie zgłosić swój błąd?</string>
     <string name="about_bug_no_log_dialog_positive_btn" translatable="true">Wyślij e-mail</string>
     <string name="about_website" translatable="true">Odwiedź stronę rethinkdns.com</string>
     <string name="about_twitter" translatable="true">Dołącz do nas na Twitterze</string>
@@ -377,7 +375,7 @@
     <string name="notif_channel_desc_vpn_notification" translatable="true">Informowanie, kiedy Keepout jest aktywny i działa w tle</string>
     <string name="ci_trust_rule" translatable="true">Zaufane</string>
     <string name="network_dns" translatable="true">System DNS</string>
-    <string name="rt_dialog_message" translatable="true">Czy chcesz zastosować nowo skonfigurowane listy blokad\?</string>
+    <string name="rt_dialog_message" translatable="true">Czy chcesz zastosować nowo skonfigurowane listy blokad?</string>
     <string name="lbbs_configure" translatable="true">Skonfiguruj</string>
     <string name="brbs_backup_dialog_positive" translatable="true">Kopia zapasowa</string>
     <string name="brbs_backup_dialog_message" translatable="true">Wykonuje kopię zapasową ustawień aplikacji, sieci i logów dns do pliku. Spowoduje to ponowne uruchomienie sieci VPN.</string>
@@ -385,10 +383,10 @@
     <string name="ssv_most_blocked_ips_heading" description="This label will appear on the stats screen as a header for most blocked ips" translatable="true">Większość zablokowanych adresów IP</string>
     <string name="lbl_proceed" translatable="true">Kontynuować</string>
     <string name="hsf_pause_vpn_failure" translatable="true">Nie można wstrzymać: Keepout nie jest aktywny</string>
-    <string name="dc_block_heading" translatable="true">Zasady</string>
+    <string name="dc_block_heading" translatable="true">zasady</string>
     <string name="dc_rethink_dns_radio" translatable="true">RethinkDNS</string>
     <string name="dc_dns_leaks_heading" translatable="true">Zapobieganie wyciekom DNS</string>
-    <string name="about_app" translatable="true">Aplikacja</string>
+    <string name="about_app" translatable="true">aplikacja</string>
     <string name="collecting_logs_progress_text" translatable="true">Przechwytywanie…</string>
     <string name="cd_dns_crypt_name_default" translatable="true">DNSCrypt</string>
     <string name="cd_dns_crypt_name" translatable="true">DNSCrypt %1$s</string>
@@ -425,7 +423,7 @@
     <string name="category_name_installed" translatable="true">Zainstalowane aplikacje</string>
     <string name="category_name_non_app_sys" translatable="true">Usługi systemowe</string>
     <string name="category_name_sys_apps" translatable="true">Aplikacje systemowe</string>
-    <string name="ada_noapp_dialog_message" translatable="true">Brak informacji o aplikacji. Być może ta aplikacja została odinstalowana\?</string>
+    <string name="ada_noapp_dialog_message" translatable="true">Brak informacji o aplikacji. Być może ta aplikacja została odinstalowana?</string>
     <string name="ada_noapp_dialog_title" translatable="true">Nie ma takiej aplikacji</string>
     <string name="ci_no_rule" translatable="true">bez reguły</string>
     <string name="dc_setting_dns_cache_heading" translatable="true">DNS Booster (wzmacniacz DNS)</string>
@@ -461,11 +459,7 @@
     <string name="univ_accessibility_crash_dialog_positive" translatable="true">Przejdź do ustawień</string>
     <string name="univ_accessibility_dialog_positive" translatable="true">Dotacja</string>
     <string name="dns_connected" translatable="true">Połączony</string>
-    <string name="dns_proxy_dialog_message" translatable="true">Nazwa aplikacji: %1$s
-\n
-\nAdres IP: %2$s
-\n
-\nNumer portu: %3$s</string>
+    <string name="dns_proxy_dialog_message" translatable="true">Nazwa aplikacji: %1$s \n \nAdres IP: %2$s \n \nNumer portu: %3$s</string>
     <string name="fapps_filter_categories_heading" translatable="true">Kategorie</string>
     <string name="fapps_firewall_filter_bypass_universal" translatable="true">Ominięty</string>
     <string name="fapps_info_dialog_positive_btn" translatable="true">Ok</string>
@@ -529,7 +523,7 @@
     <string name="radio_sky_btn" translatable="true">Niebo</string>
     <string name="rt_filter_hint" translatable="true">Wyświetlanie wszystkich list blokujących</string>
     <string name="settings_theme_dialog_themes_1" translatable="true">Ustawiane przez system</string>
-    <string name="about_web" translatable="true">Linki</string>
+    <string name="about_web" translatable="true">linki</string>
     <string name="cd_dns_crypt_title" translatable="true">resolwery</string>
     <string name="lbbs_copy" translatable="true">Skopiuj jako adres URL RDNS+</string>
     <string name="lbl_rules" translatable="true">Reguły</string>
@@ -667,7 +661,7 @@
     <string name="lbl_last" translatable="true">Ostatni</string>
     <string name="lbl_starting" translatable="true">Startowanie</string>
     <string name="wireguard_apps_proxy_map_desc" translatable="true">część %1$s</string>
-    <string name="orbot_no_app_toast" translatable="true">"Dodaj przynajmiej jedną aplikację by włączyć  Orbot"</string>
+    <string name="orbot_no_app_toast" translatable="true">Dodaj przynajmiej jedną aplikację by włączyć Orbot</string>
     <string name="cd_toast_edit" translatable="true">Edytowane</string>
     <string name="one_wg_apps_added" translatable="true">Przekierowywanie wszystkich aplikacji</string>
     <string name="wireguard_disable_failure" translatable="true">\"Zawsze włączony WireGuard\" nie może być wyłączony</string>
@@ -708,7 +702,6 @@
     <string name="log_detail_flags">Flagi</string>
     <string name="log_detail_message">Komunikat</string>
     <string name="log_detail_resolver">Resolver</string>
-    <string name="log_detail_blocklists">Listy blokowania</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">Prawidłowy</string>
     <string name="log_detail_dnssec_unverified">Niezweryfikowany</string>
@@ -736,4 +729,6 @@
     <string name="dns_median_lookup">Mediana czasu zapytania</string>
     <string name="dns_recent_lookups">Ostatnie zapytania</string>
     <string name="dns_no_lookups_yet">Brak zapytań</string>
+    <string name="lbl_experimental" translatable="true">funkcja testowa</string>
+    <string name="lbl_test" translatable="true">Test</string>
 </resources>

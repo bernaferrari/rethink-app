@@ -23,22 +23,18 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.lifecycleScope
-import androidx.work.BackoffPolicy
-import androidx.work.Data
-import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
-import androidx.work.WorkRequest
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.backup.BackupHelper
 import com.bernaferrari.bravedns.backup.BackupHelper.Companion.BACKUP_FILE_EXTN
 import com.bernaferrari.bravedns.backup.BackupHelper.Companion.INTENT_RESTART_APP
 import com.bernaferrari.bravedns.backup.BackupHelper.Companion.INTENT_SCHEME
 import com.bernaferrari.bravedns.backup.RestoreAgent
+import com.bernaferrari.bravedns.backup.RestoreWork
 import com.bernaferrari.bravedns.util.QrCodeFromFileScanner
 import com.bernaferrari.bravedns.util.TunnelImporter
 import com.bernaferrari.bravedns.util.Utilities.showToastUiCentered
-import com.bernaferrari.bravedns.util.workInfosByTagFlow
 import com.google.zxing.qrcode.QRCodeReader
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
@@ -137,28 +133,15 @@ internal class HomeBackupController(
 
     fun startRestore(fileUri: Uri) {
         Logger.i(LOG_TAG_BACKUP_RESTORE, "invoke worker to initiate the restore process")
-        val data = Data.Builder()
-        data.putString(BackupHelper.DATA_BUILDER_RESTORE_URI, fileUri.toString())
-
-        val importWorker =
-            OneTimeWorkRequestBuilder<RestoreAgent>()
-                .setInputData(data.build())
-                .setBackoffCriteria(
-                    BackoffPolicy.LINEAR,
-                    WorkRequest.MIN_BACKOFF_MILLIS,
-                    TimeUnit.MILLISECONDS
-                )
-                .addTag(RestoreAgent.TAG)
-                .build()
-        WorkManager.getInstance(activity).beginWith(importWorker).enqueue()
+        RestoreWork.enqueue(WorkManager.getInstance(activity), fileUri)
     }
 
     fun observeRestoreWorker() {
         val workManager = WorkManager.getInstance(activity.applicationContext)
 
         activity.lifecycleScope.launch {
-            workManager.workInfosByTagFlow(RestoreAgent.TAG).collect { workInfoList ->
-                val workInfo = workInfoList.getOrNull(0) ?: return@collect
+            RestoreWork.observe(workManager).collect { workInfo ->
+                workInfo ?: return@collect
                 Logger.i(
                     LOG_TAG_BACKUP_RESTORE,
                     "WorkManager state: ${workInfo.state} for ${RestoreAgent.TAG}"
@@ -182,7 +165,6 @@ internal class HomeBackupController(
                         Toast.LENGTH_SHORT
                     )
                     workManager.pruneWork()
-                    workManager.cancelAllWorkByTag(RestoreAgent.TAG)
                     if (com.bernaferrari.bravedns.backup.RestoreRestart.required(activity) || workInfo.outputData.getBoolean(RestoreAgent.RESTART_REQUIRED, false)) {
                         com.bernaferrari.bravedns.backup.RestoreRestart.restart(activity)
                     }

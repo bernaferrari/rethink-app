@@ -1,11 +1,7 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.database
 
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
 import android.database.Cursor
-import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -179,10 +175,4 @@ private fun Cursor.valueAsText(index: Int): String = when (getType(index)) {
     Cursor.FIELD_TYPE_NULL -> "null"
     Cursor.FIELD_TYPE_BLOB -> "[blob:${getBlob(index)?.size ?: 0}]"
     else -> getString(index).orEmpty()
-}
-
-private fun Context.copyToClipboard(label: String, text: String, copiedMessage: String) {
-    val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-    clipboard.setPrimaryClip(ClipData.newPlainText(label, text))
-    Toast.makeText(this, copiedMessage, Toast.LENGTH_SHORT).show()
 }

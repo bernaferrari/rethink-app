@@ -1,0 +1,112 @@
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: '30 7 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  codeql:
+    name: CodeQL (Kotlin and Java)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-provider: basic
+      - uses: github/codeql-action/init@v4
+        with:
+          languages: java-kotlin
+          build-mode: manual
+          queries: security-extended
+      - name: Trace de-Googled Android build
+        run: ./gradlew :app:assembleFdroidDebug --no-daemon --no-build-cache --no-configuration-cache --console=plain
+      - uses: github/codeql-action/analyze@v4
+        with:
+          category: /language:java-kotlin
+
+  release-apk:
+    name: Inspect minified release APKs
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-provider: basic
+      - name: Build minified APKs without signing secrets
+        run: ./gradlew :app:assembleFdroidRelease -PVERSION_CODE=1 --no-daemon --console=plain
+      - name: Check manifests, version codes and native libraries
+        run: python3 scripts/verify-release-apks.py app/build/outputs/apk/fdroid/release --version-code 1
+      - name: Verify maintenance tools
+        run: python3 -m unittest discover -s scripts/tests -v
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release-security-reports
+          path: |
+            app/build/outputs/mapping/fdroidRelease/
+            app/build/reports/
+          if-no-files-found: ignore
+
+  dependency-review:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/dependency-review-action@v5
+        with:
+          fail-on-severity: high
+
+  dependency-graph:
+    # Dependency submission needs contents:write; never grant it to PR code.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/dependency-submission@v6
+        with:
+          cache-provider: basic
+          dependency-resolution-task: ':app:dependencies'
+          additional-arguments: '--no-configuration-cache --console=plain'

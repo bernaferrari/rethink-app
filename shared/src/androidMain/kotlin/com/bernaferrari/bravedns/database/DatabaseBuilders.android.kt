@@ -7,22 +7,28 @@ import android.content.Context
 import androidx.room3.Room
 import androidx.room3.RoomDatabase
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
+import androidx.sqlite.SQLiteDriver
 
-fun buildAppDatabase(context: Context): AppDatabase =
+fun buildAppDatabase(
+    context: Context,
+    driver: SQLiteDriver = BundledSQLiteDriver(),
+    callback: RoomDatabase.Callback? = null,
+): AppDatabase =
     Room.databaseBuilder(
         context.applicationContext,
         AppDatabase.DATABASE_NAME
     ) { AppDatabaseConstructor.initialize() }
-        .setDriver(BundledSQLiteDriver())
+        .setDriver(driver)
         .setJournalMode(RoomDatabase.JournalMode.AUTOMATIC)
+        .apply { if (callback != null) addCallback(callback) }
         .build()
 
-fun buildLogDatabase(context: Context): LogDatabase =
+fun buildLogDatabase(context: Context, driver: SQLiteDriver = BundledSQLiteDriver()): LogDatabase =
     Room.databaseBuilder(
         context.applicationContext,
         LogDatabase.LOGS_DATABASE_NAME
     ) { LogDatabaseConstructor.initialize() }
-        .setDriver(BundledSQLiteDriver())
+        .setDriver(driver)
         .setJournalMode(RoomDatabase.JournalMode.AUTOMATIC)
         .build()
 

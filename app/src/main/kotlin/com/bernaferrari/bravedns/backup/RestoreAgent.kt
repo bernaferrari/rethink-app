@@ -19,8 +19,6 @@ import com.bernaferrari.bravedns.service.PersistentState
 import com.bernaferrari.bravedns.service.VpnController
 import com.bernaferrari.bravedns.util.Utilities
 import java.io.File
-import java.io.FileInputStream
-import java.io.ObjectInputStream
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
@@ -41,8 +39,13 @@ class RestoreAgent(val context: Context, workerParams: WorkerParameters) :
 
     override suspend fun doWork(): Result {
         val uri = inputData.getString(DATA_BUILDER_RESTORE_URI)?.toUri() ?: return Result.failure()
-        return if (startRestore(uri)) Result.success()
-        else Result.failure(Data.Builder().putBoolean(RESTART_REQUIRED, restartRequired).build())
+        return BackupRestoreFileGate.withSourceFiles {
+            if (RestoreRestart.required(context)) {
+                return@withSourceFiles Result.failure(Data.Builder().putBoolean(RESTART_REQUIRED, true).build())
+            }
+            if (startRestore(uri)) Result.success()
+            else Result.failure(Data.Builder().putBoolean(RESTART_REQUIRED, restartRequired).build())
+        }
     }
 
     // Import boundary: every deserialization/filesystem failure must leave the original state intact.
@@ -61,7 +64,8 @@ class RestoreAgent(val context: Context, workerParams: WorkerParameters) :
             check(validateMetadata(directory.path)) { "Backup metadata is missing" }
             check(validateRestoredSchemaVersions(directory.listFiles() ?: emptyArray())) { "Invalid database schema" }
             validateSchemaIdentities(directory)
-            val preferences = readPreferences(directory)
+            val preferences = RestoreIdentityPolicy.preferences(readPreferences(directory))
+            RestoreIdentityPolicy.clearImportedPurchases(File(directory, AppDatabase.DATABASE_NAME))
             val transactions = stageFiles(directory)
             stopped = true
             VpnController.stopAndAwait("restore", context)
@@ -138,7 +142,7 @@ class RestoreAgent(val context: Context, workerParams: WorkerParameters) :
         }
     }
 
-    private suspend fun validateSchemaIdentities(directory: File) {
+    internal suspend fun validateSchemaIdentities(directory: File) {
         // v0 schemas all use version 1; Room's identity distinguishes incompatible v1 backups.
         BackupHelper.checkpointRoomDatabases(appDatabase, logDatabase)
         for (name in listOf(AppDatabase.DATABASE_NAME, LogDatabase.LOGS_DATABASE_NAME)) {
@@ -167,18 +171,9 @@ class RestoreAgent(val context: Context, workerParams: WorkerParameters) :
 
     private fun validateMetadata(directory: String?): Boolean = File(directory, METADATA_FILENAME).isFile
 
-    private fun readPreferences(directory: File): Map<String, Any?> {
-        ObjectInputStream(FileInputStream(File(directory, SHARED_PREFS_BACKUP_FILE_NAME))).use { input ->
-            val values = input.readObject() as? Map<*, *> ?: error("Invalid preference backup")
-            return values.entries.associate { (key, value) ->
-                require(key is String) { "Invalid preference name" }
-                require(value == null || value is Boolean || value is Int || value is Long || value is String) {
-                    "Invalid preference type"
-                }
-                key to value
-            }
-        }
-    }
+    private fun readPreferences(directory: File): Map<String, Any?> =
+        PreferenceBackupCodec.read(File(directory, SHARED_PREFS_BACKUP_FILE_NAME))
+
 }
 
 private fun SQLiteDatabase.roomIdentity(): String? =

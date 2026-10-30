@@ -56,7 +56,7 @@ internal object DnsFailureNotifications {
             val pendingIntent =
                 Utilities.getActivityPendingIntent(
                     context,
-                    Intent(context, HomeScreenActivity::class.java),
+                    Intent(context, HomeScreenActivity::class.java).setAction("${context.packageName}.notification.dns_failure"),
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
                     mutable = false
                 )

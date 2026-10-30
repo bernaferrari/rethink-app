@@ -1,0 +1,638 @@
+{
+  "catalogs": [
+    {
+      "table": "DoHEndpoint",
+      "columns": [
+        "id",
+        "dohName",
+        "dohURL",
+        "dohExplanation",
+        "isSelected",
+        "isCustom",
+        "isSecure",
+        "modifiedDataTime",
+        "latency"
+      ],
+      "rows": [
+        [
+          1,
+          "Cloudflare",
+          "https://cloudflare-dns.com/dns-query",
+          "R.string.cloudflare_dns_desc",
+          0,
+          0,
+          1,
+          1656871533823,
+          0
+        ],
+        [
+          2,
+          "Cloudflare Family",
+          "https://family.cloudflare-dns.com/dns-query",
+          "R.string.cloudflare_family_dns_desc",
+          0,
+          0,
+          1,
+          1656871533823,
+          0
+        ],
+        [
+          3,
+          "Cloudflare Security",
+          "https://security.cloudflare-dns.com/dns-query",
+          "R.string.cloudflare_security_dns_desc",
+          0,
+          0,
+          1,
+          1656871533823,
+          0
+        ],
+        [
+          4,
+          "Google",
+          "https://dns.google/dns-query",
+          "R.string.google_dns_desc",
+          0,
+          0,
+          1,
+          1656871533823,
+          0
+        ],
+        [
+          5,
+          "CleanBrowsing Family",
+          "https://doh.cleanbrowsing.org/doh/family-filter/",
+          "R.string.cleanbrowsing_family_dns_desc",
+          0,
+          0,
+          1,
+          1656871533823,
+          0
+        ],
+        [
+          6,
+          "CleanBrowsing Adult",
+          "https://doh.cleanbrowsing.org/doh/adult-filter/",
+          "R.string.cleanbrowsing_adult_dns_desc",
+          0,
+          0,
+          1,
+          1656871533823,
+          0
+        ],
+        [
+          7,
+          "Quad9 Secure",
+          "https://dns.quad9.net/dns-query",
+          "R.string.quad9_dns_desc",
+          0,
+          0,
+          1,
+          1656871533823,
+          0
+        ]
+      ]
+    },
+    {
+      "table": "DNSCryptEndpoint",
+      "columns": [
+        "id",
+        "dnsCryptName",
+        "dnsCryptURL",
+        "dnsCryptExplanation",
+        "isSelected",
+        "isCustom",
+        "modifiedDataTime",
+        "latency"
+      ],
+      "rows": [
+        [
+          1,
+          "Cleanbrowsing Family",
+          "sdns://AQMAAAAAAAAAFDE4NS4yMjguMTY4LjE2ODo4NDQzILysMvrVQ2kXHwgy1gdQJ8MgjO7w6OmflBjcd2Bl1I8pEWNsZWFuYnJvd3Npbmcub3Jn",
+          "R.string.crypt_cleanbrowsing_family_desc",
+          0,
+          0,
+          1656871533823,
+          0
+        ],
+        [
+          2,
+          "Adguard",
+          "sdns://AQMAAAAAAAAAETk0LjE0MC4xNC4xNDo1NDQzINErR_JS3PLCu_iZEIbq95zkSV2LFsigxDIuUso_OQhzIjIuZG5zY3J5cHQuZGVmYXVsdC5uczEuYWRndWFyZC5jb20",
+          "R.string.crypt_adguard_desc",
+          0,
+          0,
+          1656871533823,
+          0
+        ],
+        [
+          3,
+          "Adguard Family",
+          "sdns://AQMAAAAAAAAAETk0LjE0MC4xNC4xNTo1NDQzILgxXdexS27jIKRw3C7Wsao5jMnlhvhdRUXWuMm1AFq6ITIuZG5zY3J5cHQuZmFtaWx5Lm5zMS5hZGd1YXJkLmNvbQ",
+          "R.string.crypt_adguard_family_desc",
+          0,
+          0,
+          1656871533823,
+          0
+        ],
+        [
+          4,
+          "Quad9 Security",
+          "sdns://AQMAAAAAAAAAEjE0OS4xMTIuMTEyLjk6ODQ0MyBnyEe4yHWM0SAkVUO-dWdG3zTfHYTAC4xHA2jfgh2GPhkyLmRuc2NyeXB0LWNlcnQucXVhZDkubmV0",
+          "R.string.crypt_quad9_security_desc",
+          0,
+          0,
+          1656871533823,
+          0
+        ],
+        [
+          5,
+          "Quad9",
+          "sdns://AQYAAAAAAAAADTkuOS45LjEyOjg0NDMgZ8hHuMh1jNEgJFVDvnVnRt803x2EwAuMRwNo34Idhj4ZMi5kbnNjcnlwdC1jZXJ0LnF1YWQ5Lm5ldA",
+          "R.string.crypt_quad9_desc",
+          0,
+          0,
+          1656871533823,
+          0
+        ]
+      ]
+    },
+    {
+      "table": "DNSProxyEndpoint",
+      "columns": [
+        "id",
+        "proxyName",
+        "proxyType",
+        "proxyAppName",
+        "proxyIP",
+        "proxyPort",
+        "isSelected",
+        "isCustom",
+        "isSecure",
+        "modifiedDataTime",
+        "latency"
+      ],
+      "rows": [
+        [
+          1,
+          "Google",
+          "External",
+          "None",
+          "8.8.8.8",
+          53,
+          0,
+          0,
+          0,
+          1656871533823,
+          0
+        ],
+        [
+          2,
+          "Cloudflare",
+          "External",
+          "None",
+          "1.1.1.1",
+          53,
+          0,
+          0,
+          0,
+          1656871533823,
+          0
+        ],
+        [
+          3,
+          "Quad9",
+          "External",
+          "None",
+          "9.9.9.9",
+          53,
+          0,
+          0,
+          0,
+          1656871533823,
+          0
+        ],
+        [
+          4,
+          "Google IPv6",
+          "External",
+          "None",
+          "2001:4860:4860::8888",
+          53,
+          0,
+          0,
+          0,
+          1656871533823,
+          0
+        ],
+        [
+          5,
+          "Cloudflare IPv6",
+          "External",
+          "None",
+          "2606:4700:4700::1111",
+          53,
+          0,
+          0,
+          0,
+          1656871533823,
+          0
+        ],
+        [
+          6,
+          "Quad9 IPv6",
+          "External",
+          "None",
+          "2620:fe::fe",
+          53,
+          0,
+          0,
+          0,
+          1656871533823,
+          0
+        ],
+        [
+          7,
+          "Orbot",
+          "External",
+          "org.torproject.android",
+          "127.0.0.1",
+          5400,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "table": "DNSCryptRelayEndpoint",
+      "columns": [
+        "id",
+        "dnsCryptRelayName",
+        "dnsCryptRelayURL",
+        "dnsCryptRelayExplanation",
+        "isSelected",
+        "isCustom",
+        "modifiedDataTime",
+        "latency"
+      ],
+      "rows": [
+        [
+          1,
+          "Netherlands",
+          "sdns://gRI1MS4xNS4xMjQuMjA4OjQzNDM",
+          "R.string.crypt_relay_netherlands",
+          0,
+          0,
+          1656871533823,
+          0
+        ],
+        [
+          2,
+          "France",
+          "sdns://gREyMTIuMTI5LjQ2LjMyOjQ0Mw",
+          "R.string.crypt_relay_france",
+          0,
+          0,
+          1656871533823,
+          0
+        ],
+        [
+          3,
+          "Sweden",
+          "sdns://gRMxMjguMTI3LjEwNC4xMDg6NDQz",
+          "R.string.crypt_relay_sweden",
+          0,
+          0,
+          1656871533823,
+          0
+        ],
+        [
+          4,
+          "US - Los Angeles, CA",
+          "sdns://gRAyMy4xOS42Ny4xMTY6NDQz",
+          "R.string.crypt_relay_us",
+          0,
+          0,
+          1656871533823,
+          0
+        ],
+        [
+          5,
+          "Singapore",
+          "sdns://gRMxNzQuMTM4LjI5LjE3NToxNDQz",
+          "R.string.crypt_relay_singapore",
+          0,
+          0,
+          1656871533823,
+          0
+        ]
+      ]
+    },
+    {
+      "table": "ProxyEndpoint",
+      "columns": [
+        "id",
+        "proxyName",
+        "proxyMode",
+        "proxyType",
+        "proxyAppName",
+        "proxyIP",
+        "proxyPort",
+        "userName",
+        "password",
+        "isSelected",
+        "isCustom",
+        "isUDP",
+        "modifiedDataTime",
+        "latency"
+      ],
+      "rows": [
+        [
+          1,
+          "SOCKS5",
+          0,
+          "NONE",
+          "",
+          "127.0.0.1",
+          9050,
+          "",
+          "",
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          2,
+          "HTTP",
+          1,
+          "NONE",
+          "",
+          "",
+          0,
+          "",
+          "",
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          3,
+          "SOCKS5 Orbot",
+          2,
+          "NONE",
+          "org.torproject.android",
+          "127.0.0.1",
+          9050,
+          "",
+          "",
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          4,
+          "HTTP Orbot",
+          3,
+          "NONE",
+          "org.torproject.android",
+          "",
+          0,
+          "",
+          "",
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "table": "RethinkDnsEndpoint",
+      "columns": [
+        "name",
+        "url",
+        "uid",
+        "desc",
+        "isActive",
+        "isCustom",
+        "latency",
+        "blocklistCount",
+        "modifiedDataTime"
+      ],
+      "rows": [
+        [
+          "RDNS Default",
+          "https://sky.rethinkdns.com/rec",
+          -2000,
+          "Blocks over 100,000+ phishing, malvertising, malware, spyware, ransomware, cryptojacking and other threats.",
+          1,
+          0,
+          0,
+          0,
+          1656871533823
+        ],
+        [
+          "RDNS Adult",
+          "https://sky.rethinkdns.com/pec",
+          -2000,
+          "Blocks over 30,000 adult websites.",
+          0,
+          0,
+          0,
+          0,
+          1656871533823
+        ],
+        [
+          "RDNS Piracy",
+          "https://sky.rethinkdns.com/1:EID-BwCB",
+          -2000,
+          "Blocks torrent, dubious video streaming and file sharing websites.",
+          0,
+          0,
+          0,
+          0,
+          1656871533823
+        ],
+        [
+          "RDNS Social Media",
+          "https://sky.rethinkdns.com/1:AEAAEA==",
+          -2000,
+          "Blocks popular social media including Facebook, Instagram, and WhatsApp.",
+          0,
+          0,
+          0,
+          0,
+          1656871533823
+        ],
+        [
+          "RDNS Security",
+          "https://sky.rethinkdns.com/sec",
+          -2000,
+          "Blocks over 150,000 malware, ransomware, phishing and other threats.",
+          0,
+          0,
+          0,
+          0,
+          1656871533823
+        ],
+        [
+          "RDNS Privacy",
+          "https://sky.rethinkdns.com/1:QAcCAIAcAhCkAg==",
+          -2000,
+          "Blocks over 100,000+ adware, spyware, and trackers through some of the most extensive blocklists.",
+          0,
+          0,
+          0,
+          0,
+          1656871533823
+        ],
+        [
+          "RDNS Plus",
+          "https://sky.rethinkdns.com/",
+          -2000,
+          "Custom configurable endpoint.",
+          0,
+          1,
+          0,
+          0,
+          1656871533823
+        ]
+      ]
+    },
+    {
+      "table": "DoTEndpoint",
+      "columns": [
+        "id",
+        "name",
+        "url",
+        "desc",
+        "isSelected",
+        "isCustom",
+        "isSecure",
+        "modifiedDataTime",
+        "latency"
+      ],
+      "rows": [
+        [
+          0,
+          "Cloudflare",
+          "tls://1dot1dot1dot1.cloudflare-dns.com",
+          "Cloudflare’s DNS over TLS. No blocking.",
+          0,
+          0,
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          "Cloudflare family",
+          "tls://family.cloudflare-dns.com",
+          "Cloudflare’s DNS over TLS. Blocks Malware and Adult content.",
+          0,
+          0,
+          1,
+          0,
+          0
+        ],
+        [
+          2,
+          "Adguard",
+          "tls://dns.adguard-dns.com",
+          "Adguard DNS over TLS. Blocks ads, tracking, and phishing.",
+          0,
+          0,
+          1,
+          0,
+          0
+        ],
+        [
+          3,
+          "Mullvad Ad-block",
+          "tls://adblock.dns.mullvad.net",
+          "Mullvad’s DNS over TLS. Includes ad-blocking and tracker blocking.",
+          0,
+          0,
+          1,
+          0,
+          0
+        ],
+        [
+          4,
+          "Mullvad Extended",
+          "tls://extended.dns.mullvad.net",
+          "Mullvad’s DNS over TLS. Includes ad-blocking, tracker, malware and social media blocking.",
+          0,
+          0,
+          1,
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "table": "ODoHEndpoint",
+      "columns": [
+        "id",
+        "name",
+        "proxy",
+        "resolver",
+        "proxyIps",
+        "desc",
+        "isSelected",
+        "isCustom",
+        "modifiedDataTime",
+        "latency"
+      ],
+      "rows": [
+        [
+          0,
+          "Cloudflare",
+          "",
+          "https://odoh.cloudflare-dns.com/dns-query",
+          "",
+          "Cloudflare ODoH server",
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          "ODoH Crypto",
+          "",
+          "https://odoh.crypto.sx/dns-query",
+          "",
+          "ODoH target server. Anycast, no logs. Backend hosted by Scaleway. Maintained by Frank Denis.",
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          2,
+          "Ibksturm",
+          "",
+          "https://ibksturm.synology.me/dns-query",
+          "",
+          "ODoH target server hosted by Ibksturm. No logs, No Filter, DNSSEC.",
+          0,
+          0,
+          0,
+          0
+        ]
+      ]
+    }
+  ]
+}

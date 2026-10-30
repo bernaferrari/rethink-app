@@ -1,6 +1,8 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.configure
 
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkListItemColors
+
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSearchField
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWell
 import androidx.compose.foundation.background
@@ -347,7 +349,7 @@ private fun ConfigureListRow(entry: RethinkConfigureEntry, position: CardPositio
         supporting = entry.subtitle,
         position = position,
         onClick = entry.onClick,
-        defaultContainerColor = colors.fill,
+        colors = rethinkListItemColors(defaultContainerColor = colors.fill),
         leadingContent = { ConfigureIconWell(colors) { entry.icon() } },
     )
 }
@@ -375,7 +377,7 @@ private fun SearchResults(results: List<RethinkConfigureSearchEntry>, query: Str
                 supportingAnnotated = highlightConfigureQuery(supporting, query, matchStyle),
                 position = cardPositionFor(index, results.lastIndex),
                 onClick = result.entry.onClick,
-                defaultContainerColor = colors.fill,
+                colors = rethinkListItemColors(defaultContainerColor = colors.fill),
                 showTrailingChevron = true,
                 leadingContent = { ConfigureIconWell(colors) { result.entry.icon() } },
             )

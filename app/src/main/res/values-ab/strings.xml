@@ -52,7 +52,7 @@
     <string name="apps_info_title" translatable="true">Апликациақәа</string>
     <string name="alert_permission_accessibility" translatable="true">Ашәахәышә «Аҧышәшьәра»</string>
     <string name="default_dns_name" translatable="true">РДНС иуаа рыцъкIа</string>
-    <string name="custom_url_error_invalid_url" translatable="true">\"}}&gt; Ауаршәазалаҟәы заҧшәахәым</string>
+    <string name="custom_url_error_invalid_url" translatable="true">\"}}&gt; Ауаршәазалаҟәы заҧшәахәым</string>
     <string name="conn_track_clear_logs_title" translatable="true">Ашәахәылақәа зегьы рыцәҟлымшра?</string>
     <string name="conn_track_clear_logs_message" translatable="true">Иара уapsа шьаҟа инхеижьуеит амҩақәа рлогқәа, ауаса афаиуоли рполитикақәа ус шакәым. Ари аусура ачара аҭахӡам. Уи аамҭазы шырҭышәаауарак иҟам. Шәара шәаахҭашәаарак?</string>
     <string name="bsct_app_info" translatable="true">Адыргала информация</string>
@@ -113,7 +113,7 @@
     <string name="settings_proxy_header" translatable="true">proxy</string>
     <string name="settings_socks5_heading" translatable="true">SOCKS5 прокси аишьəашьашьашьашьашьашьашьашьашьара</string>
     <string name="settings_https_heading" translatable="true">HTTP(S) CONNECT Proxy аԥыжәажьра</string>
-    <string name="settings_https_desc" translatable="true">HTTP(S) CONNECT  ашьырҳәанышқәа рышьҭаҟәацәра.</string>
+    <string name="settings_https_desc" translatable="true">HTTP(S) CONNECT ашьырҳәанышқәа рышьҭаҟәацәра.</string>
     <string name="orbot" translatable="true">Орбот</string>
     <string name="orbot_socks5" translatable="true">TCP-аҿык шьаҭаратә</string>
     <string name="orbot_http" translatable="true">HTTP Апроксимиа</string>
@@ -189,7 +189,7 @@
     <string name="hsf_notification_permission_failure" translatable="true">Ашәаҳәара шрылазгараз «Ашәаҳәара» адәаҿ</string>
     <string name="hsf_pause_vpn_failure" translatable="true">Cannot pause: Keepout not active</string>
     <string name="dc_block_heading" translatable="true">Ашәақәа</string>
-    <string name="dc_other_dns_heading" translatable="true">Ашҟа</string>
+    <string name="dc_other_dns_heading" translatable="true">ашҟа</string>
     <string name="dc_custom_dns_radio" translatable="true">Аҧсуа DNS</string>
     <string name="dc_rethink_dns_radio" translatable="true">Риthink Ҟьшьшәааԥш</string>
     <string name="dc_entries" translatable="true">%1$s аҧызар »</string>
@@ -212,7 +212,7 @@
     <string name="about_docs" translatable="true">Аҵыхәтәқәа Рыԥшра</string>
     <string name="about_privacy_policy" translatable="true">Апсихуақьтәи аполитика аԥхьа</string>
     <string name="about_connect" translatable="true">Аҧしшәлашь</string>
-    <string name="about_app" translatable="true">Апп</string>
+    <string name="about_app" translatable="true">апп</string>
     <string name="about_email" translatable="true">Е-маил ашәашәалоит</string>
     <string name="about_settings_app_info" translatable="true">Апликациазын адылхъва</string>
     <string name="about_settings_vpn_profile" translatable="true">VPN Ашьапынеибамра</string>
@@ -239,7 +239,7 @@
     <string name="cd_custom_doh_url_name" translatable="true">DoH %1$s</string>
     <string name="cd_custom_dns_proxy_name_default" translatable="true">Прокси</string>
     <string name="cd_custom_dns_proxy_name" translatable="true">Прокси %1$s</string>
-    <string name="cd_custom_dns_proxy_default_app" translatable="true">Уарым</string>
+    <string name="cd_custom_dns_proxy_default_app" translatable="true"><string name="none">Уарым</string></string>
     <string name="cd_dns_proxy_mode_external" translatable="true">Аҧсынтә</string>
     <string name="cd_dns_proxy_error_text_1" translatable="true">Агәаҟәаҟәа IP адәҟны</string>
     <string name="cd_dns_proxy_error_text_2" translatable="true">Ашәахәқәа 1024–65535 иалацқәа</string>
@@ -644,7 +644,7 @@
     <string name="status_no_network" translatable="true">Аныҿакым</string>
     <string name="dc_use_sys_dns_undelegated_heading" translatable="true">Ашәаҧшра ашәарҭадара аҿы дахьыжьымкәа адоменқәа рахь System DNS ахыҵхәаҧш</string>
     <string name="dc_use_sys_dns_undelegated_desc" translatable="true">Асистем DNS аиахъазлар ауеит адоменқәа рзы, еицҧаауамызқәа, мамзаргьы .lan, .internal, еиԥш.</string>
-    <string name="dc_filtering_heading" translatable="true">Фильтрациа</string>
+    <string name="dc_filtering_heading" translatable="true">фильтрациа</string>
     <string name="cd_split_dns_heading" translatable="true">Split DNS (ашәахcharт ашқәа)</string>
     <string name="cd_split_dns_desc" translatable="true">Аԥсшәа:\nАԥсоуп DNS ашәҟәы иахәаԥкны анхацәа рҟны ианызсыжьуа апрокси арҿы апрокси а DNS хылаԥшҩцәа рҟны.</string>
     <string name="cd_treat_dns_rules_firewall_heading" translatable="true">DNS рашқәа ашәахтә рашәақәа еиԥш ишьақәымзар (аҿыц аԥышәа)</string>

@@ -40,7 +40,7 @@
     <string name="universal_firewall_explanation" translatable="true">Застосовуйте правила брандмауера до всіх застосунків на основі подій на пристрої, наприклад, коли пристрій заблоковано або коли певна програма не використовується.</string>
     <string name="refresh_complete" translatable="true"><!-- use dc_refresh_toast --> Повторну синхронізацію списку застосунків завершено.</string>
     <string name="orbot_bs_status_2" translatable="true">HTTP-проксі встановлено.</string>
-    <string name="orbot_app_issue" translatable="true">Не вдалося запустити Orbot. Він встановлений\?</string>
+    <string name="orbot_app_issue" translatable="true">Не вдалося запустити Orbot. Він встановлений?</string>
     <string name="settings_check_update_heading" translatable="true">Перевірити наявність оновлень</string>
     <string name="settings_check_update_desc" translatable="true">Автоматично перевіряти наявність оновлень для застосунку раз на тиждень.</string>
     <string name="settings_theme_heading" translatable="true">Зовнішній вигляд</string>
@@ -54,14 +54,8 @@
     <string name="ctbs_block_other_apps" translatable="true">Правила, що застосовуються для %1$s, будуть також застосовні для інших застосунків %2$s</string>
     <string name="univ_firewall_rule_1" translatable="true">Блокувати всі застосунки, коли пристрій заблоковано</string>
     <string name="univ_firewall_rule_10" translatable="true">Блокувати усе, крім обраних застосунків та IP-адрес</string>
-    <string name="dns_proxy_dialog_message" translatable="true">Назва застосунку: %1$s
-\n
-\nIP-адреса: %2$s
-\n
-\nНомер порту: %3$s</string>
-    <string name="dns_proxy_dialog_message_no_app" translatable="true">IP-адреса: %1$s
-\n
-\nНомер порту: %2$s</string>
+    <string name="dns_proxy_dialog_message" translatable="true">Назва застосунку: %1$s \n \nIP-адреса: %2$s \n \nНомер порту: %3$s</string>
+    <string name="dns_proxy_dialog_message_no_app" translatable="true">IP-адреса: %1$s \n \nНомер порту: %2$s</string>
     <string name="fapps_filter_categories_heading" translatable="true">Категорії</string>
     <string name="fapps_filter_clear_btn" translatable="true">Скинути</string>
     <string name="fapps_filter_parent_installed" translatable="true">Встановлені</string>
@@ -91,7 +85,7 @@
     <string name="notif_channel_desc_vpn_failure" translatable="true">Повідомляти, коли Android або інший VPN-застосунок зупиняє Keepout</string>
     <string name="category_name_sys_apps" translatable="true">Системні застосунки</string>
     <string name="ada_noapp_dialog_title" translatable="true">Немає такого застосунку</string>
-    <string name="ada_noapp_dialog_message" translatable="true">Інформація про застосунок відсутня. Можливо, цей застосунок було видалено\?</string>
+    <string name="ada_noapp_dialog_message" translatable="true">Інформація про застосунок відсутня. Можливо, цей застосунок було видалено?</string>
     <string name="ada_noapp_dialog_positive" translatable="true">Ок</string>
     <string name="ada_ip_no_connection" translatable="true">Для цієї категорії немає мережевих журналів.</string>
     <string name="ada_app_status_allow" translatable="true">Дозволено</string>
@@ -111,8 +105,8 @@
     <string name="alert_firewall_accessibility_explanation" translatable="true">Keepout використовує службу доступності, щоб відстежувати, які застосунки використовуються (на передньому плані) і які не використовуються (у фоновому режимі).
 \n
 \nKeepout не збирає жодної інформації та жодним чином не шпигує за вами.</string>
-    <string name="download_update_dialog_message" translatable="true">Нова версія застосунку доступна для завантаження з вебсайту. Ви бажаєте продовжити\?</string>
-    <string name="about_app" translatable="true">Застосунок</string>
+    <string name="download_update_dialog_message" translatable="true">Нова версія застосунку доступна для завантаження з вебсайту. Ви бажаєте продовжити?</string>
+    <string name="about_app" translatable="true">застосунок</string>
     <string name="about_settings_app_info" translatable="true">Інформація про застосунок</string>
     <string name="cd_custom_dns_proxy_default_app" translatable="true">Відсутнє</string>
     <string name="fapps_firewall_filter_isolate" translatable="true">Ізольовані</string>
@@ -170,7 +164,7 @@
     <string name="fapps_unmetered_block_dialog_message" translatable="true">Блокувати з\'єднання в нелімітованій мережі (WiFi) для перелічених застосунків\?</string>
     <string name="firewall_rule_foreground_desc" translatable="true"><![CDATA[This connection was firewalled because the source app was не на передньому плані.]]></string>
     <string name="ada_app_isolate" translatable="true">Ізолювати</string>
-    <string name="rt_dialog_message" translatable="true">Ви хочете застосувати нещодавно налаштовані списки блокування\?</string>
+    <string name="rt_dialog_message" translatable="true">Ви хочете застосувати нещодавно налаштовані списки блокування?</string>
     <string name="brbs_restore_dialog_message" translatable="true">Відновіть налаштування застосунку, мережеві та dns журнали з файлу резервної копії. Це призведе до перезапуску застосунку.</string>
     <string name="firewall_rule_block_domain_desc" translatable="true"><![CDATA[A user-set firewall rule blocked the домен.]]></string>
     <string name="new_app_notification_action_toast_allow" translatable="true">Для застосунку дозволено підключення до мережі</string>
@@ -198,7 +192,7 @@
     <string name="dns_crypt_relay_remove_success" translatable="true">DNSCrypt Relay видалено.</string>
     <string name="dns_crypt_relay_remove_dialog_message" translatable="true">Видалити ретранслятор DNSCrypt зі збереженої конфігурації.</string>
     <string name="dns_proxy_remove_success" translatable="true">DNS проксі видалено.</string>
-    <string name="local_blocklist_download_desc" translatable="true">Завантажити списки блокування (близько 60 МБ), щоб використовувати цю функцію\?</string>
+    <string name="local_blocklist_download_desc" translatable="true">Завантажити списки блокування (близько 60 МБ), щоб використовувати цю функцію?</string>
     <string name="title_statistics" translatable="true">Статистика</string>
     <string name="lbl_cancel" translatable="true">Скасувати</string>
     <string name="lbl_allowed" translatable="true">Дозволені</string>
@@ -214,17 +208,17 @@
     <string name="lbl_configure" translatable="true">Конфігурація</string>
     <string name="lbl_blocked" translatable="true">Заблоковані</string>
     <string name="lbl_logs" translatable="true">журнали</string>
-    <string name="conn_track_clear_logs_title" translatable="true">Видалити всі мережеві журнали\?</string>
+    <string name="conn_track_clear_logs_title" translatable="true">Видалити всі мережеві журнали?</string>
     <string name="alert_permission_accessibility" translatable="true">Дозвіл - Доступність</string>
     <string name="custom_url_error_invalid_url" translatable="true">Неправильна URL-адреса</string>
     <string name="conn_track_clear_logs_message" translatable="true">При цьому видаляються лише мережеві журнали, але не правила брандмауера. Ця операція не є зворотною. Ви хочете продовжити\?</string>
     <string name="firewall_act_universal_tab" translatable="true">універсальний</string>
-    <string name="dns_crypt_custom_url_remove_dialog_title" translatable="true">Видалити резолвер DNSCrypt\?</string>
+    <string name="dns_crypt_custom_url_remove_dialog_title" translatable="true">Видалити резолвер DNSCrypt?</string>
     <string name="dns_crypt_url_remove_dialog_message" translatable="true">Видаліть резолвер DNSCrypt із збереженої конфігурації.</string>
     <string name="firewall_act_network_monitor_tab" translatable="true">Мережа</string>
     <string name="doh_custom_url_remove_dialog_message" translatable="true">Видалити кінцеву точку DNS через Https зі збереженої конфігурації.</string>
     <string name="dns_crypt_url_remove_success" translatable="true">Резолвер DNSCrypt видалено.</string>
-    <string name="doh_custom_url_remove_dialog_title" translatable="true">Видалити кінцеву точку DoH\?</string>
+    <string name="doh_custom_url_remove_dialog_title" translatable="true">Видалити кінцеву точку DoH?</string>
     <string name="dns_proxy_remove_dialog_title" translatable="true">Видалити DNS проксі\?</string>
     <string name="dns_proxy_remove_dialog_message" translatable="true">Видалити DNS проксі зі збереженої конфігурації.</string>
     <string name="lbl_allowed_ips" translatable="true">Дозволені IP-адреси</string>
@@ -270,7 +264,7 @@
     <string name="firewall_rule_block_http" translatable="true">Незахищенний HTTP</string>
     <string name="univ_firewall_rule_4" translatable="true">Блокувати UDP, крім DNS та NTP</string>
     <string name="univ_view_blocked_ip" translatable="true">Правила IP та портів</string>
-    <string name="about_web" translatable="true">Посилання</string>
+    <string name="about_web" translatable="true">посилання</string>
     <string name="univ_firewall_rule_5" translatable="true">Блокувати у разі обходу DNS</string>
     <string name="univ_view_blocked_ip_desc" translatable="true">Зміна заблокованих та довірених правил для доменів, IP чи портів.</string>
     <string name="about_mail_bugreport_subject" translatable="true">[Rethink]: Звіт про помилку</string>
@@ -279,7 +273,7 @@
     <string name="about_privacy_policy" translatable="true">Читати політику конфіденційності</string>
     <string name="hs_download_positive_website" translatable="true">Відвідайте вебсайт</string>
     <string name="about_bug_no_log_dialog_title" translatable="true">Звіт про помилку</string>
-    <string name="about_connect" translatable="true">Зв\'язок</string>
+    <string name="about_connect" translatable="true">зв\'язок</string>
     <string name="about_join_telegram" translatable="true">Telegram</string>
     <string name="about_faq" translatable="true">Переглянути ЧаПи</string>
     <string name="about_github" translatable="true">Зробити внесок на GitHub</string>
@@ -347,7 +341,7 @@
     <string name="lbl_status" translatable="true">Стан</string>
     <string name="lbl_remove" translatable="true">Вилучити</string>
     <string name="connection_http3" translatable="true">HTTP3</string>
-    <string name="dc_other_dns_heading" translatable="true">Тип</string>
+    <string name="dc_other_dns_heading" translatable="true">тип</string>
     <string name="unknown_error" translatable="true">Невідома помилка</string>
     <string name="hybrid_mode_with_proxy_notification_title" translatable="true">Захищено! Підключений до DNS + брандмауер + проксі.</string>
     <string name="dc_custom_dns_radio" translatable="true">Інший DNS</string>
@@ -548,7 +542,7 @@
     <string name="firewall_rule_exempt_dns_proxied" translatable="true">Правило по DNS-проксуванню</string>
     <string name="hsf_pause_vpn_failure" translatable="true">Не вдається призупинити: Keepout неактивнен</string>
     <string name="hsf_vpn_dialog_message" translatable="true">Keepout потрібен дозвіл для налаштування локального VPN-сервісу та шифрування запитів DNS з вашого пристроя, розгортання мережевого монітора та забезпечення функціонування фаєрволу. \n\nKeepout не збирає жодних даних і жодним чином не шпигує за вами.</string>
-    <string name="dc_block_heading" translatable="true">Правила</string>
+    <string name="dc_block_heading" translatable="true">правила</string>
     <string name="dc_entries" translatable="true">%1$s записів</string>
     <string name="dc_local_block_heading" translatable="true">Блоклисти пристроя</string>
     <string name="cd_dns_crypt_title" translatable="true">розв\'язувач імен</string>
@@ -691,7 +685,7 @@
     <string name="status_no_network" translatable="true">Немає мережі</string>
     <string name="dc_use_sys_dns_undelegated_heading" translatable="true">Використовувати системний DNS для неделегованих доменів</string>
     <string name="dc_use_sys_dns_undelegated_desc" translatable="true">Використовуйте системний DNS для неделегованих доменів, таких як .lan, .internal, тощо.</string>
-    <string name="dc_filtering_heading" translatable="true">Фільтрація</string>
+    <string name="dc_filtering_heading" translatable="true">фільтрація</string>
     <string name="cd_split_dns_heading" translatable="true">Розділений DNS (експериментальний)</string>
     <string name="cd_split_dns_desc" translatable="true">Пересилати DNS-запити від проксі-програм на DNS-сервери проксі-сервера.</string>
     <string name="cd_treat_dns_rules_firewall_heading" translatable="true">Розглядати правила DNS як правила брандмауера (експериментально)</string>
@@ -771,8 +765,8 @@
     <string name="ssid_permission_explanation" translatable="true">Keepout потребує дозволу на геодані для доступу до ідентифікаторів Wi-Fi (%1$s).</string>
     <string name="location_enable_explanation" translatable="true">Щоб отримати доступ до ідентифікаторів Wi-Fi (%1$s), увімкніть службу визначення місцезнаходження.</string>
     <string name="wg_ssid_dialog_description" translatable="true">%1$s ця VPN-мережа WireGuard, коли активна. Ідентифікатор Wi-Fi (%2$s) %3$s.</string>
-    <string name="wg_ssid_type_exact" translatable="true">Точно</string>
-    <string name="wg_ssid_type_wildcard" translatable="true">Частково</string>
+    <string name="wg_ssid_type_exact" translatable="true">Точно відповідає</string>
+    <string name="wg_ssid_type_wildcard" translatable="true">Частково збігається</string>
     <string name="wg_ssid_invalid_error" translatable="true">Ідентифікатори Wi-Fi (%1$s) повинні містити 32 символи або менше.</string>
     <string name="settings_firebase_error_reporting_heading" translatable="true">Програма стабільності</string>
     <string name="settings_firebase_error_reporting_desc" translatable="true">Зберігайте журнали помилок для покращення стабільності.</string>
@@ -809,7 +803,6 @@
     <string name="log_detail_flags">Прапорці</string>
     <string name="log_detail_message">Повідомлення</string>
     <string name="log_detail_resolver">Резолвер</string>
-    <string name="log_detail_blocklists">Списки блокування</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">Дійсно</string>
     <string name="log_detail_dnssec_unverified">Не перевірено</string>

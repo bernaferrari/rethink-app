@@ -34,6 +34,8 @@ import com.bernaferrari.bravedns.util.OrbotHelper.Companion.NOTIF_CHANNEL_ID_PRO
 import com.bernaferrari.bravedns.util.Utilities
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -161,11 +163,30 @@ class NotificationActionReceiver : BroadcastReceiver(), KoinComponent {
                 context.getString(R.string.new_app_notification_action_toast_allow)
             }
 
-        Utilities.showToastUiCentered(context, text, Toast.LENGTH_SHORT)
-        io { FirewallManager.updateFirewalledApps(uid, connectionStatus) }
+        io {
+            FirewallManager.updateFirewalledApps(uid, connectionStatus)
+            Utilities.showToastUiCentered(context, text, Toast.LENGTH_SHORT)
+        }
     }
 
     private fun io(f: suspend () -> Unit) {
-        CoroutineScope(Dispatchers.IO).launch { f() }
+        val pending = goAsync()
+        applicationScope.launch {
+            try {
+                f()
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: android.database.SQLException) {
+                Logger.e(LOG_TAG_VPN, "Notification database action failed", error)
+            } catch (error: IllegalStateException) {
+                Logger.e(LOG_TAG_VPN, "Notification action failed", error)
+            } finally {
+                pending.finish()
+            }
+        }
+    }
+
+    private companion object {
+        val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     }
 }

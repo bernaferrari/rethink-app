@@ -21,40 +21,24 @@ import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.bernaferrari.bravedns.database.RefreshDatabase
-import com.bernaferrari.bravedns.service.EventLogger
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import java.util.Calendar
+import com.bernaferrari.bravedns.service.PersistentState
+import com.bernaferrari.bravedns.util.LogRetention
 
 class PurgeConnectionLogs(val context: Context, workerParameters: WorkerParameters) :
     CoroutineWorker(context, workerParameters), KoinComponent {
 
     private val refreshDatabase by inject<RefreshDatabase>()
-    private val eventLogger by inject<EventLogger>()
-
-    companion object {
-        const val NUMBER_OF_DAYS_TO_PURGE = -7
-        const val NUMBER_OF_DAYS_TO_PURGE_EVENTS = 4
-    }
+    private val eventDao by inject<com.bernaferrari.bravedns.database.EventDao>()
+    private val persistentState by inject<PersistentState>()
 
     override suspend fun doWork(): Result {
-        Logger.d(LOG_TAG_SCHEDULER, "starting purge-database job")
-        val calendar = Calendar.getInstance()
-        calendar.add(Calendar.DAY_OF_YEAR, NUMBER_OF_DAYS_TO_PURGE)
-        val date = calendar.time.time
-        Logger.i(LOG_TAG_SCHEDULER, "purging logs older than 7 days, date: $date")
-
-        /**
-         * purge logs older than 7 days (on version v053l, subject to change in later versions based
-         * on user configuration) come up with user configuration to delete the user logs.(both
-         * ConnectionTracker and DNSLogs.
-         */
+        val retention = LogRetention.fromHours(persistentState.logRetentionHours)
+        val date = System.currentTimeMillis() - retention.durationMillis
+        Logger.i(LOG_TAG_SCHEDULER, "Purging logs older than ${retention.hours} hours")
         refreshDatabase.purgeConnectionLogs(date)
-        /**
-         * purge event logs older than 4 days, can be changed based on user configuration in later
-         * versions.
-         */
-         eventLogger.scheduleAutoPurge(NUMBER_OF_DAYS_TO_PURGE_EVENTS)
+        eventDao.deleteOlderThan(date)
 
         return Result.success()
     }

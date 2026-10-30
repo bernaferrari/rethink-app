@@ -5,7 +5,7 @@
     <string name="title_statistics" translatable="true">Statistiky</string>
     <string name="lbl_rules" translatable="true">Pravidla</string>
     <string name="lbl_configure" translatable="true">Konfigurovat</string>
-    <string name="lbl_logs" translatable="true">záznamy</string>
+    <string name="lbl_logs" translatable="true">Záznamy</string>
     <string name="lbl_network" translatable="true">síť</string>
     <string name="lbl_create" translatable="true">Vytvořit</string>
     <string name="lbl_qr_code" translatable="true">QR kód</string>
@@ -26,8 +26,8 @@
     <string name="lbl_dns_servers" translatable="true">DNS servery</string>
     <string name="lbl_slow" translatable="true">pomalé</string>
     <string name="lbl_fast" translatable="true">rychlé</string>
-    <string name="lbl_add" translatable="true">přidat</string>
-    <string name="lbl_save" translatable="true">uložit</string>
+    <string name="lbl_add" translatable="true">Přidat</string>
+    <string name="lbl_save" translatable="true">Uložit</string>
     <string name="slide_2_desc" translatable="true">Keepout je nejjednodušší způsob, jak monitorovat síťovou aktivitu, obejít internetovou cenzuru a firewallovat aplikace na vašem zařízení Android.</string>
     <string name="lbl_status" translatable="true">Stav</string>
     <string name="lbl_remove" translatable="true">Odebrat</string>
@@ -119,7 +119,7 @@
     <string name="download_update_dialog_message" translatable="true">Nová verze aplikace je k dispozici ke stažení z webu. Přejete si pokračovat?</string>
     <string name="orbot_install_dialog_title" translatable="true">Nainstalovat Orbot?</string>
     <string name="settings_orbot_notification_action" translatable="true">Otevřít Orbot</string>
-    <string name="settings_general_header" translatable="true">obecné</string>
+    <string name="settings_general_header" translatable="true">Obecné</string>
     <string name="settings_ip_text_ipv4" translatable="true">IPv4</string>
     <string name="about_bug_no_log_dialog_message" translatable="true">Nepodařilo se získat crash logy. Chcete chybu nahlásit ručně?</string>
     <string name="about_web" translatable="true">Odkazy</string>
@@ -165,7 +165,7 @@
     <string name="always_on_dialog_stop_heading" translatable="true">Always-on VPN</string>
     <string name="private_dns_dialog_heading" translatable="true">Vypnout Private DNS</string>
     <string name="private_dns_dialog_desc" translatable="true">Nastavení DNS v Keepout je přepsáno Androidím Private DNS.\n\nChcete-li používat DNS z Keepout, přejděte do Nastavení systému Android a vypněte „Private DNS“.</string>
-    <string name="firewall_act_universal_tab" translatable="true">univerzální</string>
+    <string name="firewall_act_universal_tab" translatable="true">Univerzální</string>
     <string name="dns_crypt_relay_remove_dialog_message" translatable="true">Smazat DNSCrypt relay z uložené konfigurace.</string>
     <string name="dns_proxy_remove_dialog_title" translatable="true">Smazat DNS Proxy?</string>
     <string name="dns_proxy_remove_success" translatable="true">DNS Proxy bylo smazáno.</string>
@@ -195,7 +195,7 @@
     <string name="settings_allow_lan_desc" translatable="true">Vynechat LAN, loopback, multicast, link-local z tunelu Keepout VPN.</string>
     <string name="settings_allow_bypass_desc" translatable="true">Povolit aplikacím, které to vyžadují, přístup ke všem dostupným sítím a možnost obejít tunel Keepout VPN na vyžádání. Některé konferenční aplikace (např. Zoom či Meet) to mohou potřebovat pro správnou funkci.</string>
     <string name="settings_lock_down_proxy_desc" translatable="true">Nelze nastavit proxy, pokud VPN běží pouze v režimu DNS.</string>
-    <string name="settings_proxy_header" translatable="true">proxy</string>
+    <string name="settings_proxy_header" translatable="true">Proxy</string>
     <string name="settings_socks5_heading" translatable="true">Nastavit SOCKS5 Proxy</string>
     <string name="settings_https_heading" translatable="true">Nastavit HTTP(S) CONNECT Proxy</string>
     <string name="settings_https_desc" translatable="true">Přesměrovat připojení na endpoint HTTP(S) CONNECT.</string>
@@ -223,7 +223,7 @@
     <string name="settings_socks5_disabled_error" translatable="true">Připojeno k %1$s. Vypněte jej pro pokračování.</string>
     <string name="settings_socks5_vpn_disabled_error" translatable="true">Spusťte Keepout pro pokračování.</string>
     <string name="settings_orbot_disabled_error" translatable="true">Vypněte HTTP(S) a/nebo SOCKS5 proxy pro pokračování v nastavení Toru jako proxy.</string>
-    <string name="settings_general_customize" translatable="true">přizpůsobit</string>
+    <string name="settings_general_customize" translatable="true">Přizpůsobit</string>
     <string name="settings_autostart_bootup_heading" translatable="true">Automatický start po zapnutí (experimentální)</string>
     <string name="settings_autostart_bootup_desc" translatable="true">Po zapnutí zařízení spustí Keepout, pokud běžel před vypnutím.</string>
     <string name="settings_network_all_networks" translatable="true">Využívat všechny dostupné sítě (experimentální)</string>
@@ -283,7 +283,7 @@
     <string name="about_settings_vpn_profile" translatable="true">VPN profil</string>
     <string name="about_settings_notification" translatable="true">Nastavení oznámení</string>
     <string name="about_twitter" translatable="true">Sledujte nás na Twitteru</string>
-    <string name="about_mozilla" translatable="true">Rethink je podpořen Mozilla Builders, FOSS United Foundation, OSOM Products Inc.</string>
+    <string name="about_mozilla" translatable="true">Rethink je podpořen Mozilla Builders, FOSS United Foundation, FLOSS/fund.</string>
     <string name="about_whats_new" translatable="true">Co je nového ve verzi %1$s</string>
     <string name="about_app_update_check" translatable="true">Zkontrolovat aktualizace aplikace</string>
     <string name="about_dialog_positive_button" translatable="true">Jdeme na to</string>
@@ -308,7 +308,7 @@
     <string name="cd_doh_dialog_checkbox_desc" translatable="true">Nevalidovat TLS certifikáty serveru (povolte jen pokud víte, co děláte)</string>
     <string name="cd_dnscrypt_relay_heading" translatable="true">Relay</string>
     <string name="cd_dns_alg_heading" translatable="true">Pokročilé filtrování DNS (experimentální)</string>
-    <string name="cd_dns_alg_desc" translatable="true">Přiřadit každému DNS dotazu unikátní IP</string>
+    <string name="cd_dns_alg_desc" translatable="true">Přiřadit každému DNS dotazu unikátní IP.</string>
     <string name="ctbs_app_info_not_available_toast" translatable="true">Stránka s nastavením aplikace nebyla nalezena</string>
     <string name="ctbs_app_other_apps" translatable="true">%1$s + %2$s dalších aplikací</string>
     <string name="ctbs_block_other_apps" translatable="true">Pravidla pro %1$s se vztahují i na další %2$s aplikací</string>
@@ -316,7 +316,7 @@
     <string name="hs_download_positive_default" translatable="true">OK</string>
     <string name="univ_firewall_rule_1" translatable="true">Blokovat všechny aplikace, když je zařízení uzamčené</string>
     <string name="univ_accessibility_crash_dialog_positive" translatable="true">Přejít do Nastavení</string>
-    <string name="univ_accessibility_dialog_positive" translatable="true">Povolit</string>
+    <string name="univ_accessibility_dialog_positive" translatable="true">Udělit</string>
     <string name="univ_accessibility_dialog_negative" translatable="true">Odepřít</string>
     <string name="univ_firewall_heading" translatable="true">Univerzální firewallová pravidla</string>
     <string name="app_ip_domain_rules_desc" translatable="true">Upravit IP / Doménová pravidla pro jednotlivé aplikace.</string>
@@ -478,7 +478,7 @@
     <string name="bad_config_reason_invalid_key" translatable="true">Neplatný klíč</string>
     <string name="bad_config_reason_unknown_attribute" translatable="true">Neznámý atribut</string>
     <string name="bad_config_reason_unknown_section" translatable="true">Neznámá sekce</string>
-    <string name="parse_error_inet_endpoint" translatable="true">Endpoint</string>
+    <string name="parse_error_inet_endpoint" translatable="true">Koncový bod</string>
     <string name="parse_error_integer" translatable="true">číslo</string>
     <string name="bad_config_explanation_pka" translatable="true">: Musí být kladné a ne větší než 65535</string>
     <string name="bad_config_context" translatable="true">%1$s: %2$s</string>
@@ -494,7 +494,7 @@
     <string name="wireguard_enabled_failure" translatable="true">Zastavte jiné aktivní proxy pro povolení WireGuard</string>
     <string name="wireguard_disable_failure" translatable="true">„Always-on WireGuard“ nelze vypnout</string>
     <string name="wireguard_apps_proxy_map_desc" translatable="true">součást %1$s</string>
-    <string name="wireguard_disclaimer" translatable="true">DNS je přesměrováno na %1$s, ICMP (např. ping) zůstává v podkladové síti.</string>
+    <string name="wireguard_disclaimer" translatable="true">DNS je přesměrováno na %1$s.</string>
     <string name="wireguard_disable_title" translatable="true">Zastavit WireGuard</string>
     <string name="wireguard_disable_message" translatable="true">Zastavit všechny aktivní WireGuard VPN?</string>
     <string name="google_dns_desc" translatable="true">Nezablokuje žádné DNS požadavky. Využívá Google DNS.</string>
@@ -557,7 +557,7 @@
     <string name="dns_proxy_ip_address" translatable="true">IP adresa</string>
     <string name="firewall_rule_domain_blocked_univ" translatable="true">Doména (Univ)</string>
     <string name="firewall_rule_domain_trusted_univ" translatable="true">Důvěryhodná doména (Univ)</string>
-    <string name="firewall_rule_proxied" translatable="true">Proxy</string>
+    <string name="firewall_rule_proxied" translatable="true">Čeština</string>
     <string name="new_app_bulk_notification_title" translatable="true">Pozor</string>
     <string name="new_app_bulk_notification_content" translatable="true">Keepout zablokoval %1$s nových aplikací. Klepněte pro zobrazení nebo úpravu.</string>
     <string name="new_app_notification_content" translatable="true">Keepout zablokoval nedávno nainstalovanou aplikaci, %1$s.</string>
@@ -575,7 +575,7 @@
     <string name="cloudflare_dns_desc" translatable="true">Nezablokuje žádné DNS požadavky. Využívá Cloudflare 1.1.1.1.</string>
     <string name="cloudflare_family_dns_desc" translatable="true">Blokuje malware a obsah pro dospělé. Využívá Cloudflare 1.1.1.3.</string>
     <string name="cloudflare_security_dns_desc" translatable="true">Blokuje škodlivý obsah. Využívá Cloudflare 1.1.1.2.</string>
-    <string name="cd_dns_crypt_title" translatable="true">resolvery</string>
+    <string name="cd_dns_crypt_title" translatable="true">Resolvery</string>
     <string name="cd_custom_doh_url_name_default" translatable="true">DoH</string>
     <string name="cd_custom_doh_url_name" translatable="true">DoH %1$s</string>
     <string name="cd_custom_dns_proxy_name_default" translatable="true">Proxy</string>
@@ -592,8 +592,8 @@
     <string name="rt_edit_dialog_positive" translatable="true">Upravit</string>
     <string name="rt_download" translatable="true">Stáhnout blokovací seznamy</string>
     <string name="rt_re_download" translatable="true">Znovu stáhnout blokovací seznamy</string>
-    <string name="rt_list_simple_btn_txt" translatable="true">jednoduché</string>
-    <string name="lbl_advanced" translatable="true">pokročilé</string>
+    <string name="rt_list_simple_btn_txt" translatable="true">Jednoduché</string>
+    <string name="lbl_advanced" translatable="true">Pokročilé</string>
     <string name="rt_filter_parent_selected" translatable="true">Vybráno</string>
     <string name="dc_setting_dns_cache_heading" translatable="true">DNS booster</string>
     <string name="dc_setting_dns_cache_desc" translatable="true">Spojování požadavků, cachování odpovědí, odolné proti chybám</string>
@@ -665,7 +665,7 @@
     <string name="firewall_rule_proxied_desc" translatable="true">Toto připojení bylo přesměrováno na proxy preferovanou uživatelem.<br/><br/> Pro změnu přejděte na Proxy z obrazovky Konfigurace.</string>
     <string name="rt_filter_desc_subgroups" translatable="true">Zobrazuji %1$s seznamy blokování ve skupině: %2$s a podskupině: %3$s</string>
     <string name="firewall_rule_block_udp_ntp_desc" translatable="true">Uživatelem nastavené pravidlo firewallu zablokovalo toto UDP připojení.<br/><br/> Pro změnu přejděte na záložku Univerzální.</string>
-    <string name="lbl_test" translatable="true">test</string>
+    <string name="lbl_test" translatable="true">Test</string>
     <string name="lbl_experimental" translatable="true">(experimentální)</string>
     <string name="lbl_manual" translatable="true">Manuál</string>
     <string name="home_last_24_hours">Posledních 24 hodin</string>
@@ -692,7 +692,6 @@
     <string name="log_detail_flags">Příznaky</string>
     <string name="log_detail_message">Zpráva</string>
     <string name="log_detail_resolver">Resolver</string>
-    <string name="log_detail_blocklists">Blokovací seznamy</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">Platné</string>
     <string name="log_detail_dnssec_unverified">Neověřeno</string>
@@ -720,4 +719,59 @@
     <string name="dns_median_lookup">Medián doby dotazu</string>
     <string name="dns_recent_lookups">Poslední dotazy</string>
     <string name="dns_no_lookups_yet">Zatím žádné dotazy</string>
+    <string name="about_license" translatable="true">Licencováno pod Apache-2.0</string>
+    <string name="ac_desync" translatable="true">Desync</string>
+    <string name="ac_desync_desc" translatable="true">Odesílat návnadové pakety podle potřeby.</string>
+    <string name="ac_never_split_desc" translatable="true">Neupravovat pakety.</string>
+    <string name="ac_retry_options_after_split_desc" translatable="true">Vždy použít techniky proti cenzuře.</string>
+    <string name="ac_retry_options_desc" translatable="true">Nastavte, jak fungují opakované pokusy u cenzurovaných připojení.</string>
+    <string name="ac_retry_options_never_desc" translatable="true">Při selhání nikdy neopakovat techniky proti cenzuře.</string>
+    <string name="ac_retry_options_with_split_desc" translatable="true">Použít techniky proti cenzuře, když je to potřeba.</string>
+    <string name="ac_split_auto_desc" translatable="true">Upravovat pakety podle potřeby.</string>
+    <string name="ac_split_tcp" translatable="true">TCP</string>
+    <string name="ac_split_tcp_desc" translatable="true">Upravovat TCP pakety.</string>
+    <string name="ac_split_tls" translatable="true">TCP/TLS</string>
+    <string name="ac_split_tls_desc" translatable="true">Upravovat TCP nebo TLS pakety.</string>
+    <string name="ac_toast_retry_disabled" translatable="true">Vyberte libovolnou možnost proti cenzuře pro volbu strategie.</string>
+    <string name="anti_censorship_title" translatable="true">Ochrana proti cenzuře</string>
+    <string name="blocklist_not_available_toast" translatable="true">Pro aktualizaci seznamů blokování si stáhněte nejnovější verzi aplikace.</string>
+    <string name="cd_split_dns_desc" translatable="true">Přeposílat DNS dotazy z aplikací přes proxy na DNS servery dané proxy.</string>
+    <string name="cd_split_dns_heading" translatable="true">Rozdělené DNS (experimentální)</string>
+    <string name="close_conns_dialog_desc" translatable="true">Uzavřít všechna připojení pro %1$s?</string>
+    <string name="config_invalid_desc" translatable="true">Neplatná konfigurace WireGuard</string>
+    <string name="copied_clipboard" translatable="true">Zkopírováno</string>
+    <string name="dc_filtering_heading" translatable="true">Filtrování</string>
+    <string name="dns_desc" translatable="true">Vyberte z 190+ seznamů pro zastavení reklam, sledovačů a malwaru.</string>
+    <string name="download_ip_info_title" translatable="true">Zobrazit informace o poskytovateli</string>
+    <string name="exclude_no_package_err_toast" translatable="true">Vyloučení aplikací vyžaduje název balíčku.</string>
+    <string name="fail_open_network_title" translatable="true">Zastavit při ztrátě sítě</string>
+    <string name="firewall_rule_private_dns" translatable="true">Soukromé DNS</string>
+    <string name="hop_failure_toast" translatable="true">Chyba přesměrování: %1$s → %2$s</string>
+    <string name="lbl_action" translatable="true">Akce</string>
+    <string name="lbl_always" translatable="true">Vždy</string>
+    <string name="lbl_connect" translatable="true">Připojit</string>
+    <string name="lbl_criteria" translatable="true">Kritéria</string>
+    <string name="local_blocklist_delete_desc" translatable="true">Smazat on-device blokovací seznamy?</string>
+    <string name="settings_allow_incoming_wg_packets" translatable="true">WireGuard P2P</string>
+    <string name="settings_firebase_error_reporting_desc" translatable="true">Zaznamenávat chybové protokoly pro zlepšení stability.</string>
+    <string name="settings_firebase_error_reporting_heading" translatable="true">Program stability</string>
+    <string name="settings_jumbo_packets" translatable="true">Posilovač šířky pásma</string>
+    <string name="smart_dns" translatable="true">Chytré DNS</string>
+    <string name="title_database_dump" translatable="true">Databáze</string>
+    <string name="tombstone_app_desc" translatable="true">Když je povoleno, zachovat pravidla aplikací po dobu 7 dní.</string>
+    <string name="tombstone_app_title" translatable="true">Pamatovat si odinstalované aplikace</string>
+    <string name="vpn_policy_auto_desc" translatable="true">Reaguje na důležité změny v síti a připojení.</string>
+    <string name="vpn_policy_fixed" translatable="true">Konzervativní</string>
+    <string name="vpn_policy_fixed_desc" translatable="true">Reaguje minimálně na změny v připojení.</string>
+    <string name="vpn_policy_relaxed" translatable="true">Uvolněný</string>
+    <string name="vpn_policy_relaxed_desc" translatable="true">Reaguje na zajímavé změny v připojení.</string>
+    <string name="vpn_policy_sensitive" translatable="true">Citlivé</string>
+    <string name="vpn_policy_sensitive_desc" translatable="true">Reaguje na všechny změny v síti a připojení.</string>
+    <string name="vpn_policy_title" translatable="true">Zásady pro změny připojení</string>
+    <string name="wg_setting_ssid_title" translatable="true">Pouze Wi-Fi</string>
+    <string name="wg_setting_use_on_mobile" translatable="true">Pouze mobilní data</string>
+    <string name="wg_setting_use_on_mobile_desc" translatable="true">Používat tento WireGuard VPN přes mobilní data.</string>
+    <string name="wg_ssid_type_exact" translatable="true">Přesná shoda</string>
+    <string name="wg_ssid_type_wildcard" translatable="true">Částečná shoda</string>
+    <string name="wireguard_disable_failure_relay" translatable="true">„Relay WireGuard“ nelze vypnout</string>
 </resources>

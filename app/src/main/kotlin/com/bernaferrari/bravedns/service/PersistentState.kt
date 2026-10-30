@@ -110,6 +110,15 @@ class PersistentState(context: Context) {
     // enable / disable logging dns and tcp/udp connections to db
     var logsEnabled by store.boolean("local_logs", true)
 
+    private var storedLogRetentionHours by store.int("log_retention_hours", 168)
+    var logRetentionHours: Int
+        get() = com.bernaferrari.bravedns.util.LogRetention.fromHours(storedLogRetentionHours).hours
+        set(value) { storedLogRetentionHours = com.bernaferrari.bravedns.util.LogRetention.fromHours(value).hours }
+
+    var pcapStartedAt by store.long("pcap_started_at", 0L)
+    var pcapCaptureId by store.string("pcap_capture_id", "")
+    var appListSortName by store.string("app_list_sort", "Name")
+
     // the last-set app version; useful to detect an update where the current
     // app version is going to be greater than the one stored, and so, update flow
     // can be triggered accordingly, if any,
@@ -299,6 +308,9 @@ class PersistentState(context: Context) {
 
     // perform connectivity checks
     var connectivityChecks by store.boolean("connectivity_check", Utilities.isPlayStoreFlavour())
+
+    // Explicit opt-in: captive login may use cleartext system DNS until validation succeeds.
+    var useSystemDnsOnCaptivePortal by store.boolean("use_system_dns_on_captive_portal", false)
 
     // proxy dns requests over proxy
     var proxyDns by store.boolean("proxy_dns", true)

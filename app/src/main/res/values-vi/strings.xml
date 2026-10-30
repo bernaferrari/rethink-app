@@ -31,7 +31,7 @@
     <string name="alert_permission_accessibility" translatable="true">Quyền - Trợ năng</string>
     <string name="default_dns_name" translatable="true">RDNS Mặc định</string>
     <string name="custom_url_error_invalid_url" translatable="true">URL không hợp lệ</string>
-    <string name="conn_track_clear_logs_title" translatable="true">Xóa tất cả nhật ký mạng\?</string>
+    <string name="conn_track_clear_logs_title" translatable="true">Xóa tất cả nhật ký mạng?</string>
     <string name="ssv_see_more" translatable="true">Hiển thị tất cả</string>
     <string name="slide_2_desc" translatable="true">RethinkDNS là cách dễ nhất để giám sát hoạt động mạng, vượt qua kiểm duyệt Internet và các ứng dụng tường lửa trên thiết bị Android của bạn.</string>
     <string name="rdns_plus" translatable="true">RDNS Plus</string>
@@ -61,17 +61,17 @@
     <string name="private_dns_dialog_heading" translatable="true">Tắt DNS riêng</string>
     <string name="private_dns_dialog_desc" translatable="true">Cài đặt DNS của Keepout bị DNS riêng của Android ghi đè.\n\nĐể sử dụng DNS của Keepout, hãy chuyển đến Cài đặt Android và tắt \"DNS riêng tư\".</string>
     <string name="private_dns_dialog_positive" translatable="true">Chuyển đến Cài đặt</string>
-    <string name="firewall_act_universal_tab" translatable="true">chung</string>
+    <string name="firewall_act_universal_tab" translatable="true">Chung</string>
     <string name="firewall_act_network_monitor_tab" translatable="true">Mạng</string>
     <string name="doh_custom_url_remove_success" translatable="true">Đã xóa điểm cuối.</string>
-    <string name="dns_crypt_custom_url_remove_dialog_title" translatable="true">Xóa trình phân giải DNSCrypt\?</string>
+    <string name="dns_crypt_custom_url_remove_dialog_title" translatable="true">Xóa trình phân giải DNSCrypt?</string>
     <string name="dns_crypt_url_remove_dialog_message" translatable="true">Xóa trình phân giải DNSCrypt khỏi cấu hình đã lưu.</string>
     <string name="dns_crypt_url_remove_success" translatable="true">Đã xóa trình phân giải DNSCrypt.</string>
     <string name="dns_crypt_relay_remove_dialog_title" translatable="true">Xóa Chuyển tiếp DNSCrypt\?</string>
     <string name="dns_proxy_remove_dialog_title" translatable="true">Xóa Proxy DNS\?</string>
     <string name="dns_proxy_remove_success" translatable="true">Đã xoá Proxy DNS</string>
     <string name="local_blocklist_download" translatable="true">Tải xuống danh sách chặn</string>
-    <string name="local_blocklist_download_desc" translatable="true">Tải xuống danh sách chặn (khoảng 60 MB) để sử dụng tính năng này\?</string>
+    <string name="local_blocklist_download_desc" translatable="true">Tải xuống danh sách chặn (khoảng 60 MB) để sử dụng tính năng này?</string>
     <string name="local_blocklist_redownload_desc" translatable="true">Danh sách chặn trên thiết bị đã có ở phiên bản mới nhất v%1$s.</string>
     <string name="blocklist_update_check_failure" translatable="true">Đã xảy ra sự cố. Thử lại sau!</string>
     <string name="refresh_complete" translatable="true"><!-- use dc_refresh_toast --> Hoàn tất đồng bộ lại danh sách ứng dụng.</string>
@@ -89,7 +89,7 @@
     <string name="doh_custom_url_remove_dialog_message" translatable="true">Xóa điểm cuối DNS qua Https khỏi cấu hình đã lưu.</string>
     <string name="dns_proxy_remove_dialog_message" translatable="true">Xóa Proxy DNS khỏi cấu hình đã lưu.</string>
     <string name="download_update_dialog_title" translatable="true">Bản cập nhật mới!</string>
-    <string name="download_update_dialog_message" translatable="true">Phiên bản mới của ứng dụng đã có sẵn để tải xuống từ trang web. Bạn có muốn tiếp tục\?</string>
+    <string name="download_update_dialog_message" translatable="true">Phiên bản mới của ứng dụng đã có sẵn để tải xuống từ trang web. Bạn có muốn tiếp tục?</string>
     <string name="download_update_dialog_message_ok_title" translatable="true">Đã cập nhật!</string>
     <string name="download_update_dialog_message_ok" translatable="true">Bạn đã sử dụng phiên bản mới nhất của ứng dụng.</string>
     <string name="download_update_dialog_message_success" translatable="true">Tải xuống danh sách chặn thành công.</string>
@@ -103,7 +103,7 @@
     <string name="settings_enable_logs" translatable="true">Bật ghi nhật ký trên thiết bị</string>
     <string name="connection_http3" translatable="true">HTTP3</string>
     <string name="settings_allow_bypass_heading" translatable="true">Kích hoạt khả năng hiển thị mạng</string>
-    <string name="settings_proxy_header" translatable="true">proxy</string>
+    <string name="settings_proxy_header" translatable="true">Proxy</string>
     <string name="settings_socks5_heading" translatable="true">Thiết lập proxy SOCKS5</string>
     <string name="settings_https_heading" translatable="true">Thiết lập Proxy HTTP(S) CONNECT</string>
     <string name="orbot" translatable="true">Orbot</string>
@@ -116,7 +116,7 @@
     <string name="orbot_bs_status_3" translatable="true">Đang chuyển tiếp %1$s tới Orbot, HTTP Proxy cũng được đặt.</string>
     <string name="orbot_status_arg_2" translatable="true">TCP</string>
     <string name="orbot_status_arg_3" translatable="true">DNS và TCP</string>
-    <string name="orbot_app_issue" translatable="true">Không thể khởi chạy Orbot. Nó đã được cài đặt chưa\?</string>
+    <string name="orbot_app_issue" translatable="true">Không thể khởi chạy Orbot. Nó đã được cài đặt chưa?</string>
     <string name="orbot_bs_status_trying_connect" translatable="true">Đang thiết lập Orbot…</string>
     <string name="orbot_stop_dialog_message_combo" translatable="true">%1$s
 \n
@@ -124,7 +124,7 @@
     <string name="orbot_stop_dialog_negative" translatable="true">Dừng Orbot</string>
     <string name="orbot_stop_dialog_neutral" translatable="true">Thay đổi DNS</string>
     <string name="orbot_title" translatable="true">Orbot và Proxy</string>
-    <string name="orbot_install_dialog_title" translatable="true">Cài đặt Orbot\?</string>
+    <string name="orbot_install_dialog_title" translatable="true">Cài đặt Orbot?</string>
     <string name="orbot_install_dialog_message" translatable="true">Orbot mang đến các tính năng và chức năng của Tor cho Android.</string>
     <string name="orbot_install_dialog_positive" translatable="true">Cài đặt</string>
     <string name="orbot_install_dialog_neutral" translatable="true">trang web</string>
@@ -133,7 +133,7 @@
     <string name="settings_https_disabled_error" translatable="true">Đã kết nối với %1$s. Tắt để tiếp tục.</string>
     <string name="settings_orbot_notification_content" translatable="true">Lỗi khởi động Tor-as-a-Proxy. Mở ứng dụng Orbot để khởi động thủ công.</string>
     <string name="settings_orbot_notification_action" translatable="true">Mở Orbot</string>
-    <string name="settings_general_header" translatable="true">tổng quan</string>
+    <string name="settings_general_header" translatable="true">Tổng quan</string>
     <string name="settings_autostart_bootup_heading" translatable="true">Tự khởi động khi bật nguồn (thử nghiệm)</string>
     <string name="settings_network_all_networks" translatable="true">Sử dụng tất cả các mạng có sẵn (thử nghiệm)</string>
     <string name="settings_check_update_heading" translatable="true">Kiểm tra các bản cập nhật ứng dụng</string>
@@ -185,20 +185,20 @@
     <string name="bypass_dns_firewall" translatable="true">bỏ qua dns &amp; tường lửa</string>
     <string name="bsct_block_ip" translatable="true">Chặn, tin tưởng \u0020địa chỉ IP này cho ứng dụng này</string>
     <string name="bsct_block_domain" translatable="true">Chặn, tin tưởng tên miền  cho ứng dụng này </string>
-    <string name="lbl_logs" translatable="true">nhật kí</string>
+    <string name="lbl_logs" translatable="true">Nhật kí</string>
     <string name="settings_custom_downloader_heading" translatable="true">Sử dụng trình tải xuống trong ứng dụng</string>
     <string name="dc_dns_leaks_heading" translatable="true">Ngăn chặn rò rỉ DNS</string>
-    <string name="cd_dns_crypt_title" translatable="true">bộ phân giải</string>
+    <string name="cd_dns_crypt_title" translatable="true">Bộ phân giải</string>
     <string name="cd_dns_crypt_dialog_heading" translatable="true">Thêm Trình phân giải hoặc chuyển tiếp DNSCrypt</string>
     <string name="cd_dns_crypt_relay_name" translatable="true">DNSRelay %1$s</string>
     <string name="hs_download_positive_default" translatable="true">ok</string>
-    <string name="lbl_network" translatable="true">mạng</string>
+    <string name="lbl_network" translatable="true">Mạng</string>
     <string name="settings_enable_logs_desc" translatable="true">Lưu trữ nhật ký DNS và Tường lửa trên bộ nhớ cục bộ</string>
     <string name="settings_allow_lan_heading" translatable="true">Không định tuyến IP riêng tư (thử nghiệm)</string>
     <string name="orbot_stop_dialog_title" translatable="true">Cần can thiệp thủ công</string>
     <string name="settings_http_proxy_error_text1" translatable="true">Phạm vi cổng phải từ 1024-65535</string>
     <string name="settings_app_list_default_app" translatable="true">Không gì cả</string>
-    <string name="dc_other_dns_heading" translatable="true">Loại</string>
+    <string name="dc_other_dns_heading" translatable="true">loại</string>
     <string name="about_github" translatable="true">Đóng góp trên GitHub</string>
     <string name="cd_custom_doh_url_name_default" translatable="true">DoH</string>
     <string name="ctbs_app_other_apps" translatable="true">%1$s + %2$s ứng dụng khác</string>
@@ -233,20 +233,20 @@
     <string name="info_dialog_rethink_toast_msg" translatable="true">Đã sao chép dưới dạng URL RDNS+ DNS-over-HTTPS</string>
     <string name="about_settings_vpn_profile" translatable="true">VPN Profile</string>
     <string name="settings_lock_down_proxy_desc" translatable="true">Không thể thiết lập proxy khi VPN đang chạy ở chế độ chỉ DNS.</string>
-    <string name="settings_general_customize" translatable="true">tuỳ chỉnh</string>
+    <string name="settings_general_customize" translatable="true">Tuỳ chỉnh</string>
     <string name="hsf_vpn_dialog_message" translatable="true">Keepout cần có quyền thiết lập VPN cục bộ để mã hoá các yêu cầu DNS, triển khai trình giám sát mạng và thực thi các quy tắc tường lửa.\n\nKeepout không thu thập thông tin hay theo dõi bạn dưới bất kì hình thức nào.</string>
     <string name="about_mail_bugreport_share_title" translatable="true">Chọn nhà cung cấp email</string>
     <string name="hsf_pause_vpn_failure" translatable="true">Không thể dừng: Keepout đang không hoạt động</string>
     <string name="about_mail_to" translatable="true">hello@celzero.com</string>
     <string name="about_settings_notification" translatable="true">Cài đặt thông báo</string>
     <string name="dc_rethink_dns_radio" translatable="true">Rethink DNS</string>
-    <string name="dc_block_heading" translatable="true">Quy tắc</string>
+    <string name="dc_block_heading" translatable="true">Các quy tắc</string>
     <string name="dc_entries" translatable="true">%1$s mục »</string>
     <string name="dc_local_block_desc_1" translatable="true">Chọn từ hơn 195 danh sách chặn. Nhấn vào đây để tải xuống hoặc định cấu hình danh sách chặn.</string>
     <string name="dc_local_block_heading" translatable="true">Danh sách chặn trên thiết bị</string>
     <string name="about_docs" translatable="true">đọc tài liệu</string>
     <string name="dc_check_update_heading" translatable="true">Nhắc nhở khi danh sách chặn có cập nhật</string>
-    <string name="about_mozilla" translatable="true">Rethink được ủng hộ bởi Mozilla Builders, FOSS United Foundation.</string>
+    <string name="about_mozilla" translatable="true">Rethink được ủng hộ bởi Mozilla Builders, FOSS United Foundation, FLOSS/fund.</string>
     <string name="about_join_telegram" translatable="true">Telegram</string>
     <string name="about_bug_report" translatable="true">Báo cáo lỗi</string>
     <string name="about_bug_no_log_dialog_positive_btn" translatable="true">Gửi email</string>
@@ -254,7 +254,7 @@
     <string name="about_connect" translatable="true">Liên hệ</string>
     <string name="about_email" translatable="true">Gửi email cho chúng tôi</string>
     <string name="about_bug_report_dialog_positive_btn" translatable="true">Gửi email</string>
-    <string name="about_web" translatable="true">Liên kết</string>
+    <string name="about_web" translatable="true">Các liên kết</string>
     <string name="about_bug_no_log_dialog_title" translatable="true">Báo cáo lỗi</string>
     <string name="about_website" translatable="true">Truy cập rethinkdns.com</string>
     <string name="about_privacy_policy" translatable="true">Đọc chính sách bảo mật</string>
@@ -311,14 +311,14 @@
     <string name="lbl_http" translatable="true">HTTP</string>
     <string name="lbl_day" translatable="true">ngày</string>
     <string name="lbl_optional" translatable="true">(tùy chọn)</string>
-    <string name="lbl_save" translatable="true">lưu</string>
+    <string name="lbl_save" translatable="true">Lưu</string>
     <string name="lbl_qr_code" translatable="true">Mã QR</string>
     <string name="lbl_create" translatable="true">Tạo ra</string>
     <string name="lbl_wireguard" translatable="true">WireGuard</string>
     <string name="lbl_addresses" translatable="true">Địa chỉ</string>
     <string name="lbl_delete" translatable="true">Xóa</string>
     <string name="lbl_auto" translatable="true">(tự động)</string>
-    <string name="lbl_add" translatable="true">thêm</string>
+    <string name="lbl_add" translatable="true">Thêm</string>
     <string name="lbl_select_all" translatable="true">chọn tất cả</string>
     <string name="lbl_active" translatable="true">Đang hoạt động</string>
     <string name="lbl_fast" translatable="true">nhanh</string>
@@ -427,7 +427,7 @@
     <string name="fapps_isolate_block_dialog_title" translatable="true">Cô lập ứng dụng</string>
     <string name="fapps_unblock_dialog_title" translatable="true">Cho phép ứng dụng</string>
     <string name="fapps_unblock_dialog_message" translatable="true">Cho phép kết nối cho các ứng dụng được liệt kê \?</string>
-    <string name="lbl_test" translatable="true">thử</string>
+    <string name="lbl_test" translatable="true">Thử nghiệm</string>
     <string name="lbl_experimental" translatable="true">(thử nghiệm)</string>
     <string name="lbl_service_providers" translatable="true">Nhà cung cấp dịch vụ</string>
     <string name="lbl_manual" translatable="true">Thủ công</string>
@@ -437,7 +437,7 @@
     <string name="dc_use_sys_dns_undelegated_heading" translatable="true">Sử dụng DNS hệ thống cho những tên miền không được chuyển giao</string>
     <string name="dc_use_sys_dns_undelegated_desc" translatable="true">Sử dụng DNS hệ thống cho những tên miền không được chuyển giao như .lan, .internal,...</string>
     <string name="cd_split_dns_heading" translatable="true">Tách DNS (thử nghiệm)</string>
-    <string name="cd_split_dns_desc" translatable="true">Chuyển hướng yêu cầu DNS từ những ứng dụng có proxy tới máy chủ DNS của proxy.</string>
+    <string name="cd_split_dns_desc" translatable="true">Chuyển tiếp yêu cầu DNS từ những ứng dụng có proxy tới máy chủ DNS của proxy.</string>
     <string name="cd_treat_dns_rules_firewall_heading" translatable="true">Coi quy tắc DNS như quy tắc tường lửa (thử nghiệm)</string>
     <string name="network_log_app_name_unnamed" translatable="true">Không tên (%1$s)</string>
     <string name="dns_proxy_connection_failure" translatable="true">Lỗi kết nối tới máy chủ DNS Proxy.</string>
@@ -602,7 +602,6 @@
     <string name="log_detail_flags">Cờ</string>
     <string name="log_detail_message">Thông báo</string>
     <string name="log_detail_resolver">Trình phân giải</string>
-    <string name="log_detail_blocklists">Danh sách chặn</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">Hợp lệ</string>
     <string name="log_detail_dnssec_unverified">Chưa xác minh</string>
@@ -624,4 +623,24 @@
     <string name="dns_median_lookup">Thời gian truy vấn trung vị</string>
     <string name="dns_recent_lookups">Truy vấn gần đây</string>
     <string name="dns_no_lookups_yet">Chưa có truy vấn nào</string>
+    <string name="ada_app_metered" translatable="true">Có đo lường</string>
+    <string name="ada_app_unmetered" translatable="true">Không đo lường</string>
+    <string name="ada_delete_logs_dialog_desc" description="Appears as dialog description to clear the logs in app specific screen" translatable="true">Xóa tất cả nhật ký liên quan tới ứng dụng này.</string>
+    <string name="ada_delete_logs_dialog_title" description="Appears as dialog title to clear the logs in app specific screen" translatable="true">Xóa nhật ký</string>
+    <string name="bsac_title_desc" translatable="true">Quy tắc chỉ áp dụng cho ứng dụng này.</string>
+    <string name="exclude_apps_from_proxy_failure_toast">Ứng dụng này bỏ qua proxy</string>
+    <string name="lbl_advanced" translatable="true">Nâng cao</string>
+    <string name="radio_max_btn" translatable="true">🪂 Max</string>
+    <string name="radio_sky_btn" translatable="true">⛅ Sky</string>
+    <string name="rbl_security_desc" description="The text appears as blocklists description in configure screen" translatable="true">Chặn mã độc, mã độc tống tiền, mã độc đào tiền ảo, lừa đảo và các mối đe dọa khác.</string>
+    <string name="rt_chip_check_update" translatable="true">Kiểm tra cập nhật</string>
+    <string name="rt_chip_update_available" translatable="true">Cập nhật khả dụng</string>
+    <string name="rt_dialog_message" translatable="true">Bạn có muốn áp dụng danh sách chặn được thiết lập mới nhất không ?</string>
+    <string name="rt_dialog_neutral" translatable="true">Tiếp tục</string>
+    <string name="rt_download" translatable="true">Tải xuống danh sách chặn</string>
+    <string name="rt_download_desc" translatable="true">Tải xuống danh sách chặn (khoảng 60MB) để dùng tính năng này.</string>
+    <string name="rt_edit_dialog_positive" translatable="true">Chỉnh sửa</string>
+    <string name="rt_filter_parent_selected" translatable="true">Đã chọn</string>
+    <string name="rt_list_simple_btn_txt" translatable="true">Cơ bản</string>
+    <string name="rt_re_download" translatable="true">Tải lại danh sách chặn</string>
 </resources>

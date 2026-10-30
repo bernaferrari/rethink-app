@@ -31,11 +31,13 @@ import org.koin.core.component.inject
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.io.File
+import java.io.IOException
 import java.io.FileInputStream
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.nio.charset.Charset
 import java.util.concurrent.CopyOnWriteArraySet
+import java.util.concurrent.atomic.AtomicLong
 import java.util.zip.ZipEntry
 import java.util.zip.ZipException
 import java.util.zip.ZipOutputStream
@@ -74,6 +76,7 @@ object EnhancedBugReport : KoinComponent {
      * the race condition that a timestamp-based guard cannot handle.
      */
     private val activeSessionFileNames = CopyOnWriteArraySet<String>()
+    private val fileSequence = AtomicLong()
 
     private val mutex = Mutex()
 
@@ -84,6 +87,10 @@ object EnhancedBugReport : KoinComponent {
     fun markFileAsActive(fileName: String) {
         activeSessionFileNames.add(fileName)
         Log.d(LOG_TAG_BUG_REPORT, "tombstone active: $fileName")
+    }
+
+    fun markFileAsClosed(fileName: String) {
+        activeSessionFileNames.remove(fileName)
     }
 
     /** Returns a new File for a Go log session (golog_<ts>.txt), creating the folder if needed. */
@@ -244,39 +251,13 @@ object EnhancedBugReport : KoinComponent {
      *
      */
     private fun reportFilesToFirebase(files: List<File>) {
-        val lastReportedName = persistentState.lastReportedTombstoneFile
-        // Extract the timestamp from the stored filename so we can compare by value, not by
-        // list position. Returns 0 when no file has been reported yet → all files are new.
-        val lastReportedTs = extractTimestampFromName(lastReportedName)
-        Log.d(LOG_TAG_BUG_REPORT,
-            "tombstone report: lastReported='$lastReportedName' ts=$lastReportedTs, candidates=${files.size}")
-
+        // Presence on disk is the retry ledger. A timestamp cursor cannot prove that
+        // older files were accepted (or distinguish historical same-millisecond files).
         for (file in files) {
-            val fileTs = extractTimestampFromName(file.name)
-
-            if (fileTs in 1..lastReportedTs) {
-                // This file was already reported in a previous session (or IS the last reported
-                // file). Delete it now that we know it has been sent.
-                val deleted = file.delete()
-                Log.d(LOG_TAG_BUG_REPORT,
-                    "tombstone already-reported, deleting: ${file.name} ts=$fileTs, ok=$deleted")
-                continue
-            }
-
-            // fileTs == 0 means we couldn't parse the timestamp (unexpected filename).
-            // Treat it as unreported so it gets sent rather than silently dropped.
-            val sent = sendFileToFirebase(file)
-            if (sent) {
-                persistentState.lastReportedTombstoneFile = file.name
-                val deleted = file.delete()
-                Log.i(LOG_TAG_BUG_REPORT,
-                    "tombstone reported+deleted: ${file.name} ts=$fileTs, ok=$deleted")
-            } else {
-                // send failed; leave the file on disk for retry on next startup.
-                // maybe consider deleting it if failed for a while?
-                Log.w(LOG_TAG_BUG_REPORT,
-                    "tombstone send failed, will retry: ${file.name}")
-            }
+            if (!sendFileToFirebase(file)) break
+            persistentState.lastReportedTombstoneFile = file.name
+            val deleted = file.delete()
+            Log.i(LOG_TAG_BUG_REPORT, "tombstone reported+deleted: ${file.name}, ok=$deleted")
         }
     }
 
@@ -322,16 +303,16 @@ object EnhancedBugReport : KoinComponent {
             Logger.d(LOG_TAG_BUG_REPORT, "err-rpting: sending $type ${file.name} (${content.length} chars)")
             // add 2 kb in the exception, rest to be added in corresponding log calls
             val messagePreview = content.take(2 * 1024)
-            val ex = RuntimeException("[$type] ${file.name}\n$messagePreview")
+            val ex = com.bernaferrari.bravedns.util.ExceptionParser.parse(content, "[$type] ${file.name}: $messagePreview")
 
             // log rest content in 8 KB chunks so nothing is lost.
             content.chunked(8 * 1024).forEachIndexed { idx, chunk ->
                 FirebaseErrorReporting.log("[$type][${file.name}][$idx] $chunk")
             }
             // note: call the log before exception and then record exception
-            FirebaseErrorReporting.recordException(ex)
-            Log.d(LOG_TAG_BUG_REPORT, "err-rpting: sent $type ${file.name} (${content.length} chars)")
-            true
+            val accepted = FirebaseErrorReporting.tryRecordException(ex)
+            Log.d(LOG_TAG_BUG_REPORT, "err-rpting: accepted=$accepted for $type ${file.name}")
+            accepted
         } catch (e: Exception) {
             Log.e(LOG_TAG_BUG_REPORT, "err-rpting: failed to send ${file.name}: ${e.message}")
             false
@@ -358,7 +339,7 @@ object EnhancedBugReport : KoinComponent {
         val deleteCount = files.size - MAX_TOTAL_FILES
         Log.i(LOG_TAG_BUG_REPORT,
             "tombstone cap: ${files.size} files, deleting $deleteCount oldest (max=$MAX_TOTAL_FILES)")
-        files.filterNot { it == justWritten }
+        files.filterNot { it == justWritten || activeSessionFileNames.contains(it.name) }
             .take(deleteCount)
             .forEach { f ->
                 val ok = f.delete()
@@ -374,7 +355,7 @@ object EnhancedBugReport : KoinComponent {
         try {
             val folder = tombstoneFolder(context.filesDir) ?: return
             // Delete empty files first.
-            folder.listFiles { f -> f.isFile && f.length() == 0L }?.forEach { it.delete() }
+            folder.listFiles { f -> f.isFile && f.length() == 0L && !activeSessionFileNames.contains(f.name) }?.forEach { it.delete() }
             val files = folder.listFiles { f -> f.isFile && f.length() > 0 }
                 ?.sortedBy { it.lastModified() } ?: return
             enforceFileCountCap(files, justWritten)
@@ -385,21 +366,16 @@ object EnhancedBugReport : KoinComponent {
 
     private fun newTombstoneFile(context: Context, prefix: String): File? {
         val folder = tombstoneFolder(context.filesDir) ?: return null
-        val file = File(folder, "$prefix${System.currentTimeMillis()}$FILE_EXTENSION")
         return try {
-            if (file.createNewFile()) {
-                // Register golog_ / gocrash_ files immediately so reportTombstonesToFirebaseOnStartup
-                // never touches them, regardless of when it runs relative to file creation.
-                if (prefix == PREFIX_GO_LOG || prefix == PREFIX_GO_CRASH) {
-                    markFileAsActive(file.name)
-                }
-                file
-            } else {
-                Log.e(LOG_TAG_BUG_REPORT, "file already exists: ${file.name}")
-                file
-            }
-        } catch (e: Exception) {
-            Log.e(LOG_TAG_BUG_REPORT, "failed to create ${file.name}: ${e.message}")
+            var file: File
+            do {
+                val timestamp = fileSequence.updateAndGet { maxOf(System.currentTimeMillis(), it + 1) }
+                file = File(folder, "$prefix$timestamp$FILE_EXTENSION")
+            } while (!file.createNewFile())
+            if (prefix == PREFIX_GO_LOG || prefix == PREFIX_GO_CRASH) markFileAsActive(file.name)
+            file
+        } catch (error: IOException) {
+            Log.e(LOG_TAG_BUG_REPORT, "Cannot create crash file", error)
             null
         }
     }

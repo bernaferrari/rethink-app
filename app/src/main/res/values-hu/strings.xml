@@ -27,7 +27,7 @@
     <string name="lbl_domain_rules" translatable="true">Domain szabályok</string>
     <string name="lbl_action_required" translatable="true">Beavatkozás szükséges</string>
     <string name="lbl_configure" translatable="true">Beállít</string>
-    <string name="lbl_network" translatable="true">hálózat</string>
+    <string name="lbl_network" translatable="true">Hálózat</string>
     <string name="lbl_proceed" translatable="true">Tovább</string>
     <string name="lbl_delete" translatable="true">Töröl</string>
     <string name="lbl_private_key" translatable="true">Privát kulcs</string>
@@ -48,7 +48,7 @@
     <string name="always_on_dialog_heading" translatable="true">Az „Always-on VPN” kikapcsolása</string>
     <string name="always_on_dialog_stop_message" translatable="true">Az „Always-on VPN” engedélyezve van a Keepout számára. Biztosan le szeretné állítani a Keepout-et ennek ellenére?</string>
     <string name="always_on_dialog_lockdown_stop_message" translatable="true">A Keepout VPN-t futtat Zárolt módban. Ha leállítja, internetkapcsolat elvesztéséhez vezet ezen a felhasználói profilon. Biztosan folytatni szeretné?</string>
-    <string name="firewall_act_universal_tab" translatable="true">univerzális</string>
+    <string name="firewall_act_universal_tab" translatable="true">Univerzális</string>
     <string name="firewall_act_network_monitor_tab" translatable="true">Hálózat</string>
     <string name="dot_custom_url_remove_dialog_title" translatable="true">Törölje a DoT végpontját?</string>
     <string name="always_on_dialog_neutral" translatable="true">Beállítások</string>
@@ -61,7 +61,7 @@
     <string name="settings_lock_down_mode_desc" translatable="true">Bizonyos opciók le vannak tiltva, amikor a VPN zárolt módba van. Tekintse meg a VPN beállításokat.</string>
     <string name="orbot_install_dialog_message" translatable="true">Az Orbot a Tor funkcióit és funkcionalitását hozza el az Androidra.</string>
     <string name="orbot_no_app_toast" translatable="true">Adjon hozzá legalább egy alkalmazást az Orbot engedélyezéséhez</string>
-    <string name="settings_general_customize" translatable="true">testreszabás</string>
+    <string name="settings_general_customize" translatable="true">Testreszabás</string>
     <string name="settings_autostart_bootup_heading" translatable="true">Automatikus indítás bekapcsoláskor (kísérleti)</string>
     <string name="settings_ip_dialog_ipv6" translatable="true">IPv6 (kísérleti)</string>
     <string name="settings_ip_text_ipv46" translatable="true">Automatikus</string>
@@ -148,7 +148,7 @@
     <string name="lbl_http_socks5" translatable="true">HTTPS &amp; SOCKS5</string>
     <string name="lbl_slow" translatable="true">lassú</string>
     <string name="lbl_fast" translatable="true">gyors</string>
-    <string name="lbl_add" translatable="true">hozzáadás</string>
+    <string name="lbl_add" translatable="true">Hozzáadás</string>
     <string name="lbl_app_wise" translatable="true">alkalmazásonként</string>
     <string name="lbl_sec" translatable="true">mp</string>
     <string name="lbl_min" translatable="true">perc</string>
@@ -159,7 +159,7 @@
     <string name="lbl_optional" translatable="true">(opcionális)</string>
     <string name="lbl_persistent_keepalive" translatable="true">Állandó ébrentartás</string>
     <string name="lbl_allowed_ips" translatable="true">Engedélyezett IP-címek</string>
-    <string name="lbl_save" translatable="true">mentés</string>
+    <string name="lbl_save" translatable="true">Mentés</string>
     <string name="search_proxy_add_apps" translatable="true">Alkalmazások keresése név alapján</string>
     <string name="orbot_http" translatable="true">HTTP Proxy</string>
     <string name="always_on_dialog_stop_heading" translatable="true">Mindig bekapcsolt VPN</string>
@@ -211,7 +211,7 @@
     <string name="settings_exclude_proxy_apps_heading" translatable="true">Visszacsatolási (loopback) proxy továbbító alkalmazások</string>
     <string name="settings_allow_bypass_heading" translatable="true">Hálózati láthatóság engedélyezése</string>
     <string name="settings_lock_down_proxy_desc" translatable="true">Nem lehet proxykat beállítani, amikor a VPN csak DNS módba van állítva.</string>
-    <string name="settings_proxy_header" translatable="true">proxy</string>
+    <string name="settings_proxy_header" translatable="true">Proxy</string>
     <string name="settings_socks5_heading" translatable="true">SOCKS5 proxy beállítása</string>
     <string name="settings_https_heading" translatable="true">HTTP(S) CONNECT Proxy beállítása</string>
     <string name="orbot" translatable="true">Orbot</string>
@@ -225,7 +225,7 @@
     <string name="orbot_install_dialog_neutral" translatable="true">weboldal</string>
     <string name="settings_socks5_vpn_disabled_error" translatable="true">A folytatáshoz indítsa el a RethinkDNS-t.</string>
     <string name="settings_orbot_notification_action" translatable="true">Orbot megnyitása</string>
-    <string name="settings_general_header" translatable="true">általános</string>
+    <string name="settings_general_header" translatable="true">Általános</string>
     <string name="settings_network_all_networks" translatable="true">Az összes elérhető hálózat használata (kísérleti)</string>
     <string name="settings_network_all_networks_desc" translatable="true">Ha engedélyezve van, a RethinkDNS az összes elérhető hálózatot használja az internethez való csatlakozáshoz. Ha nem, akkor azt a hálózatot használja, amelyet az Android a aktívnak ítél.</string>
     <string name="settings_check_update_desc" translatable="true">Hetente egyszer automatikusan ellenőrizze az alkalmazásfrissítéseket.</string>
@@ -290,7 +290,7 @@
     <string name="about_settings_notification" translatable="true">Értesítési beállítások</string>
     <string name="about_whats_new" translatable="true">Mi az újdonság a(z) %1$s verzióban</string>
     <string name="about_twitter" translatable="true">Kövessen minket Twitteren</string>
-    <string name="about_mozilla" translatable="true">A RethinkDNS projektet a Mozilla Builders és a FOSS United Alapítvány támogatja.</string>
+    <string name="about_mozilla" translatable="true">A RethinkDNS projektet a Mozilla Builders és a FOSS/United Alapítvány támogatja.</string>
     <string name="about_app_update_check" translatable="true">Alkalmazásfrissítések ellenőrzése</string>
     <string name="about_dialog_positive_button" translatable="true">Gyerünk</string>
     <string name="about_mail_to" translatable="true">hello@celzero.com</string>
@@ -305,7 +305,7 @@
     <string name="no_browser_error" translatable="true">Nem lehet megnyitni a weboldalt a böngészőből.</string>
     <string name="error_loading_log_file" translatable="true">Nem sikerült betölteni a naplófájlt</string>
     <string name="collecting_logs_progress_text" translatable="true">Rögzítés folyamatban…</string>
-    <string name="cd_dns_crypt_title" translatable="true">feloldók (resolvers)</string>
+    <string name="cd_dns_crypt_title" translatable="true">Reloldók (resolvers)</string>
     <string name="cd_custom_doh_url_name_default" translatable="true">DoH</string>
     <string name="cd_custom_doh_url_name" translatable="true">DoH %1$s</string>
     <string name="cd_custom_dns_proxy_name_default" translatable="true">Proxy</string>
@@ -549,7 +549,7 @@
     <string name="rt_chip_update_available" translatable="true">Frissítés érhető el</string>
     <string name="rt_chip_check_update" translatable="true">Frissítés keresése</string>
     <string name="rt_re_download" translatable="true">Blokkolólisták újbóli letöltése</string>
-    <string name="rt_list_simple_btn_txt" translatable="true">egyszerű</string>
+    <string name="rt_list_simple_btn_txt" translatable="true">Egyszerű</string>
     <string name="lbl_advanced" translatable="true">Speciális</string>
     <string name="rt_filter_parent_selected" translatable="true">Kiválasztva</string>
     <string name="rt_download_desc" translatable="true">Töltse le a blokklistákat (kb. 60 MB), hogy használhassa ezt a funkciót.</string>
@@ -565,7 +565,7 @@
     <string name="dc_setting_dns_cache_desc" translatable="true">Kérelmek összevonása, válaszok gyorsítótárazása, ellenálló hibakezelés</string>
     <string name="dc_refresh_toast" translatable="true">Frissítés befejezve</string>
     <string name="lbbs_enabled" translatable="true">Engedélyezve</string>
-    <string name="lbbs_configure" translatable="true">Beállítás</string>
+    <string name="lbbs_configure" translatable="true">Konfiguráció</string>
     <string name="lbbs_copy" translatable="true">Másolás RDNS+ URL-ként</string>
     <string name="lbbs_search" translatable="true">Keresés a domainek blokklistákban</string>
     <string name="lbbs_update_check" translatable="true">Frissítés keresése</string>
@@ -658,7 +658,7 @@
     <string name="crypt_cleanbrowsing_family_desc" translatable="true">Blokkolja az összes felnőtt, pornográf és explicit oldalt. Emellett blokkolja a proxy és VPN domaineket is, amelyeket a szűrők megkerülésére használnának. A vegyes tartalmú oldalak (például a Reddit) szintén blokkolva vannak. A Google, a Bing és a YouTube biztonságos (Safe Mode) üzemmódban működnek.</string>
     <string name="crypt_adguard_desc" translatable="true">Védi az eszközt a kártevőktől és egyéb fenyegetésektől.</string>
     <string name="crypt_adguard_family_desc" translatable="true">Az AdGuard DNS szülői felügyeleti (parental control) és családi védelem (Family Protection) módja egyszerre biztosítja a Safe Search (biztonságos keresés) funkciót és a felnőtt tartalmak blokkolását.</string>
-    <string name="crypt_quad9_security_desc" translatable="true">Quad9 (anycast) – DNSSEC ellenőrzés, nincs naplózás/szűrés 9.9.9 – 149.112.112.9 – 149.112.1112</string>
+    <string name="crypt_quad9_security_desc" translatable="true">Quad9 (anycast) – dnssec ellenőrzés, nincs naplózás/szűrés 9.9.9 – 149.112.112.9 – 149.112.1112</string>
     <string name="crypt_quad9_desc" translatable="true">Quad9 (anycast) – nincs DNSSEC, nincs naplózás, nincs szűrés, ECS támogatás, 9.9.9.12 és 149.112.112.12</string>
     <string name="crypt_relay_netherlands" translatable="true">Névtelenített DNS átjátszó (relay) Hollandiában üzemeltetve</string>
     <string name="crypt_relay_france" translatable="true">Névtelenített DNS átjátszó (relay) Párizsban, Franciaországban, a https://cryptostorm.is/ szolgáltató üzemeltetésében.</string>
@@ -666,7 +666,7 @@
     <string name="crypt_relay_us" translatable="true">Névtelenített DNS átjátszó (relay) az USA-ban, Los Angelesben, a https://cryptostorm.is/ szolgáltató üzemeltetésében.</string>
     <string name="crypt_relay_singapore" translatable="true">Névtelenített DNS átjátszó (relay) Szingapúrban.</string>
     <string name="cd_toast_edit" translatable="true">Szerkesztve</string>
-    <string name="lbl_test" translatable="true">teszt</string>
+    <string name="lbl_test" translatable="true">Teszt</string>
     <string name="lbl_service_providers" translatable="true">Szolgáltatók</string>
     <string name="dns_desc" translatable="true">Válasszon több mint 190 listából a hirdetések, nyomkövetők és kártevők blokkolásához.</string>
     <string name="status_no_network" translatable="true">Nincs hálózati kapcsolat</string>
@@ -714,7 +714,7 @@
     <string name="lbl_ultra_secure" translatable="true">Rendkívül biztonságos</string>
     <string name="hop_failure_toast" translatable="true">Átirányítási hiba: %1$s → %2$s</string>
     <string name="wg_setting_use_on_mobile" translatable="true">Csak mobilos használat</string>
-    <string name="wg_setting_use_on_mobile_desc" translatable="true">Ennek a WireGuard-kapcsolatnak a használata kizárólag mobiladat-hálózaton történjen.</string>
+    <string name="wg_setting_use_on_mobile_desc" translatable="true">Használja ezt a WireGuard VPN‑t mobiladaton.</string>
     <string name="hop_add_remove_title" translatable="true">Közvetítő hozzáadása / eltávolítása</string>
     <string name="bypasses_network_restrictions" translatable="true">Az elérhetőségi ellenőrzések megkerülik az összes hálózati korlátozást. Az Automatikus módban a Keepout véletlenszerűen használja a korábban csatlakozott IP-címeket és hosztneveket.</string>
     <string name="most_contacted_asn" translatable="true">Legutóbb elért szolgáltatók</string>
@@ -738,7 +738,7 @@
     <string name="vpn_policy_title" translatable="true">Kapcsolatváltozási irányelv</string>
     <string name="use_fallback_dns_to_bypass" translatable="true">Tartalék DNS használata megkerülésként</string>
     <string name="use_fallback_dns_to_bypass_desc" translatable="true">Ha engedélyezve van, mindig a tartalék DNS-t használja a megkerült alkalmazásokhoz, domainekhez és IP-címekhez.</string>
-    <string name="title_database_dump" translatable="true">Adatbázis állapota</string>
+    <string name="title_database_dump" translatable="true">Adatbázis</string>
     <string name="lbl_always" translatable="true">Mindig</string>
     <string name="about_terms_of_service" translatable="true">Általános szerződési feltételek</string>
     <string name="copied_clipboard" translatable="true">Másolva</string>
@@ -764,7 +764,6 @@
     <string name="log_detail_flags">Jelzők</string>
     <string name="log_detail_message">Üzenet</string>
     <string name="log_detail_resolver">Feloldó</string>
-    <string name="log_detail_blocklists">Blokkolólisták</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">Érvényes</string>
     <string name="log_detail_dnssec_unverified">Nem ellenőrzött</string>
@@ -788,4 +787,18 @@
     <string name="dns_median_lookup">Lekérdezési idő mediánja</string>
     <string name="dns_recent_lookups">Legutóbbi lekérdezések</string>
     <string name="dns_no_lookups_yet">Még nincs lekérdezés</string>
+    <string name="lbl_action" translatable="true">Művelet</string>
+    <string name="lbl_connect" translatable="true">Kapcsolódás</string>
+    <string name="lbl_criteria" translatable="true">Feltételek</string>
+    <string name="settings_allow_incoming_wg_packets" translatable="true">WireGuard P2P</string>
+    <string name="settings_firebase_error_reporting_desc" translatable="true">Hibanaplók rögzítése a stabilitás javításához.</string>
+    <string name="settings_firebase_error_reporting_heading" translatable="true">Stabilítási program</string>
+    <string name="settings_jumbo_packets" translatable="true">Sávszélesség‑növelő</string>
+    <string name="tombstone_app_desc" translatable="true">Az engedélyezett alkalmazásszabályok, 7 napig megmaradnak meg.</string>
+    <string name="tombstone_app_title" translatable="true">Eltávolított alkalmazások megjegyzése</string>
+    <string name="vpn_policy_fixed" translatable="true">Konzervatív</string>
+    <string name="vpn_policy_fixed_desc" translatable="true">Minimálisan reagál a hálózati változásokra.</string>
+    <string name="wg_setting_ssid_title" translatable="true">Csak Wi-Fi</string>
+    <string name="wg_ssid_type_exact" translatable="true">Pontos egyezés</string>
+    <string name="wg_ssid_type_wildcard" translatable="true">Pontosan egyezik</string>
 </resources>

@@ -161,7 +161,7 @@ class NetworkSsidLookup(
         }
 
         Logger.w(LOG_TAG_VPN, "ssid wgs: missing permissions, show notification")
-        val intent = Intent(context, HomeScreenActivity::class.java)
+        val intent = Intent(context, HomeScreenActivity::class.java).setAction("${context.packageName}.notification.ssid_permission")
         intent.putExtra(
             NOTIF_WG_PERMISSION_NAME,
             NOTIF_WG_PERMISSION_VALUE

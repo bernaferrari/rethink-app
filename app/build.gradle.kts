@@ -40,7 +40,10 @@ java {
 apply(plugin = "com.google.gms.google-services")
 apply(plugin = "com.google.firebase.crashlytics")
 
+val artifactOnlyBuild = providers.gradleProperty("keepoutArtifactsOnly").map(String::toBoolean).getOrElse(false)
+
 tasks.configureEach {
+    if (artifactOnlyBuild && name.startsWith("uploadCrashlytics")) enabled = false
     if (name.contains("Fdroid", ignoreCase = true) &&
         (name.contains("GoogleServices") || name.contains("Crashlytics"))) {
         enabled = false
@@ -153,7 +156,7 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             ndk {
                 debugSymbolLevel = "SYMBOL_TABLE"
-                abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64")
+                abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
             }
             configure<com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsExtension> {
                 nativeSymbolUploadEnabled = true
@@ -373,6 +376,7 @@ dependencies {
     implementation(platform(libs.koin.bom))
     download(libs.koin.core)
     implementation(libs.koin.core)
+    implementation(libs.koin.compose)
     download(libs.koin.android)
     implementation(libs.koin.android)
     implementation(libs.koin.annotations)
@@ -461,12 +465,14 @@ androidComponents {
         }
     }
 
-    // Release artifacts must never silently ship versionCode 0 — a fresh install would then
-    // treat every future update as an upgrade from 0. Same source the `full` flavor reads.
+    // Validate the resolved base code before ABI-specific output encoding. The action must
+    // capture only this value, never the script or Project, so configuration caching stays safe.
+    val releaseBaseVersionCode = getVersionCode(project)
     val validateReleaseVersionCode =
         tasks.register("validateReleaseVersionCode") {
+            inputs.property("baseVersionCode", releaseBaseVersionCode)
             doLast {
-                require(getVersionCode(project) > 0) {
+                require(releaseBaseVersionCode > 0) {
                     "versionCode is 0: set VERSION_CODE (env or -PVERSION_CODE=...) for release builds."
                 }
             }
@@ -482,19 +488,17 @@ androidComponents {
             "x86" to 8,
             "x86_64" to 9
         )
-        val mainOutput = variant.outputs.singleOrNull {
-            it.filters.any { filter -> filter.filterType == com.android.build.api.variant.FilterConfiguration.FilterType.ABI }
-        }
-        mainOutput?.let { output ->
-            val abi = output.filters.find { it.filterType == com.android.build.api.variant.FilterConfiguration.FilterType.ABI }?.identifier
-            val baseAbiVersionCode = versionCodes[abi]
-            if (baseAbiVersionCode != null) {
-                // Use map to calculate version code properly from the provider
-                val calculatedVersionCode = variant.outputs.first().versionCode.map { base ->
-                    ((baseAbiVersionCode * 10000000) + (base ?: 0)).toInt()
-                }
-                output.versionCode.set(calculatedVersionCode)
-            }
+        variant.outputs.forEach { output ->
+            val abi = output.filters.find {
+                it.filterType == com.android.build.api.variant.FilterConfiguration.FilterType.ABI
+            }?.identifier
+            val multiplier = if (abi == null) versionCodes.getValue("arm64-v8a")
+                else requireNotNull(versionCodes[abi]) { "Unknown output ABI: $abi" }
+            val base = output.versionCode.get()
+            require(base in 0 until 10_000_000) { "VERSION_CODE must be between 0 and 9,999,999" }
+            val encoded = multiplier * 10_000_000L + base
+            require(encoded <= Int.MAX_VALUE) { "APK version code overflow" }
+            output.versionCode.set(encoded.toInt())
         }
     }
 }

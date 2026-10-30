@@ -17,7 +17,6 @@ package com.bernaferrari.bravedns.iab
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -85,10 +84,11 @@ class RpnPurchaseAckServerResponseTest {
     }
 
     @Test
-    fun `invalid JSON on 200 is treated as empty Ok`() {
-        val result = RpnPurchaseAckServerResponse.from("not-json", 200)
-        assertTrue(result is RpnPurchaseAckServerResponse.Ok)
-        assertNull((result as RpnPurchaseAckServerResponse.Ok).payload.developerPayload)
-        assertFalse(result.payload.hasEntitlement)
+    fun `invalid or absent JSON on 200 is an error`() {
+        listOf(null, "", "   ", "not-json", "<html>unavailable</html>", "[]", "null", "42").forEach {
+            val result = RpnPurchaseAckServerResponse.from(it, 200)
+            assertTrue("body=$it", result is RpnPurchaseAckServerResponse.Err)
+            assertEquals("malformed response", (result as RpnPurchaseAckServerResponse.Err).payload.error)
+        }
     }
 }

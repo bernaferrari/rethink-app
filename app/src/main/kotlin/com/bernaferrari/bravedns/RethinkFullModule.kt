@@ -69,7 +69,12 @@ class RethinkFullModule {
     ): AppDownloadManager = AppDownloadManager(context, persistentState)
 
     @Single
-    fun workScheduler(@Provided context: Context): WorkScheduler = WorkScheduler(context)
+    fun workScheduler(@Provided context: Context, @Provided persistentState: PersistentState): WorkScheduler = WorkScheduler(context, persistentState)
+
+    @Single
+    fun pcapCaptureManager(@Provided context: Context, @Provided appConfig: com.bernaferrari.bravedns.data.AppConfig,
+        @Provided persistentState: PersistentState) =
+        com.bernaferrari.bravedns.diagnostics.PcapCaptureManager(context, appConfig, persistentState)
 
     @Single
     fun scheduleManager(@Provided context: Context): ScheduleManager = ScheduleManager(context)

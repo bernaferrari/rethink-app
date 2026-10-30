@@ -42,7 +42,7 @@
     <string name="status_waiting" description="This text appears during the connection process if Intra needs user permission or the phone is offline.">En attente</string>
     <string name="notification_action_stop_vpn">STOP</string>
     <string name="default_dns_name">RDNS par défaut</string>
-    <string name="conn_track_clear_logs_title">Effacer tous les journaux réseau \?</string>
+    <string name="conn_track_clear_logs_title">Effacer tous les journaux réseau ?</string>
     <string name="notification_action_pause_vpn">PAUSE</string>
     <string name="untracked">non suivi</string>
     <string name="bsct_app_info">Infos sur l’appli</string>
@@ -53,11 +53,11 @@
     <string name="finish">Finir</string>
     <string name="slide_2_desc">Keepout est le moyen le plus simple pour surveiller l’activité réseau, contourner la censure sur Internet et mettre en place un pare-feu sur votre appareil Android.</string>
     <string name="accessibility_service_description">Keepout utilise le service d’accessibilité pour détecter et filtrer les applications en arrière-plan. Keepout ne collecte ni ne vend aucune information.</string>
-    <string name="doh_custom_url_remove_dialog_title">Supprimer le point de terminaison DoH \?</string>
+    <string name="doh_custom_url_remove_dialog_title">Supprimer le point de terminaison DoH ?</string>
     <string name="refresh_complete"><!-- use dc_refresh_toast --> Resynchronisation de la liste des applications terminée.</string>
     <string name="doh_custom_url_remove_dialog_message">Supprimer le point de terminaison DNS over HTTPS de la configuration sauvegardée.</string>
     <string name="download_update_dialog_title">Nouvelle mise à jour !</string>
-    <string name="download_update_dialog_message">Une nouvelle version de l’application est disponible en téléchargement sur le site web. Voulez-vous continuer \?</string>
+    <string name="download_update_dialog_message">Une nouvelle version de l’application est disponible en téléchargement sur le site web. Voulez-vous continuer ?</string>
     <string name="download_update_dialog_failure_message">Soit nos serveurs sont hors service, soit la connexion n’a pas pu être établie. Veuillez réessayer plus tard.</string>
     <string name="download_update_dialog_trylater_title">Impossible d’appliquer la mise à jour actuellement</string>
     <string name="download_update_dialog_trylater_message">La mise à jour ne peut être appliquée pour le moment, veuillez réessayer plus tard.</string>
@@ -65,13 +65,13 @@
     <string name="whats_new_version_update">&lt;b&gt;Ne paniquez pas 2&lt;/b&gt;&lt;br/&gt;&lt;br/&gt; 1. Nouveau : capturez les erreurs du moteur réseau dans les rapports de bugs des utilisateurs.&lt;br/&gt; 2. Nouveau : utilisez le DNS système pour les noms de domaine non délégués si empêcher les fuites DNS sont activées.&lt;br/&gt; 3. Amélioration : connectivité WireGuard à double pile (IPv4 + IPv6).&lt;br/&gt; 4. Amélioration : évitez de bloquer les éléments de l\'interface utilisateur lorsque le moteur réseau ne répond pas.&lt;br/&gt; 5. Correction : les délais d\'expiration de connexion avec le filtrage DNS avancé sont activés.&lt;br/&gt; 6. Correction : les points de terminaison homologues WireGuard avec des noms de domaine se bloquent lors des modifications du réseau.&lt;br/&gt;&lt;br/&gt; &lt;a href=https://svc.rethinkdns.com/r/translate&gt;Aidez à traduire cette application&lt;/a&gt;</string>
     <string name="settings_allow_bypass_desc">Autorisez les applications requérantes à accéder à tous les réseaux disponibles. Ces applications peuvent contourner le tunnel VPN de Keepout à la demande. Certaines applications de conférence audio/vidéo comme Zoom et Meet peuvent en avoir besoin pour fonctionner correctement.</string>
     <string name="settings_lock_down_mode_desc">Certaines options sont désactivées lorsque le VPN est en mode de verrouillage. Voir les paramètres VPN.</string>
-    <string name="settings_https_desc">Transférer les connexions vers le point de connexion HTTP(S).</string>
+    <string name="settings_https_desc">Rediriger les connexions vers le point de terminaison HTTP(S) via la méthode CONNECT.</string>
     <string name="orbot_bs_status_2">Le proxy HTTP est défini.</string>
     <string name="orbot_stop_dialog_title">Intervention manuelle requise</string>
     <string name="orbot_stop_dialog_message">Keepout a cessé de transmettre les connexions à Orbot, mais Orbot peut fonctionner en arrière-plan.</string>
     <string name="orbot_title">Orbot et Proxys</string>
     <string name="orbot_website_link">https://guardianproject.info/apps/org.torproject.android/</string>
-    <string name="orbot_install_dialog_title">Installer Orbot \?</string>
+    <string name="orbot_install_dialog_title">Installer Orbot ?</string>
     <string name="orbot_install_dialog_message">Orbot apporte les caractéristiques et les fonctionnalités de Tor à Android.</string>
     <string name="orbot_install_activity_error">Quelque chose s’est mal passé, essayez plus tard</string>
     <string name="settings_socks_forwarding_default_desc">Transférer les connexions vers le point de terminaison SOCKS5.</string>
@@ -110,7 +110,7 @@
     <string name="hsf_vpn_prepare_failure">Soit l’autorisation VPN manque, soit une autre application est en mode VPN permanent.</string>
     <string name="dc_entries">%1$s entrées »</string>
     <string name="dc_rethink_dns_radio">Rethink DNS</string>
-    <string name="dc_other_dns_heading">Type</string>
+    <string name="dc_other_dns_heading">type</string>
     <string name="firewall_rule_block_app_unmetered_desc"><![CDATA[Une règle de pare-feu définie par l’utilisateur a bloqué cette application lors de la tentative de connexion sur un réseau Sans abonnement.]]></string>
     <string name="fapps_info_dialog_message">Empêchez les applications de se connecter à l’Internet. Limiter l’accès à Internet permet d’éviter une utilisation injustifiée des données et d’économiser la batterie.</string>
     <string name="firewall_rule_block_ip_desc"><![CDATA[Une règle de pare-feu définie par l’utilisateur a bloqué l’IP de destination.]]></string>
@@ -121,7 +121,7 @@
     <string name="brbs_backup_title">Sauvegarder</string>
     <string name="info_dialog_rethink_toast_msg">Copié en tant qu’URL RDNS+ DNS over HTTPS</string>
     <string name="brbs_restore_dialog_message">Restaure les paramètres de l’application ainsi que les journaux réseau et DNS à partir d’un fichier de sauvegarde. Cela va redémarrer l’application.</string>
-    <string name="brbs_restore_dialog_failure_message">Impossible de restaurer. Essayez à nouveau \?</string>
+    <string name="brbs_restore_dialog_failure_message">Impossible de restaurer. Essayez à nouveau ?</string>
     <string name="orbot_explanation">Orbot est une application proxy gratuite qui permet à d’autres applications d’utiliser Internet de manière plus sûre .
 \nOrbot utilise Tor pour chiffrer votre trafic Internet, ce qui vous aide à contourner la censure et à vous défendre contre les formes de surveillance du réseau qui menacent les libertés individuelles et la vie privée.
 \nProxy TCP : Keepout transmet à Orbot les connexions TCP de toutes les applications sauf celles qui sont exclues.
@@ -131,7 +131,7 @@
     <string name="settings_check_update_desc">Vérifiez automatiquement l’existence de mises à jour une fois par semaine.</string>
     <string name="dns_proxy_port">Numéro de port</string>
     <string name="fapps_filter_categories_heading">Catégories</string>
-    <string name="about_connect">Contact</string>
+    <string name="about_connect">contact</string>
     <string name="download_update_dialog_message_ok_title">À jour !</string>
     <string name="settings_selected_ip_desc">%1$s</string>
     <string name="settings_allow_bypass_heading">Activer la visibilité du réseau</string>
@@ -142,7 +142,7 @@
     <string name="univ_firewall_rule_10">Bloquer tout sauf les applications et IP avec exceptions</string>
     <string name="about_telegram_link">https://telegram.me/rethinkdns</string>
     <string name="cd_custom_doh_url_name_default">DoH</string>
-    <string name="dns_crypt_custom_url_remove_dialog_title">Supprimer le résolveur DNSCrypt \?</string>
+    <string name="dns_crypt_custom_url_remove_dialog_title">Supprimer le résolveur DNSCrypt ?</string>
     <string name="ada_noapp_dialog_title">Aucune application correspondante</string>
     <string name="dns_connected_rethink_plus">Connecté. %1$s listes de blocage en cours d’utilisation</string>
     <string name="ada_app_metered">Avec abonnement</string>
@@ -178,7 +178,7 @@
     <string name="firewall_rule_exempt_dns_proxied">DNS redirigé</string>
     <string name="firewall_rule_block_http_desc"><![CDATA[Cette connexion a été bloquée car elle utilisait probablement une liaison HTTP non sécurisée.]]></string>
     <string name="new_app_bulk_notification_title">Attention</string>
-    <string name="rt_dialog_message">Voulez-vous appliquer les listes de blocage nouvellement configurées \?</string>
+    <string name="rt_dialog_message">Voulez-vous appliquer les listes de blocage nouvellement configurées ?</string>
     <string name="radio_max_btn">🪂 Max</string>
     <string name="about_bug_report_dialog_positive_btn">Envoyer le courriel</string>
     <string name="search_universal_ips">Recherche d’IP</string>
@@ -244,18 +244,14 @@
     <string name="blocklist_update_check_failure">Un problème est survenu. Essayez à nouveau plus tard !</string>
     <string name="http_proxy_dialog_heading">Définir le proxy HTTP(S) de connection</string>
     <string name="settings_ip_text_ipv46">Auto</string>
-    <string name="dc_block_heading">Règles</string>
+    <string name="dc_block_heading">règles</string>
     <string name="cd_dns_crypt_name">DNSCrypt %1$s</string>
     <string name="cd_dns_crypt_relay_name">Relais DNS %1$s</string>
     <string name="cd_dns_crypt_resolver_heading">Résolveur</string>
     <string name="lbl_add">ajouter</string>
     <string name="univ_firewall_rule_5">Bloquer lorsque le DNS est contourné</string>
     <string name="univ_firewall_rule_6">Bloquer par défaut les applications nouvellement installées</string>
-    <string name="dns_proxy_dialog_message">Nom de l’application : %1$s
-\n
-\nAdresse IP : %2$s
-\n
-\nNuméro de port : %3$s</string>
+    <string name="dns_proxy_dialog_message">Nom de l’application : %1$s \n \nAdresse IP : %2$s \n \nNuméro de port : %3$s</string>
     <string name="dns_query_latency">%1$sms</string>
     <string name="fapps_metered_block_dialog_message">Bloquer les connexions sur réseau avec abonnement (mobile) pour les applications listées \?</string>
     <string name="firewall_rule_block_metered">Avec abonnement (Mobile, Appli)</string>
@@ -272,7 +268,7 @@
     <string name="download_update_dialog_message_success">Téléchargement de la liste de blocage réussi.</string>
     <string name="connection_http3">HTTP3</string>
     <string name="dc_local_block_desc_1">Choisissez parmi plus de 195 listes de blocage. Cliquez ici pour télécharger ou configurer les listes de blocage.</string>
-    <string name="about_bug_no_log_dialog_message">Impossible de récupérer les journaux de crash. Voulez-vous signaler manuellement votre bogue \?</string>
+    <string name="about_bug_no_log_dialog_message">Impossible de récupérer les journaux de crash. Voulez-vous signaler manuellement votre bogue ?</string>
     <string name="about_dialog_neutral_button">Proposer des fonctionnalités</string>
     <string name="collecting_logs_progress_text">Capture…</string>
     <string name="cd_dns_crypt_title">résolveurs</string>
@@ -285,10 +281,10 @@
     <string name="category_name_sys_apps">Applications système</string>
     <string name="brbs_restore_dialog_failure_positive">Retenter la restauration</string>
     <string name="brbs_restore_complete_toast">Restauration terminée, redémarrage de l’application…</string>
-    <string name="about_app">App</string>
+    <string name="about_app">app</string>
     <string name="notif_channel_vpn_failure">VPN inactif</string>
-    <string name="local_blocklist_download_desc">Télécharger les listes de blocage (environ 60MB) pour utiliser cette fonctionnalité \?</string>
-    <string name="orbot_app_issue">Impossible de lancer Orbot. Est-il installé \?</string>
+    <string name="local_blocklist_download_desc">Télécharger les listes de blocage (environ 60MB) pour utiliser cette fonctionnalité ?</string>
+    <string name="orbot_app_issue">Impossible de lancer Orbot. Est-il installé ?</string>
     <string name="about_github">Contribuer sur GitHub</string>
     <string name="about_faq">Consulter les FAQ</string>
     <string name="about_mail_to_string">mailto :</string>
@@ -372,9 +368,7 @@
     <string name="always_on_dialog_positive">Arrêter</string>
     <string name="dns_crypt_url_remove_dialog_message">Supprimer le résolveur DNSCrypt de la configuration sauvegardée.</string>
     <string name="about_bug_report_desc">Envoyer les rapports de plantage par e-mail</string>
-    <string name="dns_proxy_dialog_message_no_app">Adresse IP : %1$s
-\n
-\nNuméro de port : %2$s</string>
+    <string name="dns_proxy_dialog_message_no_app">Adresse IP : %1$s \n \nNuméro de port : %2$s</string>
     <string name="fapps_firewall_filter_isolate">Confinées</string>
     <string name="firewall_rule_no_rule">Aucune règle</string>
     <string name="firewall_rule_new_app_desc"><![CDATA[Cette application a établi la connexion pour la première fois.]]></string>
@@ -427,7 +421,7 @@
     <string name="dns_proxy_remove_dialog_message">Supprimer le proxy DNS de la configuration sauvegardée.</string>
     <string name="orbot_stop_dialog_negative">Arrêter Orbot</string>
     <string name="dc_dns_website_heading">Afficher l’icône du site web dans les logs DNS (expérimental)</string>
-    <string name="ada_noapp_dialog_message">Les informations sur l’application sont introuvables. Peut-être qu\'elle a été désinstallée \?</string>
+    <string name="ada_noapp_dialog_message">Les informations sur l’application sont introuvables. Peut-être qu\'elle a été désinstallée ?</string>
     <string name="fapps_filter_clear_btn">Effacer</string>
     <string name="fapps_metered_block_dialog_title">Bloquer sur réseau avec abonnement</string>
     <string name="dns_crypt_connection_failure">Erreur de connexion au serveur DNSCrypt.</string>
@@ -445,7 +439,7 @@
     <string name="cd_dns_proxy_error_text_2">La plage de ports doit être comprise entre 1024 et 65535</string>
     <string name="firewall_act_universal_tab">global</string>
     <string name="univ_firewall_rule_2">Bloquer les applications non utilisées</string>
-    <string name="network_log_app_name_unknown">Inconnu</string>
+    <string name="network_log_app_name_unknown">Inconnus</string>
     <string name="univ_firewall_rule_9">Bloquer sur les réseaux avec facturation à l\'usage (mobiles)</string>
     <string name="update_complete_action_snack">REDÉMARRER</string>
     <string name="pause_text">en pause</string>
@@ -473,7 +467,7 @@
     <string name="settings_theme_heading">Apparence</string>
     <string name="firewall_status_unknown">Inconnu</string>
     <string name="hsf_vpn_dialog_header">Attention !</string>
-    <string name="about_web">Liens</string>
+    <string name="about_web">liens</string>
     <string name="about_mail_to">hello@celzero.com</string>
     <string name="settings_local_blocklist_in_use">%1$s listes de blocage en cours d’utilisation</string>
     <string name="settings_local_blocklist_version">Version : v%1$s</string>
@@ -586,16 +580,16 @@
     <string name="lbl_delete" translatable="true">Supprimer</string>
     <string name="lbl_qr_code" translatable="true">QR Code</string>
     <string name="bad_config_reason_missing_attribute" translatable="true">Attribut manquant</string>
-    <string name="key_length_explanation_base64" translatable="true">: Les clés WireGuard base64 doivent être de 44 caractères (32 octets)</string>
+    <string name="key_length_explanation_base64" translatable="true">: les clés WireGuard base64 doivent être de 44 caractères (32 octets)</string>
     <string name="bad_config_reason_missing_section" translatable="true">Section manquante</string>
     <string name="lbl_slow" translatable="true">lent</string>
     <string name="bad_config_reason_invalid_value" translatable="true">Valeur invalide</string>
     <string name="lbl_day" translatable="true">jour</string>
     <string name="lbl_fast" translatable="true">rapide</string>
     <string name="search_proxy_add_apps" translatable="true">Rechercher des applications par nom</string>
-    <string name="lbl_inactive" translatable="true">Inactif</string>
+    <string name="lbl_inactive" translatable="true">Inactifs</string>
     <string name="lbl_addresses" translatable="true">Adresses</string>
-    <string name="lbl_active" translatable="true">Actif</string>
+    <string name="lbl_active" translatable="true">Actif(s)</string>
     <string name="lbl_dns_servers" translatable="true">Serveurs DNS</string>
     <string name="ssv_most_contacted_countries_heading" description="This label will appear on the stats screen as a header for most visited domains by country" translatable="true">Pays les plus contactés</string>
     <string name="lbl_app_wise" translatable="true">par application</string>
@@ -608,7 +602,7 @@
     <string name="http_proxy_dialog_desc" translatable="true">Configuration de l\'URL de forme, &lt;protocol&gt;://&lt;username&gt;:&lt;password&gt;@&lt;domain-or-ip&gt;:&lt;port&gt;&lt;path&gt;. Exemple: http://proxy.example.com:8080/</string>
     <string name="bad_config_reason_syntax_error" translatable="true">Erreur de syntaxe</string>
     <string name="lbl_listen_port" translatable="true">Port d\'écoute</string>
-    <string name="bad_config_explanation_pka" translatable="true">: Doit être positif et pas plus de 65535</string>
+    <string name="bad_config_explanation_pka" translatable="true">: doit être positif et pas plus de 65535</string>
     <string name="cd_doh_dialog_checkbox_desc" translatable="true">Ne pas validez les certificats TLS du serveur (uniquement si vous savez ce que vous faites)</string>
     <string name="crypt_adguard_desc" translatable="true">Protège votre appareil des logiciels malveillants et plus encore.</string>
     <string name="wireguard_description" translatable="true">WireGuard comme proxy.</string>
@@ -618,7 +612,7 @@
     <string name="firewall_rule_proxied_desc" translatable="true"><![CDATA[Cette connexion a été transmise à Proxy]]></string>
     <string name="lbl_allowed_ips" translatable="true">IP autorisées</string>
     <string name="lbl_socks5" translatable="true">SOCKS5</string>
-    <string name="lbl_http" translatable="true">HTTP</string>
+    <string name="lbl_http" translatable="true">HTTP(S)</string>
     <string name="add_remove_apps" translatable="true">Ajouter/Supprimer (%1$s applications)</string>
     <string name="bad_extension_error" translatable="true">Le fichier doit être .conf ou .zip</string>
     <string name="lbl_mtu" translatable="true">MTU</string>
@@ -636,13 +630,13 @@
     <string name="cleanbrowsing_family_dns_desc" translatable="true">Le filtre familial bloque l\'accès à tous les sites pour adultes, pornographiques et explicites. Il bloque également les domaines proxy et VPN qui pourraient être utilisés pour contourner nos filtres. Les sites à contenu mixte (comme Reddit) sont également bloqués. Google, Bing et Youtube sont configurés en mode SafeSearch.</string>
     <string name="import_error" translatable="true">Impossible d\'importer un tunnel : %s</string>
     <string name="app_ip_domain_rules_desc" translatable="true">Modifier par application IP / Règles de domaine.</string>
-    <string name="lbl_http_socks5" translatable="true">HTTPS &amp; SOCKS5</string>
-    <string name="wireguard_disclaimer">Le DNS est transmis à %1$s, ICMP (ex : ping) est envoyé au réseau sous-jacent.</string>
-    <string name="bad_config_explanation_positive_number" translatable="true">: Doit être positif</string>
+    <string name="lbl_http_socks5" translatable="true">HTTP(S) &amp; SOCKS5</string>
+    <string name="wireguard_disclaimer">Le DNS est transmis à %1$s, ICMP (ex : ping) est envoyé au réseau sous-jacent.</string>
+    <string name="bad_config_explanation_positive_number" translatable="true">: doit être positif</string>
     <string name="wireguard_no_config_msg">Pas de VPN WireGuard. Ajoutez-en pour commencer.</string>
     <string name="bad_config_context" translatable="true">%1$s\'s %2$s</string>
     <string name="lbl_auto" translatable="true">(auto)</string>
-    <string name="bad_config_explanation_udp_port" translatable="true">: Doit être un numéro de port UDP valide</string>
+    <string name="bad_config_explanation_udp_port" translatable="true">: doit être un numéro de port UDP valide</string>
     <string name="google_dns_desc" translatable="true">Ne bloque aucune demande DNS. Utilisez le paramètre DNS de Google.</string>
     <string name="unknown_error" translatable="true">Erreur inconnue</string>
     <string name="crypt_relay_sweden" translatable="true">Relais DNS anonyme hébergé en Suède fourni par https://cryptostrom.is/.</string>
@@ -657,7 +651,7 @@
     <string name="config_delete_dialog_title">Supprimer la configuration</string>
     <string name="logs_card_duration" translatable="true">depuis %1$s</string>
     <string name="cleanbrowsing_adult_dns_desc" translatable="true">Les filtres adultes bloquent l\'accès à tous les sites adultes, pornographiques et explicites. Il ne bloque pas les sites proxy ou VPN, ni les sites de contenu mixte. Les sites comme Reddit sont autorisés. Google et Bing sont mis sur le mode SafeSearch.</string>
-    <string name="config_delete_dialog_desc">Voulez-vous vraiment supprimer cette configuration \?</string>
+    <string name="config_delete_dialog_desc">Voulez-vous vraiment supprimer cette configuration ?</string>
     <string name="parse_error_generic" translatable="true">chaîne</string>
     <string name="generic_error" translatable="true">Erreur inconnue “%s”</string>
     <string name="app_ip_domain_rules" translatable="true">Par application IP / Règles de domaine</string>
@@ -677,7 +671,7 @@
     <string name="lbl_secure" translatable="true">Sécurisé</string>
     <string name="lbl_peer" translatable="true">Pair</string>
     <string name="failed_using_default" translatable="true">Échec : utilisation du DNS de secours</string>
-    <string name="dot_custom_url_remove_dialog_title" translatable="true">Supprimer le point de terminaison DoT ?</string>
+    <string name="dot_custom_url_remove_dialog_title" translatable="true">Supprimer le point de terminaison DoT ?</string>
     <string name="dot_custom_url_remove_dialog_message" translatable="true">Supprimer le point de terminaison DNS over TLS de la configuration enregistrée.</string>
     <string name="cd_toast_edit" translatable="true">Modifié</string>
     <string name="one_wg_apps_added" translatable="true">Routage de toutes les applications</string>
@@ -695,18 +689,18 @@
     <string name="wireguard_apps_proxy_map_desc" translatable="true">partie de %1$s</string>
     <string name="wireguard_disable_failure" translatable="true">\"Always-on WireGuard\" ne peut pas être désactivé</string>
     <string name="wireguard_disable_title" translatable="true">Arrêter WireGuard</string>
-    <string name="wireguard_disable_message" translatable="true">Arrêter tous les VPN WireGuard actifs ?</string>
+    <string name="wireguard_disable_message" translatable="true">Arrêter tous les VPN WireGuard actifs ?</string>
     <string name="hybrid_mode_with_proxy_notification_title" translatable="true">Protégé ! Connecté au DNS + Pare-feu + Proxy.</string>
     <string name="dc_proxy_dns_desc" translatable="true">Ne pas faire passer le DNS par les proxys Always-on WireGuard, SOCKS5 et HTTP.</string>
     <string name="toast_allow_bypass_disabled" translatable="true">%1$s est désactivé car les proxys sont actifs</string>
-    <string name="settings_connectivity_checks" translatable="true">Effectuer des vérifications de connectivité</string>
-    <string name="settings_connectivity_checks_desc" translatable="true">Des contrôles de connectivité sont envoyés pour vérifier la joignabilité.</string>
+    <string name="settings_connectivity_checks" translatable="true">Effectuer des tests de connectivité</string>
+    <string name="settings_connectivity_checks_desc" translatable="true">Des tests de connectivité sont envoyés pour vérifier l’accessibilité.</string>
     <string name="lbl_idle" translatable="true">Au repos</string>
     <string name="lbl_split" translatable="true">Séparer</string>
-    <string name="dc_proxy_dns_heading" translatable="true">Ne jamais utiliser de proxy pour DNS</string>
-    <string name="settings_exclude_proxy_apps_heading" translatable="true">Applications de transit proxy</string>
+    <string name="dc_proxy_dns_heading" translatable="true">Ne jamais utiliser de proxy pour le DNS</string>
+    <string name="settings_exclude_proxy_apps_heading" translatable="true">Applications de redirection proxy en loopback</string>
     <string name="exclude_apps_from_proxy">Contourner l\'application de tous les proxys</string>
-    <string name="exclude_apps_from_proxy_failure_toast">Cette application contourne tous les proxys</string>
+    <string name="exclude_apps_from_proxy_failure_toast">Cette application ignore tous les proxys</string>
     <string name="memory_notification_text">Keepout connaît une mémoire insuffisante. Les actions du système peuvent être limitées.</string>
     <string name="lbl_test" translatable="true">test</string>
     <string name="settings_jumbo_packets" translatable="true">Amplificateur de bande passante</string>
@@ -726,7 +720,7 @@
     <string name="status_no_network" translatable="true">Pas de réseau</string>
     <string name="dc_use_sys_dns_undelegated_heading" translatable="true">Utiliser le système DNS pour les domaines non délégués</string>
     <string name="dc_use_sys_dns_undelegated_desc" translatable="true">Utilisez le système DNS pour les domaines non délégués tels que .lan, .internal, etc.</string>
-    <string name="dc_filtering_heading" translatable="true">Filtrage</string>
+    <string name="dc_filtering_heading" translatable="true">filtrage</string>
     <string name="cd_split_dns_heading" translatable="true">Séparer le DNS (expérimental)</string>
     <string name="cd_split_dns_desc" translatable="true">Transférer les requêtes DNS des applications proxy vers les serveurs DNS du proxy.</string>
     <string name="cd_treat_dns_rules_firewall_heading" translatable="true">Traiter les règles DNS comme règles de pare-feu (expérimental)</string>
@@ -764,7 +758,7 @@
     <string name="hop_error_toast_msg_3" translatable="true">Désactiver le mode mobile uniquement ou le SSID pour utiliser les relais</string>
     <string name="blocklist_not_available_toast" translatable="true">Pour mettre à jour les listes de blocage, téléchargez la dernière version de l\'application.</string>
     <string name="lbl_ultra_secure" translatable="true">ultra sécurisé</string>
-    <string name="hop_failure_toast" translatable="true">Erreur de relai : %1$s -&gt; %2$s</string>
+    <string name="hop_failure_toast" translatable="true">Erreur de relai : %1$s -&gt; %2$s</string>
     <string name="wg_setting_use_on_mobile" translatable="true">Mobile uniquement</string>
     <string name="wg_setting_use_on_mobile_desc" translatable="true">Utiliser ce VPN WireGuard via les données mobiles.</string>
     <string name="hop_add_remove_title" translatable="true">Ajouter/Supprimer un relais</string>
@@ -775,8 +769,8 @@
     <string name="download_ip_info_desc" translatable="true">Récupère les informations du fournisseur de services pour les sites web depuis rethinkdns.com, propulsé par %1$s</string>
     <string name="top_active_conns" translatable="true">Connexions actives principales</string>
     <string name="close_conns_dialog_title" translatable="true">Fermer les connexions</string>
-    <string name="close_conns_dialog_desc" translatable="true">Fermer toutes les connexions pour %1$s ?</string>
-    <string name="local_blocklist_delete_desc" translatable="true">Supprimer les listes de blocage sur l\'appareil ?</string>
+    <string name="close_conns_dialog_desc" translatable="true">Fermer toutes les connexions pour %1$s ?</string>
+    <string name="local_blocklist_delete_desc" translatable="true">Supprimer les listes de blocage sur l\'appareil ?</string>
     <string name="fail_open_network_title" translatable="true">Blocage dû à une perte de réseau</string>
     <string name="fail_open_network_desc" translatable="true">Lorsqu\'il est activé, Keepout bloque toutes les données lorsqu\'aucune connectivité n\'est disponible, comme en mode avion.</string>
     <string name="about_license" translatable="true">Licence Apache-2.0</string>
@@ -798,8 +792,8 @@
     <string name="ssid_permission_explanation" translatable="true">Keepout a besoin de l’autorisation de localisation pour accéder aux identifiants Wi-Fi (%1$s).</string>
     <string name="location_enable_explanation" translatable="true">Pour accéder aux identifiants Wi-Fi (%1$s), activez le service de localisation.</string>
     <string name="wg_ssid_dialog_description" translatable="true">%1$s ce VPN WireGuard lorsque actif Identifiant Wi-Fi (%2$s) %3$s.</string>
-    <string name="wg_ssid_type_exact" translatable="true">Exactement</string>
-    <string name="wg_ssid_type_wildcard" translatable="true">Partiellement</string>
+    <string name="wg_ssid_type_exact" translatable="true">Correspond exactement</string>
+    <string name="wg_ssid_type_wildcard" translatable="true">Correspond partiellement</string>
     <string name="wg_ssid_invalid_error" translatable="true">Les identifiants Wi-Fi (%1$s) doivent comporter 32 caractères ou moins.</string>
     <string name="settings_firebase_error_reporting_heading" translatable="true">Programme de stabilité</string>
     <string name="settings_firebase_error_reporting_desc" translatable="true">Enregistrer les journaux d\'erreurs pour contribuer à améliorer la stabilité.</string>
@@ -833,7 +827,6 @@
     <string name="log_detail_flags">Indicateurs</string>
     <string name="log_detail_message">Message</string>
     <string name="log_detail_resolver">Résolveur</string>
-    <string name="log_detail_blocklists">Listes de blocage</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">Valide</string>
     <string name="log_detail_dnssec_unverified">Non vérifié</string>

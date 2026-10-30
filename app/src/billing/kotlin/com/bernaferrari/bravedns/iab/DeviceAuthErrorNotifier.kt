@@ -70,6 +70,7 @@ object DeviceAuthErrorNotifier {
 
             // HomeScreenActivity restores the error and opens the Compose RPN account route.
             val tapIntent = Intent(context, HomeScreenActivity::class.java).apply {
+                action = "${context.packageName}.notification.device-auth"
                 putExtra(NOTIF_INTENT_EXTRA_IAB_DEVICE_AUTH_ERROR_NAME,
                     NOTIF_INTENT_EXTRA_IAB_DEVICE_AUTH_ERROR_VALUE)
                 putExtra(EXTRA_OPERATION,        error.operation.name)

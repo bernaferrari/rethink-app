@@ -1,6 +1,8 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.apps
 
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkListItemColors
+
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
@@ -133,6 +135,17 @@ data class RethinkAppInfoStrings(
     val empty: String,
 )
 
+data class RethinkAppInfoLogsActions(
+    val active: RethinkAppInfoLogActions,
+    val domains: RethinkAppInfoLogActions,
+    val ips: RethinkAppInfoLogActions,
+)
+
+data class RethinkAppInfoLogActions(
+    val onOpen: (() -> Unit)? = null,
+    val onEntry: ((RethinkAppInfoLogItem) -> Unit)? = null,
+)
+
 /** Shared app-detail screen. Android retains app lookup, icon loading, rule writes and log paging. */
 @Composable
 fun RethinkAppInfoScreen(
@@ -150,15 +163,14 @@ fun RethinkAppInfoScreen(
     onSystemAppInfo: () -> Unit,
     onIpRules: () -> Unit,
     onDomainRules: () -> Unit,
-    onActiveConnections: (() -> Unit)?,
-    onDomains: (() -> Unit)?,
-    onIps: (() -> Unit)?,
-    onActiveEntry: ((RethinkAppInfoLogItem) -> Unit)?,
-    onDomainEntry: ((RethinkAppInfoLogItem) -> Unit)?,
-    onIpEntry: ((RethinkAppInfoLogItem) -> Unit)?,
+    logActions: RethinkAppInfoLogsActions,
     titleLeading: (@Composable () -> Unit)? = null,
     modifier: Modifier = Modifier,
+    appNotes: (@Composable () -> Unit)? = null,
 ) {
+    val activeLogActions = logActions.active
+    val domainLogActions = logActions.domains
+    val ipLogActions = logActions.ips
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -188,6 +200,7 @@ fun RethinkAppInfoScreen(
             }
         }
         val rules: LazyListScope.() -> Unit = {
+            if (appNotes != null) item { appNotes() }
             item {
                 RethinkFormSection(strings.rules) {
                     RethinkListGroup {
@@ -212,9 +225,9 @@ fun RethinkAppInfoScreen(
         }
         val activity: LazyListScope.() -> Unit = {
             val logSections = listOf(
-                Triple(state.activeConnections, onActiveConnections, onActiveEntry),
-                Triple(state.domainLogs, onDomains, onDomainEntry),
-                Triple(state.ipLogs, onIps, onIpEntry),
+                Triple(state.activeConnections, activeLogActions.onOpen, activeLogActions.onEntry),
+                Triple(state.domainLogs, domainLogActions.onOpen, domainLogActions.onEntry),
+                Triple(state.ipLogs, ipLogActions.onOpen, ipLogActions.onEntry),
             )
             if (logSections.all { (section) -> section.empty && !section.loading }) {
                 // One compact note instead of three stacked full empty states.
@@ -570,7 +583,7 @@ private fun RethinkAppLogCard(section: RethinkAppInfoLogSection, strings: Rethin
                             index == section.entries.lastIndex -> CardPosition.Last
                             else -> CardPosition.Middle
                         },
-                        defaultContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                        colors = rethinkListItemColors(defaultContainerColor = MaterialTheme.colorScheme.surfaceContainerLow),
                         showTrailingChevron = onEntry != null,
                         onClick = onEntry?.let { callback -> { callback(item) } },
                     )

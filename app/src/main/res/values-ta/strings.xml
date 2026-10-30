@@ -46,9 +46,9 @@
     <string name="conn_track_clear_logs_title">அனைத்து பிணையம் பதிவுகளையும் நீக்கவா?</string>
     <string name="always_on_dialog_positive_btn">அமைப்புகளுக்குச் செல்லவும்</string>
     <string name="conn_track_clear_logs_message">இது பிணைய பதிவுகளை மட்டுமே நீக்குகிறது ஆனால் ஃபயர்வால் விதிகளை அல்ல. இந்த செயல்பாடு மீளக்கூடியது அல்ல. தொடர வேண்டுமா\?</string>
-    <string name="dns_crypt_custom_url_remove_dialog_title">DNSCrypt தீர்வை நீக்கவா\?</string>
+    <string name="dns_crypt_custom_url_remove_dialog_title">DNSCrypt தீர்வை நீக்கவா?</string>
     <string name="always_on_dialog_stop_message">மறுபரிசீலனை செய்ய எப்போதும் இயங்கும் VPN இயக்கப்பட்டுள்ளது. எப்படியும் மறுபரிசீலனை செய்வதை நிச்சயமாக நிறுத்த விரும்புகிறீர்களா\?</string>
-    <string name="doh_custom_url_remove_dialog_title">DoH இறுதிப்புள்ளியை நீக்கவா\?</string>
+    <string name="doh_custom_url_remove_dialog_title">DoH இறுதிப்புள்ளியை நீக்கவா?</string>
     <string name="doh_custom_url_remove_dialog_message">சேமித்த உள்ளமைவிலிருந்து Https இறுதிப் புள்ளியில் DNS ஐ நீக்கவும்.</string>
     <string name="dns_crypt_url_remove_success">DNSCrypt தீர்வு நீக்கப்பட்டது.</string>
     <string name="always_on_dialog_stop_heading">எப்போதும் VPN-ஆன்</string>
@@ -752,7 +752,6 @@
     <string name="log_detail_flags">ஃபிளாக்குகள்</string>
     <string name="log_detail_message">செய்தி</string>
     <string name="log_detail_resolver">ரிசால்வர்</string>
-    <string name="log_detail_blocklists">தடுப்புப் பட்டியல்கள்</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">சரியானது</string>
     <string name="log_detail_dnssec_unverified">சரிபார்க்கப்படவில்லை</string>

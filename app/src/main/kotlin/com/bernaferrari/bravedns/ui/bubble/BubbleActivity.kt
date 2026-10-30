@@ -69,6 +69,7 @@ class BubbleActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        com.bernaferrari.bravedns.util.SensitiveWindowProtection.apply(window)
 
         Logger.d(TAG, "$TAG onCreate, taskId: $taskId")
 

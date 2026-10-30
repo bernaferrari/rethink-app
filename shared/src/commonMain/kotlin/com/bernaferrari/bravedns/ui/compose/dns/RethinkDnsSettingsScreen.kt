@@ -155,36 +155,41 @@ data class RethinkDnsSettingsStrings(
 )
 
 /** All DNS settings chrome and interactions, portable across Android and the WASM demo. */
+data class RethinkDnsSettingsNavigation(
+    val onRefresh: () -> Unit,
+    val onSystemDns: () -> Unit,
+    val onSystemDnsInfo: () -> Unit,
+    val onCustomDns: () -> Unit,
+    val onRethinkDns: () -> Unit,
+    val onSmartDns: () -> Unit,
+    val onSmartDnsInfo: () -> Unit,
+    val onLocalBlocklists: () -> Unit,
+    val onRecordTypes: () -> Unit,
+    val onTrustedEndpoint: () -> Unit,
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RethinkDnsSettingsScreen(
     state: RethinkDnsSettingsState,
     strings: RethinkDnsSettingsStrings,
-    onRefresh: () -> Unit,
-    onSystemDns: () -> Unit,
-    onSystemDnsInfo: () -> Unit,
-    onCustomDns: () -> Unit,
-    onRethinkDns: () -> Unit,
-    onSmartDns: () -> Unit,
-    onSmartDnsInfo: () -> Unit,
-    onLocalBlocklists: () -> Unit,
+    navigation: RethinkDnsSettingsNavigation,
     onCustomDownloaderChange: (Boolean) -> Unit,
     onPeriodicUpdateChange: (Boolean) -> Unit,
     onDnsAlgChange: (Boolean) -> Unit,
     onSplitDnsChange: (Boolean) -> Unit,
     onRulesAsFirewallChange: (Boolean) -> Unit,
-    onRecordTypes: () -> Unit,
     onFaviconsChange: (Boolean) -> Unit,
     onDnsCacheChange: (Boolean) -> Unit,
     onProxyDnsChange: (Boolean) -> Unit,
     onUndelegatedDomainsChange: (Boolean) -> Unit,
     onFallbackDnsChange: (Boolean) -> Unit,
     onBlockFreeModeChange: (RethinkBlockFreeDnsMode) -> Unit,
-    onTrustedEndpoint: () -> Unit,
     onPreventLeaksChange: (Boolean) -> Unit,
     onBackClick: (() -> Unit)? = null,
     focusedSettingId: String? = null,
     modifier: Modifier = Modifier,
+    additionalSettings: (@Composable () -> Unit)? = null,
 ) {
     val motion = LocalRethinkMotion.current
     val listState = rememberLazyListState()
@@ -200,54 +205,24 @@ fun RethinkDnsSettingsScreen(
         modifier = modifier,
         listState = listState,
         topBarActions = {
-            IconButton(onClick = onRefresh, enabled = !state.isRefreshing) {
-                if (state.isRefreshing) {
-                    LoadingIndicator(Modifier.size(SharedDimensions.iconSizeMd))
-                } else {
-                    Icon(MaterialSymbols.Filled.Refresh, strings.refresh)
-                }
-            }
+            DnsRefreshAction(state.isRefreshing, strings.refresh, navigation.onRefresh)
         },
     ) {
         item {
             // System and Smart DNS have servers worth listing; the hero opens them for whichever is in use.
             val details = when {
-                state.isSystemDnsEnabled -> onSystemDnsInfo
-                state.isSmartDnsEnabled -> onSmartDnsInfo
+                state.isSystemDnsEnabled -> navigation.onSystemDnsInfo
+                state.isSmartDnsEnabled -> navigation.onSmartDnsInfo
                 else -> null
             }
             DnsInUseHero(state, strings, highlighted = focusedSettingId == "dns_mode_rethink", onDetails = details)
         }
         rethinkSection(strings.modesSection) {
-            // Four resolver choices as one radio group in a 2×2 grid: every card carries a radio, and
-            // the chosen one fills with the secondary container and rounds further.
-            val choices = listOf(
-                DnsChoice(strings.systemDns, strings.systemDnsDescription, state.isSystemDnsEnabled, MaterialSymbols.Filled.Settings, "dns_mode_system", onSystemDns),
-                DnsChoice(strings.customDns, strings.customDnsDescription, !state.isSystemDnsEnabled && !state.isRethinkDnsConnected && !state.isSmartDnsEnabled, MaterialSymbols.Filled.Dns, "dns_mode_custom", onCustomDns),
-                DnsChoice(strings.rethinkDns, strings.rethinkDnsDescription, state.isRethinkDnsConnected, MaterialSymbols.Filled.Security, "dns_mode_rethink", onRethinkDns),
-                DnsChoice(strings.smartDns, strings.smartDnsDescription, state.isSmartDnsEnabled, MaterialSymbols.Filled.Language, "dns_mode_smart", onSmartDns),
-            )
-            Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
-                choices.chunked(2).forEach { pair ->
-                    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
-                        pair.forEach { choice ->
-                            DnsChoiceCard(choice, focusedSettingId == choice.id, Modifier.weight(1f).fillMaxHeight())
-                        }
-                    }
-                }
-            }
+            DnsResolverChoices(state, strings, navigation, focusedSettingId)
         }
         rethinkSection(strings.blockSection) {
             RethinkListGroup {
-                RethinkListItem(
-                    headline = strings.localBlocklists,
-                    supporting = if (state.blocklistEnabled) strings.localBlocklistsDescription(state.numberOfLocalBlocklists) else strings.localBlocklistsDisabledDescription,
-                    leadingIcon = MaterialSymbols.Filled.Security,
-                    position = CardPosition.First,
-                    highlighted = focusedSettingId == "dns_block_local",
-                    trailing = { RethinkDnsStatusText(if (state.blocklistEnabled) strings.enabled else strings.disabled, state.blocklistEnabled) },
-                    onClick = onLocalBlocklists,
-                )
+                DnsLocalBlocklistRow(state, strings, focusedSettingId == "dns_block_local", navigation.onLocalBlocklists)
                 RethinkDnsToggleRow(strings.customDownloader, strings.customDownloaderDescription, state.useCustomDownloadManager, MaterialSymbols.Filled.Storage, CardPosition.Middle, focusedSettingId == "dns_block_custom_downloader", onCustomDownloaderChange)
                 RethinkDnsToggleRow(strings.periodicUpdates, strings.periodicUpdatesDescription, state.periodicallyCheckBlocklistUpdate, MaterialSymbols.Filled.Refresh, CardPosition.Last, focusedSettingId == "dns_block_periodic_updates", onPeriodicUpdateChange)
             }
@@ -269,7 +244,7 @@ fun RethinkDnsSettingsScreen(
                     position = CardPosition.Last,
                     highlighted = focusedSettingId == "dns_filter_record_types",
                     trailing = { RethinkDnsStatusText(if (state.dnsRecordTypesAutoMode) strings.auto else state.allowedDnsRecordTypesSize.toString(), true) },
-                    onClick = onRecordTypes,
+                    onClick = navigation.onRecordTypes,
                 )
             }
         }
@@ -293,10 +268,11 @@ fun RethinkDnsSettingsScreen(
                     leadingIcon = MaterialSymbols.Filled.Security,
                     position = CardPosition.Last,
                     showTrailingChevron = true,
-                    onClick = onTrustedEndpoint,
+                    onClick = navigation.onTrustedEndpoint,
                 )
             }
         }
+        if (additionalSettings != null) item { additionalSettings() }
         rethinkSection(strings.advancedSection) {
             val rows = listOf(
                 RethinkDnsToggle(strings.favicons, strings.faviconsDescription, state.fetchFavIcon, MaterialSymbols.Filled.Language, "dns_advanced_favicon", onFaviconsChange),
@@ -313,6 +289,43 @@ fun RethinkDnsSettingsScreen(
             }
         }
     }
+}
+
+@Composable
+private fun DnsRefreshAction(isRefreshing: Boolean, refreshLabel: String, onRefresh: () -> Unit) {
+    IconButton(onClick = onRefresh, enabled = !isRefreshing) {
+        if (isRefreshing) {
+            LoadingIndicator(Modifier.size(SharedDimensions.iconSizeMd))
+        } else {
+            Icon(MaterialSymbols.Filled.Refresh, refreshLabel)
+        }
+    }
+}
+
+@Composable
+private fun DnsResolverChoices(
+    state: RethinkDnsSettingsState,
+    strings: RethinkDnsSettingsStrings,
+    navigation: RethinkDnsSettingsNavigation,
+    focusedSettingId: String?,
+) {
+            // Four resolver choices as one radio group in a 2×2 grid: every card carries a radio, and
+            // the chosen one fills with the secondary container and rounds further.
+            val choices = listOf(
+                DnsChoice(strings.systemDns, strings.systemDnsDescription, state.isSystemDnsEnabled, MaterialSymbols.Filled.Settings, "dns_mode_system", navigation.onSystemDns),
+                DnsChoice(strings.customDns, strings.customDnsDescription, !state.isSystemDnsEnabled && !state.isRethinkDnsConnected && !state.isSmartDnsEnabled, MaterialSymbols.Filled.Dns, "dns_mode_custom", navigation.onCustomDns),
+                DnsChoice(strings.rethinkDns, strings.rethinkDnsDescription, state.isRethinkDnsConnected, MaterialSymbols.Filled.Security, "dns_mode_rethink", navigation.onRethinkDns),
+                DnsChoice(strings.smartDns, strings.smartDnsDescription, state.isSmartDnsEnabled, MaterialSymbols.Filled.Language, "dns_mode_smart", navigation.onSmartDns),
+            )
+            Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
+                choices.chunked(2).forEach { pair ->
+                    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
+                        pair.forEach { choice ->
+                            DnsChoiceCard(choice, focusedSettingId == choice.id, Modifier.weight(1f).fillMaxHeight())
+                        }
+                    }
+                }
+            }
 }
 
 private class DnsChoice(
@@ -374,9 +387,9 @@ private fun DnsInUseHero(state: RethinkDnsSettingsState, strings: RethinkDnsSett
     val endpoint = state.connectedDnsName.substringAfter(',', "").trim()
     val displayName = state.connectedDnsName.substringBefore(',').trim().ifBlank { "--" }
     val protocol = state.dnsType.protocol(endpoint)
-    val latencies = state.recentLatencies.take(LATENCY_BARS)
-    val median = latencies.sorted().let { if (it.isEmpty()) null else it[it.size / 2] }
-    val latencyLabel = state.dnsLatency.trim('(', ')', ' ').takeIf { it.isNotBlank() } ?: median?.let { "$it ms" }
+    val latency = dnsHeroLatency(state.recentLatencies, state.dnsLatency, LATENCY_BARS)
+    val latencies = latency.samples
+    val latencyLabel = latency.label
     val shape = RoundedCornerShape(SharedDimensions.groupCornerRadius)
     // The brand palette keeps primaryContainer at the seed's bright tone in dark theme too; the
     // secondary container is the same hue at a dark tone, so the hero dims with the rest of the UI.
@@ -478,7 +491,7 @@ private fun RethinkDnsToggleRow(
 )
 
 @Composable
-private fun RethinkDnsStatusText(text: String, enabled: Boolean) = RethinkStatusLabel(
+internal fun RethinkDnsStatusText(text: String, enabled: Boolean) = RethinkStatusLabel(
     label = text,
     color = if (enabled) RethinkStatusColors.allowed else RethinkStatusColors.idle,
     indicator = RethinkStatusIndicator.None,

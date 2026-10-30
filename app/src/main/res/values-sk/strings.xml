@@ -228,7 +228,6 @@
     <string name="log_detail_flags">Príznaky</string>
     <string name="log_detail_message">Správa</string>
     <string name="log_detail_resolver">Resolver</string>
-    <string name="log_detail_blocklists">Blokovacie zoznamy</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">Platné</string>
     <string name="log_detail_dnssec_unverified">Neoverené</string>

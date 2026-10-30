@@ -9,7 +9,6 @@ import androidx.room3.DaoReturnTypeConverters
 import androidx.room3.RoomDatabase
 import androidx.room3.RoomDatabaseConstructor
 import androidx.room3.ColumnTypeConverters
-import androidx.room3.RoomRawQuery
 import androidx.room3.paging.PagingSourceDaoReturnTypeConverter
 
 @Suppress("NO_ACTUAL_FOR_EXPECT")
@@ -41,21 +40,15 @@ abstract class LogDatabase : RoomDatabase() {
     companion object {
         const val LOGS_DATABASE_NAME = "rethink_logs.db"
         const val SCHEMA_VERSION = 1
-        private const val PRAGMA = "pragma wal_checkpoint(full)"
     }
 
-    suspend fun checkPoint() {
-        logsDao().checkpoint(RoomRawQuery(PRAGMA))
-        logsDao().vacuum(RoomRawQuery("VACUUM"))
-    }
+    suspend fun checkPoint() = compactAndCheckpoint()
 
     abstract fun connectionTrackerDAO(): ConnectionTrackerDAO
 
     abstract fun rethinkConnectionLogDAO(): RethinkLogDao
 
     abstract fun dnsLogDAO(): DnsLogDAO
-
-    abstract fun logsDao(): LogDatabaseRawQueryDao
 
     abstract fun appStatsDAO(): AppStatsDao
 

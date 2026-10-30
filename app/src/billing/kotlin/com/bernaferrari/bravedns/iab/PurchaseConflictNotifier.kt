@@ -81,6 +81,7 @@ object PurchaseConflictNotifier {
 
             // HomeScreenActivity restores the conflict and opens the Compose account route.
             val tapIntent = Intent(context, HomeScreenActivity::class.java).apply {
+                action = "${context.packageName}.notification.purchase-conflict"
                 putExtra(NOTIF_INTENT_EXTRA_IAB_CONFLICT_NAME, NOTIF_INTENT_EXTRA_IAB_CONFLICT_VALUE)
                 // Pass the conflict details so the activity can re-post the LiveData event.
                 putExtra(EXTRA_ENDPOINT,       error.endpoint)

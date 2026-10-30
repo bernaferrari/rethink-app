@@ -107,12 +107,12 @@ class ManagePurchaseViewModel : ViewModel() {
                 val accountId = purchaseDetail.accountId
                 // purchaseDetail.deviceId holds only the sentinel indicator, never the real device ID.
                 // Always fetch the actual ID from SecureIdentityStore via InAppBillingHandler.
-                val deviceId = InAppBillingHandler.getObfuscatedDeviceId()
+                val deviceId = InAppBillingHandler.getObfuscatedDeviceId(accountId)
                 val purchaseToken = purchaseDetail.purchaseToken
                 val productType = purchaseDetail.productType
                 val productId = purchaseDetail.productId
 
-                if (accountId.isEmpty() || purchaseToken.isEmpty()) {
+                if (accountId.isEmpty() || purchaseToken.isEmpty() || deviceId.isEmpty()) {
                     Logger.w(LOG_TAG_UI, "$TAG: accountId or purchaseToken empty")
                     emit(OperationState.Failure(isCancel, "Account information incomplete. Please try again."))
                     return@launch
@@ -130,11 +130,8 @@ class ManagePurchaseViewModel : ViewModel() {
 
                 emit(OperationState.InProgress(isCancel, Step.UPDATING_LOCAL))
 
-                if (isCancel) {
-                    RpnProxyManager.handleUserCancellation()
-                } else {
-                    RpnProxyManager.handleSubscriptionRevoked()
-                }
+                // Billing applies the token-scoped local transition before returning success.
+                // Repeating it against whichever purchase is now current would race new purchases.
 
                 emit(OperationState.InProgress(isCancel, Step.REFRESHING))
                 try {

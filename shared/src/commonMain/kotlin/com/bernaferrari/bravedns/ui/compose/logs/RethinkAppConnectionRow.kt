@@ -27,17 +27,6 @@ import com.bernaferrari.bravedns.ui.compose.theme.accent
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListShape
 
-/** Target-neutral presentation state for one app-wise connection entry. */
-data class RethinkAppConnectionItem(
-    val flag: String,
-    val title: String,
-    val supporting: String? = null,
-    val count: String,
-    val ruleState: RethinkFirewallRuleStatus = RethinkFirewallRuleStatus.None,
-    /** Null omits the lightweight activity indicator. */
-    val activity: Float? = null,
-)
-
 /**
  * Expressive, shared row used for domain, IP, and ASN connection histories.
  * Platform adapters map their database objects and rule-manager results into [RethinkAppConnectionItem].

@@ -18,6 +18,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.navigationsuite.ExperimentalMaterial3AdaptiveNavigationSuiteApi
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScope
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.InputMode
+import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,6 +51,14 @@ fun RethinkNavShell(
     snackbar: @Composable () -> Unit = {},
     content: @Composable () -> Unit,
 ) {
+    val navigationFocus = remember { FocusRequester() }
+    var navigationReady by remember(selectedId, destinations.map { it.id }) { mutableStateOf(false) }
+    val inputMode = LocalInputModeManager.current.inputMode
+    LaunchedEffect(showNavigation, selectedId, inputMode, navigationReady) {
+        if (showNavigation && navigationReady && inputMode == InputMode.Keyboard) {
+            navigationFocus.requestFocus()
+        }
+    }
     // Hide the bar through the scaffold state instead of swapping parents: moving `content` to a
     // different parent would rebuild NavDisplay (and its saveable decorators) and cut the
     // Welcome → Home transition.
@@ -58,6 +75,7 @@ fun RethinkNavShell(
             destinations.forEach { destination ->
                 val selected = destination.id == selectedId
                 item(
+                    modifier = if (selected) Modifier.focusRequester(navigationFocus).onGloballyPositioned { navigationReady = true } else Modifier,
                     selected = selected,
                     onClick = { onDestinationSelected(destination.id) },
                     icon = {

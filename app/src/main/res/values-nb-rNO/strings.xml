@@ -12,7 +12,7 @@
     <string name="settings_ip_text_ipv6">IPv6</string>
     <string name="notification_action_pause_vpn">Pause</string>
     <string name="firewall_mode_info_title">Brannmur</string>
-    <string name="conn_track_clear_logs_title">Slett alle nettverkslogger\?</string>
+    <string name="conn_track_clear_logs_title">Slett alle nettverkslogger?</string>
     <string name="info_dialog_copy_toast_msg">IP-adresse kopiert.</string>
     <string name="orbot_status_arg_2">TCP</string>
     <string name="notification_action_dns_mode">DNS</string>
@@ -31,8 +31,8 @@
     <string name="always_on_dialog_positive_btn">Gå til innstillingene</string>
     <string name="always_on_dialog_positive">Stopp</string>
     <string name="firewall_act_network_monitor_tab">Nettverkslogger</string>
-    <string name="doh_custom_url_remove_dialog_title">Slett DoH-endepunkt\?</string>
-    <string name="doh_custom_url_remove_success">Endepunkt slettet\?</string>
+    <string name="doh_custom_url_remove_dialog_title">Slett DoH-endepunkt?</string>
+    <string name="doh_custom_url_remove_success">Endepunkt slettet?</string>
     <string name="http_proxy_dialog_heading">Sett HTTP(S)-mellomtjener</string>
     <string name="info_dialog_url_copy_toast_msg">Nettadresse kopiert</string>
     <string name="connection_http3">HTTP/3</string>
@@ -41,14 +41,14 @@
     <string name="orbot">Orbot</string>
     <string name="orbot_http">HTTP-mellomtjener</string>
     <string name="orbot_both">TCP + HTTP-mellomtjener</string>
-    <string name="orbot_app_issue">Kunne ikke starte Orbot. Er det installert\?</string>
+    <string name="orbot_app_issue">Kunne ikke starte Orbot. Er det installert?</string>
     <string name="orbot_bs_status_trying_connect">Setter opp Orbot …</string>
     <string name="orbot_stop_dialog_message_combo">%1$s
 \n
 \n%2$s</string>
     <string name="orbot_stop_dialog_neutral">Endre DNS</string>
     <string name="orbot_title">Orbot og mellomtjenere</string>
-    <string name="orbot_install_dialog_title">Installer Orbot\?</string>
+    <string name="orbot_install_dialog_title">Installer Orbot?</string>
     <string name="orbot_install_dialog_positive">Installer</string>
     <string name="orbot_install_dialog_neutral">Nettside</string>
     <string name="orbot_website_link">https://guardianproject.info/apps/org.torproject.android/</string>
@@ -133,11 +133,7 @@
     <string name="category_name_installed">Installerte programmer</string>
     <string name="status_dns_error">DNS-feil</string>
     <string name="about_web">Lenker</string>
-    <string name="dns_proxy_dialog_message">Programnavn: %1$s
-\n
-\nIP: %2$s
-\n
-\nPort: %3$s</string>
+    <string name="dns_proxy_dialog_message">Programnavn: %1$s \n \nIP: %2$s \n \nPort: %3$s</string>
     <string name="fapps_filter_parent_system">System</string>
     <string name="unicode_question_sign">❔</string>
     <string name="settings_local_blocklist_dialog_positive">Last ned</string>
@@ -196,11 +192,9 @@
     <string name="firewall_rule_block_ip">IP/port</string>
     <string name="notif_channel_download">Nedlastningsvarler</string>
     <string name="category_name_non_app_sys">Systemtjenester</string>
-    <string name="dns_crypt_custom_url_remove_dialog_title">Slett DNSCrypt-utleder\?</string>
+    <string name="dns_crypt_custom_url_remove_dialog_title">Slett DNSCrypt-utleder?</string>
     <string name="orbot_none">Ingen (forvalg)</string>
-    <string name="dns_proxy_dialog_message_no_app">IP: %1$s
-\n
-\nPort: %2$s</string>
+    <string name="dns_proxy_dialog_message_no_app">IP: %1$s \n \nPort: %2$s</string>
     <string name="about_app">Program</string>
     <string name="about_mozilla">Rethink er en del av Mozilla Builders MVP-programmet.</string>
     <string name="dns_proxy_desc">%1$s:%2$s, %3$s</string>
@@ -295,7 +289,7 @@
     <string name="rt_re_download">Last ned svartelister igjen</string>
     <string name="brbs_restore_desc">Gjenopprett fra sikkerhetskopifil</string>
     <string name="brbs_restore_dialog_title">Gjenopprett sikkerhetskopi</string>
-    <string name="brbs_restore_dialog_failure_message">Kunne ikke gjenopprette. Prøv igjen\?</string>
+    <string name="brbs_restore_dialog_failure_message">Kunne ikke gjenopprette. Prøv igjen?</string>
     <string name="settings_https_disabled_error">Tilkoblet til %1$s. Skru det av for å fortsette.</string>
     <string name="univ_firewall_rule_5">Blokker når DNS er omgått</string>
     <string name="univ_accessibility_dialog_positive">Innvilg</string>
@@ -316,7 +310,7 @@
     <string name="dc_dns_website_desc">Henter nettsideikon fra duckduckgo.com. Bruker ca. 350 MB plass.</string>
     <string name="radio_sky_btn">⛅ Sky</string>
     <string name="download_update_dialog_message_success">Svarteliste nedlastet.</string>
-    <string name="download_update_dialog_message">Last ned ny versjon av programmet fra nettsiden\?</string>
+    <string name="download_update_dialog_message">Last ned ny versjon av programmet fra nettsiden?</string>
     <string name="collecting_logs_progress_text">Loggfører …</string>
     <string name="orbot_socks5">Kun-TCP-mellomtjener</string>
     <string name="dc_local_block_desc_1">Velg mellom 185+ svartelister. Klikk her for å laste ned eller sette opp svartelister.</string>
@@ -374,7 +368,6 @@
     <string name="log_detail_flags">Flagg</string>
     <string name="log_detail_message">Melding</string>
     <string name="log_detail_resolver">Resolver</string>
-    <string name="log_detail_blocklists">Blokkeringslister</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">Gyldig</string>
     <string name="log_detail_dnssec_unverified">Ikke bekreftet</string>

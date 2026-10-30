@@ -26,17 +26,14 @@ object CrashReporter {
     /**
      * Report a Go-level crash string to Firebase.
      */
-    fun recordGoCrash(message: String) {
-        val msg = message.split(LOG_SPLITTER)
-        val safeType = msg.getOrNull(0) ?: "No type"
+    fun recordGoCrash(message: String): Boolean {
+        val msg = message.split(LOG_SPLITTER, limit = 3)
+        val safeType = msg.getOrNull(0)?.take(MAX_MESSAGE_LENGTH) ?: "No type"
         val safeMessage = msg.getOrNull(1)?.take(MAX_MESSAGE_LENGTH) ?: "No message"
-        val stackTrace = msg.getOrNull(2) ?: "No stack trace"
+        val stackTrace = msg.getOrNull(2) ?: msg.getOrNull(1) ?: message
 
         // Create a synthetic exception to preserve context
-        val syntheticException = RuntimeException("$safeType \n $safeMessage")
-
-        // Record it as non-fatal
-        FirebaseErrorReporting.recordException(syntheticException)
+        val syntheticException = ExceptionParser.parse(message, "$safeType: $safeMessage")
 
         // Log stack trace in chunks to avoid truncation
         stackTrace.let { trace ->
@@ -44,5 +41,6 @@ object CrashReporter {
                 FirebaseErrorReporting.log("trace[$index]: $chunk")
             }
         }
+        return FirebaseErrorReporting.tryRecordException(syntheticException)
     }
 }

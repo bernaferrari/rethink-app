@@ -313,7 +313,7 @@ internal class OneTimePurchaseProcessor(
                 val pd = buildPurchaseDetail(purchase)
                 if (pd == null) {
                     logd(mname, "INAPP purchase access window expired; firing subscriptionExpired")
-                    subscriptionStateMachine.subscriptionExpired()
+                    subscriptionStateMachine.subscriptionExpired(purchase.purchaseToken)
                     return
                 }
                 // paymentSuccessful -> handlePaymentSuccessful handles DB upsert
@@ -338,7 +338,7 @@ internal class OneTimePurchaseProcessor(
                     subscriptionStateMachine.completePurchase(pd) // stays PurchasePending
                 } else {
                     logd(mname, "INAPP purchase access window expired before ack; firing subscriptionExpired")
-                    subscriptionStateMachine.subscriptionExpired()
+                    subscriptionStateMachine.subscriptionExpired(purchase.purchaseToken)
                 }
             } catch (e: IllegalStateException) {
                 loge(mname, "error recording pending INAPP state: ${e.message}", e)
@@ -364,7 +364,7 @@ internal class OneTimePurchaseProcessor(
         val pd = buildPurchaseDetail(purchase)
         if (pd == null) {
             logd(mname, "INAPP purchase access window expired during ack; marking expired")
-            subscriptionStateMachine.subscriptionExpired()
+            subscriptionStateMachine.subscriptionExpired(purchase.purchaseToken)
             return
         }
 

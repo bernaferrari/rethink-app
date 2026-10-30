@@ -171,9 +171,7 @@
     <string name="dns_connected_rethink_plus" translatable="true">接続済み。%1$s ブロックリスト使用中</string>
     <string name="dns_info_positive" translatable="true">Ok</string>
     <string name="dns_info_neutral" translatable="true">コピー</string>
-    <string name="dns_proxy_dialog_message_no_app" translatable="true">IP アドレス: %1$s
-\n
-\nポート番号: %2$s</string>
+    <string name="dns_proxy_dialog_message_no_app" translatable="true">IP アドレス: %1$s \n \nポート番号: %2$s</string>
     <string name="dns_query_latency" translatable="true">%1$sms</string>
     <string name="dns_proxy_dialog_header_dns" translatable="true">DNSプロキシを追加する</string>
     <string name="dns_proxy_name" translatable="true">プロキシ名</string>
@@ -216,9 +214,9 @@
     <string name="dns_crypt_url_remove_success" translatable="true">DNSCryptリゾルバを削除しました。</string>
     <string name="dns_proxy_remove_dialog_title" translatable="true">DNSプロキシを削除しますか\?</string>
     <string name="download_update_dialog_failure_message" translatable="true">サーバーがダウンしているか、接続が確立されていないかのどちらかです。しばらくしてから、再度お試しください。</string>
-    <string name="local_blocklist_download_desc" translatable="true">この機能のブロックリスト(60MB程度)をダウンロードしますか\?</string>
+    <string name="local_blocklist_download_desc" translatable="true">この機能のブロックリスト(60MB程度)をダウンロードしますか?</string>
     <string name="blocklist_update_check_not_required" translatable="true">ブロックリストはすでに最新版になっています。</string>
-    <string name="download_update_dialog_message" translatable="true">アプリの新しいバージョンは、Webサイトからダウンロードできます。続行しますか\?</string>
+    <string name="download_update_dialog_message" translatable="true">アプリの新しいバージョンは、Webサイトからダウンロードできます。続行しますか?</string>
     <string name="download_update_dialog_trylater_message" translatable="true">現在、更新を実行できません。しばらくしてからもう一度お試しください。</string>
     <string name="http_proxy_dialog_heading" translatable="true">HTTP(S)プロキシを設定する</string>
     <string name="download_update_dialog_trylater_title" translatable="true">現在更新できません</string>
@@ -270,11 +268,7 @@
     <string name="univ_view_blocked_ip_desc" translatable="true">ブロックまたは信頼されたドメイン、IP / ポート ルールを変更します。</string>
     <string name="fapps_info_dialog_message" translatable="true">アプリがインターネットに接続できないようにブロックします。インターネットへの接続を制限することで、不当なデータ利用を防ぐとともに、バッテリーの節約にもつながります。</string>
     <string name="dns_connected" translatable="true">接続済み</string>
-    <string name="dns_proxy_dialog_message" translatable="true">アプリ名: %1$s
-\n
-\nIP アドレス: %2$s
-\n
-\nポート番号: %3$s</string>
+    <string name="dns_proxy_dialog_message" translatable="true">アプリ名: %1$s \n \nIP アドレス: %2$s \n \nポート番号: %3$s</string>
     <string name="dns_proxy_ip_address" translatable="true">IPアドレス</string>
     <string name="fapps_filter_parent_installed" translatable="true">インストール済み</string>
     <string name="fapps_filter_parent_system" translatable="true">システム</string>
@@ -440,7 +434,6 @@
     <string name="log_detail_flags">フラグ</string>
     <string name="log_detail_message">メッセージ</string>
     <string name="log_detail_resolver">リゾルバ</string>
-    <string name="log_detail_blocklists">ブロックリスト</string>
     <string name="log_detail_dnssec">DNSSEC</string>
     <string name="log_detail_dnssec_valid">有効</string>
     <string name="log_detail_dnssec_unverified">未検証</string>

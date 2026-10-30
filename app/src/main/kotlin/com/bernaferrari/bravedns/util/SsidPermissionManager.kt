@@ -62,6 +62,25 @@ object SsidPermissionManager {
         }
     }
 
+    fun hasBackgroundAccess(context: Context): Boolean =
+        hasRequiredPermissions(context) && (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ||
+            ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_BACKGROUND_LOCATION) ==
+            PackageManager.PERMISSION_GRANTED)
+
+    /** Foreground location must be granted before requesting background access. */
+    fun requestBackgroundAccess(activity: Activity) {
+        if (!isLocationEnabled(activity)) {
+            requestLocationEnable(activity)
+        } else if (!hasRequiredPermissions(activity)) {
+            requestSsidPermissions(activity)
+        } else if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
+            ActivityCompat.requestPermissions(activity,
+                arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION), SSID_PERMISSION_REQUEST_CODE)
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            openAppSettings(activity)
+        }
+    }
+
     /**
      * Request the required permissions for SSID access
      * @param activity The activity to request permissions from

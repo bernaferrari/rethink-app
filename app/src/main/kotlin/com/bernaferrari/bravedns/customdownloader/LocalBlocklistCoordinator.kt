@@ -521,7 +521,7 @@ class LocalBlocklistCoordinator(val context: Context, workerParams: WorkerParame
     private fun getPendingIntent(context: Context): PendingIntent {
         return Utilities.getActivityPendingIntent(
             context,
-            Intent(context, HomeScreenActivity::class.java),
+            Intent(context, HomeScreenActivity::class.java).setAction("${context.packageName}.notification.blocklist-download"),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
             mutable = false
         )

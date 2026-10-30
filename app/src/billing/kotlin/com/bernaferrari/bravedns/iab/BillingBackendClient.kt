@@ -19,6 +19,7 @@ import Logger
 import Logger.LOG_IAB
 import com.bernaferrari.bravedns.service.PersistentState
 import com.bernaferrari.bravedns.service.VpnController
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -36,6 +37,7 @@ import java.io.IOException
 class BillingBackendClient(
     private val identityStore: SecureIdentityStore,
     private val persistentState: PersistentState,
+    private val identityDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
 
     private val apiFactory by lazy { BillingApiFactory(persistentState) }
@@ -112,71 +114,37 @@ class BillingBackendClient(
      * Returns an empty string if all sources fail.
      */
     suspend fun getDeviceId(recvCid: String = ""): String = identityMutex.withLock {
-        val mname = this@BillingBackendClient::getDeviceId.name
-        val env = currentEnv()
-        val (storedCid, storedDid) = identityStore.get(env)
-
-        if (recvCid.isNotEmpty() && storedCid != recvCid) {
-            Logger.i(LOG_IAB, "$TAG $mname [${env.label}]: recvCid differs from storedCid; re-registering device under new cid, recvCid=${recvCid.take(8)}, storedCid=${storedCid?.take(8) ?: "null"}, storedDid=${storedDid?.length ?: "null"}")
-            val didResult = createOrRegisterDid(recvCid, "")
-            if (didResult.isSuccess) {
-                identityStore.save(env, recvCid, didResult.deviceId)
-                Logger.i(LOG_IAB, "$TAG $mname [${env.label}]: re-registered device (didLen=${didResult.deviceId.length})")
-                return@withLock didResult.deviceId
-            }
-            when (didResult.errorCode) {
-                401 -> Logger.e(LOG_IAB, "$TAG $mname [${env.label}]: 401 unauthorized on re-registration for recvCid=${recvCid.take(8)}; falling through to store")
-                409 -> Logger.e(LOG_IAB, "$TAG $mname [${env.label}]: 409 conflict on re-registration for recvCid=${recvCid.take(8)}; falling through to store")
-                else -> Logger.w(LOG_IAB, "$TAG $mname [${env.label}]: re-registration failed (code=${didResult.errorCode}); falling through to store")
-            }
-        }
-
-        if (!storedDid.isNullOrBlank()) {
-            Logger.v(LOG_IAB, "$TAG $mname [${env.label}]: loaded from SecureIdentityStore (len=${storedDid.length})")
-            return@withLock storedDid
-        }
-
-        return@withLock when (val result = refreshIdentity()) {
-            is RefreshIdentityResult.Success -> {
-                Logger.i(LOG_IAB, "$TAG $mname [${env.label}]: received from server (len=${result.did.length})")
-                result.did
-            }
-            is RefreshIdentityResult.Unauthorized -> {
-                Logger.e(LOG_IAB, "$TAG $mname [${env.label}]: 401 unauthorized; did unavailable")
-                ""
-            }
-            is RefreshIdentityResult.Conflict -> {
-                Logger.e(LOG_IAB, "$TAG $mname [${env.label}]: 409 conflict; did unavailable")
-                ""
-            }
-            is RefreshIdentityResult.Failure -> {
-                Logger.w(LOG_IAB, "$TAG $mname [${env.label}]: did unavailable (transient)")
-                ""
-            }
+        if (recvCid.isNotBlank()) return@withLock resolveDidForCidLocked(recvCid).deviceId
+        val (storedCid, storedDid) = identityStore.get(currentEnv())
+        if (!storedCid.isNullOrBlank() && !storedDid.isNullOrBlank()) return@withLock storedDid
+        when (val result = refreshIdentityLocked()) {
+            is RefreshIdentityResult.Success -> result.did
+            else -> ""
         }
     }
 
-    /**
-     * Atomically resolves a DID for [cid] under the identity mutex.
-     *
-     * If the store already contains a DID for [cid] it is returned immediately
-     * (no server call). Otherwise [createOrRegisterDid] is called and the
-     * result is persisted on success.
-     */
     suspend fun reconcileDidForCid(cid: String): DidResult = identityMutex.withLock {
+        resolveDidForCidLocked(cid)
+    }
+
+    private suspend fun resolveDidForCidLocked(cid: String): DidResult {
+        if (cid.isBlank()) return DidResult.error(-1)
         val env = currentEnv()
         val (storedCid, storedDid) = identityStore.get(env)
-        if (storedCid == cid && !storedDid.isNullOrBlank()) {
-            Logger.d(LOG_IAB, "$TAG reconcileDidForCid [${env.label}]: did already present (len=${storedDid.length})")
-            return@withLock DidResult(storedDid)
+        if (!storedCid.isNullOrBlank() && storedCid != cid) {
+            Logger.e(LOG_IAB, "$TAG: refusing to rebind device identity to another account")
+            return DidResult.error(409)
         }
-        val existing = if (storedCid == cid) (storedDid ?: "") else ""
-        val didResult = createOrRegisterDid(cid, existing)
-        if (didResult.isSuccess) {
-            identityStore.save(env, cid, didResult.deviceId)
-            Logger.i(LOG_IAB, "$TAG reconcileDidForCid [${env.label}]: obtained and persisted did (len=${didResult.deviceId.length})")
-        }
-        didResult
+        if (storedCid == cid && !storedDid.isNullOrBlank()) return DidResult(storedDid)
+        val result = createOrRegisterDid(cid, storedDid.orEmpty())
+        if (result.isSuccess) identityStore.save(env, cid, result.deviceId)
+        return result
+    }
+
+    suspend fun getDeviceIdForCid(cid: String): String = identityMutex.withLock {
+        if (cid.isBlank()) return@withLock ""
+        val (storedCid, storedDid) = identityStore.get(currentEnv())
+        if (storedCid == cid) storedDid.orEmpty() else ""
     }
 
     /**
@@ -216,7 +184,7 @@ class BillingBackendClient(
      * the tunnel is up; otherwise [PersistentState.appTestMode]. Idempotent once the
      * legacy file is gone.
      */
-    private suspend fun migrateIdentityIfNeeded() = withContext(Dispatchers.IO) {
+    private suspend fun migrateIdentityIfNeeded() = withContext(identityDispatcher) {
         if (!identityStore.hasLegacyIdentity()) return@withContext
 
         val (legacyCid, legacyDid) = identityStore.readLegacy()
@@ -260,72 +228,32 @@ class BillingBackendClient(
      *   [RefreshIdentityResult.Conflict] when the server returns HTTP 409 on either step.
      *   [RefreshIdentityResult.Failure] for all other failures (transient, network, etc.).
      */
-    suspend fun refreshIdentity(): RefreshIdentityResult {
-        return identityMutex.withLock {
-        val mname = "refreshIdentity"
+    suspend fun refreshIdentity(): RefreshIdentityResult =
+        identityMutex.withLock { refreshIdentityLocked() }
+
+    // Caller holds identityMutex. Mutex is deliberately not reentrant.
+    private suspend fun refreshIdentityLocked(): RefreshIdentityResult {
         migrateIdentityIfNeeded()
         val env = currentEnv()
         val (storedCid, storedDid) = identityStore.get(env)
-
-        var cid = storedCid ?: ""
-        var cidWasAbsent = false
-        if (cid.isBlank()) {
-            val cidResult = createOrRegisterCid()
-            when {
-                cidResult.isSuccess -> {
-                    cid = cidResult.accountId
-                    cidWasAbsent = true
-                    Logger.i(LOG_IAB, "$TAG $mname [${env.label}]: new cid obtained from server (len=${cid.length})")
-                }
-                cidResult.errorCode == 401 -> {
-                    Logger.e(LOG_IAB, "$TAG $mname [${env.label}]: 401 on cid step; cannot resolve identity")
-                    return@withLock RefreshIdentityResult.Unauthorized
-                }
-                cidResult.errorCode == 409 -> {
-                    Logger.e(LOG_IAB, "$TAG $mname [${env.label}]: 409 on cid step; cannot resolve identity")
-                    return@withLock RefreshIdentityResult.Conflict
-                }
-                else -> {
-                    Logger.w(LOG_IAB, "$TAG $mname [${env.label}]: failed to resolve cid (code=${cidResult.errorCode})")
-                    return@withLock RefreshIdentityResult.Failure
-                }
-            }
+        val cid = if (storedCid.isNullOrBlank()) createOrRegisterCid() else CidResult(storedCid)
+        if (!cid.isSuccess) return identityFailure(cid.errorCode)
+        val did = if (storedCid == cid.accountId && !storedDid.isNullOrBlank()) {
+            DidResult(storedDid)
         } else {
-            Logger.d(LOG_IAB, "$TAG $mname [${env.label}]: cid loaded from store (len=${cid.length})")
+            createOrRegisterDid(cid.accountId, "")
         }
+        if (!did.isSuccess) return identityFailure(did.errorCode)
+        if (storedCid != cid.accountId || storedDid != did.deviceId) {
+            identityStore.save(env, cid.accountId, did.deviceId)
+        }
+        return RefreshIdentityResult.Success(cid.accountId, did.deviceId)
+    }
 
-        var did = if (!cidWasAbsent && !storedDid.isNullOrBlank()) storedDid else ""
-        if (did.isBlank()) {
-            val didResult = createOrRegisterDid(cid, storedDid ?: "")
-            when {
-                didResult.isSuccess -> {
-                    did = didResult.deviceId
-                    Logger.i(LOG_IAB, "$TAG $mname [${env.label}]: new did obtained from server (len=${did.length})")
-                }
-                didResult.errorCode == 401 -> {
-                    Logger.e(LOG_IAB, "$TAG $mname [${env.label}]: 401 on did step; cannot resolve identity")
-                    return@withLock RefreshIdentityResult.Unauthorized
-                }
-                didResult.errorCode == 409 -> {
-                    Logger.e(LOG_IAB, "$TAG $mname [${env.label}]: 409 on did step; cannot resolve identity")
-                    return@withLock RefreshIdentityResult.Conflict
-                }
-                else -> {
-                    Logger.w(LOG_IAB, "$TAG $mname [${env.label}]: failed to resolve did (code=${didResult.errorCode})")
-                    return@withLock RefreshIdentityResult.Failure
-                }
-            }
-        } else {
-            Logger.d(LOG_IAB, "$TAG $mname [${env.label}]: did loaded from store (len=${did.length})")
-        }
-
-        if (storedCid != cid || storedDid != did) {
-            identityStore.save(env, cid, did)
-            Logger.i(LOG_IAB, "$TAG $mname: identity persisted [${env.label}] (cidLen=${cid.length}, didLen=${did.length})")
-        }
-
-        return@withLock RefreshIdentityResult.Success(cid, did)
-        }
+    private fun identityFailure(errorCode: Int): RefreshIdentityResult = when (errorCode) {
+        401 -> RefreshIdentityResult.Unauthorized
+        409 -> RefreshIdentityResult.Conflict
+        else -> RefreshIdentityResult.Failure
     }
 
     suspend fun registerDevice(
