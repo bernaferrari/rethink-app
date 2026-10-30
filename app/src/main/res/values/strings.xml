@@ -593,10 +593,7 @@
 
     <!-- AppDetailActivity -->
 
-    <string name="firewall_status_excluded" translatable="true">Excluded from DNS and firewall</string>
-    <string name="firewall_status_isolate" translatable="true">Isolated</string>
     <string name="firewall_status_whitelisted" translatable="true">Bypasses universal firewall rules</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">Bypasses DNS &amp; firewall rules</string>
     <string name="firewall_status_unknown" translatable="true">Unknown</string>
 
     <!--Connection tracker bottom sheet -->
@@ -1102,10 +1099,10 @@
 
     <string name="ada_app_metered" translatable="true">Metered</string>
     <string name="ada_app_unmetered" translatable="true">Unmetered</string>
-    <string name="ada_app_bypass_univ" translatable="true">Bypass Universal</string>
-    <string name="ada_app_bypass_dns_firewall" translatable="true">Bypass DNS &amp; Firewall</string>
-    <string name="ada_app_exclude" translatable="true">Exclude</string>
-    <string name="ada_app_isolate" translatable="true">Isolate</string>
+    <string name="ada_app_bypass_univ" translatable="true">Bypass universal rules</string>
+    <string name="ada_app_bypass_dns_firewall" translatable="true">Bypass DNS and firewall</string>
+    <string name="ada_app_exclude" translatable="true">Exclude from Keepout</string>
+    <string name="ada_app_isolate" translatable="true">Allow only trusted</string>
 
 
     <string name="ada_delete_logs_dialog_title" description="Appears as dialog title to clear the logs in app specific screen" translatable="true">Clear logs</string>

@@ -349,8 +349,6 @@
     <string name="settings_theme_dialog_themes_2" translatable="true">ஒளி</string>
     <string name="settings_theme_dialog_themes_3" translatable="true">இருள்</string>
     <string name="settings_default_dns_desc" translatable="true">பயனர்-விருப்பமான டி.என்.எச்சை கண்டறிய முடியாத அரிதான சந்தர்ப்பங்களில், குறைவடையும் டி.என்.எச் பயன்படுத்தப்படுகிறது.</string>
-    <string name="firewall_status_excluded" translatable="true">DNS மற்றும் ஃபயர்வாலில் இருந்து விலக்கப்பட்டது</string>
-    <string name="firewall_status_isolate" translatable="true">தனிமைப்படுத்தப்பட்டது</string>
     <string name="firewall_status_whitelisted" translatable="true">உலகளாவிய ஃபயர்வால் விதிகளை புறக்கணிக்கிறது</string>
     <string name="dc_block_heading" translatable="true">விதிகள்</string>
     <string name="dc_other_dns_heading" translatable="true">வகை</string>
@@ -623,7 +621,6 @@
     <string name="wireguard_disable_message" translatable="true">அனைத்து செயலில் உள்ள வயர் கார்ட் VPN களையும் நிறுத்தவா?</string>
     <string name="cloudflare_security_dns_desc" translatable="true">தீங்கிழைக்கும் உள்ளடக்கத்தைத் தடுக்கிறது. கிளவுட்ஃப்ளேரின் 1.1.1.2 டிஎன்எச் எண்ட்பாயிண்ட் பயன்படுத்துகிறது.</string>
     <string name="google_dns_desc" translatable="true">எந்த டிஎன்எச் கோரிக்கைகளையும் தடுக்காது. கூகிளின் டிஎன்எச் இறுதிப்புள்ளியைப் பயன்படுத்துகிறது.</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">DNS மற்றும் ஃபயர்வால் விதிகளைப் புறக்கணிக்கிறது</string>
     <string name="firewall_status_unknown" translatable="true">தெரியவில்லை</string>
     <string name="hs_biometeric_title" translatable="true">மறுபரிசீலனை திறக்கவும்</string>
     <string name="hs_biometeric_desc" translatable="true">மறுபரிசீலனை செய்ய பயோமெட்ரிக் அங்கீகாரத்தைப் பயன்படுத்தவும்</string>

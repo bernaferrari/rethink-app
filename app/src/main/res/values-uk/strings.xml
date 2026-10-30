@@ -473,7 +473,6 @@
     <string name="settings_ip_text_ipv6" translatable="true">IPv6</string>
     <string name="settings_ip_text_ipv46" translatable="true">Авто</string>
     <string name="firewall_status_whitelisted" translatable="true">Оминає універсальні правила брандмауера</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">Оминає правила DNS і брандмауера</string>
     <string name="dc_check_update_heading" translatable="true">Запитувати про оновлення блок листа</string>
     <string name="about_bug_no_log_dialog_message" translatable="true">Не вдалося отримати журнал збоїв. Бажаєте повідомити про помилку вручну?</string>
     <string name="about_twitter" translatable="true">Слідкуйте у Твіттері</string>
@@ -564,12 +563,10 @@
     <string name="ci_block" translatable="true">Блокувати</string>
     <string name="notif_download_cancel_content" translatable="true">Завантаження скасовано.</string>
     <string name="crypt_relay_singapore" translatable="true">Анонімна ретрансляція DNS, розміщена в Сінгапурі.</string>
-    <string name="firewall_status_isolate" translatable="true">Ізольовано</string>
     <string name="firewall_status_unknown" translatable="true">Невідомо</string>
     <string name="rt_list_simple_btn_txt" translatable="true">простий лист</string>
     <string name="rt_filter_parent_selected" translatable="true">Обрати батьківські фільтри</string>
     <string name="rsv_blocklist_count_text" description="This label will appear in rethink configure simple view screen which shows number of blocklists for each category" translatable="true">%1$s блоклисти</string>
-    <string name="firewall_status_excluded" translatable="true">Виключено з DNS і брандмауера</string>
     <string name="hs_biometeric_desc" translatable="true">Використовувати біометричну автентифікацію, щоб розблоковувати Keepout</string>
     <string name="hs_biometeric_error" translatable="true">Помилка біометричної автентифікації</string>
     <string name="dc_rethink_dns_radio" translatable="true">Rethink DNS</string>

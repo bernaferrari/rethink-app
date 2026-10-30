@@ -344,7 +344,6 @@
     <string name="dc_local_block_heading">Svartelister på enheten</string>
     <string name="univ_firewall_rule_1">Blokker alle programmer når enheten er låst</string>
     <string name="dc_check_update_heading">Spør om oppdatering av svartelister</string>
-    <string name="firewall_status_excluded">Utelatt fra DNS og brannmur</string>
     <string name="firewall_status_whitelisted">Omgår universelle brannmurregler</string>
     <string name="settings_http_proxy_error_text1">Portområde skal være fra 1024–65535</string>
     <string name="settings_theme_dialog_themes_1">Satt av systemet</string>

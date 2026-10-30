@@ -278,7 +278,6 @@
     <string name="firewall_status_unknown" translatable="true">نامشخص</string>
     <string name="hs_biometeric_title" translatable="true">بازکردن Keepout</string>
     <string name="settings_theme_dialog_themes_1" translatable="true">تنظیم شده توسط System</string>
-    <string name="firewall_status_excluded" translatable="true">مستثنا از DNS و فایروال</string>
     <string name="hsf_vpn_prepare_failure" translatable="true">یا مجوز وی پی ان وجود ندارد، یا برنامه دیگری در حالت وی پی ان همیشه روشن است.</string>
     <string name="hsf_notification_permission_failure" translatable="true">فعال کردن مجوز اعلان از صفحه تنظیمات</string>
     <string name="dc_custom_dns_radio" translatable="true">دی‌ان‌ اس سایر</string>
@@ -297,7 +296,6 @@
     <string name="dc_proxy_dns_desc" translatable="true">دی ان اس را روی پروکسی‌های همیشه روشن وایرگارد، ساکس۵ و HTTP پروکسی نکنید.</string>
     <string name="about_bug_no_log_dialog_message" translatable="true">نتوانستم گزارش‌های خرابی را دریافت کنم. آیا می‌خواهید اشکال خود را به صورت دستی گزارش دهید؟</string>
     <string name="about_email" translatable="true">ایمیل به ما</string>
-    <string name="firewall_status_isolate" translatable="true">ایزوله</string>
     <string name="about_bug_report_dialog_positive_btn" translatable="true">ارسال ایمیل</string>
     <string name="about_app" translatable="true">برنامه</string>
     <string name="about_web" translatable="true">لینک ها</string>
@@ -317,7 +315,6 @@
     <string name="dc_local_block_desc_1" translatable="true">از بین بیش از ۱۹۵ لیست مسدودکننده انتخاب کنید. برای دانلود یا پیکربندی لیست‌های مسدودکننده اینجا کلیک کنید.</string>
     <string name="dc_dns_website_desc" translatable="true">آیکون‌های وب‌سایت را از <i>nextdns.io</i> و <i>duckduckgo.com</i> دریافت می‌کند. تا ۳۵۰ مگابایت از فضای دیسک را اشغال می‌کند</string>
     <string name="firewall_status_whitelisted" translatable="true">قوانین فراگیر فایروال را دور می‌زند</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">قوانین DNS و فایروال را دور می‌زند</string>
     <string name="hsf_vpn_dialog_message" translatable="true">Keepout برای راه‌اندازی VPN محلی جهت رمزگذاری درخواست‌های DNS دستگاه، پیاده‌سازی مانیتور شبکه و اجرای قوانین دیوار‌آتش به مجوز نیاز دارد.\n\nKeepout هیچ اطلاعاتی را جمع‌آوری نمی‌کند و به هیچ وجه از شما جاسوسی نمی‌کند.</string>
     <string name="dc_other_dns_heading" translatable="true">نوع</string>
     <string name="about_github" translatable="true">مشارکت در گیت‌هاب</string>

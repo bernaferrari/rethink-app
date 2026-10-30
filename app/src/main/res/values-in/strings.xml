@@ -102,7 +102,6 @@
     <string name="firewall_rule_block_udp_ntp">UDP Diblokir</string>
     <string name="firewall_rule_exempt_orbot_setup">Pengaturan Orbot</string>
     <string name="dc_dns_website_desc">Mengambil ikon situs web dari <i>nextdns.io</i> dan <i>duckduckgo.com</i>. Mengonsumsi ruang penyimpanan hingga 350 mb</string>
-    <string name="firewall_status_excluded">Dikecualikan dari DNS dan firewall</string>
     <string name="bsct_app_info">Info Aplikasi</string>
     <string name="network_log_app_name_unknown">Tidak diketahui</string>
     <string name="category_name_non_app_sys">Layanan Sistem</string>
@@ -354,7 +353,6 @@
     <string name="hsf_pause_vpn_failure">Tidak dapat menjeda: Memikirkan kembali tidak aktif</string>
     <string name="pause_mode_notification_title">Dijeda! Aplikasi yang diblokir akan tetap di-firewall.</string>
     <string name="dns_crypt_url_remove_success">penyelesai (resolver) DNSCrypt telah terhapus.</string>
-    <string name="firewall_status_isolate">Diisolasi</string>
     <string name="fapps_metered_block_dialog_title">Blokir jaringan yang terukur</string>
     <string name="ada_app_status_block_md">Diblokir di data seluler</string>
     <string name="cd_dns_crypt_dialog_heading">Tambahkan Penyelesai (Resolver) atau Jembatan-Penghubung (Relay) DNSCrypt</string>
@@ -553,7 +551,6 @@
     <string name="bypass_dns_firewall" translatable="true">lewati (bypass) dns &amp; firewall</string>
     <string name="settings_lock_down_proxy_desc" translatable="true">Tidak dapat menyiapkan proksi ketika VPN berjalan dalam mode hanya DNS.</string>
     <string name="settings_general_customize" translatable="true">sesuaikan</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">Melewati aturan DNS &amp; firewall</string>
     <string name="settings_default_dns_heading" translatable="true">Pilih DNS cadangan</string>
     <string name="settings_default_dns_desc" translatable="true">Dalam kasus yang jarang terjadi ketika DNS pilihan pengguna tidak dapat dipastikan, DNS fallback akan digunakan.</string>
     <string name="bsct_block_domain" translatable="true">Blokir, percayakan <u>domain</u> untuk <u>aplikasi ini</u></string>

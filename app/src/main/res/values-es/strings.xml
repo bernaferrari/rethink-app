@@ -63,9 +63,7 @@
     <string name="settings_ip_text_ipv6">IPv6</string>
     <string name="settings_selected_ip_desc">%1$s</string>
     <string name="firewall_status_whitelisted">Omite las reglas universales del cortafuegos</string>
-    <string name="firewall_status_isolate">Aislada</string>
     <string name="settings_protocol_translation_dns_inactive">Cambie al modo DNS/DNS+Cortafuegos para activar esta configuración</string>
-    <string name="firewall_status_excluded">Excluida del DNS y del cortafuegos</string>
     <string name="firewall_status_unknown">Desconocido</string>
     <string name="hsf_vpn_dialog_message">Keepout necesita permiso para configurar una VPN local para cifrar las solicitudes de DNS del dispositivo, implementar un monitor de red y aplicar las reglas del cortafuegos.
 \n
@@ -558,7 +556,6 @@
     <string name="bsct_block_domain" translatable="true">Bloquear, confiar en <u>dominio(s)</u> para <u>esta aplicación</u></string>
     <string name="settings_default_dns_heading" translatable="true">Elegir DNS alternativo</string>
     <string name="settings_default_dns_desc" translatable="true">En raras ocasiones, cuando no se puede determinar el DNS preferido por el usuario, se utiliza el DNS alternativo.</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">Omite las reglas de DNS y cortafuegos</string>
     <string name="fapps_bypass_dns_firewall_dialog_title" translatable="true">Omitir aplicaciones</string>
     <string name="firewall_rule_bypass_dns_firewall" translatable="true">Aplicación omitida</string>
     <string name="cd_dns_alg_heading" translatable="true">Filtrado DNS avanzado (experimental)</string>

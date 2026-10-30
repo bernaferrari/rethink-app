@@ -118,7 +118,6 @@
     <string name="settings_ip_text_ipv4" translatable="true">IPv4</string>
     <string name="settings_ip_text_ipv6" translatable="true">IPv6</string>
     <string name="settings_ip_text_ipv46" translatable="true">自動</string>
-    <string name="firewall_status_excluded" translatable="true">DNS とファイアウォールから除外</string>
     <string name="firewall_status_unknown" translatable="true">不明</string>
     <string name="hsf_vpn_dialog_header" translatable="true">注意！</string>
     <string name="hsf_notification_permission_failure" translatable="true">設定画面から通知機能を有効にする</string>
@@ -247,7 +246,6 @@
     <string name="settings_import_export_desc" translatable="true">アプリのデータや設定を手動でバックアップしたり、復元したりすることができます。</string>
     <string name="orbot_install_dialog_positive" translatable="true">インストール</string>
     <string name="firewall_status_whitelisted" translatable="true">共通ファイアウォールルールをバイパス</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">DNS とファイアウォールのルールをバイパス</string>
     <string name="hs_biometeric_desc" translatable="true">RethinkDNSのロック解除に生体認証を利用する</string>
     <string name="hs_biometeric_error" translatable="true">生体認証に失敗しました</string>
     <string name="orbot_bs_status_2" translatable="true">HTTP プロキシが設定されています (アプリはこれを無視する場合があります)。</string>

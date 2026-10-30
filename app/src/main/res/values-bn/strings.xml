@@ -33,7 +33,6 @@
     <string name="blocklist_update_check_not_required">ব্লকলিস্টগুলি ইতিমধ্যেই সর্বশেষ সংস্করণে রয়েছে৷</string>
     <string name="search_custom_domains"><font size="12">ডোমেন নাম অনুসন্ধান করুন</font></string>
     <string name="settings_dns_proxy_dialog_header">SOCKS5 (TCP) প্রক্সি সেট করুন</string>
-    <string name="firewall_status_excluded">DNS ও ফায়ারওয়াল থেকে বাদ</string>
     <string name="firewall_status_unknown">অজানা</string>
     <string name="lbl_proceed">আরম্ভ করুন</string>
     <string name="hsf_pause_vpn_failure">বিরতি দেওয়া যাবে না: রিথিঙ্কডিএনএস সক্রিয় নয়</string>
@@ -212,7 +211,6 @@
     <string name="settings_socks5_heading">SOCKS5 প্রক্সি সেটআপ করুন</string>
     <string name="settings_check_update_heading">অ্যাপ আপডেটের জন্য চেক করুন</string>
     <string name="settings_http_proxy_error_text2">অবৈধ পোর্ট</string>
-    <string name="firewall_status_isolate">আলাদা করা</string>
     <string name="dc_local_block_heading">অন-ডিভাইস ব্লকলিস্ট</string>
     <string name="about_bug_report_dialog_positive_btn">ইচিঠি পাঠাও</string>
     <string name="about_app">অ্যাপ</string>

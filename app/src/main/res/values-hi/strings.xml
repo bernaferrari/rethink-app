@@ -139,7 +139,6 @@
     <string name="settings_ip_text_ipv4" translatable="true">आईपीवी4</string>
     <string name="settings_ip_text_ipv6" translatable="true">आईपीवी6</string>
     <string name="settings_ip_text_ipv46" translatable="true">ऑटो</string>
-    <string name="firewall_status_excluded" translatable="true">DNS और फ़ायरवॉल से बाहर रखा गया</string>
     <string name="firewall_status_whitelisted" translatable="true">यूनिवर्सल फ़ायरवॉल नियमों को बायपास करता है</string>
     <string name="hsf_vpn_dialog_message" translatable="true">रीथिंक डिवाइस के डीएनएस अनुरोधों को एन्क्रिप्ट करने, नेटवर्क मॉनिटर को लागू करने, और फ़ायरवॉल नियमों को लागू करने के लिए एक स्थानीय वीपीएन सेट करने की अनुमति की आवश्यकता होती है।
 \n
@@ -253,7 +252,6 @@
     <string name="brbs_restore_dialog_failure_message" translatable="true">रीस्टोर नहीं हो सका। पुनः प्रयास करें\?</string>
     <string name="brbs_restore_dialog_failure_positive" translatable="true">रीस्टोर प्रयास वापिस करे</string>
     <string name="settings_protocol_translation_dns_inactive" translatable="true">इस सेटिंग को सक्षम करने के लिए डीएनएस/डीएनएस+फ़ायरवॉल मोड पर स्विच करें</string>
-    <string name="firewall_status_isolate" translatable="true">अलग रखा गया</string>
     <string name="firewall_status_unknown" translatable="true">अज्ञात</string>
     <string name="hs_biometeric_title" translatable="true">रीथिंक अनलॉक करें</string>
     <string name="hs_biometeric_desc" translatable="true">रीथिंक अनलॉक करने के लिए बायोमेट्रिक सत्यापन इस्तेमाल करें</string>
@@ -549,7 +547,6 @@
     <string name="settings_lock_down_proxy_desc" translatable="true">जब VPN केवल DNS मोड में चल रहा हो तो प्रॉक्सी सेट नहीं किया जा सकता।</string>
     <string name="settings_default_dns_heading" translatable="true">फॉलबैक डीएनएस चुनें</string>
     <string name="settings_default_dns_desc" translatable="true">कुछ दुर्लभ केस में जब यूज़र का पसंदीदा डीएनएस नहीं पता चलता, तब फॉलबैक डीएनएस का इस्तेमाल होता है।</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">DNS और फ़ायरवॉल नियमों को बायपास करता है</string>
     <string name="fapps_bypass_dns_firewall_dialog_message" translatable="true">यूनीवर्सल डीएनएस और फायरवॉल नियमों को बायपास करे <i>सूचीबद्ध</i> ऐप्स के लिए\?</string>
     <string name="cd_dns_alg_desc" translatable="true">हर डीएनएस मांग पे खास आइपी असाइन करे</string>
     <string name="firewall_rule_bypass_dns_firewall" translatable="true">बायपास किए ऐप्स</string>

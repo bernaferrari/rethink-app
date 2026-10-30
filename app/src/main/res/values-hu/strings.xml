@@ -83,7 +83,6 @@
     <string name="settings_socks_forwarding_default_desc" translatable="true">Kapcsolatok továbbítása a SOCKS5 végpontra.</string>
     <string name="download_update_dialog_trylater_message" translatable="true">A frissítés most nem hajtható végre, kérjük, próbálja meg később újra.</string>
     <string name="info_dialog_copy_toast_msg" translatable="true">IP-cím másolva.</string>
-    <string name="firewall_status_excluded" translatable="true">Kizárva a DNS-ből és a tűzfalból</string>
     <string name="hs_biometeric_error" translatable="true">Biometrikus hitelesítési hiba</string>
     <string name="dns_mode_info_title" translatable="true">DNS</string>
     <string name="settings_app_list_default_app" translatable="true">Nincs</string>
@@ -133,7 +132,6 @@
     <string name="settings_theme_dialog_themes_2" translatable="true">Világos</string>
     <string name="settings_default_dns_heading" translatable="true">Válasszon tartalék DNS-t</string>
     <string name="settings_default_dns_desc" translatable="true">Ritka esetekben, amikor a felhasználó által preferált DNS nem állapítható meg, tartalék (fallback) DNS kerül használatra.</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">Megkerüli a DNS- és tűzfalszabályokat</string>
     <string name="firewall_status_unknown" translatable="true">Ismeretlen</string>
     <string name="dns_crypt_relay_remove_success" translatable="true">A DNSCrypt átjátszó törölve.</string>
     <string name="notification_action_dns_firewall_mode" translatable="true">DNS + tűzfal</string>
@@ -241,7 +239,6 @@
     <string name="settings_ip_dialog_ipv46" translatable="true">Auto (kísérleti)</string>
     <string name="settings_ip_text_ipv4" translatable="true">IPv4</string>
     <string name="settings_ip_text_ipv6" translatable="true">IPv6</string>
-    <string name="firewall_status_isolate" translatable="true">Elkülönítve</string>
     <string name="firewall_status_whitelisted" translatable="true">Megkerüli az univerzális tűzfalszabályokat</string>
     <string name="hs_biometeric_title" translatable="true">Keepout feloldása</string>
     <string name="hs_biometeric_desc" translatable="true">Használja a biometrikus hitelesítést a RethinkDNS feloldásához</string>

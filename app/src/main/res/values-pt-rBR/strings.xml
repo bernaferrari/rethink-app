@@ -23,7 +23,6 @@
     <string name="about_dialog_neutral_button">Sugerir funcionalidades</string>
     <string name="vpn_profile_error">Não foi possível iniciar o perfil VPN.</string>
     <string name="cd_dns_proxy_mode_external">Externo</string>
-    <string name="firewall_status_excluded">Excluído do DNS e do firewall</string>
     <string name="cd_custom_dns_proxy_name">Proxy %1$s</string>
     <string name="cd_custom_dns_proxy_default_ip">127.0.0.1</string>
     <string name="cd_custom_dns_proxy_name_default">Proxy</string>
@@ -283,7 +282,6 @@
     <string name="settings_ip_text_ipv6">IPv6</string>
     <string name="settings_selected_ip_desc">%1$s</string>
     <string name="settings_protocol_translation_dns_inactive">Mudar para o modo DNS/DNS+Firewall para ativar esta configuração</string>
-    <string name="firewall_status_isolate">Isolado</string>
     <string name="firewall_status_whitelisted">Ignora as regras universais do firewall</string>
     <string name="firewall_status_unknown">Desconhecido</string>
     <string name="hsf_vpn_dialog_message">Keepout precisa de permissão para configurar uma VPN local para criptografar as solicitações DNS do dispositivo, implementar um monitor de rede e aplicar regras de firewall.
@@ -564,7 +562,6 @@
     <string name="logs_card_duration" translatable="true">desde %1$s</string>
     <string name="lbl_select_all" translatable="true">Selecionar todos</string>
     <string name="app_ip_domain_rules" translatable="true">Regras de IP/domínio por aplicativo</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">Ignora regras de DNS e firewall</string>
     <string name="hs_biometeric_desc" translatable="true">Usar autenticação biométrica para desbloquear o Keepout</string>
     <string name="lbl_listen_port" translatable="true">Porta</string>
     <string name="firewall_rule_domain_blocked_univ_desc" translatable="true">Esta conexão foi bloqueada porque o <i>domínio</i> está configurado como bloqueado nas regras de domínio universais.<br/><br/> Para alterar esse comportamento, acesse a guia <i>Configurar DNS</i>.</string>

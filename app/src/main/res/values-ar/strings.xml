@@ -403,7 +403,6 @@
     <string name="orbot_stop_dialog_message_combo">%1$s
 \n
 \n%2$s</string>
-    <string name="firewall_status_isolate">معزول</string>
     <string name="bypass_universal">تجاوز كلي</string>
     <string name="firewall_mode_notification_title">محمي! متصل بجدار الحماية.</string>
     <string name="status_dns_error">خطأ في DNS</string>
@@ -459,7 +458,6 @@
     <string name="settings_custom_downloader_desc">إذا تم تعطيله، سيتم استخدام <i>مدير التنزيل</i> المدمج في الأندرويد</string>
     <string name="dc_dns_leaks_desc">عند التمكين ، تلتقط Keepout جميع الحزم الموجودة على المنفذ 53 وتعيد توجيهها إلى نقطة نهاية DNS التي يحددها المستخدم</string>
     <string name="cd_dns_crypt_dialog_desc">وصف (اختياري)</string>
-    <string name="firewall_status_excluded">مستثنى من DNS وجدار الحماية</string>
     <string name="firewall_status_whitelisted">يتجاوز قواعد جدار الحماية العالمية</string>
     <string name="hsf_vpn_dialog_message">يحتاج Keepout إلى إذن لإعداد VPN محلي لتشفير طلبات DNS الخاصة بالجهاز ، وتنفيذ مراقبة الشبكة ، وفرض قواعد جدار الحماية.
 \n
@@ -562,7 +560,6 @@
     <string name="lbl_optional" translatable="true">(اختياري)</string>
     <string name="lbl_save" translatable="true">حفظ</string>
     <string name="fapps_info_bypass_dns_firewall_msg" translatable="true">تجاوز قواعد DNS وجدار الحماية.</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">يتجاوز قواعد DNS وجدار الحماية</string>
     <string name="hs_biometeric_desc" translatable="true">استخدم المصادقة البيومترية لإلغاء قفل Keepout</string>
     <string name="lbl_status" translatable="true">الحالة</string>
     <string name="lbl_remove" translatable="true">أزِل</string>

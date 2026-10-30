@@ -472,10 +472,7 @@
     <string name="settings_theme_dialog_themes_2" translatable="true">แสงสว่าง</string>
     <string name="settings_theme_dialog_themes_3" translatable="true">มืด</string>
     <string name="settings_ip_dialog_ipv6" translatable="true">IPv6 (ทดลอง)</string>
-    <string name="firewall_status_excluded" translatable="true">ยกเว้นจาก DNS และไฟร์วอลล์</string>
-    <string name="firewall_status_isolate" translatable="true">แยกไว้</string>
     <string name="firewall_status_whitelisted" translatable="true">ข้ามกฎไฟร์วอลล์ส่วนกลาง</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">ข้ามกฎ DNS และไฟร์วอลล์</string>
     <string name="firewall_status_unknown" translatable="true">ไม่ทราบ</string>
     <string name="hs_biometeric_title" translatable="true">ปลดล็อคความคิดใหม่</string>
     <string name="hs_biometeric_error" translatable="true">ข้อผิดพลาดในการยืนยันตัวตนด้วยข้อมูลชีวภาพ</string>

@@ -103,11 +103,9 @@
     <string name="settings_ip_text_ipv4">IPv4</string>
     <string name="settings_ip_dialog_ipv4">IPv4 (par défaut)</string>
     <string name="dc_local_block_heading">Listes de blocage embarquées sur l’appareil</string>
-    <string name="firewall_status_excluded">Exclue du DNS et du pare-feu</string>
     <string name="dc_custom_dns_radio">Autres DNS</string>
     <string name="settings_protocol_translation_dns_inactive">Passez en mode DNS/DNS+Pare-feu pour activer ce paramètre</string>
     <string name="firewall_status_whitelisted">Contourne les règles universelles du pare-feu</string>
-    <string name="firewall_status_isolate">Isolée</string>
     <string name="lbl_proceed">Continuer</string>
     <string name="hsf_vpn_prepare_failure">Soit l’autorisation VPN manque, soit une autre application est en mode VPN permanent.</string>
     <string name="dc_entries">%1$s entrées »</string>
@@ -560,7 +558,6 @@
     <string name="settings_default_dns_heading" translatable="true">Choisissez le DNS de secours</string>
     <string name="firewall_rule_domain_blocked_univ" translatable="true">Domaine (Univ)</string>
     <string name="settings_default_dns_desc" translatable="true">Dans de rares cas où le DNS préféré de l\'utilisateur n\'a pas pu être déterminé, le DNS de secours est utilisé.</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">Contourne les règles du DNS et du pare-feu</string>
     <string name="cd_dns_alg_heading" translatable="true">Filtrage DNS avancé (expérimental)</string>
     <string name="fapps_bypass_dns_firewall_dialog_title" translatable="true">Exceptions</string>
     <string name="fapps_bypass_dns_firewall_dialog_message" translatable="true">Contourner les règles du pare-feu DNS universel &amp; pour les applications <i>listées</i> \?</string>

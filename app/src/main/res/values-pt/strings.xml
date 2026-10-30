@@ -65,8 +65,6 @@
 \nKeepout não recolhe informações nem monitoriza as suas atividades.</string>
     <string name="dc_block_heading">Regras</string>
     <string name="settings_ip_text_ipv6">IPv6</string>
-    <string name="firewall_status_excluded">Excluída do DNS e da firewall</string>
-    <string name="firewall_status_isolate">Isolada</string>
     <string name="hsf_notification_permission_failure">Ative a permissão de notificação nas definições</string>
     <string name="allow">permitir</string>
     <string name="block">bloquear</string>
@@ -563,7 +561,6 @@
     <string name="firewall_rule_dns_blocked_desc" translatable="true">Esta ligação foi bloqueada porque o <i>domínio</i> está bloqueado pelo DNS preferido do utilizador.<br/><br/>Para alterar este comportamento, aceda ao separador <i>Configurar DNS</i>.</string>
     <string name="firewall_rule_domain_trusted_univ_desc" translatable="true">Esta ligação foi permitida porque o <i>domínio</i> está definido como confiável nas regras universais de domínio.<br/><br/>Para alterar este comportamento, aceda ao separador <i>Configurar DNS</i>.</string>
     <string name="dc_setting_dns_cache_desc" translatable="true">Solicitações unificadas, respostas em cache, tratamento de erros resiliente</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">Ignora as regras de DNS e da firewall</string>
     <string name="fapps_bypass_dns_firewall_dialog_title" translatable="true">Ignorar aplicações</string>
     <string name="firewall_rule_domain_trusted_univ" translatable="true">Domínio confiável (universal)</string>
     <string name="ada_app_status_bypass_dns_firewall" translatable="true">Ignora as regras universais de DNS e da firewall</string>

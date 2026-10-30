@@ -157,8 +157,6 @@
     <string name="settings_ip_text_ipv4" translatable="true">IPv4</string>
     <string name="settings_ip_text_ipv46" translatable="true">Tự động</string>
     <string name="settings_protocol_translation_dns_inactive" translatable="true">Chuyển sang chế độ DNS/DNS+Tường lửa để bật cài đặt này</string>
-    <string name="firewall_status_excluded" translatable="true">Được loại trừ khỏi DNS và tường lửa</string>
-    <string name="firewall_status_isolate" translatable="true">Bị cách ly</string>
     <string name="firewall_status_unknown" translatable="true">Không rõ</string>
     <string name="hs_biometeric_title" translatable="true">Mở khoá Keepout</string>
     <string name="hs_biometeric_desc" translatable="true">Sử dụng xác thực sinh trắc học để mở khóa Keepout</string>
@@ -296,7 +294,6 @@
     <string name="fapps_filter_categories_heading" translatable="true">Hạng mục</string>
     <string name="fapps_filter_parent_system" translatable="true">Hệ thống</string>
     <string name="fapps_info_isolate_msg" translatable="true">Chặn tất cả ngoại trừ các IP đáng tin cậy.</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">Bỏ qua quy tắc DNS và tường lửa</string>
     <string name="settings_allow_lan_desc" translatable="true">Loại trừ các tuyến LAN, loopback, link-local khỏi đường hầm VPN của Keepout.</string>
     <string name="settings_lock_down_mode_desc" translatable="true">Một số tùy chọn bị tắt khi VPN ở chế độ khóa.<u>Xem cài đặt VPN</u></string>
     <string name="settings_dns_proxy_dialog_app_desc" translatable="true">Ứng dụng đã chọn sẽ bị loại trừ khỏi VPN để cho phép ứng dụng đó thay mặt bạn kết nối proxy.</string>

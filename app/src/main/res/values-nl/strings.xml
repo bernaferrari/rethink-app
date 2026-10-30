@@ -35,7 +35,6 @@
     <string name="settings_ip_text_ipv46">Auto</string>
     <string name="settings_dns_proxy_dialog_app_desc">De geselecteerde app wordt uitgesloten van het VPN om het namens u verbindingen te laten proxyen.</string>
     <string name="settings_ip_dialog_ipv6">IPv6 (experimenteel)</string>
-    <string name="firewall_status_excluded">Uitgesloten van DNS en firewall</string>
     <string name="orbot_both">TCP + HTTP-proxy</string>
     <string name="orbot_stop_dialog_message">RethinkDNS is gestopt met het doorsturen van verbindingen naar Orbot, maar Orbot draait misschien op de achtergrond.</string>
     <string name="settings_http_proxy_error_text2">Ongeldige poort</string>
@@ -237,7 +236,6 @@
     <string name="universal_firewall_explanation">Pas firewallregels toe op alle toepassingen op basis van apparaatgebeurtenissen, bijvoorbeeld firewall wanneer het apparaat is vergrendeld of wanneer een bepaalde app niet in gebruik is.</string>
     <string name="settings_theme_heading">Vormgeving</string>
     <string name="settings_theme_dialog_themes_2">Licht</string>
-    <string name="firewall_status_isolate">Geïsoleerd</string>
     <string name="hsf_vpn_dialog_header">Attentie!</string>
     <string name="lbl_proceed">Doorgaan</string>
     <string name="hsf_vpn_prepare_failure">Of de VPN toestemming ontbreekt, of een andere app staat in Always-on VPN mode.</string>
@@ -445,7 +443,6 @@
     <string name="orbot_title" translatable="true">Orbot en Proxies</string>
     <string name="cd_dns_crypt_title" translatable="true">resolvers</string>
     <string name="orbot_bs_status_trying_connect" translatable="true">Bezig met opzetten van Orbot…</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">Omzeilt DNS- en firewallregels</string>
     <string name="dc_check_update_heading" translatable="true">Prompt bij blocklist updates</string>
     <string name="cd_dns_alg_desc" translatable="true">Uniek IP toewijzen per DNS aanvraag</string>
     <string name="cd_dns_alg_heading" translatable="true">Geavanceerde DNS-filtering (experimenteel)</string>

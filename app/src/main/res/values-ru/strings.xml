@@ -77,7 +77,6 @@
     <string name="about_connect">Связь с нами</string>
     <string name="settings_ip_text_ipv4">IPv4</string>
     <string name="settings_ip_text_ipv6">IPv6</string>
-    <string name="firewall_status_isolate">Изолировано</string>
     <string name="settings_selected_ip_desc">%1$s</string>
     <string name="settings_network_all_networks_desc">Если функция включена, Keepout использует все доступные сети для подключения к интернету. Если нет, то используется та сеть, которая считается <i>активной</i> в Android.</string>
     <string name="hsf_vpn_dialog_header">Внимание!</string>
@@ -365,7 +364,6 @@
     <string name="settings_ip_dialog_title">Выберите версию IP</string>
     <string name="settings_ip_dialog_ipv4">IPv4 (по умолчанию)</string>
     <string name="settings_ip_dialog_ipv6">IPv6 (экспериментально)</string>
-    <string name="firewall_status_excluded">Исключено из DNS и брандмауэра</string>
     <string name="hsf_vpn_prepare_failure">Либо отсутствует разрешение VPN, либо другое приложение находится в режиме постоянного VPN.</string>
     <string name="hsf_pause_vpn_failure">Невозможно сделать паузу: Keepout не активен</string>
     <string name="dc_custom_dns_radio">Другие DNS</string>
@@ -552,7 +550,6 @@
     <string name="lbl_logs" translatable="true">Журнал активности</string>
     <string name="bypass_dns_firewall" translatable="true">обход DNS и брандмауэра</string>
     <string name="bsct_block_domain" translatable="true">Блокировка, доверие <u>домену(ам)</u> для <u>этого приложения</u></string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">Обходит правила DNS и брандмауэра</string>
     <string name="cd_dns_alg_heading" translatable="true">Расширенная фильтрация DNS (экспериментально)</string>
     <string name="firewall_rule_bypass_dns_firewall" translatable="true">Обходимое приложение</string>
     <string name="firewall_rule_domain_trusted_univ" translatable="true">Доверенный домен (Univ)</string>

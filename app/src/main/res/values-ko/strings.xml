@@ -287,9 +287,6 @@
     <string name="settings_ip_text_ipv4" translatable="true">IPv4</string>
     <string name="settings_ip_text_ipv46" translatable="true">자동</string>
     <string name="settings_default_dns_heading" translatable="true">대체 DNS 선택</string>
-    <string name="firewall_status_excluded" translatable="true">DNS 및 방화벽에서 제외됨</string>
-    <string name="firewall_status_isolate" translatable="true">격리됨</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">DNS 및 방화벽 규칙 우회</string>
     <string name="hs_biometeric_title" translatable="true">Keepout 잠금 해제</string>
     <string name="hs_biometeric_desc" translatable="true">생체 인증을 사용하여 Keepout 잠금 해제</string>
     <string name="firewall_status_unknown" translatable="true">알 수 없음</string>

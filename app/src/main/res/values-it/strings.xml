@@ -159,7 +159,6 @@
     <string name="settings_ip_text_ipv6">IPv6</string>
     <string name="settings_ip_text_ipv46">Automatico</string>
     <string name="settings_protocol_translation_dns_inactive">Passa alla modalità DNS/DNS+Firewall per attivare questa impostazione</string>
-    <string name="firewall_status_excluded">Esclusa da DNS e firewall</string>
     <string name="firewall_status_whitelisted">Aggira le regole universali del firewall</string>
     <string name="lbl_proceed">Prosegui</string>
     <string name="hsf_vpn_dialog_message">Keepout ha bisogno del permesso di impostare una VPN locale per crittografare le richieste DNS del dispositivo, monitorare le connessioni di rete e applicare le regole del firewall.
@@ -225,7 +224,6 @@
     <string name="settings_ip_dialog_ipv6">IPv6 (sperimentale)</string>
     <string name="settings_ip_dialog_ipv46">Automatico (sperimentale)</string>
     <string name="settings_selected_ip_desc">%1$s</string>
-    <string name="firewall_status_isolate">Isolata</string>
     <string name="firewall_status_unknown">Sconosciuto</string>
     <string name="hsf_vpn_dialog_header">Attenzione!</string>
     <string name="hsf_vpn_prepare_failure">Manca il permesso VPN o un\'altra app è in modalità \"VPN sempre attiva\".</string>
@@ -568,7 +566,6 @@
     <string name="dc_setting_dns_cache_heading" translatable="true">Booster DNS</string>
     <string name="settings_allow_lan_desc" translatable="true">Escludere rotte LAN, loopback, multicast e link-local dal tunnel VPN di Keepout.</string>
     <string name="settings_general_customize" translatable="true">personalizza</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">Aggira le regole di DNS e firewall</string>
     <string name="cd_dns_alg_desc" translatable="true">Applicare le regole del dominio solo quando le applicazioni si connettono</string>
     <string name="dc_setting_dns_cache_desc" translatable="true">Accorpare le richieste, memorizzare le risposte nella cache, gestire gli errori in modo resiliente</string>
     <string name="lbl_configure" translatable="true">Configura</string>

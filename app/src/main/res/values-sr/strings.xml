@@ -189,9 +189,7 @@
     <string name="settings_ip_text_ipv46" translatable="true">Аутоматски</string>
     <string name="settings_protocol_translation_dns_inactive" translatable="true">Пређи на DNS/DNS+заштитни зид мод да би сте омогућили ово подешавање</string>
     <string name="settings_default_dns_desc" translatable="true">У ретким случајевима када жељени DNS није доступан, користи се резервни DNS.</string>
-    <string name="firewall_status_isolate" translatable="true">Изоловано</string>
     <string name="firewall_status_whitelisted" translatable="true">Заобилази универзална правила заштитног зида</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">Заобилази правила DNS-а и заштитног зида</string>
     <string name="firewall_status_unknown" translatable="true">Непознато</string>
     <string name="hs_biometeric_title" translatable="true">Откључај Keepout</string>
     <string name="hs_biometeric_desc" translatable="true">Користи биометријску потврду да би сте откључали Keepout</string>
@@ -558,7 +556,6 @@
     <string name="settings_theme_dialog_themes_2" translatable="true">Светла</string>
     <string name="settings_theme_dialog_themes_3" translatable="true">Тамна</string>
     <string name="settings_default_dns_heading" translatable="true">Изабери резервни DNS</string>
-    <string name="firewall_status_excluded" translatable="true">Изузето из DNS-а и заштитног зида</string>
     <string name="firewall_rule_bypass_universal_ip_desc" translatable="true">Ова конекција је дозвољена јер је &lt;i&gt;одредишна IP&lt;/i&gt; подешена да заобиђе сва универзална правила заштитног зида.&lt;br/&gt;&lt;br/&gt; За промену иди на &lt;i&gt;IP правила&lt;i&gt; на картици &lt;i&gt;универзално&lt;/i&gt;.</string>
     <string name="hsf_vpn_dialog_message" translatable="true">Keepout-у су потребне дозволе да подеси локални VPN за енкрипцију DNS захтева уређаја, имплементацију монитора мреже, и приморавање правила заштитног зида.\n\nKeepout не сакупља никакве информације нити вас шпијунира ни на који начин.</string>
     <string name="about_bug_no_log_dialog_positive_btn" translatable="true">Пошаљи е-поруку</string>

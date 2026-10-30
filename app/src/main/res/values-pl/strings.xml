@@ -219,8 +219,6 @@
     <string name="settings_ip_text_ipv46" translatable="true">Automatycznie</string>
     <string name="settings_default_dns_heading" translatable="true">Wybierz rezerwowy DNS</string>
     <string name="settings_default_dns_desc" translatable="true">W rzadkich przypadkach, gdy nie można było ustalić preferowanego przez użytkownika DNS, używany jest rezerwowy DNS.</string>
-    <string name="firewall_status_excluded" translatable="true">Wykluczona z DNS i firewalla</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">Omija reguły DNS i firewalla</string>
     <string name="dc_other_dns_heading" translatable="true">Typ</string>
     <string name="dc_check_update_heading" translatable="true">Komunikat o aktualizacji listy bloków</string>
     <string name="error_loading_log_file" translatable="true">Błąd ładowania pliku dziennika</string>
@@ -310,7 +308,6 @@
     <string name="brbs_restore_dialog_failure_message" translatable="true">Nie można przywrócić. Spróbuj jeszcze raz\?</string>
     <string name="brbs_backup_complete_toast" translatable="true">Zakończono tworzenie kopii zapasowej</string>
     <string name="brbs_restore_complete_toast" translatable="true">Przywracanie zakończone, ponowne uruchomienie aplikacji…</string>
-    <string name="firewall_status_isolate" translatable="true">Izolowana</string>
     <string name="firewall_status_whitelisted" translatable="true">Omija uniwersalne reguły firewalla</string>
     <string name="hs_biometeric_title" translatable="true">Odblokuj Keepout</string>
     <string name="hs_biometeric_desc" translatable="true">Użyj uwierzytelniania biometrycznego, aby odblokować Keepout</string>

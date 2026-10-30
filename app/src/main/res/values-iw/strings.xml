@@ -291,7 +291,6 @@
     <string name="about_settings_app_info" translatable="true">מידע על האפליקציה</string>
     <string name="cd_dns_crypt_relay_heading" translatable="true">ממסר</string>
     <string name="cd_dns_crypt_dialog_name" translatable="true">שם</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">עוקפת את כללי ה-DNS וחומת האש</string>
     <string name="hs_biometeric_desc" translatable="true">השתמש באימות ביומטרי כדי לפתוח את Keepout</string>
     <string name="hs_biometeric_error" translatable="true">שגיאת אימות ביומטרי</string>
     <string name="dc_block_heading" translatable="true">כללים</string>
@@ -310,8 +309,6 @@
     <string name="settings_https_disabled_error" translatable="true">מחובר ל%1$s. כבה אותו כדי להמשיך.</string>
     <string name="settings_default_dns_heading" translatable="true">בחר DNS חלופי</string>
     <string name="settings_default_dns_desc" translatable="true">במקרים נדירים שבהם לא ניתן היה לקבוע את ה-DNS המועדף על ידי המשתמש, נעשה שימוש ב-DNS חלופי.</string>
-    <string name="firewall_status_excluded" translatable="true">מוחרגת מ-DNS ומחומת האש</string>
-    <string name="firewall_status_isolate" translatable="true">מבודדת</string>
     <string name="firewall_status_whitelisted" translatable="true">עוקפת את כללי חומת האש הגלובליים</string>
     <string name="logs_card_duration" translatable="true">מאז %1$s</string>
     <string name="dc_custom_dns_radio" translatable="true">DNS אחר</string>

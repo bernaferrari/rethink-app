@@ -179,10 +179,7 @@
     <string name="settings_protocol_translation_dns_inactive" translatable="true">Алахаракыра / Алахаракыра+Ащхынтә режим ахь иахыжьыр шәыакуп ари адоужьыбара аахыц ашәҵәаларазы</string>
     <string name="settings_default_dns_heading" translatable="true">Ашәахәышәашәашәашьқәа DNS</string>
     <string name="settings_default_dns_desc" translatable="true">Амчҳәаԥшрақәа рахьынтә, аусуҩы иԥсҭаалара амчҳәаԥшра аԥырԥшра ашьҭымхакәа, адгылара амчҳәаԥшра ахыҵхәаԥшра шрымоу.</string>
-    <string name="firewall_status_excluded" translatable="true">DNS-им аҿы, Firewall-им аҿы илымҵәахьоу</string>
-    <string name="firewall_status_isolate" translatable="true">Ихаԥсазтәу</string>
     <string name="firewall_status_whitelisted" translatable="true">Ауниверсалтә ҳәалтрақәа рыхы данахьлеит</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">Dns-иркабала, firewall-иркабала аҟынтә иналацәахоит</string>
     <string name="firewall_status_unknown" translatable="true">Addling</string>
     <string name="hs_biometeric_title" translatable="true">Keepout аишьҭахылар</string>
     <string name="hs_biometeric_desc" translatable="true">Keepout аишьшәаашәоит абиометриатә ашьаҭҝырала</string>

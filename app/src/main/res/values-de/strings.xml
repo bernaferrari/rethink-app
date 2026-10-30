@@ -291,8 +291,6 @@
     <string name="brbs_restore_desc">Aus Sicherungsdatei wiederherstellen</string>
     <string name="brbs_backup_desc">Sichern von Anwendungseinstellungen, Netzwerk- und DNS-Protokollen</string>
     <string name="alert_firewall_accessibility_regrant_explanation">Der Keepout Dienst für Barrierefreiheit wurde angehalten oder ist abgestürzt. <i><b>Erzwinge das Beenden von Keepout über die Systemeinstellungen</b></i> und starte Keepout erneut, um die Funktion <i>Blockieren aller nicht genutzten Apps</i> zu verwenden.\n\nKeepout verwendet den Dienst für Barrierefreiheit, um zu verfolgen, welche Apps in Gebrauch sind (im Vordergrund) und welche nicht (im Hintergrund).</string>
-    <string name="firewall_status_isolate">Isoliert</string>
-    <string name="firewall_status_excluded">Von DNS und Firewall ausgeschlossen</string>
     <string name="firewall_status_whitelisted">Umgeht die universellen Firewall-Regeln</string>
     <string name="firewall_rule_global_lockdown_desc"><![CDATA[Diese Verbindung wurde blockiert, da die universelle Sperre aktiviert ist.<br/><br/> Um dies zu ändern, gehe zum Tab <i>Universal</i>.]]></string>
     <string name="new_app_bulk_notification_content">Keepout hat %1$s neue Apps blockiert. Zum Anzeigen oder Ändern tippen.</string>
@@ -543,7 +541,6 @@
     <string name="lbl_rules" translatable="true">Regeln</string>
     <string name="lbl_logs" translatable="true">Protokolle</string>
     <string name="firewall_rule_bypass_dns_firewall" translatable="true">Umgangene App</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">Umgeht DNS- und Firewall-Regeln</string>
     <string name="dc_setting_dns_cache_heading" translatable="true">DNS-Verstärker</string>
     <string name="dc_refresh_toast" translatable="true">Aktualisierung abgeschlossen</string>
     <string name="brbs_backup_restore_desc" translatable="true">Funktioniert nicht über verschiedene App-Versionen hinweg</string>

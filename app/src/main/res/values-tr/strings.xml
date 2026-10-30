@@ -82,7 +82,6 @@
     <string name="orbot_stop_dialog_dns_message">Keepout, DNS sorgularını Orbot\'a iletecek şekilde ayarlanmıştır. Gerektiği gibi değiştirin.</string>
     <string name="settings_autostart_bootup_heading">Açılışta otomatik başlatma (deneysel)</string>
     <string name="settings_ip_text_ipv4">IPv4</string>
-    <string name="firewall_status_excluded">DNS ve güvenlik duvarı dışında</string>
     <string name="dc_custom_dns_radio">Diğer DNS</string>
     <string name="about_settings_app_info">Uygulama Bilgisi</string>
     <string name="cd_dns_crypt_title">çözücüler</string>
@@ -327,7 +326,6 @@
     <string name="settings_check_update_desc">Uygulama güncellemelerini haftada bir otomatik olarak kontrol edin.</string>
     <string name="settings_dns_proxy_dialog_header">SOCKS5 Vekili Ayarla</string>
     <string name="settings_ip_dialog_ipv46">Otomatik (deneysel)</string>
-    <string name="firewall_status_isolate">İzole</string>
     <string name="lbl_proceed">Devam Et</string>
     <string name="about_website">rethinkdns.com adresini ziyaret edin</string>
     <string name="cd_dns_proxy_mode_external">Harici</string>
@@ -665,7 +663,6 @@
     <string name="bad_config_error" translatable="true">%2$s içinde %1$s</string>
     <string name="lbl_create" translatable="true">Oluştur</string>
     <string name="parse_error_inet_endpoint" translatable="true">Uç nokta</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">DNS ve güvenlik duvarı kurallarını atlar</string>
     <string name="no_configs_error" translatable="true">Hiçbir yapılandırma bulunamadı</string>
     <string name="firewall_rule_proxied" translatable="true">Proxy\'li</string>
     <string name="http_proxy_dialog_desc" translatable="true">Form URL\'sini değiştirin, &lt;protocol&gt; https://&lt;username&gt;:&lt;password&gt;@&lt;domain-or-ip&gt;:&lt;port&gt;&lt;path&gt; Örnek: http://proxy.ör.com:8080/</string>

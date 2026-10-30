@@ -257,10 +257,7 @@
     <string name="settings_protocol_translation_dns_inactive" translatable="true">Alege modul DNS/DNS+Firewall pentru a activa această setare</string>
     <string name="settings_default_dns_heading" translatable="true">Alege fallback DNS</string>
     <string name="settings_default_dns_desc" translatable="true">În cazurile rare când DNS-ul preferat de utilizator nu este găsit, se utilizează fallback DNS.</string>
-    <string name="firewall_status_excluded" translatable="true">Excluse din dns și firewall</string>
-    <string name="firewall_status_isolate" translatable="true">Izolate</string>
     <string name="firewall_status_whitelisted" translatable="true">Ocolesc regulile generale ale firewall-ului</string>
-    <string name="firewall_status_bypass_dns_firewall" translatable="true">Ocolesc regulile dns și firewall</string>
     <string name="hs_biometeric_error" translatable="true">Eroare la autentificarea biometrică</string>
     <string name="hs_biometeric_title" translatable="true">Deblochează Keepout</string>
     <string name="hs_biometeric_desc" translatable="true">Folosește autentificarea biometrică pentru a debloca Keepout</string>
