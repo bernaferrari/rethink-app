@@ -226,8 +226,10 @@ private fun RethinkOrbotPanel(
             supporting = "${status.first} · ${state.orbotDescription}",
             leadingIcon = MaterialSymbols.Filled.Security,
             // Inactive Orbot keeps the shared well like every other row; only a live state tints it.
-            leadingIconTint = if (state.orbotEnabled || state.orbotConnecting) status.second else MaterialTheme.colorScheme.primary,
-            colors = rethinkListItemColors(leadingIconContainerColor = if (state.orbotEnabled || state.orbotConnecting) RethinkIconWellDefaults.tinted(status.second) else null),
+            colors = rethinkListItemColors(
+                leadingIconTint = if (state.orbotEnabled || state.orbotConnecting) status.second else MaterialTheme.colorScheme.primary,
+                leadingIconContainerColor = if (state.orbotEnabled || state.orbotConnecting) RethinkIconWellDefaults.tinted(status.second) else null,
+            ),
             position = cardPositionFor(0, actionCount - 1),
             highlighted = highlighted,
             enabled = enabled,
