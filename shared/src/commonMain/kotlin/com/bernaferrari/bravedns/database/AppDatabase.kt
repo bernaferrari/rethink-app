@@ -9,7 +9,6 @@ import androidx.room3.DaoReturnTypeConverters
 import androidx.room3.RoomDatabase
 import androidx.room3.RoomDatabaseConstructor
 import androidx.room3.ColumnTypeConverters
-import androidx.room3.RoomRawQuery
 import androidx.room3.paging.PagingSourceDaoReturnTypeConverter
 
 @Suppress("NO_ACTUAL_FOR_EXPECT")
@@ -55,17 +54,10 @@ abstract class AppDatabase : RoomDatabase() {
     companion object {
         const val DATABASE_NAME = "bravedns.db"
         const val SCHEMA_VERSION = 1
-        private const val PRAGMA = "pragma wal_checkpoint(full)"
 
     }
 
-    // fixme: revisit the links to remove the pragma for each table
-    // https://stackoverflow.com/questions/49030258/how-to-vacuum-roomdatabase
-    // https://stackoverflow.com/questions/50987119/backup-room-databas
-    suspend fun checkPoint() {
-        appDatabaseRawQueries().checkpoint(RoomRawQuery(PRAGMA))
-        appDatabaseRawQueries().vacuum(RoomRawQuery("VACUUM"))
-    }
+    suspend fun checkPoint() = compactAndCheckpoint()
 
     abstract fun appInfoDAO(): AppInfoDAO
 
@@ -92,8 +84,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun localBlocklistPacksMapDao(): LocalBlocklistPacksMapDao
 
     abstract fun remoteBlocklistPacksMapDao(): RemoteBlocklistPacksMapDao
-
-    abstract fun appDatabaseRawQueries(): AppDatabaseRawQueryDao
 
     abstract fun wgConfigFilesDAO(): WgConfigFilesDAO
 

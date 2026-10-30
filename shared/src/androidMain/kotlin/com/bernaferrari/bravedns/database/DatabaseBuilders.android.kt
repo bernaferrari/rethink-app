@@ -23,12 +23,12 @@ fun buildAppDatabase(
         .apply { if (callback != null) addCallback(callback) }
         .build()
 
-fun buildLogDatabase(context: Context): LogDatabase =
+fun buildLogDatabase(context: Context, driver: SQLiteDriver = BundledSQLiteDriver()): LogDatabase =
     Room.databaseBuilder(
         context.applicationContext,
         LogDatabase.LOGS_DATABASE_NAME
     ) { LogDatabaseConstructor.initialize() }
-        .setDriver(BundledSQLiteDriver())
+        .setDriver(driver)
         .setJournalMode(RoomDatabase.JournalMode.AUTOMATIC)
         .build()
 

@@ -142,7 +142,7 @@ class RestoreAgent(val context: Context, workerParams: WorkerParameters) :
         }
     }
 
-    private suspend fun validateSchemaIdentities(directory: File) {
+    internal suspend fun validateSchemaIdentities(directory: File) {
         // v0 schemas all use version 1; Room's identity distinguishes incompatible v1 backups.
         BackupHelper.checkpointRoomDatabases(appDatabase, logDatabase)
         for (name in listOf(AppDatabase.DATABASE_NAME, LogDatabase.LOGS_DATABASE_NAME)) {
