@@ -10,9 +10,11 @@ import org.junit.Test
 
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class PcapSessionControllerTest {
-    @Test fun `failed native start never persists active capture`() = runTest {
-        val controller = PcapSessionController({ false }, { _, _ -> error("must not persist failed start") }, { "" }, { Unit }, { true })
+    @Test fun `failed native start releases ownership only after disable acknowledgement`() = runTest {
+        var path = ""
+        val controller = PcapSessionController({ it.isEmpty() }, { _, value -> path = value }, { path }, { Unit }, { true })
         assertFalse(controller.start(PcapMode.EXTERNAL_FILE.id, "/capture.pcap"))
+        assertEquals("", path)
     }
     @Test fun `stop awaits native drain before persisting disabled`() = runTest {
         val entered = CompletableDeferred<Unit>()
@@ -83,9 +85,15 @@ class PcapSessionControllerTest {
     @Test fun `backend replacement during native apply cannot persist stale success`() = runTest {
         var backend = Any()
         var path = ""
-        val controller = PcapSessionController({ backend = Any(); true }, { _, value -> path = value }, { path }, { backend }, { true })
+        val applied = mutableListOf<String>()
+        val controller = PcapSessionController({
+            applied.add(it)
+            if (it.isNotEmpty()) backend = Any()
+            true
+        }, { _, value -> path = value }, { path }, { backend }, { true })
         assertFalse(controller.start(PcapMode.EXTERNAL_FILE.id, "/capture.pcap"))
         assertEquals("", path)
+        assertEquals(listOf("/capture.pcap", ""), applied)
     }
 
     @Test fun `replacement backend stops nonempty file without appending another header`() = runTest {

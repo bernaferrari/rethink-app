@@ -1,6 +1,9 @@
 package com.bernaferrari.bravedns.service
 
 import com.bernaferrari.bravedns.util.PcapMode
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -33,12 +36,44 @@ internal class PcapSessionController(
         // Native SetPcap appends a global header on every open. An existing segment
         // cannot be resumed after restart or an uncertain native failure.
         val safeTarget = if (target.isNotEmpty() && target != "0" && !isFileEmpty(target)) "" else target
-        // A failed or cancelled native call can already have detached the previous sink.
+        val ownedTarget = captureOwnershipFor(target)
+        // A failed or cancelled native call can already have changed the capture writer.
         applied = null
-        if (!applyNative(safeTarget) || backend !== backendIdentity()) return false
+        if (!applyChecked(safeTarget, backend, ownedTarget)) return false
         applied = Applied(backend, safeTarget)
         if (safeTarget != target) persist(PcapMode.NONE.id, "")
         return safeTarget == target
+    }
+
+    private fun captureOwnershipFor(target: String): String = target.takeIf(String::isNotEmpty)
+        ?: latestPath().takeIf(String::isNotEmpty) ?: applied?.path.orEmpty()
+
+    private suspend fun applyChecked(target: String, backend: Any?, ownedTarget: String): Boolean {
+        val acknowledged = try {
+            applyNative(target)
+        } catch (cancelled: CancellationException) {
+            retainUntilStopped(ownedTarget)
+            throw cancelled
+        }
+        if (acknowledged && backend === backendIdentity()) return true
+        if (acknowledged || target.isNotEmpty()) retainUntilStopped(ownedTarget)
+        return false
+    }
+
+    private suspend fun retainUntilStopped(target: String) {
+        // Publish ownership before cleanup: if disabling fails or throws, the manager
+        // must retain the private file and deadline and continue exposing Stop.
+        if (target.isNotEmpty() && latestPath() != target) {
+            val mode = if (target == "0") PcapMode.LOGCAT else PcapMode.EXTERNAL_FILE
+            persist(mode.id, target)
+        }
+        withContext(NonCancellable) {
+            val backend = backendIdentity()
+            if (applyNative("") && backend === backendIdentity()) {
+                applied = Applied(backend, "")
+                persist(PcapMode.NONE.id, "")
+            }
+        }
     }
 
     suspend fun stop(): Boolean = start(PcapMode.NONE.id, "")
