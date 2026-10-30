@@ -165,7 +165,6 @@
     <string name="two_argument_space" translatable="false">%1$s %2$s</string>
     <string name="two_argument_colon" translatable="false">%1$s: %2$s</string>
     <string name="two_argument" translatable="false">%1$s / %2$s</string>
-    <string name="three_argument" translatable="false">%1$s %2$s %3$s</string>
     <string name="symbol_heavy" translatable="false">🐘</string>
     <string name="symbol_turtle" translatable="false">🐢</string>
     <string name="symbol_currency" translatable="false">💲</string>
@@ -186,9 +185,6 @@
     <string name="symbol_lock" translatable="false">🔒</string>
     <string name="symbol_unlock" translatable="false">🔓</string>
 
-    <string name="numeric_one" translatable="false">1</string>
-    <string name="numeric_twenty_four" translatable="false">24</string>
-    <string name="numeric_seven" translatable="false">7</string>
 
     <string name="slide_2_desc" translatable="true">Keepout is the easiest way to monitor network activity, bypass Internet censorship, and firewall apps on your Android device.</string>
 
@@ -1548,17 +1544,24 @@
     <string name="firewall_bubble_channel_desc" translatable="false">Shows bubble notification for blocked apps</string>
     <string name="firewall_bubble_text" translatable="false">Tap to see recently blocked apps</string>
 
-    <string name="bubble_activity_title" translatable="false">Recently Blocked Apps</string>
-    <string name="bubble_empty_state_title" translatable="false">No Blocked Apps</string>
-    <string name="bubble_empty_state_desc" translatable="false">Apps blocked by the firewall will appear here</string>
+    <string name="bubble_activity_title" translatable="false">Recently blocked apps</string>
+    <string name="bubble_empty_state_title" translatable="false">No blocked apps</string>
+    <string name="bubble_empty_state_desc" translatable="false">Apps blocked by the firewall will appear here.</string>
     <string name="bubble_allow_btn" translatable="false">Allow (15 min)</string>
-    <string name="bubble_blocked_count" translatable="false" tools:ignore="PluralsCandidate">%d blocked</string>
+    <plurals name="bubble_blocked_count">
+        <item quantity="one">%d blocked</item>
+        <item quantity="other">%d blocked</item>
+    </plurals>
     <string name="bubble_time_just_now" translatable="false">Just now</string>
     <string name="bubble_time_minutes_ago" translatable="false">%d min ago</string>
     <string name="bubble_time_hours_ago" translatable="false">%d hr ago</string>
 
-    <string name="bubble_allowed_title" translatable="false">Temporarily Allowed Apps</string>
-    <string name="bubble_loading" translatable="false">Loading…</string>
+    <string name="bubble_allowed_title" translatable="false">Temporarily allowed apps</string>
+    <plurals name="bubble_allowed_minutes_remaining">
+        <item quantity="one">%d min remaining</item>
+        <item quantity="other">%d mins remaining</item>
+    </plurals>
+    <string name="bubble_allowed_expired" translatable="false">Expired</string>
 
     <string name="settings_allow_incoming_wg_packets" translatable="true">WireGuard P2P</string>
     <string name="settings_allow_incoming_wg_packets_desc" translatable="true">When enabled, allow incoming connections initiated by WireGuard peers.</string>

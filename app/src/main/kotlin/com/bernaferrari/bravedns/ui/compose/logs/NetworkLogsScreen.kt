@@ -15,10 +15,8 @@
  */
 package com.bernaferrari.bravedns.ui.compose.logs
 
-import android.graphics.drawable.Drawable
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
@@ -35,7 +33,6 @@ import com.bernaferrari.bravedns.ui.compose.dns.dnsLogModel
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
@@ -47,12 +44,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -70,7 +67,7 @@ import com.bernaferrari.bravedns.database.LogAppCount
 import com.bernaferrari.bravedns.service.FirewallRuleset
 import com.bernaferrari.bravedns.service.PersistentState
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
-import com.bernaferrari.bravedns.ui.compose.rememberDrawablePainter
+import com.bernaferrari.bravedns.ui.compose.common.AppIcon
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 import com.bernaferrari.bravedns.util.Utilities
 import com.bernaferrari.bravedns.viewmodel.ConnectionTrackerViewModel
@@ -596,7 +593,7 @@ private fun DnsLogPane(
     LaunchedEffect(selected?.queryStr) {
         val domain = selected?.queryStr ?: return@LaunchedEffect
         groups = withContext(Dispatchers.IO) { repository.getAppsQueryingDomain(domain) }
-            .map { group -> RethinkLogGroup(group.label, group.count, group.blocked, icon = { PackageIcon(group.packageName, group.label) }) }
+            .map { group -> RethinkLogGroup(group.label, group.count, group.blocked, icon = { AppIcon(group.packageName, appName = group.label, size = Dp.Unspecified) }) }
     }
     RethinkLogDetailPane(
         model = selected?.let { dnsLogModel(it, loadFavIcon, false, onShowDnsLog) },
@@ -621,22 +618,6 @@ private fun logPaneStrings(groupsTitle: Int) = RethinkLogPaneStrings(
     emptySelection = stringResource(R.string.log_pane_empty),
     detailsTitle = stringResource(R.string.log_pane_details),
 )
-
-@Composable
-private fun PackageIcon(packageName: String, label: String) {
-    val context = LocalContext.current
-    var icon by remember(packageName) { mutableStateOf<Drawable?>(null) }
-    LaunchedEffect(packageName) {
-        icon = withContext(Dispatchers.IO) {
-            if (packageName.isBlank()) Utilities.getDefaultIcon(context) else Utilities.getIcon(context, packageName, label)
-        }
-    }
-    icon?.let { drawable ->
-        rememberDrawablePainter(drawable)?.let { painter ->
-            Image(painter = painter, contentDescription = null, modifier = Modifier.fillMaxSize())
-        }
-    }
-}
 
 /** The one log-list string set: filter chips and paging states, shared by every log screen. */
 @Composable
@@ -694,23 +675,10 @@ private fun RethinkLogFilter.toDnsLogFilter() = when (this) {
     RethinkLogFilter.Blocked -> DnsLogViewModel.DnsLogFilter.BLOCKED
 }
 
+/** Filter options pair the app with a 24dp glyph-sized icon, like the "All" globe beside it. */
 @Composable
 private fun PlatformLogAppIcon(option: RethinkLogAppOption) {
-    val context = LocalContext.current
-    var appIcon by remember(option.id, option.iconKey) { mutableStateOf<Drawable?>(null) }
-    LaunchedEffect(option.id, option.iconKey) {
-        appIcon = withContext(Dispatchers.IO) {
-            if (option.iconKey.isBlank()) Utilities.getDefaultIcon(context)
-            else Utilities.getIcon(context, option.iconKey, option.label)
-        }
-    }
-    rememberDrawablePainter(appIcon ?: Utilities.getDefaultIcon(context))?.let { painter ->
-        Image(
-            painter = painter,
-            contentDescription = null,
-            modifier = Modifier.size(SharedDimensions.iconSizeMd).clip(RoundedCornerShape(SharedDimensions.cornerRadiusSm)),
-        )
-    }
+    AppIcon(option.iconKey, appName = option.label, size = SharedDimensions.iconSizeMd)
 }
 
 @Composable
@@ -812,36 +780,12 @@ private fun LogDetailsSheet(
     details: List<LogDetailEntry>,
     onDismiss: () -> Unit
 ) {
-    val context = LocalContext.current
-    var appIcon by remember(appPackageName, appDisplayName) { mutableStateOf<Drawable?>(null) }
-
-    LaunchedEffect(appPackageName, appDisplayName) {
-        appIcon = kotlinx.coroutines.withContext(Dispatchers.IO) {
-            if (appPackageName.isBlank()) {
-                Utilities.getDefaultIcon(context)
-            } else {
-                Utilities.getIcon(context, appPackageName, appDisplayName)
-            }
-        }
-    }
-
     RethinkLogDetailsSheet(
         title = title,
         details = details.map { RethinkLogDetailEntry(it.label, it.value, it.isError) },
         dismissLabel = stringResource(R.string.lbl_dismiss),
         onDismiss = onDismiss,
-        appIcon = {
-            val iconPainter = rememberDrawablePainter(appIcon ?: Utilities.getDefaultIcon(context))
-            iconPainter?.let { painter ->
-                Image(
-                    painter = painter,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(SharedDimensions.iconContainerSm)
-                        .clip(RoundedCornerShape(SharedDimensions.cornerRadiusSmMd)),
-                )
-            }
-        },
+        appIcon = { AppIcon(appPackageName, appName = appDisplayName) },
     )
 }
 

@@ -3,10 +3,8 @@ package com.bernaferrari.bravedns.ui.compose.apps
 
 import android.content.Context
 import android.widget.Toast
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,7 +15,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
@@ -31,7 +28,7 @@ import com.bernaferrari.bravedns.database.hasInternetPermission
 import com.bernaferrari.bravedns.service.EventLogger
 import com.bernaferrari.bravedns.service.FirewallManager
 import com.bernaferrari.bravedns.service.ProxyManager
-import com.bernaferrari.bravedns.ui.compose.common.rememberAppIconPainter
+import com.bernaferrari.bravedns.ui.compose.common.AppIcon
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkFirewallApp
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkFirewallAppListScreen
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkFirewallAppListStrings
@@ -223,7 +220,7 @@ fun AppListScreen(
         onAppClick = { app -> onAppClick?.invoke(app.uid) },
         onWifiToggle = { app -> requestConnectionToggle(app, wifi = true) },
         onMobileToggle = { app -> requestConnectionToggle(app, wifi = false) },
-        appIcon = { app -> AndroidFirewallAppIcon(app) },
+        appIcon = { app -> AppIcon(app.packageName, appName = app.appName) },
         onBackClick = onBackClick,
     )
 
@@ -412,14 +409,6 @@ private fun dataUsageText(app: AppInfo): String? {
         download = formatByteCount(app.downloadBytes),
         upload = formatByteCount(app.uploadBytes),
     )
-}
-
-@Composable
-private fun AndroidFirewallAppIcon(app: RethinkFirewallApp) {
-    rememberAppIconPainter(app.packageName, app.appName, fallbackToDefault = true)?.let { painter ->
-        // The shared row clips the 40dp well; the icon fills it.
-        Image(painter, null, Modifier.size(SharedDimensions.iconContainerMd))
-    }
 }
 
 private val AndroidFirewallToggleMutex = Mutex()

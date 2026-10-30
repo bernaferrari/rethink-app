@@ -2,28 +2,17 @@
 
 package com.bernaferrari.bravedns.ui.compose.bubble
 
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWell
-import Logger
-import Logger.LOG_TAG_UI
-import android.graphics.drawable.Drawable
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.core.content.ContextCompat
 import androidx.core.os.ConfigurationCompat
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.data.AllowedAppInfo
 import com.bernaferrari.bravedns.data.BlockedAppInfo
-import com.bernaferrari.bravedns.ui.compose.rememberDrawablePainter
-import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.common.AppIcon
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -46,48 +35,36 @@ fun BubbleScreen(
         vpnOn = vpnOn,
         allowedItems = allowed.map { RethinkBubbleAllowedItem(it.id(), it.packageName, it.appName, allowedTimeRemaining(it)) },
         blockedItems = blocked.map { item ->
-            RethinkBubbleBlockedItem(item.id(), item.packageName, item.appName, stringResource(R.string.bubble_blocked_count, item.count), timeAgo(item.lastBlocked))
+            RethinkBubbleBlockedItem(item.id(), item.packageName, item.appName, pluralStringResource(R.plurals.bubble_blocked_count, item.count, item.count), timeAgo(item.lastBlocked))
         },
         blockedLoading = blockedItems.loadState.refresh is LoadState.Loading,
         blockedError = blockedItems.loadState.refresh is LoadState.Error,
         strings = RethinkBubbleStrings(
             title = stringResource(R.string.firewall_bubble_title), subtitle = stringResource(R.string.firewall_bubble_subtitle),
-            allowedTitle = stringResource(R.string.bubble_allowed_title), activityTitle = stringResource(R.string.bubble_activity_title), loading = stringResource(R.string.bubble_loading),
+            allowedTitle = stringResource(R.string.bubble_allowed_title), activityTitle = stringResource(R.string.bubble_activity_title), loading = stringResource(R.string.lbl_loading),
             emptyTitle = stringResource(R.string.bubble_empty_state_title), emptyDescription = stringResource(R.string.bubble_empty_state_desc),
             vpnOffTitle = stringResource(R.string.bubble_vpn_off_title), vpnOffDescription = stringResource(R.string.bubble_vpn_off_desc),
             errorTitle = stringResource(R.string.bubble_load_error_title), errorDescription = stringResource(R.string.bubble_load_error_desc), retry = stringResource(R.string.lbl_retry),
             remove = stringResource(R.string.lbl_remove), allow = stringResource(R.string.bubble_allow_btn),
         ),
-        appIcon = { packageName -> AndroidAppIcon(packageName) },
+        appIcon = { packageName -> AppIcon(packageName) },
         onAllow = { id -> blockedById[id]?.let { app -> onAllowApp(app) { blockedItems.refresh(); allowedItems.refresh() } } },
         onRemove = { id -> allowedById[id]?.let { app -> onRemoveAllowed(app) { allowedItems.refresh(); blockedItems.refresh() } } },
         onRetry = blockedItems::retry,
     )
 }
 
-@Composable
-private fun AndroidAppIcon(packageName: String) {
-    val context = LocalContext.current
-    val icon = remember(packageName) { loadAppIcon(context, packageName) }
-    // Same 40dp leading well as every other grouped list row.
-    RethinkIconWell(containerColor = MaterialTheme.colorScheme.secondaryContainer) {
-        rememberDrawablePainter(icon)?.let { Image(it, null, Modifier.size(SharedDimensions.iconSizeLg)) }
-    }
-}
-
 private fun AllowedAppInfo.id() = "$uid:$packageName"
 private fun BlockedAppInfo.id() = "$uid:$packageName"
 
-private fun loadAppIcon(context: android.content.Context, packageName: String): Drawable = try {
-    if (packageName != "Unknown") context.packageManager.getApplicationIcon(packageName) else ContextCompat.getDrawable(context, R.drawable.ic_launcher_foreground)!!
-} catch (_: Exception) {
-    Logger.e(LOG_TAG_UI, "App icon not found for $packageName")
-    ContextCompat.getDrawable(context, R.drawable.ic_launcher_foreground)!!
-}
-
+@Composable
 private fun allowedTimeRemaining(app: AllowedAppInfo): String {
-    val remaining = (app.allowedAt + 15 * 60 * 1000 - System.currentTimeMillis()) / 1000 / 60
-    return if (remaining > 0) "$remaining min${if (remaining != 1L) "s" else ""} remaining" else "Expired"
+    val remaining = (app.allowedAt + TimeUnit.MINUTES.toMillis(15) - System.currentTimeMillis()) / TimeUnit.MINUTES.toMillis(1)
+    return if (remaining > 0) {
+        pluralStringResource(R.plurals.bubble_allowed_minutes_remaining, remaining.toInt(), remaining)
+    } else {
+        stringResource(R.string.bubble_allowed_expired)
+    }
 }
 
 @Composable

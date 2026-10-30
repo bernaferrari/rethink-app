@@ -6,19 +6,10 @@
  */
 package com.bernaferrari.bravedns.ui.compose.statistics
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -26,10 +17,8 @@ import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Color.Companion.Unspecified
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -39,7 +28,8 @@ import com.bernaferrari.bravedns.data.DataUsageSummary
 import com.bernaferrari.bravedns.data.SummaryStatisticsType
 import com.bernaferrari.bravedns.service.PersistentState
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
-import com.bernaferrari.bravedns.util.UIUtils.formatBytes
+import com.bernaferrari.bravedns.util.formatByteCount
+import com.bernaferrari.bravedns.ui.compose.common.AppIcon
 import com.bernaferrari.bravedns.viewmodel.SummaryStatisticsViewModel
 import com.bernaferrari.bravedns.viewmodel.SummaryStatisticsViewModel.TimeCategory
 
@@ -174,28 +164,25 @@ private fun AppConnection.toRethinkSummaryRow(
     val bytes = totalBytes?.takeIf { it > 0L }
     // The trailing metric is the headline number (bytes when known, else the count); the
     // supporting line only adds what the metric doesn't already show.
-    val metric = bytes?.let(::formatBytes) ?: count.toString()
+    val metric = bytes?.let(::formatByteCount) ?: count.toString()
     val connectionsLabel = stringResource(R.string.summary_connections_count, count)
     val supporting = if (isCountry || bytes == null) null else connectionsLabel
-    val appIconPainter = if (type.supportsAppIcon()) rememberStatisticsAppIconPainter(uid) else null
     return RethinkSummaryStatisticsRow(
         id = "$type-$uid-$ipAddress-$flag-$count",
         headline = headline,
         supporting = supporting,
         metric = metric,
         countryFlag = flag.takeIf { isCountry && it.isNotBlank() },
-        leadingContent = if (!isCountry) {
-            {
-                // App icons at the size the Apps list and logs use; the fallback glyph stays icon-sized in that slot.
+        leadingContent = when {
+            isCountry -> null
+            type.supportsAppIcon() -> ({ AppIcon(uid) })
+            // Domains, IPs and ASNs: a glyph, icon-sized in the same 40dp slot.
+            else -> ({
                 Box(Modifier.size(SharedDimensions.iconContainerMd), contentAlignment = Alignment.Center) {
-                    if (appIconPainter != null) {
-                        Icon(appIconPainter, contentDescription = null, tint = Unspecified, modifier = Modifier.size(SharedDimensions.iconContainerMd))
-                    } else {
-                        Icon(painterResource(R.drawable.ic_app_info), contentDescription = null, tint = accentColor, modifier = Modifier.size(SharedDimensions.iconSizeMd))
-                    }
+                    Icon(painterResource(R.drawable.ic_app_info), contentDescription = null, tint = accentColor, modifier = Modifier.size(SharedDimensions.iconSizeMd))
                 }
-            }
-        } else null,
+            })
+        },
         expandedContent = if (isCountry && flag.isNotBlank()) {
             { CountryBreakdown(flag, accentColor, viewModel, refreshToken) }
         } else null,
@@ -203,8 +190,8 @@ private fun AppConnection.toRethinkSummaryRow(
 }
 
 private fun DataUsageSummary.toRethinkUsageOverview() = RethinkUsageOverview(
-    download = formatBytes(totalDownload),
-    upload = formatBytes(totalUpload),
+    download = formatByteCount(totalDownload),
+    upload = formatByteCount(totalUpload),
     connections = connectionsCount.toString(),
 )
 
@@ -239,16 +226,13 @@ private fun CountryBreakdown(
         emptyMessage = stringResource(R.string.lbl_no_logs),
         accentColor = accentColor,
         apps = apps.map { app ->
-            val painter = rememberStatisticsAppIconPainter(app.uid)
             RethinkCountryBreakdownItem(
                 id = "${app.uid}-${app.appOrDnsName}-${app.count}",
                 headline = app.appOrDnsName?.takeIf { it.isNotBlank() }
                     ?: stringResource(R.string.network_log_app_name_unknown),
                 metric = app.count.toString(),
-                leadingContent = {
-                    if (painter != null) Icon(painter, null, tint = Unspecified, modifier = Modifier.size(SharedDimensions.iconSizeSm))
-                    else Icon(painterResource(R.drawable.ic_app_info), null, modifier = Modifier.size(SharedDimensions.iconSizeSm))
-                },
+                // Nested under the country row, so text-sized rather than a list-row icon.
+                leadingContent = { AppIcon(app.uid, size = SharedDimensions.iconSizeSm) },
             )
         },
     )

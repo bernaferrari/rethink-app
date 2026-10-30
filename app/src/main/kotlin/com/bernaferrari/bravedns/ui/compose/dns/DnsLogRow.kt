@@ -24,75 +24,23 @@ import Logger.LOG_TAG_UI
 import android.content.Context
 import android.graphics.drawable.Drawable
 import androidx.core.graphics.drawable.toDrawable
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.snap
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItemDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.zIndex
 import coil3.request.CachePolicy
 import coil3.toBitmap
 import coil3.request.ImageRequest
 import coil3.request.SuccessResult
 import com.bernaferrari.bravedns.R
-import com.bernaferrari.bravedns.ui.compose.theme.rememberReducedMotion
 import com.bernaferrari.bravedns.ui.compose.logs.RethinkLogDetail
 import com.bernaferrari.bravedns.ui.compose.logs.RethinkLogLatencyStrings
 import com.bernaferrari.bravedns.ui.compose.logs.RethinkLogRow
@@ -100,8 +48,6 @@ import com.bernaferrari.bravedns.ui.compose.logs.RethinkLogRowModel
 import com.bernaferrari.bravedns.ui.compose.logs.RethinkLogKind
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.foundation.layout.fillMaxSize
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import com.bernaferrari.bravedns.database.DnsLog
 import com.bernaferrari.bravedns.image.FavIconDownloader
 import com.bernaferrari.bravedns.image.FavIconImageLoader
@@ -111,9 +57,8 @@ import com.bernaferrari.bravedns.ui.compose.rememberDrawablePainter
 import com.bernaferrari.bravedns.util.Constants
 import com.bernaferrari.bravedns.util.Constants.Companion.MAX_ENDPOINT
 import com.bernaferrari.bravedns.util.UIUtils
-import com.bernaferrari.bravedns.util.Utilities.getIcon
+import com.bernaferrari.bravedns.ui.compose.common.AppIcon
 import com.celzero.firestack.backend.Backend
-import kotlin.math.roundToInt
 
 @Composable
 fun DnsLogRow(
@@ -150,18 +95,8 @@ fun dnsLogModel(
         stringResource(R.string.network_log_app_name_unknown)
     }
 
-    var appIcon by remember(log.packageName) { mutableStateOf<Drawable?>(null) }
     var favIcon by remember(log.queryStr) { mutableStateOf<Drawable?>(null) }
     var showFav by remember(log.queryStr, loadFavIcon) { mutableStateOf(false) }
-    LaunchedEffect(log.packageName) {
-        appIcon =
-            if (log.packageName.isEmpty() || log.packageName == Constants.EMPTY_PACKAGE_NAME) {
-                null
-            } else {
-                withContext(Dispatchers.IO) { getIcon(context, log.packageName) }
-            }
-    }
-
     LaunchedEffect(log.queryStr, loadFavIcon, log.groundedQuery()) {
         showFav = false
         favIcon = null
@@ -209,14 +144,16 @@ fun dnsLogModel(
         facts = listOfNotNull(
             log.latency.takeIf { it > 0 && !log.isBlocked }?.let { stringResource(R.string.log_latency_ms, it.toInt()) },
         ),
-        appIcon = appIcon?.let { drawable -> { DrawableIcon(drawable) } },
+        appIcon = log.packageName
+            .takeUnless { it.isEmpty() || it == Constants.EMPTY_PACKAGE_NAME }
+            ?.let { pkg -> { AppIcon(pkg, size = Dp.Unspecified) } },
     )
 }
 
 @Composable
 private fun dnsLogDetails(log: DnsLog, dnsType: String, hint: String, blocklists: List<String>): List<RethinkLogDetail> {
     val unknown = stringResource(R.string.network_log_app_name_unknown)
-    val country = countryLabel(log.flag, unknown)
+    val country = UIUtils.countryLabel(log.flag, unknown)
     val dnssec = when {
         !log.dnssecOk && !log.dnssecValid -> null
         log.dnssecOk && log.dnssecValid -> stringResource(R.string.log_detail_dnssec_valid)
@@ -231,17 +168,6 @@ private fun dnsLogDetails(log: DnsLog, dnsType: String, hint: String, blocklists
         dnssec?.let { RethinkLogDetail(stringResource(R.string.log_detail_dnssec), it) },
         hint.takeIf { it.isNotBlank() }?.let { RethinkLogDetail(stringResource(R.string.log_detail_flags), it) },
     )
-}
-
-private fun countryLabel(flag: String, unknown: String): String {
-    val countryName = UIUtils.getCountryNameFromFlag(flag).trim()
-    val hasName = countryName.isNotBlank() && countryName != "--"
-    return when {
-        hasName && flag.isNotBlank() -> "$countryName $flag"
-        hasName -> countryName
-        flag.isNotBlank() && flag != "--" -> flag
-        else -> unknown
-    }
 }
 
 /** The first two blocklists, then a count of the rest. */
@@ -278,27 +204,27 @@ private fun unicodeHint(log: DnsLog, isRethinkDns: Boolean): String {
     val ciDesc = stringResource(R.string.ci_desc)
     var hint = ""
     if (isRoundTripShorter(log.latency, log.isBlocked)) {
-        hint = formatTemplate(ciDesc, hint, rocket)
+        hint = UIUtils.formatTemplate(ciDesc, hint, rocket)
     }
     if (containsRelayProxy(log.relayIP)) {
-        hint = formatTemplate(ciDesc, hint, bunny)
+        hint = UIUtils.formatTemplate(ciDesc, hint, bunny)
     } else if (isConnectionProxied(log.proxyId)) {
-        hint = formatTemplate(ciDesc, hint, key)
+        hint = UIUtils.formatTemplate(ciDesc, hint, key)
     }
     if (isRethinkUsed(log, isRethinkDns)) {
-        hint = formatTemplate(ciDesc, hint, rethink)
+        hint = UIUtils.formatTemplate(ciDesc, hint, rethink)
     } else if (isGoosOrSystemUsed(log)) {
-        hint = formatTemplate(ciDesc, hint, duck)
+        hint = UIUtils.formatTemplate(ciDesc, hint, duck)
     } else if (isDefaultResolverUsed(log)) {
-        hint = formatTemplate(ciDesc, hint, diamond)
+        hint = UIUtils.formatTemplate(ciDesc, hint, diamond)
     } else if (containsMultipleIPs(log)) {
-        hint = formatTemplate(ciDesc, hint, heavy)
+        hint = UIUtils.formatTemplate(ciDesc, hint, heavy)
     }
     if (dnssecIndicatorRequired(log)) {
         hint = if (dnssecOk(log)) {
-            formatTemplate(ciDesc, hint, lock)
+            UIUtils.formatTemplate(ciDesc, hint, lock)
         } else {
-            formatTemplate(ciDesc, hint, unlock)
+            UIUtils.formatTemplate(ciDesc, hint, unlock)
         }
     }
     return hint
@@ -321,9 +247,6 @@ private fun dnsTypeName(log: DnsLog, isRethinkDns: Boolean): String {
         Transaction.TransportType.ODOH -> odoh
     }
 }
-
-private fun formatTemplate(template: String, vararg args: Any): String =
-    String.format(java.util.Locale.getDefault(), template, *args)
 
 private fun dnssecIndicatorRequired(log: DnsLog) =
     log.status == Transaction.Status.COMPLETE.name && (log.dnssecOk || log.dnssecValid)

@@ -46,8 +46,6 @@ import java.util.regex.Pattern
 
 object UIUtils {
 
-    fun formatBytes(bytes: Long): String = formatByteCount(bytes)
-
     fun getDnsStatusStringRes(status: Int?): Int {
         if (status == null) return R.string.failed_using_default
 
@@ -253,6 +251,16 @@ object UIUtils {
         val pattern: Pattern = Pattern.compile(regex)
         val matcher: Matcher = pattern.matcher(fqdn)
         return matcher.find()
+    }
+
+    /** "Germany 🇩🇪" for a log's country flag: name and flag when known, either alone, else [unknown]. */
+    fun countryLabel(flag: String, unknown: String): String {
+        val name = getCountryNameFromFlag(flag).trim().takeUnless { it.isBlank() || it == "--" }
+        val emoji = flag.trim().takeUnless { it.isBlank() || it == "--" }
+        return when {
+            name != null && emoji != null -> "$name $emoji"
+            else -> name ?: emoji ?: unknown
+        }
     }
 
     fun getCountryNameFromFlag(flag: String?): String {

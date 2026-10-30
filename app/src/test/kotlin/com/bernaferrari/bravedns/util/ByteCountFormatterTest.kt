@@ -50,10 +50,4 @@ class ByteCountFormatterTest {
         assertEquals("1.0 MB", formatByteCount(999_999))
         assertEquals("1.0 GB", formatByteCount(999_999_999))
     }
-
-    @Test
-    fun `legacy entry points delegate to the shared formatter`() {
-        assertEquals(formatByteCount(1_234_567), Utilities.humanReadableByteCount(1_234_567, true))
-        assertEquals(formatByteCount(1_234_567), UIUtils.formatBytes(1_234_567))
-    }
 }

@@ -16,38 +16,11 @@
 package com.bernaferrari.bravedns.ui.compose.app
 
 import android.content.Context
-import android.content.Intent
-import android.graphics.drawable.Drawable
 import android.widget.Toast
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MobileOff
-import androidx.compose.material.icons.filled.PhoneAndroid
-import androidx.compose.material.icons.filled.Wifi
-import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -58,17 +31,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoLogItem
 import com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoLogSection
@@ -89,21 +54,12 @@ import com.bernaferrari.bravedns.service.ProxyManager.ID_NONE
 import com.bernaferrari.bravedns.service.VpnController
 import com.bernaferrari.bravedns.ui.compose.firewall.AppDomainRulesSheet
 import com.bernaferrari.bravedns.ui.compose.firewall.AppIpRulesSheet
-import com.bernaferrari.bravedns.ui.compose.apps.DiagonalWipeIcon
-import com.bernaferrari.bravedns.ui.compose.rememberDrawablePainter
-import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
-import com.bernaferrari.bravedns.ui.compose.theme.CompactEmptyState
+import com.bernaferrari.bravedns.ui.compose.common.AppIcon
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
-import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
-import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 import com.bernaferrari.bravedns.util.Constants.Companion.INVALID_UID
 import com.bernaferrari.bravedns.util.Constants.Companion.RETHINK_PACKAGE
 import com.bernaferrari.bravedns.util.UIUtils.openAndroidAppInfo
-import com.bernaferrari.bravedns.util.Utilities
 import com.bernaferrari.bravedns.util.Utilities.showToastUiCentered
 import com.bernaferrari.bravedns.viewmodel.AppConnectionsViewModel
 import com.bernaferrari.bravedns.viewmodel.CustomDomainViewModel
@@ -303,19 +259,6 @@ fun AppInfoScreen(
     val isBypassDnsFirewall = appStatus == FirewallManager.FirewallStatus.BYPASS_DNS_FIREWALL
     val isBypassUniversal = appStatus == FirewallManager.FirewallStatus.BYPASS_UNIVERSAL
     val isExcluded = appStatus == FirewallManager.FirewallStatus.EXCLUDE
-    var appIcon by remember(uid) { mutableStateOf<Drawable?>(null) }
-
-    LaunchedEffect(info?.packageName, info?.appName) {
-        if (info == null) {
-            appIcon = null
-            return@LaunchedEffect
-        }
-        appIcon =
-            withContext(Dispatchers.IO) {
-                Utilities.getIcon(context, info.packageName, info.appName)
-            }
-    }
-
     fun applyFirewallRule(
         firewallStatus: FirewallManager.FirewallStatus,
         connectionStatus: FirewallManager.ConnectionStatus
@@ -487,12 +430,8 @@ fun AppInfoScreen(
         onActiveEntry = { entry -> activePreview.getOrNull(entry.id.toIntOrNull() ?: -1)?.let { closeDialogConn = it } },
         onDomainEntry = { entry -> domainPreview.getOrNull(entry.id.toIntOrNull() ?: -1)?.let { selectedDomain = it.appOrDnsName.orEmpty(); showDomainRulesSheet = true } },
         onIpEntry = { entry -> ipPreview.getOrNull(entry.id.toIntOrNull() ?: -1)?.let { selectedIp = it.ipAddress; selectedDomains = it.appOrDnsName.orEmpty(); showIpRulesSheet = true } },
-        titleLeading = {
-            val iconPainter = rememberDrawablePainter(appIcon ?: Utilities.getDefaultIcon(context))
-            iconPainter?.let { painter ->
-                Image(painter, null, Modifier.size(SharedDimensions.iconSizeXl).clip(RoundedCornerShape(SharedDimensions.cornerRadiusMd)))
-            }
-        },
+        // The page header: a step up from the 40dp list rows.
+        titleLeading = { AppIcon(info?.packageName.orEmpty(), appName = info?.appName, size = SharedDimensions.iconContainerLg) },
     )
 
 }

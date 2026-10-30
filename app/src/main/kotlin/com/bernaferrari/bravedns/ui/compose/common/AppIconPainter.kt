@@ -18,6 +18,9 @@ package com.bernaferrari.bravedns.ui.compose.common
 import android.content.Context
 import android.content.pm.PackageManager
 import android.util.LruCache
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -25,14 +28,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.isSpecified
 import androidx.core.graphics.drawable.toBitmap
 import com.bernaferrari.bravedns.service.FirewallManager
 import com.bernaferrari.bravedns.ui.compose.rememberDrawablePainter
+import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.util.Constants
 import com.bernaferrari.bravedns.util.Utilities
 import kotlinx.coroutines.Dispatchers
@@ -98,7 +105,7 @@ fun rememberAppIconPainter(
 
 /** Like [rememberAppIconPainter], resolving the package from a (possibly multi-user) [uid]. */
 @Composable
-fun rememberAppIconPainter(uid: Int): Painter? {
+fun rememberAppIconPainter(uid: Int, fallbackToDefault: Boolean = false): Painter? {
     val context = LocalContext.current
     val packageName by produceState<String?>(initialValue = null, uid) {
         value =
@@ -110,5 +117,37 @@ fun rememberAppIconPainter(uid: Int): Painter? {
                     }
             }
     }
-    return rememberAppIconPainter(packageName.orEmpty())
+    return rememberAppIconPainter(packageName.orEmpty(), fallbackToDefault = fallbackToDefault)
 }
+
+/**
+ * The one app icon: the cached launcher icon, or the default app icon while it loads and when the
+ * package has none. No backplate — launcher icons carry their own shape. List rows use the
+ * default [SharedDimensions.iconContainerMd]; pass [Dp.Unspecified] to fill a slot the shared
+ * layout already sized.
+ */
+@Composable
+fun AppIcon(
+    packageName: String,
+    modifier: Modifier = Modifier,
+    appName: String? = null,
+    size: Dp = SharedDimensions.iconContainerMd,
+) {
+    rememberAppIconPainter(packageName, appName, fallbackToDefault = true)?.let { painter ->
+        Image(painter, null, modifier.iconSize(size))
+    }
+}
+
+/** [AppIcon] for an app known only by its (possibly multi-user) [uid]. */
+@Composable
+fun AppIcon(
+    uid: Int,
+    modifier: Modifier = Modifier,
+    size: Dp = SharedDimensions.iconContainerMd,
+) {
+    rememberAppIconPainter(uid, fallbackToDefault = true)?.let { painter ->
+        Image(painter, null, modifier.iconSize(size))
+    }
+}
+
+private fun Modifier.iconSize(size: Dp): Modifier = if (size.isSpecified) size(size) else fillMaxSize()

@@ -15,11 +15,8 @@
  */
 package com.bernaferrari.bravedns.ui.compose.firewall
 
-import android.graphics.drawable.Drawable
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
@@ -52,7 +49,7 @@ import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleSheetModal
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleSectionTitle
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleSupportingText
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleTrustBlockRow
-import com.bernaferrari.bravedns.ui.compose.rememberDrawablePainter
+import com.bernaferrari.bravedns.ui.compose.common.AppIcon
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -78,7 +75,7 @@ fun AppIpRulesSheet(
     var persistedIpRule by remember { mutableStateOf(IpRulesManager.IpRuleStatus.NONE) }
     var selectedIpRule by remember { mutableStateOf(IpRulesManager.IpRuleStatus.NONE) }
     var appNames by remember { mutableStateOf<List<String>>(emptyList()) }
-    var appIcon by remember { mutableStateOf<Drawable?>(null) }
+    var appPackage by remember { mutableStateOf<String?>(null) }
     var applying by remember { mutableStateOf(false) }
     var undoEpoch by remember { mutableIntStateOf(0) }
     var ipError by remember { mutableStateOf<String?>(null) }
@@ -87,9 +84,9 @@ fun AppIpRulesSheet(
     val selectedDomainRules = remember { mutableStateMapOf<String, DomainRulesManager.Status>() }
 
     LaunchedEffect(uid, ipAddress, domains) {
-        val (names, icon) = withContext(Dispatchers.IO) { fetchRuleSheetAppIdentity(context, uid) }
+        val (names, packageName) = withContext(Dispatchers.IO) { fetchRuleSheetAppIdentity(uid) }
         appNames = names
-        appIcon = icon
+        appPackage = packageName
         val status = withContext(Dispatchers.IO) {
             IpRulesManager.getMostSpecificRuleMatch(uid, ipAddress)
         }
@@ -118,13 +115,8 @@ fun AppIpRulesSheet(
         RethinkRuleSheetLayout(bottomPadding = RethinkRuleSheetBottomPaddingCompact) {
             RethinkRuleEditorHeader(
                 appName = appName,
-                appIcon = {
-                    appIcon?.let { icon ->
-                        rememberDrawablePainter(icon)?.let { painter ->
-                            Image(painter = painter, contentDescription = null, modifier = Modifier.size(SharedDimensions.iconSizeSm))
-                        }
-                    }
-                },
+                // Inline beside the bodyMedium app name, so text-sized rather than a list-row icon.
+                appIcon = appPackage?.let { pkg -> { AppIcon(pkg, size = SharedDimensions.iconSizeSm) } },
             )
 
             RethinkRuleSectionTitle(

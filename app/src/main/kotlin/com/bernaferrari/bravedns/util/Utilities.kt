@@ -427,24 +427,6 @@ object Utilities {
         }
     }
 
-    fun getIcon(ctx: Context, packageName: String, appName: String? = null): Drawable? {
-        if (!isValidAppName(appName, packageName)) {
-            return getDefaultIcon(ctx)
-        }
-
-        return try {
-            ctx.packageManager.getApplicationIcon(packageName)
-        } catch (e: PackageManager.NameNotFoundException) {
-            // Not adding exception details in logs.
-            Logger.e(LOG_TAG_FIREWALL, "no app icon for $packageName" + e.message)
-            getDefaultIcon(ctx)
-        }
-    }
-
-    private fun isValidAppName(appName: String?, packageName: String): Boolean {
-        return !isNonApp(packageName) && Constants.UNKNOWN_APP != appName
-    }
-
     fun getDefaultIcon(context: Context): Drawable? {
         return ContextCompat.getDrawable(context, R.drawable.default_app_icon)
     }
@@ -710,10 +692,6 @@ object Utilities {
         // formats each byte as a two-character hexadecimal string
         return random.joinToString("") { HEX_FORMAT.format(it) }
     }
-
-    /** Legacy entry point; every size is SI-formatted by [formatByteCount]. */
-    @Suppress("UNUSED_PARAMETER")
-    fun humanReadableByteCount(bytes: Long, si: Boolean = true): String = formatByteCount(bytes)
 
     fun calculateMd5(filePath: String): String {
         return appFileSystem.md5Hex(filePath)

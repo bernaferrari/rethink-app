@@ -15,9 +15,6 @@
  */
 package com.bernaferrari.bravedns.ui.compose.firewall
 
-import android.graphics.drawable.Drawable
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,7 +24,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.bernaferrari.bravedns.R
@@ -42,7 +38,7 @@ import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleSheetModal
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleSectionTitle
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleSupportingText
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRuleTrustBlockRow
-import com.bernaferrari.bravedns.ui.compose.rememberDrawablePainter
+import com.bernaferrari.bravedns.ui.compose.common.AppIcon
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.util.Constants.Companion.INVALID_UID
 import kotlinx.coroutines.Dispatchers
@@ -65,7 +61,7 @@ fun AppDomainRulesSheet(
     var persistedRule by remember { mutableStateOf(DomainRulesManager.Status.NONE) }
     var selectedRule by remember { mutableStateOf(DomainRulesManager.Status.NONE) }
     var appNames by remember { mutableStateOf<List<String>>(emptyList()) }
-    var appIcon by remember { mutableStateOf<Drawable?>(null) }
+    var appPackage by remember { mutableStateOf<String?>(null) }
     var applying by remember { mutableStateOf(false) }
     var undoEpoch by remember { mutableIntStateOf(0) }
 
@@ -74,9 +70,9 @@ fun AppDomainRulesSheet(
             onDismiss()
             return@LaunchedEffect
         }
-        val (names, icon) = withContext(Dispatchers.IO) { fetchRuleSheetAppIdentity(context, uid) }
+        val (names, packageName) = withContext(Dispatchers.IO) { fetchRuleSheetAppIdentity(uid) }
         appNames = names
-        appIcon = icon
+        appPackage = packageName
         val status = withContext(Dispatchers.IO) { DomainRulesManager.status(domain, uid) }
         persistedRule = status
         selectedRule = status
@@ -93,13 +89,8 @@ fun AppDomainRulesSheet(
         RethinkRuleSheetLayout(bottomPadding = RethinkRuleSheetBottomPaddingCompact) {
             RethinkRuleEditorHeader(
                 appName = appName,
-                appIcon = {
-                    appIcon?.let { icon ->
-                        rememberDrawablePainter(icon)?.let { painter ->
-                            Image(painter = painter, contentDescription = null, modifier = Modifier.size(SharedDimensions.iconSizeSm))
-                        }
-                    }
-                },
+                // Inline beside the bodyMedium app name, so text-sized rather than a list-row icon.
+                appIcon = appPackage?.let { pkg -> { AppIcon(pkg, size = SharedDimensions.iconSizeSm) } },
             )
 
             RethinkRuleSectionTitle(

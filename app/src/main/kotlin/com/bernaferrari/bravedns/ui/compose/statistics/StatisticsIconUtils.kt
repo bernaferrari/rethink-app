@@ -15,15 +15,9 @@
  */
 package com.bernaferrari.bravedns.ui.compose.statistics
 
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.painter.Painter
 import com.bernaferrari.bravedns.data.SummaryStatisticsType
-import com.bernaferrari.bravedns.ui.compose.common.rememberAppIconPainter
 
 internal fun SummaryStatisticsType.supportsAppIcon(): Boolean {
     return this == SummaryStatisticsType.MOST_CONNECTED_APPS ||
         this == SummaryStatisticsType.MOST_BLOCKED_APPS
 }
-
-@Composable
-internal fun rememberStatisticsAppIconPainter(uid: Int): Painter? = rememberAppIconPainter(uid)

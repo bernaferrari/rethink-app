@@ -4,7 +4,6 @@ package com.bernaferrari.bravedns.ui.compose.firewall
 import Logger
 import Logger.LOG_TAG_UI
 import android.content.Context
-import android.graphics.drawable.Drawable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.SnackbarDuration
@@ -22,30 +21,20 @@ import com.bernaferrari.bravedns.service.EventLogger
 import com.bernaferrari.bravedns.service.FirewallManager
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormActionRow
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
-import com.bernaferrari.bravedns.util.Constants.Companion.UID_EVERYBODY
-import com.bernaferrari.bravedns.util.Utilities
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 /** Android app-identity and mutation adapters for the shared rule-sheet renderers. */
-suspend fun fetchRuleSheetAppIdentity(context: Context, uid: Int): Pair<List<String>, Drawable?> {
+/** The uid's app names and the first one's package (for its icon); the package is null when unknown. */
+suspend fun fetchRuleSheetAppIdentity(uid: Int): Pair<List<String>, String?> {
     val appNames = FirewallManager.getAppNamesByUid(uid)
     val packageName = appNames.firstOrNull()?.let { FirewallManager.getPackageNameByAppName(it) }
-    val icon = if (packageName.isNullOrEmpty()) null else Utilities.getIcon(context, packageName)
-    return appNames to icon
+    return appNames to packageName?.takeIf { it.isNotEmpty() }
 }
 
 fun formatRuleSheetAppName(context: Context, appNames: List<String>): String? =
     when {
         appNames.isEmpty() -> null
-        appNames.size >= 2 -> context.getString(R.string.ctbs_app_other_apps, appNames[0], appNames.size.minus(1).toString())
-        else -> appNames[0]
-    }
-
-fun formatCustomRuleSheetAppName(context: Context, uid: Int, appNames: List<String>): String =
-    when {
-        uid == UID_EVERYBODY -> context.getString(R.string.firewall_act_universal_tab)
-        appNames.isEmpty() -> context.getString(R.string.network_log_app_name_unknown) + " ($uid)"
         appNames.size >= 2 -> context.getString(R.string.ctbs_app_other_apps, appNames[0], appNames.size.minus(1).toString())
         else -> appNames[0]
     }

@@ -18,44 +18,9 @@ limitations under the License.
 
 package com.bernaferrari.bravedns.ui.compose.logs
 
-import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import android.content.Context
-import android.graphics.drawable.Drawable
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.snap
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItemDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -63,29 +28,10 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.zIndex
+import androidx.compose.ui.unit.Dp
 import com.bernaferrari.bravedns.R
-import com.bernaferrari.bravedns.ui.compose.theme.rememberReducedMotion
 import com.bernaferrari.bravedns.ui.compose.logs.RethinkLogDetail
 import com.bernaferrari.bravedns.ui.compose.logs.RethinkLogRow
 import com.bernaferrari.bravedns.ui.compose.logs.RethinkLogRowModel
@@ -95,18 +41,17 @@ import com.bernaferrari.bravedns.service.FirewallManager
 import com.bernaferrari.bravedns.service.FirewallRuleset
 import com.bernaferrari.bravedns.service.ProxyManager
 import com.bernaferrari.bravedns.service.VpnController
-import com.bernaferrari.bravedns.ui.compose.rememberDrawablePainter
+import com.bernaferrari.bravedns.ui.compose.common.AppIcon
 import com.bernaferrari.bravedns.util.Constants.Companion.TIME_FORMAT_1
 import com.bernaferrari.bravedns.util.KnownPorts
 import com.bernaferrari.bravedns.util.Protocol
 import com.bernaferrari.bravedns.util.UIUtils
 import com.bernaferrari.bravedns.util.UIUtils.getDurationInHumanReadableFormat
 import com.bernaferrari.bravedns.util.Utilities
-import com.bernaferrari.bravedns.util.Utilities.getIcon
+import com.bernaferrari.bravedns.util.formatByteCount
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.Locale
-import kotlin.math.roundToInt
 
 private const val MAX_BYTES = 500000 // 500 KB
 private const val MAX_TIME_TCP = 135 // seconds
@@ -142,13 +87,13 @@ fun connectionLogModel(ct: ConnectionTracker): RethinkLogRowModel {
     val destination = ct.dnsQuery?.takeIf { it.isNotBlank() } ?: ct.ipAddress
     val appDisplay = if (ct.appName.isBlank()) unknownApp else ct.appName
 
-    var appIcon by remember(ct.uid) { mutableStateOf<Drawable?>(null) }
+    var packageName by remember(ct.uid) { mutableStateOf<String?>(null) }
     var appCount by remember(ct.uid) { mutableIntStateOf(1) }
 
     LaunchedEffect(ct.uid, ct.appName, ct.usrId) {
         val apps = withContext(Dispatchers.IO) { FirewallManager.getPackageNamesByUid(ct.uid) }
         appCount = apps.size
-        appIcon = if (apps.isEmpty()) null else withContext(Dispatchers.IO) { getIcon(context, apps[0]) }
+        packageName = apps.firstOrNull()
     }
 
     val appName =
@@ -174,7 +119,8 @@ fun connectionLogModel(ct: ConnectionTracker): RethinkLogRowModel {
         allowedLabel = stringResource(R.string.lbl_allowed),
         blockedLabel = stringResource(R.string.lbl_blocked),
         details = details,
-        icon = { statusContainer -> AppIconSlot(appIcon, statusContainer) },
+        // No package (kernel, unknown uid): the row draws its verdict-tinted placeholder.
+        icon = packageName?.let { pkg -> { _ -> AppIcon(pkg, size = Dp.Unspecified) } },
         kind = RethinkLogKind.Network,
         reason = ruleTitle.takeIf { ct.isBlocked },
         endpoint = endpointOf(ct),
@@ -199,7 +145,7 @@ private fun connectionDetails(
     val latency = stringResource(R.string.log_latency_ms, ct.synack.toInt())
     return listOfNotNull(
         RethinkLogDetail(stringResource(R.string.log_detail_protocol), protocol),
-        RethinkLogDetail(stringResource(R.string.log_detail_country), countryDisplay(unknown, ct.flag)),
+        RethinkLogDetail(stringResource(R.string.log_detail_country), UIUtils.countryLabel(ct.flag, unknown)),
         endpoint.takeIf { it.isNotBlank() }?.let { RethinkLogDetail(stringResource(R.string.log_detail_address), it, monospace = true) },
         ct.dnsQuery?.takeIf { it.isNotBlank() }?.let { RethinkLogDetail(stringResource(R.string.log_detail_domain), it, monospace = true) },
         ct.blockedByRule.takeIf { it.isNotBlank() }?.let { RethinkLogDetail(stringResource(R.string.log_detail_rule), ruleTitle ?: it, isError = ct.isBlocked) },
@@ -216,53 +162,7 @@ private fun connectionDetails(
 @Composable
 private fun dataMoved(ct: ConnectionTracker): String? {
     if (ct.isBlocked || ct.downloadBytes <= 0) return null
-    return stringResource(R.string.log_data_down, Utilities.humanReadableByteCount(ct.downloadBytes, true))
-}
-
-@Composable
-private fun AppIconSlot(
-    appIcon: Drawable?,
-    statusColor: Color,
-) {
-    val iconDrawable = appIcon
-
-    Box(modifier = Modifier.size(SharedDimensions.iconContainerMd), contentAlignment = Alignment.Center) {
-        if (iconDrawable != null) {
-            Crossfade(targetState = iconDrawable, animationSpec = tween(durationMillis = 180), label = "connIcon") { drawable ->
-                rememberDrawablePainter(drawable)?.let { painter ->
-                    androidx.compose.foundation.Image(
-                        painter = painter,
-                        contentDescription = null,
-                        modifier =
-                            Modifier
-                                .size(SharedDimensions.iconContainerMd)
-                                .clip(RoundedCornerShape(SharedDimensions.cornerRadiusMd)),
-                    )
-                }
-            }
-        } else {
-            Box(
-                modifier =
-                    Modifier
-                        .size(SharedDimensions.iconContainerMd)
-                        .clip(RoundedCornerShape(SharedDimensions.cornerRadiusMd))
-                        .background(statusColor)
-            )
-        }
-    }
-}
-
-private fun countryDisplay(unknown: String, flag: String): String {
-    val countryName = UIUtils.getCountryNameFromFlag(flag).trim()
-    val normalizedName = countryName.takeUnless { it.isBlank() || it == "--" }
-    val normalizedFlag = flag.trim().takeUnless { it.isBlank() || it == "--" }
-
-    return when {
-        normalizedName != null && normalizedFlag != null -> "$normalizedName $normalizedFlag"
-        normalizedName != null -> normalizedName
-        normalizedFlag != null -> normalizedFlag
-        else -> unknown
-    }
+    return stringResource(R.string.log_data_down, formatByteCount(ct.downloadBytes))
 }
 
 private fun protocolLabel(http3: String, port: Int, proto: Int): String {
@@ -310,11 +210,11 @@ private fun summaryInfo(context: Context, ct: ConnectionTracker): Summary {
     )
     val download = stringResource(
         R.string.symbol_download,
-        Utilities.humanReadableByteCount(ct.downloadBytes, true)
+        formatByteCount(ct.downloadBytes)
     )
     val upload = stringResource(
         R.string.symbol_upload,
-        Utilities.humanReadableByteCount(ct.uploadBytes, true)
+        formatByteCount(ct.uploadBytes)
     )
     val usageText = stringResource(R.string.two_argument, upload, download)
     var dataUsage = ""
@@ -335,9 +235,9 @@ private fun summaryInfo(context: Context, ct: ConnectionTracker): Summary {
         }
 
         if (isRpnProxy(ct.rpid)) {
-            delay = formatTemplate(ciDesc, delay, sparkle)
+            delay = UIUtils.formatTemplate(ciDesc, delay, sparkle)
         } else if (isConnectionProxied(ct.blockedByRule, ct.proxyDetails)) {
-            delay = formatTemplate(ciDesc, delay, key)
+            delay = UIUtils.formatTemplate(ciDesc, delay, key)
             hasMinSummary = true
         }
 
@@ -348,31 +248,28 @@ private fun summaryInfo(context: Context, ct: ConnectionTracker): Summary {
     dataUsage = usageText
 
     if (connType.isMetered()) {
-        delay = formatTemplate(ciDesc, delay, currency)
+        delay = UIUtils.formatTemplate(ciDesc, delay, currency)
     }
     if (isConnectionHeavier(ct)) {
-        delay = formatTemplate(ciDesc, delay, heavy)
+        delay = UIUtils.formatTemplate(ciDesc, delay, heavy)
     }
     if (isConnectionSlower(ct)) {
-        delay = formatTemplate(ciDesc, delay, turtle)
+        delay = UIUtils.formatTemplate(ciDesc, delay, turtle)
     }
     if (isRpnProxy(ct.rpid)) {
-        delay = formatTemplate(ciDesc, delay, sparkle)
+        delay = UIUtils.formatTemplate(ciDesc, delay, sparkle)
     } else if (containsRelayProxy(ct.rpid)) {
-        delay = formatTemplate(ciDesc, delay, bunny)
+        delay = UIUtils.formatTemplate(ciDesc, delay, bunny)
     } else if (isConnectionProxied(ct.blockedByRule, ct.proxyDetails)) {
-        delay = formatTemplate(ciDesc, delay, key)
+        delay = UIUtils.formatTemplate(ciDesc, delay, key)
     }
     if (isRoundTripShorter(ct.synack, ct.isBlocked)) {
-        delay = formatTemplate(ciDesc, delay, rocket)
+        delay = UIUtils.formatTemplate(ciDesc, delay, rocket)
     }
 
     val showSummary = delay.isNotEmpty() || dataUsage.isNotEmpty()
     return Summary(dataUsage, duration, delay, showSummary)
 }
-
-private fun formatTemplate(template: String, vararg args: Any): String =
-    String.format(Locale.getDefault(), template, *args)
 
 private fun isRoundTripShorter(rtt: Long, blocked: Boolean): Boolean {
     return rtt in 1..20 && !blocked

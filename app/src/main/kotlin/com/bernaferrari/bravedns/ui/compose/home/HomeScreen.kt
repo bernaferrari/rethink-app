@@ -6,25 +6,13 @@
  */
 package com.bernaferrari.bravedns.ui.compose.home
 
-import android.graphics.drawable.Drawable
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.database.AppBlockCount
-import com.bernaferrari.bravedns.ui.compose.rememberDrawablePainter
-import com.bernaferrari.bravedns.util.Utilities
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import com.bernaferrari.bravedns.ui.compose.common.AppIcon
 
 enum class HomeProtectionStatus {
     Protected,
@@ -85,25 +73,11 @@ private fun HomeScreenUiState.toCommonUiState() = RethinkHomeUiState(
             id = app.uid.toString(),
             label = app.appName.ifBlank { app.packageName },
             count = app.count,
-            icon = { PackageIcon(app.packageName, app.appName) },
+            icon = { AppIcon(app.packageName, appName = app.appName, size = Dp.Unspecified) },
         )
     },
     dnsName = dnsName,
 )
-
-@Composable
-private fun PackageIcon(packageName: String, label: String) {
-    val context = LocalContext.current
-    var icon by remember(packageName) { mutableStateOf<Drawable?>(null) }
-    LaunchedEffect(packageName) {
-        icon = withContext(Dispatchers.IO) { Utilities.getIcon(context, packageName, label) }
-    }
-    icon?.let { drawable ->
-        rememberDrawablePainter(drawable)?.let { painter ->
-            Image(painter = painter, contentDescription = null, modifier = Modifier.fillMaxSize())
-        }
-    }
-}
 
 @Composable
 private fun protectionStatusLabel(status: HomeProtectionStatus?): String {
