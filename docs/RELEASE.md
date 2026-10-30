@@ -7,6 +7,10 @@ review rejects high/critical advisories; its resolved Gradle graph is submitted 
 trusted pushes to `main`, with write permission confined to that job. No APK is sent to an external
 scanning service.
 
+Before running trusted dependency submission in a fresh fork, enable **Settings → Advanced Security
+→ Dependency graph** for that repository. Otherwise the graph build can pass while submission is
+rejected because the feature is disabled. See [GitHub's dependency graph setup](https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/secure-your-dependencies/enable-dependency-graph).
+
 Local unsigned verification requires JDK 17 and an Android SDK with Build Tools. Export
 `ANDROID_HOME` (or `ANDROID_SDK_ROOT`) to that SDK directory for the Python artifact tools.
 

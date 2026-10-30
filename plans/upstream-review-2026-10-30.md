@@ -141,3 +141,35 @@ Targeted source reviews, including the final maintenance and CI deltas, reported
 Targeted review against the approved ports/options reported **zero remaining actionable findings**. Current Compose/KMP structure, fresh-schema policy, billing wire format, guarded state transitions and synchronous native callback requirements were preserved; the evidence above covers the exercised scenarios.
 
 Live paid RPN, physical WireGuard/captive-portal/TV behavior, and linguistic correctness of every locale remain **unverified**. Emulator D-pad coverage and resource-contract checks do not certify those physical or language scenarios.
+
+### Linux CI screenshot portability follow-up
+
+The original intentional golden refresh above kept the existing comparison settings. The first
+Linux CI run after merge (`41109957914`, Play job `124249503817`, commit `3faa55fec`) passed all
+712 Play unit tests and Detekt, then verified 12 of 17 screenshots. Independent review of all five
+remaining actual/compare images found matching text and geometry; ImageIO measurement found
+identical dimensions and alpha, with RGB differences bounded to two levels out of 255:
+
+| Fixture | Changed pixels / total | Pixels with maximum channel delta 1 / 2 |
+|---|---:|---:|
+| Log rows, light | 1,537 / 599,238 | 1,528 / 9 |
+| Log rows, dark | 1,531 / 599,238 | 1,525 / 6 |
+| Log rows, reduced motion | 1,537 / 599,238 | 1,528 / 9 |
+| Status chips, light | 31,694 / 196,047 | 31,577 / 117 |
+| Status chips, dark | 797 / 196,047 | 593 / 204 |
+
+This pattern is consistent with native raster/blend rounding across Mac and Linux. The follow-up
+uses a **five-fixture-only** comparator: each RGB channel may differ by at most 2, alpha and
+dimensions must match exactly, and **zero** pixels outside those bounds are allowed. The other
+12 fixtures keep their original comparator. No global percentage threshold or golden PNG changed.
+Unmodified Linux actuals are archived as regression inputs, not replacement references.
+
+Eight additional contract tests exercise all five original Linux failures and reject single-pixel
+RGB delta 3, alpha delta 1, one-pixel dimension/text/layout changes, and a changed solid status fill.
+They also verify that the other 12 fixtures and unknown names retain the original comparator.
+The reviewed reference PNGs remain unchanged; intentional future changes to these five visuals
+must refresh and review their matching Linux regression inputs too. Application source and release
+artifacts are untouched by this test-only correction; fresh remote CI remains the host-portability check.
+
+Local follow-up verification passed all eight new contract tests and all 17 screenshot tests;
+app/shared Detekt also passed. The original 17 golden PNGs are byte-for-byte unchanged.

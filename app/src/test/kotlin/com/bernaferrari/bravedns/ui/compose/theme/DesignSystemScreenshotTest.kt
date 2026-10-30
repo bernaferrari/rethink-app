@@ -17,6 +17,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.bernaferrari.bravedns.ui.TestDialogActivity
 import com.bernaferrari.bravedns.util.Themes
+import com.github.takahirom.roborazzi.RoborazziOptions
 import com.github.takahirom.roborazzi.captureRoboImage
 import org.junit.Rule
 import org.junit.Test
@@ -159,7 +160,9 @@ class DesignSystemScreenshotTest {
             composeRule.mainClock.advanceTimeByFrame()
         }
         composeRule.onNodeWithTag(ScreenshotTag)
-            .captureRoboImage("src/test/screenshots/$name.png")
+            .captureRoboImage("src/test/screenshots/$name.png", roborazziOptions = RoborazziOptions(
+                compareOptions = NativeRoundingImageComparator.compareOptionsFor(name),
+            ))
     }
 
     private companion object {
