@@ -37,11 +37,6 @@ object EncryptedFileManager {
         wireguardReadFailure(error)
     }
 
-    private fun wireguardReadFailure(error: Exception): Config? {
-        Logger.w(Logger.LOG_TAG_PROXY, "Unable to read encrypted WireGuard configuration", error)
-        return null
-    }
-
     fun read(ctx: Context, file: File): String = readByteArray(ctx, file).toString(StandardCharsets.UTF_8)
 
     @Throws(EncryptionException::class)
@@ -55,11 +50,6 @@ object EncryptedFileManager {
         readFailure(file, error)
     } catch (error: SecurityException) {
         readFailure(file, error)
-    }
-
-    private fun readFailure(file: File, error: Exception): Nothing {
-        Logger.w(Logger.LOG_TAG_PROXY, "Unable to read encrypted file: ${file.path}", error)
-        throw EncryptionException.ReadFailed(error)
     }
 
     fun writeWireguardConfig(ctx: Context, cfg: String, fileName: String): Boolean =
@@ -95,11 +85,6 @@ object EncryptedFileManager {
         writeFailure(file, error)
     }
 
-    private fun writeFailure(file: File, error: Exception): Nothing {
-        Logger.w(Logger.LOG_TAG_PROXY, "Unable to replace encrypted file: ${file.path}", error)
-        throw EncryptionException.WriteFailed(error)
-    }
-
     internal fun atomicWriter(ctx: Context): AtomicEncryptedFileWriter = AtomicEncryptedFileWriter(
         stagingRoot = ctx.noBackupFilesDir,
         openEncrypted = { encryptedFile(ctx, it).openFileOutput() },
@@ -123,4 +108,19 @@ object EncryptedFileManager {
         return EncryptedFile.Builder(ctx.applicationContext, file, masterKey,
             EncryptedFile.FileEncryptionScheme.AES256_GCM_HKDF_4KB).build()
     }
+}
+
+private fun wireguardReadFailure(error: Exception): Config? {
+    Logger.w(Logger.LOG_TAG_PROXY, "Unable to read encrypted WireGuard configuration", error)
+    return null
+}
+
+private fun readFailure(file: File, error: Exception): Nothing {
+    Logger.w(Logger.LOG_TAG_PROXY, "Unable to read encrypted file: ${file.path}", error)
+    throw EncryptionException.ReadFailed(error)
+}
+
+private fun writeFailure(file: File, error: Exception): Nothing {
+    Logger.w(Logger.LOG_TAG_PROXY, "Unable to replace encrypted file: ${file.path}", error)
+    throw EncryptionException.WriteFailed(error)
 }
