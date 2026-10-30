@@ -18,12 +18,12 @@ package com.bernaferrari.bravedns.rpnproxy
 import Logger
 import Logger.LOG_TAG_PROXY
 import android.content.Context
-import com.bernaferrari.bravedns.RethinkDnsApplication.Companion.DEBUG
 import com.bernaferrari.bravedns.database.RpnProxy
 import com.bernaferrari.bravedns.database.RpnProxyRepository
 import com.bernaferrari.bravedns.service.EncryptedFileManager
 import com.bernaferrari.bravedns.service.EncryptionException
 import java.io.File
+import kotlinx.coroutines.CancellationException
 
 /**
  * Persists WIN entitlement and tunnel-state blobs to encrypted files and the
@@ -70,7 +70,7 @@ internal class RpnWinEntitlementStore(
             val ws = extractWs(payload)
             if (ws == null) {
                 Logger.e(LOG_TAG_PROXY, "$tag; storeWinEntitlement: ws object not found in payload")
-                if (DEBUG) Logger.d(LOG_TAG_PROXY, "$tag; storeWinEntitlement: payload content: $payload")
+
                 return
             }
 
@@ -85,6 +85,7 @@ internal class RpnWinEntitlementStore(
                 val created = try {
                     folder.mkdirs()
                 } catch (e: Exception) {
+                    e.rethrowCancellation()
                     Logger.e(LOG_TAG_PROXY, "$tag; storeWinEntitlement: exception creating folder: ${e.message}", e)
                     false
                 }
@@ -98,6 +99,7 @@ internal class RpnWinEntitlementStore(
             val res = try {
                 EncryptedFileManager.write(context, ws, file)
             } catch (e: Exception) {
+                e.rethrowCancellation()
                 Logger.e(LOG_TAG_PROXY, "$tag; storeWinEntitlement: exception writing file: ${e.message}", e)
                 false
             }
@@ -111,6 +113,7 @@ internal class RpnWinEntitlementStore(
             val winProxy = try {
                 db.getProxyById(winId)
             } catch (e: Exception) {
+                e.rethrowCancellation()
                 Logger.e(LOG_TAG_PROXY, "$tag; storeWinEntitlement: failed to get win proxy from DB: ${e.message}", e)
                 null
             }
@@ -120,6 +123,7 @@ internal class RpnWinEntitlementStore(
                 try {
                     db.update(winProxy)
                 } catch (e: Exception) {
+                    e.rethrowCancellation()
                     Logger.e(LOG_TAG_PROXY, "$tag; storeWinEntitlement: failed to update win proxy: ${e.message}", e)
                     -1
                 }
@@ -142,6 +146,7 @@ internal class RpnWinEntitlementStore(
                 try {
                     db.insert(newWinProxy).toInt()
                 } catch (e: Exception) {
+                    e.rethrowCancellation()
                     Logger.e(LOG_TAG_PROXY, "$tag; storeWinEntitlement: failed to insert win proxy: ${e.message}", e)
                     -1
                 }
@@ -153,6 +158,7 @@ internal class RpnWinEntitlementStore(
             }
             Logger.i(LOG_TAG_PROXY, "$tag; win entitlement stored in file: $fileName, result: $res")
         } catch (e: Exception) {
+            e.rethrowCancellation()
             Logger.e(LOG_TAG_PROXY, "$tag; error storing win configs: ${e.message}", e)
         }
     }
@@ -164,7 +170,7 @@ internal class RpnWinEntitlementStore(
         return try {
             val bytes = EncryptedFileManager.readByteArray(context, file)
             if (bytes.isNotEmpty()) {
-                if (DEBUG) Logger.d(LOG_TAG_PROXY, "$tag; getWinEntitlement: read entitlement bytes from file, bytes: $bytes, len: ${bytes.size}")
+
                 bytes
             } else null
         } catch (e: EncryptionException) {
@@ -207,6 +213,7 @@ internal class RpnWinEntitlementStore(
                 val created = try {
                     folder.mkdirs()
                 } catch (e: Exception) {
+                    e.rethrowCancellation()
                     Logger.e(LOG_TAG_PROXY, "$tag; updateWinConfigState: exception creating folder: ${e.message}", e)
                     false
                 }
@@ -221,6 +228,7 @@ internal class RpnWinEntitlementStore(
             val ok = try {
                 EncryptedFileManager.write(context, byteArray, file)
             } catch (e: Exception) {
+                e.rethrowCancellation()
                 Logger.e(LOG_TAG_PROXY, "$tag; updateWinConfigState: exception writing file: ${e.message}", e)
                 false
             }
@@ -233,6 +241,7 @@ internal class RpnWinEntitlementStore(
             val proxy = try {
                 db.getProxyById(winId)
             } catch (e: Exception) {
+                e.rethrowCancellation()
                 Logger.e(LOG_TAG_PROXY, "$tag; updateWinConfigState: failed to get proxy from DB: ${e.message}", e)
                 null
             }
@@ -244,6 +253,7 @@ internal class RpnWinEntitlementStore(
                     db.update(proxy)
                     true
                 } catch (e: Exception) {
+                    e.rethrowCancellation()
                     Logger.e(LOG_TAG_PROXY, "$tag; updateWinConfigState: failed to update proxy: ${e.message}", e)
                     false
                 }
@@ -266,6 +276,7 @@ internal class RpnWinEntitlementStore(
                     db.insert(newProxy)
                     true
                 } catch (e: Exception) {
+                    e.rethrowCancellation()
                     Logger.e(LOG_TAG_PROXY, "$tag; updateWinConfigState: failed to insert proxy: ${e.message}", e)
                     false
                 }
@@ -279,8 +290,13 @@ internal class RpnWinEntitlementStore(
 
             updateResult
         } catch (e: Exception) {
+            e.rethrowCancellation()
             Logger.e(LOG_TAG_PROXY, "$tag; err updating win config: ${e.message}", e)
             false
         }
     }
+}
+
+private fun Exception.rethrowCancellation() {
+    if (this is CancellationException) throw this
 }

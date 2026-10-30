@@ -155,6 +155,9 @@ class SubscriptionStatusRepository(private val subscriptionStatusDAO: Subscripti
     /**
      * Update subscription status
      */
+    suspend fun transitionTerminalPurchase(token: String, target: Int, timestamp: Long): Boolean =
+        mutex.withLock { subscriptionStatusDAO.transitionTerminalPurchase(token, target, timestamp) }
+
     suspend fun updateStatus(id: Int, newStatus: Int, timestamp: Long): Int {
         return mutex.withLock {
             try {

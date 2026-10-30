@@ -82,6 +82,37 @@ object RpnProxyManager : KoinComponent {
     const val AUTO_COUNTRY_CODE = "AUTO"
 
     private val winRegistrationMutex = Mutex()
+    private val registrationMaterialProvider by lazy {
+        WinRegistrationMaterialProvider(object : WinEntitlementSource {
+            override suspend fun purchase(): PurchaseDetail? = getEffectivePurchaseDetail()
+                ?: subscriptionStatusRepository.getCurrentSubscription()?.let {
+                    subscriptionStateMachine.createPurchaseDetailFromSubscription(it)
+                }
+            override suspend fun deviceId(account: String) = billingBackendClient.getDeviceId(account)
+            override suspend fun localEntitlement() = getWinEntitlement()
+            override suspend fun query(purchase: PurchaseDetail, deviceId: String) =
+                billingBackendClient.queryEntitlement(purchase.accountId, deviceId, purchase, purchase.purchaseToken)
+            override suspend fun persist(payload: String) = storeWinEntitlement(payload)
+        }, ::extractWsObject)
+    }
+    private val registrationCoordinator by lazy {
+        WinRegistrationCoordinator(object : WinRegistrationBackend {
+            override suspend fun isRegistered() = VpnController.isWinRegistered()
+            override suspend fun isStale(): Boolean {
+                val entitlement = VpnController.getActiveEntitlement() ?: return false
+                val expiry = entitlement.expiry()
+                return expiry > 0L && (expiry <= System.currentTimeMillis() ||
+                    entitlement.status().equals("expired", ignoreCase = true))
+            }
+            override suspend fun material(forceServer: Boolean) = registrationMaterialProvider.resolve(forceServer)
+            override suspend fun savedState() = getWinExistingData()
+            override suspend fun unregister() = VpnController.unregisterWin()
+            override suspend fun register(material: WinRegistrationMaterial, state: ByteArray?) =
+                VpnController.registerAndFetchWinConfig(material.entitlement, state, material.deviceId)
+            override suspend fun persistState(state: ByteArray) = updateWinConfigState(state)
+            override suspend fun expired(purchaseToken: String) = subscriptionStateMachine.subscriptionExpired(purchaseToken)
+        }, winRegistrationMutex)
+    }
 
     private val ssidController by lazy { RpnSsidController() }
     private val hopSelector by lazy {
@@ -310,7 +341,7 @@ object RpnProxyManager : KoinComponent {
             return
         }
         setRpnMode(RpnMode.NONE)
-        VpnController.unregisterWin()
+        winRegistrationMutex.withLock { VpnController.unregisterWin() }
         Logger.i(LOG_TAG_PROXY, "$TAG; stopProxy: proxy routing stopped (mode=NONE, state=${rpnState()})")
     }
 
@@ -426,7 +457,7 @@ object RpnProxyManager : KoinComponent {
             Logger.i(LOG_TAG_PROXY, "$TAG; session token parsed from payload? ${sessionToken?.isNotEmpty()}")
             return sessionToken ?: ""
         } catch (e: Exception) {
-            Logger.e(LOG_TAG_PROXY, "$TAG; error parsing session token from payload($payload): ${e.message}", e)
+            Logger.e(LOG_TAG_PROXY, "$TAG; error parsing session token from payload: ${e.message}", e)
         }
         return ""
     }
@@ -524,8 +555,8 @@ object RpnProxyManager : KoinComponent {
 
     /**
      * Performs a full RPN reset:
-     *  1. Unregisters the current WIN registration from the tunnel.
-     *  2. Fetches a fresh entitlement from the server.
+     *  1. Fetches and verifies a fresh entitlement from the server.
+     *  2. Unregisters the old registration only after verification succeeds.
      *  3. Stores the new entitlement (replacing the old one).
      *  4. Re-registers WIN in the tunnel with the fresh entitlement.
      *  5. Force-fetches the server list and syncs it to DB/cache.
@@ -534,105 +565,10 @@ object RpnProxyManager : KoinComponent {
      * [ResetResult.Failure] with a reason string if a fatal step fails.
      */
     suspend fun resetAndRefetchRpn(): ResetResult {
-        Logger.i(LOG_TAG_PROXY, "$TAG; resetAndRefetchRpn: starting full reset")
-
-        try {
-            VpnController.unregisterWin()
-            Logger.i(LOG_TAG_PROXY, "$TAG; resetAndRefetchRpn: unregistered from tunnel")
-        } catch (e: Exception) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; resetAndRefetchRpn: unregister failed (non-fatal): ${e.message}")
+        // Obtain verified replacement material before touching the current registration.
+        if (!registrationCoordinator.register(forceRefresh = true)) {
+            return ResetResult.Failure("Could not verify and register a fresh entitlement")
         }
-
-        val sub = try {
-            subscriptionStatusRepository.getCurrentSubscription()
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_PROXY, "$TAG; resetAndRefetchRpn: failed to read subscription: ${e.message}", e)
-            return ResetResult.Failure("Failed to read subscription details")
-        }
-
-        if (sub == null) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; resetAndRefetchRpn: no active subscription found")
-            return ResetResult.Failure("No active subscription found")
-        }
-
-        val accountId = sub.accountId
-        val purchaseToken = sub.purchaseToken
-        if (accountId.isEmpty() || purchaseToken.isEmpty()) {
-            Logger.w(
-                LOG_TAG_PROXY,
-                "$TAG; resetAndRefetchRpn: incomplete account info " +
-                    "(accountEmpty=${accountId.isEmpty()}, tokenEmpty=${purchaseToken.isEmpty()})"
-            )
-            return ResetResult.Failure("Account information is incomplete")
-        }
-
-        val deviceId = billingBackendClient.getDeviceId(accountId)
-
-        val fakePurchase = PurchaseDetail(
-            productId = sub.productId,
-            planId = sub.planId,
-            productTitle = sub.productTitle,
-            planTitle = sub.productTitle,
-            state = sub.state,
-            purchaseToken = purchaseToken,
-            productType = if (sub.productId.contains("onetime", ignoreCase = true))
-                BillingClient.ProductType.INAPP else BillingClient.ProductType.SUBS,
-            purchaseTime = "",
-            purchaseTimeMillis = sub.purchaseTime,
-            isAutoRenewing = false,
-            accountId = accountId,
-            deviceId = if (deviceId.isNotBlank()) SubscriptionStatus.DEVICE_ID_INDICATOR else "",
-            payload = sub.developerPayload,
-            expiryTime = sub.billingExpiry,
-            status = sub.status,
-            windowDays = sub.windowDays,
-            orderId = sub.orderId
-        )
-
-        val updatedPurchase = try {
-            InAppBillingHandler.queryEntitlementFromServer(accountId, deviceId, fakePurchase)
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_PROXY, "$TAG; resetAndRefetchRpn: entitlement query failed: ${e.message}", e)
-            return ResetResult.Failure("Failed to fetch entitlement from server")
-        }
-
-        if (updatedPurchase.payload.isEmpty()) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; resetAndRefetchRpn: server returned empty payload")
-            return ResetResult.Failure("Server returned an empty entitlement")
-        }
-
-        try {
-            storeWinEntitlement(updatedPurchase.payload)
-            Logger.i(LOG_TAG_PROXY, "$TAG; resetAndRefetchRpn: new entitlement stored")
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_PROXY, "$TAG; resetAndRefetchRpn: storeWinEntitlement failed: ${e.message}", e)
-            return ResetResult.Failure("Failed to store new entitlement")
-        }
-
-        // Update state machine with fresh payload (non-fatal)
-        try {
-            val subsData = subscriptionStateMachine.getSubscriptionData()
-            if (subsData != null) {
-                subsData.subscriptionStatus.developerPayload = updatedPurchase.payload
-                val updatedSubsData = subsData.copy(purchaseDetail = updatedPurchase)
-                subscriptionStateMachine.stateMachine.updateData(updatedSubsData)
-                Logger.i(LOG_TAG_PROXY, "$TAG; resetAndRefetchRpn: state machine payload updated")
-            }
-        } catch (e: Exception) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; resetAndRefetchRpn: state machine update failed (non-fatal): ${e.message}")
-        }
-
-        val entitlementBytes = getWinEntitlement()
-        val prevRegistrationBytes = getWinExistingData()
-        val registrationBytes = try {
-            VpnController.registerAndFetchWinConfig(entitlementBytes, billingBackendClient.getDeviceId())
-                ?: VpnController.registerAndFetchWinConfig(prevRegistrationBytes, billingBackendClient.getDeviceId())
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_PROXY, "$TAG; resetAndRefetchRpn: tunnel registration failed: ${e.message}", e)
-            return ResetResult.Failure("Failed to register with tunnel")
-        }
-        updateWinConfigState(registrationBytes)
-        Logger.i(LOG_TAG_PROXY, "$TAG; resetAndRefetchRpn: re-registered with tunnel")
 
         // Clear all user-specific server state (selections, favourites, selection counts)
         // before syncing so the rebuilt cache starts from a clean slate.
@@ -748,7 +684,7 @@ object RpnProxyManager : KoinComponent {
             Logger.w(LOG_TAG_PROXY, "$TAG; extractWsObject: ws not found in payload")
             null
         } catch (e: Exception) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; extractWsObject: failed to parse payload ($payload): ${e.message}")
+            Logger.w(LOG_TAG_PROXY, "$TAG; extractWsObject: failed to parse entitlement payload: ${e.message}")
             null
         }
     }
@@ -894,109 +830,8 @@ object RpnProxyManager : KoinComponent {
         // in case of update failure, call register with null
         when (type) {
             RpnType.WIN -> {
-                // check if state is there if not, fetch the entitlement
-                var bytes = getWinExistingData() // fetch existing win state
-                if (bytes == null) {
-                    Logger.i(LOG_TAG_PROXY, "$TAG; win state is null, fetching entitlement")
-                    bytes = getWinEntitlement()
-                }
-                if (bytes == null || bytes.isEmpty()) {
-                    // This handles the case where:
-                    //   (a) the entitlement file was never written (race between activateRpn
-                    //       and registerProxy on first launch), OR
-                    //   (b) external storage was cleared / the file was deleted.
-                    // We pull the developerPayload from the DB subscription row (written by
-                    // the state machine during handlePaymentSuccessful) and re-store it,
-                    // which populates winConfig so the tunnel can be registered.
-                    Logger.w(LOG_TAG_PROXY, "$TAG; registerProxy: both state and entitlement files absent, attempting DB payload recovery")
-                    val dbPayload = try {
-                        subscriptionStatusRepository.getCurrentSubscription()?.developerPayload.orEmpty()
-                    } catch (e: Exception) {
-                        Logger.e(LOG_TAG_PROXY, "$TAG; registerProxy: failed to read DB developerPayload: ${e.message}", e)
-                        ""
-                    }
-                    if (dbPayload.isNotEmpty()) {
-                        Logger.i(LOG_TAG_PROXY, "$TAG; registerProxy: found DB payload (len=${dbPayload.length}), re-storing entitlement")
-                        try {
-                            storeWinEntitlement(dbPayload)
-                            bytes = getWinEntitlement()
-                        } catch (e: Exception) {
-                            Logger.e(LOG_TAG_PROXY, "$TAG; registerProxy: error re-storing entitlement from DB: ${e.message}", e)
-                        }
-                    }
-
-                    if (bytes == null || bytes.isEmpty()) {
-                        // DB also had no usable payload.  Try a live server query as last resort.
-                        Logger.w(LOG_TAG_PROXY, "$TAG; registerProxy: DB payload also empty, querying server entitlement")
-                        val sub = try { subscriptionStatusRepository.getCurrentSubscription() } catch (e: Exception) { null }
-                        val accountId = sub?.accountId.orEmpty()
-                        // sub.deviceId holds only the sentinel indicator "pip/identity.json"
-                        val deviceId = billingBackendClient.getDeviceId(accountId)
-                        val purchaseToken = sub?.purchaseToken.orEmpty()
-                        if (accountId.isNotEmpty() && purchaseToken.isNotEmpty()) {
-                            try {
-                                val fakePurchase = PurchaseDetail(
-                                    productId = sub?.productId.orEmpty(),
-                                    planId = sub?.planId.orEmpty(),
-                                    productTitle = sub?.productTitle.orEmpty(),
-                                    planTitle = sub?.productTitle.orEmpty(),
-                                    state = sub?.state ?: 0,
-                                    purchaseToken = purchaseToken,
-                                    productType = if ((sub?.productId.orEmpty()).contains("onetime", ignoreCase = true)) BillingClient.ProductType.INAPP else BillingClient.ProductType.SUBS,
-                                    purchaseTime = "",
-                                    purchaseTimeMillis = sub?.purchaseTime ?: 0L,
-                                    isAutoRenewing = false,
-                                    accountId = accountId,
-                                    // Store only the sentinel
-                                    // Callers that need the actual ID use billingBackendClient.getDeviceId().
-                                    deviceId = if (deviceId.isNotBlank()) SubscriptionStatus.DEVICE_ID_INDICATOR else "",
-                                    payload = "",
-                                    expiryTime = sub?.billingExpiry ?: 0L,
-                                    status = sub?.status ?: 0,
-                                    windowDays = sub?.windowDays ?: 0,
-                                    orderId = sub?.orderId.orEmpty()
-                                )
-                                val updated = InAppBillingHandler.queryEntitlementFromServer(accountId, deviceId, fakePurchase)
-                                if (updated.payload.isNotEmpty()) {
-                                    Logger.i(LOG_TAG_PROXY, "$TAG; registerProxy: server query succeeded, storing entitlement")
-                                    storeWinEntitlement(updated.payload)
-                                    bytes = getWinEntitlement()
-                                }
-                            } catch (e: Exception) {
-                                Logger.e(LOG_TAG_PROXY, "$TAG; registerProxy: server entitlement query failed: ${e.message}", e)
-                            }
-                        }
-                    }
-
-                    if (bytes == null || bytes.isEmpty()) {
-                        Logger.e(LOG_TAG_PROXY, "$TAG; registerProxy: win entitlement unavailable after all recovery attempts, cannot register")
-                        return false
-                    }
-                }
-
-                var wasAlreadyRegisteredByConcurrent = false
-                val currBytes: ByteArray? = winRegistrationMutex.withLock {
-                    if (VpnController.isWinRegistered()) {
-                        Logger.i(LOG_TAG_PROXY, "$TAG; registerProxy: WIN already registered (concurrent-safe check), skipping tunnel call")
-                        wasAlreadyRegisteredByConcurrent = true
-                        null // early-exit sentinel; not treated as failure because flag is set
-                    } else {
-                        var regBytes = VpnController.registerAndFetchWinConfig(bytes, billingBackendClient.getDeviceId())
-                        if (regBytes == null) {
-                            // try registering with prev stored bytes
-                            val prevRegistrationBytes = getWinExistingData()
-                            Logger.w(LOG_TAG_PROXY, "$TAG; win registration failed with existing bytes, trying with prev bytes")
-                            regBytes = VpnController.registerAndFetchWinConfig(prevRegistrationBytes, billingBackendClient.getDeviceId())
-                        }
-                        regBytes
-                    }
-                }
-                if (wasAlreadyRegisteredByConcurrent) {
-                    // A concurrent coroutine finished registration first; this call is a no-op.
-                    Logger.i(LOG_TAG_PROXY, "$TAG; registerProxy: WIN registered by concurrent call, returning true")
-                    return true
-                }
-                val ok = updateWinConfigState(currBytes)
+                val ok = registrationCoordinator.register()
+                if (!ok) return false
                 // Fetch servers from API and sync to database and cache
                 val (servers, removedSelectedIds) = fetchAndConstructWinLocations()
                 if (servers.isEmpty()) {
@@ -1101,8 +936,9 @@ object RpnProxyManager : KoinComponent {
             Logger.w(LOG_TAG_PROXY, "$TAG; err; purchaseToken is empty")
             return false
         }
-        // TODO: perform the validation of purchaseToken and accountId with the subscription data
-        handleUserCancellation()
+        val row = subscriptionStatusRepository.getByPurchaseToken(purchaseToken) ?: return false
+        if (row.accountId != accountId) return false
+        subscriptionStateMachine.userCancelled(purchaseToken)
         return true
     }
 
@@ -1111,7 +947,9 @@ object RpnProxyManager : KoinComponent {
             Logger.w(LOG_TAG_PROXY, "$TAG; err; purchaseToken is empty")
             return false
         }
-        handleSubscriptionRevoked()
+        val row = subscriptionStatusRepository.getByPurchaseToken(purchaseToken) ?: return false
+        if (row.accountId != accountId) return false
+        subscriptionStateMachine.subscriptionRevoked(purchaseToken)
         return true
     }
 
@@ -1214,7 +1052,7 @@ object RpnProxyManager : KoinComponent {
     suspend fun processRpnPurchase(purchase: PurchaseDetail?, existingSubs: SubscriptionStatus): Boolean {
         if (purchase == null) {
             Logger.w(LOG_TAG_PROXY, "$TAG; processRpnPurchase: no purchase to process")
-            try { subscriptionStateMachine.subscriptionExpired() } catch (e: Exception) {
+            try { subscriptionStateMachine.subscriptionExpired(existingSubs.purchaseToken) } catch (e: Exception) {
                 Logger.e(LOG_TAG_PROXY, "$TAG; processRpnPurchase: error notifying state machine: ${e.message}", e)
             }
             return false
@@ -1341,10 +1179,6 @@ object RpnProxyManager : KoinComponent {
             val ws = extractWsObject(payload) ?: return false
             val ent = VpnController.getEntitlementDetails(ws, billingBackendClient.getDeviceId())
             Logger.i(LOG_TAG_PROXY, "$TAG; isPayloadUsable: extracted entitlement from payload, checking session token usability")
-            if (DEBUG) {
-                Logger.d(LOG_TAG_PROXY, "$TAG; isPayloadUsable: payload ws block: $ws")
-                Logger.d(LOG_TAG_PROXY, "$TAG; isPayloadUsable: entitlement details: ${ent?.expiry()}, ${ent?.token()}, ${ent?.status()}, cidLen=${ent?.cid()?.length}, didLen=${ent?.did()?.length}, ${ent?.test()}, ${ent?.json()}")
-            }
             val sessionToken = ent?.token() ?: ""
             val isUsable = sessionToken.isNotEmpty()
             if (!isUsable) Logger.d(LOG_TAG_PROXY, "$TAG; isPayloadUsable: ws found but sessiontoken is empty")
@@ -1443,26 +1277,6 @@ object RpnProxyManager : KoinComponent {
         return valid
     }
 
-    suspend fun handleUserCancellation() {
-        try {
-            subscriptionStateMachine.userCancelled()
-            Logger.i(LOG_TAG_PROXY, "$TAG; user cancellation handled")
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_PROXY, "$TAG; error handling user cancellation: ${e.message}", e)
-        }
-    }
-
-    suspend fun handleSubscriptionRevoked() {
-        try {
-            subscriptionStateMachine.subscriptionRevoked()
-            Logger.w(LOG_TAG_PROXY, "$TAG; subscription revocation handled")
-            deactivateRpn()
-            Logger.i(LOG_TAG_PROXY, "$TAG; RPN deactivated due to revocation")
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_PROXY, "$TAG; error handling subscription revocation: ${e.message}", e)
-        }
-    }
-
     suspend fun setHopForWinServer(key: String, enabled: Boolean) {
         winServerController.setHopForWinServer(key, enabled)
     }
@@ -1527,33 +1341,11 @@ object RpnProxyManager : KoinComponent {
         Logger.i(LOG_TAG_PROXY, "$TAG; updateWinProxy: starting WIN proxy update")
 
 
-        val isRpnRegistered = VpnController.isWinRegistered()
-        if (!isRpnRegistered) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; updateWinProxy: WIN not registered, delegating to registerProxy")
-            val registered = registerProxy(RpnType.WIN)
-            if (!registered) {
-                Logger.e(LOG_TAG_PROXY, "$TAG; updateWinProxy: registration attempt failed, cannot proceed with update")
-                return null
-            }
-            Logger.i(LOG_TAG_PROXY, "$TAG; updateWinProxy: WIN registered successfully, falling through to server sync")
-            // registerProxy already synced the server list; fall through so enabled
-            // servers are re-added to the tunnel by the loop below.
-        } else {
-            val bytes: ByteArray? = VpnController.updateWin()
-
-            if (bytes == null) {
-                Logger.w(LOG_TAG_PROXY, "$TAG; updateWinProxy: updateWin() returned null")
-                return null
-            }
-
-            val persisted = updateWinConfigState(bytes)
-            if (!persisted) {
-                // Log the failure but do NOT return null; the in-memory state is already
-                // updated by updateWinConfigState before it touches the DB.
-                Logger.w(
-                    LOG_TAG_PROXY,
-                    "$TAG; updateWinProxy: failed to persist WIN config state (continuing)"
-                )
+        if (!registrationCoordinator.register()) return null
+        winRegistrationMutex.withLock {
+            val bytes = VpnController.updateWin() ?: return null
+            if (!updateWinConfigState(bytes)) {
+                Logger.w(LOG_TAG_PROXY, "$TAG; updateWinProxy: failed to persist current registration state")
             }
         }
 

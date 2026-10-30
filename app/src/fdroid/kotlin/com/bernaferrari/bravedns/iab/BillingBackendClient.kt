@@ -39,6 +39,8 @@ class BillingBackendClient(
 
     suspend fun getDeviceId(@Suppress("UNUSED_PARAMETER") recvCid: String = ""): String = ""
 
+    suspend fun getDeviceIdForCid(@Suppress("UNUSED_PARAMETER") cid: String): String = ""
+
     suspend fun registerDevice(
         @Suppress("UNUSED_PARAMETER") accountId: String,
         @Suppress("UNUSED_PARAMETER") deviceId: String,

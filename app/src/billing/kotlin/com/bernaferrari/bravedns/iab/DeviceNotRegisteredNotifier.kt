@@ -71,6 +71,7 @@ object DeviceNotRegisteredNotifier {
             }
 
             val tapIntent = Intent(context, HomeScreenActivity::class.java).apply {
+                action = "${context.packageName}.notification.device-registration"
                 putExtra(NOTIF_INTENT_EXTRA_IAB_DEVICE_NOT_REGISTERED_NAME,
                     NOTIF_INTENT_EXTRA_IAB_DEVICE_NOT_REGISTERED_VALUE)
                 putExtra(EXTRA_ENTITLEMENT_CID,  error.entitlementCid)

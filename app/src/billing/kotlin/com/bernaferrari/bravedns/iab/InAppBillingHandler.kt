@@ -493,7 +493,9 @@ object InAppBillingHandler : KoinComponent {
 
     suspend fun getObfuscatedAccountId(): String = ackController.getObfuscatedAccountId()
 
-    suspend fun getObfuscatedDeviceId(): String = ackController.getObfuscatedDeviceId()
+    suspend fun getObfuscatedDeviceId(accountId: String? = null): String =
+        if (accountId == null) ackController.getObfuscatedDeviceId()
+        else billingBackendClient.getDeviceIdForCid(accountId)
 
     internal suspend fun handleUnauthorized401(
         operation: ServerApiError.Operation,
@@ -544,7 +546,7 @@ object InAppBillingHandler : KoinComponent {
                 operation = ServerApiError.Operation.CANCEL,
                 backendCall = { acc, did, sku, tok -> billingBackendClient.cancelPurchase(acc, did, sku, tok) },
                 updateLocal = { acc, tok -> RpnProxyManager.updateCancelledSubscription(acc, tok) },
-                notifyStateMachine = { subscriptionStateMachine.userCancelled() },
+                notifyStateMachine = { subscriptionStateMachine.userCancelled(purchaseToken) },
                 successMessage = "One-time purchase cancelled successfully",
                 logSuccessMessage = "One-time purchase cancelled successfully",
                 stateSyncFailMessage = "Cancelled on server but state sync failed"
@@ -568,7 +570,7 @@ object InAppBillingHandler : KoinComponent {
                 operation = ServerApiError.Operation.REVOKE,
                 backendCall = { acc, did, sku, tok -> billingBackendClient.revokePurchase(acc, did, sku, tok) },
                 updateLocal = { acc, tok -> RpnProxyManager.updateRevokedSubscription(acc, tok) },
-                notifyStateMachine = { subscriptionStateMachine.subscriptionRevoked() },
+                notifyStateMachine = { subscriptionStateMachine.subscriptionRevoked(purchaseToken) },
                 successMessage = "One-time purchase revoked successfully",
                 logSuccessMessage = "One-time purchase revoked successfully",
                 stateSyncFailMessage = "Revoked on server but state sync failed"
@@ -623,7 +625,7 @@ object InAppBillingHandler : KoinComponent {
                     operation = ServerApiError.Operation.CANCEL,
                     backendCall = { acc, did, skuArg, tok -> billingBackendClient.cancelPurchase(acc, did, skuArg, tok) },
                     updateLocal = { acc, tok -> RpnProxyManager.updateCancelledSubscription(acc, tok) },
-                    notifyStateMachine = { subscriptionStateMachine.userCancelled() },
+                    notifyStateMachine = { subscriptionStateMachine.userCancelled(purchaseToken) },
                     successMessage = "Subscription cancelled successfully",
                     logSuccessMessage = "subscription cancelled successfully",
                     stateSyncFailMessage = "Cancelled on server but state sync failed"
@@ -643,7 +645,7 @@ object InAppBillingHandler : KoinComponent {
                     operation = ServerApiError.Operation.REVOKE,
                     backendCall = { acc, did, skuArg, tok -> billingBackendClient.revokePurchase(acc, did, skuArg, tok) },
                     updateLocal = { acc, tok -> RpnProxyManager.updateRevokedSubscription(acc, tok) },
-                    notifyStateMachine = { subscriptionStateMachine.subscriptionRevoked() },
+                    notifyStateMachine = { subscriptionStateMachine.subscriptionRevoked(purchaseToken) },
                     successMessage = "Subscription revoked successfully",
                     logSuccessMessage = "Subscription revoked successfully",
                     stateSyncFailMessage = "Revoked on server but state sync failed"

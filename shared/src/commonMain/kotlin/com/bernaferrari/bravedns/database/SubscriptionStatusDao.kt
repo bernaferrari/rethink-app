@@ -21,10 +21,39 @@ import androidx.room3.Insert
 import androidx.room3.OnConflictStrategy
 import androidx.room3.Query
 import androidx.room3.Update
+import androidx.room3.Transaction
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface SubscriptionStatusDao {
+    @Insert
+    suspend fun insertTerminalHistory(history: SubscriptionStateHistory): Long
+
+    @Transaction
+    suspend fun transitionTerminalPurchase(token: String, target: Int, now: Long): Boolean {
+        require(token.isNotBlank())
+        require(target == SubscriptionStatus.SubscriptionState.STATE_CANCELLED.id ||
+            target == SubscriptionStatus.SubscriptionState.STATE_EXPIRED.id ||
+            target == SubscriptionStatus.SubscriptionState.STATE_REVOKED.id)
+        val row = getSubscriptionByToken(token) ?: return false
+        val terminal = setOf(SubscriptionStatus.SubscriptionState.STATE_REVOKED.id,
+            SubscriptionStatus.SubscriptionState.STATE_EXPIRED.id)
+        if (row.status == target || row.status in terminal) return false
+        val previous = row.status
+        row.status = target
+        row.lastUpdatedTs = now
+        if (target in terminal) {
+            row.billingExpiry = now
+            row.accountExpiry = now
+        }
+        check(update(row) > 0) { "Purchase disappeared during terminal update" }
+        insertTerminalHistory(SubscriptionStateHistory(
+            subscriptionId = row.id, fromState = previous, toState = target,
+            timestamp = now, reason = "Server updated a non-current purchase"
+        ))
+        return true
+    }
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(subscription: SubscriptionStatus): Long
 
