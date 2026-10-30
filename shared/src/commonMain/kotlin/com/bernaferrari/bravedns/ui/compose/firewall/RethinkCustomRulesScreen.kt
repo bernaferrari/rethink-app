@@ -164,6 +164,10 @@ data class RethinkCustomRulesStrings(
     val clearSelection: String = "Clear selection",
     val select: String = "Select",
     val deleteRule: String = "Delete rule",
+    val addIpRuleTitle: String = "Add IP rule",
+    val addDomainRuleTitle: String = "Add domain rule",
+    val ipHint: String = "192.168.1.1 or 10.0.0.0/24",
+    val domainHint: String = "example.com",
 )
 
 /**
@@ -643,7 +647,8 @@ private fun RethinkAddFirewallRuleDialog(
 ) {
     var value by remember(tab) { mutableStateOf("") }
     var error by remember(tab) { mutableStateOf<String?>(null) }
-    val title = if (tab == RethinkRulesTab.IP) strings.ipRules else strings.domainRules
+    val isIp = tab == RethinkRulesTab.IP
+    val title = if (isIp) strings.addIpRuleTitle else strings.addDomainRuleTitle
     RethinkModalBottomSheet(
         onDismissRequest = onDismiss,
         expandOnShow = true,
@@ -653,7 +658,8 @@ private fun RethinkAddFirewallRuleDialog(
             RethinkFormTextField(
                 value = value,
                 onValueChange = { value = it; error = null },
-                label = title,
+                label = if (isIp) strings.ip else strings.domain,
+                placeholder = if (isIp) strings.ipHint else strings.domainHint,
                 isError = error != null,
                 supportingText = error?.let { { Text(it) } },
                 singleLine = true,

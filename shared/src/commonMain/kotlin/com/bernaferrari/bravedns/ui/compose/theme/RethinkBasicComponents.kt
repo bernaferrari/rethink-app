@@ -151,11 +151,13 @@ fun RethinkFormTextField(
     isError: Boolean = false,
     supportingText: (@Composable () -> Unit)? = null,
     textStyle: TextStyle = MaterialTheme.typography.bodyLarge,
+    placeholder: String? = null,
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         label = label?.let { { Text(it) } },
+        placeholder = placeholder?.let { { Text(it) } },
         modifier = modifier.fillMaxWidth(),
         enabled = enabled,
         readOnly = readOnly,
