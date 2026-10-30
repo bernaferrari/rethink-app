@@ -17,6 +17,9 @@ import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -558,43 +561,94 @@ private fun RethinkFirewallAppRow(
                 }
             }
             if (app.canToggleConnections) {
-                // The pair reads as one connected control: both 48dp toggles sit on a shared
-                // tonal track, and a blocked network fills its half with the error container.
-                Box(Modifier.width(NetworkTogglePairWidth), contentAlignment = Alignment.Center) {
-                    Box(
-                        Modifier
-                            .width(NetworkTogglePairWidth - SharedDimensions.spacingXs)
-                            .height(NetworkToggleTrackHeight)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.surfaceContainerHighest),
-                    )
-                    Box(Modifier.align(Alignment.CenterStart)) {
-                        RethinkFirewallNetworkToggle(
-                            blocked = app.wifiBlocked,
-                            allowedIcon = MaterialSymbols.Filled.Wifi,
-                            blockedIcon = MaterialSymbols.Filled.WifiOff,
-                            contentDescription = wifiActionLabel,
-                            onClick = onWifiToggle,
-                        )
-                    }
-                    Box(Modifier.align(Alignment.CenterEnd)) {
-                        RethinkFirewallNetworkToggle(
-                            blocked = app.mobileBlocked,
-                            allowedIcon = MaterialSymbols.Outlined.MobiledataArrows,
-                            blockedIcon = MaterialSymbols.Outlined.MobiledataOff,
-                            contentDescription = mobileActionLabel,
-                            onClick = onMobileToggle,
-                        )
-                    }
-                }
+                RethinkNetworkSegmentPair(
+                    wifiBlocked = app.wifiBlocked,
+                    mobileBlocked = app.mobileBlocked,
+                    wifiDescription = wifiActionLabel,
+                    mobileDescription = mobileActionLabel,
+                    onWifiToggle = onWifiToggle,
+                    onMobileToggle = onMobileToggle,
+                )
             }
         }
     }
 }
 
-/** Two 48dp toggles whose bubbles are 40dp apart center-to-center (10dp visual gap). */
-private val NetworkTogglePairWidth = 88.dp
-private val NetworkToggleTrackHeight = 38.dp
+/**
+ * Wi-Fi and mobile data as one connected button group: two segments sharing one pill
+ * silhouette (fully round outer corners, tight inner ones, a 2dp gap). Allowed segments are
+ * tonal; a blocked one fills with the error container and its inner corners round out, so the
+ * state change is a colour and shape morph rather than a bubble popping in.
+ */
+@Composable
+fun RethinkNetworkSegmentPair(
+    wifiBlocked: Boolean,
+    mobileBlocked: Boolean,
+    wifiDescription: String,
+    mobileDescription: String,
+    onWifiToggle: () -> Unit,
+    onMobileToggle: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(modifier, horizontalArrangement = Arrangement.spacedBy(NetworkSegmentGap)) {
+        RethinkNetworkSegment(wifiBlocked, MaterialSymbols.Filled.Wifi, MaterialSymbols.Filled.WifiOff, wifiDescription, leading = true, onWifiToggle)
+        RethinkNetworkSegment(mobileBlocked, MaterialSymbols.Outlined.MobiledataArrows, MaterialSymbols.Outlined.MobiledataOff, mobileDescription, leading = false, onMobileToggle)
+    }
+}
+
+@Composable
+private fun RethinkNetworkSegment(
+    blocked: Boolean,
+    allowedIcon: ImageVector,
+    blockedIcon: ImageVector,
+    contentDescription: String,
+    leading: Boolean,
+    onClick: () -> Unit,
+) {
+    val motion = LocalRethinkMotion.current
+    val scheme = MaterialTheme.colorScheme
+    val inner by animateDpAsState(
+        targetValue = if (blocked) NetworkSegmentInnerBlocked else NetworkSegmentInner,
+        animationSpec = if (motion.reducedMotion) snap() else MaterialTheme.motionScheme.fastSpatialSpec(),
+        label = "networkSegmentCorner",
+    )
+    val container by androidx.compose.animation.animateColorAsState(
+        targetValue = if (blocked) scheme.errorContainer else scheme.surfaceContainerHigh,
+        animationSpec = if (motion.reducedMotion) snap() else MaterialTheme.motionScheme.fastEffectsSpec(),
+        label = "networkSegmentColor",
+    )
+    val outer = NetworkSegmentHeight / 2
+    val shape = if (leading) {
+        RoundedCornerShape(topStart = outer, bottomStart = outer, topEnd = inner, bottomEnd = inner)
+    } else {
+        RoundedCornerShape(topStart = inner, bottomStart = inner, topEnd = outer, bottomEnd = outer)
+    }
+    Surface(
+        onClick = onClick,
+        shape = shape,
+        color = container,
+        modifier = Modifier.size(width = NetworkSegmentWidth, height = NetworkSegmentHeight),
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            DiagonalWipeIcon(
+                blocked = blocked,
+                allowedIcon = allowedIcon,
+                blockedIcon = blockedIcon,
+                allowedTint = scheme.onSurfaceVariant,
+                blockedTint = scheme.onErrorContainer,
+                contentDescription = contentDescription,
+                modifier = Modifier.size(SharedDimensions.iconSizeSm),
+            )
+        }
+    }
+}
+
+private val NetworkSegmentWidth = 48.dp
+private val NetworkSegmentHeight = 40.dp
+private val NetworkSegmentGap = 2.dp
+private val NetworkSegmentInner = 5.dp
+private val NetworkSegmentInnerBlocked = 14.dp
+
 
 @Composable
 fun RethinkFirewallNetworkToggle(

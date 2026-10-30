@@ -357,7 +357,7 @@ private fun RethinkAppNetworkPair(
 }
 
 /**
- * Compact allow/block network card: at least list-item-large tall, circular icon well, and
+ * Compact allow/block network card: at least list-item-large tall, the icon on the segment itself, and
  * Allowed/Blocked status text. The title may take two lines so "Mobile data" never truncates.
  */
 @Composable
@@ -386,7 +386,7 @@ private fun RethinkAppNetworkTile(
         targetValue = if (blocked) {
             MaterialTheme.colorScheme.errorContainer
         } else {
-            MaterialTheme.colorScheme.surfaceContainerLow
+            MaterialTheme.colorScheme.surfaceContainerHigh
         },
         animationSpec = colorSpec,
         label = "app_network_tile_bg",
@@ -409,25 +409,10 @@ private fun RethinkAppNetworkTile(
         animationSpec = colorSpec,
         label = "app_network_tile_status",
     )
-    val iconContainerColor by animateColorAsState(
-        targetValue = if (blocked) {
-            MaterialTheme.colorScheme.error.copy(alpha = 0.2f)
-        } else {
-            MaterialTheme.colorScheme.surfaceContainerHigh
-        },
-        animationSpec = colorSpec,
-        label = "app_network_tile_icon_bg",
-    )
-    val iconBlockedTint = if (blocked) {
-        MaterialTheme.colorScheme.error
-    } else {
-        MaterialTheme.colorScheme.onSurfaceVariant
-    }
-    val iconAllowedTint = if (blocked) {
-        MaterialTheme.colorScheme.error.copy(alpha = 0.44f)
-    } else {
-        MaterialTheme.colorScheme.onSurfaceVariant
-    }
+    // Same rule as the list's network segments: the icon sits directly on its segment, no
+    // inner circle; allowed is tonal, blocked takes the error container's on-colour.
+    val iconBlockedTint = if (blocked) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSurfaceVariant
+    val iconAllowedTint = if (blocked) MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.44f) else MaterialTheme.colorScheme.onSurfaceVariant
 
     Surface(
         onClick = onClick,
@@ -442,17 +427,15 @@ private fun RethinkAppNetworkTile(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
         ) {
-            RethinkIconWell(containerColor = iconContainerColor, size = SharedDimensions.iconContainerSm, shape = CircleShape) {
-                DiagonalWipeIcon(
-                    blocked = blocked,
-                    allowedIcon = allowedIcon,
-                    blockedIcon = blockedIcon,
-                    allowedTint = iconAllowedTint,
-                    blockedTint = iconBlockedTint,
-                    contentDescription = null,
-                    modifier = Modifier.size(SharedDimensions.iconSizeSm),
-                )
-            }
+            DiagonalWipeIcon(
+                blocked = blocked,
+                allowedIcon = allowedIcon,
+                blockedIcon = blockedIcon,
+                allowedTint = iconAllowedTint,
+                blockedTint = iconBlockedTint,
+                contentDescription = null,
+                modifier = Modifier.size(SharedDimensions.iconSizeMd),
+            )
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.Center,
