@@ -32,9 +32,7 @@ import com.bernaferrari.bravedns.backup.BackupHelper.Companion.TEMP_ZIP_FILE_NAM
 import com.bernaferrari.bravedns.backup.BackupHelper.Companion.VERSION
 import com.bernaferrari.bravedns.backup.BackupHelper.Companion.deleteResidue
 import com.bernaferrari.bravedns.backup.BackupHelper.Companion.getFileNameFromPath
-import com.bernaferrari.bravedns.backup.BackupHelper.Companion.getRethinkDatabase
 import com.bernaferrari.bravedns.backup.BackupHelper.Companion.getTempDir
-import com.bernaferrari.bravedns.backup.BackupHelper.Companion.startVpn
 import com.bernaferrari.bravedns.database.AppDatabase
 import com.bernaferrari.bravedns.database.LogDatabase
 import com.bernaferrari.bravedns.service.EncryptedFileManager
@@ -55,7 +53,10 @@ import java.io.ObjectOutputStream
 import java.io.OutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.first
 
 // ref:
 // https://gavingt.medium.com/refactoring-my-backup-and-restore-feature-to-comply-with-scoped-storage-e2b6c792c3b
@@ -81,20 +82,13 @@ class BackupAgent(val context: Context, workerParams: WorkerParameters) :
         }
 
         Logger.d(LOG_TAG_BACKUP_RESTORE, "begin backup process with file uri: $backupFileUri")
-        val wasRunning = com.bernaferrari.bravedns.service.VpnController.isOn()
         backupPreferences = persistentState.snapshotPreferences()
-        return try {
-            if (wasRunning) com.bernaferrari.bravedns.service.VpnController.stopAndAwait("backup", context)
+        return withContext(Dispatchers.IO) {
             if (startBackupProcess(backupFileUri)) Result.success() else Result.failure()
-        } finally {
-            if (wasRunning) kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
-                com.bernaferrari.bravedns.service.VpnController.stopAndAwait("backup-finish", context)
-                startVpn(context)
-            }
         }
     }
 
-    private fun startBackupProcess(backupFileUri: Uri): Boolean {
+    private suspend fun startBackupProcess(backupFileUri: Uri): Boolean {
         var processCompleted: Boolean
         try {
             val tempDir = getTempDir(context)
@@ -143,6 +137,8 @@ class BackupAgent(val context: Context, workerParams: WorkerParameters) :
             }
 
             return zipAndCopyToDestination(tempDir, backupFileUri)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
         } catch (e: Exception) {
             Logger.crash(
                 LOG_TAG_BACKUP_RESTORE,
@@ -268,23 +264,22 @@ class BackupAgent(val context: Context, workerParams: WorkerParameters) :
         }
     }
 
-    private fun saveDatabasesToFile(path: String): Boolean {
-        runBlocking {
-            BackupHelper.checkpointRoomDatabases(appDatabase, logDatabase)
+    internal suspend fun saveDatabasesToFile(path: String): Boolean {
+        // Room opens lazily; a fresh install still needs schema-bearing backup files.
+        appDatabase.appInfoDAO().getAppCount()
+        logDatabase.dnsLogDAO().logsCount().first()
+        val names = listOf(AppDatabase.DATABASE_NAME, LogDatabase.LOGS_DATABASE_NAME)
+        // Each snapshot includes committed WAL contents. The databases have no
+        // cross-database transaction contract; neither live WAL is copied.
+        val snapshots = names.map { File(path, it) }
+        val succeeded = names.zip(snapshots).all { (name, target) ->
+            DatabaseSnapshot.create(context.getDatabasePath(name), target)
         }
-        val files = getRethinkDatabase(context)?.listFiles() ?: return false
-
-        for (f in files) {
-            Logger.d(
-                    LOG_TAG_BACKUP_RESTORE,
-                    "file ${f.name} found in database dir (${f.absolutePath})"
-                )
-            val databaseFile =
-                backUpFile(f.absolutePath, File(path, f.name).path) ?: return false
-            Logger.i(LOG_TAG_BACKUP_RESTORE, "file ${databaseFile.name} added to backup dir")
-            filesPathToZip.add(databaseFile.absolutePath)
+        if (!succeeded) {
+            snapshots.forEach { it.delete() }
+            return false
         }
-
+        filesPathToZip.addAll(snapshots.map { it.path })
         return true
     }
 
@@ -314,19 +309,6 @@ class BackupAgent(val context: Context, workerParams: WorkerParameters) :
         return true
     }
 
-    private fun backUpFile(backupFilePath: String?, destFilePath: String?): File? {
-        if (backupFilePath == null || destFilePath == null) {
-            Logger.w(
-                LOG_TAG_BACKUP_RESTORE,
-                "invalid backup info during db backup, file: $backupFilePath, destination: $destFilePath"
-            )
-            return null
-        }
-        val isCopySuccess = Utilities.copy(backupFilePath, destFilePath)
-        if (isCopySuccess) return File(destFilePath)
-
-        return null
-    }
 
     private fun zip(files: List<String>, zipDirectory: String): Boolean {
         val outputFileName = zipDirectory + File.separator + TEMP_ZIP_FILE_NAME

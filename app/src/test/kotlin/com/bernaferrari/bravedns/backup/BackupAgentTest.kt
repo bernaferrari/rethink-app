@@ -104,14 +104,22 @@ class BackupAgentTest {
     }
 
     @Test
-    fun `backup checkpoints Room databases before copying files`() {
-        val destDir = tmp.newFolder("backup-dest")
-        val method = BackupAgent::class.java.getDeclaredMethod("saveDatabasesToFile", String::class.java)
-        method.isAccessible = true
-        method.invoke(agent, destDir.path)
-
-        coVerify(exactly = 1) { appDatabase.checkPoint() }
-        coVerify(exactly = 1) { logDatabase.checkPoint() }
+    fun `failed snapshot leaves running VPN untouched`() = kotlinx.coroutines.test.runTest {
+        io.mockk.mockkObject(DatabaseSnapshot)
+        io.mockk.mockkObject(com.bernaferrari.bravedns.service.VpnController)
+        every { DatabaseSnapshot.create(any(), any(), any()) } returns false
+        every { com.bernaferrari.bravedns.service.VpnController.isOn() } returns true
+        every { logDatabase.dnsLogDAO().logsCount() } returns kotlinx.coroutines.flow.flowOf(0L)
+        val params = mockk<WorkerParameters>(relaxed = true)
+        every { params.inputData } returns androidx.work.Data.Builder().putString(
+            BackupHelper.DATA_BUILDER_BACKUP_URI, android.net.Uri.fromFile(java.io.File(tmp.root, "backup.zip")).toString()
+        ).build()
+        val worker = BackupAgent(context, params)
+        org.junit.Assert.assertEquals(androidx.work.ListenableWorker.Result.failure(), worker.doWork())
+        coVerify(exactly = 0) {
+            com.bernaferrari.bravedns.service.VpnController.stopAndAwait(any(), any())
+        }
+        io.mockk.verify(exactly = 0) { com.bernaferrari.bravedns.service.VpnController.start(any(), any()) }
     }
 
     private fun invokeBackupMetadata(): String {

@@ -61,7 +61,8 @@ class RestoreAgent(val context: Context, workerParams: WorkerParameters) :
             check(validateMetadata(directory.path)) { "Backup metadata is missing" }
             check(validateRestoredSchemaVersions(directory.listFiles() ?: emptyArray())) { "Invalid database schema" }
             validateSchemaIdentities(directory)
-            val preferences = readPreferences(directory)
+            val preferences = RestoreIdentityPolicy.preferences(readPreferences(directory))
+            RestoreIdentityPolicy.clearImportedPurchases(File(directory, AppDatabase.DATABASE_NAME))
             val transactions = stageFiles(directory)
             stopped = true
             VpnController.stopAndAwait("restore", context)
