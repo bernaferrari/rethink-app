@@ -563,7 +563,8 @@
 
     <!-- Home screen activity -->
     <string name="hs_biometeric_title" translatable="true">Unlock Keepout</string>
-    <string name="hs_biometeric_desc" translatable="true">Use biometric authentication to unlock Keepout</string>
+    <string name="hs_biometeric_desc" translatable="true">Use your fingerprint, face or screen lock</string>
+    <string name="app_lock_unlock">Unlock</string>
     <string name="hs_biometeric_error" translatable="true">Biometric authentication error</string>
 
     <!-- Home screen -->

@@ -22,8 +22,6 @@ import android.os.SystemClock
 import android.widget.Toast
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -31,9 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
@@ -164,7 +160,6 @@ fun AppLockScreen(
         }
     }
 
-    // UI: Simple screen with app logo
     AppLockContent(
         appName = appName,
         title = biometricTitle,
@@ -177,7 +172,7 @@ fun AppLockScreen(
 }
 
 /**
- * The visual content of the app lock screen - displays the app logo centered on a background.
+ * The visual content of the app lock screen: the shared lock mark, what is asked, and Unlock.
  */
 @Composable
 private fun AppLockContent(
@@ -190,16 +185,8 @@ private fun AppLockContent(
         appName = appName,
         title = title,
         subtitle = subtitle,
-        unlockLabel = title,
+        unlockLabel = stringResource(R.string.app_lock_unlock),
         onUnlockClick = onUnlockClick,
-        brandMark = {
-            Image(
-                painter = painterResource(id = R.drawable.ic_launcher),
-                contentDescription = appName,
-                // The shared lock screen already sizes the brand-mark slot.
-                modifier = Modifier.fillMaxSize(),
-            )
-        },
     )
 }
 
