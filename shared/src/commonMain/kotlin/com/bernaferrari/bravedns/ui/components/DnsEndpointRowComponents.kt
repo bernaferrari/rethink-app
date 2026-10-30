@@ -71,18 +71,10 @@ fun DnsEndpointRow(
     }
 }
 
+/** A bare icon button: a different tinted plate per action read as three kinds of row. */
 @Composable
 private fun DnsEndpointActionButton(action: DnsRowAction, onClick: () -> Unit) {
-    val containerColor = when (action) {
-        DnsRowAction.Delete -> MaterialTheme.colorScheme.errorContainer
-        DnsRowAction.Edit -> MaterialTheme.colorScheme.tertiaryContainer
-        DnsRowAction.Info -> MaterialTheme.colorScheme.secondaryContainer
-    }
-    val contentColor = when (action) {
-        DnsRowAction.Delete -> MaterialTheme.colorScheme.onErrorContainer
-        DnsRowAction.Edit -> MaterialTheme.colorScheme.onTertiaryContainer
-        DnsRowAction.Info -> MaterialTheme.colorScheme.onSecondaryContainer
-    }
+    val contentColor = if (action == DnsRowAction.Delete) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
     val icon = when (action) {
         DnsRowAction.Delete -> MaterialSymbols.Filled.DeleteOutline
         DnsRowAction.Edit -> MaterialSymbols.Filled.Edit
@@ -90,9 +82,9 @@ private fun DnsEndpointActionButton(action: DnsRowAction, onClick: () -> Unit) {
     }
     IconButton(
         onClick = onClick,
-        colors = IconButtonDefaults.iconButtonColors(containerColor = containerColor, contentColor = contentColor),
+        colors = IconButtonDefaults.iconButtonColors(contentColor = contentColor),
         modifier = Modifier.size(SharedDimensions.touchTargetMin),
     ) {
-        Icon(icon, contentDescription = null, modifier = Modifier.size(SharedDimensions.iconSizeSm))
+        Icon(icon, contentDescription = null, modifier = Modifier.size(SharedDimensions.iconSizeMd))
     }
 }
