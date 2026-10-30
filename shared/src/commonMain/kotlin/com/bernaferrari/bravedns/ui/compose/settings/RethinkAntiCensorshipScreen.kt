@@ -3,14 +3,11 @@
 package com.bernaferrari.bravedns.ui.compose.settings
 
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.ui.semantics.Role
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
-import androidx.compose.material3.RadioButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkRadioListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBarLazyColumnScreen
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkSection
@@ -87,12 +84,13 @@ private fun RethinkStrategyOption(
     position: CardPosition,
     onClick: () -> Unit,
 ) {
-    RethinkListItem(
+    RethinkRadioListItem(
         headline = option.title,
         supporting = option.description,
+        selected = selected,
+        // A disabled option still answers a tap (the host explains why it's unavailable).
+        onSelect = onClick,
         position = position,
         enabled = option.enabled,
-        selection = RethinkListSelection(checked = selected, role = Role.RadioButton) { onClick() },
-        trailing = { RadioButton(selected = selected, onClick = null, enabled = option.enabled) },
     )
 }

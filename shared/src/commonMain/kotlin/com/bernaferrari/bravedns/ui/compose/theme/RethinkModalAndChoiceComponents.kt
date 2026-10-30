@@ -20,13 +20,13 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -60,24 +60,16 @@ fun <T> RethinkRadioChoiceList(
             .heightIn(max = 360.dp)
             .verticalScroll(rememberScrollState()),
     ) {
-        RethinkListGroup {
+        RethinkListGroup(Modifier.selectableGroup()) {
             options.forEachIndexed { index, option ->
-                val isSelected = selected(option)
                 val isEnabled = enabled(option)
-                RethinkListItem(
+                RethinkRadioListItem(
                     headline = label(option),
+                    selected = selected(option),
+                    onSelect = { if (isEnabled) onSelected(option) },
                     supporting = supporting?.invoke(option),
                     position = cardPositionFor(index, options.lastIndex),
                     enabled = isEnabled,
-                    highlighted = isSelected,
-                    onClick = { if (isEnabled) onSelected(option) },
-                    trailing = {
-                        RadioButton(
-                            selected = isSelected,
-                            enabled = isEnabled,
-                            onClick = null,
-                        )
-                    },
                 )
             }
         }

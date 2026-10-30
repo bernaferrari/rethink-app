@@ -9,8 +9,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.VerticalDivider
-import androidx.compose.foundation.layout.height
+import androidx.compose.material3.RadioButton
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.compositionLocalOf
@@ -391,6 +390,35 @@ fun RethinkSwitchListItem(
     trailing = { Switch(checked = checked, onCheckedChange = null, enabled = enabled) },
 )
 
+/**
+ * The app's one single-choice row: the whole row is the radio (TalkBack: "Radio button,
+ * selected"), the selected row fills with secondaryContainer, the selection family shared with
+ * chips and connected groups, and a display-only trailing [RadioButton] shows the state. Put
+ * these in a `RethinkListGroup(Modifier.selectableGroup())`.
+ */
+@Composable
+fun RethinkRadioListItem(
+    headline: String,
+    selected: Boolean,
+    onSelect: () -> Unit,
+    modifier: Modifier = Modifier,
+    supporting: String? = null,
+    leadingIcon: ImageVector? = null,
+    position: CardPosition = CardPosition.Middle,
+    enabled: Boolean = true,
+) = RethinkListItem(
+    modifier = modifier,
+    headline = headline,
+    supporting = supporting,
+    leadingIcon = leadingIcon,
+    position = position,
+    enabled = enabled,
+    highlighted = selected,
+    highlightContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+    selection = RethinkListSelection(checked = selected, role = Role.RadioButton) { onSelect() },
+    trailing = { RadioButton(selected = selected, onClick = null, enabled = enabled) },
+)
+
 /** [RethinkSwitchListItem] counterpart for multi-select lists: the whole row is one checkbox. */
 @Composable
 fun RethinkCheckboxListItem(
@@ -429,8 +457,8 @@ fun RethinkCheckboxListItem(
 
 /**
  * Trailing control for a split row: the row itself navigates (opens details/logs) and this
- * switch is a separate target. The divider makes the two targets visually distinct; the switch
- * carries [contentDescription] so it is announced on its own.
+ * switch is a separate target. No divider: it squeezed titles onto two lines, and the switch is
+ * already its own target; it carries [contentDescription] so it is announced on its own.
  */
 @Composable
 fun RethinkSplitSwitch(
@@ -439,16 +467,10 @@ fun RethinkSplitSwitch(
     contentDescription: String,
     enabled: Boolean = true,
 ) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
-    ) {
-        VerticalDivider(Modifier.height(SharedDimensions.iconSizeLg))
-        Switch(
-            checked = checked,
-            enabled = enabled,
-            onCheckedChange = onCheckedChange,
-            modifier = Modifier.semantics { this.contentDescription = contentDescription },
-        )
-    }
+    Switch(
+        checked = checked,
+        enabled = enabled,
+        onCheckedChange = onCheckedChange,
+        modifier = Modifier.semantics { this.contentDescription = contentDescription },
+    )
 }

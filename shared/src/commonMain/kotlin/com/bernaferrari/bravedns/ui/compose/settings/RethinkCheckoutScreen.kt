@@ -12,8 +12,6 @@ import com.bernaferrari.bravedns.ui.compose.common.RethinkErrorState
 import com.bernaferrari.bravedns.ui.compose.common.RethinkLoadingState
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.ui.semantics.Role
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkListSelection
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -27,7 +25,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
@@ -40,7 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkRadioListItem
 import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
@@ -130,13 +127,12 @@ private fun CheckoutPaymentContent(
             RethinkListGroup(Modifier.selectableGroup()) {
                 plans.forEachIndexed { index, plan ->
                     val selected = selectedPlanId == plan.id
-                    RethinkListItem(
+                    RethinkRadioListItem(
                         headline = plan.title,
                         supporting = plan.subtitle,
+                        selected = selected,
+                        onSelect = { onPlanSelected(plan.id) },
                         position = cardPositionFor(index, plans.lastIndex),
-                        highlighted = selected,
-                        selection = RethinkListSelection(checked = selected, role = Role.RadioButton) { onPlanSelected(plan.id) },
-                        trailing = { RadioButton(selected = selected, onClick = null) },
                     )
                 }
             }
