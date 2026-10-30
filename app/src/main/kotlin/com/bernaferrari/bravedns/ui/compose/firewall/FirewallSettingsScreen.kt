@@ -16,7 +16,6 @@ fun FirewallSettingsScreen(
     RethinkFirewallSettingsScreen(
         strings = RethinkFirewallSettingsStrings(
             title = stringResource(R.string.firewall_mode_info_title),
-            subtitle = stringResource(R.string.universal_firewall_explanation),
             universalSection = stringResource(R.string.firewall_act_universal_tab),
             universalTitle = stringResource(R.string.univ_firewall_heading),
             universalDescription = stringResource(R.string.universal_firewall_explanation),

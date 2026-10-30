@@ -221,7 +221,6 @@ internal fun DemoFirewallSettingsScreen(
     RethinkFirewallSettingsScreen(
         strings = RethinkFirewallSettingsStrings(
             title = "Firewall",
-            subtitle = "Control network access with universal and app-specific rules.",
             universalSection = "Universal rules",
             universalTitle = "Universal firewall",
             universalDescription = "Set network-wide rules that apply before app-specific decisions.",

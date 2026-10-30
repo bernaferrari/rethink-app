@@ -27,7 +27,6 @@ import com.bernaferrari.bravedns.ui.compose.theme.rethinkSection
 
 data class RethinkFirewallSettingsStrings(
     val title: String,
-    val subtitle: String,
     val universalSection: String,
     val universalTitle: String,
     val universalDescription: String,
@@ -86,8 +85,8 @@ fun RethinkFirewallSettingsScreen(
     }
 
     RethinkTopBarLazyColumnScreen(
+        // No header sentence: each row explains itself, and the universal one already says it.
         title = strings.title,
-        subtitle = strings.subtitle,
         onBackClick = onBackClick,
         modifier = modifier,
         listState = listState,

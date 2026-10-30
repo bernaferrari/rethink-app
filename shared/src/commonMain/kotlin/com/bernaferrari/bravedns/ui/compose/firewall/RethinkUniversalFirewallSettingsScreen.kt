@@ -59,9 +59,9 @@ fun RethinkUniversalFirewallSettingsScreen(
     var showAccessibilityDialog by remember { mutableStateOf(false) }
     val total = settings.sumOf { it.blockedCount }
     RethinkTopBarLazyColumnScreen(
-        // The explanation lives once, above the list; the subtitle only carries the total.
+        // The explanation lives once, above the list; the subtitle only carries a nonzero total.
         title = strings.title,
-        subtitle = if (isLoadingStats) null else strings.blocked(total),
+        subtitle = if (isLoadingStats || total == 0) null else strings.blocked(total),
         onBackClick = onBackClick,
         modifier = modifier,
     ) {
@@ -74,7 +74,8 @@ fun RethinkUniversalFirewallSettingsScreen(
             )
             RethinkListGroup {
                 settings.forEachIndexed { index, setting ->
-                    val countText = if (isLoadingStats) strings.loading else strings.blocked(setting.blockedCount)
+                    // A count only where something was blocked: nine "Blocked: 0" lines are noise.
+                    val countText = if (isLoadingStats || setting.blockedCount == 0) null else strings.blocked(setting.blockedCount)
                     RethinkListItem(
                         headline = setting.label,
                         supporting = countText,
