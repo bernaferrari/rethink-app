@@ -63,6 +63,25 @@ class ProductEditorsTest {
         compose.onNodeWithText(compose.activity.getString(R.string.lbl_cancel)).assertIsDisplayed()
     }
 
+    @Test fun busyImportKeepsCancelVisibleAndDoesNotAllowDuplicateSubmission() {
+        var canceled = false
+        compose.setContent {
+            CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, 1.5f)) {
+                MaterialTheme {
+                    com.bernaferrari.bravedns.ui.compose.firewall.RulesImportPreviewDialog(
+                        preview = com.bernaferrari.bravedns.rules.RuleImportPreview(
+                            (1..5).map { "rule$it.example.com" }, 3, 2, false),
+                        busy = true, onImport = {}, onDismiss = { canceled = true },
+                    )
+                }
+            }
+        }
+        compose.onAllNodesWithText(compose.activity.getString(R.string.port_import_rules))
+            .filterToOne(hasClickAction()).assertIsNotEnabled()
+        compose.onNodeWithText(compose.activity.getString(R.string.lbl_cancel)).assertIsDisplayed().performClick()
+        compose.runOnIdle { org.junit.Assert.assertTrue(canceled) }
+    }
+
     @Test fun captureDialogFitsCompactScreenAndReflectsAutomaticStop() {
         val manager = mockk<PcapCaptureManager>(relaxed = true)
         val active = MutableStateFlow(true)
