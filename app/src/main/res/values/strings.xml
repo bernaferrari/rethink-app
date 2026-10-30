@@ -1626,7 +1626,7 @@
     <string name="rpn_proxy_last_connected" translatable="true">Last connected</string>
     <string name="rpn_proxy_status" translatable="true">Status</string>
     <string name="rpn_proxy_connected" translatable="true">Connected</string>
-    <string name="log_detail_app_name" translatable="true">App Name</string>
+    <string name="log_detail_app_name" translatable="true">App</string>
     <string name="log_detail_response" translatable="true">Response</string>
     <string name="time_window_one_hour_short" translatable="true">1h</string>
     <string name="time_window_twenty_four_hours_short" translatable="true">24h</string>

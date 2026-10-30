@@ -111,7 +111,7 @@ fun dnsLogModel(
     }
 
     val blocklists = log.blockLists.split(",").map { it.trim() }.filter { it.isNotBlank() }
-    val details = dnsLogDetails(log, dnsType, hint, blocklists)
+    val details = dnsLogDetails(log, appLabel, dnsType, hint, blocklists)
     val favicon = favIcon.takeIf { showFav }
     return RethinkLogRowModel(
         id = log.id.toString(),
@@ -151,7 +151,7 @@ fun dnsLogModel(
 }
 
 @Composable
-private fun dnsLogDetails(log: DnsLog, dnsType: String, hint: String, blocklists: List<String>): List<RethinkLogDetail> {
+private fun dnsLogDetails(log: DnsLog, appLabel: String, dnsType: String, hint: String, blocklists: List<String>): List<RethinkLogDetail> {
     val unknown = stringResource(R.string.network_log_app_name_unknown)
     val country = UIUtils.countryLabel(log.flag, unknown)
     val dnssec = when {
@@ -160,6 +160,8 @@ private fun dnsLogDetails(log: DnsLog, dnsType: String, hint: String, blocklists
         else -> stringResource(R.string.log_detail_dnssec_unverified)
     }
     return listOfNotNull(
+        // The row shows only the app's icon; its name is here.
+        RethinkLogDetail(stringResource(R.string.log_detail_app_name), appLabel),
         RethinkLogDetail(stringResource(R.string.log_detail_protocol), dnsType),
         RethinkLogDetail(stringResource(R.string.log_detail_country), country),
         log.responseIps.takeIf { it.isNotBlank() }?.let { RethinkLogDetail(stringResource(R.string.log_detail_response), it, monospace = true) },

@@ -264,8 +264,8 @@ private fun NetworkLogHeader(model: RethinkLogRowModel, cardColor: Color, chevro
 }
 
 /**
- * DNS: the name leads; then the answer or the blocklist; then who asked. The app that asked is
- * the mark, with its verdict as a badge like network rows; a query with no app gets the verdict shape.
+ * DNS: the name leads, then the answer or the blocklist. The app that asked is the mark, with its
+ * verdict as a badge like network rows (its name is in the details); a query with no app gets the verdict shape.
  */
 @Composable
 private fun DnsLogHeader(model: RethinkLogRowModel, cardColor: Color, chevron: Float?) {
@@ -301,7 +301,6 @@ private fun DnsLogHeader(model: RethinkLogRowModel, cardColor: Color, chevron: F
                 RethinkPill(model.typeLabel, size = RethinkPillSize.Small, fontWeight = FontWeight.Bold)
                 model.facts.firstOrNull()?.let { RethinkPill(it, size = RethinkPillSize.Small) }
             }
-            Text(model.appLabel, style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
 }
