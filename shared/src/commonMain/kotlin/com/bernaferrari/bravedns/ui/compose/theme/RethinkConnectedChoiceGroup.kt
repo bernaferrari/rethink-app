@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -131,38 +132,50 @@ fun <T> RethinkConnectedChoiceGroup(
                     fillWidth -> FillWidthContentPadding
                     else -> ButtonDefaults.ContentPadding
                 },
-                modifier = Modifier
-                    .then(if (fillWidth) Modifier.weight(1f) else Modifier.animateContentSize())
-                    .heightIn(min = if (compact) SharedDimensions.buttonHeightSm else SharedDimensions.touchTargetMin)
-                    // A segment narrower than the touch target gets invisible side padding from
-                    // Material, which shows as wide gaps; at the target width the 2dp gap holds.
-                    .then(if (compact) Modifier.widthIn(min = SharedDimensions.touchTargetMin) else Modifier)
-                    .semantics { role = Role.RadioButton },
+                modifier = choiceSegmentModifier(fillWidth, compact),
             ) {
-                val icon = when {
-                    iconOnSelectedOnly && !isSelected -> null
-                    isSelected -> option.selectedIcon
-                    else -> option.icon
-                }
-                if (icon != null) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = if (iconOnly) option.label else null,
-                        modifier = Modifier.size(ToggleButtonDefaults.IconSize),
-                    )
-                }
-                if (!iconOnly || icon == null) {
-                    if (icon != null) Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-                    Text(
-                        text = option.label,
-                        style = if (compact) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelLarge,
-                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
+                ChoiceContent(option, isSelected, iconOnly, iconOnSelectedOnly, compact)
             }
         }
+    }
+}
+
+private fun RowScope.choiceSegmentModifier(fillWidth: Boolean, compact: Boolean): Modifier =
+    Modifier
+        .then(if (fillWidth) Modifier.weight(1f) else Modifier.animateContentSize())
+        .heightIn(min = if (compact) SharedDimensions.buttonHeightSm else SharedDimensions.touchTargetMin)
+        // A segment narrower than the touch target gets invisible side padding from
+        // Material, which shows as wide gaps; at the target width the 2dp gap holds.
+        .then(if (compact) Modifier.widthIn(min = SharedDimensions.touchTargetMin) else Modifier)
+        .semantics { role = Role.RadioButton }
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun <T> ChoiceContent(
+    option: RethinkChoiceOption<T>, isSelected: Boolean, iconOnly: Boolean,
+    iconOnSelectedOnly: Boolean, compact: Boolean,
+) {
+    val icon = when {
+        iconOnSelectedOnly && !isSelected -> null
+        isSelected -> option.selectedIcon
+        else -> option.icon
+    }
+    if (icon != null) {
+        Icon(
+            imageVector = icon,
+            contentDescription = if (iconOnly) option.label else null,
+            modifier = Modifier.size(ToggleButtonDefaults.IconSize),
+        )
+    }
+    if (!iconOnly || icon == null) {
+        if (icon != null) Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
+        Text(
+            text = option.label,
+            style = if (compact) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelLarge,
+            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 

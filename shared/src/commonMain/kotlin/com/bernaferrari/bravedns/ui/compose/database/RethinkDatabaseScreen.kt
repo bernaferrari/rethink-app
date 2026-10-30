@@ -3,6 +3,8 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.database
 
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkListItemColors
+
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWellContainerColor
 import com.bernaferrari.bravedns.ui.compose.common.RethinkWindowBreakpoints
 import com.bernaferrari.bravedns.ui.compose.common.RethinkLoadingState
@@ -227,8 +229,7 @@ private fun RethinkDatabaseTableList(
                             RethinkListItem(
                                 headline = table,
                                 leadingIcon = MaterialSymbols.Filled.Storage,
-                                leadingIconTint = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                leadingIconContainerColor = if (active) RethinkIconWellContainerColor else MaterialTheme.colorScheme.surfaceContainerHighest,
+                                colors = rethinkListItemColors(leadingIconTint = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant, leadingIconContainerColor = if (active) RethinkIconWellContainerColor else MaterialTheme.colorScheme.surfaceContainerHighest),
                                 position = cardPositionFor(index, tables.lastIndex),
                                 highlighted = active,
                                 trailing = if (active) { { Icon(MaterialSymbols.Filled.CheckCircle, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(SharedDimensions.iconSizeSm)) } } else null,

@@ -205,13 +205,7 @@ fun RethinkDnsSettingsScreen(
         modifier = modifier,
         listState = listState,
         topBarActions = {
-            IconButton(onClick = navigation.onRefresh, enabled = !state.isRefreshing) {
-                if (state.isRefreshing) {
-                    LoadingIndicator(Modifier.size(SharedDimensions.iconSizeMd))
-                } else {
-                    Icon(MaterialSymbols.Filled.Refresh, strings.refresh)
-                }
-            }
+            DnsRefreshAction(state.isRefreshing, strings.refresh, navigation.onRefresh)
         },
     ) {
         item {
@@ -228,15 +222,7 @@ fun RethinkDnsSettingsScreen(
         }
         rethinkSection(strings.blockSection) {
             RethinkListGroup {
-                RethinkListItem(
-                    headline = strings.localBlocklists,
-                    supporting = if (state.blocklistEnabled) strings.localBlocklistsDescription(state.numberOfLocalBlocklists) else strings.localBlocklistsDisabledDescription,
-                    leadingIcon = MaterialSymbols.Filled.Security,
-                    position = CardPosition.First,
-                    highlighted = focusedSettingId == "dns_block_local",
-                    trailing = { RethinkDnsStatusText(if (state.blocklistEnabled) strings.enabled else strings.disabled, state.blocklistEnabled) },
-                    onClick = navigation.onLocalBlocklists,
-                )
+                DnsLocalBlocklistRow(state, strings, focusedSettingId == "dns_block_local", navigation.onLocalBlocklists)
                 RethinkDnsToggleRow(strings.customDownloader, strings.customDownloaderDescription, state.useCustomDownloadManager, MaterialSymbols.Filled.Storage, CardPosition.Middle, focusedSettingId == "dns_block_custom_downloader", onCustomDownloaderChange)
                 RethinkDnsToggleRow(strings.periodicUpdates, strings.periodicUpdatesDescription, state.periodicallyCheckBlocklistUpdate, MaterialSymbols.Filled.Refresh, CardPosition.Last, focusedSettingId == "dns_block_periodic_updates", onPeriodicUpdateChange)
             }
@@ -301,6 +287,17 @@ fun RethinkDnsSettingsScreen(
                     RethinkDnsToggleRow(row.title, row.description, row.checked, row.icon, cardPositionFor(index, rows.lastIndex), focusedSettingId == row.id, row.onChange)
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun DnsRefreshAction(isRefreshing: Boolean, refreshLabel: String, onRefresh: () -> Unit) {
+    IconButton(onClick = onRefresh, enabled = !isRefreshing) {
+        if (isRefreshing) {
+            LoadingIndicator(Modifier.size(SharedDimensions.iconSizeMd))
+        } else {
+            Icon(MaterialSymbols.Filled.Refresh, refreshLabel)
         }
     }
 }
@@ -390,9 +387,9 @@ private fun DnsInUseHero(state: RethinkDnsSettingsState, strings: RethinkDnsSett
     val endpoint = state.connectedDnsName.substringAfter(',', "").trim()
     val displayName = state.connectedDnsName.substringBefore(',').trim().ifBlank { "--" }
     val protocol = state.dnsType.protocol(endpoint)
-    val latencies = state.recentLatencies.take(LATENCY_BARS)
-    val median = latencies.sorted().let { if (it.isEmpty()) null else it[it.size / 2] }
-    val latencyLabel = state.dnsLatency.trim('(', ')', ' ').takeIf { it.isNotBlank() } ?: median?.let { "$it ms" }
+    val latency = dnsHeroLatency(state.recentLatencies, state.dnsLatency, LATENCY_BARS)
+    val latencies = latency.samples
+    val latencyLabel = latency.label
     val shape = RoundedCornerShape(SharedDimensions.groupCornerRadius)
     // The brand palette keeps primaryContainer at the seed's bright tone in dark theme too; the
     // secondary container is the same hue at a dark tone, so the hero dims with the rest of the UI.
@@ -494,7 +491,7 @@ private fun RethinkDnsToggleRow(
 )
 
 @Composable
-private fun RethinkDnsStatusText(text: String, enabled: Boolean) = RethinkStatusLabel(
+internal fun RethinkDnsStatusText(text: String, enabled: Boolean) = RethinkStatusLabel(
     label = text,
     color = if (enabled) RethinkStatusColors.allowed else RethinkStatusColors.idle,
     indicator = RethinkStatusIndicator.None,

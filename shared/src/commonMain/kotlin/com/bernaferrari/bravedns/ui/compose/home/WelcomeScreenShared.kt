@@ -8,6 +8,8 @@
  */
 package com.bernaferrari.bravedns.ui.compose.home
 
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkListItemColors
+
 import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ButtonDefaults
@@ -166,8 +168,7 @@ private fun RethinkWelcomeFeatures(features: List<RethinkWelcomeFeature>) {
                 headline = feature.label,
                 supporting = feature.description,
                 leadingIcon = feature.icon,
-                leadingIconTint = MaterialTheme.colorScheme.onSecondaryContainer,
-                leadingIconContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                colors = rethinkListItemColors(leadingIconTint = MaterialTheme.colorScheme.onSecondaryContainer, leadingIconContainerColor = MaterialTheme.colorScheme.secondaryContainer),
                 position = cardPositionFor(index, features.lastIndex),
             )
         }

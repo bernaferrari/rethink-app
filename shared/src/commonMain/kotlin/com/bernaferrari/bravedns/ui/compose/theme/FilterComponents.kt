@@ -77,14 +77,13 @@ fun RethinkFilterChip(
         enabled = true, selected = selected,
         borderColor = MaterialTheme.colorScheme.outlineVariant, selectedBorderColor = Color.Transparent,
     ),
-    minHeight: Dp = SharedDimensions.buttonHeightSm, selectedLabelWeight: FontWeight = FontWeight.SemiBold, defaultLabelWeight: FontWeight = FontWeight.Medium,
-    labelMaxLines: Int = 1, labelOverflow: TextOverflow = TextOverflow.Ellipsis,
+    minHeight: Dp = SharedDimensions.buttonHeightSm,
     /** A trailing caret marks a chip that opens a menu rather than toggling. */
     trailingIcon: (@Composable () -> Unit)? = null,
     selectedCheck: Boolean = true,
 ) = FilterChip(
     modifier = modifier.heightIn(min = minHeight), selected = selected, onClick = onClick,
-    label = { Text(label, fontWeight = if (selected) selectedLabelWeight else defaultLabelWeight, style = textStyle, maxLines = labelMaxLines, overflow = labelOverflow) },
+    label = { Text(label, fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium, style = textStyle, maxLines = 1, overflow = TextOverflow.Ellipsis) },
     leadingIcon = leadingIcon ?: if (selected && selectedCheck) {
         { Icon(MaterialSymbols.Filled.Check, null, Modifier.size(FilterChipDefaults.IconSize)) }
     } else {

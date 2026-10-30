@@ -1,6 +1,8 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.apps
 
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkListItemColors
+
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
@@ -580,7 +582,7 @@ private fun RethinkAppLogCard(section: RethinkAppInfoLogSection, strings: Rethin
                             index == section.entries.lastIndex -> CardPosition.Last
                             else -> CardPosition.Middle
                         },
-                        defaultContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                        colors = rethinkListItemColors(defaultContainerColor = MaterialTheme.colorScheme.surfaceContainerLow),
                         showTrailingChevron = onEntry != null,
                         onClick = onEntry?.let { callback -> { callback(item) } },
                     )

@@ -50,7 +50,6 @@ data class SettingsSearchIndexEntry(
 fun buildSettingsSearchIndex(isDebug: Boolean): List<SettingsSearchIndexEntry> {
     val protection = stringResource(R.string.lbl_protection)
     val system = stringResource(R.string.lbl_system)
-    val advanced = stringResource(R.string.lbl_advanced)
     val dns = stringResource(R.string.lbl_dns)
     val proxy = stringResource(R.string.lbl_proxy)
     val network = stringResource(R.string.lbl_network)

@@ -109,7 +109,7 @@ fun dnsLogModel(
     }
 
     val blocklists = log.blockLists.split(",").map { it.trim() }.filter { it.isNotBlank() }
-    val details = dnsLogDetails(log, appLabel, dnsType, blocklists)
+    val details = dnsLogDetails(log, appLabel, dnsType)
     val favicon = favIcon.takeIf { showFav }
     return RethinkLogRowModel(
         id = log.id.toString(),
@@ -149,7 +149,7 @@ fun dnsLogModel(
 }
 
 @Composable
-private fun dnsLogDetails(log: DnsLog, appLabel: String, dnsType: String, blocklists: List<String>): List<RethinkLogDetail> {
+private fun dnsLogDetails(log: DnsLog, appLabel: String, dnsType: String): List<RethinkLogDetail> {
     val unknown = stringResource(R.string.network_log_app_name_unknown)
     val country = UIUtils.countryLabel(log.flag, unknown)
     val dnssec = when {

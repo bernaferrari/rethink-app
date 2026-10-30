@@ -3,6 +3,8 @@
 
 package com.bernaferrari.bravedns.ui.compose.firewall
 
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkListItemColors
+
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSheetHeader
@@ -549,8 +551,7 @@ private fun RethinkFirewallRuleRow(
                 rule.tab == RethinkRulesTab.IP -> MaterialSymbols.Filled.Public
                 else -> MaterialSymbols.Filled.Language
             },
-            leadingIconTint = if (selected) MaterialTheme.colorScheme.onPrimary else accent,
-            leadingIconContainerColor = if (selected) MaterialTheme.colorScheme.primary else RethinkIconWellDefaults.tinted(accent),
+            colors = rethinkListItemColors(leadingIconTint = if (selected) MaterialTheme.colorScheme.onPrimary else accent, leadingIconContainerColor = if (selected) MaterialTheme.colorScheme.primary else RethinkIconWellDefaults.tinted(accent)),
             highlighted = selected,
             position = position,
             trailing = { RethinkPill(rule.status.label(strings), colors = RethinkPillDefaults.status(accent)) },
