@@ -101,7 +101,7 @@ def inspect(apk: Path, base_code: int, expected_cert: str | None = None) -> str:
         signers = set(re.findall(r"Signer #\d+ certificate SHA-256 digest: ([a-fA-F0-9]+)", result))
         if {value.lower() for value in signers} != {cert}:
             raise ValueError("APK signing certificate does not match the supplied certificate")
-        subprocess.run([str(sdk_tool("zipalign")), "-c", "-P", "16", "4", str(apk)], check=True, capture_output=True)
+    subprocess.run([str(sdk_tool("zipalign")), "-c", "-P", "16", "4", str(apk)], check=True, capture_output=True)
     return kind
 
 

@@ -7,7 +7,8 @@ review rejects high/critical advisories; its resolved Gradle graph is submitted 
 trusted pushes to `main`, with write permission confined to that job. No APK is sent to an external
 scanning service.
 
-Local unsigned verification:
+Local unsigned verification requires JDK 17 and an Android SDK with Build Tools. Export
+`ANDROID_HOME` (or `ANDROID_SDK_ROOT`) to that SDK directory for the Python artifact tools.
 
 ```sh
 ./gradlew :app:assembleFdroidRelease -PVERSION_CODE=1 -PkeepoutArtifactsOnly=true

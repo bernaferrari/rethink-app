@@ -39,7 +39,7 @@ def main() -> None:
         workspace = Path(temporary)
         keystore = workspace / "release.keystore"
         try:
-            keystore.write_bytes(base64.b64decode(os.environ["RELEASE_KEYSTORE_BASE64"], validate=True))
+            keystore.write_bytes(base64.b64decode("".join(os.environ["RELEASE_KEYSTORE_BASE64"].split()), validate=True))
         except ValueError:
             raise ValueError("Release keystore is not valid base64") from None
         keystore.chmod(0o600)
