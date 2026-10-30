@@ -2,9 +2,6 @@
 package com.bernaferrari.bravedns.ui.compose.theme
 
 import androidx.compose.ui.graphics.Color
-import androidx.compose.runtime.getValue
-import androidx.compose.animation.core.snap
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.foundation.layout.PaddingValues
@@ -47,13 +44,19 @@ data class RethinkChoiceOption<T>(
 )
 
 /**
- * How a [RethinkConnectedChoiceGroup] shows labels.
+ * How a [RethinkConnectedChoiceGroup] shows its options. Every segment always keeps its label:
+ * a row of unlabeled icons reads as a riddle.
  * - [Always]: every option shows icon + label.
- * - [SelectedOnly]: unselected options collapse to their icon and the selected one expands to
- *   icon + label. For crowded rows (log filters, toolbar switches) where full labels would
- *   truncate; every option must have an icon, and the label stays as its accessibility name.
+ * - [SelectedIcon]: every option shows its label; only the selected one adds its icon. For
+ *   crowded rows (log filters, toolbar switches) where an icon on every segment would truncate.
  */
-enum class RethinkChoiceLabels { Always, SelectedOnly }
+enum class RethinkChoiceLabels {
+    Always,
+    SelectedIcon,
+
+    @Deprecated("Unselected segments keep their labels now", ReplaceWith("RethinkChoiceLabels.SelectedIcon"))
+    SelectedOnly,
+}
 
 /**
  * The app's single-select connected button group (M3 Expressive connected ToggleButtons).
@@ -77,13 +80,18 @@ fun <T> RethinkConnectedChoiceGroup(
     iconOnly: Boolean = false,
     onDeselect: (() -> Unit)? = null,
     labels: RethinkChoiceLabels = RethinkChoiceLabels.Always,
-    /** Lift this one tone when the group sits on a surfaceContainerLow card. */
-    unselectedContainerColor: Color = MaterialTheme.colorScheme.surfaceContainerLow,
+    /**
+     * Unselected segments sit a tone above whatever they're on (screen, cards, sheets, and the
+     * lifted rows inside sheets), so every option reads as a button, not a label.
+     */
+    unselectedContainerColor: Color = if (LocalRethinkListContainerColor.current != null) {
+        MaterialTheme.colorScheme.surfaceContainerHighest
+    } else {
+        MaterialTheme.colorScheme.surfaceContainerHigh
+    },
     /** Shorter segments with smaller type, for a group that sits inside a top bar. */
     compact: Boolean = false,
 ) {
-    val motion = LocalRethinkMotion.current
-    val spatial = MaterialTheme.motionScheme.defaultSpatialSpec<Float>()
     Row(
         modifier = modifier
             .then(if (fillWidth) Modifier.fillMaxWidth() else Modifier)
@@ -99,15 +107,8 @@ fun <T> RethinkConnectedChoiceGroup(
         )
         options.forEachIndexed { index, option ->
             val isSelected = option.value == selected
-            val collapsible = labels == RethinkChoiceLabels.SelectedOnly && option.icon != null
-            val showLabel = !iconOnly && (!collapsible || isSelected)
-            // Selected segment grows to hold its label; the others shrink to an icon. The weights
-            // ride the spatial spring so the row reflows like one expressive control.
-            val weight by animateFloatAsState(
-                targetValue = if (collapsible && !isSelected) COLLAPSED_WEIGHT else 1f,
-                animationSpec = if (motion.reducedMotion) snap() else spatial,
-                label = "choiceWeight",
-            )
+            @Suppress("DEPRECATION")
+            val iconOnSelectedOnly = labels == RethinkChoiceLabels.SelectedIcon || labels == RethinkChoiceLabels.SelectedOnly
             ToggleButton(
                 checked = isSelected,
                 onCheckedChange = { checked ->
@@ -131,22 +132,26 @@ fun <T> RethinkConnectedChoiceGroup(
                     else -> ButtonDefaults.ContentPadding
                 },
                 modifier = Modifier
-                    .then(if (fillWidth) Modifier.weight(weight) else Modifier.animateContentSize())
+                    .then(if (fillWidth) Modifier.weight(1f) else Modifier.animateContentSize())
                     .heightIn(min = if (compact) SharedDimensions.buttonHeightSm else SharedDimensions.touchTargetMin)
                     // A segment narrower than the touch target gets invisible side padding from
                     // Material, which shows as wide gaps; at the target width the 2dp gap holds.
                     .then(if (compact) Modifier.widthIn(min = SharedDimensions.touchTargetMin) else Modifier)
                     .semantics { role = Role.RadioButton },
             ) {
-                val icon = if (isSelected) option.selectedIcon else option.icon
+                val icon = when {
+                    iconOnSelectedOnly && !isSelected -> null
+                    isSelected -> option.selectedIcon
+                    else -> option.icon
+                }
                 if (icon != null) {
                     Icon(
                         imageVector = icon,
-                        contentDescription = if (showLabel) null else option.label,
+                        contentDescription = if (iconOnly) option.label else null,
                         modifier = Modifier.size(ToggleButtonDefaults.IconSize),
                     )
                 }
-                if (showLabel || icon == null) {
+                if (!iconOnly || icon == null) {
                     if (icon != null) Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
                     Text(
                         text = option.label,
@@ -167,5 +172,3 @@ private val FillWidthContentPadding = PaddingValues(
     vertical = SharedDimensions.spacingSm,
 )
 
-/** Width share of a collapsed (icon-only) segment relative to the expanded one. */
-private const val COLLAPSED_WEIGHT = 0.42f

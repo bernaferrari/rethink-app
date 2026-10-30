@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -108,11 +107,6 @@ fun RethinkRpnSupportSheet(
                         selected = category == item,
                         onClick = { category = if (category == item) null else item },
                         label = item,
-                        leadingIcon = if (category == item) {
-                            { Icon(MaterialSymbols.Filled.Check, null, Modifier.size(SharedDimensions.iconSizeXs)) }
-                        } else {
-                            null
-                        },
                     )
                 }
             }

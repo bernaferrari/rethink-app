@@ -189,13 +189,9 @@ fun RethinkCustomRulesScreen(
 ) {
     val canSwitchScope = uid == RETHINK_UID_EVERYBODY
     val effectiveMode = if (canSwitchScope) selectedMode else RethinkRulesMode.SELECTED_UID
-    val isUniversalRules = uid == RETHINK_UID_EVERYBODY && effectiveMode == RethinkRulesMode.SELECTED_UID
     var showAddDialog by rememberSaveable(uid) { mutableStateOf(false) }
-    val title = when {
-        isUniversalRules -> strings.universalTitle
-        effectiveMode == RethinkRulesMode.ALL_APPS -> strings.appWiseTitle
-        else -> strings.appRulesTitle
-    }
+    // The scope switch is a view of the same screen, so the title holds still when it flips.
+    val title = if (canSwitchScope) strings.universalTitle else strings.appRulesTitle
 
     LaunchedEffect(effectiveMode) {
         if (effectiveMode == RethinkRulesMode.ALL_APPS) showAddDialog = false
@@ -331,14 +327,14 @@ private fun RethinkRulesControlDeck(
         ),
         verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
     ) {
-        // Scope and rule type share one row as two separate groups: each shows only its selected
-        // label (others collapse to icons), and the gap plus each group's own rounded ends keep
-        // them from reading as one 4-segment control.
+        // Scope and rule type share one row as two separate groups: every segment keeps its
+        // label and only the selected one adds its icon, and the gap plus each group's own
+        // rounded ends keep them from reading as one 4-segment control.
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
         ) {
-            val labels = if (canSwitchScope) RethinkChoiceLabels.SelectedOnly else RethinkChoiceLabels.Always
+            val labels = if (canSwitchScope) RethinkChoiceLabels.SelectedIcon else RethinkChoiceLabels.Always
             if (canSwitchScope) {
                 RethinkRuleScopeSelector(
                     selected = selectedMode,

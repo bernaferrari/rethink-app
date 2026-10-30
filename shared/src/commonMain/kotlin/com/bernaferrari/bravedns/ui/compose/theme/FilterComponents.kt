@@ -58,23 +58,39 @@ fun RethinkSearchField(
     shape = shape, colors = TextFieldDefaults.colors(focusedContainerColor = containerColor, unfocusedContainerColor = containerColor, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, disabledIndicatorColor = Color.Transparent),
 )
 
+/**
+ * The app's chip. Unselected chips keep an outline so they read as tappable chips, not labels;
+ * selected chips fill with secondaryContainer and drop the outline. A chip with its own
+ * [leadingIcon] keeps it in both states; a chip without one gains a check mark while selected
+ * ([selectedCheck]), the M3 filter-chip cue.
+ */
 @Composable
 fun RethinkFilterChip(
     label: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier,
     shape: RoundedCornerShape = RoundedCornerShape(SharedDimensions.cornerRadiusMd),
     // Selection family shared with connected groups and toggle actions.
     selectedContainerColor: Color = MaterialTheme.colorScheme.secondaryContainer, selectedLabelColor: Color = MaterialTheme.colorScheme.onSecondaryContainer,
-    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerLow, labelColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
-    textStyle: TextStyle = MaterialTheme.typography.labelMedium, leadingIcon: (@Composable () -> Unit)? = null,
-    selectedLeadingIconColor: Color = selectedLabelColor, leadingIconColor: Color = labelColor, border: BorderStroke? = null,
-    minHeight: Dp = SharedDimensions.buttonHeightSm, selectedLabelWeight: FontWeight = FontWeight.Medium, defaultLabelWeight: FontWeight = FontWeight.Medium,
+    containerColor: Color = Color.Transparent, labelColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    textStyle: TextStyle = MaterialTheme.typography.labelLarge, leadingIcon: (@Composable () -> Unit)? = null,
+    selectedLeadingIconColor: Color = selectedLabelColor, leadingIconColor: Color = MaterialTheme.colorScheme.primary,
+    border: BorderStroke? = FilterChipDefaults.filterChipBorder(
+        enabled = true, selected = selected,
+        borderColor = MaterialTheme.colorScheme.outlineVariant, selectedBorderColor = Color.Transparent,
+    ),
+    minHeight: Dp = SharedDimensions.buttonHeightSm, selectedLabelWeight: FontWeight = FontWeight.SemiBold, defaultLabelWeight: FontWeight = FontWeight.Medium,
     labelMaxLines: Int = 1, labelOverflow: TextOverflow = TextOverflow.Ellipsis,
     /** A trailing caret marks a chip that opens a menu rather than toggling. */
     trailingIcon: (@Composable () -> Unit)? = null,
+    selectedCheck: Boolean = true,
 ) = FilterChip(
     modifier = modifier.heightIn(min = minHeight), selected = selected, onClick = onClick,
     label = { Text(label, fontWeight = if (selected) selectedLabelWeight else defaultLabelWeight, style = textStyle, maxLines = labelMaxLines, overflow = labelOverflow) },
-    leadingIcon = leadingIcon, trailingIcon = trailingIcon, shape = shape, border = border,
+    leadingIcon = leadingIcon ?: if (selected && selectedCheck) {
+        { Icon(MaterialSymbols.Filled.Check, null, Modifier.size(FilterChipDefaults.IconSize)) }
+    } else {
+        null
+    },
+    trailingIcon = trailingIcon, shape = shape, border = border,
     colors = FilterChipDefaults.filterChipColors(selectedContainerColor = selectedContainerColor, selectedLabelColor = selectedLabelColor, containerColor = containerColor, labelColor = labelColor, selectedLeadingIconColor = selectedLeadingIconColor, iconColor = leadingIconColor, selectedTrailingIconColor = selectedLeadingIconColor),
 )
 
@@ -92,6 +108,8 @@ fun RethinkMenuChip(
             label = label,
             selected = selected,
             onClick = { expanded = true },
+            // The caret already marks it; a check would read as "on".
+            selectedCheck = false,
             trailingIcon = { Icon(MaterialSymbols.Filled.KeyboardArrowDown, null, Modifier.size(FilterChipDefaults.IconSize)) },
         )
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
