@@ -466,8 +466,13 @@ private fun HeroAction(isActive: Boolean, label: String, stateDescription: Strin
             .semantics { this.stateDescription = stateDescription },
         contentPadding = ButtonDefaults.contentPaddingFor(height),
         colors = ButtonDefaults.buttonColors(
-            // A near-white tint of the hero itself, in light and dark alike.
-            containerColor = if (isActive) lerp(heroColor, Color.White, 0.82f) else scheme.primary,
+            // A quieter tone of the hero itself: lighter on a light hero, deeper on a dark one, so
+            // the hero's own content colour always reads on it.
+            containerColor = when {
+                !isActive -> scheme.primary
+                scheme.surface.luminance() < 0.5f -> lerp(heroColor, Color.Black, 0.35f)
+                else -> lerp(heroColor, Color.White, 0.82f)
+            },
             contentColor = if (isActive) contentColor else scheme.onPrimary,
         ),
     ) {
