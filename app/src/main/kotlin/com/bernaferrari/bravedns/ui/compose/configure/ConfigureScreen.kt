@@ -79,6 +79,9 @@ fun ConfigureScreen(
     val protection = stringResource(R.string.lbl_protection)
     val system = stringResource(R.string.lbl_system)
     val advanced = stringResource(R.string.lbl_advanced)
+    // Two tiers, one rule each: the four protection features as a 2x2 tile grid, everything else
+    // as one list. No entry carries a subtitle (only some had one, and "Customize" said nothing);
+    // the old "Advanced" section, which held an item also called "Advanced", folds into System.
     val sections = listOf(
         RethinkConfigureSection(protection, listOf(
             entry("apps", stringResource(R.string.lbl_apps), R.drawable.ic_app_info_accent, onAppsClick, keywords = listOf("apps", "application", "app list"), accent = ConfigureAccents.apps),
@@ -86,14 +89,12 @@ fun ConfigureScreen(
             entry("firewall", stringResource(R.string.lbl_firewall), R.drawable.firewall_home_screen, onFirewallClick, keywords = listOf("firewall", "rules", "allow", "block"), accent = ConfigureAccents.firewall),
             entry("proxy", stringResource(R.string.lbl_proxy), R.drawable.ic_proxy, onProxyClick, keywords = listOf("proxy", "socks5", "orbot", "wireguard"), accent = ConfigureAccents.proxy),
         ), RethinkConfigureLayout.GridFour),
-        RethinkConfigureSection(system, listOf(
-            entry("network", stringResource(R.string.lbl_network), R.drawable.ic_network_tunnel, onNetworkClick, keywords = listOf("network", "vpn", "tunnel"), accent = ConfigureAccents.network),
-            entry("settings", stringResource(R.string.settings_general_header), R.drawable.ic_other_settings, onOthersClick, stringResource(R.string.settings_general_customize), keywords = listOf("settings", "general", "backup"), accent = ConfigureAccents.settings),
-            entry("logs", stringResource(R.string.lbl_logs), R.drawable.ic_logs_accent, onLogsClick, stringResource(R.string.settings_enable_logs_desc), listOf("logs", "events", "console"), ConfigureAccents.logs),
-        ), RethinkConfigureLayout.GridTriad),
-        RethinkConfigureSection(advanced, buildList {
-            add(entry("anti-censorship", stringResource(R.string.anti_censorship_title), R.drawable.ic_anti_dpi, onAntiCensorshipClick, stringResource(R.string.anti_censorship_desc), listOf("anti censorship", "dpi"), ConfigureAccents.antiCensorship))
-            if (isDebug) add(entry("advanced", advanced, R.drawable.ic_advanced_settings, onAdvancedClick, stringResource(R.string.adv_set_experimental_desc), listOf("advanced", "experimental", "debug"), ConfigureAccents.advanced))
+        RethinkConfigureSection(system, buildList {
+            add(entry("network", stringResource(R.string.lbl_network), R.drawable.ic_network_tunnel, onNetworkClick, keywords = listOf("network", "vpn", "tunnel"), accent = ConfigureAccents.network))
+            add(entry("settings", stringResource(R.string.settings_general_header), R.drawable.ic_other_settings, onOthersClick, keywords = listOf("settings", "general", "backup"), accent = ConfigureAccents.settings))
+            add(entry("logs", stringResource(R.string.lbl_logs), R.drawable.ic_logs_accent, onLogsClick, keywords = listOf("logs", "events", "console"), accent = ConfigureAccents.logs))
+            add(entry("anti-censorship", stringResource(R.string.anti_censorship_title), R.drawable.ic_anti_dpi, onAntiCensorshipClick, keywords = listOf("anti censorship", "dpi"), accent = ConfigureAccents.antiCensorship))
+            if (isDebug) add(entry("advanced", advanced, R.drawable.ic_advanced_settings, onAdvancedClick, keywords = listOf("advanced", "experimental", "debug"), accent = ConfigureAccents.advanced))
         }, RethinkConfigureLayout.List),
     )
     val deepSearch = buildSettingsSearchIndex(isDebug).map { source ->

@@ -18,7 +18,6 @@ import com.bernaferrari.bravedns.ui.compose.database.BackupRestoreSheet
 import com.bernaferrari.bravedns.ui.compose.settings.RethinkMiscSettingIcon.AppUpdates
 import com.bernaferrari.bravedns.ui.compose.settings.RethinkMiscSettingIcon.AutoStart
 import com.bernaferrari.bravedns.ui.compose.settings.RethinkMiscSettingIcon.CrashReports
-import com.bernaferrari.bravedns.ui.compose.settings.RethinkMiscSettingIcon.Downloader
 import com.bernaferrari.bravedns.ui.compose.settings.RethinkMiscSettingIcon.FirewallBubble
 import com.bernaferrari.bravedns.ui.compose.settings.RethinkMiscSettingIcon.IpInfo
 import com.bernaferrari.bravedns.ui.compose.settings.RethinkMiscSettingIcon.Logs
@@ -45,7 +44,6 @@ fun MiscSettingsScreen(
     var ipInfoEnabled by remember { mutableStateOf(persistentState.downloadIpInfo) }
     var checkUpdatesEnabled by remember { mutableStateOf(persistentState.checkForAppUpdate) }
     var firebaseEnabled by remember { mutableStateOf(persistentState.firebaseErrorReportingEnabled) }
-    var customDownloadEnabled by remember { mutableStateOf(persistentState.useCustomDownloadManager) }
     var showBackupSheet by remember { mutableStateOf(false) }
     val showFirewallBubble = isAtleastQ()
     val isFdroid = isFdroidFlavour()
@@ -58,7 +56,7 @@ fun MiscSettingsScreen(
         RethinkMiscToggle("general_ip_info", stringResource(R.string.download_ip_info_title), stringResource(R.string.download_ip_info_desc, stringResource(R.string.lbl_ipinfo_inc)), ipInfoEnabled, IpInfo),
         if (!isFdroid) RethinkMiscToggle("general_app_updates", stringResource(R.string.settings_check_update_heading), stringResource(R.string.settings_check_update_desc), checkUpdatesEnabled, AppUpdates) else null,
         if (!isFdroid) RethinkMiscToggle("general_crash_reports", stringResource(R.string.settings_firebase_error_reporting_heading), stringResource(R.string.settings_firebase_error_reporting_desc), firebaseEnabled, CrashReports) else null,
-        RethinkMiscToggle("general_custom_downloader", stringResource(R.string.settings_custom_downloader_heading), stringResource(R.string.settings_custom_downloader_desc), customDownloadEnabled, Downloader),
+        // The in-app downloader only fetches blocklists, so it lives once, in DNS > Blocklists.
     )
 
     RethinkMiscSettingsScreen(
@@ -84,7 +82,6 @@ fun MiscSettingsScreen(
                 "general_ip_info" -> { ipInfoEnabled = enabled; persistentState.downloadIpInfo = enabled }
                 "general_app_updates" -> { checkUpdatesEnabled = enabled; persistentState.checkForAppUpdate = enabled }
                 "general_crash_reports" -> { firebaseEnabled = enabled; persistentState.firebaseErrorReportingEnabled = enabled; com.bernaferrari.bravedns.util.FirebaseErrorReporting.setEnabled(enabled) }
-                "general_custom_downloader" -> { customDownloadEnabled = enabled; persistentState.useCustomDownloadManager = enabled }
             }
             eventLogger.log(
                 EventType.UI_SETTING_CHANGED,

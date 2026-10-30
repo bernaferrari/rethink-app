@@ -484,7 +484,6 @@ internal val demoMiscToggles = listOf(
     RethinkMiscToggle("general_tombstone", "Remember removed apps", "Keep rules for apps that are temporarily uninstalled.", true, RethinkMiscSettingIcon.Tombstone),
     RethinkMiscToggle("general_firewall_bubble", "Firewall bubble", "Show quick firewall controls over other apps.", false, RethinkMiscSettingIcon.FirewallBubble),
     RethinkMiscToggle("general_ip_info", "Download IP information", "Enrich connection rows with IP ownership details.", true, RethinkMiscSettingIcon.IpInfo),
-    RethinkMiscToggle("general_custom_downloader", "Custom downloader", "Use Keepout's built-in downloader for blocklists.", false, RethinkMiscSettingIcon.Downloader),
 )
 
 internal val demoDatabasePreviews = listOf(

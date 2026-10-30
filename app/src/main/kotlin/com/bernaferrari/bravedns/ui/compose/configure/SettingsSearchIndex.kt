@@ -126,7 +126,7 @@ fun buildSettingsSearchIndex(isDebug: Boolean): List<SettingsSearchIndexEntry> {
                 id = "top.anti_censorship",
                 title = stringResource(R.string.anti_censorship_title),
                 subtitle = stringResource(R.string.anti_censorship_desc),
-                path = "$advanced > ${stringResource(R.string.anti_censorship_title)}",
+                path = "$system > ${stringResource(R.string.anti_censorship_title)}",
                 iconRes = R.drawable.ic_anti_dpi,
                 destination = SettingsSearchDestination.AntiCensorship,
                 keywords = listOf("anti censorship", "dpi")
@@ -207,7 +207,6 @@ fun buildSettingsSearchIndex(isDebug: Boolean): List<SettingsSearchIndexEntry> {
             searchEntry("general.ip_info", R.string.download_ip_info_title, R.string.settings_general_customize, "$system > ${stringResource(R.string.title_settings)} > ${stringResource(R.string.settings_general_header)}", R.drawable.ic_ip_info, SettingsSearchDestination.General("general_ip_info")),
             searchEntry("general.app_updates", R.string.settings_check_update_heading, R.string.settings_general_customize, "$system > ${stringResource(R.string.title_settings)} > ${stringResource(R.string.settings_general_header)}", R.drawable.ic_update, SettingsSearchDestination.General("general_app_updates"), listOf("updates")),
             searchEntry("general.crash_reports", R.string.settings_firebase_error_reporting_heading, R.string.settings_general_customize, "$system > ${stringResource(R.string.title_settings)} > ${stringResource(R.string.settings_general_header)}", R.drawable.ic_settings, SettingsSearchDestination.General("general_crash_reports"), listOf("firebase", "error reporting")),
-            searchEntry("general.custom_downloader", R.string.settings_custom_downloader_heading, R.string.settings_general_customize, "$system > ${stringResource(R.string.title_settings)} > ${stringResource(R.string.settings_general_header)}", R.drawable.ic_settings, SettingsSearchDestination.General("general_custom_downloader")),
             searchEntry("general.website", R.string.about_website, R.string.title_about, "$system > ${stringResource(R.string.title_settings)} > ${stringResource(R.string.title_about)}", R.drawable.ic_other_settings, SettingsSearchDestination.General("general_website"), listOf("website"))
         )
 
@@ -218,7 +217,7 @@ fun buildSettingsSearchIndex(isDebug: Boolean): List<SettingsSearchIndexEntry> {
                     id = "top.advanced",
                     title = stringResource(R.string.lbl_advanced),
                     subtitle = stringResource(R.string.adv_set_experimental_desc),
-                    path = "$advanced > ${stringResource(R.string.lbl_advanced)}",
+                    path = "$system > ${stringResource(R.string.lbl_advanced)}",
                     iconRes = R.drawable.ic_advanced_settings,
                     destination = SettingsSearchDestination.Advanced,
                     keywords = listOf("experimental", "debug")

@@ -41,7 +41,8 @@ fun AppearanceSettingsCard(
     colorPresetId: Int,
     onAppearanceModeSelected: (AppearanceMode) -> Unit,
     onColorPresetSelected: (RethinkColorPreset) -> Unit,
-    sectionHeaderColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    // Accent, like every other section header on the Settings hub.
+    sectionHeaderColor: Color = MaterialTheme.colorScheme.primary,
     showSectionHeader: Boolean = true,
 ) {
     val dynamicSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
