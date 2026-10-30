@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledEditLocationAlt: ImageVector
   get() {
-    if (_filledEditLocationAlt != null) {
-      return _filledEditLocationAlt!!
+    if (cachedFilledEditLocationAlt != null) {
+      return cachedFilledEditLocationAlt!!
     }
-    _filledEditLocationAlt =
+    cachedFilledEditLocationAlt =
       ImageVector.Builder(
           name = "edit_location_alt",
           defaultWidth = 24.dp,
@@ -104,7 +104,7 @@ internal val filledEditLocationAlt: ImageVector
           }
         }
         .build()
-    return _filledEditLocationAlt!!
+    return cachedFilledEditLocationAlt!!
   }
 
-internal var _filledEditLocationAlt: ImageVector? = null
+internal var cachedFilledEditLocationAlt: ImageVector? = null

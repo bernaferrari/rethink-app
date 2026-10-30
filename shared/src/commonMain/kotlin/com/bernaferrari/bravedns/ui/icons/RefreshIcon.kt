@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledRefresh: ImageVector
   get() {
-    if (_filledRefresh != null) {
-      return _filledRefresh!!
+    if (cachedFilledRefresh != null) {
+      return cachedFilledRefresh!!
     }
-    _filledRefresh =
+    cachedFilledRefresh =
       ImageVector.Builder(
           name = "refresh",
           defaultWidth = 24.dp,
@@ -77,7 +77,7 @@ internal val filledRefresh: ImageVector
           }
         }
         .build()
-    return _filledRefresh!!
+    return cachedFilledRefresh!!
   }
 
-internal var _filledRefresh: ImageVector? = null
+internal var cachedFilledRefresh: ImageVector? = null

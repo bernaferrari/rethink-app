@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledPolicy: ImageVector
   get() {
-    if (_filledPolicy != null) {
-      return _filledPolicy!!
+    if (cachedFilledPolicy != null) {
+      return cachedFilledPolicy!!
     }
-    _filledPolicy =
+    cachedFilledPolicy =
       ImageVector.Builder(
           name = "policy",
           defaultWidth = 24.dp,
@@ -85,7 +85,7 @@ internal val filledPolicy: ImageVector
           }
         }
         .build()
-    return _filledPolicy!!
+    return cachedFilledPolicy!!
   }
 
-internal var _filledPolicy: ImageVector? = null
+internal var cachedFilledPolicy: ImageVector? = null

@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledMoreHoriz: ImageVector
   get() {
-    if (_filledMoreHoriz != null) {
-      return _filledMoreHoriz!!
+    if (cachedFilledMoreHoriz != null) {
+      return cachedFilledMoreHoriz!!
     }
-    _filledMoreHoriz =
+    cachedFilledMoreHoriz =
       ImageVector.Builder(
           name = "more_horiz",
           defaultWidth = 24.dp,
@@ -71,7 +71,7 @@ internal val filledMoreHoriz: ImageVector
           }
         }
         .build()
-    return _filledMoreHoriz!!
+    return cachedFilledMoreHoriz!!
   }
 
-internal var _filledMoreHoriz: ImageVector? = null
+internal var cachedFilledMoreHoriz: ImageVector? = null

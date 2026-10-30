@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledForum: ImageVector
   get() {
-    if (_filledForum != null) {
-      return _filledForum!!
+    if (cachedFilledForum != null) {
+      return cachedFilledForum!!
     }
-    _filledForum =
+    cachedFilledForum =
       ImageVector.Builder(
           name = "forum",
           defaultWidth = 24.dp,
@@ -77,7 +77,7 @@ internal val filledForum: ImageVector
           }
         }
         .build()
-    return _filledForum!!
+    return cachedFilledForum!!
   }
 
-internal var _filledForum: ImageVector? = null
+internal var cachedFilledForum: ImageVector? = null

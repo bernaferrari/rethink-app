@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledVerified: ImageVector
   get() {
-    if (_filledVerified != null) {
-      return _filledVerified!!
+    if (cachedFilledVerified != null) {
+      return cachedFilledVerified!!
     }
-    _filledVerified =
+    cachedFilledVerified =
       ImageVector.Builder(
           name = "verified",
           defaultWidth = 24.dp,
@@ -99,7 +99,7 @@ internal val filledVerified: ImageVector
           }
         }
         .build()
-    return _filledVerified!!
+    return cachedFilledVerified!!
   }
 
-internal var _filledVerified: ImageVector? = null
+internal var cachedFilledVerified: ImageVector? = null

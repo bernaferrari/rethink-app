@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledShoppingCart: ImageVector
   get() {
-    if (_filledShoppingCart != null) {
-      return _filledShoppingCart!!
+    if (cachedFilledShoppingCart != null) {
+      return cachedFilledShoppingCart!!
     }
-    _filledShoppingCart =
+    cachedFilledShoppingCart =
       ImageVector.Builder(
           name = "shopping_cart",
           defaultWidth = 24.dp,
@@ -90,7 +90,7 @@ internal val filledShoppingCart: ImageVector
           }
         }
         .build()
-    return _filledShoppingCart!!
+    return cachedFilledShoppingCart!!
   }
 
-internal var _filledShoppingCart: ImageVector? = null
+internal var cachedFilledShoppingCart: ImageVector? = null

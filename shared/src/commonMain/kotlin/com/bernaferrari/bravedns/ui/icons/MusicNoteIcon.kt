@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledMusicNote: ImageVector
   get() {
-    if (_filledMusicNote != null) {
-      return _filledMusicNote!!
+    if (cachedFilledMusicNote != null) {
+      return cachedFilledMusicNote!!
     }
-    _filledMusicNote =
+    cachedFilledMusicNote =
       ImageVector.Builder(
           name = "music_note",
           defaultWidth = 24.dp,
@@ -62,7 +62,7 @@ internal val filledMusicNote: ImageVector
           }
         }
         .build()
-    return _filledMusicNote!!
+    return cachedFilledMusicNote!!
   }
 
-internal var _filledMusicNote: ImageVector? = null
+internal var cachedFilledMusicNote: ImageVector? = null

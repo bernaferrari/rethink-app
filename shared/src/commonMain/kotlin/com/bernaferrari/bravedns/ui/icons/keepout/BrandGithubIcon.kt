@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val brandGithub: ImageVector
   get() {
-    if (_brandGithub != null) {
-      return _brandGithub!!
+    if (cachedBrandGithub != null) {
+      return cachedBrandGithub!!
     }
-    _brandGithub =
+    cachedBrandGithub =
       ImageVector.Builder(
           name = "github",
           defaultWidth = 24.dp,
@@ -96,7 +96,7 @@ internal val brandGithub: ImageVector
           }
         }
         .build()
-    return _brandGithub!!
+    return cachedBrandGithub!!
   }
 
-internal var _brandGithub: ImageVector? = null
+internal var cachedBrandGithub: ImageVector? = null

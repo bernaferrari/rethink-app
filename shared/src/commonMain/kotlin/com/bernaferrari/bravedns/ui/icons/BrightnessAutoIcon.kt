@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledBrightnessAuto: ImageVector
   get() {
-    if (_filledBrightnessAuto != null) {
-      return _filledBrightnessAuto!!
+    if (cachedFilledBrightnessAuto != null) {
+      return cachedFilledBrightnessAuto!!
     }
-    _filledBrightnessAuto =
+    cachedFilledBrightnessAuto =
       ImageVector.Builder(
           name = "brightness_auto",
           defaultWidth = 24.dp,
@@ -109,7 +109,7 @@ internal val filledBrightnessAuto: ImageVector
           }
         }
         .build()
-    return _filledBrightnessAuto!!
+    return cachedFilledBrightnessAuto!!
   }
 
-internal var _filledBrightnessAuto: ImageVector? = null
+internal var cachedFilledBrightnessAuto: ImageVector? = null

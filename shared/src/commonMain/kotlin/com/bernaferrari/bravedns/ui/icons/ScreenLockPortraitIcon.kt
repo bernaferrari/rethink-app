@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledScreenLockPortrait: ImageVector
   get() {
-    if (_filledScreenLockPortrait != null) {
-      return _filledScreenLockPortrait!!
+    if (cachedFilledScreenLockPortrait != null) {
+      return cachedFilledScreenLockPortrait!!
     }
-    _filledScreenLockPortrait =
+    cachedFilledScreenLockPortrait =
       ImageVector.Builder(
           name = "screen_lock_portrait",
           defaultWidth = 24.dp,
@@ -91,7 +91,7 @@ internal val filledScreenLockPortrait: ImageVector
           }
         }
         .build()
-    return _filledScreenLockPortrait!!
+    return cachedFilledScreenLockPortrait!!
   }
 
-internal var _filledScreenLockPortrait: ImageVector? = null
+internal var cachedFilledScreenLockPortrait: ImageVector? = null

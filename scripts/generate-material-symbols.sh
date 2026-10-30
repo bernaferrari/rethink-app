@@ -88,11 +88,11 @@ normalize_vector() {
 
   perl -pi -e "s/^package .*/package $PACKAGE_NAME/" "$source"
   perl -pi -e "s/public val $icon\\b/public val $prefix$pascal/g" "$source"
-  perl -pi -e "s/_$icon\\b/_$prefix$pascal/g" "$source"
+  perl -pi -e "s/_$icon\\b/cached$style$pascal/g" "$source"
   perl -pi -e 's/^public val /internal val /; s/^private var /internal var /' "$source"
 
   grep -Fq "internal val $prefix$pascal: ImageVector" "$source" &&
-    grep -Fq "internal var _$prefix$pascal: ImageVector? = null" "$source" || {
+    grep -Fq "internal var cached$style$pascal: ImageVector? = null" "$source" || {
       printf 'Google response format changed for %s (%s)\n' "$icon" "$style" >&2
       return 1
     }

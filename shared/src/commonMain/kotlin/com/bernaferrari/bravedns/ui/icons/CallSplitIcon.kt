@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledCallSplit: ImageVector
   get() {
-    if (_filledCallSplit != null) {
-      return _filledCallSplit!!
+    if (cachedFilledCallSplit != null) {
+      return cachedFilledCallSplit!!
     }
-    _filledCallSplit =
+    cachedFilledCallSplit =
       ImageVector.Builder(
           name = "call_split",
           defaultWidth = 24.dp,
@@ -89,7 +89,7 @@ internal val filledCallSplit: ImageVector
           }
         }
         .build()
-    return _filledCallSplit!!
+    return cachedFilledCallSplit!!
   }
 
-internal var _filledCallSplit: ImageVector? = null
+internal var cachedFilledCallSplit: ImageVector? = null

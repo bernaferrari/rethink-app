@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledFilterList: ImageVector
   get() {
-    if (_filledFilterList != null) {
-      return _filledFilterList!!
+    if (cachedFilledFilterList != null) {
+      return cachedFilledFilterList!!
     }
-    _filledFilterList =
+    cachedFilledFilterList =
       ImageVector.Builder(
           name = "filter_list",
           defaultWidth = 24.dp,
@@ -77,7 +77,7 @@ internal val filledFilterList: ImageVector
           }
         }
         .build()
-    return _filledFilterList!!
+    return cachedFilledFilterList!!
   }
 
-internal var _filledFilterList: ImageVector? = null
+internal var cachedFilledFilterList: ImageVector? = null

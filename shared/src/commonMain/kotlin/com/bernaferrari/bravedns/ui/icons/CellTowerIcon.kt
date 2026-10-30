@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledCellTower: ImageVector
   get() {
-    if (_filledCellTower != null) {
-      return _filledCellTower!!
+    if (cachedFilledCellTower != null) {
+      return cachedFilledCellTower!!
     }
-    _filledCellTower =
+    cachedFilledCellTower =
       ImageVector.Builder(
           name = "cell_tower",
           defaultWidth = 24.dp,
@@ -141,7 +141,7 @@ internal val filledCellTower: ImageVector
           }
         }
         .build()
-    return _filledCellTower!!
+    return cachedFilledCellTower!!
   }
 
-internal var _filledCellTower: ImageVector? = null
+internal var cachedFilledCellTower: ImageVector? = null

@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledMobiledataOff: ImageVector
   get() {
-    if (_filledMobiledataOff != null) {
-      return _filledMobiledataOff!!
+    if (cachedFilledMobiledataOff != null) {
+      return cachedFilledMobiledataOff!!
     }
-    _filledMobiledataOff =
+    cachedFilledMobiledataOff =
       ImageVector.Builder(
           name = "mobiledata_off",
           defaultWidth = 24.dp,
@@ -96,7 +96,7 @@ internal val filledMobiledataOff: ImageVector
           }
         }
         .build()
-    return _filledMobiledataOff!!
+    return cachedFilledMobiledataOff!!
   }
 
-internal var _filledMobiledataOff: ImageVector? = null
+internal var cachedFilledMobiledataOff: ImageVector? = null

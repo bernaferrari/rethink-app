@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledGppGood: ImageVector
   get() {
-    if (_filledGppGood != null) {
-      return _filledGppGood!!
+    if (cachedFilledGppGood != null) {
+      return cachedFilledGppGood!!
     }
-    _filledGppGood =
+    cachedFilledGppGood =
       ImageVector.Builder(
           name = "gpp_good",
           defaultWidth = 24.dp,
@@ -77,7 +77,7 @@ internal val filledGppGood: ImageVector
           }
         }
         .build()
-    return _filledGppGood!!
+    return cachedFilledGppGood!!
   }
 
-internal var _filledGppGood: ImageVector? = null
+internal var cachedFilledGppGood: ImageVector? = null

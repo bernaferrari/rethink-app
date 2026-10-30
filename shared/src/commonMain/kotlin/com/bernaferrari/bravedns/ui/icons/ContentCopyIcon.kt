@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledContentCopy: ImageVector
   get() {
-    if (_filledContentCopy != null) {
-      return _filledContentCopy!!
+    if (cachedFilledContentCopy != null) {
+      return cachedFilledContentCopy!!
     }
-    _filledContentCopy =
+    cachedFilledContentCopy =
       ImageVector.Builder(
           name = "content_copy",
           defaultWidth = 24.dp,
@@ -71,7 +71,7 @@ internal val filledContentCopy: ImageVector
           }
         }
         .build()
-    return _filledContentCopy!!
+    return cachedFilledContentCopy!!
   }
 
-internal var _filledContentCopy: ImageVector? = null
+internal var cachedFilledContentCopy: ImageVector? = null

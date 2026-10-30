@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledVisibilityOff: ImageVector
   get() {
-    if (_filledVisibilityOff != null) {
-      return _filledVisibilityOff!!
+    if (cachedFilledVisibilityOff != null) {
+      return cachedFilledVisibilityOff!!
     }
-    _filledVisibilityOff =
+    cachedFilledVisibilityOff =
       ImageVector.Builder(
           name = "visibility_off",
           defaultWidth = 24.dp,
@@ -112,7 +112,7 @@ internal val filledVisibilityOff: ImageVector
           }
         }
         .build()
-    return _filledVisibilityOff!!
+    return cachedFilledVisibilityOff!!
   }
 
-internal var _filledVisibilityOff: ImageVector? = null
+internal var cachedFilledVisibilityOff: ImageVector? = null

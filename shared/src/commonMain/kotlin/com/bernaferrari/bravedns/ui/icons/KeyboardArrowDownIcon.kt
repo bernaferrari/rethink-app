@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledKeyboardArrowDown: ImageVector
   get() {
-    if (_filledKeyboardArrowDown != null) {
-      return _filledKeyboardArrowDown!!
+    if (cachedFilledKeyboardArrowDown != null) {
+      return cachedFilledKeyboardArrowDown!!
     }
-    _filledKeyboardArrowDown =
+    cachedFilledKeyboardArrowDown =
       ImageVector.Builder(
           name = "keyboard_arrow_down",
           defaultWidth = 24.dp,
@@ -59,7 +59,7 @@ internal val filledKeyboardArrowDown: ImageVector
           }
         }
         .build()
-    return _filledKeyboardArrowDown!!
+    return cachedFilledKeyboardArrowDown!!
   }
 
-internal var _filledKeyboardArrowDown: ImageVector? = null
+internal var cachedFilledKeyboardArrowDown: ImageVector? = null

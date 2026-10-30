@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledStar: ImageVector
   get() {
-    if (_filledStar != null) {
-      return _filledStar!!
+    if (cachedFilledStar != null) {
+      return cachedFilledStar!!
     }
-    _filledStar =
+    cachedFilledStar =
       ImageVector.Builder(
           name = "star",
           defaultWidth = 24.dp,
@@ -73,18 +73,18 @@ internal val filledStar: ImageVector
           }
         }
         .build()
-    return _filledStar!!
+    return cachedFilledStar!!
   }
 
-internal var _filledStar: ImageVector? = null
+internal var cachedFilledStar: ImageVector? = null
 
 @Suppress("CheckReturnValue")
 internal val outlinedStar: ImageVector
   get() {
-    if (_outlinedStar != null) {
-      return _outlinedStar!!
+    if (cachedOutlinedStar != null) {
+      return cachedOutlinedStar!!
     }
-    _outlinedStar =
+    cachedOutlinedStar =
       ImageVector.Builder(
           name = "star",
           defaultWidth = 24.dp,
@@ -153,7 +153,7 @@ internal val outlinedStar: ImageVector
           }
         }
         .build()
-    return _outlinedStar!!
+    return cachedOutlinedStar!!
   }
 
-internal var _outlinedStar: ImageVector? = null
+internal var cachedOutlinedStar: ImageVector? = null

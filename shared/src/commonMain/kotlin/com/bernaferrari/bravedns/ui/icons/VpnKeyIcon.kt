@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledVpnKey: ImageVector
   get() {
-    if (_filledVpnKey != null) {
-      return _filledVpnKey!!
+    if (cachedFilledVpnKey != null) {
+      return cachedFilledVpnKey!!
     }
-    _filledVpnKey =
+    cachedFilledVpnKey =
       ImageVector.Builder(
           name = "vpn_key",
           defaultWidth = 24.dp,
@@ -73,7 +73,7 @@ internal val filledVpnKey: ImageVector
           }
         }
         .build()
-    return _filledVpnKey!!
+    return cachedFilledVpnKey!!
   }
 
-internal var _filledVpnKey: ImageVector? = null
+internal var cachedFilledVpnKey: ImageVector? = null

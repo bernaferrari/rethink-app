@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledLightMode: ImageVector
   get() {
-    if (_filledLightMode != null) {
-      return _filledLightMode!!
+    if (cachedFilledLightMode != null) {
+      return cachedFilledLightMode!!
     }
-    _filledLightMode =
+    cachedFilledLightMode =
       ImageVector.Builder(
           name = "light_mode",
           defaultWidth = 24.dp,
@@ -147,7 +147,7 @@ internal val filledLightMode: ImageVector
           }
         }
         .build()
-    return _filledLightMode!!
+    return cachedFilledLightMode!!
   }
 
-internal var _filledLightMode: ImageVector? = null
+internal var cachedFilledLightMode: ImageVector? = null

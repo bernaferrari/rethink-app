@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledPhoneAndroid: ImageVector
   get() {
-    if (_filledPhoneAndroid != null) {
-      return _filledPhoneAndroid!!
+    if (cachedFilledPhoneAndroid != null) {
+      return cachedFilledPhoneAndroid!!
     }
-    _filledPhoneAndroid =
+    cachedFilledPhoneAndroid =
       ImageVector.Builder(
           name = "phone_android",
           defaultWidth = 24.dp,
@@ -71,7 +71,7 @@ internal val filledPhoneAndroid: ImageVector
           }
         }
         .build()
-    return _filledPhoneAndroid!!
+    return cachedFilledPhoneAndroid!!
   }
 
-internal var _filledPhoneAndroid: ImageVector? = null
+internal var cachedFilledPhoneAndroid: ImageVector? = null

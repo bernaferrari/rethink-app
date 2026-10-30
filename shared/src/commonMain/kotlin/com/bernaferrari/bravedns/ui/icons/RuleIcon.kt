@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledRule: ImageVector
   get() {
-    if (_filledRule != null) {
-      return _filledRule!!
+    if (cachedFilledRule != null) {
+      return cachedFilledRule!!
     }
-    _filledRule =
+    cachedFilledRule =
       ImageVector.Builder(
           name = "rule",
           defaultWidth = 24.dp,
@@ -107,7 +107,7 @@ internal val filledRule: ImageVector
           }
         }
         .build()
-    return _filledRule!!
+    return cachedFilledRule!!
   }
 
-internal var _filledRule: ImageVector? = null
+internal var cachedFilledRule: ImageVector? = null

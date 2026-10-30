@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledCancel: ImageVector
   get() {
-    if (_filledCancel != null) {
-      return _filledCancel!!
+    if (cachedFilledCancel != null) {
+      return cachedFilledCancel!!
     }
-    _filledCancel =
+    cachedFilledCancel =
       ImageVector.Builder(
           name = "cancel",
           defaultWidth = 24.dp,
@@ -85,7 +85,7 @@ internal val filledCancel: ImageVector
           }
         }
         .build()
-    return _filledCancel!!
+    return cachedFilledCancel!!
   }
 
-internal var _filledCancel: ImageVector? = null
+internal var cachedFilledCancel: ImageVector? = null

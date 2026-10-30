@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledTimer: ImageVector
   get() {
-    if (_filledTimer != null) {
-      return _filledTimer!!
+    if (cachedFilledTimer != null) {
+      return cachedFilledTimer!!
     }
-    _filledTimer =
+    cachedFilledTimer =
       ImageVector.Builder(
           name = "timer",
           defaultWidth = 24.dp,
@@ -89,7 +89,7 @@ internal val filledTimer: ImageVector
           }
         }
         .build()
-    return _filledTimer!!
+    return cachedFilledTimer!!
   }
 
-internal var _filledTimer: ImageVector? = null
+internal var cachedFilledTimer: ImageVector? = null

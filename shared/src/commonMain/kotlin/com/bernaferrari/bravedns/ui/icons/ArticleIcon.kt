@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledArticle: ImageVector
   get() {
-    if (_filledArticle != null) {
-      return _filledArticle!!
+    if (cachedFilledArticle != null) {
+      return cachedFilledArticle!!
     }
-    _filledArticle =
+    cachedFilledArticle =
       ImageVector.Builder(
           name = "article",
           defaultWidth = 24.dp,
@@ -91,7 +91,7 @@ internal val filledArticle: ImageVector
           }
         }
         .build()
-    return _filledArticle!!
+    return cachedFilledArticle!!
   }
 
-internal var _filledArticle: ImageVector? = null
+internal var cachedFilledArticle: ImageVector? = null

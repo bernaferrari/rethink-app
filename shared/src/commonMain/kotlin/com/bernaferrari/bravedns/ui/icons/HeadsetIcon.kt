@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledHeadset: ImageVector
   get() {
-    if (_filledHeadset != null) {
-      return _filledHeadset!!
+    if (cachedFilledHeadset != null) {
+      return cachedFilledHeadset!!
     }
-    _filledHeadset =
+    cachedFilledHeadset =
       ImageVector.Builder(
           name = "headset",
           defaultWidth = 24.dp,
@@ -77,7 +77,7 @@ internal val filledHeadset: ImageVector
           }
         }
         .build()
-    return _filledHeadset!!
+    return cachedFilledHeadset!!
   }
 
-internal var _filledHeadset: ImageVector? = null
+internal var cachedFilledHeadset: ImageVector? = null

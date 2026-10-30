@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledDoNotDisturbOn: ImageVector
   get() {
-    if (_filledDoNotDisturbOn != null) {
-      return _filledDoNotDisturbOn!!
+    if (cachedFilledDoNotDisturbOn != null) {
+      return cachedFilledDoNotDisturbOn!!
     }
-    _filledDoNotDisturbOn =
+    cachedFilledDoNotDisturbOn =
       ImageVector.Builder(
           name = "do_not_disturb_on",
           defaultWidth = 24.dp,
@@ -71,7 +71,7 @@ internal val filledDoNotDisturbOn: ImageVector
           }
         }
         .build()
-    return _filledDoNotDisturbOn!!
+    return cachedFilledDoNotDisturbOn!!
   }
 
-internal var _filledDoNotDisturbOn: ImageVector? = null
+internal var cachedFilledDoNotDisturbOn: ImageVector? = null

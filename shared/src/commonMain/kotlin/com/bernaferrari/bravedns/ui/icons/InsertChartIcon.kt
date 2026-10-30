@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledInsertChart: ImageVector
   get() {
-    if (_filledInsertChart != null) {
-      return _filledInsertChart!!
+    if (cachedFilledInsertChart != null) {
+      return cachedFilledInsertChart!!
     }
-    _filledInsertChart =
+    cachedFilledInsertChart =
       ImageVector.Builder(
           name = "insert_chart",
           defaultWidth = 24.dp,
@@ -91,18 +91,18 @@ internal val filledInsertChart: ImageVector
           }
         }
         .build()
-    return _filledInsertChart!!
+    return cachedFilledInsertChart!!
   }
 
-internal var _filledInsertChart: ImageVector? = null
+internal var cachedFilledInsertChart: ImageVector? = null
 
 @Suppress("CheckReturnValue")
 internal val outlinedInsertChart: ImageVector
   get() {
-    if (_outlinedInsertChart != null) {
-      return _outlinedInsertChart!!
+    if (cachedOutlinedInsertChart != null) {
+      return cachedOutlinedInsertChart!!
     }
-    _outlinedInsertChart =
+    cachedOutlinedInsertChart =
       ImageVector.Builder(
           name = "insert_chart",
           defaultWidth = 24.dp,
@@ -185,7 +185,7 @@ internal val outlinedInsertChart: ImageVector
           }
         }
         .build()
-    return _outlinedInsertChart!!
+    return cachedOutlinedInsertChart!!
   }
 
-internal var _outlinedInsertChart: ImageVector? = null
+internal var cachedOutlinedInsertChart: ImageVector? = null

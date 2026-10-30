@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledFormatListBulleted: ImageVector
   get() {
-    if (_filledFormatListBulleted != null) {
-      return _filledFormatListBulleted!!
+    if (cachedFilledFormatListBulleted != null) {
+      return cachedFilledFormatListBulleted!!
     }
-    _filledFormatListBulleted =
+    cachedFilledFormatListBulleted =
       ImageVector.Builder(
           name = "format_list_bulleted",
           defaultWidth = 24.dp,
@@ -107,7 +107,7 @@ internal val filledFormatListBulleted: ImageVector
           }
         }
         .build()
-    return _filledFormatListBulleted!!
+    return cachedFilledFormatListBulleted!!
   }
 
-internal var _filledFormatListBulleted: ImageVector? = null
+internal var cachedFilledFormatListBulleted: ImageVector? = null

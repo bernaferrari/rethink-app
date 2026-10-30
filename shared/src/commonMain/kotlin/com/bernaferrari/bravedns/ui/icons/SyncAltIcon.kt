@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledSyncAlt: ImageVector
   get() {
-    if (_filledSyncAlt != null) {
-      return _filledSyncAlt!!
+    if (cachedFilledSyncAlt != null) {
+      return cachedFilledSyncAlt!!
     }
-    _filledSyncAlt =
+    cachedFilledSyncAlt =
       ImageVector.Builder(
           name = "sync_alt",
           defaultWidth = 24.dp,
@@ -89,7 +89,7 @@ internal val filledSyncAlt: ImageVector
           }
         }
         .build()
-    return _filledSyncAlt!!
+    return cachedFilledSyncAlt!!
   }
 
-internal var _filledSyncAlt: ImageVector? = null
+internal var cachedFilledSyncAlt: ImageVector? = null

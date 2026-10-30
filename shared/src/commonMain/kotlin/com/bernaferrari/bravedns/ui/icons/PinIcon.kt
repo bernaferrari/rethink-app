@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledPin: ImageVector
   get() {
-    if (_filledPin != null) {
-      return _filledPin!!
+    if (cachedFilledPin != null) {
+      return cachedFilledPin!!
     }
-    _filledPin =
+    cachedFilledPin =
       ImageVector.Builder(
           name = "pin",
           defaultWidth = 24.dp,
@@ -146,7 +146,7 @@ internal val filledPin: ImageVector
           }
         }
         .build()
-    return _filledPin!!
+    return cachedFilledPin!!
   }
 
-internal var _filledPin: ImageVector? = null
+internal var cachedFilledPin: ImageVector? = null

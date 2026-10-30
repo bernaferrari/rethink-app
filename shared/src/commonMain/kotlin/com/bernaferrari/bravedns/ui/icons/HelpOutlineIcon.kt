@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledHelpOutline: ImageVector
   get() {
-    if (_filledHelpOutline != null) {
-      return _filledHelpOutline!!
+    if (cachedFilledHelpOutline != null) {
+      return cachedFilledHelpOutline!!
     }
-    _filledHelpOutline =
+    cachedFilledHelpOutline =
       ImageVector.Builder(
           name = "help_outline",
           defaultWidth = 24.dp,
@@ -95,7 +95,7 @@ internal val filledHelpOutline: ImageVector
           }
         }
         .build()
-    return _filledHelpOutline!!
+    return cachedFilledHelpOutline!!
   }
 
-internal var _filledHelpOutline: ImageVector? = null
+internal var cachedFilledHelpOutline: ImageVector? = null

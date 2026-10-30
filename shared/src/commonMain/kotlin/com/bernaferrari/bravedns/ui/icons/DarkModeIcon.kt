@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledDarkMode: ImageVector
   get() {
-    if (_filledDarkMode != null) {
-      return _filledDarkMode!!
+    if (cachedFilledDarkMode != null) {
+      return cachedFilledDarkMode!!
     }
-    _filledDarkMode =
+    cachedFilledDarkMode =
       ImageVector.Builder(
           name = "dark_mode",
           defaultWidth = 24.dp,
@@ -63,7 +63,7 @@ internal val filledDarkMode: ImageVector
           }
         }
         .build()
-    return _filledDarkMode!!
+    return cachedFilledDarkMode!!
   }
 
-internal var _filledDarkMode: ImageVector? = null
+internal var cachedFilledDarkMode: ImageVector? = null

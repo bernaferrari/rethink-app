@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledArrowBack: ImageVector
   get() {
-    if (_filledArrowBack != null) {
-      return _filledArrowBack!!
+    if (cachedFilledArrowBack != null) {
+      return cachedFilledArrowBack!!
     }
-    _filledArrowBack =
+    cachedFilledArrowBack =
       ImageVector.Builder(
           name = "arrow_back",
           defaultWidth = 24.dp,
@@ -65,7 +65,7 @@ internal val filledArrowBack: ImageVector
           }
         }
         .build()
-    return _filledArrowBack!!
+    return cachedFilledArrowBack!!
   }
 
-internal var _filledArrowBack: ImageVector? = null
+internal var cachedFilledArrowBack: ImageVector? = null

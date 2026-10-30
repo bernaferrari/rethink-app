@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledPalette: ImageVector
   get() {
-    if (_filledPalette != null) {
-      return _filledPalette!!
+    if (cachedFilledPalette != null) {
+      return cachedFilledPalette!!
     }
-    _filledPalette =
+    cachedFilledPalette =
       ImageVector.Builder(
           name = "palette",
           defaultWidth = 24.dp,
@@ -104,7 +104,7 @@ internal val filledPalette: ImageVector
           }
         }
         .build()
-    return _filledPalette!!
+    return cachedFilledPalette!!
   }
 
-internal var _filledPalette: ImageVector? = null
+internal var cachedFilledPalette: ImageVector? = null

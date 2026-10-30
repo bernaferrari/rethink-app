@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledGroup: ImageVector
   get() {
-    if (_filledGroup != null) {
-      return _filledGroup!!
+    if (cachedFilledGroup != null) {
+      return cachedFilledGroup!!
     }
-    _filledGroup =
+    cachedFilledGroup =
       ImageVector.Builder(
           name = "group",
           defaultWidth = 24.dp,
@@ -97,7 +97,7 @@ internal val filledGroup: ImageVector
           }
         }
         .build()
-    return _filledGroup!!
+    return cachedFilledGroup!!
   }
 
-internal var _filledGroup: ImageVector? = null
+internal var cachedFilledGroup: ImageVector? = null

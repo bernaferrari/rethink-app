@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledWarning: ImageVector
   get() {
-    if (_filledWarning != null) {
-      return _filledWarning!!
+    if (cachedFilledWarning != null) {
+      return cachedFilledWarning!!
     }
-    _filledWarning =
+    cachedFilledWarning =
       ImageVector.Builder(
           name = "warning",
           defaultWidth = 24.dp,
@@ -80,7 +80,7 @@ internal val filledWarning: ImageVector
           }
         }
         .build()
-    return _filledWarning!!
+    return cachedFilledWarning!!
   }
 
-internal var _filledWarning: ImageVector? = null
+internal var cachedFilledWarning: ImageVector? = null

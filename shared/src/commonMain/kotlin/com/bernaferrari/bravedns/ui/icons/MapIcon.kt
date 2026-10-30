@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledMap: ImageVector
   get() {
-    if (_filledMap != null) {
-      return _filledMap!!
+    if (cachedFilledMap != null) {
+      return cachedFilledMap!!
     }
-    _filledMap =
+    cachedFilledMap =
       ImageVector.Builder(
           name = "map",
           defaultWidth = 24.dp,
@@ -77,7 +77,7 @@ internal val filledMap: ImageVector
           }
         }
         .build()
-    return _filledMap!!
+    return cachedFilledMap!!
   }
 
-internal var _filledMap: ImageVector? = null
+internal var cachedFilledMap: ImageVector? = null

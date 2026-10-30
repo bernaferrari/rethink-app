@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledPhotoLibrary: ImageVector
   get() {
-    if (_filledPhotoLibrary != null) {
-      return _filledPhotoLibrary!!
+    if (cachedFilledPhotoLibrary != null) {
+      return cachedFilledPhotoLibrary!!
     }
-    _filledPhotoLibrary =
+    cachedFilledPhotoLibrary =
       ImageVector.Builder(
           name = "photo_library",
           defaultWidth = 24.dp,
@@ -84,7 +84,7 @@ internal val filledPhotoLibrary: ImageVector
           }
         }
         .build()
-    return _filledPhotoLibrary!!
+    return cachedFilledPhotoLibrary!!
   }
 
-internal var _filledPhotoLibrary: ImageVector? = null
+internal var cachedFilledPhotoLibrary: ImageVector? = null

@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val brandMastodon: ImageVector
   get() {
-    if (_brandMastodon != null) {
-      return _brandMastodon!!
+    if (cachedBrandMastodon != null) {
+      return cachedBrandMastodon!!
     }
-    _brandMastodon =
+    cachedBrandMastodon =
       ImageVector.Builder(
           name = "mastodon",
           defaultWidth = 24.dp,
@@ -123,7 +123,7 @@ internal val brandMastodon: ImageVector
           }
         }
         .build()
-    return _brandMastodon!!
+    return cachedBrandMastodon!!
   }
 
-internal var _brandMastodon: ImageVector? = null
+internal var cachedBrandMastodon: ImageVector? = null

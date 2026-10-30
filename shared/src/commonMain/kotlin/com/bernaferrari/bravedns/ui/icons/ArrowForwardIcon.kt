@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledArrowForward: ImageVector
   get() {
-    if (_filledArrowForward != null) {
-      return _filledArrowForward!!
+    if (cachedFilledArrowForward != null) {
+      return cachedFilledArrowForward!!
     }
-    _filledArrowForward =
+    cachedFilledArrowForward =
       ImageVector.Builder(
           name = "arrow_forward",
           defaultWidth = 24.dp,
@@ -65,7 +65,7 @@ internal val filledArrowForward: ImageVector
           }
         }
         .build()
-    return _filledArrowForward!!
+    return cachedFilledArrowForward!!
   }
 
-internal var _filledArrowForward: ImageVector? = null
+internal var cachedFilledArrowForward: ImageVector? = null

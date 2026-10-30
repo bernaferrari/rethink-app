@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledTerminal: ImageVector
   get() {
-    if (_filledTerminal != null) {
-      return _filledTerminal!!
+    if (cachedFilledTerminal != null) {
+      return cachedFilledTerminal!!
     }
-    _filledTerminal =
+    cachedFilledTerminal =
       ImageVector.Builder(
           name = "terminal",
           defaultWidth = 24.dp,
@@ -89,7 +89,7 @@ internal val filledTerminal: ImageVector
           }
         }
         .build()
-    return _filledTerminal!!
+    return cachedFilledTerminal!!
   }
 
-internal var _filledTerminal: ImageVector? = null
+internal var cachedFilledTerminal: ImageVector? = null

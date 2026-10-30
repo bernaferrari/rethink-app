@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledReport: ImageVector
   get() {
-    if (_filledReport != null) {
-      return _filledReport!!
+    if (cachedFilledReport != null) {
+      return cachedFilledReport!!
     }
-    _filledReport =
+    cachedFilledReport =
       ImageVector.Builder(
           name = "report",
           defaultWidth = 24.dp,
@@ -89,7 +89,7 @@ internal val filledReport: ImageVector
           }
         }
         .build()
-    return _filledReport!!
+    return cachedFilledReport!!
   }
 
-internal var _filledReport: ImageVector? = null
+internal var cachedFilledReport: ImageVector? = null

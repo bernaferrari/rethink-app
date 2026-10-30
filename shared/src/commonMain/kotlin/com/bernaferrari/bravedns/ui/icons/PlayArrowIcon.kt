@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledPlayArrow: ImageVector
   get() {
-    if (_filledPlayArrow != null) {
-      return _filledPlayArrow!!
+    if (cachedFilledPlayArrow != null) {
+      return cachedFilledPlayArrow!!
     }
-    _filledPlayArrow =
+    cachedFilledPlayArrow =
       ImageVector.Builder(
           name = "play_arrow",
           defaultWidth = 24.dp,
@@ -58,7 +58,7 @@ internal val filledPlayArrow: ImageVector
           }
         }
         .build()
-    return _filledPlayArrow!!
+    return cachedFilledPlayArrow!!
   }
 
-internal var _filledPlayArrow: ImageVector? = null
+internal var cachedFilledPlayArrow: ImageVector? = null

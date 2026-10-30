@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val keepoutFirewallOff: ImageVector
   get() {
-    if (_keepoutFirewallOff != null) {
-      return _keepoutFirewallOff!!
+    if (cachedKeepoutFirewallOff != null) {
+      return cachedKeepoutFirewallOff!!
     }
-    _keepoutFirewallOff =
+    cachedKeepoutFirewallOff =
       ImageVector.Builder(
           name = "firewall_off",
           defaultWidth = 24.dp,
@@ -109,7 +109,7 @@ internal val keepoutFirewallOff: ImageVector
           }
         }
         .build()
-    return _keepoutFirewallOff!!
+    return cachedKeepoutFirewallOff!!
   }
 
-internal var _keepoutFirewallOff: ImageVector? = null
+internal var cachedKeepoutFirewallOff: ImageVector? = null

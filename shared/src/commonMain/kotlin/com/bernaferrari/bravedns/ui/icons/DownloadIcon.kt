@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledDownload: ImageVector
   get() {
-    if (_filledDownload != null) {
-      return _filledDownload!!
+    if (cachedFilledDownload != null) {
+      return cachedFilledDownload!!
     }
-    _filledDownload =
+    cachedFilledDownload =
       ImageVector.Builder(
           name = "download",
           defaultWidth = 24.dp,
@@ -85,7 +85,7 @@ internal val filledDownload: ImageVector
           }
         }
         .build()
-    return _filledDownload!!
+    return cachedFilledDownload!!
   }
 
-internal var _filledDownload: ImageVector? = null
+internal var cachedFilledDownload: ImageVector? = null

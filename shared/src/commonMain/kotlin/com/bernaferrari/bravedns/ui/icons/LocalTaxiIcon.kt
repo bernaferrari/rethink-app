@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledLocalTaxi: ImageVector
   get() {
-    if (_filledLocalTaxi != null) {
-      return _filledLocalTaxi!!
+    if (cachedFilledLocalTaxi != null) {
+      return cachedFilledLocalTaxi!!
     }
-    _filledLocalTaxi =
+    cachedFilledLocalTaxi =
       ImageVector.Builder(
           name = "local_taxi",
           defaultWidth = 24.dp,
@@ -101,7 +101,7 @@ internal val filledLocalTaxi: ImageVector
           }
         }
         .build()
-    return _filledLocalTaxi!!
+    return cachedFilledLocalTaxi!!
   }
 
-internal var _filledLocalTaxi: ImageVector? = null
+internal var cachedFilledLocalTaxi: ImageVector? = null

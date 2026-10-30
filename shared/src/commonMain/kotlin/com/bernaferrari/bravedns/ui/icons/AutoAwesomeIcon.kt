@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledAutoAwesome: ImageVector
   get() {
-    if (_filledAutoAwesome != null) {
-      return _filledAutoAwesome!!
+    if (cachedFilledAutoAwesome != null) {
+      return cachedFilledAutoAwesome!!
     }
-    _filledAutoAwesome =
+    cachedFilledAutoAwesome =
       ImageVector.Builder(
           name = "auto_awesome",
           defaultWidth = 24.dp,
@@ -119,7 +119,7 @@ internal val filledAutoAwesome: ImageVector
           }
         }
         .build()
-    return _filledAutoAwesome!!
+    return cachedFilledAutoAwesome!!
   }
 
-internal var _filledAutoAwesome: ImageVector? = null
+internal var cachedFilledAutoAwesome: ImageVector? = null

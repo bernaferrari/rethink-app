@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledHistory: ImageVector
   get() {
-    if (_filledHistory != null) {
-      return _filledHistory!!
+    if (cachedFilledHistory != null) {
+      return cachedFilledHistory!!
     }
-    _filledHistory =
+    cachedFilledHistory =
       ImageVector.Builder(
           name = "history",
           defaultWidth = 24.dp,
@@ -97,7 +97,7 @@ internal val filledHistory: ImageVector
           }
         }
         .build()
-    return _filledHistory!!
+    return cachedFilledHistory!!
   }
 
-internal var _filledHistory: ImageVector? = null
+internal var cachedFilledHistory: ImageVector? = null

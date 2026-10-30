@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledSettings: ImageVector
   get() {
-    if (_filledSettings != null) {
-      return _filledSettings!!
+    if (cachedFilledSettings != null) {
+      return cachedFilledSettings!!
     }
-    _filledSettings =
+    cachedFilledSettings =
       ImageVector.Builder(
           name = "settings",
           defaultWidth = 24.dp,
@@ -111,18 +111,18 @@ internal val filledSettings: ImageVector
           }
         }
         .build()
-    return _filledSettings!!
+    return cachedFilledSettings!!
   }
 
-internal var _filledSettings: ImageVector? = null
+internal var cachedFilledSettings: ImageVector? = null
 
 @Suppress("CheckReturnValue")
 internal val outlinedSettings: ImageVector
   get() {
-    if (_outlinedSettings != null) {
-      return _outlinedSettings!!
+    if (cachedOutlinedSettings != null) {
+      return cachedOutlinedSettings!!
     }
-    _outlinedSettings =
+    cachedOutlinedSettings =
       ImageVector.Builder(
           name = "settings",
           defaultWidth = 24.dp,
@@ -253,7 +253,7 @@ internal val outlinedSettings: ImageVector
           }
         }
         .build()
-    return _outlinedSettings!!
+    return cachedOutlinedSettings!!
   }
 
-internal var _outlinedSettings: ImageVector? = null
+internal var cachedOutlinedSettings: ImageVector? = null

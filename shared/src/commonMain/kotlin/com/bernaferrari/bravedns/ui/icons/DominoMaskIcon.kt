@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledDominoMask: ImageVector
   get() {
-    if (_filledDominoMask != null) {
-      return _filledDominoMask!!
+    if (cachedFilledDominoMask != null) {
+      return cachedFilledDominoMask!!
     }
-    _filledDominoMask =
+    cachedFilledDominoMask =
       ImageVector.Builder(
           name = "domino_mask",
           defaultWidth = 24.dp,
@@ -86,7 +86,7 @@ internal val filledDominoMask: ImageVector
           }
         }
         .build()
-    return _filledDominoMask!!
+    return cachedFilledDominoMask!!
   }
 
-internal var _filledDominoMask: ImageVector? = null
+internal var cachedFilledDominoMask: ImageVector? = null

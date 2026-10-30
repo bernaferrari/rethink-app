@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledShield: ImageVector
   get() {
-    if (_filledShield != null) {
-      return _filledShield!!
+    if (cachedFilledShield != null) {
+      return cachedFilledShield!!
     }
-    _filledShield =
+    cachedFilledShield =
       ImageVector.Builder(
           name = "shield",
           defaultWidth = 24.dp,
@@ -61,7 +61,7 @@ internal val filledShield: ImageVector
           }
         }
         .build()
-    return _filledShield!!
+    return cachedFilledShield!!
   }
 
-internal var _filledShield: ImageVector? = null
+internal var cachedFilledShield: ImageVector? = null

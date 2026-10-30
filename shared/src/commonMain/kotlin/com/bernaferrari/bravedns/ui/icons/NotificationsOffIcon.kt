@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledNotificationsOff: ImageVector
   get() {
-    if (_filledNotificationsOff != null) {
-      return _filledNotificationsOff!!
+    if (cachedFilledNotificationsOff != null) {
+      return cachedFilledNotificationsOff!!
     }
-    _filledNotificationsOff =
+    cachedFilledNotificationsOff =
       ImageVector.Builder(
           name = "notifications_off",
           defaultWidth = 24.dp,
@@ -98,7 +98,7 @@ internal val filledNotificationsOff: ImageVector
           }
         }
         .build()
-    return _filledNotificationsOff!!
+    return cachedFilledNotificationsOff!!
   }
 
-internal var _filledNotificationsOff: ImageVector? = null
+internal var cachedFilledNotificationsOff: ImageVector? = null

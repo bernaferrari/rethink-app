@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledSearch: ImageVector
   get() {
-    if (_filledSearch != null) {
-      return _filledSearch!!
+    if (cachedFilledSearch != null) {
+      return cachedFilledSearch!!
     }
-    _filledSearch =
+    cachedFilledSearch =
       ImageVector.Builder(
           name = "search",
           defaultWidth = 24.dp,
@@ -69,7 +69,7 @@ internal val filledSearch: ImageVector
           }
         }
         .build()
-    return _filledSearch!!
+    return cachedFilledSearch!!
   }
 
-internal var _filledSearch: ImageVector? = null
+internal var cachedFilledSearch: ImageVector? = null

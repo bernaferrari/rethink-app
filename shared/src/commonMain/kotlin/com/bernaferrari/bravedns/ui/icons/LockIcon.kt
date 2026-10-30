@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledLock: ImageVector
   get() {
-    if (_filledLock != null) {
-      return _filledLock!!
+    if (cachedFilledLock != null) {
+      return cachedFilledLock!!
     }
-    _filledLock =
+    cachedFilledLock =
       ImageVector.Builder(
           name = "lock",
           defaultWidth = 24.dp,
@@ -81,7 +81,7 @@ internal val filledLock: ImageVector
           }
         }
         .build()
-    return _filledLock!!
+    return cachedFilledLock!!
   }
 
-internal var _filledLock: ImageVector? = null
+internal var cachedFilledLock: ImageVector? = null

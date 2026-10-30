@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledHttp: ImageVector
   get() {
-    if (_filledHttp != null) {
-      return _filledHttp!!
+    if (cachedFilledHttp != null) {
+      return cachedFilledHttp!!
     }
-    _filledHttp =
+    cachedFilledHttp =
       ImageVector.Builder(
           name = "http",
           defaultWidth = 24.dp,
@@ -128,7 +128,7 @@ internal val filledHttp: ImageVector
           }
         }
         .build()
-    return _filledHttp!!
+    return cachedFilledHttp!!
   }
 
-internal var _filledHttp: ImageVector? = null
+internal var cachedFilledHttp: ImageVector? = null

@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledPublicOff: ImageVector
   get() {
-    if (_filledPublicOff != null) {
-      return _filledPublicOff!!
+    if (cachedFilledPublicOff != null) {
+      return cachedFilledPublicOff!!
     }
-    _filledPublicOff =
+    cachedFilledPublicOff =
       ImageVector.Builder(
           name = "public_off",
           defaultWidth = 24.dp,
@@ -101,7 +101,7 @@ internal val filledPublicOff: ImageVector
           }
         }
         .build()
-    return _filledPublicOff!!
+    return cachedFilledPublicOff!!
   }
 
-internal var _filledPublicOff: ImageVector? = null
+internal var cachedFilledPublicOff: ImageVector? = null

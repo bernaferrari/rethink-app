@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledStop: ImageVector
   get() {
-    if (_filledStop != null) {
-      return _filledStop!!
+    if (cachedFilledStop != null) {
+      return cachedFilledStop!!
     }
-    _filledStop =
+    cachedFilledStop =
       ImageVector.Builder(
           name = "stop",
           defaultWidth = 24.dp,
@@ -55,7 +55,7 @@ internal val filledStop: ImageVector
           }
         }
         .build()
-    return _filledStop!!
+    return cachedFilledStop!!
   }
 
-internal var _filledStop: ImageVector? = null
+internal var cachedFilledStop: ImageVector? = null

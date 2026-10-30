@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledDns: ImageVector
   get() {
-    if (_filledDns != null) {
-      return _filledDns!!
+    if (cachedFilledDns != null) {
+      return cachedFilledDns!!
     }
-    _filledDns =
+    cachedFilledDns =
       ImageVector.Builder(
           name = "dns",
           defaultWidth = 24.dp,
@@ -89,7 +89,7 @@ internal val filledDns: ImageVector
           }
         }
         .build()
-    return _filledDns!!
+    return cachedFilledDns!!
   }
 
-internal var _filledDns: ImageVector? = null
+internal var cachedFilledDns: ImageVector? = null

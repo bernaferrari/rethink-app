@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledWifiOff: ImageVector
   get() {
-    if (_filledWifiOff != null) {
-      return _filledWifiOff!!
+    if (cachedFilledWifiOff != null) {
+      return cachedFilledWifiOff!!
     }
-    _filledWifiOff =
+    cachedFilledWifiOff =
       ImageVector.Builder(
           name = "wifi_off",
           defaultWidth = 24.dp,
@@ -112,7 +112,7 @@ internal val filledWifiOff: ImageVector
           }
         }
         .build()
-    return _filledWifiOff!!
+    return cachedFilledWifiOff!!
   }
 
-internal var _filledWifiOff: ImageVector? = null
+internal var cachedFilledWifiOff: ImageVector? = null

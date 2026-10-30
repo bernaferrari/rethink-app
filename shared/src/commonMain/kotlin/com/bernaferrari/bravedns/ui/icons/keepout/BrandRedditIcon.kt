@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val brandReddit: ImageVector
   get() {
-    if (_brandReddit != null) {
-      return _brandReddit!!
+    if (cachedBrandReddit != null) {
+      return cachedBrandReddit!!
     }
-    _brandReddit =
+    cachedBrandReddit =
       ImageVector.Builder(
           name = "reddit",
           defaultWidth = 24.dp,
@@ -133,7 +133,7 @@ internal val brandReddit: ImageVector
           }
         }
         .build()
-    return _brandReddit!!
+    return cachedBrandReddit!!
   }
 
-internal var _brandReddit: ImageVector? = null
+internal var cachedBrandReddit: ImageVector? = null

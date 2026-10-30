@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledDeleteOutline: ImageVector
   get() {
-    if (_filledDeleteOutline != null) {
-      return _filledDeleteOutline!!
+    if (cachedFilledDeleteOutline != null) {
+      return cachedFilledDeleteOutline!!
     }
-    _filledDeleteOutline =
+    cachedFilledDeleteOutline =
       ImageVector.Builder(
           name = "delete_outline",
           defaultWidth = 24.dp,
@@ -89,7 +89,7 @@ internal val filledDeleteOutline: ImageVector
           }
         }
         .build()
-    return _filledDeleteOutline!!
+    return cachedFilledDeleteOutline!!
   }
 
-internal var _filledDeleteOutline: ImageVector? = null
+internal var cachedFilledDeleteOutline: ImageVector? = null

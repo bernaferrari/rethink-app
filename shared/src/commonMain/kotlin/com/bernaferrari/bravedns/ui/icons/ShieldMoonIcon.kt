@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledShieldMoon: ImageVector
   get() {
-    if (_filledShieldMoon != null) {
-      return _filledShieldMoon!!
+    if (cachedFilledShieldMoon != null) {
+      return cachedFilledShieldMoon!!
     }
-    _filledShieldMoon =
+    cachedFilledShieldMoon =
       ImageVector.Builder(
           name = "shield_moon",
           defaultWidth = 24.dp,
@@ -77,7 +77,7 @@ internal val filledShieldMoon: ImageVector
           }
         }
         .build()
-    return _filledShieldMoon!!
+    return cachedFilledShieldMoon!!
   }
 
-internal var _filledShieldMoon: ImageVector? = null
+internal var cachedFilledShieldMoon: ImageVector? = null

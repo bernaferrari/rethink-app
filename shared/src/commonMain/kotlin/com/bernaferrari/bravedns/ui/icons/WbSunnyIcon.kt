@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledWbSunny: ImageVector
   get() {
-    if (_filledWbSunny != null) {
-      return _filledWbSunny!!
+    if (cachedFilledWbSunny != null) {
+      return cachedFilledWbSunny!!
     }
-    _filledWbSunny =
+    cachedFilledWbSunny =
       ImageVector.Builder(
           name = "wb_sunny",
           defaultWidth = 24.dp,
@@ -147,7 +147,7 @@ internal val filledWbSunny: ImageVector
           }
         }
         .build()
-    return _filledWbSunny!!
+    return cachedFilledWbSunny!!
   }
 
-internal var _filledWbSunny: ImageVector? = null
+internal var cachedFilledWbSunny: ImageVector? = null

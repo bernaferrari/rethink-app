@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledSettingsEthernet: ImageVector
   get() {
-    if (_filledSettingsEthernet != null) {
-      return _filledSettingsEthernet!!
+    if (cachedFilledSettingsEthernet != null) {
+      return cachedFilledSettingsEthernet!!
     }
-    _filledSettingsEthernet =
+    cachedFilledSettingsEthernet =
       ImageVector.Builder(
           name = "settings_ethernet",
           defaultWidth = 24.dp,
@@ -107,7 +107,7 @@ internal val filledSettingsEthernet: ImageVector
           }
         }
         .build()
-    return _filledSettingsEthernet!!
+    return cachedFilledSettingsEthernet!!
   }
 
-internal var _filledSettingsEthernet: ImageVector? = null
+internal var cachedFilledSettingsEthernet: ImageVector? = null

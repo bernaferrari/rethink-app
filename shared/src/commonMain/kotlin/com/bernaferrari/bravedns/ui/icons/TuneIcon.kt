@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledTune: ImageVector
   get() {
-    if (_filledTune != null) {
-      return _filledTune!!
+    if (cachedFilledTune != null) {
+      return cachedFilledTune!!
     }
-    _filledTune =
+    cachedFilledTune =
       ImageVector.Builder(
           name = "tune",
           defaultWidth = 24.dp,
@@ -134,7 +134,7 @@ internal val filledTune: ImageVector
           }
         }
         .build()
-    return _filledTune!!
+    return cachedFilledTune!!
   }
 
-internal var _filledTune: ImageVector? = null
+internal var cachedFilledTune: ImageVector? = null

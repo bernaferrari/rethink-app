@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val brandTelegram: ImageVector
   get() {
-    if (_brandTelegram != null) {
-      return _brandTelegram!!
+    if (cachedBrandTelegram != null) {
+      return cachedBrandTelegram!!
     }
-    _brandTelegram =
+    cachedBrandTelegram =
       ImageVector.Builder(
           name = "telegram",
           defaultWidth = 24.dp,
@@ -66,7 +66,7 @@ internal val brandTelegram: ImageVector
           }
         }
         .build()
-    return _brandTelegram!!
+    return cachedBrandTelegram!!
   }
 
-internal var _brandTelegram: ImageVector? = null
+internal var cachedBrandTelegram: ImageVector? = null

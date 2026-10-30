@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledEdit: ImageVector
   get() {
-    if (_filledEdit != null) {
-      return _filledEdit!!
+    if (cachedFilledEdit != null) {
+      return cachedFilledEdit!!
     }
-    _filledEdit =
+    cachedFilledEdit =
       ImageVector.Builder(
           name = "edit",
           defaultWidth = 24.dp,
@@ -68,7 +68,7 @@ internal val filledEdit: ImageVector
           }
         }
         .build()
-    return _filledEdit!!
+    return cachedFilledEdit!!
   }
 
-internal var _filledEdit: ImageVector? = null
+internal var cachedFilledEdit: ImageVector? = null

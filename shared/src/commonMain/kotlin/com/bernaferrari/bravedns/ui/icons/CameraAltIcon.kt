@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledCameraAlt: ImageVector
   get() {
-    if (_filledCameraAlt != null) {
-      return _filledCameraAlt!!
+    if (cachedFilledCameraAlt != null) {
+      return cachedFilledCameraAlt!!
     }
-    _filledCameraAlt =
+    cachedFilledCameraAlt =
       ImageVector.Builder(
           name = "camera_alt",
           defaultWidth = 24.dp,
@@ -83,7 +83,7 @@ internal val filledCameraAlt: ImageVector
           }
         }
         .build()
-    return _filledCameraAlt!!
+    return cachedFilledCameraAlt!!
   }
 
-internal var _filledCameraAlt: ImageVector? = null
+internal var cachedFilledCameraAlt: ImageVector? = null

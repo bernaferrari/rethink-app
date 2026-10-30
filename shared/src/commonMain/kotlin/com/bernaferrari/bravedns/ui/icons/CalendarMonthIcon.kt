@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledCalendarMonth: ImageVector
   get() {
-    if (_filledCalendarMonth != null) {
-      return _filledCalendarMonth!!
+    if (cachedFilledCalendarMonth != null) {
+      return cachedFilledCalendarMonth!!
     }
-    _filledCalendarMonth =
+    cachedFilledCalendarMonth =
       ImageVector.Builder(
           name = "calendar_month",
           defaultWidth = 24.dp,
@@ -135,7 +135,7 @@ internal val filledCalendarMonth: ImageVector
           }
         }
         .build()
-    return _filledCalendarMonth!!
+    return cachedFilledCalendarMonth!!
   }
 
-internal var _filledCalendarMonth: ImageVector? = null
+internal var cachedFilledCalendarMonth: ImageVector? = null

@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledConversionPath: ImageVector
   get() {
-    if (_filledConversionPath != null) {
-      return _filledConversionPath!!
+    if (cachedFilledConversionPath != null) {
+      return cachedFilledConversionPath!!
     }
-    _filledConversionPath =
+    cachedFilledConversionPath =
       ImageVector.Builder(
           name = "conversion_path",
           defaultWidth = 24.dp,
@@ -91,7 +91,7 @@ internal val filledConversionPath: ImageVector
           }
         }
         .build()
-    return _filledConversionPath!!
+    return cachedFilledConversionPath!!
   }
 
-internal var _filledConversionPath: ImageVector? = null
+internal var cachedFilledConversionPath: ImageVector? = null

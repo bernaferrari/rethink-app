@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledLink: ImageVector
   get() {
-    if (_filledLink != null) {
-      return _filledLink!!
+    if (cachedFilledLink != null) {
+      return cachedFilledLink!!
     }
-    _filledLink =
+    cachedFilledLink =
       ImageVector.Builder(
           name = "link",
           defaultWidth = 24.dp,
@@ -97,7 +97,7 @@ internal val filledLink: ImageVector
           }
         }
         .build()
-    return _filledLink!!
+    return cachedFilledLink!!
   }
 
-internal var _filledLink: ImageVector? = null
+internal var cachedFilledLink: ImageVector? = null

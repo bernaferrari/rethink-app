@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledMovie: ImageVector
   get() {
-    if (_filledMovie != null) {
-      return _filledMovie!!
+    if (cachedFilledMovie != null) {
+      return cachedFilledMovie!!
     }
-    _filledMovie =
+    cachedFilledMovie =
       ImageVector.Builder(
           name = "movie",
           defaultWidth = 24.dp,
@@ -75,7 +75,7 @@ internal val filledMovie: ImageVector
           }
         }
         .build()
-    return _filledMovie!!
+    return cachedFilledMovie!!
   }
 
-internal var _filledMovie: ImageVector? = null
+internal var cachedFilledMovie: ImageVector? = null

@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledSystemUpdate: ImageVector
   get() {
-    if (_filledSystemUpdate != null) {
-      return _filledSystemUpdate!!
+    if (cachedFilledSystemUpdate != null) {
+      return cachedFilledSystemUpdate!!
     }
-    _filledSystemUpdate =
+    cachedFilledSystemUpdate =
       ImageVector.Builder(
           name = "system_update",
           defaultWidth = 24.dp,
@@ -85,7 +85,7 @@ internal val filledSystemUpdate: ImageVector
           }
         }
         .build()
-    return _filledSystemUpdate!!
+    return cachedFilledSystemUpdate!!
   }
 
-internal var _filledSystemUpdate: ImageVector? = null
+internal var cachedFilledSystemUpdate: ImageVector? = null

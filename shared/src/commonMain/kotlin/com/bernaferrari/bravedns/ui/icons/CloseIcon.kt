@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledClose: ImageVector
   get() {
-    if (_filledClose != null) {
-      return _filledClose!!
+    if (cachedFilledClose != null) {
+      return cachedFilledClose!!
     }
-    _filledClose =
+    cachedFilledClose =
       ImageVector.Builder(
           name = "close",
           defaultWidth = 24.dp,
@@ -67,7 +67,7 @@ internal val filledClose: ImageVector
           }
         }
         .build()
-    return _filledClose!!
+    return cachedFilledClose!!
   }
 
-internal var _filledClose: ImageVector? = null
+internal var cachedFilledClose: ImageVector? = null

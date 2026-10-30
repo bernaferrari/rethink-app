@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledChat: ImageVector
   get() {
-    if (_filledChat != null) {
-      return _filledChat!!
+    if (cachedFilledChat != null) {
+      return cachedFilledChat!!
     }
-    _filledChat =
+    cachedFilledChat =
       ImageVector.Builder(
           name = "chat",
           defaultWidth = 24.dp,
@@ -92,7 +92,7 @@ internal val filledChat: ImageVector
           }
         }
         .build()
-    return _filledChat!!
+    return cachedFilledChat!!
   }
 
-internal var _filledChat: ImageVector? = null
+internal var cachedFilledChat: ImageVector? = null

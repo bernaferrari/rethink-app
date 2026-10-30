@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledShare: ImageVector
   get() {
-    if (_filledShare != null) {
-      return _filledShare!!
+    if (cachedFilledShare != null) {
+      return cachedFilledShare!!
     }
-    _filledShare =
+    cachedFilledShare =
       ImageVector.Builder(
           name = "share",
           defaultWidth = 24.dp,
@@ -78,7 +78,7 @@ internal val filledShare: ImageVector
           }
         }
         .build()
-    return _filledShare!!
+    return cachedFilledShare!!
   }
 
-internal var _filledShare: ImageVector? = null
+internal var cachedFilledShare: ImageVector? = null

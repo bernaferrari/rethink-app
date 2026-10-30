@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val brandElement: ImageVector
   get() {
-    if (_brandElement != null) {
-      return _brandElement!!
+    if (cachedBrandElement != null) {
+      return cachedBrandElement!!
     }
-    _brandElement =
+    cachedBrandElement =
       ImageVector.Builder(
           name = "element",
           defaultWidth = 24.dp,
@@ -101,7 +101,7 @@ internal val brandElement: ImageVector
           }
         }
         .build()
-    return _brandElement!!
+    return cachedBrandElement!!
   }
 
-internal var _brandElement: ImageVector? = null
+internal var cachedBrandElement: ImageVector? = null

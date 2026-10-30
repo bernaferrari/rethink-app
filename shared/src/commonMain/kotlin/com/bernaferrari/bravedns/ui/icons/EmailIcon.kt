@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledEmail: ImageVector
   get() {
-    if (_filledEmail != null) {
-      return _filledEmail!!
+    if (cachedFilledEmail != null) {
+      return cachedFilledEmail!!
     }
-    _filledEmail =
+    cachedFilledEmail =
       ImageVector.Builder(
           name = "email",
           defaultWidth = 24.dp,
@@ -73,7 +73,7 @@ internal val filledEmail: ImageVector
           }
         }
         .build()
-    return _filledEmail!!
+    return cachedFilledEmail!!
   }
 
-internal var _filledEmail: ImageVector? = null
+internal var cachedFilledEmail: ImageVector? = null

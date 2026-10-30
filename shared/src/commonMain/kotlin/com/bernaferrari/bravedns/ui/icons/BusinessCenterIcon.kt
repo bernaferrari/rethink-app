@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledBusinessCenter: ImageVector
   get() {
-    if (_filledBusinessCenter != null) {
-      return _filledBusinessCenter!!
+    if (cachedFilledBusinessCenter != null) {
+      return cachedFilledBusinessCenter!!
     }
-    _filledBusinessCenter =
+    cachedFilledBusinessCenter =
       ImageVector.Builder(
           name = "business_center",
           defaultWidth = 24.dp,
@@ -97,7 +97,7 @@ internal val filledBusinessCenter: ImageVector
           }
         }
         .build()
-    return _filledBusinessCenter!!
+    return cachedFilledBusinessCenter!!
   }
 
-internal var _filledBusinessCenter: ImageVector? = null
+internal var cachedFilledBusinessCenter: ImageVector? = null

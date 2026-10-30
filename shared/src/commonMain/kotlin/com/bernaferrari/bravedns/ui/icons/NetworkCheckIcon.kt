@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledNetworkCheck: ImageVector
   get() {
-    if (_filledNetworkCheck != null) {
-      return _filledNetworkCheck!!
+    if (cachedFilledNetworkCheck != null) {
+      return cachedFilledNetworkCheck!!
     }
-    _filledNetworkCheck =
+    cachedFilledNetworkCheck =
       ImageVector.Builder(
           name = "network_check",
           defaultWidth = 24.dp,
@@ -113,7 +113,7 @@ internal val filledNetworkCheck: ImageVector
           }
         }
         .build()
-    return _filledNetworkCheck!!
+    return cachedFilledNetworkCheck!!
   }
 
-internal var _filledNetworkCheck: ImageVector? = null
+internal var cachedFilledNetworkCheck: ImageVector? = null

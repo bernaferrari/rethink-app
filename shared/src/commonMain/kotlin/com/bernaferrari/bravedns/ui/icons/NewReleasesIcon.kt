@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledNewReleases: ImageVector
   get() {
-    if (_filledNewReleases != null) {
-      return _filledNewReleases!!
+    if (cachedFilledNewReleases != null) {
+      return cachedFilledNewReleases!!
     }
-    _filledNewReleases =
+    cachedFilledNewReleases =
       ImageVector.Builder(
           name = "new_releases",
           defaultWidth = 24.dp,
@@ -99,7 +99,7 @@ internal val filledNewReleases: ImageVector
           }
         }
         .build()
-    return _filledNewReleases!!
+    return cachedFilledNewReleases!!
   }
 
-internal var _filledNewReleases: ImageVector? = null
+internal var cachedFilledNewReleases: ImageVector? = null

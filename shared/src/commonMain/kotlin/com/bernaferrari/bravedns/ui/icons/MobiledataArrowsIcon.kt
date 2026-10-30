@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledMobiledataArrows: ImageVector
   get() {
-    if (_filledMobiledataArrows != null) {
-      return _filledMobiledataArrows!!
+    if (cachedFilledMobiledataArrows != null) {
+      return cachedFilledMobiledataArrows!!
     }
-    _filledMobiledataArrows =
+    cachedFilledMobiledataArrows =
       ImageVector.Builder(
           name = "mobiledata_arrows",
           defaultWidth = 24.dp,
@@ -85,7 +85,7 @@ internal val filledMobiledataArrows: ImageVector
           }
         }
         .build()
-    return _filledMobiledataArrows!!
+    return cachedFilledMobiledataArrows!!
   }
 
-internal var _filledMobiledataArrows: ImageVector? = null
+internal var cachedFilledMobiledataArrows: ImageVector? = null

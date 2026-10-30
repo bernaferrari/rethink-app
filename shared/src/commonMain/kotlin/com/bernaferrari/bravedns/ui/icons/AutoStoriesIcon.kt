@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledAutoStories: ImageVector
   get() {
-    if (_filledAutoStories != null) {
-      return _filledAutoStories!!
+    if (cachedFilledAutoStories != null) {
+      return cachedFilledAutoStories!!
     }
-    _filledAutoStories =
+    cachedFilledAutoStories =
       ImageVector.Builder(
           name = "auto_stories",
           defaultWidth = 24.dp,
@@ -91,7 +91,7 @@ internal val filledAutoStories: ImageVector
           }
         }
         .build()
-    return _filledAutoStories!!
+    return cachedFilledAutoStories!!
   }
 
-internal var _filledAutoStories: ImageVector? = null
+internal var cachedFilledAutoStories: ImageVector? = null

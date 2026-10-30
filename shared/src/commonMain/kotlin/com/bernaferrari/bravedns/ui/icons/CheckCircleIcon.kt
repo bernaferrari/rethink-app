@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledCheckCircle: ImageVector
   get() {
-    if (_filledCheckCircle != null) {
-      return _filledCheckCircle!!
+    if (cachedFilledCheckCircle != null) {
+      return cachedFilledCheckCircle!!
     }
-    _filledCheckCircle =
+    cachedFilledCheckCircle =
       ImageVector.Builder(
           name = "check_circle",
           defaultWidth = 24.dp,
@@ -75,7 +75,7 @@ internal val filledCheckCircle: ImageVector
           }
         }
         .build()
-    return _filledCheckCircle!!
+    return cachedFilledCheckCircle!!
   }
 
-internal var _filledCheckCircle: ImageVector? = null
+internal var cachedFilledCheckCircle: ImageVector? = null

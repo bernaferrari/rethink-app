@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledSignalCellularAlt: ImageVector
   get() {
-    if (_filledSignalCellularAlt != null) {
-      return _filledSignalCellularAlt!!
+    if (cachedFilledSignalCellularAlt != null) {
+      return cachedFilledSignalCellularAlt!!
     }
-    _filledSignalCellularAlt =
+    cachedFilledSignalCellularAlt =
       ImageVector.Builder(
           name = "signal_cellular_alt",
           defaultWidth = 24.dp,
@@ -77,7 +77,7 @@ internal val filledSignalCellularAlt: ImageVector
           }
         }
         .build()
-    return _filledSignalCellularAlt!!
+    return cachedFilledSignalCellularAlt!!
   }
 
-internal var _filledSignalCellularAlt: ImageVector? = null
+internal var cachedFilledSignalCellularAlt: ImageVector? = null

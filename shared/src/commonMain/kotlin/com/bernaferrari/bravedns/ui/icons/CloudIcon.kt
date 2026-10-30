@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledCloud: ImageVector
   get() {
-    if (_filledCloud != null) {
-      return _filledCloud!!
+    if (cachedFilledCloud != null) {
+      return cachedFilledCloud!!
     }
-    _filledCloud =
+    cachedFilledCloud =
       ImageVector.Builder(
           name = "cloud",
           defaultWidth = 24.dp,
@@ -56,7 +56,7 @@ internal val filledCloud: ImageVector
           }
         }
         .build()
-    return _filledCloud!!
+    return cachedFilledCloud!!
   }
 
-internal var _filledCloud: ImageVector? = null
+internal var cachedFilledCloud: ImageVector? = null

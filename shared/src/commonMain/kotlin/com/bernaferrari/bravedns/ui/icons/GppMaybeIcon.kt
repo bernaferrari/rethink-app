@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledGppMaybe: ImageVector
   get() {
-    if (_filledGppMaybe != null) {
-      return _filledGppMaybe!!
+    if (cachedFilledGppMaybe != null) {
+      return cachedFilledGppMaybe!!
     }
-    _filledGppMaybe =
+    cachedFilledGppMaybe =
       ImageVector.Builder(
           name = "gpp_maybe",
           defaultWidth = 24.dp,
@@ -83,7 +83,7 @@ internal val filledGppMaybe: ImageVector
           }
         }
         .build()
-    return _filledGppMaybe!!
+    return cachedFilledGppMaybe!!
   }
 
-internal var _filledGppMaybe: ImageVector? = null
+internal var cachedFilledGppMaybe: ImageVector? = null

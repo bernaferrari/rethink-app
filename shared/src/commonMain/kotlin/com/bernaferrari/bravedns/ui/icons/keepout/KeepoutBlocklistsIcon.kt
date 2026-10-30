@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val keepoutBlocklists: ImageVector
   get() {
-    if (_keepoutBlocklists != null) {
-      return _keepoutBlocklists!!
+    if (cachedKeepoutBlocklists != null) {
+      return cachedKeepoutBlocklists!!
     }
-    _keepoutBlocklists =
+    cachedKeepoutBlocklists =
       ImageVector.Builder(
           name = "blocklists",
           defaultWidth = 24.dp,
@@ -103,7 +103,7 @@ internal val keepoutBlocklists: ImageVector
           }
         }
         .build()
-    return _keepoutBlocklists!!
+    return cachedKeepoutBlocklists!!
   }
 
-internal var _keepoutBlocklists: ImageVector? = null
+internal var cachedKeepoutBlocklists: ImageVector? = null

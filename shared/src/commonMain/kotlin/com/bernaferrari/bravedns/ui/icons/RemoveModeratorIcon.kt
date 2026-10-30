@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledRemoveModerator: ImageVector
   get() {
-    if (_filledRemoveModerator != null) {
-      return _filledRemoveModerator!!
+    if (cachedFilledRemoveModerator != null) {
+      return cachedFilledRemoveModerator!!
     }
-    _filledRemoveModerator =
+    cachedFilledRemoveModerator =
       ImageVector.Builder(
           name = "remove_moderator",
           defaultWidth = 24.dp,
@@ -82,7 +82,7 @@ internal val filledRemoveModerator: ImageVector
           }
         }
         .build()
-    return _filledRemoveModerator!!
+    return cachedFilledRemoveModerator!!
   }
 
-internal var _filledRemoveModerator: ImageVector? = null
+internal var cachedFilledRemoveModerator: ImageVector? = null

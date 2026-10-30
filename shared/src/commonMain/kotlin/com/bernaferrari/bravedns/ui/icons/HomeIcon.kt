@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledHome: ImageVector
   get() {
-    if (_filledHome != null) {
-      return _filledHome!!
+    if (cachedFilledHome != null) {
+      return cachedFilledHome!!
     }
-    _filledHome =
+    cachedFilledHome =
       ImageVector.Builder(
           name = "home",
           defaultWidth = 24.dp,
@@ -70,18 +70,18 @@ internal val filledHome: ImageVector
           }
         }
         .build()
-    return _filledHome!!
+    return cachedFilledHome!!
   }
 
-internal var _filledHome: ImageVector? = null
+internal var cachedFilledHome: ImageVector? = null
 
 @Suppress("CheckReturnValue")
 internal val outlinedHome: ImageVector
   get() {
-    if (_outlinedHome != null) {
-      return _outlinedHome!!
+    if (cachedOutlinedHome != null) {
+      return cachedOutlinedHome!!
     }
-    _outlinedHome =
+    cachedOutlinedHome =
       ImageVector.Builder(
           name = "home",
           defaultWidth = 24.dp,
@@ -146,7 +146,7 @@ internal val outlinedHome: ImageVector
           }
         }
         .build()
-    return _outlinedHome!!
+    return cachedOutlinedHome!!
   }
 
-internal var _outlinedHome: ImageVector? = null
+internal var cachedOutlinedHome: ImageVector? = null

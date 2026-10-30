@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledRemove: ImageVector
   get() {
-    if (_filledRemove != null) {
-      return _filledRemove!!
+    if (cachedFilledRemove != null) {
+      return cachedFilledRemove!!
     }
-    _filledRemove =
+    cachedFilledRemove =
       ImageVector.Builder(
           name = "remove",
           defaultWidth = 24.dp,
@@ -53,7 +53,7 @@ internal val filledRemove: ImageVector
           }
         }
         .build()
-    return _filledRemove!!
+    return cachedFilledRemove!!
   }
 
-internal var _filledRemove: ImageVector? = null
+internal var cachedFilledRemove: ImageVector? = null

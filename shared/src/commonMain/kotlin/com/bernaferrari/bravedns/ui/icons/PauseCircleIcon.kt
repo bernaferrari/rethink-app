@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledPauseCircle: ImageVector
   get() {
-    if (_filledPauseCircle != null) {
-      return _filledPauseCircle!!
+    if (cachedFilledPauseCircle != null) {
+      return cachedFilledPauseCircle!!
     }
-    _filledPauseCircle =
+    cachedFilledPauseCircle =
       ImageVector.Builder(
           name = "pause_circle",
           defaultWidth = 24.dp,
@@ -83,7 +83,7 @@ internal val filledPauseCircle: ImageVector
           }
         }
         .build()
-    return _filledPauseCircle!!
+    return cachedFilledPauseCircle!!
   }
 
-internal var _filledPauseCircle: ImageVector? = null
+internal var cachedFilledPauseCircle: ImageVector? = null

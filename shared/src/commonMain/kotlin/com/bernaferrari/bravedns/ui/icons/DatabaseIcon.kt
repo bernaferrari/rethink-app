@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val filledDatabase: ImageVector
   get() {
-    if (_filledDatabase != null) {
-      return _filledDatabase!!
+    if (cachedFilledDatabase != null) {
+      return cachedFilledDatabase!!
     }
-    _filledDatabase =
+    cachedFilledDatabase =
       ImageVector.Builder(
           name = "database",
           defaultWidth = 24.dp,
@@ -91,7 +91,7 @@ internal val filledDatabase: ImageVector
           }
         }
         .build()
-    return _filledDatabase!!
+    return cachedFilledDatabase!!
   }
 
-internal var _filledDatabase: ImageVector? = null
+internal var cachedFilledDatabase: ImageVector? = null

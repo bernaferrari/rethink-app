@@ -15,10 +15,10 @@ import androidx.compose.ui.unit.dp
 @Suppress("CheckReturnValue")
 internal val brandTwitter: ImageVector
   get() {
-    if (_brandTwitter != null) {
-      return _brandTwitter!!
+    if (cachedBrandTwitter != null) {
+      return cachedBrandTwitter!!
     }
-    _brandTwitter =
+    cachedBrandTwitter =
       ImageVector.Builder(
           name = "twitter",
           defaultWidth = 24.dp,
@@ -59,7 +59,7 @@ internal val brandTwitter: ImageVector
           }
         }
         .build()
-    return _brandTwitter!!
+    return cachedBrandTwitter!!
   }
 
-internal var _brandTwitter: ImageVector? = null
+internal var cachedBrandTwitter: ImageVector? = null
