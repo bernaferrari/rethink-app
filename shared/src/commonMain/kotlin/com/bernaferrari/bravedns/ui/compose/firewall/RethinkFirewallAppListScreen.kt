@@ -51,6 +51,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TextButton
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -108,6 +109,7 @@ data class RethinkFirewallApp(
     val hasInternetPermission: Boolean = true,
     val tombstoned: Boolean = false,
     val canToggleConnections: Boolean = true,
+    val technicalIdentity: String? = null,
 )
 
 enum class RethinkFirewallAppStatus { Allowed, Blocked, Bypass, Excluded, Lockdown, Unknown }
@@ -172,6 +174,7 @@ data class RethinkFirewallAppListStrings(
     val moreOptions: String = "More options",
     val sortLabels: List<String> = emptyList(),
     val sortTitle: String = "Sort apps",
+    val uidLabel: @Composable (Int) -> String = { "UID $it" },
 )
 
 /**
@@ -265,7 +268,7 @@ fun RethinkFirewallAppListScreen(
                 modifier = Modifier.weight(1f),
                 apps = orderedApps,
                 scrollerMarks = scrollerMarks,
-                alphabetical = alphabetical,
+                sortOrder = sortOrder,
                 endGutter = endGutter,
                 query = query,
                 strings = strings,
@@ -379,7 +382,7 @@ private fun RethinkFirewallAppControls(
 private fun RethinkFirewallAppList(
     apps: List<RethinkFirewallApp>,
     scrollerMarks: List<RethinkFastScrollerMark>,
-    alphabetical: Boolean,
+    sortOrder: RethinkAppSort,
     endGutter: Dp,
     query: String,
     strings: RethinkFirewallAppListStrings,
@@ -400,11 +403,12 @@ private fun RethinkFirewallAppList(
     }
 
     val state = rememberLazyListState()
+    LaunchedEffect(sortOrder) { state.scrollToItem(0) }
     Box(modifier.fillMaxSize()) {
         RethinkFirewallAppRows(
             apps = apps,
             state = state,
-            alphabetical = alphabetical,
+            sortOrder = sortOrder,
             endGutter = endGutter,
             query = query,
             strings = strings,
@@ -426,7 +430,7 @@ private fun RethinkFirewallAppList(
 private fun RethinkFirewallAppRows(
     apps: List<RethinkFirewallApp>,
     state: LazyListState,
-    alphabetical: Boolean,
+    sortOrder: RethinkAppSort,
     endGutter: Dp,
     query: String,
     strings: RethinkFirewallAppListStrings,
@@ -435,6 +439,7 @@ private fun RethinkFirewallAppRows(
     onWifiToggle: (RethinkFirewallApp) -> Unit,
     onMobileToggle: (RethinkFirewallApp) -> Unit,
 ) {
+    val alphabetical = sortOrder == RethinkAppSort.Name
     LazyColumn(
         state = state,
         contentPadding = PaddingValues(
@@ -468,7 +473,11 @@ private fun RethinkFirewallAppRows(
             }
             item(key = app.id, contentType = "app") {
                 RethinkFirewallAppRow(
-                    app = app,
+                    app = app.copy(technicalIdentity = when (sortOrder) {
+                        RethinkAppSort.Name -> null
+                        RethinkAppSort.Package -> app.packageName
+                        RethinkAppSort.Uid -> strings.uidLabel(app.uid)
+                    }),
                     query = query,
                     statusLabel = strings.statusLabel(app.status),
                     position = position,
@@ -538,6 +547,10 @@ private fun RethinkFirewallAppRow(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
+                app.technicalIdentity?.let {
+                    Text(it, style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
                 // One non-wrapping supporting line: status/proxy badges first, then usage, which
                 // is the only part allowed to ellipsize.
                 if (hasSupportingLine) {

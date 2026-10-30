@@ -295,6 +295,7 @@ private fun androidFirewallAppListStrings(dialogs: AndroidBulkDialogCopy): Rethi
     val mobile = stringResource(R.string.lbl_mobile_data)
     return RethinkFirewallAppListStrings(
         sortTitle = stringResource(R.string.port_sort_title),
+        uidLabel = { stringResource(R.string.port_uid_number, it) },
         sortLabels = listOf(stringResource(R.string.port_sort_name), stringResource(R.string.port_sort_package), stringResource(R.string.port_sort_uid)),
         title = stringResource(R.string.apps_info_title),
         searchHint = { count -> stringResource(R.string.search_apps_count_placeholder, count) },

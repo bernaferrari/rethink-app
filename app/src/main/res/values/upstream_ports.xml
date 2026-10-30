@@ -31,4 +31,6 @@
     <string name="port_captive_description">Temporarily use the network’s DNS to sign in to public Wi-Fi. DNS filtering resumes after sign-in.</string>
     <string name="port_sort_title">Sort apps</string>
     <string name="port_saving">Saving…</string>
+    <string name="port_uid_number">UID %1$d</string>
+    <string name="port_notes_package">Notes for %1$s</string>
 </resources>

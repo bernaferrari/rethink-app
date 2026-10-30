@@ -331,7 +331,7 @@ fun AppInfoScreen(
             onEntry = { entry -> activePreview.getOrNull(entry.id.toIntOrNull() ?: -1)?.let { closeDialogConn = it } },
         ),
         ),
-        appNotes = info?.let { app -> { AppNotesEditor(app) } },
+        appNotes = info?.let { app -> { AppNotesSection(uid, app) } },
         state = RethinkAppInfoState(
             appAvailable = info != null,
             title = title,
