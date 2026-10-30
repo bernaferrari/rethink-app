@@ -3,7 +3,6 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.theme
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.selection.selectable
@@ -22,7 +21,7 @@ internal fun RethinkListItemSurface(
     selection: RethinkListSelection?, enabled: Boolean,
     onClick: (() -> Unit)?, onLongClick: (() -> Unit)?,
     interactionSource: MutableInteractionSource, shape: Shape,
-    containerColor: Color, border: BorderStroke?, surfaceModifier: Modifier,
+    containerColor: Color, surfaceModifier: Modifier,
     content: @Composable () -> Unit,
 ) {
     if (selection != null) {
@@ -48,7 +47,6 @@ internal fun RethinkListItemSurface(
         Surface(
             shape = shape,
             color = containerColor,
-            border = border,
             modifier = surfaceModifier.then(controlModifier),
             content = content,
         )
@@ -56,7 +54,6 @@ internal fun RethinkListItemSurface(
         Surface(
             shape = shape,
             color = containerColor,
-            border = border,
             modifier = surfaceModifier.combinedClickable(
                 interactionSource = interactionSource,
                 indication = ripple(),
@@ -73,7 +70,6 @@ internal fun RethinkListItemSurface(
             interactionSource = interactionSource,
             shape = shape,
             color = containerColor,
-            border = border,
             modifier = surfaceModifier,
             content = content,
         )
@@ -81,7 +77,6 @@ internal fun RethinkListItemSurface(
         Surface(
             shape = shape,
             color = containerColor,
-            border = border,
             modifier = surfaceModifier,
             content = content,
         )

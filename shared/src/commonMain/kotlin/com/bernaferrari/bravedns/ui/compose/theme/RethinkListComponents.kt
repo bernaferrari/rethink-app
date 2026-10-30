@@ -5,7 +5,6 @@ package com.bernaferrari.bravedns.ui.compose.theme
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Column
@@ -13,12 +12,8 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.Immutable
@@ -31,7 +26,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.Dp
 
@@ -191,12 +185,11 @@ fun RethinkListItem(
     )
     val shape = rethinkGroupedListShape(position)
     val alpha = if (enabled) 1f else DISABLED_CONTENT_ALPHA
+    // Highlighting is tonal only; grouped rows never draw borders.
     val containerColor = lerp(defaultContainerColor, highlightContainerColor, highlightAlpha)
     val headlineColor = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
 
     val surfaceModifier = Modifier.rethinkGroupedRow(position)
-    // Highlight (deep-link focus, selection) is tonal only: grouped rows never draw borders.
-    val border: BorderStroke? = null
     val content: @Composable () -> Unit = {
         RethinkListItemContent(
             headline, headlineAnnotated, supporting, supportingAnnotated, contentOffset,
@@ -208,7 +201,7 @@ fun RethinkListItem(
     Column(modifier = modifier.fillMaxWidth().scale(scale)) {
         RethinkListItemSurface(
             selection, enabled, onClick, onLongClick, interactionSource,
-            shape, containerColor, border, surfaceModifier, content,
+            shape, containerColor, surfaceModifier, content,
         )
     }
 }
