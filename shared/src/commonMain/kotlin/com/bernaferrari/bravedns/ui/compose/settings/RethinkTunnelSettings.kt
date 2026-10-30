@@ -81,7 +81,7 @@ fun RethinkTunnelSettingsScreen(
                 RethinkListGroup {
                     RethinkListItem(
                         headline = strings.lockdownDescription,
-                        leadingIcon = MaterialSymbols.Filled.Security,
+                        leadingIcon = MaterialSymbols.Filled.Lock,
                         position = CardPosition.Single,
                         onClick = onLockdownClick,
                     )
@@ -178,5 +178,5 @@ private fun RethinkTunnelSettingIcon.toImageVector(): ImageVector = when (this) 
     RethinkTunnelSettingIcon.Settings -> MaterialSymbols.Filled.Settings
     RethinkTunnelSettingIcon.Tune -> MaterialSymbols.Filled.Tune
     RethinkTunnelSettingIcon.NetworkCheck -> MaterialSymbols.Filled.NetworkCheck
-    RethinkTunnelSettingIcon.Security -> MaterialSymbols.Filled.Security
+    RethinkTunnelSettingIcon.Security -> MaterialSymbols.Filled.Shield
 }

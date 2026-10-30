@@ -39,6 +39,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSheetHeader
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import com.bernaferrari.bravedns.ui.icons.keepout.KeepoutIcons
 
 data class RethinkDnsRecordType(val id: String, val name: String, val description: String)
 
@@ -181,7 +182,7 @@ fun RethinkLocalBlocklistSheet(
                         checked = state.enabled,
                         onCheckedChange = { onEnableToggle() },
                         supporting = strings.toggleDescription,
-                        leadingIcon = MaterialSymbols.Filled.Security,
+                        leadingIcon = KeepoutIcons.Blocklists,
                         position = CardPosition.Single,
                     )
                 }
@@ -199,7 +200,7 @@ fun RethinkLocalBlocklistSheet(
                         if (state.showCheckUpdate) add(RethinkLocalBlocklistAction(strings.checkUpdate, MaterialSymbols.Filled.Refresh, !state.checking, state.checking, onCheckUpdate))
                         if (state.showDownload) add(RethinkLocalBlocklistAction(strings.download, MaterialSymbols.Filled.Download, !state.downloading, state.downloading, onDownload))
                         if (state.showRedownload) add(RethinkLocalBlocklistAction(strings.redownload, MaterialSymbols.Filled.Download, !state.redownloading, state.redownloading, onRedownload))
-                        add(RethinkLocalBlocklistAction(strings.delete, MaterialSymbols.Filled.Delete, true, false, { confirmDelete = true }, destructive = true))
+                        add(RethinkLocalBlocklistAction(strings.delete, MaterialSymbols.Filled.DeleteOutline, true, false, { confirmDelete = true }, destructive = true))
                     }
                     maintenance.forEachIndexed { index, item ->
                         RethinkListItem(

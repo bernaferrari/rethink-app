@@ -74,10 +74,10 @@ fun DnsListScreen(
 
 @Composable
 private fun androidDnsProtocols() = listOf(
-    RethinkDnsProtocol(AppConfig.DnsType.DOH.type, stringResource(R.string.dc_doh), stringResource(R.string.cd_custom_doh_url_name_default), listOf(Private, Secure), MaterialSymbols.Filled.Language),
+    RethinkDnsProtocol(AppConfig.DnsType.DOH.type, stringResource(R.string.dc_doh), stringResource(R.string.cd_custom_doh_url_name_default), listOf(Private, Secure), MaterialSymbols.Filled.Public),
     RethinkDnsProtocol(AppConfig.DnsType.DOT.type, stringResource(R.string.lbl_dot_abbr), stringResource(R.string.lbl_dot), listOf(Private, Secure), MaterialSymbols.Filled.Shield),
     RethinkDnsProtocol(AppConfig.DnsType.DNSCRYPT.type, stringResource(R.string.dc_dns_crypt), stringResource(R.string.cd_dns_crypt_name_default), listOf(Private, Secure, Anonymous), MaterialSymbols.Filled.VpnKey),
     RethinkDnsProtocol(AppConfig.DnsType.DNS_PROXY.type, stringResource(R.string.lbl_dp_abbr), stringResource(R.string.lbl_dp), listOf(Fast), MaterialSymbols.Filled.Dns),
     RethinkDnsProtocol(AppConfig.DnsType.ODOH.type, stringResource(R.string.lbl_odoh_abbr), stringResource(R.string.lbl_odoh), listOf(Private, Secure, Anonymous), MaterialSymbols.Filled.ShieldMoon),
-    RethinkDnsProtocol(AppConfig.DnsType.RETHINK_REMOTE.type, stringResource(R.string.dc_rethink_dns_radio), stringResource(R.string.lbl_rdns), listOf(Fast, Private, Secure), MaterialSymbols.Filled.Security),
+    RethinkDnsProtocol(AppConfig.DnsType.RETHINK_REMOTE.type, stringResource(R.string.dc_rethink_dns_radio), stringResource(R.string.lbl_rdns), listOf(Fast, Private, Secure), MaterialSymbols.Filled.Shield),
 )

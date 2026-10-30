@@ -423,7 +423,11 @@ private fun ProtectionMark(state: ProtectionVisualState, colors: HeroColors, siz
                 .background(colors.mark, MorphShape(morph, morphProgress)),
         )
         Icon(
-            imageVector = if (state == ProtectionVisualState.Recovering) MaterialSymbols.Filled.WarningAmber else MaterialSymbols.Filled.Shield,
+            imageVector = when (state) {
+                ProtectionVisualState.Protected -> MaterialSymbols.Filled.GppGood
+                ProtectionVisualState.Recovering -> MaterialSymbols.Filled.GppMaybe
+                ProtectionVisualState.Off -> MaterialSymbols.Filled.RemoveModerator
+            },
             contentDescription = null,
             tint = colors.onMark,
             modifier = Modifier.size(size * 0.34f),
@@ -514,7 +518,7 @@ private fun TodaySection(uiState: RethinkHomeUiState, strings: RethinkHomeString
                 Text(strings.connections, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg)) {
                     TodayMetric(formatGrouped(uiState.allowedToday), strings.allowed, RethinkStatusColors.allowed, MaterialSymbols.Filled.CheckCircle, Modifier.weight(1f))
-                    TodayMetric(formatGrouped(uiState.blockedToday), strings.blocked, RethinkStatusColors.blocked, MaterialSymbols.Filled.Block, Modifier.weight(1f))
+                    TodayMetric(formatGrouped(uiState.blockedToday), strings.blocked, RethinkStatusColors.blocked, MaterialSymbols.Filled.DoNotDisturbOn, Modifier.weight(1f))
                 }
                 SplitBar(uiState.allowedToday, uiState.blockedToday)
                 // DNS lookups are a separate count from the connections above: its own labelled
@@ -594,7 +598,7 @@ private fun StoppedMostSection(apps: List<RethinkHomeBlockedApp>, strings: Rethi
                         RethinkPill(
                             text = strings.blockedCount(app.count),
                             colors = RethinkPillDefaults.blocked(),
-                            leadingIcon = MaterialSymbols.Filled.Block,
+                            leadingIcon = MaterialSymbols.Filled.DoNotDisturbOn,
                         )
                     },
                     position = cardPositionFor(index, apps.lastIndex),
@@ -610,7 +614,7 @@ private fun StoppedMostSection(apps: List<RethinkHomeBlockedApp>, strings: Rethi
 private fun QuickActions(strings: RethinkHomeStrings, onApps: (() -> Unit)?, onLogs: (() -> Unit)?, onDns: (() -> Unit)?) {
     val actions = listOfNotNull(
         onApps?.let { QuickAction(strings.apps, strings.appsCaption, MaterialSymbols.Filled.Apps, it) },
-        onLogs?.let { QuickAction(strings.logs, strings.logsCaption, MaterialSymbols.AutoMirrored.Filled.Subject, it) },
+        onLogs?.let { QuickAction(strings.logs, strings.logsCaption, MaterialSymbols.Filled.FormatListBulleted, it) },
         onDns?.let { QuickAction(strings.dns, strings.dnsCaption, MaterialSymbols.Filled.Dns, it) },
     )
     if (actions.isEmpty()) return

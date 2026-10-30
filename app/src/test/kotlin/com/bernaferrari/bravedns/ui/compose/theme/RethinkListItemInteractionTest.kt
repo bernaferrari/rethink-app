@@ -70,8 +70,8 @@ class RethinkListItemInteractionTest {
             RethinkTheme {
                 RethinkConnectedChoiceGroup(
                     options = listOf(
-                        RethinkChoiceOption(1, "Name", MaterialSymbols.Filled.Security),
-                        RethinkChoiceOption(2, "Package", MaterialSymbols.Filled.Security),
+                        RethinkChoiceOption(1, "Name", MaterialSymbols.Filled.Shield),
+                        RethinkChoiceOption(2, "Package", MaterialSymbols.Filled.Shield),
                     ),
                     selected = 1,
                     onSelect = { selections.add(it) },

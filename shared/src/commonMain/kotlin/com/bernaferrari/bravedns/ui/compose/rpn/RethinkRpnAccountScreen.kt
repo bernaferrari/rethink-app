@@ -234,7 +234,7 @@ private fun RethinkRpnManageTab(
 private fun RethinkRpnHistoryTab(loading: Boolean, entries: List<RethinkRpnAccountEntry>, strings: RethinkRpnAccountStrings) {
     when {
         loading -> RethinkLoadingState(strings.loading)
-        entries.isEmpty() -> RethinkEmptyState(strings.noHistory, "", Modifier.fillMaxWidth(), icon = MaterialSymbols.Filled.EventNote)
+        entries.isEmpty() -> RethinkEmptyState(strings.noHistory, "", Modifier.fillMaxWidth(), icon = MaterialSymbols.Filled.History)
         else -> RethinkRpnAccountEntries(entries)
     }
 }

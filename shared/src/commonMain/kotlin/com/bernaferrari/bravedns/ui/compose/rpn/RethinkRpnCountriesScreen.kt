@@ -131,7 +131,7 @@ fun RethinkRpnCountriesScreen(
                             ),
                             RethinkOverflowItem(
                                 label = if (busyKey == "reset") strings.resetting else strings.reset,
-                                icon = MaterialSymbols.Filled.RestartAlt,
+                                icon = MaterialSymbols.Filled.Refresh,
                                 enabled = actionsEnabled,
                                 onClick = { showResetConfirm = true },
                             ),
@@ -247,7 +247,7 @@ private fun RethinkRpnCountryRow(
                 enabled = enabled && country.countryCode.isNotBlank(),
             ) {
                 Icon(
-                    if (country.isFavourite) MaterialSymbols.Filled.Star else MaterialSymbols.Outlined.StarBorder,
+                    if (country.isFavourite) MaterialSymbols.Filled.Star else MaterialSymbols.Outlined.Star,
                     contentDescription = if (country.isFavourite) strings.removeFavourite else strings.addFavourite,
                     tint = if (country.isFavourite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                 )

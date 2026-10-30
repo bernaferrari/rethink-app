@@ -350,8 +350,8 @@ private fun RethinkRuleTabSelector(
         options = listOf(
             // The screen title already says "rules"; the short type names fit every locale at
             // phone width without truncating.
-            RethinkChoiceOption(RethinkRulesTab.IP, strings.ip, MaterialSymbols.Filled.Public),
-            RethinkChoiceOption(RethinkRulesTab.DOMAIN, strings.domain, MaterialSymbols.Filled.Language),
+            RethinkChoiceOption(RethinkRulesTab.IP, strings.ip, MaterialSymbols.Filled.Pin),
+            RethinkChoiceOption(RethinkRulesTab.DOMAIN, strings.domain, MaterialSymbols.Filled.Link),
         ),
         selected = selected,
         onSelect = onSelected,
@@ -368,7 +368,7 @@ private fun RethinkRuleScopeSelector(
 ) {
     RethinkConnectedChoiceGroup(
         options = listOf(
-            RethinkChoiceOption(RethinkRulesMode.SELECTED_UID, strings.universal, MaterialSymbols.Filled.Security),
+            RethinkChoiceOption(RethinkRulesMode.SELECTED_UID, strings.universal, MaterialSymbols.Filled.Public),
             RethinkChoiceOption(RethinkRulesMode.ALL_APPS, strings.appWise, MaterialSymbols.Filled.Apps),
         ),
         selected = selected,
@@ -462,7 +462,7 @@ private fun RethinkRulesEmptyState(
     ) {
         RethinkEmptyState(
             title = if (tab == RethinkRulesTab.IP) strings.noIpRules else strings.noDomainRules,
-            icon = if (tab == RethinkRulesTab.IP) MaterialSymbols.Filled.Public else MaterialSymbols.Filled.Language,
+            icon = if (tab == RethinkRulesTab.IP) MaterialSymbols.Filled.Pin else MaterialSymbols.Filled.Link,
             ctaLabel = strings.add,
             onCtaClick = onAddRule,
         )
@@ -540,8 +540,8 @@ private fun RethinkFirewallRuleRow(
             singleLineHeadline = true,
             leadingIcon = when {
                 selected -> MaterialSymbols.Filled.CheckCircle
-                rule.tab == RethinkRulesTab.IP -> MaterialSymbols.Filled.Public
-                else -> MaterialSymbols.Filled.Language
+                rule.tab == RethinkRulesTab.IP -> MaterialSymbols.Filled.Pin
+                else -> MaterialSymbols.Filled.Link
             },
             colors = rethinkListItemColors(leadingIconTint = if (selected) MaterialTheme.colorScheme.onPrimary else accent, leadingIconContainerColor = if (selected) MaterialTheme.colorScheme.primary else RethinkIconWellDefaults.tinted(accent)),
             highlighted = selected,

@@ -107,7 +107,7 @@ private fun RethinkLogsTabSwitch(
     modifier: Modifier = Modifier,
 ) {
     val options = listOf(
-        RethinkChoiceOption(RethinkLogTab.Network, networkLabel, MaterialSymbols.Filled.Public),
+        RethinkChoiceOption(RethinkLogTab.Network, networkLabel, MaterialSymbols.Filled.SyncAlt),
         RethinkChoiceOption(RethinkLogTab.Dns, dnsLabel, MaterialSymbols.Filled.Dns),
     )
     RethinkConnectedChoiceGroup(

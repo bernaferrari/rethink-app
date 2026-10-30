@@ -421,7 +421,7 @@ private fun RethinkEventsEmptyState(strings: RethinkEventsStrings, modifier: Mod
         RethinkEmptyState(
             title = strings.noEventsTitle,
             message = strings.noEventsDescription,
-            icon = MaterialSymbols.Filled.EventNote,
+            icon = MaterialSymbols.Filled.History,
         )
     }
 }
@@ -437,7 +437,7 @@ private fun RethinkEventSeverity.icon(): ImageVector = when (this) {
     RethinkEventSeverity.Low -> MaterialSymbols.Filled.Info
     RethinkEventSeverity.Medium -> MaterialSymbols.Filled.Info
     RethinkEventSeverity.High -> MaterialSymbols.Filled.Warning
-    RethinkEventSeverity.Critical -> MaterialSymbols.Filled.GppBad
+    RethinkEventSeverity.Critical -> MaterialSymbols.Filled.Report
 }
 
 @Composable

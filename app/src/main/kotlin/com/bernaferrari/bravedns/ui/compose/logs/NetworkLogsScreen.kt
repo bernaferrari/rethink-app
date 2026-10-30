@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.graphics.vector.ImageVector
 import com.bernaferrari.bravedns.ui.compose.common.RethinkAdaptiveWidth
 import com.bernaferrari.bravedns.ui.compose.common.isExpanded
 import com.bernaferrari.bravedns.ui.compose.dns.dnsLogModel
@@ -47,7 +48,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.paging.LoadState
@@ -69,6 +69,7 @@ import com.bernaferrari.bravedns.service.PersistentState
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.ui.compose.common.AppIcon
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
+import com.bernaferrari.bravedns.ui.icons.keepout.KeepoutIcons
 import com.bernaferrari.bravedns.util.Utilities
 import com.bernaferrari.bravedns.viewmodel.ConnectionTrackerViewModel
 import com.bernaferrari.bravedns.viewmodel.DnsLogViewModel
@@ -684,11 +685,39 @@ private fun PlatformLogAppIcon(option: RethinkLogAppOption) {
 @Composable
 private fun PlatformLogRuleIcon(ruleId: String, tint: Color) {
     Icon(
-        painter = painterResource(FirewallRuleset.getRulesIcon(ruleId)),
+        imageVector = firewallRuleIcon(ruleId),
         contentDescription = null,
         tint = tint,
         modifier = Modifier.size(SharedDimensions.iconSizeSm),
     )
+}
+
+/** Why a connection was allowed or blocked: the rule's subject, in the same glyphs the settings use. */
+private fun firewallRuleIcon(ruleId: String?): ImageVector = when (ruleId) {
+    FirewallRuleset.RULE0.id -> MaterialSymbols.Filled.CheckCircle
+    FirewallRuleset.RULE1.id, FirewallRuleset.RULE1C.id -> MaterialSymbols.Filled.DoNotDisturbOn
+    FirewallRuleset.RULE1B.id -> MaterialSymbols.Filled.NewReleases
+    FirewallRuleset.RULE1D.id -> MaterialSymbols.Filled.WifiOff
+    FirewallRuleset.RULE1E.id -> MaterialSymbols.Filled.MobiledataOff
+    FirewallRuleset.RULE1F.id -> MaterialSymbols.Filled.CellTower
+    FirewallRuleset.RULE1G.id, FirewallRuleset.RULE2B.id, FirewallRuleset.RULE2F.id, FirewallRuleset.RULE2I.id -> MaterialSymbols.Filled.Verified
+    FirewallRuleset.RULE1H.id -> KeepoutIcons.FirewallOff
+    FirewallRuleset.RULE2.id -> MaterialSymbols.Filled.Pin
+    FirewallRuleset.RULE2C.id, FirewallRuleset.RULE8.id -> MaterialSymbols.Filled.PublicOff
+    FirewallRuleset.RULE2D.id, FirewallRuleset.RULE2H.id -> MaterialSymbols.Filled.Public
+    FirewallRuleset.RULE2E.id -> MaterialSymbols.Filled.Link
+    FirewallRuleset.RULE3.id -> MaterialSymbols.Filled.ScreenLockPortrait
+    FirewallRuleset.RULE4.id -> MaterialSymbols.Filled.VisibilityOff
+    FirewallRuleset.RULE5.id -> MaterialSymbols.AutoMirrored.Filled.HelpOutline
+    FirewallRuleset.RULE6.id -> MaterialSymbols.Filled.SettingsEthernet
+    FirewallRuleset.RULE7.id -> MaterialSymbols.Filled.Shield
+    FirewallRuleset.RULE9B.id, FirewallRuleset.RULE12.id, FirewallRuleset.RULE15.id -> MaterialSymbols.Filled.ConversionPath
+    FirewallRuleset.RULE10.id -> MaterialSymbols.Filled.Http
+    FirewallRuleset.RULE11.id, FirewallRuleset.RULE17.id -> MaterialSymbols.Filled.Lock
+    FirewallRuleset.RULE13.id, FirewallRuleset.RULE18.id -> MaterialSymbols.Filled.Warning
+    FirewallRuleset.RULE16.id -> MaterialSymbols.Filled.PauseCircle
+    FirewallRuleset.RULE19.id -> MaterialSymbols.Filled.Timer
+    else -> MaterialSymbols.Filled.Dns // RULE2G (DNS blocked), RULE9, RULE14 and unknown ids
 }
 
 @Composable

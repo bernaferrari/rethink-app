@@ -61,6 +61,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkSection
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.clickable
+import com.bernaferrari.bravedns.ui.icons.keepout.KeepoutIcons
 
 enum class RethinkDnsType { Doh, RethinkRemote, SmartDns, Dot, Odoh, DnsCrypt, DnsProxy, System }
 enum class RethinkBlockFreeDnsMode { Auto, Global, Fallback }
@@ -223,15 +224,15 @@ fun RethinkDnsSettingsScreen(
         rethinkSection(strings.blockSection) {
             RethinkListGroup {
                 DnsLocalBlocklistRow(state, strings, focusedSettingId == "dns_block_local", navigation.onLocalBlocklists)
-                RethinkDnsToggleRow(strings.customDownloader, strings.customDownloaderDescription, state.useCustomDownloadManager, MaterialSymbols.Filled.Storage, CardPosition.Middle, focusedSettingId == "dns_block_custom_downloader", onCustomDownloaderChange)
+                RethinkDnsToggleRow(strings.customDownloader, strings.customDownloaderDescription, state.useCustomDownloadManager, MaterialSymbols.Filled.Download, CardPosition.Middle, focusedSettingId == "dns_block_custom_downloader", onCustomDownloaderChange)
                 RethinkDnsToggleRow(strings.periodicUpdates, strings.periodicUpdatesDescription, state.periodicallyCheckBlocklistUpdate, MaterialSymbols.Filled.Refresh, CardPosition.Last, focusedSettingId == "dns_block_periodic_updates", onPeriodicUpdateChange)
             }
         }
         rethinkSection(strings.filteringSection) {
             val rows = buildList {
                 add(RethinkDnsToggle(strings.dnsAlg, strings.dnsAlgDescription, state.enableDnsAlg, MaterialSymbols.Filled.Dns, "dns_filter_alg", onDnsAlgChange))
-                if (state.showSplitDns) add(RethinkDnsToggle(strings.splitDns, strings.splitDnsDescription, state.splitDns, MaterialSymbols.Filled.Language, "dns_filter_split", onSplitDnsChange))
-                if (state.showBypassDnsBlock) add(RethinkDnsToggle(strings.rulesAsFirewall, strings.rulesAsFirewallDescription, state.bypassBlockInDns, MaterialSymbols.Filled.Security, "dns_filter_rules_as_firewall", onRulesAsFirewallChange))
+                if (state.showSplitDns) add(RethinkDnsToggle(strings.splitDns, strings.splitDnsDescription, state.splitDns, MaterialSymbols.Filled.CallSplit, "dns_filter_split", onSplitDnsChange))
+                if (state.showBypassDnsBlock) add(RethinkDnsToggle(strings.rulesAsFirewall, strings.rulesAsFirewallDescription, state.bypassBlockInDns, KeepoutIcons.Firewall, "dns_filter_rules_as_firewall", onRulesAsFirewallChange))
             }
             RethinkListGroup {
                 rows.forEachIndexed { index, row ->
@@ -240,7 +241,7 @@ fun RethinkDnsSettingsScreen(
                 RethinkListItem(
                     headline = strings.recordTypes,
                     supporting = strings.recordTypesDescription,
-                    leadingIcon = MaterialSymbols.Filled.Public,
+                    leadingIcon = MaterialSymbols.Filled.Dns,
                     position = CardPosition.Last,
                     highlighted = focusedSettingId == "dns_filter_record_types",
                     trailing = { RethinkDnsStatusText(if (state.dnsRecordTypesAutoMode) strings.auto else state.allowedDnsRecordTypesSize.toString(), true) },
@@ -265,7 +266,7 @@ fun RethinkDnsSettingsScreen(
                 RethinkListItem(
                     headline = strings.trustedEndpoint,
                     supporting = strings.trustedEndpointDescription,
-                    leadingIcon = MaterialSymbols.Filled.Security,
+                    leadingIcon = MaterialSymbols.Filled.Verified,
                     position = CardPosition.Last,
                     showTrailingChevron = true,
                     onClick = navigation.onTrustedEndpoint,
@@ -275,12 +276,12 @@ fun RethinkDnsSettingsScreen(
         if (additionalSettings != null) item { additionalSettings() }
         rethinkSection(strings.advancedSection) {
             val rows = listOf(
-                RethinkDnsToggle(strings.favicons, strings.faviconsDescription, state.fetchFavIcon, MaterialSymbols.Filled.Language, "dns_advanced_favicon", onFaviconsChange),
-                RethinkDnsToggle(strings.dnsCache, strings.dnsCacheDescription, state.enableDnsCache, MaterialSymbols.Filled.Storage, "dns_advanced_cache", onDnsCacheChange),
+                RethinkDnsToggle(strings.favicons, strings.faviconsDescription, state.fetchFavIcon, MaterialSymbols.Filled.Public, "dns_advanced_favicon", onFaviconsChange),
+                RethinkDnsToggle(strings.dnsCache, strings.dnsCacheDescription, state.enableDnsCache, MaterialSymbols.Filled.Database, "dns_advanced_cache", onDnsCacheChange),
                 RethinkDnsToggle(strings.proxyDns, strings.proxyDnsDescription, !state.proxyDns, MaterialSymbols.Filled.Dns, "dns_advanced_proxy_dns") { onProxyDnsChange(!it) },
                 RethinkDnsToggle(strings.undelegatedDomains, strings.undelegatedDomainsDescription, state.useSystemDnsForUndelegatedDomains, MaterialSymbols.Filled.Public, "dns_advanced_undelegated", onUndelegatedDomainsChange),
-                RethinkDnsToggle(strings.fallbackDns, strings.fallbackDnsDescription, state.useFallbackDnsToBypass, MaterialSymbols.Filled.Security, "dns_advanced_fallback", onFallbackDnsChange),
-                RethinkDnsToggle(strings.preventLeaks, strings.preventLeaksDescription, state.preventDnsLeaks, MaterialSymbols.Filled.Security, "dns_advanced_leaks", onPreventLeaksChange),
+                RethinkDnsToggle(strings.fallbackDns, strings.fallbackDnsDescription, state.useFallbackDnsToBypass, MaterialSymbols.Filled.Dns, "dns_advanced_fallback", onFallbackDnsChange),
+                RethinkDnsToggle(strings.preventLeaks, strings.preventLeaksDescription, state.preventDnsLeaks, MaterialSymbols.Filled.Shield, "dns_advanced_leaks", onPreventLeaksChange),
             )
             RethinkListGroup {
                 rows.forEachIndexed { index, row ->
@@ -312,10 +313,10 @@ private fun DnsResolverChoices(
             // Four resolver choices as one radio group in a 2×2 grid: every card carries a radio, and
             // the chosen one fills with the secondary container and rounds further.
             val choices = listOf(
-                DnsChoice(strings.systemDns, strings.systemDnsDescription, state.isSystemDnsEnabled, MaterialSymbols.Filled.Settings, "dns_mode_system", navigation.onSystemDns),
+                DnsChoice(strings.systemDns, strings.systemDnsDescription, state.isSystemDnsEnabled, MaterialSymbols.Filled.Android, "dns_mode_system", navigation.onSystemDns),
                 DnsChoice(strings.customDns, strings.customDnsDescription, !state.isSystemDnsEnabled && !state.isRethinkDnsConnected && !state.isSmartDnsEnabled, MaterialSymbols.Filled.Dns, "dns_mode_custom", navigation.onCustomDns),
-                DnsChoice(strings.rethinkDns, strings.rethinkDnsDescription, state.isRethinkDnsConnected, MaterialSymbols.Filled.Security, "dns_mode_rethink", navigation.onRethinkDns),
-                DnsChoice(strings.smartDns, strings.smartDnsDescription, state.isSmartDnsEnabled, MaterialSymbols.Filled.Language, "dns_mode_smart", navigation.onSmartDns),
+                DnsChoice(strings.rethinkDns, strings.rethinkDnsDescription, state.isRethinkDnsConnected, MaterialSymbols.Filled.Shield, "dns_mode_rethink", navigation.onRethinkDns),
+                DnsChoice(strings.smartDns, strings.smartDnsDescription, state.isSmartDnsEnabled, MaterialSymbols.Filled.AutoAwesome, "dns_mode_smart", navigation.onSmartDns),
             )
             Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
                 choices.chunked(2).forEach { pair ->

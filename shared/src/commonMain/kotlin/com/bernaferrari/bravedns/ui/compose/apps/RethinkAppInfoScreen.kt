@@ -76,6 +76,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListPairShape
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
+import com.bernaferrari.bravedns.ui.icons.keepout.KeepoutIcons
 
 /** Two-line action row height (Material 72dp). */
 private val AppInfoActionMinHeight = 72.dp
@@ -191,10 +192,10 @@ fun RethinkAppInfoScreen(
                     RethinkAppStatusChips(state, strings)
                     RethinkAppNetworkPair(state, strings, onWifiClick, onMobileClick)
                     RethinkListGroup {
-                        RethinkAppExclusiveRow(strings.isolate, state.isolated, MaterialSymbols.Filled.Security, CardPosition.First, onIsolateClick)
-                        RethinkAppExclusiveRow(strings.bypassDns, state.bypassDnsFirewall, MaterialSymbols.Filled.Dns, CardPosition.Middle, onBypassDnsClick)
-                        RethinkAppExclusiveRow(strings.bypassUniversal, state.bypassUniversalFirewall, MaterialSymbols.Filled.Public, CardPosition.Middle, onBypassUniversalClick)
-                        RethinkAppExclusiveRow(strings.exclude, state.excluded, MaterialSymbols.Filled.Apps, CardPosition.Last, onExcludeClick)
+                        RethinkAppExclusiveRow(strings.isolate, state.isolated, MaterialSymbols.Filled.Verified, CardPosition.First, onIsolateClick)
+                        RethinkAppExclusiveRow(strings.bypassDns, state.bypassDnsFirewall, KeepoutIcons.FirewallOff, CardPosition.Middle, onBypassDnsClick)
+                        RethinkAppExclusiveRow(strings.bypassUniversal, state.bypassUniversalFirewall, MaterialSymbols.Filled.PublicOff, CardPosition.Middle, onBypassUniversalClick)
+                        RethinkAppExclusiveRow(strings.exclude, state.excluded, MaterialSymbols.Filled.RemoveModerator, CardPosition.Last, onExcludeClick)
                     }
                 }
             }
@@ -204,8 +205,8 @@ fun RethinkAppInfoScreen(
             item {
                 RethinkFormSection(strings.rules) {
                     RethinkListGroup {
-                        RethinkAppNavigationRow(strings.ipRules, MaterialSymbols.Filled.Public, CardPosition.First, onIpRules)
-                        RethinkAppNavigationRow(strings.domainRules, MaterialSymbols.Filled.Dns, CardPosition.Last, onDomainRules)
+                        RethinkAppNavigationRow(strings.ipRules, MaterialSymbols.Filled.Pin, CardPosition.First, onIpRules)
+                        RethinkAppNavigationRow(strings.domainRules, MaterialSymbols.Filled.Link, CardPosition.Last, onDomainRules)
                     }
                 }
             }
@@ -216,7 +217,7 @@ fun RethinkAppInfoScreen(
                 // Advanced group instead of sitting among IP/domain rules.
                 RethinkFormSection(strings.advanced) {
                     RethinkListGroup {
-                        RethinkAppToggleRow(strings.proxyExclude, strings.proxyExcludeDescription, state.proxyExcluded, MaterialSymbols.Filled.VpnKey, CardPosition.First, onProxyExcludedChange)
+                        RethinkAppToggleRow(strings.proxyExclude, strings.proxyExcludeDescription, state.proxyExcluded, MaterialSymbols.Filled.ConversionPath, CardPosition.First, onProxyExcludedChange)
                         RethinkAppToggleRow(strings.temporaryAllow, strings.temporaryAllowDescription, state.tempAllowed, MaterialSymbols.Filled.Timer, CardPosition.Middle, onTempAllowChange)
                         RethinkAppNavigationRow(strings.systemAppInfo, MaterialSymbols.Filled.PhoneAndroid, CardPosition.Last, onSystemAppInfo)
                     }
@@ -291,6 +292,15 @@ private val AppInfoPadding = PaddingValues(
 /** The app's effective firewall verdict, derived from the same flags the controls below edit. */
 private enum class RethinkAppStatusTone { Allowed, Partial, Blocked }
 
+/** "Partly blocked" has no glyph of its own; show what is actually limited, most specific first. */
+private fun RethinkAppInfoState.partialIcon(): ImageVector = when {
+    wifiBlocked -> MaterialSymbols.Filled.WifiOff
+    mobileBlocked -> MaterialSymbols.Filled.MobiledataOff
+    excluded -> MaterialSymbols.Filled.RemoveModerator
+    bypassDnsFirewall -> KeepoutIcons.FirewallOff
+    else -> MaterialSymbols.Filled.PublicOff
+}
+
 private fun RethinkAppInfoState.statusTone(): RethinkAppStatusTone = when {
     isolated || (wifiBlocked && mobileBlocked) -> RethinkAppStatusTone.Blocked
     excluded || bypassDnsFirewall || bypassUniversalFirewall || wifiBlocked || mobileBlocked -> RethinkAppStatusTone.Partial
@@ -306,8 +316,8 @@ private fun RethinkAppStatusChips(state: RethinkAppInfoState, strings: RethinkAp
     val tone = state.statusTone()
     val (toneColor, toneIcon) = when (tone) {
         RethinkAppStatusTone.Allowed -> RethinkStatusColors.allowed to MaterialSymbols.Filled.CheckCircle
-        RethinkAppStatusTone.Partial -> RethinkStatusColors.mixed to MaterialSymbols.Filled.Tune
-        RethinkAppStatusTone.Blocked -> RethinkStatusColors.blocked to MaterialSymbols.Filled.Block
+        RethinkAppStatusTone.Partial -> RethinkStatusColors.mixed to state.partialIcon()
+        RethinkAppStatusTone.Blocked -> RethinkStatusColors.blocked to MaterialSymbols.Filled.DoNotDisturbOn
     }
     FlowRow(
         modifier = Modifier.fillMaxWidth(),
@@ -319,7 +329,7 @@ private fun RethinkAppStatusChips(state: RethinkAppInfoState, strings: RethinkAp
             RethinkPill(strings.temporaryAllow, colors = RethinkPillDefaults.status(RethinkStatusColors.allowed), size = RethinkPillSize.Large, leadingIcon = MaterialSymbols.Filled.Timer, maxLines = Int.MAX_VALUE)
         }
         if (state.proxyDetails.isNotBlank()) {
-            RethinkPill(state.proxyDetails, colors = RethinkPillDefaults.status(RethinkStatusColors.idle), size = RethinkPillSize.Large, leadingIcon = MaterialSymbols.Filled.VpnKey, maxLines = Int.MAX_VALUE)
+            RethinkPill(state.proxyDetails, colors = RethinkPillDefaults.status(RethinkStatusColors.idle), size = RethinkPillSize.Large, leadingIcon = MaterialSymbols.Filled.ConversionPath, maxLines = Int.MAX_VALUE)
         }
     }
 }
@@ -353,8 +363,8 @@ private fun RethinkAppNetworkPair(
             blocked = state.mobileBlocked,
             allowedLabel = strings.allowed,
             blockedLabel = strings.blocked,
-            allowedIcon = MaterialSymbols.Outlined.MobiledataArrows,
-            blockedIcon = MaterialSymbols.Outlined.MobiledataOff,
+            allowedIcon = MaterialSymbols.Filled.MobiledataArrows,
+            blockedIcon = MaterialSymbols.Filled.MobiledataOff,
             shape = rethinkGroupedListPairShape(isLeadingTile = false, position = CardPosition.Single),
             modifier = Modifier.weight(1f).fillMaxHeight(),
             onClick = onMobileClick,

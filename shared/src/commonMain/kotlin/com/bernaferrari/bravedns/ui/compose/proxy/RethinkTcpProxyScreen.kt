@@ -58,7 +58,7 @@ fun RethinkTcpProxyScreen(
                     checked = tcpProxyEnabled,
                     onCheckedChange = onTcpProxyEnabledChange,
                     supporting = tcpError ?: tcpProxyDescription,
-                    leadingIcon = MaterialSymbols.Filled.VpnKey,
+                    leadingIcon = MaterialSymbols.Filled.ConversionPath,
                     position = cardPositionFor(0, 2),
                 )
                 RethinkSwitchListItem(
@@ -66,7 +66,7 @@ fun RethinkTcpProxyScreen(
                     checked = udpRelayEnabled,
                     onCheckedChange = onUdpRelayEnabledChange,
                     supporting = strings.udpRelayDescription,
-                    leadingIcon = MaterialSymbols.Filled.Settings,
+                    leadingIcon = MaterialSymbols.Filled.SettingsEthernet,
                     position = cardPositionFor(1, 2),
                 )
                 RethinkListItem(

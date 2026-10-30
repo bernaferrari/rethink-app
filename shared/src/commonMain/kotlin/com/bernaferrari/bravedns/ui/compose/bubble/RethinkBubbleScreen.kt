@@ -78,7 +78,7 @@ fun RethinkBubbleScreen(
             RethinkListItem(
                 headline = strings.title,
                 supporting = strings.subtitle,
-                leadingIcon = MaterialSymbols.Filled.Security,
+                leadingIcon = MaterialSymbols.Filled.ChatBubble,
                 position = CardPosition.Single,
             )
         }
@@ -91,14 +91,14 @@ fun RethinkBubbleScreen(
         item(key = "bubble_activity_header") { SectionHeader(strings.activityTitle) }
         when {
             !vpnOn -> item {
-                RethinkEmptyState(icon = MaterialSymbols.Filled.Shield, title = strings.vpnOffTitle, message = strings.vpnOffDescription)
+                RethinkEmptyState(icon = MaterialSymbols.Filled.RemoveModerator, title = strings.vpnOffTitle, message = strings.vpnOffDescription)
             }
             blockedLoading -> item { RethinkLoadingState(label = strings.loading) }
             blockedError -> item {
                 RethinkErrorState(title = strings.errorTitle, message = strings.errorDescription, retryLabel = strings.retry, onRetry = onRetry)
             }
             blockedItems.isEmpty() -> item {
-                RethinkEmptyState(icon = MaterialSymbols.Filled.Security, title = strings.emptyTitle, message = strings.emptyDescription)
+                RethinkEmptyState(icon = MaterialSymbols.Filled.GppGood, title = strings.emptyTitle, message = strings.emptyDescription)
             }
             else -> itemsIndexed(blockedItems, key = { _, it -> "blocked_${it.id}" }) { index, item ->
                 BubbleBlockedRow(item, strings.allow, cardPositionFor(index, blockedItems.lastIndex), appIcon, onAllow)

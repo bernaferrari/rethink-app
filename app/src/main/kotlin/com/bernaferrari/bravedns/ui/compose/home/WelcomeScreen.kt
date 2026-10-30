@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
+import com.bernaferrari.bravedns.ui.icons.keepout.KeepoutIcons
 
 /** Android resource/action adapter for the shared single-screen welcome renderer. */
 @Composable
@@ -29,11 +30,11 @@ fun WelcomeScreen(onFinish: () -> Unit) {
         content = RethinkWelcomeContent(
             title = stringResource(R.string.app_name),
             description = stringResource(R.string.slide_2_desc),
-            heroIcon = MaterialSymbols.Filled.Shield,
+            heroIcon = MaterialSymbols.Filled.GppGood,
             features = listOf(
-                RethinkWelcomeFeature(stringResource(R.string.welcome_feature_firewall), MaterialSymbols.Filled.Security, stringResource(R.string.welcome_feature_firewall_desc)),
+                RethinkWelcomeFeature(stringResource(R.string.welcome_feature_firewall), KeepoutIcons.Firewall, stringResource(R.string.welcome_feature_firewall_desc)),
                 RethinkWelcomeFeature(stringResource(R.string.welcome_feature_dns), MaterialSymbols.Filled.Dns, stringResource(R.string.welcome_feature_dns_desc)),
-                RethinkWelcomeFeature(stringResource(R.string.welcome_feature_routing), MaterialSymbols.Filled.VpnKey, stringResource(R.string.welcome_feature_routing_desc)),
+                RethinkWelcomeFeature(stringResource(R.string.welcome_feature_routing), MaterialSymbols.Filled.ConversionPath, stringResource(R.string.welcome_feature_routing_desc)),
             ),
         ),
         ctaLabel = stringResource(R.string.finish),

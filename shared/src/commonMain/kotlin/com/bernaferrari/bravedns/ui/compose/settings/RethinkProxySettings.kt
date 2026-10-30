@@ -125,7 +125,7 @@ fun RethinkProxySettingsScreen(
                     checked = state.socks5Enabled,
                     enabled = state.canEnableProxy || !state.socks5Enabled,
                     highlighted = activeFocusKey == "proxy_socks",
-                    icon = MaterialSymbols.Filled.Security,
+                    icon = MaterialSymbols.Filled.ConversionPath,
                     position = cardPositionFor(row++, rowCount - 1),
                     onRowClick = onSocksRowClick,
                     onCheckedChange = onSocksChange,
@@ -224,7 +224,7 @@ private fun RethinkOrbotPanel(
         RethinkListItem(
             headline = strings.orbot,
             supporting = "${status.first} · ${state.orbotDescription}",
-            leadingIcon = MaterialSymbols.Filled.Security,
+            leadingIcon = MaterialSymbols.Filled.ConversionPath,
             // Inactive Orbot keeps the shared well like every other row; only a live state tints it.
             colors = rethinkListItemColors(
                 leadingIconTint = if (state.orbotEnabled || state.orbotConnecting) status.second else MaterialTheme.colorScheme.primary,

@@ -163,7 +163,7 @@ fun RethinkErrorState(
     title = title ?: message,
     message = if (title != null) message else "",
     modifier = modifier,
-    icon = MaterialSymbols.Filled.WarningAmber,
+    icon = MaterialSymbols.Filled.Warning,
     ctaLabel = retryLabel,
     onCtaClick = onRetry,
     contained = contained,

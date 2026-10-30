@@ -114,12 +114,12 @@ fun RethinkUniversalFirewallSettingsScreen(
 }
 
 private fun RethinkUniversalFirewallIcon.imageVector(): ImageVector = when (this) {
-    RethinkUniversalFirewallIcon.DeviceLock -> MaterialSymbols.Filled.Lock
-    RethinkUniversalFirewallIcon.Background -> MaterialSymbols.Filled.Shield
-    RethinkUniversalFirewallIcon.Unknown -> MaterialSymbols.Filled.Security
-    RethinkUniversalFirewallIcon.Udp -> MaterialSymbols.Filled.Wifi
+    RethinkUniversalFirewallIcon.DeviceLock -> MaterialSymbols.Filled.ScreenLockPortrait
+    RethinkUniversalFirewallIcon.Background -> MaterialSymbols.Filled.VisibilityOff
+    RethinkUniversalFirewallIcon.Unknown -> MaterialSymbols.AutoMirrored.Filled.HelpOutline
+    RethinkUniversalFirewallIcon.Udp -> MaterialSymbols.Filled.SettingsEthernet
     RethinkUniversalFirewallIcon.Dns -> MaterialSymbols.Filled.Dns
-    RethinkUniversalFirewallIcon.NewApp -> MaterialSymbols.Filled.Block
+    RethinkUniversalFirewallIcon.NewApp -> MaterialSymbols.Filled.NewReleases
     RethinkUniversalFirewallIcon.Metered -> MaterialSymbols.Filled.CellTower
     RethinkUniversalFirewallIcon.Http -> MaterialSymbols.Filled.Http
     RethinkUniversalFirewallIcon.Lockdown -> MaterialSymbols.Filled.Lock

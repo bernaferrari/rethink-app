@@ -11,20 +11,20 @@ import androidx.compose.ui.graphics.vector.ImageVector
 object MaterialSymbols {
     object Filled {
         val Add: ImageVector get() = filledAdd
+        val Android: ImageVector get() = filledAndroid
         val Apps: ImageVector get() = filledApps
-        val Article: ImageVector get() = filledArticle
         val ArrowBack: ImageVector get() = filledArrowBack
         val ArrowForward: ImageVector get() = filledArrowForward
-        val ArrowOutward: ImageVector get() = filledArrowOutward
+        val Article: ImageVector get() = filledArticle
+        val AutoAwesome: ImageVector get() = filledAutoAwesome
         val AutoStories: ImageVector get() = filledAutoStories
         val Backup: ImageVector get() = filledBackup
-        val BarChart: ImageVector get() = filledBarChart
         val Block: ImageVector get() = filledBlock
         val BrightnessAuto: ImageVector get() = filledBrightnessAuto
         val BugReport: ImageVector get() = filledBugReport
-        val Build: ImageVector get() = filledBuild
         val BusinessCenter: ImageVector get() = filledBusinessCenter
         val CalendarMonth: ImageVector get() = filledCalendarMonth
+        val CallSplit: ImageVector get() = filledCallSplit
         val CameraAlt: ImageVector get() = filledCameraAlt
         val Cancel: ImageVector get() = filledCancel
         val CellTower: ImageVector get() = filledCellTower
@@ -32,38 +32,41 @@ object MaterialSymbols {
         val ChatBubble: ImageVector get() = filledChatBubble
         val Check: ImageVector get() = filledCheck
         val CheckCircle: ImageVector get() = filledCheckCircle
-        val Clear: ImageVector get() = filledClear
         val Close: ImageVector get() = filledClose
         val Cloud: ImageVector get() = filledCloud
         val Code: ImageVector get() = filledCode
         val ContentCopy: ImageVector get() = filledContentCopy
+        val ConversionPath: ImageVector get() = filledConversionPath
         val DarkMode: ImageVector get() = filledDarkMode
-        val Delete: ImageVector get() = filledDelete
+        val Database: ImageVector get() = filledDatabase
         val DeleteOutline: ImageVector get() = filledDeleteOutline
         val Dns: ImageVector get() = filledDns
+        val DoNotDisturbOn: ImageVector get() = filledDoNotDisturbOn
+        val DominoMask: ImageVector get() = filledDominoMask
         val Download: ImageVector get() = filledDownload
         val Edit: ImageVector get() = filledEdit
         val EditLocationAlt: ImageVector get() = filledEditLocationAlt
         val Email: ImageVector get() = filledEmail
-        val EventNote: ImageVector get() = filledEventNote
         val FilterList: ImageVector get() = filledFilterList
+        val FormatListBulleted: ImageVector get() = filledFormatListBulleted
         val Forum: ImageVector get() = filledForum
-        val Gavel: ImageVector get() = filledGavel
-        val GppBad: ImageVector get() = filledGppBad
+        val GppGood: ImageVector get() = filledGppGood
+        val GppMaybe: ImageVector get() = filledGppMaybe
         val Group: ImageVector get() = filledGroup
         val Headset: ImageVector get() = filledHeadset
         val HelpOutline: ImageVector get() = filledHelpOutline
+        val History: ImageVector get() = filledHistory
         val Home: ImageVector get() = filledHome
         val Http: ImageVector get() = filledHttp
         val Info: ImageVector get() = filledInfo
+        val InsertChart: ImageVector get() = filledInsertChart
         val KeyboardArrowDown: ImageVector get() = filledKeyboardArrowDown
         val KeyboardArrowRight: ImageVector get() = filledKeyboardArrowRight
-        val Language: ImageVector get() = filledLanguage
         val LightMode: ImageVector get() = filledLightMode
+        val Link: ImageVector get() = filledLink
         val LocalTaxi: ImageVector get() = filledLocalTaxi
         val Lock: ImageVector get() = filledLock
         val Map: ImageVector get() = filledMap
-        val MobileOff: ImageVector get() = filledMobileOff
         val MobiledataArrows: ImageVector get() = filledMobiledataArrows
         val MobiledataOff: ImageVector get() = filledMobiledataOff
         val MoreHoriz: ImageVector get() = filledMoreHoriz
@@ -71,26 +74,30 @@ object MaterialSymbols {
         val Movie: ImageVector get() = filledMovie
         val MusicNote: ImageVector get() = filledMusicNote
         val NetworkCheck: ImageVector get() = filledNetworkCheck
-        val NetworkPing: ImageVector get() = filledNetworkPing
         val NewReleases: ImageVector get() = filledNewReleases
         val Notifications: ImageVector get() = filledNotifications
         val NotificationsOff: ImageVector get() = filledNotificationsOff
         val Palette: ImageVector get() = filledPalette
+        val PauseCircle: ImageVector get() = filledPauseCircle
         val PhoneAndroid: ImageVector get() = filledPhoneAndroid
         val PhotoLibrary: ImageVector get() = filledPhotoLibrary
+        val Pin: ImageVector get() = filledPin
         val PlayArrow: ImageVector get() = filledPlayArrow
         val Policy: ImageVector get() = filledPolicy
         val Public: ImageVector get() = filledPublic
-        val RadioButtonChecked: ImageVector get() = filledRadioButtonChecked
-        val RadioButtonUnchecked: ImageVector get() = filledRadioButtonUnchecked
+        val PublicOff: ImageVector get() = filledPublicOff
         val Refresh: ImageVector get() = filledRefresh
         val Remove: ImageVector get() = filledRemove
-        val RestartAlt: ImageVector get() = filledRestartAlt
+        val RemoveModerator: ImageVector get() = filledRemoveModerator
+        val Report: ImageVector get() = filledReport
         val Restore: ImageVector get() = filledRestore
+        val Rule: ImageVector get() = filledRule
+        val Science: ImageVector get() = filledScience
+        val ScreenLockPortrait: ImageVector get() = filledScreenLockPortrait
         val Search: ImageVector get() = filledSearch
-        val Security: ImageVector get() = filledSecurity
         val Send: ImageVector get() = filledSend
         val Settings: ImageVector get() = filledSettings
+        val SettingsEthernet: ImageVector get() = filledSettingsEthernet
         val Share: ImageVector get() = filledShare
         val Shield: ImageVector get() = filledShield
         val ShieldMoon: ImageVector get() = filledShieldMoon
@@ -98,17 +105,17 @@ object MaterialSymbols {
         val ShoppingCart: ImageVector get() = filledShoppingCart
         val SignalCellularAlt: ImageVector get() = filledSignalCellularAlt
         val Star: ImageVector get() = filledStar
-        val StarBorder: ImageVector get() = filledStarBorder
         val Stop: ImageVector get() = filledStop
-        val Storage: ImageVector get() = filledStorage
-        val Subject: ImageVector get() = filledSubject
+        val SyncAlt: ImageVector get() = filledSyncAlt
         val SystemUpdate: ImageVector get() = filledSystemUpdate
-        val SystemUpdateAlt: ImageVector get() = filledSystemUpdateAlt
+        val Terminal: ImageVector get() = filledTerminal
         val Timer: ImageVector get() = filledTimer
         val Tune: ImageVector get() = filledTune
+        val Verified: ImageVector get() = filledVerified
+        val VisibilityOff: ImageVector get() = filledVisibilityOff
         val VpnKey: ImageVector get() = filledVpnKey
+        val VpnLock: ImageVector get() = filledVpnLock
         val Warning: ImageVector get() = filledWarning
-        val WarningAmber: ImageVector get() = filledWarningAmber
         val WbSunny: ImageVector get() = filledWbSunny
         val Wifi: ImageVector get() = filledWifi
         val WifiOff: ImageVector get() = filledWifiOff
@@ -117,12 +124,9 @@ object MaterialSymbols {
 
     object Outlined {
         val Home: ImageVector get() = outlinedHome
-        val Info: ImageVector get() = outlinedInfo
+        val InsertChart: ImageVector get() = outlinedInsertChart
         val Settings: ImageVector get() = outlinedSettings
         val Star: ImageVector get() = outlinedStar
-        val StarBorder: ImageVector get() = outlinedStarBorder
-        val MobiledataArrows: ImageVector get() = outlinedMobiledataArrows
-        val MobiledataOff: ImageVector get() = outlinedMobiledataOff
     }
 
     object AutoMirrored {
@@ -134,7 +138,6 @@ object MaterialSymbols {
             val HelpOutline: ImageVector get() = filledHelpOutline
             val KeyboardArrowRight: ImageVector get() = filledKeyboardArrowRight
             val Send: ImageVector get() = filledSend
-            val Subject: ImageVector get() = filledSubject
         }
     }
 }

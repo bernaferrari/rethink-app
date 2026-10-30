@@ -119,7 +119,7 @@ fun RethinkRpnSupportSheet(
             )
             RethinkListGroup {
                 RethinkSwitchListItem(strings.includeSubscription, includeSubscription, { includeSubscription = it }, leadingIcon = MaterialSymbols.Filled.VpnKey, enabled = !sending, position = CardPosition.First)
-                RethinkSwitchListItem(strings.includeHistory, includeHistory, { includeHistory = it }, leadingIcon = MaterialSymbols.Filled.EventNote, enabled = !sending, position = CardPosition.Middle)
+                RethinkSwitchListItem(strings.includeHistory, includeHistory, { includeHistory = it }, leadingIcon = MaterialSymbols.Filled.History, enabled = !sending, position = CardPosition.Middle)
                 RethinkSwitchListItem(strings.includeDiagnostics, includeDiagnostics, { includeDiagnostics = it }, leadingIcon = MaterialSymbols.Filled.BugReport, enabled = !sending, position = CardPosition.Last)
             }
         }

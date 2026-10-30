@@ -13,14 +13,14 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
 
 @Suppress("CheckReturnValue")
-internal val filledGppBad: ImageVector
+internal val filledGppMaybe: ImageVector
   get() {
-    if (_filledGppBad != null) {
-      return _filledGppBad!!
+    if (_filledGppMaybe != null) {
+      return _filledGppMaybe!!
     }
-    _filledGppBad =
+    _filledGppMaybe =
       ImageVector.Builder(
-          name = "gpp_bad",
+          name = "gpp_maybe",
           defaultWidth = 24.dp,
           defaultHeight = 24.dp,
           viewportWidth = 24f,
@@ -38,33 +38,29 @@ internal val filledGppBad: ImageVector
             strokeLineMiter = 1f,
             pathFillType = PathFillType.Companion.NonZero,
           ) {
-            moveTo(12f, 13.4f)
-            lineToRelative(1.4f, 1.4f)
-            quadToRelative(0.28f, 0.28f, 0.7f, 0.28f)
-            reflectiveQuadTo(14.8f, 14.8f)
-            quadToRelative(0.28f, -0.27f, 0.28f, -0.7f)
-            reflectiveQuadTo(14.8f, 13.4f)
-            lineTo(13.4f, 12f)
-            lineToRelative(1.4f, -1.4f)
-            quadToRelative(0.28f, -0.28f, 0.28f, -0.7f)
-            quadToRelative(0f, -0.42f, -0.28f, -0.7f)
-            reflectiveQuadTo(14.1f, 8.92f)
-            reflectiveQuadTo(13.4f, 9.2f)
-            lineTo(12f, 10.6f)
-            lineTo(10.6f, 9.2f)
-            quadTo(10.33f, 8.92f, 9.9f, 8.92f)
-            reflectiveQuadTo(9.2f, 9.2f)
-            reflectiveQuadTo(8.93f, 9.9f)
-            quadToRelative(0f, 0.43f, 0.28f, 0.7f)
-            lineTo(10.6f, 12f)
-            lineTo(9.2f, 13.4f)
-            quadTo(8.93f, 13.68f, 8.93f, 14.1f)
-            reflectiveQuadTo(9.2f, 14.8f)
-            quadToRelative(0.27f, 0.28f, 0.7f, 0.28f)
-            reflectiveQuadTo(10.6f, 14.8f)
-            lineTo(12f, 13.4f)
+            moveTo(12.71f, 15.71f)
+            quadTo(13f, 15.43f, 13f, 15f)
+            reflectiveQuadTo(12.71f, 14.29f)
+            reflectiveQuadTo(12f, 14f)
+            reflectiveQuadToRelative(-0.71f, 0.29f)
+            reflectiveQuadTo(11f, 15f)
+            reflectiveQuadToRelative(0.29f, 0.71f)
+            reflectiveQuadTo(12f, 16f)
+            reflectiveQuadToRelative(0.71f, -0.29f)
             close()
-            moveToRelative(-0.32f, 8.48f)
+            moveToRelative(0f, -4f)
+            quadTo(13f, 11.43f, 13f, 11f)
+            verticalLineTo(8f)
+            quadTo(13f, 7.57f, 12.71f, 7.29f)
+            reflectiveQuadTo(12f, 7f)
+            reflectiveQuadTo(11.29f, 7.29f)
+            reflectiveQuadTo(11f, 8f)
+            verticalLineToRelative(3f)
+            quadToRelative(0f, 0.42f, 0.29f, 0.71f)
+            reflectiveQuadTo(12f, 12f)
+            reflectiveQuadToRelative(0.71f, -0.29f)
+            close()
+            moveTo(11.68f, 21.88f)
             quadTo(11.53f, 21.85f, 11.38f, 21.8f)
             quadTo(8f, 20.68f, 6f, 17.64f)
             reflectiveQuadTo(4f, 11.1f)
@@ -87,7 +83,7 @@ internal val filledGppBad: ImageVector
           }
         }
         .build()
-    return _filledGppBad!!
+    return _filledGppMaybe!!
   }
 
-internal var _filledGppBad: ImageVector? = null
+internal var _filledGppMaybe: ImageVector? = null

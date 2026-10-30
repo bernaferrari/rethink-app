@@ -14,6 +14,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.bernaferrari.bravedns.R
+import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
+import com.bernaferrari.bravedns.ui.icons.keepout.BrandIcons
 
 /**
  * Keeps Android-only resources, app state, and intent dispatch out of the renderer. The complete
@@ -130,14 +132,14 @@ fun AboutScreen(
         ),
         onBackClick = onBackClick,
         assets = RethinkAboutAssets(
-            telegram = { tint -> Icon(painterResource(R.drawable.ic_telegram), null, tint = tint) },
-            bugReport = { tint -> Icon(painterResource(R.drawable.ic_android_icon), null, tint = tint) },
-            github = { tint -> Icon(painterResource(R.drawable.ic_github), null, tint = tint) },
-            twitter = { tint -> Icon(painterResource(R.drawable.ic_twitter), null, tint = tint) },
-            email = { tint -> Icon(painterResource(R.drawable.ic_mail), null, tint = tint) },
-            reddit = { tint -> Icon(painterResource(R.drawable.ic_reddit), null, tint = tint) },
-            element = { tint -> Icon(painterResource(R.drawable.ic_element), null, tint = tint) },
-            mastodon = { tint -> Icon(painterResource(R.drawable.ic_mastodon), null, tint = tint) },
+            telegram = { tint -> Icon(BrandIcons.Telegram, null, tint = tint) },
+            bugReport = { tint -> Icon(MaterialSymbols.Filled.Android, null, tint = tint) },
+            github = { tint -> Icon(BrandIcons.Github, null, tint = tint) },
+            twitter = { tint -> Icon(BrandIcons.Twitter, null, tint = tint) },
+            email = { tint -> Icon(MaterialSymbols.Filled.Email, null, tint = tint) },
+            reddit = { tint -> Icon(BrandIcons.Reddit, null, tint = tint) },
+            element = { tint -> Icon(BrandIcons.Element, null, tint = tint) },
+            mastodon = { tint -> Icon(BrandIcons.Mastodon, null, tint = tint) },
             mozillaLogo = { modifier -> Image(painterResource(R.drawable.mozilla), null, modifier = modifier, contentScale = ContentScale.FillWidth) },
             // Single-colour marks: tint with the content color so they follow the in-app theme,
             // not the system day/night resources.

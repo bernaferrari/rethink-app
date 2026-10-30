@@ -147,12 +147,12 @@ private fun RethinkMiscToggleRow(
 }
 
 private fun RethinkMiscSettingIcon.imageVector(): ImageVector = when (this) {
-    RethinkMiscSettingIcon.Logs -> MaterialSymbols.Filled.Subject
+    RethinkMiscSettingIcon.Logs -> MaterialSymbols.Filled.FormatListBulleted
     RethinkMiscSettingIcon.AutoStart -> MaterialSymbols.Filled.PlayArrow
-    RethinkMiscSettingIcon.Tombstone -> MaterialSymbols.Filled.Delete
+    RethinkMiscSettingIcon.Tombstone -> MaterialSymbols.Filled.DeleteOutline
     RethinkMiscSettingIcon.FirewallBubble -> MaterialSymbols.Filled.ChatBubble
     RethinkMiscSettingIcon.IpInfo -> MaterialSymbols.Filled.Public
     RethinkMiscSettingIcon.AppUpdates -> MaterialSymbols.Filled.SystemUpdate
     RethinkMiscSettingIcon.CrashReports -> MaterialSymbols.Filled.BugReport
-    RethinkMiscSettingIcon.Downloader -> MaterialSymbols.Filled.Settings
+    RethinkMiscSettingIcon.Downloader -> MaterialSymbols.Filled.Download
 }

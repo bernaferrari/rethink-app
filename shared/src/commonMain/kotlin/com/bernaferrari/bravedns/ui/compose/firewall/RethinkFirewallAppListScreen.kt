@@ -94,6 +94,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListShape
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedRow
+import com.bernaferrari.bravedns.ui.icons.keepout.KeepoutIcons
 
 /** Data the portable firewall app-list renderer needs from a host. */
 data class RethinkFirewallApp(
@@ -333,7 +334,7 @@ private fun RethinkFirewallTopBarActions(
         }
     }
     IconButton(onClick = onOpenRules) {
-        Icon(MaterialSymbols.Filled.Gavel, strings.rules)
+        Icon(MaterialSymbols.Filled.Rule, strings.rules)
     }
 }
 
@@ -601,7 +602,7 @@ fun RethinkNetworkSegmentPair(
 ) {
     Row(modifier, horizontalArrangement = Arrangement.spacedBy(NetworkSegmentGap)) {
         RethinkNetworkSegment(wifiBlocked, MaterialSymbols.Filled.Wifi, MaterialSymbols.Filled.WifiOff, wifiDescription, leading = true, onWifiToggle)
-        RethinkNetworkSegment(mobileBlocked, MaterialSymbols.Outlined.MobiledataArrows, MaterialSymbols.Outlined.MobiledataOff, mobileDescription, leading = false, onMobileToggle)
+        RethinkNetworkSegment(mobileBlocked, MaterialSymbols.Filled.MobiledataArrows, MaterialSymbols.Filled.MobiledataOff, mobileDescription, leading = false, onMobileToggle)
     }
 }
 
@@ -1003,10 +1004,11 @@ private fun RethinkFirewallRulesDialog(
 private fun RethinkFirewallBulkIcon(action: RethinkFirewallBulkAction) {
     val icon = when (action) {
         RethinkFirewallBulkAction.Wifi -> MaterialSymbols.Filled.WifiOff
-        RethinkFirewallBulkAction.Mobile -> MaterialSymbols.Filled.MobileOff
-        RethinkFirewallBulkAction.Bypass, RethinkFirewallBulkAction.BypassDns -> MaterialSymbols.Filled.VpnKey
-        RethinkFirewallBulkAction.Exclude -> MaterialSymbols.Filled.Security
-        RethinkFirewallBulkAction.Lockdown -> MaterialSymbols.Filled.Block
+        RethinkFirewallBulkAction.Mobile -> MaterialSymbols.Filled.MobiledataOff
+        RethinkFirewallBulkAction.Bypass -> MaterialSymbols.Filled.PublicOff
+        RethinkFirewallBulkAction.BypassDns -> KeepoutIcons.FirewallOff
+        RethinkFirewallBulkAction.Exclude -> MaterialSymbols.Filled.RemoveModerator
+        RethinkFirewallBulkAction.Lockdown -> MaterialSymbols.Filled.Lock
     }
     RethinkIconWell(
         icon = icon,
@@ -1022,12 +1024,12 @@ private fun RethinkFirewallBulkIcon(action: RethinkFirewallBulkAction) {
 private fun RethinkFirewallFilter.icon(): ImageVector? = when (this) {
     RethinkFirewallFilter.All -> null
     RethinkFirewallFilter.Allowed -> MaterialSymbols.Filled.CheckCircle
-    RethinkFirewallFilter.Blocked -> MaterialSymbols.Filled.Block
-    RethinkFirewallFilter.Bypass -> MaterialSymbols.Filled.VpnKey
-    RethinkFirewallFilter.Excluded -> MaterialSymbols.Filled.Security
+    RethinkFirewallFilter.Blocked -> MaterialSymbols.Filled.DoNotDisturbOn
+    RethinkFirewallFilter.Bypass -> MaterialSymbols.Filled.PublicOff
+    RethinkFirewallFilter.Excluded -> MaterialSymbols.Filled.RemoveModerator
     RethinkFirewallFilter.Lockdown -> MaterialSymbols.Filled.Lock
     RethinkFirewallFilter.BlockedWifi -> MaterialSymbols.Filled.WifiOff
-    RethinkFirewallFilter.BlockedMobile -> MaterialSymbols.Filled.MobileOff
+    RethinkFirewallFilter.BlockedMobile -> MaterialSymbols.Filled.MobiledataOff
 }
 
 private fun appInitial(app: RethinkFirewallApp): String {

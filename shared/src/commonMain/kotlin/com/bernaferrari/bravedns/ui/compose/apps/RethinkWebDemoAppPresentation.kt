@@ -35,7 +35,7 @@ data class RethinkWebDemoAppPresentation(
 
 object RethinkWebDemoAppPresentations {
     private val byPackageName = mapOf(
-        "com.demo.browser" to RethinkWebDemoAppPresentation(Color(0xFF4285F4), MaterialSymbols.Filled.Language),
+        "com.demo.browser" to RethinkWebDemoAppPresentation(Color(0xFF4285F4), MaterialSymbols.Filled.Public),
         "com.demo.calendar" to RethinkWebDemoAppPresentation(Color(0xFF4285F4), MaterialSymbols.Filled.CalendarMonth),
         "com.demo.github" to RethinkWebDemoAppPresentation(Color(0xFF24292F), MaterialSymbols.Filled.Code),
         "com.demo.messenger" to RethinkWebDemoAppPresentation(Color(0xFF25D366), MaterialSymbols.AutoMirrored.Filled.Chat),

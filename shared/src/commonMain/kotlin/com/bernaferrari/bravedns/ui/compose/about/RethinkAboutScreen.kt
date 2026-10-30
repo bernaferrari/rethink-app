@@ -205,7 +205,7 @@ fun RethinkAboutScreen(
                     AboutRow(strings.faq, { tint -> Icon(MaterialSymbols.AutoMirrored.Filled.HelpOutline, null, tint = tint) }, actions.onFaq),
                     AboutRow(strings.docs, { tint -> Icon(MaterialSymbols.AutoMirrored.Filled.Article, null, tint = tint) }, actions.onDocs),
                     AboutRow(strings.privacyPolicy, { tint -> Icon(MaterialSymbols.Filled.Policy, null, tint = tint) }, actions.onPrivacyPolicy),
-                    AboutRow(strings.terms, { tint -> Icon(MaterialSymbols.Filled.Gavel, null, tint = tint) }, actions.onTerms),
+                    AboutRow(strings.terms, { tint -> Icon(MaterialSymbols.AutoMirrored.Filled.Article, null, tint = tint) }, actions.onTerms),
                     AboutRow(strings.license, { tint -> Icon(MaterialSymbols.AutoMirrored.Filled.Article, null, tint = tint) }, actions.onLicense),
                 ),
             )
@@ -233,7 +233,7 @@ private fun AboutIdentityHero(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             RethinkIconWell(
-                icon = MaterialSymbols.Filled.Shield,
+                icon = MaterialSymbols.Filled.GppGood,
                 tint = MaterialTheme.colorScheme.onPrimary,
                 containerColor = MaterialTheme.colorScheme.primary,
                 size = SharedDimensions.iconContainerLg,
@@ -279,10 +279,10 @@ private fun AboutDiagnosticsSection(strings: RethinkAboutStrings, actions: Rethi
         title = strings.diagnostics,
         accent = MaterialTheme.colorScheme.tertiary,
         rows = listOf(
-            AboutRow(strings.statistics, aboutIcon(MaterialSymbols.Filled.BarChart), actions.onStatistics),
-            AboutRow(strings.databaseDump, aboutIcon(MaterialSymbols.Filled.Storage), actions.onDatabaseDump),
+            AboutRow(strings.statistics, aboutIcon(MaterialSymbols.Filled.InsertChart), actions.onStatistics),
+            AboutRow(strings.databaseDump, aboutIcon(MaterialSymbols.Filled.Database), actions.onDatabaseDump),
             AboutRow(strings.flightRecorder, aboutIcon(MaterialSymbols.Filled.NetworkCheck), actions.onFlightRecorder),
-            AboutRow(strings.eventLogs, aboutIcon(MaterialSymbols.Filled.EventNote), actions.onEventLogs),
+            AboutRow(strings.eventLogs, aboutIcon(MaterialSymbols.Filled.History), actions.onEventLogs),
         ),
     )
 }

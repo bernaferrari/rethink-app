@@ -30,6 +30,7 @@ import com.bernaferrari.bravedns.ui.compose.settings.*
 import com.bernaferrari.bravedns.ui.compose.statistics.*
 import com.bernaferrari.bravedns.ui.compose.theme.*
 import com.bernaferrari.bravedns.ui.compose.wireguard.*
+import com.bernaferrari.bravedns.ui.icons.keepout.KeepoutIcons
 
 internal val demoNavigationItems = listOf(
     RethinkNavigationItem(
@@ -41,8 +42,8 @@ internal val demoNavigationItems = listOf(
     RethinkNavigationItem(
         id = RethinkRootDestination.Statistics.name,
         label = "Statistics",
-        selectedIcon = MaterialSymbols.Filled.BarChart,
-        unselectedIcon = MaterialSymbols.Filled.BarChart,
+        selectedIcon = MaterialSymbols.Filled.InsertChart,
+        unselectedIcon = MaterialSymbols.Outlined.InsertChart,
     ),
     RethinkNavigationItem(
         id = RethinkRootDestination.Configure.name,
@@ -255,12 +256,12 @@ internal val demoBlockFreeDnsItems = listOf(
 )
 
 internal val demoDnsProtocols = listOf(
-    RethinkDnsProtocol(1, "DoH", "DNS over HTTPS", listOf(RethinkDnsCapability.Private, RethinkDnsCapability.Secure), MaterialSymbols.Filled.Language),
+    RethinkDnsProtocol(1, "DoH", "DNS over HTTPS", listOf(RethinkDnsCapability.Private, RethinkDnsCapability.Secure), MaterialSymbols.Filled.Public),
     RethinkDnsProtocol(6, "DoT", "DNS over TLS", listOf(RethinkDnsCapability.Private, RethinkDnsCapability.Secure), MaterialSymbols.Filled.Shield),
     RethinkDnsProtocol(2, "DNSCrypt", "Authenticated DNS", listOf(RethinkDnsCapability.Private, RethinkDnsCapability.Secure, RethinkDnsCapability.Anonymous), MaterialSymbols.Filled.VpnKey),
     RethinkDnsProtocol(3, "DP", "DNS Proxy", listOf(RethinkDnsCapability.Fast), MaterialSymbols.Filled.Dns),
     RethinkDnsProtocol(7, "ODoH", "Oblivious DoH", listOf(RethinkDnsCapability.Private, RethinkDnsCapability.Secure, RethinkDnsCapability.Anonymous), MaterialSymbols.Filled.ShieldMoon),
-    RethinkDnsProtocol(4, "Rethink", "Blocklist-aware DoH", listOf(RethinkDnsCapability.Fast, RethinkDnsCapability.Private, RethinkDnsCapability.Secure), MaterialSymbols.Filled.Security),
+    RethinkDnsProtocol(4, "Rethink", "Blocklist-aware DoH", listOf(RethinkDnsCapability.Fast, RethinkDnsCapability.Private, RethinkDnsCapability.Secure), MaterialSymbols.Filled.Shield),
 )
 
 internal val demoDialOptions = listOf(
@@ -607,8 +608,8 @@ internal fun demoConfigureSections(
         listOf(
             demoConfigureEntry("apps", "Apps", MaterialSymbols.Filled.Apps, RethinkRoute.AppList, onOpenDetail, accent = ConfigureAccents.apps),
             demoConfigureEntry("dns", "DNS", MaterialSymbols.Filled.Dns, RethinkRoute.DnsList, onOpenDetail, accent = ConfigureAccents.dns),
-            demoConfigureEntry("firewall", "Firewall", MaterialSymbols.Filled.Security, RethinkRoute.FirewallSettings(), onOpenDetail, accent = ConfigureAccents.firewall),
-            demoConfigureEntry("proxy", "Proxy", MaterialSymbols.Filled.VpnKey, RethinkRoute.ProxySettings(), onOpenDetail, accent = ConfigureAccents.proxy),
+            demoConfigureEntry("firewall", "Firewall", KeepoutIcons.Firewall, RethinkRoute.FirewallSettings(), onOpenDetail, accent = ConfigureAccents.firewall),
+            demoConfigureEntry("proxy", "Proxy", MaterialSymbols.Filled.ConversionPath, RethinkRoute.ProxySettings(), onOpenDetail, accent = ConfigureAccents.proxy),
         ),
         RethinkConfigureLayout.GridFour,
     ),
@@ -617,8 +618,8 @@ internal fun demoConfigureSections(
         listOf(
             demoConfigureEntry("network", "Network", MaterialSymbols.Filled.Wifi, RethinkRoute.TunnelSettings(), onOpenDetail, accent = ConfigureAccents.network),
             demoConfigureEntry("rpn", "Rethink Plus", MaterialSymbols.Filled.Star, RethinkRoute.RpnAccount, onOpenDetail, accent = ConfigureAccents.plus),
-            demoConfigureEntry("settings", "App preferences", MaterialSymbols.Filled.Settings, RethinkRoute.MiscSettings(), onOpenDetail, "Backup, device, and app behavior", ConfigureAccents.settings),
-            demoConfigureEntry("logs", "Logs", MaterialSymbols.Filled.Article, RethinkRoute.NetworkLogs(), onOpenDetail, "Network and DNS logging", ConfigureAccents.logs),
+            demoConfigureEntry("settings", "App preferences", MaterialSymbols.Filled.Tune, RethinkRoute.MiscSettings(), onOpenDetail, "Backup, device, and app behavior", ConfigureAccents.settings),
+            demoConfigureEntry("logs", "Logs", MaterialSymbols.Filled.FormatListBulleted, RethinkRoute.NetworkLogs(), onOpenDetail, "Network and DNS logging", ConfigureAccents.logs),
         ),
         RethinkConfigureLayout.GridTriad,
     ),
@@ -626,20 +627,20 @@ internal fun demoConfigureSections(
         "Routing and DNS",
         listOf(
             demoConfigureEntry("dns-settings", "DNS settings", MaterialSymbols.Filled.Tune, RethinkRoute.DnsSettings, onOpenDetail, "Resolver, filtering, and advanced options", ConfigureAccents.dns),
-            demoConfigureEntry("blocklists", "Blocklists", MaterialSymbols.Filled.Block, RethinkRoute.Blocklists, onOpenDetail, "Choose privacy and security sources", ConfigureAccents.firewall),
+            demoConfigureEntry("blocklists", "Blocklists", KeepoutIcons.Blocklists, RethinkRoute.Blocklists, onOpenDetail, "Choose privacy and security sources", ConfigureAccents.firewall),
             demoConfigureEntry("wireguard", "WireGuard", MaterialSymbols.Filled.VpnKey, RethinkRoute.WireGuard, onOpenDetail, "Create, import, and manage tunnels", ConfigureAccents.proxy),
             demoConfigureEntry("rpn-countries", "Rethink locations", MaterialSymbols.Filled.Public, RethinkRoute.RpnCountries, onOpenDetail, "Select RPN servers", ConfigureAccents.network),
-            demoConfigureEntry("anti-censorship", "Anti-censorship", MaterialSymbols.Filled.Policy, RethinkRoute.AntiCensorship, onOpenDetail, "Connection splitting and retries", ConfigureAccents.antiCensorship),
+            demoConfigureEntry("anti-censorship", "Anti-censorship", MaterialSymbols.Filled.DominoMask, RethinkRoute.AntiCensorship, onOpenDetail, "Connection splitting and retries", ConfigureAccents.antiCensorship),
         ),
         RethinkConfigureLayout.List,
     ),
     RethinkConfigureSection(
         "Diagnostics",
         listOf(
-            demoConfigureEntry("console", "Console logs", MaterialSymbols.Filled.Code, RethinkRoute.ConsoleLogs, onOpenDetail, "Engine diagnostics", ConfigureAccents.logs),
-            demoConfigureEntry("events", "Event logs", MaterialSymbols.Filled.EventNote, RethinkRoute.Events, onOpenDetail, "System and debug events", ConfigureAccents.settings),
-            demoConfigureEntry("ping", "Connectivity checks", MaterialSymbols.Filled.NetworkPing, RethinkRoute.PingTest, onOpenDetail, "Test RPN reachability", ConfigureAccents.network),
-            demoConfigureEntry("database", "Database inspector", MaterialSymbols.Filled.Storage, RethinkRoute.Database, onOpenDetail, "Browse local data", ConfigureAccents.advanced),
+            demoConfigureEntry("console", "Console logs", MaterialSymbols.Filled.Terminal, RethinkRoute.ConsoleLogs, onOpenDetail, "Engine diagnostics", ConfigureAccents.logs),
+            demoConfigureEntry("events", "Event logs", MaterialSymbols.Filled.History, RethinkRoute.Events, onOpenDetail, "System and debug events", ConfigureAccents.settings),
+            demoConfigureEntry("ping", "Connectivity checks", MaterialSymbols.Filled.NetworkCheck, RethinkRoute.PingTest, onOpenDetail, "Test RPN reachability", ConfigureAccents.network),
+            demoConfigureEntry("database", "Database inspector", MaterialSymbols.Filled.Database, RethinkRoute.Database, onOpenDetail, "Browse local data", ConfigureAccents.advanced),
         ),
         RethinkConfigureLayout.List,
     ),

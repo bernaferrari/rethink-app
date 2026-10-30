@@ -9,6 +9,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.runtime.Composable
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
+import com.bernaferrari.bravedns.ui.icons.keepout.KeepoutIcons
 
 @Composable
 internal fun DnsLocalBlocklistRow(
@@ -18,7 +19,7 @@ internal fun DnsLocalBlocklistRow(
     RethinkListItem(
         headline = strings.localBlocklists,
         supporting = if (state.blocklistEnabled) strings.localBlocklistsDescription(state.numberOfLocalBlocklists) else strings.localBlocklistsDisabledDescription,
-        leadingIcon = MaterialSymbols.Filled.Security,
+        leadingIcon = KeepoutIcons.Blocklists,
         position = CardPosition.First,
         highlighted = highlighted,
         trailing = { RethinkDnsStatusText(if (state.blocklistEnabled) strings.enabled else strings.disabled, state.blocklistEnabled) },

@@ -9,7 +9,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.database.EventSource
@@ -19,6 +19,8 @@ import com.bernaferrari.bravedns.service.EventLogger
 import com.bernaferrari.bravedns.service.PersistentState
 import com.bernaferrari.bravedns.ui.compose.settings.AppearanceSettingsCard
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkColorPreset
+import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
+import com.bernaferrari.bravedns.ui.icons.keepout.KeepoutIcons
 
 /** Android resources, navigation, and state adapter for the common Configure renderer. */
 @Composable
@@ -61,7 +63,7 @@ fun ConfigureScreen(
     fun entry(
         id: String,
         title: String,
-        iconRes: Int,
+        icon: ImageVector,
         click: () -> Unit,
         subtitle: String? = null,
         keywords: List<String> = emptyList(),
@@ -69,7 +71,7 @@ fun ConfigureScreen(
     ) = RethinkConfigureEntry(
         id = id,
         title = title,
-        icon = { Icon(painterResource(iconRes), null) },
+        icon = { Icon(icon, null) },
         onClick = click,
         subtitle = subtitle,
         keywords = keywords,
@@ -84,17 +86,17 @@ fun ConfigureScreen(
     // the old "Advanced" section, which held an item also called "Advanced", folds into System.
     val sections = listOf(
         RethinkConfigureSection(protection, listOf(
-            entry("apps", stringResource(R.string.lbl_apps), R.drawable.ic_app_info_accent, onAppsClick, keywords = listOf("apps", "application", "app list"), accent = ConfigureAccents.apps),
-            entry("dns", stringResource(R.string.lbl_dns), R.drawable.dns_home_screen, onDnsClick, keywords = listOf("dns", "resolver", "blocklist"), accent = ConfigureAccents.dns),
-            entry("firewall", stringResource(R.string.lbl_firewall), R.drawable.firewall_home_screen, onFirewallClick, keywords = listOf("firewall", "rules", "allow", "block"), accent = ConfigureAccents.firewall),
-            entry("proxy", stringResource(R.string.lbl_proxy), R.drawable.ic_proxy, onProxyClick, keywords = listOf("proxy", "socks5", "orbot", "wireguard"), accent = ConfigureAccents.proxy),
+            entry("apps", stringResource(R.string.lbl_apps), MaterialSymbols.Filled.Apps, onAppsClick, keywords = listOf("apps", "application", "app list"), accent = ConfigureAccents.apps),
+            entry("dns", stringResource(R.string.lbl_dns), MaterialSymbols.Filled.Dns, onDnsClick, keywords = listOf("dns", "resolver", "blocklist"), accent = ConfigureAccents.dns),
+            entry("firewall", stringResource(R.string.lbl_firewall), KeepoutIcons.Firewall, onFirewallClick, keywords = listOf("firewall", "rules", "allow", "block"), accent = ConfigureAccents.firewall),
+            entry("proxy", stringResource(R.string.lbl_proxy), MaterialSymbols.Filled.ConversionPath, onProxyClick, keywords = listOf("proxy", "socks5", "orbot", "wireguard"), accent = ConfigureAccents.proxy),
         ), RethinkConfigureLayout.GridFour),
         RethinkConfigureSection(system, buildList {
-            add(entry("network", stringResource(R.string.lbl_network), R.drawable.ic_network_tunnel, onNetworkClick, keywords = listOf("network", "vpn", "tunnel"), accent = ConfigureAccents.network))
-            add(entry("settings", stringResource(R.string.settings_general_header), R.drawable.ic_other_settings, onOthersClick, keywords = listOf("settings", "general", "backup"), accent = ConfigureAccents.settings))
-            add(entry("logs", stringResource(R.string.lbl_logs), R.drawable.ic_logs_accent, onLogsClick, keywords = listOf("logs", "events", "console"), accent = ConfigureAccents.logs))
-            add(entry("anti-censorship", stringResource(R.string.anti_censorship_title), R.drawable.ic_anti_dpi, onAntiCensorshipClick, keywords = listOf("anti censorship", "dpi"), accent = ConfigureAccents.antiCensorship))
-            if (isDebug) add(entry("advanced", advanced, R.drawable.ic_advanced_settings, onAdvancedClick, keywords = listOf("advanced", "experimental", "debug"), accent = ConfigureAccents.advanced))
+            add(entry("network", stringResource(R.string.lbl_network), MaterialSymbols.Filled.VpnLock, onNetworkClick, keywords = listOf("network", "vpn", "tunnel"), accent = ConfigureAccents.network))
+            add(entry("settings", stringResource(R.string.settings_general_header), MaterialSymbols.Filled.Tune, onOthersClick, keywords = listOf("settings", "general", "backup"), accent = ConfigureAccents.settings))
+            add(entry("logs", stringResource(R.string.lbl_logs), MaterialSymbols.Filled.FormatListBulleted, onLogsClick, keywords = listOf("logs", "events", "console"), accent = ConfigureAccents.logs))
+            add(entry("anti-censorship", stringResource(R.string.anti_censorship_title), MaterialSymbols.Filled.DominoMask, onAntiCensorshipClick, keywords = listOf("anti censorship", "dpi"), accent = ConfigureAccents.antiCensorship))
+            if (isDebug) add(entry("advanced", advanced, MaterialSymbols.Filled.Science, onAdvancedClick, keywords = listOf("advanced", "experimental", "debug"), accent = ConfigureAccents.advanced))
         }, RethinkConfigureLayout.GridFour),
     )
     val deepSearch = buildSettingsSearchIndex(isDebug).map { source ->
@@ -102,7 +104,7 @@ fun ConfigureScreen(
             entry(
                 source.id,
                 source.title,
-                source.iconRes,
+                source.icon,
                 { selectSearch(source.destination) },
                 source.subtitle,
                 source.keywords,

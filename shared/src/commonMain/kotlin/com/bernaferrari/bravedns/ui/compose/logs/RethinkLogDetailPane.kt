@@ -140,7 +140,7 @@ private fun PaneContent(model: RethinkLogRowModel, groups: List<RethinkLogGroup>
                 text = verdict,
                 colors = if (model.isBlocked) RethinkPillDefaults.blocked() else RethinkPillDefaults.allowed(),
                 size = RethinkPillSize.Large,
-                leadingIcon = if (model.isBlocked) MaterialSymbols.Filled.Block else MaterialSymbols.Filled.CheckCircle,
+                leadingIcon = if (model.isBlocked) MaterialSymbols.Filled.DoNotDisturbOn else MaterialSymbols.Filled.CheckCircle,
                 modifier = Modifier.weight(1f, fill = false),
             )
             RethinkPill(model.typeLabel, size = RethinkPillSize.Large, fontWeight = FontWeight.Bold)

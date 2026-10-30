@@ -104,7 +104,7 @@ fun RethinkFirewallSettingsScreen(
                 FirewallNavigationRow(
                     title = strings.blockedTitle,
                     description = strings.blockedDescription,
-                    icon = MaterialSymbols.Filled.GppBad,
+                    icon = MaterialSymbols.Filled.Rule,
                     position = CardPosition.Last,
                     highlighted = highlightedRowId == "firewall_universal_blocked",
                     onClick = onCustomIpDomainClick,

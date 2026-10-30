@@ -13,25 +13,27 @@ BASE_URL="https://fonts.gstatic.com/render/v1/Material+Symbols+Rounded/24dp"
 # Keep this list in sync with the commonMain usages. Variants share a source file:
 # filled is FILL=1, outlined is FILL=0, and the facade records auto-mirror intent.
 readonly FILLED_ICONS=(
-  add apps article arrow_back arrow_forward auto_stories backup bar_chart block
-  brightness_auto bug_report build business_center calendar_month camera_alt cancel
-  cell_tower chat chat_bubble check check_circle clear close cloud code content_copy
-  dark_mode delete delete_outline dns download edit edit_location_alt email event_note
-  filter_list forum gavel gpp_bad group headset help_outline home http info
-  keyboard_arrow_down keyboard_arrow_right language light_mode local_taxi lock map
-  mobile_off mobiledata_arrows mobiledata_off more_horiz more_vert movie music_note network_check network_ping
-  new_releases notifications notifications_off palette phone_android photo_library
-  play_arrow policy public radio_button_checked radio_button_unchecked refresh remove
-  restart_alt restore search security send settings share shield shield_moon shop
-  shopping_cart signal_cellular_alt star star_border stop storage subject system_update
-  system_update_alt timer tune vpn_key warning warning_amber wb_sunny wifi wifi_off work
+  add android apps arrow_back arrow_forward article auto_awesome auto_stories backup
+  block brightness_auto bug_report business_center calendar_month call_split camera_alt
+  cancel cell_tower chat chat_bubble check check_circle close cloud code content_copy
+  conversion_path dark_mode database delete_outline dns do_not_disturb_on domino_mask
+  download edit edit_location_alt email filter_list format_list_bulleted forum gpp_good
+  gpp_maybe group headset help_outline history home http info insert_chart
+  keyboard_arrow_down keyboard_arrow_right light_mode link local_taxi lock map
+  mobiledata_arrows mobiledata_off more_horiz more_vert movie music_note network_check
+  new_releases notifications notifications_off palette pause_circle phone_android
+  photo_library pin play_arrow policy public public_off refresh remove remove_moderator
+  report restore rule science screen_lock_portrait search send settings
+  settings_ethernet share shield shield_moon shop shopping_cart signal_cellular_alt
+  star stop sync_alt system_update terminal timer tune verified visibility_off vpn_key
+  vpn_lock warning wb_sunny wifi wifi_off work
 )
 # Keep outline counterparts for selection-state components such as the root
 # navigation.  Selected destinations use FILL=1; inactive destinations use
 # FILL=0 while retaining the same symbol and visual weight.
-readonly OUTLINED_ICONS=(home info settings star star_border mobiledata_arrows mobiledata_off)
+readonly OUTLINED_ICONS=(home insert_chart settings star)
 readonly AUTO_MIRRORED_FILLED_ICONS=(
-  arrow_back arrow_forward article chat help_outline keyboard_arrow_right send subject
+  arrow_back arrow_forward article chat help_outline keyboard_arrow_right send
 )
 
 CHECK_ONLY=0
@@ -234,7 +236,7 @@ generate_facade "$STAGING_DIR"
 validate_output "$STAGING_DIR"
 
 if [[ "$CHECK_ONLY" -eq 1 ]]; then
-  diff -qr "$STAGING_DIR" "$OUTPUT_DIR"
+  diff -qr -x keepout "$STAGING_DIR" "$OUTPUT_DIR"
   printf '%s\n' 'Material Symbols outputs are up to date.'
   exit 0
 fi

@@ -13,14 +13,14 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
 
 @Suppress("CheckReturnValue")
-internal val filledSecurity: ImageVector
+internal val filledGppGood: ImageVector
   get() {
-    if (_filledSecurity != null) {
-      return _filledSecurity!!
+    if (_filledGppGood != null) {
+      return _filledGppGood!!
     }
-    _filledSecurity =
+    _filledGppGood =
       ImageVector.Builder(
-          name = "security",
+          name = "gpp_good",
           defaultWidth = 24.dp,
           defaultHeight = 24.dp,
           viewportWidth = 24f,
@@ -38,19 +38,23 @@ internal val filledSecurity: ImageVector
             strokeLineMiter = 1f,
             pathFillType = PathFillType.Companion.NonZero,
           ) {
-            moveTo(12f, 19.9f)
-            quadToRelative(2.43f, -0.75f, 4.05f, -2.96f)
-            reflectiveQuadTo(17.95f, 12f)
-            horizontalLineTo(12f)
-            verticalLineTo(4.13f)
-            lineTo(6f, 6.38f)
-            verticalLineTo(11.1f)
-            quadToRelative(0f, 0.28f, 0f, 0.45f)
-            quadTo(6f, 11.73f, 6.05f, 12f)
-            horizontalLineTo(12f)
-            verticalLineToRelative(7.9f)
+            moveTo(10.95f, 12.7f)
+            lineTo(9.55f, 11.3f)
+            quadTo(9.25f, 11f, 8.85f, 11f)
+            reflectiveQuadToRelative(-0.7f, 0.3f)
+            reflectiveQuadToRelative(-0.3f, 0.71f)
+            reflectiveQuadToRelative(0.3f, 0.71f)
+            lineToRelative(2.1f, 2.13f)
+            quadToRelative(0.3f, 0.3f, 0.7f, 0.3f)
+            reflectiveQuadToRelative(0.7f, -0.3f)
+            lineTo(15.9f, 10.6f)
+            quadToRelative(0.3f, -0.3f, 0.3f, -0.71f)
+            reflectiveQuadTo(15.9f, 9.17f)
+            quadTo(15.6f, 8.88f, 15.19f, 8.88f)
+            quadToRelative(-0.41f, 0f, -0.71f, 0.3f)
+            lineTo(10.95f, 12.7f)
             close()
-            moveToRelative(-0.32f, 1.98f)
+            moveToRelative(0.72f, 9.18f)
             quadTo(11.53f, 21.85f, 11.38f, 21.8f)
             quadTo(8f, 20.68f, 6f, 17.64f)
             reflectiveQuadTo(4f, 11.1f)
@@ -73,7 +77,7 @@ internal val filledSecurity: ImageVector
           }
         }
         .build()
-    return _filledSecurity!!
+    return _filledGppGood!!
   }
 
-internal var _filledSecurity: ImageVector? = null
+internal var _filledGppGood: ImageVector? = null

@@ -200,7 +200,7 @@ private fun RethinkIncludeAppsOverflow(
             ),
             RethinkOverflowItem(
                 label = if (allItemsSelected) strings.unselectAll else strings.selectAll,
-                icon = if (allItemsSelected) MaterialSymbols.Filled.Clear else MaterialSymbols.Filled.Check,
+                icon = if (allItemsSelected) MaterialSymbols.Filled.Close else MaterialSymbols.Filled.Check,
                 onClick = onToggleAll,
             ),
         ),

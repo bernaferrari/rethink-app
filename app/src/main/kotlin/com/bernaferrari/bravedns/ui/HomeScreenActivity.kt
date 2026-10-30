@@ -1422,7 +1422,7 @@ class HomeScreenActivity : FragmentActivity() {
                     }
                     IconButton(onClick = onDelete) {
                         Icon(
-                            imageVector = MaterialSymbols.Filled.Delete,
+                            imageVector = MaterialSymbols.Filled.DeleteOutline,
                             contentDescription = getString(R.string.lbl_delete),
                             tint = MaterialTheme.colorScheme.error
                         )

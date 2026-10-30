@@ -193,7 +193,7 @@ private fun RethinkLogAppFilterItem(
 ) {
     RethinkListItem(
         headline = label,
-        leadingIcon = if (option == null) MaterialSymbols.Filled.Public else null,
+        leadingIcon = if (option == null) MaterialSymbols.Filled.Apps else null,
         // App icons sit centred in a well-sized box so their labels line up with "All".
         leadingContent = option?.let {
             {
@@ -316,7 +316,7 @@ fun RethinkLogsDisabledState(
 ) {
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         RethinkEmptyState(
-            icon = MaterialSymbols.AutoMirrored.Filled.Subject,
+            icon = MaterialSymbols.Filled.FormatListBulleted,
             title = title ?: message,
             message = if (title != null) message else "",
             ctaLabel = actionLabel,

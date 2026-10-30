@@ -171,7 +171,7 @@ private fun RethinkDatabaseNoTables(strings: RethinkDatabaseStrings, modifier: M
     Box(modifier, contentAlignment = Alignment.Center) {
         RethinkEmptyState(
             title = strings.noTables,
-            icon = MaterialSymbols.Filled.Storage,
+            icon = MaterialSymbols.Filled.Database,
         )
     }
 }
@@ -228,7 +228,7 @@ private fun RethinkDatabaseTableList(
                             val active = selectedTable == table
                             RethinkListItem(
                                 headline = table,
-                                leadingIcon = MaterialSymbols.Filled.Storage,
+                                leadingIcon = MaterialSymbols.Filled.Database,
                                 colors = rethinkListItemColors(leadingIconTint = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant, leadingIconContainerColor = if (active) RethinkIconWellContainerColor else MaterialTheme.colorScheme.surfaceContainerHighest),
                                 position = cardPositionFor(index, tables.lastIndex),
                                 highlighted = active,

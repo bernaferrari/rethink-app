@@ -94,7 +94,7 @@ fun RethinkRpnServerSettingsScreen(
                     RpnToggleRow(
                         title = strings.dnsModeTitle(mode),
                         description = "",
-                        icon = MaterialSymbols.Filled.Security,
+                        icon = MaterialSymbols.Filled.Dns,
                         checked = mode in selectedDnsModes,
                         position = cardPositionFor(index, RethinkRpnDnsMode.entries.lastIndex),
                         onCheckedChange = { checked ->
@@ -107,7 +107,7 @@ fun RethinkRpnServerSettingsScreen(
         rethinkSection(strings.configurationTitle, strings.configurationDescription) {
             RethinkListGroup {
                 RpnToggleRow(strings.manualTitle, strings.manualDescription, MaterialSymbols.Filled.Tune, manualConfiguration, CardPosition.First, onManualConfigurationChange)
-                RpnToggleRow(strings.changeIdentityTitle, strings.changeIdentityDescription, MaterialSymbols.Filled.Security, alwaysChangeIdentity, CardPosition.Middle, onAlwaysChangeIdentityChange)
+                RpnToggleRow(strings.changeIdentityTitle, strings.changeIdentityDescription, MaterialSymbols.Filled.Refresh, alwaysChangeIdentity, CardPosition.Middle, onAlwaysChangeIdentityChange)
                 RpnActionRow(
                     title = strings.exclusionsTitle,
                     description = if (excludedCountries.isEmpty()) strings.noExclusions else strings.exclusionsCount(excludedCountries.size),
@@ -122,7 +122,7 @@ fun RethinkRpnServerSettingsScreen(
                 RpnActionRow(
                     title = strings.resetTitle,
                     description = strings.resetDescription,
-                    icon = MaterialSymbols.Filled.RestartAlt,
+                    icon = MaterialSymbols.Filled.Refresh,
                     position = CardPosition.Single,
                     enabled = !working,
                     destructive = true,

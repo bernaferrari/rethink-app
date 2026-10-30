@@ -159,8 +159,8 @@ enum class HomeDestination(
     STATS(
         RethinkRootDestination.Statistics,
         R.string.title_statistics,
-        MaterialSymbols.Filled.BarChart,
-        MaterialSymbols.Filled.BarChart,
+        MaterialSymbols.Filled.InsertChart,
+        MaterialSymbols.Outlined.InsertChart,
     ),
     CONFIGURE(
         RethinkRootDestination.Configure,

@@ -46,7 +46,7 @@ fun RethinkAdvancedSettingsScreen(
     ) {
         item {
             RethinkListGroup {
-                AdvancedToggleRow(strings.experimentalTitle, null, MaterialSymbols.Filled.Build, experimentalEnabled, CardPosition.First, onExperimentalChange)
+                AdvancedToggleRow(strings.experimentalTitle, null, MaterialSymbols.Filled.Science, experimentalEnabled, CardPosition.First, onExperimentalChange)
                 AdvancedToggleRow(strings.autoDialTitle, strings.autoDialDescription, MaterialSymbols.Filled.Tune, autoDialEnabled, CardPosition.Middle, onAutoDialChange)
                 AdvancedToggleRow(strings.panicTitle, strings.panicDescription, MaterialSymbols.Filled.Warning, panicEnabled, CardPosition.Last, onPanicChange, warning = true)
             }

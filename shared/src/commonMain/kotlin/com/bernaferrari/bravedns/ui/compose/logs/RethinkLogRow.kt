@@ -332,7 +332,7 @@ fun DnsQueryMark(blocked: Boolean, favicon: (@Composable (Color) -> Unit)?, size
             Box(Modifier.size(size * 0.5f).clip(RoundedCornerShape(SharedDimensions.cornerRadiusXs))) { favicon(container) }
         } else {
             Icon(
-                if (blocked) MaterialSymbols.Filled.Block else MaterialSymbols.Filled.Language,
+                if (blocked) MaterialSymbols.Filled.DoNotDisturbOn else MaterialSymbols.Filled.Public,
                 contentDescription = null,
                 tint = content,
                 modifier = Modifier.size(size * 0.46f),
@@ -406,7 +406,7 @@ internal fun LogDetailsPanel(model: RethinkLogRowModel, inPane: Boolean = false)
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
                     ) {
-                        Icon(MaterialSymbols.Filled.Block, null, modifier = Modifier.size(SharedDimensions.iconSizeXs))
+                        Icon(MaterialSymbols.Filled.DoNotDisturbOn, null, modifier = Modifier.size(SharedDimensions.iconSizeXs))
                         Text(label, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
                     }
                 }

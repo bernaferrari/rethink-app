@@ -99,7 +99,7 @@ fun RethinkWireguardDetail(
                 RethinkWireguardDetailAction(strings.addPeer, strings.peer, MaterialSymbols.Filled.Add, CardPosition.First, onAddPeer)
                 // Only Edit leaves the screen; the other rows open dialogs, so they get no chevron.
                 RethinkWireguardDetailAction(strings.edit, strings.title, MaterialSymbols.Filled.Edit, CardPosition.Middle, onEdit, navigates = true)
-                RethinkWireguardDetailAction(strings.delete, strings.deleteDescription, MaterialSymbols.Filled.Delete, CardPosition.Last, { confirmDelete = true }, destructive = true)
+                RethinkWireguardDetailAction(strings.delete, strings.deleteDescription, MaterialSymbols.Filled.DeleteOutline, CardPosition.Last, { confirmDelete = true }, destructive = true)
             }
         }
         if (!state.isOneWireguard) {
@@ -112,7 +112,7 @@ fun RethinkWireguardDetail(
         }
         rethinkSection(strings.advanced) {
             RethinkListGroup {
-                RethinkWireguardDetailToggle(strings.catchAll, strings.catchAllDescription, MaterialSymbols.Filled.Security, state.catchAllEnabled, onCatchAllChange, CardPosition.First)
+                RethinkWireguardDetailToggle(strings.catchAll, strings.catchAllDescription, MaterialSymbols.Filled.Apps, state.catchAllEnabled, onCatchAllChange, CardPosition.First)
                 RethinkWireguardDetailToggle(
                     strings.useMobile,
                     strings.useMobileDescription,

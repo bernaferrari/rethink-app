@@ -30,6 +30,7 @@ import com.bernaferrari.bravedns.ui.compose.settings.rethinkAppearanceStrings
 import com.bernaferrari.bravedns.ui.compose.statistics.RethinkStatisticsWindow
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSharedTheme
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
+import com.bernaferrari.bravedns.ui.icons.keepout.KeepoutIcons
 
 /**
  * Shared app shell: theme + optional welcome + one [RethinkAppNavigation].
@@ -75,11 +76,11 @@ fun RethinkAppContent(
                 content = RethinkWelcomeContent(
                     title = "Welcome to Keepout",
                     description = "Open-source privacy tools, designed to keep your connection in your control.",
-                    heroIcon = MaterialSymbols.Filled.Shield,
+                    heroIcon = MaterialSymbols.Filled.GppGood,
                     features = listOf(
-                        RethinkWelcomeFeature("App firewall", MaterialSymbols.Filled.Security, "Choose which apps can reach the internet, per network."),
+                        RethinkWelcomeFeature("App firewall", KeepoutIcons.Firewall, "Choose which apps can reach the internet, per network."),
                         RethinkWelcomeFeature("Private DNS", MaterialSymbols.Filled.Dns, "Encrypt lookups and block ads, trackers, and malware."),
-                        RethinkWelcomeFeature("Secure routing", MaterialSymbols.Filled.VpnKey, "Send apps through WireGuard or a proxy on any network."),
+                        RethinkWelcomeFeature("Secure routing", MaterialSymbols.Filled.ConversionPath, "Send apps through WireGuard or a proxy on any network."),
                     ),
                 ),
                 ctaLabel = "Get started",

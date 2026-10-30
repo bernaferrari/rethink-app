@@ -13,14 +13,14 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
 
 @Suppress("CheckReturnValue")
-internal val filledClear: ImageVector
+internal val filledScience: ImageVector
   get() {
-    if (_filledClear != null) {
-      return _filledClear!!
+    if (_filledScience != null) {
+      return _filledScience!!
     }
-    _filledClear =
+    _filledScience =
       ImageVector.Builder(
-          name = "clear",
+          name = "science",
           defaultWidth = 24.dp,
           defaultHeight = 24.dp,
           viewportWidth = 24f,
@@ -38,36 +38,32 @@ internal val filledClear: ImageVector
             strokeLineMiter = 1f,
             pathFillType = PathFillType.Companion.NonZero,
           ) {
-            moveTo(12f, 13.4f)
-            lineTo(7.1f, 18.3f)
-            quadTo(6.83f, 18.58f, 6.4f, 18.58f)
-            reflectiveQuadTo(5.7f, 18.3f)
-            quadTo(5.43f, 18.02f, 5.43f, 17.6f)
-            reflectiveQuadTo(5.7f, 16.9f)
-            lineTo(10.6f, 12f)
-            lineTo(5.7f, 7.1f)
-            quadTo(5.43f, 6.82f, 5.43f, 6.4f)
-            reflectiveQuadTo(5.7f, 5.7f)
-            reflectiveQuadTo(6.4f, 5.43f)
-            reflectiveQuadTo(7.1f, 5.7f)
-            lineTo(12f, 10.6f)
-            lineTo(16.9f, 5.7f)
-            quadTo(17.18f, 5.43f, 17.6f, 5.43f)
-            reflectiveQuadTo(18.3f, 5.7f)
-            reflectiveQuadToRelative(0.27f, 0.7f)
-            reflectiveQuadTo(18.3f, 7.1f)
-            lineTo(13.4f, 12f)
-            lineToRelative(4.9f, 4.9f)
-            quadToRelative(0.27f, 0.28f, 0.27f, 0.7f)
-            quadToRelative(0f, 0.42f, -0.27f, 0.7f)
-            reflectiveQuadToRelative(-0.7f, 0.27f)
-            reflectiveQuadTo(16.9f, 18.3f)
-            lineTo(12f, 13.4f)
+            moveTo(5f, 21f)
+            quadTo(3.73f, 21f, 3.19f, 19.86f)
+            reflectiveQuadTo(3.45f, 17.75f)
+            lineTo(9f, 11f)
+            verticalLineTo(5f)
+            horizontalLineTo(8f)
+            quadTo(7.58f, 5f, 7.29f, 4.71f)
+            reflectiveQuadTo(7f, 4f)
+            quadTo(7f, 3.57f, 7.29f, 3.29f)
+            reflectiveQuadTo(8f, 3f)
+            horizontalLineToRelative(8f)
+            quadToRelative(0.43f, 0f, 0.71f, 0.29f)
+            reflectiveQuadTo(17f, 4f)
+            quadToRelative(0f, 0.42f, -0.29f, 0.71f)
+            reflectiveQuadTo(16f, 5f)
+            horizontalLineTo(15f)
+            verticalLineToRelative(6f)
+            lineToRelative(5.55f, 6.75f)
+            quadToRelative(0.8f, 0.98f, 0.26f, 2.11f)
+            quadTo(20.28f, 21f, 19f, 21f)
+            horizontalLineTo(5f)
             close()
           }
         }
         .build()
-    return _filledClear!!
+    return _filledScience!!
   }
 
-internal var _filledClear: ImageVector? = null
+internal var _filledScience: ImageVector? = null

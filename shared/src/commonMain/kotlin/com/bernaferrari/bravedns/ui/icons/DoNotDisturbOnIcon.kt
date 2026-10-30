@@ -13,14 +13,14 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
 
 @Suppress("CheckReturnValue")
-internal val filledRadioButtonChecked: ImageVector
+internal val filledDoNotDisturbOn: ImageVector
   get() {
-    if (_filledRadioButtonChecked != null) {
-      return _filledRadioButtonChecked!!
+    if (_filledDoNotDisturbOn != null) {
+      return _filledDoNotDisturbOn!!
     }
-    _filledRadioButtonChecked =
+    _filledDoNotDisturbOn =
       ImageVector.Builder(
-          name = "radio_button_checked",
+          name = "do_not_disturb_on",
           defaultWidth = 24.dp,
           defaultHeight = 24.dp,
           viewportWidth = 24f,
@@ -38,17 +38,19 @@ internal val filledRadioButtonChecked: ImageVector
             strokeLineMiter = 1f,
             pathFillType = PathFillType.Companion.NonZero,
           ) {
-            moveTo(15.54f, 15.54f)
-            quadTo(17f, 14.08f, 17f, 12f)
-            quadTo(17f, 9.92f, 15.54f, 8.46f)
-            reflectiveQuadTo(12f, 7f)
-            quadTo(9.93f, 7f, 8.46f, 8.46f)
+            moveTo(8f, 13f)
+            horizontalLineToRelative(8f)
+            quadToRelative(0.43f, 0f, 0.71f, -0.29f)
+            quadTo(17f, 12.43f, 17f, 12f)
+            reflectiveQuadTo(16.71f, 11.29f)
+            reflectiveQuadTo(16f, 11f)
+            horizontalLineTo(8f)
+            quadTo(7.58f, 11f, 7.29f, 11.29f)
             reflectiveQuadTo(7f, 12f)
-            reflectiveQuadToRelative(1.46f, 3.54f)
-            reflectiveQuadTo(12f, 17f)
-            reflectiveQuadToRelative(3.54f, -1.46f)
+            reflectiveQuadToRelative(0.29f, 0.71f)
+            reflectiveQuadTo(8f, 13f)
             close()
-            moveTo(12f, 22f)
+            moveToRelative(4f, 9f)
             quadTo(9.93f, 22f, 8.1f, 21.21f)
             quadTo(6.28f, 20.43f, 4.93f, 19.08f)
             quadTo(3.58f, 17.73f, 2.79f, 15.9f)
@@ -66,20 +68,10 @@ internal val filledRadioButtonChecked: ImageVector
             quadToRelative(-1.35f, 1.35f, -3.17f, 2.14f)
             reflectiveQuadTo(12f, 22f)
             close()
-            moveToRelative(0f, -2f)
-            quadToRelative(3.35f, 0f, 5.68f, -2.32f)
-            reflectiveQuadTo(20f, 12f)
-            reflectiveQuadTo(17.68f, 6.32f)
-            reflectiveQuadTo(12f, 4f)
-            reflectiveQuadTo(6.33f, 6.32f)
-            reflectiveQuadTo(4f, 12f)
-            reflectiveQuadToRelative(2.33f, 5.68f)
-            reflectiveQuadTo(12f, 20f)
-            close()
           }
         }
         .build()
-    return _filledRadioButtonChecked!!
+    return _filledDoNotDisturbOn!!
   }
 
-internal var _filledRadioButtonChecked: ImageVector? = null
+internal var _filledDoNotDisturbOn: ImageVector? = null

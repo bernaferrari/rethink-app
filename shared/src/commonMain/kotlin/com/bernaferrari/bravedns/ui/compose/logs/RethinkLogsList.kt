@@ -58,9 +58,9 @@ fun RethinkLogFilterRow(
 ) {
     // Every filter shows its icon and label, so the row never shifts as the selection moves.
     val options = listOf(
-        RethinkChoiceOption(RethinkLogFilter.All, strings.all, MaterialSymbols.AutoMirrored.Filled.Subject),
+        RethinkChoiceOption(RethinkLogFilter.All, strings.all, MaterialSymbols.Filled.FormatListBulleted),
         RethinkChoiceOption(RethinkLogFilter.Allowed, strings.allowed, MaterialSymbols.Filled.CheckCircle),
-        RethinkChoiceOption(RethinkLogFilter.Blocked, strings.blocked, MaterialSymbols.Filled.Block),
+        RethinkChoiceOption(RethinkLogFilter.Blocked, strings.blocked, MaterialSymbols.Filled.DoNotDisturbOn),
     )
     RethinkConnectedChoiceGroup(
         options = options,
