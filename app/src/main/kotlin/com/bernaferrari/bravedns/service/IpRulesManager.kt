@@ -115,6 +115,8 @@ object IpRulesManager : KoinComponent {
     }
 
     suspend fun load(): Long {
+        resultsCache.invalidateAll()
+        selectedCCs.clear()
         iptree.clear()
         db.getIpRules().forEach {
             // adding as part of defensive programming, even adding these rules to cache will
@@ -311,21 +313,6 @@ object IpRulesManager : KoinComponent {
 
         Logger.i(LOG_TAG_FIREWALL, "hasProxy? NO $uid, $ipstr, $port")
         return Pair("","")
-    }
-
-    private fun hostAddr(ipstr: String, p: Int? = null): Pair<IPAddress, Int> {
-        try {
-            val ip: IPAddress? = IPAddressString(ipstr).address
-            val port: Int = p ?: 0
-            if (ip == null) {
-                Logger.w(LOG_TAG_FIREWALL, "Invalid IP address; ip:port $ipstr:$port")
-                return Pair(IPAddressString("0.0.0.0").address, 0)
-            }
-            return Pair(ip, port)
-        } catch (e: Exception) { // AddressStringException, IncompatibleAddressException
-            Logger.w(LOG_TAG_FIREWALL, "Invalid IP address; ip:port $ipstr:$p", e)
-            return Pair(IPAddressString("0.0.0.0").address, 0)
-        }
     }
 
     data class TreeVal(
@@ -551,64 +538,7 @@ object IpRulesManager : KoinComponent {
         return customIp
     }
 
-    // chances of null pointer exception while converting the string object to
-    // IPAddress().address ref: https://seancfoley.github.io/IPAddress/
-    private fun padAndNormalize(ipaddr: IPAddress): String {
-        var ipStr: String = ipaddr.toNormalizedString()
-        try {
-            if (ipaddr.isIPv4) {
-                ipStr = padIpv4Cidr(ipaddr.toNormalizedString())
-            }
-            val pair = hostAddr(ipStr)
-            return normalize(pair.first) ?: ipStr
-        } catch (e: NullPointerException) {
-            Logger.e(Logger.LOG_TAG_VPN, "Invalid IP address added", e)
-        }
-        // Unenforceable text must not become a port-only rule.
-        return ipStr
-    }
-
-    private fun padIpv4Cidr(cidr: String): String {
-        // remove port number from the IP address
-        // [192.x.y/24]:80
-        // ip => [192.x.y/24]
-        val ip = cidr.split(":")[0]
-        // plaincidr => 192.x.y/24
-        val hasbraces = ip.contains("[") and ip.contains("]")
-        val plaincidr = ip.replace("[", "").replace("]", "")
-        // parts => [192.x.y, 24]
-        val parts = plaincidr.split("/")
-        // ipparts => [192, x, y]
-        val ipParts = parts[0].split(".").toMutableList()
-        if (ipParts.size == 4) {
-            return cidr
-        }
-        // Pad the IP address with zeros if not fully specified
-        while (ipParts.size < 4) {
-            // ipparts => [192, x, y, *]
-            ipParts.add("*")
-        }
-        // Remove the last part of the IP address if it is 0
-        // 192.x.y.0 => 192.x.y.*; 192.x.0.* => 192.x.*.*
-        for (i in (ipParts.size - 1) downTo 0) {
-            if (ipParts[i] == "*") {
-                continue
-            } else if (ipParts[i] == "0") {
-                ipParts[i] = "*"
-            } else {
-                break
-            }
-        }
-        // Reassemble the IP address; paddedIp => 192.x.y.*
-        val paddedIp = ipParts.joinToString(".")
-        // Reassemble the CIDR string
-        if (parts.size == 1) return paddedIp
-        return if (hasbraces) {
-            "[$paddedIp/${parts[1]}]"
-        } else {
-            "$paddedIp/${parts[1]}"
-        }
-    }
+    private fun padAndNormalize(ipaddr: IPAddress): String = IpRuleNormalizer.storageText(ipaddr)
 
     suspend fun addIpRule(uid: Int, ipstr: IPAddress, port: Int?, status: IpRuleStatus, proxyId: String, proxyCC: String): CustomIp {
         Logger.i(

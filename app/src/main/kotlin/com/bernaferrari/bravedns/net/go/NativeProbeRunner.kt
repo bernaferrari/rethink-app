@@ -37,6 +37,8 @@ internal class NativeProbeRunner(
         return synchronized(probes) { !closed && result }
     }
 
+    // Generated JNI methods declare Exception; log boundary failure without losing the worker.
+    @Suppress("TooGenericExceptionCaught")
     private fun createProbe(key: String, block: () -> Boolean): Probe {
         val probe = Probe(CompletableDeferred())
         probes[key] = probe

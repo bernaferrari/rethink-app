@@ -28,7 +28,7 @@
     <ID>CyclomaticComplexMethod:BillingEntitlementApi.kt$BillingEntitlementApi$private suspend fun executeAckWithRetry( caller: String, attempt: suspend (BillingApiFactory.BillingEnv) -&gt; BillingHttpResponse, ): Pair&lt;Boolean, String&gt;</ID>
     <ID>CyclomaticComplexMethod:BillingProductCatalog.kt$BillingProductCatalog$fun processProductList(pds: List&lt;ProductDetails&gt;)</ID>
     <ID>CyclomaticComplexMethod:BraveVPNService.kt$BraveVPNService$fun parseIpAndPort(endpoint: String?): Pair&lt;String, Int&gt;</ID>
-    <ID>CyclomaticComplexMethod:BraveVPNService.kt$BraveVPNService$override fun flow( protocol: Int, _uid: Int, src: String?, dst: String?, realIps: String?, d: String?, possibleDomains: String?, blocklists: String? ): Mark</ID>
+    <ID>CyclomaticComplexMethod:BraveVPNService.kt$BraveVPNService$override fun flow( protocol: Int, _uid: Int, src: String?, dst: String?, realIps: String?, d: String?, possibleDomains: String?, blocklists: String?, isAlg: Boolean, ): Mark</ID>
     <ID>CyclomaticComplexMethod:BraveVPNService.kt$BraveVPNService$private fun isVpnDns(ip: String): Boolean</ID>
     <ID>CyclomaticComplexMethod:BraveVPNService.kt$BraveVPNService$private suspend fun bindAny( who: String, addrPort: String, fid: Long, nws: List&lt;ConnectionMonitor.NetworkProperties&gt; )</ID>
     <ID>CyclomaticComplexMethod:BraveVPNService.kt$BraveVPNService$private suspend fun determineProxyDetails( connTracker: ConnTrackerMetaData, doubleLoopback: Boolean, rinr: Boolean, proxySnapshot: ProxyRoutingSnapshot ): Mark</ID>

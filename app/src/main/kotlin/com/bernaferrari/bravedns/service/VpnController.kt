@@ -219,12 +219,12 @@ object VpnController : KoinComponent {
         }
     }
 
-    fun stop(reason: String, context: Context) {
+    fun stop(reason: String, context: Context, userInitiated: Boolean = true) {
         startGate.cancelPending()
         Logger.i(LOG_TAG_VPN, "VPN Controller stop with context: $context")
         connectionState = null
         onConnectionStateChanged(null)
-        braveVpnService?.signalStopService(reason, userInitiated = true)
+        braveVpnService?.signalStopService(reason, userInitiated = userInitiated)
     }
 
     @Suppress("DEPRECATION")
@@ -446,6 +446,8 @@ object VpnController : KoinComponent {
     suspend fun updateWin(): ByteArray? = braveVpnService?.updateWin()
 
     suspend fun isWinRegistered(): Boolean = braveVpnService?.isWinRegistered() ?: false
+
+    suspend fun startPcapCapture(mode: Int, path: String): Boolean = braveVpnService?.startPcapCapture(mode, path) ?: false
 
     suspend fun stopPcapCapture(): Boolean = braveVpnService?.stopPcapCapture() ?: true
 

@@ -157,6 +157,15 @@ class GoVpnAdapterTest : KoinTest {
             set(adapter, tunnel)
         }
 
+        GoVpnAdapter::class.java.getDeclaredField("pcapMutex").apply {
+            isAccessible = true; set(adapter, kotlinx.coroutines.sync.Mutex())
+        }
+        GoVpnAdapter::class.java.getDeclaredField("proxyGeneration").apply {
+            isAccessible = true; set(adapter, java.util.concurrent.atomic.AtomicLong())
+        }
+        GoVpnAdapter::class.java.getDeclaredField("nativeProbes").apply {
+            isAccessible = true; set(adapter, NativeProbeRunner())
+        }
         return adapter
     }
 
@@ -292,7 +301,7 @@ class GoVpnAdapterTest : KoinTest {
     }
 
     @Test
-    fun `getActiveProxiesIpAndMtu returns overlay network details`() = runTest {
+    fun `no active proxies leaves underlay capabilities available`() = runTest {
         val tunnel = mockk<Tunnel>(relaxed = true)
         every { tunnel.isConnected } returns true
 
@@ -304,11 +313,15 @@ class GoVpnAdapterTest : KoinTest {
         every { router.iP6() } returns true
         every { router.mtu() } returns 1380L
 
+        io.mockk.mockkObject(com.bernaferrari.bravedns.service.WireguardManager, RpnProxyManager)
+        every { com.bernaferrari.bravedns.service.WireguardManager.isAnyWgActive() } returns false
+        every { com.bernaferrari.bravedns.service.WireguardManager.getActiveConfigs() } returns emptyList()
+        every { RpnProxyManager.isRpnActive() } returns false
         val adapter = newAdapter(tunnel)
 
         val net = adapter.getActiveProxiesIpAndMtu()
 
-        assertEquals(BraveVPNService.OverlayNetworks(true, true, false, 1380), net)
+        assertEquals(BraveVPNService.OverlayNetworks(false, false, true, 1380), net)
     }
 
     @Test

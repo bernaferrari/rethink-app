@@ -59,12 +59,12 @@ class WgHopSelectorTest {
     }
 
     @Test
-    fun `metered-only passes only on mobile with empty ssid`() {
+    fun `mobile-only follows selected cellular even with connected wifi`() {
         val mappings = listOf(mapping(1, metered = true))
         assertTrue(
             selector.isEligibleForNetwork(1, usesMobileNw = true, ssid = "", mobileOnlySetting = true, ssidEnabled = false, mappings = mappings)
         )
-        assertFalse(
+        assertTrue(
             selector.isEligibleForNetwork(1, usesMobileNw = true, ssid = "Home", mobileOnlySetting = true, ssidEnabled = false, mappings = mappings)
         )
         assertFalse(

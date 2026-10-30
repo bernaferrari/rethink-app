@@ -19,12 +19,14 @@ internal object DnsAnswerPolicy {
 
     suspend fun decide(context: DnsAnswerContext, evaluate: suspend (List<String>) -> FirewallRuleset): Decision {
         val ips = context.addresses.split(',').map(String::trim).filter(String::isNotEmpty)
-        if (context.captivePortal || context.dnsOnly || context.fixedTransport || context.portSpecificRules ||
-            ips.isEmpty() || ips.any { IpRuleNormalizer.trieKey(it) == null }
-        ) return Decision.Keep
+        if (context.captivePortal || context.dnsOnly) return Decision.Keep
+        if (context.fixedTransport || context.portSpecificRules) return Decision.Keep
+        if (ips.isEmpty() || ips.any { IpRuleNormalizer.trieKey(it) == null }) return Decision.Keep
         val rule = evaluate(ips)
         if (FirewallRuleset.ground(rule)) return Decision.Block(rule)
         val isolatedTrust = context.isolated && (rule == FirewallRuleset.RULE2B || rule == FirewallRuleset.RULE2F)
-        return if (!isolatedTrust && FirewallRuleset.isBypassRule(rule)) Decision.Bypass(rule) else Decision.Keep
+        val dnsBypass = rule in setOf(FirewallRuleset.RULE2B, FirewallRuleset.RULE2C,
+            FirewallRuleset.RULE2F, FirewallRuleset.RULE2I, FirewallRuleset.RULE1H)
+        return if (!isolatedTrust && dnsBypass) Decision.Bypass(rule) else Decision.Keep
     }
 }

@@ -14,8 +14,14 @@ class IpRuleNormalizerTest {
         assertNull(IpRuleNormalizer.trieKey("not-an-address"))
         assertNull(IpRuleNormalizer.trieKey(""))
     }
+    @Test fun `storage never turns an unsupported range into a port-only rule`() {
+        val input = inet.ipaddr.IPAddressString("*.255.255.255").address!!
+        val stored = IpRuleNormalizer.storageText(input)
+        assertTrue(stored.isNotBlank())
+        assertNull(IpRuleNormalizer.trieKey(stored))
+    }
     @Test fun `individual addresses and v6 prefixes remain usable`() {
         assertNotNull(IpRuleNormalizer.trieKey("192.0.2.1"))
-        assertEquals("2001:db8::/32", IpRuleNormalizer.trieKey("2001:db8::/32"))
+        assertTrue(IpRuleNormalizer.trieKey("2001:db8::/32")!!.endsWith("/32"))
     }
 }

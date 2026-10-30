@@ -454,6 +454,39 @@ class ConnectionFirewallTest {
         assertTrue(verdict.blocked)
     }
 
+    @Test
+    fun `ALG checks all addresses and explicit trust precedes isolation`() = kotlinx.coroutines.test.runTest {
+        val firewall = ConnectionFirewall(ipRule = { lookupUid, ip, _ ->
+            if (lookupUid != uid) IpRulesManager.IpRuleStatus.NONE
+            else if (ip == "192.0.2.1") IpRulesManager.IpRuleStatus.BLOCK
+            else IpRulesManager.IpRuleStatus.TRUST
+        })
+        val request = request(app = appSnapshot(appStatus = FirewallManager.FirewallStatus.ISOLATE))
+            .copy(destIP = "192.0.2.1,192.0.2.2", isAlg = true, forDnsAnswer = true)
+        assertEquals(FirewallRuleset.RULE2B, firewall.evaluate(request).rule)
+        assertEquals(FirewallRuleset.RULE2, firewall.evaluate(request.copy(isAlg = false)).rule)
+    }
+
+    @Test
+    fun `DNS answer skips connection-only HTTP UDP and missing-query rules`() = kotlinx.coroutines.test.runTest {
+        val request = request(destPort = KnownPorts.HTTP_PORT, protocol = Protocol.UDP.protocolType, query = null,
+            flags = FirewallFlags(blockHttpConnections = true, udpBlocked = true, disallowDnsBypass = true))
+            .copy(forDnsAnswer = true)
+        assertEquals(FirewallRuleset.RULE0, ConnectionFirewall().evaluate(request).rule)
+        assertEquals(FirewallRuleset.RULE10, ConnectionFirewall().evaluate(request.copy(forDnsAnswer = false)).rule)
+    }
+
+    @Test
+    fun `DNS honors app block temp allow self and paused lockdown`() = kotlinx.coroutines.test.runTest {
+        val firewall = ConnectionFirewall()
+        val blocked = request(app = appSnapshot(connectionStatus = FirewallManager.ConnectionStatus.BOTH)).copy(forDnsAnswer = true)
+        assertEquals(FirewallRuleset.RULE1, firewall.evaluate(blocked).rule)
+        assertEquals(FirewallRuleset.RULE19, firewall.evaluate(blocked.copy(app = blocked.app.copy(isTempAllowed = true))).rule)
+        assertEquals(FirewallRuleset.RULE0, firewall.evaluate(blocked.copy(app = blocked.app.copy(uid = rethinkUid))).rule)
+        val paused = request(flags = FirewallFlags(isLockdown = true, isAppPaused = true)).copy(forDnsAnswer = true)
+        assertEquals(FirewallRuleset.RULE16, firewall.evaluate(paused).rule)
+    }
+
     private fun evaluate(
         destPort: Int = 443,
         protocol: Int = Protocol.TCP.protocolType,

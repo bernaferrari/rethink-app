@@ -40,7 +40,9 @@ class VpnDnsQueryRouter(
     private val isUidPresentInAnyDnsRequest: () -> Boolean,
     private val markUidPresentInDnsRequest: () -> Unit,
     private val logd: (String) -> Unit,
-    private val useCaptivePortalDns: () -> Boolean = { false },
+    private val normalizeUid: (Int) -> Int = { it },
+    private val isCaptivePortal: () -> Boolean = { false },
+    private val isActiveCellular: () -> Boolean = { false },
 ) {
     companion object {
         private const val TAG = "VpnService;"
@@ -64,9 +66,11 @@ class VpnDnsQueryRouter(
             Logger.w(LOG_TAG_VPN, "onQuery: invalid uid: $uidStr, using default $uid")
         }
 
+        uid = normalizeUid(uid)
         logd("onQuery: rcvd uid: $uid query: $fqdn, qtype: $qtype")
-        if (useCaptivePortalDns()) {
-            return makeNsOpts(uid, Pair(Backend.System, ""), fqdn, true, rinr = rinr)
+        if (isCaptivePortal()) {
+            val captive = makeNsOpts(uid, Pair(Backend.System, ""), fqdn, true, rinr, forceBase = true)
+            return checkUserAllowedDnsQtypes(captive, uid, fqdn, qtype, rinr)
         }
         val appMode = appConfig.getBraveMode()
         if (appMode.isDnsMode()) {
@@ -315,7 +319,7 @@ class VpnDnsQueryRouter(
                 return Pair(defaultTid, "")
             }
             val ssid = getUnderlyingSsid() ?: ""
-            val ids = WireguardManager.getAllPossibleConfigIdsForApp(uid, ip = "", port = 0, domain, true, ssid, defaultTid)
+            val ids = WireguardManager.getAllPossibleConfigIdsForApp(uid, ip = "", port = 0, domain, isActiveCellular(), ssid, defaultTid)
             val wgOrDefaultTid = if (ids.isEmpty()) {
                 Logger.d(LOG_TAG_VPN, "(onQuery-pid)no wg found, return $defaultTid")
                 defaultTid
@@ -333,7 +337,8 @@ class VpnDnsQueryRouter(
         tid: Pair<String, String>,
         domain: String,
         bypassLocalBlocklists: Boolean = false,
-        rinr: Boolean
+        rinr: Boolean,
+        forceBase: Boolean = false,
     ): DNSOpts {
         val opts = DNSOpts()
         opts.ipcsv = ""
@@ -342,7 +347,7 @@ class VpnDnsQueryRouter(
         val secCsv = if (tid.second.isNotEmpty()) tid.second.split(",").joinToString(",") { appendDnsCacheIfNeeded(it) } else ""
         opts.tidseccsv = secCsv
 
-        val proxyIds = if (uid == rethinkUid() && !rinr) {
+        val proxyIds = if (forceBase || (uid == rethinkUid() && !rinr)) {
             Backend.Base
         } else if (tid.first.contains(ID_WG_BASE) || tid.second.contains(ID_WG_BASE)) {
             Backend.Base
