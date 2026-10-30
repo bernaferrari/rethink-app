@@ -6,10 +6,8 @@ package com.bernaferrari.bravedns.ui.compose.theme
 import androidx.compose.ui.unit.dp
 
 /**
- * Portable counterpart of the Android [Dimensions] design token set.
- *
- * Do not create a second spacing scale for the browser: common screens use these values on every
- * target, while Android screens are progressively switched to those same common renderers.
+ * The one spacing, corner and size scale for every target (Android, desktop, web). Screens use
+ * these tokens instead of raw dp values.
  */
 object SharedDimensions {
     val spacingNone = 0.dp
@@ -37,11 +35,6 @@ object SharedDimensions {
     /** Outer corners of an expressive grouped list (inner corners use [cornerRadiusSm]). */
     val groupCornerRadius = 24.dp
 
-    /**
-     * Alias of [cornerRadius2xl]; its only remaining caller is the Android `Theme.kt` shape scale.
-     * New code uses [cornerRadius2xl].
-     */
-    val cardCornerRadiusLarge = cornerRadius2xl
     val iconContainerRadius = 12.dp
     val buttonCornerRadius = 50.dp
 

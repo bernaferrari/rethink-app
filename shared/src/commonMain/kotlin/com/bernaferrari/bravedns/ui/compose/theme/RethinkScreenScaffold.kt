@@ -52,8 +52,6 @@ fun RethinkLargeTopBar(
     scrollBehavior: TopAppBarScrollBehavior? = null,
     containerColor: Color = MaterialTheme.colorScheme.surface,
     scrolledContainerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
-    /** Null keeps the bar's own expanded/collapsed type scale; only override for data titles. */
-    titleTextStyle: TextStyle? = null,
     titleLeading: (@Composable () -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
     backDescription: String = LocalRethinkBackDescription.current,
@@ -71,7 +69,7 @@ fun RethinkLargeTopBar(
                 text = title,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                style = titleTextStyle ?: LocalTextStyle.current.merge(EmphasizedTitle),
+                style = LocalTextStyle.current.merge(EmphasizedTitle),
             )
         }
     },
@@ -181,12 +179,10 @@ fun RethinkTopBarLazyColumnScreen(
     containerColor: Color = MaterialTheme.colorScheme.surface,
     topBarContainerColor: Color = MaterialTheme.colorScheme.surface,
     topBarScrolledContainerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
-    topBarTitleTextStyle: TextStyle? = null,
     listState: LazyListState? = null,
     contentPadding: PaddingValues = RethinkScreenDefaults.contentPadding,
     verticalArrangement: Arrangement.Vertical = Arrangement.spacedBy(SharedDimensions.spacingLg),
     topBarActions: @Composable RowScope.() -> Unit = {},
-    topBarTitleLeading: (@Composable () -> Unit)? = null,
     floatingActionButton: @Composable () -> Unit = {},
     snackbarHost: @Composable () -> Unit = {},
     content: LazyListScope.() -> Unit,
@@ -203,8 +199,6 @@ fun RethinkTopBarLazyColumnScreen(
                 scrollBehavior = scrollBehavior,
                 containerColor = topBarContainerColor,
                 scrolledContainerColor = topBarScrolledContainerColor,
-                titleTextStyle = topBarTitleTextStyle,
-                titleLeading = topBarTitleLeading,
                 actions = topBarActions,
             )
         },

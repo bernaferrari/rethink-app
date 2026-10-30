@@ -56,7 +56,7 @@ val RethinkShapes = Shapes(
     small = RoundedCornerShape(SharedDimensions.cornerRadiusSm),
     medium = RoundedCornerShape(SharedDimensions.cornerRadiusLg),
     large = RoundedCornerShape(SharedDimensions.cornerRadiusXl),
-    extraLarge = RoundedCornerShape(SharedDimensions.cardCornerRadiusLarge),
+    extraLarge = RoundedCornerShape(SharedDimensions.cornerRadius2xl),
 )
 
 enum class RethinkColorPreset(val id: Int, val seedColor: Color?) {

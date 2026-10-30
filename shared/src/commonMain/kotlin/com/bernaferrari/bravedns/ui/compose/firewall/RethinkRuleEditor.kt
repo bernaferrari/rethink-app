@@ -24,11 +24,6 @@ import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 /** Target-neutral state of a firewall rule. Platform adapters map their manager-specific enums here. */
 enum class RethinkRuleAction { None, Trust, Block, Bypass }
 
-data class RethinkRuleActionOption(
-    val action: RethinkRuleAction,
-    val label: String,
-)
-
 data class RethinkRuleEditorStrings(
     val trust: String,
     val block: String,
@@ -78,22 +73,6 @@ fun RethinkRuleSupportingText(
     )
 }
 
-@Composable
-fun RethinkRuleValue(
-    value: String,
-    modifier: Modifier = Modifier,
-    textStyle: TextStyle = MaterialTheme.typography.titleMedium,
-) {
-    SelectionContainer(modifier.fillMaxWidth()) {
-        Text(
-            value,
-            style = textStyle,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = SharedDimensions.screenPaddingHorizontal),
-        )
-    }
-}
-
 /** Full-width rule target with labeled trust/block toggles. */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -134,23 +113,6 @@ private fun RethinkRuleTrustBlockToggles(
         onSelect = onActionChange,
         modifier = modifier,
         onDeselect = { onActionChange(RethinkRuleAction.None) },
-    )
-}
-
-/** Portable selector for persisted custom IP/domain rules. */
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-fun RethinkRuleActionSelector(
-    options: List<RethinkRuleActionOption>,
-    selectedAction: RethinkRuleAction,
-    onActionChange: (RethinkRuleAction) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    RethinkConnectedChoiceGroup(
-        options = options.map { RethinkChoiceOption(it.action, it.label) },
-        selected = selectedAction,
-        onSelect = onActionChange,
-        modifier = modifier.padding(horizontal = SharedDimensions.screenPaddingHorizontal),
     )
 }
 
