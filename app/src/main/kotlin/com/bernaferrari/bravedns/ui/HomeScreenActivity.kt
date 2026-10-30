@@ -1153,12 +1153,12 @@ class HomeScreenActivity : FragmentActivity() {
         val clipboard = ContextCompat.getSystemService(this, ClipboardManager::class.java)
         val clip = ClipData.newPlainText("token", text)
         clipboard?.setPrimaryClip(clip)
-        Toast.makeText(this, "Copied to clipboard", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, R.string.copied_clipboard, Toast.LENGTH_SHORT).show()
     }
 
     private fun initiateFlightRecord() {
         io { VpnController.performFlightRecording() }
-        Toast.makeText(this, "Flight recording started", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, R.string.flight_recording_started, Toast.LENGTH_SHORT).show()
     }
 
     private fun openEventLogs() {

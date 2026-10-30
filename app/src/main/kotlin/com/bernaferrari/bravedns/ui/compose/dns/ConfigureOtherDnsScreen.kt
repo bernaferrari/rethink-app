@@ -190,7 +190,7 @@ private fun <T : Any> DnsEndpointListWithFab(
     RethinkEndpointListWithAdd(
         feed = AndroidEndpointFeed(items),
         createLabel = stringResource(R.string.lbl_create),
-        emptyTitle = stringResource(R.string.configure_search_empty_title),
+        emptyTitle = stringResource(R.string.dns_endpoints_empty),
         onCreate = onFabClick,
         contentPadding = paddingValues,
         itemContent = itemContent,

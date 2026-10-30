@@ -251,7 +251,7 @@ private fun WgIncludeAppsDialogScreen(
             selectAll = stringResource(R.string.lbl_select_all),
             unselectAll = stringResource(R.string.lbl_unselect_all),
             done = stringResource(R.string.lbl_done),
-            empty = stringResource(R.string.fapps_empty_subtitle),
+            empty = stringResource(R.string.fapps_empty_title),
             more = stringResource(R.string.cd_more),
         ),
         onBackClick = onDismiss,

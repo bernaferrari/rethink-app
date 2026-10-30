@@ -146,7 +146,7 @@ fun AppIpRulesSheet(
 
             if (domainList.isNotEmpty()) {
                 RethinkRuleSectionTitle(
-                    text = stringResource(R.string.bsct_block_domain),
+                    text = stringResource(R.string.bsct_block_ip_domains),
                 )
                 LazyColumn(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = SharedDimensions.screenPaddingHorizontal)
