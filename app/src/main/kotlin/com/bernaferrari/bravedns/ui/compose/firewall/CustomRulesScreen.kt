@@ -30,7 +30,6 @@ import com.bernaferrari.bravedns.util.Constants.Companion.UNSPECIFIED_PORT
 import com.bernaferrari.bravedns.util.Constants.Companion.UID_EVERYBODY
 import com.bernaferrari.bravedns.viewmodel.CustomDomainViewModel
 import com.bernaferrari.bravedns.viewmodel.CustomIpViewModel
-import inet.ipaddr.IPAddressString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -108,14 +107,9 @@ fun CustomRulesScreen(
         },
         onAddRule = { tab, value ->
             when (tab) {
-                RethinkRulesTab.IP -> {
-                    val address = IPAddressString(value).address?.takeIf { IpRulesManager.isIpRuleEnforceable(value) }
-                        ?: return@RethinkCustomRulesScreen RethinkRulesAddResult(
-                            accepted = false,
-                            error = invalidIpMessage,
-                        )
+                RethinkRulesTab.IP -> ipRuleAddResult(value, invalidIpMessage) { address, port ->
                     scope.launch(Dispatchers.IO) {
-                        IpRulesManager.addIpRule(uid, address, null, IpRulesManager.IpRuleStatus.BLOCK, "", "")
+                        IpRulesManager.addIpRule(uid, address, port, IpRulesManager.IpRuleStatus.BLOCK, "", "")
                         eventLogger.log(
                             EventType.FW_RULE_MODIFIED,
                             Severity.LOW,
@@ -125,7 +119,6 @@ fun CustomRulesScreen(
                             "IP: $value",
                         )
                     }
-                    RethinkRulesAddResult.Success
                 }
                 RethinkRulesTab.DOMAIN -> {
                     val domain = com.bernaferrari.bravedns.rules.DomainRuleInput.normalize(value)
