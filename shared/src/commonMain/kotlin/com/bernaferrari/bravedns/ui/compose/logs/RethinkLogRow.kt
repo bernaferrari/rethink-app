@@ -51,7 +51,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
@@ -195,10 +194,7 @@ fun RethinkLogRow(
             .semantics { this.selected = selected },
     ) {
         Column(Modifier.fillMaxWidth()) {
-            when (model.kind) {
-                RethinkLogKind.Network -> NetworkLogHeader(model, cardColor, if (inline) chevron else null)
-                RethinkLogKind.Dns -> DnsLogHeader(model, cardColor, if (inline) chevron else null)
-            }
+            LogHeader(model, cardColor, if (inline) chevron else null)
             if (inline && keepDetails) {
                 Box(Modifier.fillMaxWidth().logAccordionReveal(detailsProgress)) {
                     LogDetailsPanel(model)
@@ -218,57 +214,15 @@ private val LeadingSize = 44.dp
 private val AppIconSize = 40.dp
 private val VerdictBadgeSize = 18.dp
 
-/** Network: the app leads, with its verdict as a badge; then where it went and how. */
-@Composable
-private fun NetworkLogHeader(model: RethinkLogRowModel, cardColor: Color, chevron: Float?) {
-    val scheme = MaterialTheme.colorScheme
-    Row(
-        modifier = RowPadding.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
-    ) {
-        AppVerdictMark(model.isBlocked, cardColor) {
-            val container = if (model.isBlocked) RethinkStatusColors.blockedContainer else RethinkStatusColors.allowedContainer
-            model.icon?.invoke(container) ?: Box(Modifier.size(AppIconSize).background(container, CircleShape))
-        }
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile)) {
-            TitleAndTime(model.appLabel, model.timeLabel, chevron) { title, mod ->
-                Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = scheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = mod)
-            }
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
-                Icon(
-                    MaterialSymbols.Filled.ArrowOutward,
-                    contentDescription = null,
-                    tint = if (model.isBlocked) RethinkStatusColors.blocked else RethinkStatusColors.allowed,
-                    modifier = Modifier.size(SharedDimensions.iconSizeXs),
-                )
-                Text(
-                    text = model.destination,
-                    style = MaterialTheme.typography.bodySmall,
-                    fontFamily = FontFamily.Monospace,
-                    color = scheme.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-            Spacer(Modifier.height(SharedDimensions.spacingXs))
-            Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs), verticalAlignment = Alignment.CenterVertically) {
-                VerdictPill(model)
-                RethinkPill(model.typeLabel, size = RethinkPillSize.Small, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f, fill = false))
-                model.facts.firstOrNull()?.let { fact ->
-                    RethinkPill(fact, size = RethinkPillSize.Small, modifier = Modifier.weight(1f, fill = false))
-                }
-            }
-        }
-    }
-}
-
 /**
- * DNS: the name leads, then the answer or the blocklist. The app that asked is the mark, with its
- * verdict as a badge like network rows (its name is in the details); a query with no app gets the verdict shape.
+ * One header for both logs, so they read as a family: the app that connected or asked leads with
+ * its verdict badged, the destination or looked-up name is the title (registrable part strong),
+ * then a line of quiet facts. The badge already says allowed/blocked, so the first pill only says
+ * something new: why it was blocked (rule or blocklists), or for a DNS answer, the address.
+ * A DNS query with no app falls back to the verdict shape.
  */
 @Composable
-private fun DnsLogHeader(model: RethinkLogRowModel, cardColor: Color, chevron: Float?) {
+private fun LogHeader(model: RethinkLogRowModel, cardColor: Color, chevron: Float?) {
     val scheme = MaterialTheme.colorScheme
     Row(
         modifier = RowPadding.fillMaxWidth(),
@@ -276,25 +230,33 @@ private fun DnsLogHeader(model: RethinkLogRowModel, cardColor: Color, chevron: F
         horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
     ) {
         val appIcon = model.appIcon
-        if (appIcon != null) {
-            AppVerdictMark(model.isBlocked, cardColor) { Box(Modifier.size(AppIconSize)) { appIcon() } }
-        } else {
-            DnsQueryMark(model.isBlocked, model.icon, LeadingSize)
+        when {
+            model.kind == RethinkLogKind.Network -> AppVerdictMark(model.isBlocked, cardColor) {
+                val container = if (model.isBlocked) RethinkStatusColors.blockedContainer else RethinkStatusColors.allowedContainer
+                model.icon?.invoke(container) ?: Box(Modifier.size(AppIconSize).background(container, CircleShape))
+            }
+            appIcon != null -> AppVerdictMark(model.isBlocked, cardColor) { Box(Modifier.size(AppIconSize)) { appIcon() } }
+            else -> DnsQueryMark(model.isBlocked, model.icon, LeadingSize)
         }
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
             TitleAndTime(model.destination, model.timeLabel, chevron) { title, mod ->
-                Text(rethinkDomainText(title, scheme.onSurface, scheme.onSurfaceVariant), style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = mod)
+                Text(rethinkDomainText(title, scheme.onSurface, scheme.onSurfaceVariant), style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.MiddleEllipsis, modifier = mod)
             }
             Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs), verticalAlignment = Alignment.CenterVertically) {
-                if (model.isBlocked) {
-                    VerdictPill(model)
-                } else {
-                    RethinkPill(
-                        text = model.endpoint ?: model.allowedLabel,
-                        colors = RethinkPillDefaults.allowed(),
+                val reason = model.reason?.takeIf { model.isBlocked && it.isNotBlank() }
+                val answer = model.endpoint?.takeIf { model.kind == RethinkLogKind.Dns && !model.isBlocked && it.isNotBlank() }
+                when {
+                    reason != null -> RethinkPill(
+                        text = reason,
+                        colors = RethinkPillDefaults.blocked(),
+                        size = RethinkPillSize.Small,
+                        modifier = Modifier.weight(1f, fill = false),
+                    )
+                    answer != null -> RethinkPill(
+                        text = answer,
                         size = RethinkPillSize.Small,
                         leadingIcon = MaterialSymbols.AutoMirrored.Filled.ArrowForward,
-                        monospace = model.endpoint != null,
+                        monospace = true,
                         modifier = Modifier.weight(1f, fill = false),
                     )
                 }
@@ -321,17 +283,6 @@ private fun TitleAndTime(
             Icon(MaterialSymbols.Filled.KeyboardArrowDown, null, tint = scheme.onSurfaceVariant, modifier = Modifier.size(SharedDimensions.iconSizeXs).rotate(chevron))
         }
     }
-}
-
-@Composable
-private fun VerdictPill(model: RethinkLogRowModel) {
-    val label = if (model.isBlocked) model.reason?.takeIf { it.isNotBlank() } ?: model.blockedLabel else model.allowedLabel
-    RethinkPill(
-        text = label,
-        colors = if (model.isBlocked) RethinkPillDefaults.blocked() else RethinkPillDefaults.allowed(),
-        size = RethinkPillSize.Small,
-        leadingIcon = if (model.isBlocked) MaterialSymbols.Filled.Block else MaterialSymbols.Filled.Check,
-    )
 }
 
 /** An app icon with its verdict badged at the bottom end: the lead of network and DNS rows alike. */
@@ -393,6 +344,10 @@ fun DnsQueryMark(blocked: Boolean, favicon: (@Composable (Color) -> Unit)?, size
 /** A domain with its registrable part emphasized: `telemetry.` quiet, `glyphkeys.io` strong. */
 fun rethinkDomainText(domain: String, strong: Color, quiet: Color): AnnotatedString {
     val trimmed = domain.trimEnd('.')
+    // An address has no registrable part: show it whole.
+    if (trimmed.none { it.isLetter() } || trimmed.contains(':')) {
+        return buildAnnotatedString { withStyle(SpanStyle(color = strong, fontWeight = FontWeight.SemiBold)) { append(trimmed) } }
+    }
     val labels = trimmed.split('.')
     val keep = when {
         labels.size < 2 -> labels.size

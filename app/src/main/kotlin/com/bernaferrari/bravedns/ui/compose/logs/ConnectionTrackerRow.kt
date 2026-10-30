@@ -39,7 +39,6 @@ import com.bernaferrari.bravedns.ui.compose.logs.RethinkLogKind
 import com.bernaferrari.bravedns.database.ConnectionTracker
 import com.bernaferrari.bravedns.service.FirewallManager
 import com.bernaferrari.bravedns.service.FirewallRuleset
-import com.bernaferrari.bravedns.service.ProxyManager
 import com.bernaferrari.bravedns.service.VpnController
 import com.bernaferrari.bravedns.ui.compose.common.AppIcon
 import com.bernaferrari.bravedns.util.Constants.Companion.TIME_FORMAT_1
@@ -53,9 +52,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.Locale
 
-private const val MAX_BYTES = 500000 // 500 KB
-private const val MAX_TIME_TCP = 135 // seconds
-private const val MAX_TIME_UDP = 135 // seconds
 private const val NO_USER_ID = 0
 
 @Composable
@@ -107,7 +103,8 @@ fun connectionLogModel(ct: ConnectionTracker): RethinkLogRowModel {
 
     val rule = FirewallRuleset.getFirewallRule(ct.blockedByRule)
     val ruleTitle = rule?.let { stringResource(it.title) }
-    val details = connectionDetails(ct, protocol, ruleTitle, summary, unknownApp)
+    val details = listOf(RethinkLogDetail(stringResource(R.string.log_detail_app_name), appName)) +
+        connectionDetails(ct, protocol, ruleTitle, summary, unknownApp)
     val facts = listOfNotNull(dataMoved(ct))
     return RethinkLogRowModel(
         id = ct.id.toString(),
@@ -187,6 +184,11 @@ private data class Summary(
     val showSummary: Boolean
 )
 
+/**
+ * Plain-text readouts for the details: data as "↑ up · ↓ down", the duration, and whether the
+ * connection was metered. Speed, size, proxy and relay already have their own detail rows, so
+ * the old emoji flags (🐘 🐢 🗝️ 🚀) said nothing those rows don't.
+ */
 @Composable
 private fun summaryInfo(context: Context, ct: ConnectionTracker): Summary {
     val connType = ConnectionTracker.ConnType.get(ct.connType)
@@ -195,107 +197,15 @@ private fun summaryInfo(context: Context, ct: ConnectionTracker): Summary {
         hasCid = VpnController.hasCid(ct.connId, ct.uid)
     }
     val activeLabel = stringResource(R.string.lbl_active)
-    val greenCircle = stringResource(R.string.symbol_green_circle)
-    val currency = stringResource(R.string.symbol_currency)
-    val sparkle = stringResource(R.string.symbol_sparkle)
-    val key = stringResource(R.string.symbol_key)
-    val heavy = stringResource(R.string.symbol_heavy)
-    val turtle = stringResource(R.string.symbol_turtle)
-    val bunny = stringResource(R.string.symbol_bunny)
-    val rocket = stringResource(R.string.symbol_rocket)
-    val ciDesc = stringResource(R.string.ci_desc)
-    val durationText = stringResource(
-        R.string.single_argument,
-        getDurationInHumanReadableFormat(context, ct.duration)
-    )
-    val download = stringResource(
-        R.string.symbol_download,
-        formatByteCount(ct.downloadBytes)
-    )
-    val upload = stringResource(
-        R.string.symbol_upload,
-        formatByteCount(ct.uploadBytes)
-    )
-    val usageText = stringResource(R.string.two_argument, upload, download)
-    var dataUsage = ""
-    var delay = ""
-    var duration = ""
+    val meteredLabel = stringResource(R.string.ada_app_metered)
+    val durationText = getDurationInHumanReadableFormat(context, ct.duration)
+    val download = stringResource(R.string.log_data_down, formatByteCount(ct.downloadBytes))
+    val upload = "\u2191 ${formatByteCount(ct.uploadBytes)}"
+    val metered = if (connType.isMetered()) meteredLabel else ""
 
     if (ct.duration == 0 && ct.downloadBytes == 0L && ct.uploadBytes == 0L && ct.message.isEmpty()) {
-        var hasMinSummary = false
-        if (hasCid) {
-            dataUsage = activeLabel
-            duration = greenCircle
-            hasMinSummary = true
-        }
-
-        if (connType.isMetered()) {
-            delay = currency
-            hasMinSummary = true
-        }
-
-        if (isRpnProxy(ct.rpid)) {
-            delay = UIUtils.formatTemplate(ciDesc, delay, sparkle)
-        } else if (isConnectionProxied(ct.blockedByRule, ct.proxyDetails)) {
-            delay = UIUtils.formatTemplate(ciDesc, delay, key)
-            hasMinSummary = true
-        }
-
-        return Summary(dataUsage, duration, delay, hasMinSummary)
+        val dataUsage = if (hasCid) activeLabel else ""
+        return Summary(dataUsage, "", metered, dataUsage.isNotEmpty() || metered.isNotEmpty())
     }
-
-    duration = durationText
-    dataUsage = usageText
-
-    if (connType.isMetered()) {
-        delay = UIUtils.formatTemplate(ciDesc, delay, currency)
-    }
-    if (isConnectionHeavier(ct)) {
-        delay = UIUtils.formatTemplate(ciDesc, delay, heavy)
-    }
-    if (isConnectionSlower(ct)) {
-        delay = UIUtils.formatTemplate(ciDesc, delay, turtle)
-    }
-    if (isRpnProxy(ct.rpid)) {
-        delay = UIUtils.formatTemplate(ciDesc, delay, sparkle)
-    } else if (containsRelayProxy(ct.rpid)) {
-        delay = UIUtils.formatTemplate(ciDesc, delay, bunny)
-    } else if (isConnectionProxied(ct.blockedByRule, ct.proxyDetails)) {
-        delay = UIUtils.formatTemplate(ciDesc, delay, key)
-    }
-    if (isRoundTripShorter(ct.synack, ct.isBlocked)) {
-        delay = UIUtils.formatTemplate(ciDesc, delay, rocket)
-    }
-
-    val showSummary = delay.isNotEmpty() || dataUsage.isNotEmpty()
-    return Summary(dataUsage, duration, delay, showSummary)
-}
-
-private fun isRoundTripShorter(rtt: Long, blocked: Boolean): Boolean {
-    return rtt in 1..20 && !blocked
-}
-
-private fun containsRelayProxy(rpid: String): Boolean {
-    return rpid.isNotEmpty()
-}
-
-private fun isConnectionProxied(ruleName: String?, proxyDetails: String): Boolean {
-    if (ruleName == null) return false
-    val rule = FirewallRuleset.getFirewallRule(ruleName) ?: return false
-    val proxy = ProxyManager.isNotLocalAndRpnProxy(proxyDetails)
-    val isProxyError = FirewallRuleset.isProxyError(ruleName)
-    return (FirewallRuleset.isProxied(rule) && proxyDetails.isNotEmpty() && proxy) || isProxyError
-}
-
-private fun isRpnProxy(pid: String): Boolean {
-    return pid.isNotEmpty() && ProxyManager.isRpnProxy(pid)
-}
-
-private fun isConnectionHeavier(ct: ConnectionTracker): Boolean {
-    return ct.downloadBytes + ct.uploadBytes > MAX_BYTES
-}
-
-private fun isConnectionSlower(ct: ConnectionTracker): Boolean {
-    return (ct.protocol == Protocol.UDP.protocolType && ct.duration > MAX_TIME_UDP) ||
-        (ct.protocol == Protocol.TCP.protocolType && ct.duration > MAX_TIME_TCP)
+    return Summary("$upload \u00b7 $download", durationText, metered, true)
 }

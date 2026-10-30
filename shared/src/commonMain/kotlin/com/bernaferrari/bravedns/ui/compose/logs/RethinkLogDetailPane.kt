@@ -123,16 +123,11 @@ private fun PaneContent(model: RethinkLogRowModel, groups: List<RethinkLogGroup>
                 }
             }
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
-                val title = if (model.kind == RethinkLogKind.Dns) model.destination else model.appLabel
-                if (model.kind == RethinkLogKind.Dns) {
-                    Text(rethinkDomainText(title, scheme.onSurface, scheme.onSurfaceVariant), style = MaterialTheme.typography.headlineSmall, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.semantics { heading() })
-                } else {
-                    Text(title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.semantics { heading() })
-                }
+                // Like the rows: the destination or name is the title, the app beneath it.
+                Text(rethinkDomainText(model.destination, scheme.onSurface, scheme.onSurfaceVariant), style = MaterialTheme.typography.headlineSmall, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.semantics { heading() })
                 Text(
-                    text = if (model.kind == RethinkLogKind.Dns) model.appLabel else model.destination,
+                    text = model.appLabel,
                     style = MaterialTheme.typography.bodyMedium,
-                    fontFamily = if (model.kind == RethinkLogKind.Network) FontFamily.Monospace else null,
                     color = scheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,

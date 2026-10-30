@@ -55,7 +55,6 @@ import com.bernaferrari.bravedns.net.doh.Transaction
 import com.bernaferrari.bravedns.service.ProxyManager
 import com.bernaferrari.bravedns.ui.compose.rememberDrawablePainter
 import com.bernaferrari.bravedns.util.Constants
-import com.bernaferrari.bravedns.util.Constants.Companion.MAX_ENDPOINT
 import com.bernaferrari.bravedns.util.UIUtils
 import com.bernaferrari.bravedns.ui.compose.common.AppIcon
 import com.celzero.firestack.backend.Backend
@@ -90,7 +89,6 @@ fun dnsLogModel(
 ): RethinkLogRowModel {
     val context = LocalContext.current
     val dnsType = dnsTypeName(log, isRethinkDns)
-    val hint = unicodeHint(log, isRethinkDns)
     val appLabel = log.appName.ifEmpty {
         stringResource(R.string.network_log_app_name_unknown)
     }
@@ -111,7 +109,7 @@ fun dnsLogModel(
     }
 
     val blocklists = log.blockLists.split(",").map { it.trim() }.filter { it.isNotBlank() }
-    val details = dnsLogDetails(log, appLabel, dnsType, hint, blocklists)
+    val details = dnsLogDetails(log, appLabel, dnsType, blocklists)
     val favicon = favIcon.takeIf { showFav }
     return RethinkLogRowModel(
         id = log.id.toString(),
@@ -151,7 +149,7 @@ fun dnsLogModel(
 }
 
 @Composable
-private fun dnsLogDetails(log: DnsLog, appLabel: String, dnsType: String, hint: String, blocklists: List<String>): List<RethinkLogDetail> {
+private fun dnsLogDetails(log: DnsLog, appLabel: String, dnsType: String, blocklists: List<String>): List<RethinkLogDetail> {
     val unknown = stringResource(R.string.network_log_app_name_unknown)
     val country = UIUtils.countryLabel(log.flag, unknown)
     val dnssec = when {
@@ -166,9 +164,11 @@ private fun dnsLogDetails(log: DnsLog, appLabel: String, dnsType: String, hint: 
         RethinkLogDetail(stringResource(R.string.log_detail_country), country),
         log.responseIps.takeIf { it.isNotBlank() }?.let { RethinkLogDetail(stringResource(R.string.log_detail_response), it, monospace = true) },
         log.serverIP.takeIf { it.isNotBlank() }?.let { RethinkLogDetail(stringResource(R.string.log_detail_resolver), it, monospace = true) },
-        blocklists.takeIf { it.isNotEmpty() }?.let { RethinkLogDetail(stringResource(R.string.log_detail_blocklists), it.joinToString(", "), isError = true) },
+        // Blocklists: the "N blocklists matched" action under the details names and opens them.
+        // Relay or proxy in plain text, where the old emoji flags (🐇 🗝️) only hinted at it.
+        (log.relayIP.takeIf(::containsRelayProxy) ?: log.proxyId.takeIf(::isConnectionProxied))
+            ?.let { RethinkLogDetail(stringResource(R.string.log_detail_proxy), it, monospace = true) },
         dnssec?.let { RethinkLogDetail(stringResource(R.string.log_detail_dnssec), it) },
-        hint.takeIf { it.isNotBlank() }?.let { RethinkLogDetail(stringResource(R.string.log_detail_flags), it) },
     )
 }
 
@@ -193,46 +193,6 @@ private fun DrawableIcon(drawable: Drawable) {
 }
 
 @Composable
-private fun unicodeHint(log: DnsLog, isRethinkDns: Boolean): String {
-    val rocket = stringResource(R.string.symbol_rocket)
-    val bunny = stringResource(R.string.symbol_bunny)
-    val key = stringResource(R.string.symbol_key)
-    val duck = stringResource(R.string.symbol_duck)
-    val diamond = stringResource(R.string.symbol_diamond)
-    val heavy = stringResource(R.string.symbol_heavy)
-    val lock = stringResource(R.string.symbol_lock)
-    val unlock = stringResource(R.string.symbol_unlock)
-    val rethink = getRethinkUnicode(log)
-    val ciDesc = stringResource(R.string.ci_desc)
-    var hint = ""
-    if (isRoundTripShorter(log.latency, log.isBlocked)) {
-        hint = UIUtils.formatTemplate(ciDesc, hint, rocket)
-    }
-    if (containsRelayProxy(log.relayIP)) {
-        hint = UIUtils.formatTemplate(ciDesc, hint, bunny)
-    } else if (isConnectionProxied(log.proxyId)) {
-        hint = UIUtils.formatTemplate(ciDesc, hint, key)
-    }
-    if (isRethinkUsed(log, isRethinkDns)) {
-        hint = UIUtils.formatTemplate(ciDesc, hint, rethink)
-    } else if (isGoosOrSystemUsed(log)) {
-        hint = UIUtils.formatTemplate(ciDesc, hint, duck)
-    } else if (isDefaultResolverUsed(log)) {
-        hint = UIUtils.formatTemplate(ciDesc, hint, diamond)
-    } else if (containsMultipleIPs(log)) {
-        hint = UIUtils.formatTemplate(ciDesc, hint, heavy)
-    }
-    if (dnssecIndicatorRequired(log)) {
-        hint = if (dnssecOk(log)) {
-            UIUtils.formatTemplate(ciDesc, hint, lock)
-        } else {
-            UIUtils.formatTemplate(ciDesc, hint, unlock)
-        }
-    }
-    return hint
-}
-
-@Composable
 private fun dnsTypeName(log: DnsLog, isRethinkDns: Boolean): String {
     val rdns = stringResource(R.string.lbl_rdns)
     val doh = stringResource(R.string.other_dns_list_tab1)
@@ -250,13 +210,6 @@ private fun dnsTypeName(log: DnsLog, isRethinkDns: Boolean): String {
     }
 }
 
-private fun dnssecIndicatorRequired(log: DnsLog) =
-    log.status == Transaction.Status.COMPLETE.name && (log.dnssecOk || log.dnssecValid)
-
-private fun dnssecOk(log: DnsLog) = log.dnssecOk && log.dnssecValid
-
-private fun isRoundTripShorter(rtt: Long, blocked: Boolean) = rtt in 1..10 && !blocked
-
 private fun containsRelayProxy(rpid: String) = rpid.isNotEmpty()
 
 private fun isConnectionProxied(proxy: String?): Boolean {
@@ -264,33 +217,10 @@ private fun isConnectionProxied(proxy: String?): Boolean {
     return ProxyManager.isNotLocalAndRpnProxy(proxy)
 }
 
-private fun containsMultipleIPs(log: DnsLog) = log.responseIps.split(",").size > 1
-
 private fun isRethinkUsed(log: DnsLog, isRethinkDns: Boolean): Boolean {
     if (log.status != Transaction.Status.COMPLETE.name) return false
     return isRethinkDns &&
         (log.resolverId.contains(Backend.Preferred) || log.resolverId.contains(Backend.BlockFree))
-}
-
-private fun isGoosOrSystemUsed(log: DnsLog): Boolean {
-    if (log.status != Transaction.Status.COMPLETE.name) return false
-    return log.resolverId.contains(Backend.Goos) || log.resolverId.contains(Backend.System)
-}
-
-private fun isDefaultResolverUsed(log: DnsLog): Boolean {
-    if (log.status != Transaction.Status.COMPLETE.name) return false
-    return log.resolverId.contains(Backend.Default) || log.resolverId.contains(Backend.Bootstrap)
-}
-
-@Composable
-private fun getRethinkUnicode(log: DnsLog): String {
-    val sparkle = stringResource(R.string.symbol_sparkle)
-    val max = stringResource(R.string.symbol_max)
-    val sky = stringResource(R.string.symbol_sky)
-    if (log.relayIP.endsWith(Backend.RPN) || log.relayIP == Backend.Auto) {
-        return sparkle
-    }
-    return if (log.serverIP.contains(MAX_ENDPOINT)) max else sky
 }
 
 private suspend fun displayFavIcon(
