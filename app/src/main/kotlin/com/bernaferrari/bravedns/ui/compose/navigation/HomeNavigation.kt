@@ -561,6 +561,7 @@ fun HomeScreenRoot(
                     connectionTrackerRepository = connectionTrackerRepository,
                     dnsLogRepository = dnsLogRepository,
                     persistentState = persistentState,
+                    onAppLogsClick = { nav.push(RethinkRoute.ConsoleLogs) },
                     onBackClick = { nav.popBackStack() }
                 )
             }

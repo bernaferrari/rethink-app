@@ -67,6 +67,7 @@ import com.bernaferrari.bravedns.database.LogAppCount
 import com.bernaferrari.bravedns.service.FirewallRuleset
 import com.bernaferrari.bravedns.service.PersistentState
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkOverflowItem
 import com.bernaferrari.bravedns.ui.compose.common.AppIcon
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 import com.bernaferrari.bravedns.ui.icons.keepout.KeepoutIcons
@@ -95,6 +96,7 @@ fun NetworkLogsScreen(
     connectionTrackerRepository: ConnectionTrackerRepository,
     dnsLogRepository: DnsLogRepository,
     persistentState: PersistentState,
+    onAppLogsClick: () -> Unit,
     onBackClick: (() -> Unit)? = null
 ) {
     var selectedDns by remember { mutableStateOf<DnsLog?>(null) }
@@ -108,6 +110,9 @@ fun NetworkLogsScreen(
             clear = stringResource(R.string.fapps_filter_clear_btn),
         ),
         onBackClick = onBackClick,
+        additionalOverflowItems = listOf(
+            RethinkOverflowItem(stringResource(R.string.console_log_title), MaterialSymbols.Filled.Terminal, onClick = onAppLogsClick),
+        ),
         networkContent = { onToolbarActionsChange ->
             ConnectionLogsContent(
                 viewModel = connectionTrackerViewModel,

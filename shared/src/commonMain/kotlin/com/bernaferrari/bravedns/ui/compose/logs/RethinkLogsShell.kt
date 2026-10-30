@@ -57,6 +57,7 @@ fun RethinkLogsScreenShell(
     strings: RethinkLogsStrings,
     onBackClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
+    additionalOverflowItems: List<RethinkOverflowItem> = emptyList(),
     networkContent: @Composable (onToolbarActionsChange: (RethinkLogToolbarActions) -> Unit) -> Unit,
     dnsContent: @Composable (onToolbarActionsChange: (RethinkLogToolbarActions) -> Unit) -> Unit,
 ) {
@@ -83,7 +84,7 @@ fun RethinkLogsScreenShell(
                         dnsLabel = strings.dns,
                         onTabSelected = { tabIndex = it.ordinal },
                     )
-                    RethinkLogsOverflow(toolbarActions, strings)
+                    RethinkLogsOverflow(toolbarActions, strings, additionalOverflowItems)
                 },
             )
         },
@@ -121,12 +122,16 @@ private fun RethinkLogsTabSwitch(
 }
 
 @Composable
-private fun RethinkLogsOverflow(actions: RethinkLogToolbarActions, strings: RethinkLogsStrings) {
+private fun RethinkLogsOverflow(
+    actions: RethinkLogToolbarActions,
+    strings: RethinkLogsStrings,
+    additionalItems: List<RethinkOverflowItem>,
+) {
     RethinkOverflowMenu(
         moreDescription = strings.moreActions,
         items = listOfNotNull(
             actions.onRefresh?.let { RethinkOverflowItem(strings.refresh, MaterialSymbols.Filled.Refresh, onClick = it) },
             actions.onClear?.let { RethinkOverflowItem(strings.clear, MaterialSymbols.Filled.DeleteOutline, onClick = it) },
-        ),
+        ) + additionalItems,
     )
 }
