@@ -192,9 +192,7 @@ fun RethinkAboutScreen(
     ) {
         item { AboutIdentityHero(strings.appName, version) }
         item { AboutAppSection(uiState, strings, actions) }
-        if (uiState.isDebug) {
-            item { AboutDiagnosticsSection(strings, actions) }
-        }
+        // Diagnostics (stats, database, flight recorder, event logs) live in Settings › Advanced.
         item {
             AboutSection(
                 title = strings.web,
@@ -270,20 +268,6 @@ private fun AboutAppSection(uiState: RethinkAboutUiState, strings: RethinkAboutS
             add(AboutRow(strings.vpnProfile, aboutIcon(MaterialSymbols.Filled.VpnKey), actions.onVpnProfile))
             add(AboutRow(strings.notifications, aboutIcon(MaterialSymbols.Filled.Notifications), actions.onNotifications))
         },
-    )
-}
-
-@Composable
-private fun AboutDiagnosticsSection(strings: RethinkAboutStrings, actions: RethinkAboutActions) {
-    AboutSection(
-        title = strings.diagnostics,
-        accent = MaterialTheme.colorScheme.tertiary,
-        rows = listOf(
-            AboutRow(strings.statistics, aboutIcon(MaterialSymbols.Filled.InsertChart), actions.onStatistics),
-            AboutRow(strings.databaseDump, aboutIcon(MaterialSymbols.Filled.Database), actions.onDatabaseDump),
-            AboutRow(strings.flightRecorder, aboutIcon(MaterialSymbols.Filled.NetworkCheck), actions.onFlightRecorder),
-            AboutRow(strings.eventLogs, aboutIcon(MaterialSymbols.Filled.History), actions.onEventLogs),
-        ),
     )
 }
 

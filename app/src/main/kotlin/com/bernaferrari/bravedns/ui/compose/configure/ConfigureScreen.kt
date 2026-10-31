@@ -12,108 +12,101 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import com.bernaferrari.bravedns.R
-import com.bernaferrari.bravedns.database.EventSource
-import com.bernaferrari.bravedns.database.EventType
-import com.bernaferrari.bravedns.database.Severity
-import com.bernaferrari.bravedns.service.EventLogger
-import com.bernaferrari.bravedns.service.PersistentState
-import com.bernaferrari.bravedns.ui.compose.settings.AppearanceSettingsCard
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkColorPreset
+import com.bernaferrari.bravedns.ui.compose.database.BackupRestoreSheet
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 import com.bernaferrari.bravedns.ui.icons.keepout.KeepoutIcons
 
-/** Android resources, navigation, and state adapter for the common Configure renderer. */
+/**
+ * The Settings tab: Protection (DNS, Firewall, Proxy & VPN) as colored tiles, App (Appearance, App
+ * lock, Notifications, Backup & restore, General) and Advanced (Network, Anti-censorship, Logging,
+ * Diagnostics, and Developer in debug builds), then About. Apps and the log are tabs of their own.
+ *
+ * [onOpen] receives every destination; Backup & restore opens its sheet here, over the hub.
+ */
 @Composable
 fun ConfigureScreen(
     isDebug: Boolean,
-    onAppsClick: () -> Unit,
-    onDnsClick: () -> Unit,
-    onFirewallClick: () -> Unit,
-    onProxyClick: () -> Unit,
-    onNetworkClick: () -> Unit,
-    onOthersClick: () -> Unit,
-    onLogsClick: () -> Unit,
-    onAntiCensorshipClick: () -> Unit,
-    onAdvancedClick: () -> Unit,
-    persistentState: PersistentState,
-    eventLogger: EventLogger,
-    onThemeModeChanged: ((Int) -> Unit)? = null,
-    onThemeColorChanged: ((Int) -> Unit)? = null,
-    onSearchDestinationClick: ((SettingsSearchDestination) -> Unit)? = null,
+    onOpen: (SettingsSearchDestination) -> Unit,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var searchOpen by rememberSaveable { mutableStateOf(false) }
+    var showBackupSheet by rememberSaveable { mutableStateOf(false) }
     BackHandler(enabled = searchOpen) { searchOpen = false; query = "" }
-    fun open(destination: SettingsSearchDestination) = when (destination) {
-        SettingsSearchDestination.Apps -> onAppsClick()
-        is SettingsSearchDestination.Dns -> onDnsClick()
-        is SettingsSearchDestination.Firewall -> onFirewallClick()
-        is SettingsSearchDestination.Proxy -> onProxyClick()
-        is SettingsSearchDestination.Network -> onNetworkClick()
-        is SettingsSearchDestination.General -> onOthersClick()
-        SettingsSearchDestination.Logs -> onLogsClick()
-        SettingsSearchDestination.AntiCensorship -> onAntiCensorshipClick()
-        SettingsSearchDestination.Advanced -> onAdvancedClick()
+    fun open(destination: SettingsSearchDestination) {
+        if (destination == SettingsSearchDestination.Backup) showBackupSheet = true else onOpen(destination)
     }
     fun selectSearch(destination: SettingsSearchDestination) {
         searchOpen = false
         query = ""
-        onSearchDestinationClick?.invoke(destination) ?: open(destination)
+        open(destination)
     }
     fun entry(
         id: String,
         title: String,
         icon: ImageVector,
-        click: () -> Unit,
-        subtitle: String? = null,
+        destination: SettingsSearchDestination,
+        accent: Color,
         keywords: List<String> = emptyList(),
-        accent: Color = ConfigureAccents.apps,
+        click: () -> Unit = { open(destination) },
     ) = RethinkConfigureEntry(
         id = id,
         title = title,
         icon = { Icon(icon, null) },
         onClick = click,
-        subtitle = subtitle,
         keywords = keywords,
         accent = accent,
     )
 
-    val protection = stringResource(R.string.lbl_protection)
-    val system = stringResource(R.string.lbl_system)
-    val advanced = stringResource(R.string.lbl_advanced)
-    // Two tiers, one rule each: the four protection features as a 2x2 tile grid, everything else
-    // as one list. No entry carries a subtitle (only some had one, and "Customize" said nothing);
-    // the old "Advanced" section, which held an item also called "Advanced", folds into System.
+    val appName = stringResource(R.string.app_name)
     val sections = listOf(
-        RethinkConfigureSection(protection, listOf(
-            entry("apps", stringResource(R.string.lbl_apps), MaterialSymbols.Filled.Apps, onAppsClick, keywords = listOf("apps", "application", "app list"), accent = ConfigureAccents.apps),
-            entry("dns", stringResource(R.string.lbl_dns), MaterialSymbols.Filled.Dns, onDnsClick, keywords = listOf("dns", "resolver", "blocklist"), accent = ConfigureAccents.dns),
-            entry("firewall", stringResource(R.string.lbl_firewall), KeepoutIcons.Firewall, onFirewallClick, keywords = listOf("firewall", "rules", "allow", "block"), accent = ConfigureAccents.firewall),
-            entry("proxy", stringResource(R.string.lbl_proxy), MaterialSymbols.Filled.ConversionPath, onProxyClick, keywords = listOf("proxy", "socks5", "orbot", "wireguard"), accent = ConfigureAccents.proxy),
+        // Protection: what Keepout does to traffic. Three tiles; the last one spans the row.
+        RethinkConfigureSection(stringResource(R.string.lbl_protection), listOf(
+            entry("dns", stringResource(R.string.lbl_dns), MaterialSymbols.Filled.Dns, SettingsSearchDestination.Dns(), ConfigureAccents.dns, listOf("dns", "resolver", "blocklist")),
+            entry("firewall", stringResource(R.string.lbl_firewall), KeepoutIcons.Firewall, SettingsSearchDestination.Firewall(), ConfigureAccents.firewall, listOf("firewall", "rules", "allow", "block")),
+            entry("proxy", stringResource(R.string.settings_proxy_vpn), MaterialSymbols.Filled.ConversionPath, SettingsSearchDestination.Proxy(), ConfigureAccents.proxy, listOf("proxy", "socks5", "orbot", "wireguard", "vpn")),
         ), RethinkConfigureLayout.GridFour),
-        RethinkConfigureSection(system, buildList {
-            add(entry("network", stringResource(R.string.lbl_network), MaterialSymbols.Filled.VpnLock, onNetworkClick, keywords = listOf("network", "vpn", "tunnel"), accent = ConfigureAccents.network))
-            add(entry("settings", stringResource(R.string.settings_general_header), MaterialSymbols.Filled.Tune, onOthersClick, keywords = listOf("settings", "general", "backup"), accent = ConfigureAccents.settings))
-            add(entry("logs", stringResource(R.string.lbl_logs), MaterialSymbols.Filled.FormatListBulleted, onLogsClick, keywords = listOf("logs", "events", "console"), accent = ConfigureAccents.logs))
-            add(entry("anti-censorship", stringResource(R.string.anti_censorship_title), MaterialSymbols.Filled.DominoMask, onAntiCensorshipClick, keywords = listOf("anti censorship", "dpi"), accent = ConfigureAccents.antiCensorship))
-            if (isDebug) add(entry("advanced", advanced, MaterialSymbols.Filled.Science, onAdvancedClick, keywords = listOf("advanced", "experimental", "debug"), accent = ConfigureAccents.advanced))
+        // App: how Keepout itself looks and behaves. Rows, each with its colored well.
+        RethinkConfigureSection(stringResource(R.string.settings_section_app), listOf(
+            entry("appearance", stringResource(R.string.settings_theme_heading), MaterialSymbols.Filled.Palette, SettingsSearchDestination.Appearance, ConfigureAccents.appearance, listOf("theme", "dark", "color")),
+            entry("app_lock", stringResource(R.string.app_lock_title), MaterialSymbols.Filled.Lock, SettingsSearchDestination.AppLock, ConfigureAccents.appLock, listOf("lock", "biometric", "fingerprint")),
+            entry("notifications", stringResource(R.string.settings_notifications), MaterialSymbols.Filled.Notifications, SettingsSearchDestination.Notifications, ConfigureAccents.notifications, listOf("notifications", "alerts")),
+            entry("backup", stringResource(R.string.brbs_title), MaterialSymbols.Filled.Backup, SettingsSearchDestination.Backup, ConfigureAccents.backup, listOf("backup", "restore")),
+            entry("general", stringResource(R.string.settings_general_header).replaceFirstChar { it.titlecase() }, MaterialSymbols.Filled.Tune, SettingsSearchDestination.General(), ConfigureAccents.settings, listOf("general", "boot", "updates")),
+        ), RethinkConfigureLayout.List),
+        // Advanced: engine knobs and troubleshooting, as tiles like Protection.
+        RethinkConfigureSection(stringResource(R.string.lbl_advanced), buildList {
+            add(entry("network", stringResource(R.string.lbl_network), MaterialSymbols.Filled.VpnLock, SettingsSearchDestination.Network(), ConfigureAccents.network, listOf("network", "vpn", "tunnel")))
+            add(entry("anti-censorship", stringResource(R.string.anti_censorship_title), MaterialSymbols.Filled.DominoMask, SettingsSearchDestination.AntiCensorship, ConfigureAccents.antiCensorship, listOf("anti censorship", "dpi")))
+            add(entry("logging", stringResource(R.string.settings_logging_title), MaterialSymbols.Filled.History, SettingsSearchDestination.Logging(), ConfigureAccents.logs, listOf("logs", "logging")))
+            add(entry("diagnostics", stringResource(R.string.about_diagnostics), MaterialSymbols.Filled.BugReport, SettingsSearchDestination.Diagnostics, ConfigureAccents.diagnostics, listOf("diagnostics", "event logs", "ping")))
+            if (isDebug) add(entry("developer", stringResource(R.string.settings_developer_title), MaterialSymbols.Filled.Science, SettingsSearchDestination.Developer, ConfigureAccents.advanced, listOf("experimental", "debug")))
         }, RethinkConfigureLayout.GridFour),
+        RethinkConfigureSection("", listOf(
+            entry("about", stringResource(R.string.settings_about_keepout, appName), MaterialSymbols.Filled.Info, SettingsSearchDestination.About, ConfigureAccents.about, listOf("about", "version")),
+        ), RethinkConfigureLayout.List),
     )
     val deepSearch = buildSettingsSearchIndex(isDebug).map { source ->
         RethinkConfigureSearchEntry(
-            entry(
-                source.id,
-                source.title,
-                source.icon,
-                { selectSearch(source.destination) },
-                source.subtitle,
-                source.keywords,
-                source.destination.configureAccent(),
+            RethinkConfigureEntry(
+                id = source.id,
+                title = source.title,
+                icon = { Icon(source.icon, null) },
+                onClick = { selectSearch(source.destination) },
+                subtitle = source.subtitle,
+                keywords = source.keywords,
+                accent = source.destination.configureAccent(),
             ),
             source.path,
         )
     }
-    val topSearch = sections.flatMap { section -> section.entries.map { RethinkConfigureSearchEntry(it, "${section.title} > ${it.title}") } }
+    val topSearch = sections.flatMap { section ->
+        section.entries.map { entry ->
+            RethinkConfigureSearchEntry(
+                entry.copy(onClick = { searchOpen = false; query = ""; entry.onClick() }),
+                if (section.title.isBlank()) entry.title else "${section.title} > ${entry.title}",
+            )
+        }
+    }
     RethinkConfigureScreen(
         sections = sections,
         searchEntries = (deepSearch + topSearch).distinctBy(::rethinkConfigureSearchDedupKey),
@@ -124,49 +117,23 @@ fun ConfigureScreen(
         ),
         searchOpen = searchOpen, query = query,
         onSearchOpenChange = { searchOpen = it; if (!it) query = "" }, onQueryChange = { query = it },
-        appearanceContent = {
-            AppearanceSettingsCard(
-                themePreference = persistentState.theme,
-                colorPresetId = persistentState.themeColorPreset,
-                onAppearanceModeSelected = { mode ->
-                    val themeId = mode.toThemePreference()
-                    persistentState.theme = themeId
-                    onThemeModeChanged?.invoke(themeId)
-                    eventLogger.log(
-                        EventType.UI_SETTING_CHANGED,
-                        Severity.LOW,
-                        "Appearance",
-                        EventSource.UI,
-                        true,
-                        "Theme set to ${mode.name.lowercase()}",
-                    )
-                },
-                onColorPresetSelected = { preset: RethinkColorPreset ->
-                    persistentState.themeColorPreset = preset.id
-                    onThemeColorChanged?.invoke(preset.id)
-                    eventLogger.log(
-                        EventType.UI_SETTING_CHANGED,
-                        Severity.LOW,
-                        "Appearance color",
-                        EventSource.UI,
-                        true,
-                        "Color preset set to ${preset.name.lowercase()}",
-                    )
-                },
-                showSectionHeader = true,
-            )
-        },
     )
+    if (showBackupSheet) BackupRestoreSheet(onDismiss = { showBackupSheet = false })
 }
 
 private fun SettingsSearchDestination.configureAccent(): Color = when (this) {
-    SettingsSearchDestination.Apps -> ConfigureAccents.apps
     is SettingsSearchDestination.Dns -> ConfigureAccents.dns
     is SettingsSearchDestination.Firewall -> ConfigureAccents.firewall
     is SettingsSearchDestination.Proxy -> ConfigureAccents.proxy
-    is SettingsSearchDestination.Network -> ConfigureAccents.network
+    SettingsSearchDestination.Appearance -> ConfigureAccents.appearance
+    SettingsSearchDestination.AppLock -> ConfigureAccents.appLock
+    SettingsSearchDestination.Notifications -> ConfigureAccents.notifications
+    SettingsSearchDestination.Backup -> ConfigureAccents.backup
     is SettingsSearchDestination.General -> ConfigureAccents.settings
-    SettingsSearchDestination.Logs -> ConfigureAccents.logs
+    is SettingsSearchDestination.Network -> ConfigureAccents.network
     SettingsSearchDestination.AntiCensorship -> ConfigureAccents.antiCensorship
-    SettingsSearchDestination.Advanced -> ConfigureAccents.advanced
+    is SettingsSearchDestination.Logging -> ConfigureAccents.logs
+    SettingsSearchDestination.Diagnostics -> ConfigureAccents.diagnostics
+    SettingsSearchDestination.Developer -> ConfigureAccents.advanced
+    SettingsSearchDestination.About -> ConfigureAccents.about
 }

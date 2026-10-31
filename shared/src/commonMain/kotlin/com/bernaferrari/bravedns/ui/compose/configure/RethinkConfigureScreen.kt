@@ -209,7 +209,8 @@ fun RethinkConfigureScreen(
 @Composable
 private fun ConfigureSection(section: RethinkConfigureSection, widthClass: WindowWidthClass) {
     Column {
-        SectionHeader(section.title)
+        // A section without a title (About, last on the hub) is one row standing on its own.
+        if (section.title.isNotBlank()) SectionHeader(section.title)
         section.subtitle?.let {
             Text(
                 it,

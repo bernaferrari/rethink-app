@@ -22,7 +22,8 @@ fun AdvancedSettingsScreen(
     var panicEnabled by remember { mutableStateOf(persistentState.panicRandom) }
     RethinkAdvancedSettingsScreen(
         strings = RethinkAdvancedSettingsStrings(
-            title = stringResource(R.string.lbl_advanced),
+            // Debug builds only; "Advanced" is now the Settings group this sits in.
+            title = stringResource(R.string.settings_developer_title),
             subtitle = stringResource(R.string.adv_set_experimental_desc),
             experimentalTitle = stringResource(R.string.adv_set_experimental_title),
             autoDialTitle = stringResource(R.string.set_auto_dial_title),

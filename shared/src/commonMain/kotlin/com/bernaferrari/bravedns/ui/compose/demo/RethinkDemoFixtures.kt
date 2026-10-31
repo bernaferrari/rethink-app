@@ -623,45 +623,39 @@ internal val demoConsoleLogs = listOf(
 internal fun demoConfigureSections(
     onOpenDetail: (RethinkRoute) -> Unit,
 ) = listOf(
+    // Mirrors the app's hub: Protection · App · Advanced · About (Apps and the log are tabs).
     RethinkConfigureSection(
         "Protection",
         listOf(
-            demoConfigureEntry("apps", "Apps", MaterialSymbols.Filled.Apps, RethinkRoute.AppList, onOpenDetail, accent = ConfigureAccents.apps),
             demoConfigureEntry("dns", "DNS", MaterialSymbols.Filled.Dns, RethinkRoute.DnsList, onOpenDetail, accent = ConfigureAccents.dns),
             demoConfigureEntry("firewall", "Firewall", KeepoutIcons.Firewall, RethinkRoute.FirewallSettings(), onOpenDetail, accent = ConfigureAccents.firewall),
-            demoConfigureEntry("proxy", "Proxy", MaterialSymbols.Filled.ConversionPath, RethinkRoute.ProxySettings(), onOpenDetail, accent = ConfigureAccents.proxy),
+            demoConfigureEntry("proxy", "Proxy & VPN", MaterialSymbols.Filled.ConversionPath, RethinkRoute.ProxySettings(), onOpenDetail, accent = ConfigureAccents.proxy),
         ),
         RethinkConfigureLayout.GridFour,
     ),
     RethinkConfigureSection(
-        "System",
+        "App",
         listOf(
-            demoConfigureEntry("network", "Network", MaterialSymbols.Filled.Wifi, RethinkRoute.TunnelSettings(), onOpenDetail, accent = ConfigureAccents.network),
             demoConfigureEntry("rpn", "Rethink Plus", MaterialSymbols.Filled.Star, RethinkRoute.RpnAccount, onOpenDetail, accent = ConfigureAccents.plus),
-            demoConfigureEntry("settings", "App preferences", MaterialSymbols.Filled.Tune, RethinkRoute.MiscSettings(), onOpenDetail, "Backup, device, and app behavior", ConfigureAccents.settings),
-            demoConfigureEntry("logs", "Logs", MaterialSymbols.Filled.FormatListBulleted, RethinkRoute.NetworkLogs(), onOpenDetail, "Network and DNS logging", ConfigureAccents.logs),
-        ),
-        RethinkConfigureLayout.GridTriad,
-    ),
-    RethinkConfigureSection(
-        "Routing and DNS",
-        listOf(
-            demoConfigureEntry("dns-settings", "DNS settings", MaterialSymbols.Filled.Tune, RethinkRoute.DnsSettings, onOpenDetail, "Resolver, filtering, and advanced options", ConfigureAccents.dns),
-            demoConfigureEntry("blocklists", "Blocklists", KeepoutIcons.Blocklists, RethinkRoute.Blocklists, onOpenDetail, "Choose privacy and security sources", ConfigureAccents.firewall),
-            demoConfigureEntry("wireguard", "WireGuard", MaterialSymbols.Filled.VpnKey, RethinkRoute.WireGuard, onOpenDetail, "Create, import, and manage tunnels", ConfigureAccents.proxy),
-            demoConfigureEntry("rpn-countries", "Rethink locations", MaterialSymbols.Filled.Public, RethinkRoute.RpnCountries, onOpenDetail, "Select RPN servers", ConfigureAccents.network),
-            demoConfigureEntry("anti-censorship", "Anti-censorship", MaterialSymbols.Filled.DominoMask, RethinkRoute.AntiCensorship, onOpenDetail, "Connection splitting and retries", ConfigureAccents.antiCensorship),
+            demoConfigureEntry("settings", "General", MaterialSymbols.Filled.Tune, RethinkRoute.MiscSettings(), onOpenDetail, accent = ConfigureAccents.settings),
         ),
         RethinkConfigureLayout.List,
     ),
     RethinkConfigureSection(
-        "Diagnostics",
+        "Advanced",
         listOf(
-            demoConfigureEntry("console", "Console logs", MaterialSymbols.Filled.Terminal, RethinkRoute.ConsoleLogs, onOpenDetail, "Engine diagnostics", ConfigureAccents.logs),
-            demoConfigureEntry("events", "Event logs", MaterialSymbols.Filled.History, RethinkRoute.Events, onOpenDetail, "System and debug events", ConfigureAccents.settings),
-            demoConfigureEntry("ping", "Connectivity checks", MaterialSymbols.Filled.NetworkCheck, RethinkRoute.PingTest, onOpenDetail, "Test RPN reachability", ConfigureAccents.network),
-            demoConfigureEntry("database", "Database inspector", MaterialSymbols.Filled.Database, RethinkRoute.Database, onOpenDetail, "Browse local data", ConfigureAccents.advanced),
+            demoConfigureEntry("network", "Network", MaterialSymbols.Filled.VpnLock, RethinkRoute.TunnelSettings(), onOpenDetail, accent = ConfigureAccents.network),
+            demoConfigureEntry("anti-censorship", "Anti-censorship", MaterialSymbols.Filled.DominoMask, RethinkRoute.AntiCensorship, onOpenDetail, accent = ConfigureAccents.antiCensorship),
+            demoConfigureEntry("console", "App logs", MaterialSymbols.Filled.Terminal, RethinkRoute.ConsoleLogs, onOpenDetail, accent = ConfigureAccents.logs),
+            demoConfigureEntry("events", "Event logs", MaterialSymbols.Filled.History, RethinkRoute.Events, onOpenDetail, accent = ConfigureAccents.diagnostics),
+            demoConfigureEntry("ping", "Connectivity checks", MaterialSymbols.Filled.NetworkCheck, RethinkRoute.PingTest, onOpenDetail, accent = ConfigureAccents.network),
+            demoConfigureEntry("database", "Database inspector", MaterialSymbols.Filled.Database, RethinkRoute.Database, onOpenDetail, accent = ConfigureAccents.advanced),
         ),
+        RethinkConfigureLayout.GridFour,
+    ),
+    RethinkConfigureSection(
+        "",
+        listOf(demoConfigureEntry("about", "About Keepout", MaterialSymbols.Filled.Info, RethinkRoute.About, onOpenDetail, accent = ConfigureAccents.about)),
         RethinkConfigureLayout.List,
     ),
 )

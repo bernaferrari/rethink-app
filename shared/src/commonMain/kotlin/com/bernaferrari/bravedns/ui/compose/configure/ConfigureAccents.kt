@@ -25,6 +25,12 @@ object ConfigureAccents {
     val antiCensorship = Color(0xFFFFA7E0)
     val advanced = Color(0xFFFFE182)
     val plus = Color(0xFF9B8CFF)
+    val appearance = Color(0xFFFF9EC4)
+    val appLock = Color(0xFF8FD0FF)
+    val notifications = Color(0xFFFFB86B)
+    val backup = Color(0xFF7FE0D0)
+    val diagnostics = Color(0xFFB7C7FF)
+    val about = Color(0xFFC9C3B8)
 }
 
 data class ConfigureTileColors(

@@ -1,7 +1,8 @@
 package com.bernaferrari.bravedns.ui.compose.configure
 
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
+import com.bernaferrari.bravedns.ui.compose.navigation.RethinkRoute
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 
 /**
@@ -11,11 +12,20 @@ import org.junit.Test
 class SettingsSearchIndexTest {
 
     @Test
-    fun appearanceFocus_staysOnConfigure() {
-        assertTrue(SettingsSearchDestination.General("general_appearance").isAppearanceFocus())
-        assertTrue(SettingsSearchDestination.General("general_theme_mode").isAppearanceFocus())
-        assertTrue(SettingsSearchDestination.General("general_theme_color").isAppearanceFocus())
-        assertFalse(SettingsSearchDestination.General("general_backup").isAppearanceFocus())
-        assertFalse(SettingsSearchDestination.General().isAppearanceFocus())
+    fun destinations_openTheirScreen_withTheFocusKey() {
+        assertEquals(RethinkRoute.FirewallSettings("Rule #3"), SettingsSearchDestination.Firewall("Rule #3").route())
+        assertEquals(RethinkRoute.LoggingSettings("general_logs"), SettingsSearchDestination.Logging("general_logs").route())
+        assertEquals(RethinkRoute.MiscSettings("general_autostart"), SettingsSearchDestination.General("general_autostart").route())
+        assertEquals(RethinkRoute.AppearanceSettings, SettingsSearchDestination.Appearance.route())
+        assertEquals(RethinkRoute.AppLockSettings, SettingsSearchDestination.AppLock.route())
+        assertEquals(RethinkRoute.Diagnostics, SettingsSearchDestination.Diagnostics.route())
+        assertEquals(RethinkRoute.AdvancedSettings, SettingsSearchDestination.Developer.route())
+    }
+
+    @Test
+    fun inPlaceDestinations_haveNoRoute() {
+        // Notifications opens Android's settings; Backup & restore is a sheet over the hub.
+        assertNull(SettingsSearchDestination.Notifications.route())
+        assertNull(SettingsSearchDestination.Backup.route())
     }
 }

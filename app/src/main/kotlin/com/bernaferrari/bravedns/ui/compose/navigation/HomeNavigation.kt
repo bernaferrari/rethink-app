@@ -50,7 +50,11 @@ import com.bernaferrari.bravedns.ui.compose.about.AboutUiState
 import com.bernaferrari.bravedns.ui.compose.app.AppInfoScreen
 import com.bernaferrari.bravedns.ui.compose.configure.ConfigureScreen
 import com.bernaferrari.bravedns.ui.compose.configure.SettingsSearchDestination
-import com.bernaferrari.bravedns.ui.compose.configure.isAppearanceFocus
+import com.bernaferrari.bravedns.ui.compose.configure.route
+import com.bernaferrari.bravedns.ui.compose.settings.AppearanceSettingsScreen
+import com.bernaferrari.bravedns.ui.compose.settings.AppLockSettingScreen
+import com.bernaferrari.bravedns.ui.compose.settings.DiagnosticsScreen
+import com.bernaferrari.bravedns.ui.compose.settings.LoggingSettingsScreen
 import com.bernaferrari.bravedns.ui.compose.events.EventsScreen
 import com.bernaferrari.bravedns.ui.compose.firewall.FirewallSettingsScreen
 import com.bernaferrari.bravedns.ui.compose.home.HomeScreen
@@ -633,8 +637,6 @@ fun HomeScreenRoot(
                     eventLogger = appInfoEventLogger,
                     initialFocusKey = args.focusKey.takeIf { it.isNotBlank() },
                     onBackClick = { nav.popBackStack() },
-                    onOpenAbout = { nav.push(RethinkRoute.About) },
-                    onRefreshDatabase = onRefreshDatabase,
                 )
             }
             entry<RethinkRoute.PingTest> {
@@ -889,47 +891,51 @@ fun HomeScreenRoot(
                 }
                 ConfigureScreen(
                     isDebug = isDebug,
-                    // Apps and the log are tabs now: these entries switch to them (WS5 drops them).
-                    onAppsClick = { nav.open(RethinkRoute.AppList) },
-                    // Private-DNS dialog lives on the Activity; consume via same-root push.
-                    onDnsClick = configureActions.onConfigureDnsClick,
-                    onFirewallClick = { nav.push(RethinkRoute.FirewallSettings()) },
-                    onProxyClick = { nav.push(RethinkRoute.ProxySettings()) },
-                    onNetworkClick = { nav.push(RethinkRoute.TunnelSettings()) },
-                    onOthersClick = { nav.push(RethinkRoute.MiscSettings()) },
-                    onLogsClick = { nav.open(RethinkRoute.NetworkLogs()) },
-                    onAntiCensorshipClick = { nav.push(RethinkRoute.AntiCensorship) },
-                    onAdvancedClick = { nav.push(RethinkRoute.AdvancedSettings) },
+                    onOpen = { destination ->
+                        when {
+                            // The DNS tile checks Private DNS first (a dialog on the Activity).
+                            destination is SettingsSearchDestination.Dns && destination.focusKey.isBlank() ->
+                                configureActions.onConfigureDnsClick()
+                            destination == SettingsSearchDestination.Notifications -> aboutActions.onNotificationClick()
+                            else -> destination.route()?.let { nav.push(it) }
+                        }
+                    },
+                )
+            }
+            entry<RethinkRoute.AppearanceSettings> {
+                AppearanceSettingsScreen(
                     persistentState = persistentState,
                     eventLogger = appInfoEventLogger,
                     onThemeModeChanged = onThemeModeChanged,
                     onThemeColorChanged = onThemeColorChanged,
-                    onSearchDestinationClick = { destination ->
-                        when (destination) {
-                            SettingsSearchDestination.Apps -> nav.open(RethinkRoute.AppList)
-                            is SettingsSearchDestination.Dns -> nav.push(
-                                RethinkRoute.DnsDetail(destination.focusKey)
-                            )
-                            is SettingsSearchDestination.Firewall -> nav.push(
-                                RethinkRoute.FirewallSettings(destination.focusKey)
-                            )
-                            is SettingsSearchDestination.Proxy -> nav.push(
-                                RethinkRoute.ProxySettings(destination.focusKey)
-                            )
-                            is SettingsSearchDestination.Network -> nav.push(
-                                RethinkRoute.TunnelSettings(destination.focusKey)
-                            )
-                            is SettingsSearchDestination.General -> {
-                                // Appearance is on the Settings root; other general keys open Misc.
-                                if (!destination.isAppearanceFocus()) {
-                                    nav.push(RethinkRoute.MiscSettings(destination.focusKey))
-                                }
-                            }
-                            SettingsSearchDestination.Logs -> nav.open(RethinkRoute.NetworkLogs())
-                            SettingsSearchDestination.AntiCensorship -> nav.push(RethinkRoute.AntiCensorship)
-                            SettingsSearchDestination.Advanced -> nav.push(RethinkRoute.AdvancedSettings)
-                        }
-                    }
+                    onBackClick = { nav.popBackStack() },
+                )
+            }
+            entry<RethinkRoute.AppLockSettings> {
+                AppLockSettingScreen(
+                    persistentState = persistentState,
+                    eventLogger = appInfoEventLogger,
+                    onBackClick = { nav.popBackStack() },
+                )
+            }
+            entry<RethinkRoute.LoggingSettings> { args ->
+                LoggingSettingsScreen(
+                    persistentState = persistentState,
+                    eventLogger = appInfoEventLogger,
+                    initialFocusKey = args.focusKey.takeIf { it.isNotBlank() },
+                    onBackClick = { nav.popBackStack() },
+                )
+            }
+            entry<RethinkRoute.Diagnostics> {
+                DiagnosticsScreen(
+                    isDebug = isDebug,
+                    onEventLogsClick = { nav.push(RethinkRoute.Events) },
+                    onAppLogsClick = { nav.push(RethinkRoute.ConsoleLogs) },
+                    onConnectivityChecksClick = { nav.push(RethinkRoute.PingTest) },
+                    onNetworkStatsClick = aboutActions.onStatsClick,
+                    onDatabaseClick = { nav.push(RethinkRoute.Database) },
+                    onFlightRecorderClick = aboutActions.onFlightRecordClick,
+                    onBackClick = { nav.popBackStack() },
                 )
             }
             entry<RethinkRoute.About> {

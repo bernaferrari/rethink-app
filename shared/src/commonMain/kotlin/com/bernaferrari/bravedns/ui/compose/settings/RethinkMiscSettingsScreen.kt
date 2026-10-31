@@ -44,16 +44,20 @@ data class RethinkMiscSettingsStrings(
     val aboutDescription: String,
 )
 
-/** Shared general-settings screen. Hosts retain preference persistence and platform actions only. */
+/**
+ * Shared toggle-list settings screen (Settings › General, Settings › Logging). Hosts keep
+ * preference persistence and platform actions; the backup, website and about rows show only when
+ * their callback is set (the Settings hub has its own Backup & restore and About rows now).
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RethinkMiscSettingsScreen(
     strings: RethinkMiscSettingsStrings,
     toggles: List<RethinkMiscToggle>,
     onToggleChange: (id: String, checked: Boolean) -> Unit,
-    onBackupRestore: () -> Unit,
-    onOpenWebsite: () -> Unit,
-    onOpenAbout: () -> Unit,
+    onBackupRestore: (() -> Unit)? = null,
+    onOpenWebsite: (() -> Unit)? = null,
+    onOpenAbout: (() -> Unit)? = null,
     onBackClick: (() -> Unit)? = null,
     focusedSettingId: String? = null,
     modifier: Modifier = Modifier,
@@ -61,11 +65,16 @@ fun RethinkMiscSettingsScreen(
 ) {
     val motion = LocalRethinkMotion.current
     val listState = rememberLazyListState()
-    // Appearance lives on root Settings; sections here are backup / general / about.
+    val hasAbout = onOpenWebsite != null || onOpenAbout != null
+    // Item order: backup (optional), toggles, additional (optional), about (optional).
+    val backupIndex = if (onBackupRestore != null) 0 else null
+    val togglesIndex = if (onBackupRestore != null) 1 else 0
+    val aboutIndex = if (hasAbout) togglesIndex + 1 + (if (additionalSettings != null) 1 else 0) else null
     val focusedSection = when (focusedSettingId) {
-        "general_backup", "general_backup_restore" -> 0
-        "general_about", "general_website" -> 2
-        else -> if (focusedSettingId != null) 1 else null
+        null -> null
+        "general_backup", "general_backup_restore" -> backupIndex
+        "general_about", "general_website" -> aboutIndex
+        else -> togglesIndex
     }
     LaunchedEffect(focusedSection) {
         focusedSection?.let {
@@ -78,17 +87,19 @@ fun RethinkMiscSettingsScreen(
         modifier = modifier,
         listState = listState,
     ) {
-        rethinkSection(strings.backupSection) {
-            RethinkListGroup {
-                RethinkListItem(
-                    headline = strings.backupTitle,
-                    supporting = strings.backupDescription,
-                    leadingIcon = MaterialSymbols.Filled.Backup,
-                    position = CardPosition.Single,
-                    highlighted = focusedSettingId == "general_backup" || focusedSettingId == "general_backup_restore",
-                    // Opens a sheet in place; chevrons are reserved for navigation.
-                    onClick = onBackupRestore,
-                )
+        onBackupRestore?.let { backup ->
+            rethinkSection(strings.backupSection) {
+                RethinkListGroup {
+                    RethinkListItem(
+                        headline = strings.backupTitle,
+                        supporting = strings.backupDescription,
+                        leadingIcon = MaterialSymbols.Filled.Backup,
+                        position = CardPosition.Single,
+                        highlighted = focusedSettingId == "general_backup" || focusedSettingId == "general_backup_restore",
+                        // Opens a sheet in place; chevrons are reserved for navigation.
+                        onClick = backup,
+                    )
+                }
             }
         }
         rethinkSection(strings.generalSection) {
@@ -104,25 +115,32 @@ fun RethinkMiscSettingsScreen(
             }
         }
         if (additionalSettings != null) item { additionalSettings() }
-        rethinkSection(strings.aboutSection) {
+        if (hasAbout) rethinkSection(strings.aboutSection) {
             RethinkListGroup {
-                RethinkListItem(
-                    headline = strings.websiteTitle,
-                    supporting = strings.websiteDescription,
-                    leadingIcon = MaterialSymbols.Filled.Public,
-                    position = CardPosition.First,
-                    highlighted = focusedSettingId == "general_website",
-                    onClick = onOpenWebsite,
-                )
-                RethinkListItem(
-                    headline = strings.aboutTitle,
-                    supporting = strings.aboutDescription,
-                    leadingIcon = MaterialSymbols.Filled.Info,
-                    position = CardPosition.Last,
-                    highlighted = focusedSettingId == "general_about",
-                    showTrailingChevron = true,
-                    onClick = onOpenAbout,
-                )
+                val rows = listOfNotNull(onOpenWebsite?.let { "website" to it }, onOpenAbout?.let { "about" to it })
+                rows.forEachIndexed { index, (id, click) ->
+                    val position = cardPositionFor(index, rows.lastIndex)
+                    if (id == "website") {
+                        RethinkListItem(
+                            headline = strings.websiteTitle,
+                            supporting = strings.websiteDescription,
+                            leadingIcon = MaterialSymbols.Filled.Public,
+                            position = position,
+                            highlighted = focusedSettingId == "general_website",
+                            onClick = click,
+                        )
+                    } else {
+                        RethinkListItem(
+                            headline = strings.aboutTitle,
+                            supporting = strings.aboutDescription,
+                            leadingIcon = MaterialSymbols.Filled.Info,
+                            position = position,
+                            highlighted = focusedSettingId == "general_about",
+                            showTrailingChevron = true,
+                            onClick = click,
+                        )
+                    }
+                }
             }
         }
     }

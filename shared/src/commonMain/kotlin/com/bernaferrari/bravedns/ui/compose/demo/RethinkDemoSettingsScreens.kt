@@ -81,7 +81,6 @@ internal fun DemoMiscSettingsScreen(
         toggles = toggles,
         onToggleChange = { id, checked -> toggles = toggles.map { if (it.id == id) it.copy(checked = checked) else it } },
         onBackupRestore = { showBackupRestore = true },
-        onOpenWebsite = {},
         onOpenAbout = onOpenAbout,
         onBackClick = onBack,
         modifier = modifier,
