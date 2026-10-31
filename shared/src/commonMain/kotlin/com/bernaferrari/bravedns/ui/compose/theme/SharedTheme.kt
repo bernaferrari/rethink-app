@@ -97,8 +97,10 @@ fun rethinkSemanticColors(isDark: Boolean): RethinkSemanticColors {
     )
 }
 
-private val LightSemanticColors = rethinkSemanticColors(isDark = false)
-private val DarkSemanticColors = rethinkSemanticColors(isDark = true)
+// Each set costs two full scheme generations; build only the one the theme asks for, on first
+// use, not when anything in this file is first touched (that ran on the main thread at startup).
+private val LightSemanticColors by lazy { rethinkSemanticColors(isDark = false) }
+private val DarkSemanticColors by lazy { rethinkSemanticColors(isDark = true) }
 
 fun rethinkSemanticColorsFor(isDark: Boolean) = if (isDark) DarkSemanticColors else LightSemanticColors
 

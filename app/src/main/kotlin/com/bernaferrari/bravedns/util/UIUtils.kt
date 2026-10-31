@@ -265,8 +265,12 @@ object UIUtils {
 
     fun getCountryNameFromFlag(flag: String?): String {
         if (flag == null) return ""
+        return flagCountryNames[flag] ?: "--"
+    }
 
-        val flagCodePoints =
+    // Built once: log rows look a country up on every composition, and rebuilding ~260 pairs
+    // per row made scrolling and opening the Activity log needlessly slow.
+    private val flagCountryNames: Map<String, String> by lazy {
             mapOf(
                 "🇦🇨" to "Ascension Island",
                 "🇦🇩" to "Andorra",
@@ -527,7 +531,6 @@ object UIUtils {
                 "🇿🇲" to "Zambia",
                 "🇿🇼" to "Zimbabwe"
             )
-        return flagCodePoints[flag] ?: "--"
     }
 
     fun getAccentColor(appTheme: Int): Int {

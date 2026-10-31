@@ -99,6 +99,11 @@ kotlin {
             implementation(libs.androidx.room.sqlite.wrapper)
             implementation(libs.androidx.sqlite.bundled)
         }
+        jvmTest.dependencies {
+            // Headless Compose UI tests of the shared shell (tabs must compose and settle).
+            implementation(compose.desktop.uiTestJUnit4)
+            implementation(compose.desktop.currentOs)
+        }
         jvmMain.dependencies {
             implementation(libs.ktor.client.cio)
             // room-runtime + sqlite-bundled are KMP; room3-sqlite-wrapper is
