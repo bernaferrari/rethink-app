@@ -117,6 +117,7 @@ import com.bernaferrari.bravedns.ui.compose.dns.ConfigureRethinkBasicScreen
 import com.bernaferrari.bravedns.ui.compose.dns.ConfigureRethinkScreenType
 import com.bernaferrari.bravedns.ui.compose.dns.DnsDetailScreen
 import com.bernaferrari.bravedns.ui.compose.dns.DnsListScreen
+import com.bernaferrari.bravedns.ui.compose.dns.isDnsAdvancedFocusKey
 import com.bernaferrari.bravedns.ui.compose.dns.DnsSettingsViewModel
 import com.bernaferrari.bravedns.ui.compose.dns.BlockFreeDnsScreen
 import com.bernaferrari.bravedns.viewmodel.LocalBlocklistPacksMapViewModel
@@ -764,7 +765,10 @@ fun HomeScreenRoot(
                     onRethinkPlusDnsClick = dnsActions.onDnsRethinkPlusDnsClick,
                     onLocalBlocklistConfigureClick = dnsActions.onDnsLocalBlocklistConfigureClick,
                     onBlockFreeDnsClick = { nav.push(RethinkRoute.BlockFreeDns) },
-                    onBackClick = { nav.popBackStack() }
+                    onBackClick = { nav.popBackStack() },
+                    // A search result for an expert setting opens the screen that shows it.
+                    advanced = isDnsAdvancedFocusKey(args.focusKey),
+                    onAdvancedClick = { nav.push(RethinkRoute.DnsAdvanced()) },
                 )
             }
             entry<RethinkRoute.DnsSettings> {
@@ -776,7 +780,22 @@ fun HomeScreenRoot(
                     onRethinkPlusDnsClick = dnsActions.onDnsRethinkPlusDnsClick,
                     onLocalBlocklistConfigureClick = dnsActions.onDnsLocalBlocklistConfigureClick,
                     onBlockFreeDnsClick = { nav.push(RethinkRoute.BlockFreeDns) },
-                    onBackClick = { nav.popBackStack() }
+                    onBackClick = { nav.popBackStack() },
+                    onAdvancedClick = { nav.push(RethinkRoute.DnsAdvanced()) },
+                )
+            }
+            entry<RethinkRoute.DnsAdvanced> { args ->
+                DnsDetailScreen(
+                    viewModel = dnsSettingsViewModel,
+                    persistentState = persistentState,
+                    appDownloadManager = appDownloadManager,
+                    initialFocusKey = args.focusKey.takeIf { it.isNotBlank() },
+                    onCustomDnsClick = dnsActions.onDnsCustomDnsClick,
+                    onRethinkPlusDnsClick = dnsActions.onDnsRethinkPlusDnsClick,
+                    onLocalBlocklistConfigureClick = dnsActions.onDnsLocalBlocklistConfigureClick,
+                    onBlockFreeDnsClick = { nav.push(RethinkRoute.BlockFreeDns) },
+                    onBackClick = { nav.popBackStack() },
+                    advanced = true,
                 )
             }
             entry<RethinkRoute.BlockFreeDns> {
@@ -788,17 +807,13 @@ fun HomeScreenRoot(
             entry<RethinkRoute.DnsList> {
                 DnsListScreen(
                     appConfig = appConfig,
+                    persistentState = persistentState,
+                    dohViewModel = dohViewModel,
+                    dotViewModel = dotViewModel,
+                    dnsProxyViewModel = dnsProxyViewModel,
+                    dnsCryptViewModel = dnsCryptViewModel,
+                    oDohViewModel = oDohViewModel,
                     onConfigureOtherDns = dnsActions.onConfigureOtherDns,
-                    onConfigureRethinkBasic = { type ->
-                        nav.push(
-                            RethinkRoute.ConfigureRethinkBasic(
-                                screenTypeOrdinal = ConfigureRethinkScreenType.entries[type].ordinal,
-                                remoteName = "",
-                                remoteUrl = "",
-                                uid = -1
-                            )
-                        )
-                    },
                     onBackClick = { nav.popBackStack() }
                 )
             }
