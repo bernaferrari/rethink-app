@@ -94,7 +94,7 @@ with d:
         shot('02-logs')
         tap('Filters', above=.3)
         tap('DNS lookups')
-        d.back(1.8)  # close the sheet: the "DNS lookups" chip now shows under the controls
+        tap('Close sheet', 1.8)  # tap the scrim: the "DNS lookups" chip now shows under the controls
         tap('Blocked', above=.35)
         shot('04-dns-blocked')
 

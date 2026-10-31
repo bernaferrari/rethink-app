@@ -1,5 +1,6 @@
 package com.bernaferrari.bravedns.storecapture
 
+import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.util.Log
 import androidx.work.WorkManager
@@ -75,6 +76,11 @@ class StoreCaptureApplication : RethinkDnsApplication() {
                 null
             }
         }
+        // Other projects' test builds share the capture emulator; keep them out of the app list.
+        val fixturePackages = fixtureApps.map { it.packageName }.toSet() + packageName
+        packageManager.getInstalledApplications(0)
+            .filter { it.flags and ApplicationInfo.FLAG_SYSTEM == 0 && it.packageName !in fixturePackages }
+            .forEach { FirewallManager.deletePackage(it.uid, it.packageName) }
         installed.forEach {
             FirewallManager.updateFirewallStatus(it.uid, it.app.firewall, it.app.connection)
         }

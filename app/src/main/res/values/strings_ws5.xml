@@ -81,4 +81,7 @@
     <string name="proxy_wireguard_empty">Not set up · Import a file, scan a QR code or create one</string>
     <string name="wireguard_empty_message">Send chosen apps through your own VPN server. Import its config file, scan its QR code or type it in.</string>
     <string name="proxy_orbot_explainer">Routes chosen apps through Tor. Requires Orbot.</string>
+    <!-- Short Settings tile labels; the screens keep their full titles. -->
+    <string name="settings_tile_backup">Backup</string>
+    <string name="settings_tile_censorship">Censorship</string>
 </resources>
