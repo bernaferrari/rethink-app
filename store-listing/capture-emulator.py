@@ -55,8 +55,14 @@ def shot(name, animated=False):
 
 def settings(screen, wait=2.5):
     """Open a Settings (Configure) entry from the Settings tab."""
-    tap('Settings', text_only=True)
+    tab('Settings')
     tap(screen, wait)
+
+
+def tab(label, wait=2.5):
+    """A bottom-bar (or rail) tab: Home, Apps, Activity, Settings. Home's own "Activity" card also
+    lands on the Activity tab, so whichever node matches first, the tour ends up in the same place."""
+    tap(label, wait, text_only=True)
 
 
 with d:
@@ -71,28 +77,32 @@ with d:
         launch()
         shot('01-home', animated=True)
 
-        tap('Stats', text_only=True)
+        # Stats is the Insights view of the Activity tab (Log · Insights switch in its top bar).
+        tab('Activity')
+        tap('Insights')
         tap('24h')
         shot('05-stats')
         d.scroll_to('Most blocked apps', .12)
         shot('06-blocked-apps')
 
-        settings('Logs')
+        # The log is the Activity tab's other view; Connections / DNS lookups is a labelled row
+        # over the filters.
+        for _ in range(3):  # back to the top: the collapsed bar swaps the switch for the 1h/24h/7d tabs
+            d.scroll(.6, up=True)
+        tap('Log')
         shot('02-logs')
-        tap('DNS', above=.2)
-        tap('Blocked', above=.25)
+        tap('DNS lookups', above=.3)
+        tap('Blocked', above=.35)
         shot('04-dns-blocked')
-        d.back(1.8)
 
-        settings('Apps')
+        tab('Apps')
         shot('03-apps')
         d.wait_for('Clock')
         tap('Clock', 7)
         shot('07-app-detail')
         d.back(1.8)
-        d.back(1.8)
 
-        tap('Settings', text_only=True)
+        tab('Settings')
         shot('08-settings')
         tap('DNS', 2.5)
         shot('09-dns')
@@ -101,7 +111,7 @@ with d:
         d.night(True)
         launch()
         shot('11-home-dark', animated=True)
-        settings('Apps')
+        tab('Apps')
         shot('12-apps-dark')
-        d.back(1.8)
+        tab('Settings')
         shot('13-settings-dark')
