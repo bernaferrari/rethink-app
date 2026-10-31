@@ -21,7 +21,7 @@ readonly FILLED_ICONS=(
   gpp_maybe group headset help_outline history home http info insert_chart
   keyboard_arrow_down keyboard_arrow_right light_mode link local_taxi lock map
   mobiledata_arrows mobiledata_off monitoring more_horiz more_vert movie music_note network_check
-  new_releases notifications notifications_off palette pause_circle phone_android
+  new_releases notifications notifications_off palette pause pause_circle phone_android
   photo_library pin play_arrow policy public public_off refresh remove remove_moderator
   report restore rule science screen_lock_portrait search send settings
   settings_ethernet share shield shield_moon shop shopping_cart signal_cellular_alt sort
