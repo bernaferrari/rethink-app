@@ -62,8 +62,8 @@
     <string name="app_lock_every_time">Every time</string>
     <string name="app_lock_every_time_desc">Whenever you open Keepout</string>
     <string name="app_lock_after_minutes">After %1$d minutes</string>
-    <string name="app_lock_after_desc">When Keepout opens and you haven't unlocked it in that long</string>
-    <string name="app_lock_unavailable">Set a screen lock in Android settings first. App lock uses it, so you can't be locked out.</string>
+    <string name="app_lock_after_desc">When Keepout opens and you haven\'t unlocked it in that long</string>
+    <string name="app_lock_unavailable">Set a screen lock in Android settings first. App lock uses it, so you can\'t be locked out.</string>
     <string name="app_lock_confirm_title">Turn on app lock</string>
 
     <!-- Proxy & VPN: each row names the service and says its state -->
