@@ -26,8 +26,8 @@ import com.bernaferrari.bravedns.service.AppUpdater
  * - Restore: persist the incoming content URI as a string (intent-delivered; not a picker).
  * - Download / AlwaysOnStop / Stats / NewFeatures: persist enum + strings.
  * - AlwaysOnDisable / PrivateDns / NoLog / AccessibilityCrash: marker objects.
- * - FirstTimeVpn: marker only. The prepare [android.content.Intent] is not saveable;
- *   confirm re-calls [android.net.VpnService.prepare].
+ *
+ * VPN consent has no in-app dialog: Start goes straight to Android's own consent screen.
  */
 internal sealed interface HomeDialog {
     data object Hidden : HomeDialog
@@ -41,7 +41,6 @@ internal sealed interface HomeDialog {
     data class AlwaysOnStop(val message: String) : HomeDialog
     data object AlwaysOnDisable : HomeDialog
     data object PrivateDns : HomeDialog
-    data object FirstTimeVpn : HomeDialog
     data class Stats(val displayText: String, val dump: String) : HomeDialog
     data object NoLog : HomeDialog
     data object AccessibilityCrash : HomeDialog
@@ -54,7 +53,6 @@ internal sealed interface HomeDialog {
         private const val KIND_ALWAYS_ON_STOP = "always_on_stop"
         private const val KIND_ALWAYS_ON_DISABLE = "always_on_disable"
         private const val KIND_PRIVATE_DNS = "private_dns"
-        private const val KIND_FIRST_TIME_VPN = "first_time_vpn"
         private const val KIND_STATS = "stats"
         private const val KIND_NO_LOG = "no_log"
         private const val KIND_ACCESSIBILITY = "accessibility"
@@ -74,7 +72,6 @@ internal sealed interface HomeDialog {
                     is AlwaysOnStop -> arrayListOf(KIND_ALWAYS_ON_STOP, dialog.message)
                     AlwaysOnDisable -> arrayListOf(KIND_ALWAYS_ON_DISABLE)
                     PrivateDns -> arrayListOf(KIND_PRIVATE_DNS)
-                    FirstTimeVpn -> arrayListOf(KIND_FIRST_TIME_VPN)
                     is Stats -> arrayListOf(KIND_STATS, dialog.displayText, dialog.dump)
                     NoLog -> arrayListOf(KIND_NO_LOG)
                     AccessibilityCrash -> arrayListOf(KIND_ACCESSIBILITY)
@@ -93,7 +90,6 @@ internal sealed interface HomeDialog {
                     KIND_ALWAYS_ON_STOP -> AlwaysOnStop(saved[1])
                     KIND_ALWAYS_ON_DISABLE -> AlwaysOnDisable
                     KIND_PRIVATE_DNS -> PrivateDns
-                    KIND_FIRST_TIME_VPN -> FirstTimeVpn
                     KIND_STATS -> Stats(saved[1], saved[2])
                     KIND_NO_LOG -> NoLog
                     KIND_ACCESSIBILITY -> AccessibilityCrash

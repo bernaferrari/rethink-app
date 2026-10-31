@@ -42,4 +42,19 @@ class HomeVpnPresentationTest {
         assertEquals(HomeProtectionStatus.Failing, homeVpnPresentation(state, true, false).status)
         assertEquals(HomeProtectionStatus.NoNetwork, homeVpnPresentation(state, true, true).status)
     }
+
+    @Test fun pausedTunnelShowsPausedNotFailing() {
+        val state = VpnState(true, true, BraveVPNService.State.PAUSED, null)
+        val result = homeVpnPresentation(state, sessionActive = true, noNetwork = false)
+        assertTrue(result.active)
+        assertEquals(HomeProtectionStatus.Paused, result.status)
+        assertFalse(result.failing)
+        // Paused wins over a missing network: the hero shows the pause the user chose.
+        assertEquals(HomeProtectionStatus.Paused, homeVpnPresentation(state, true, true).status)
+    }
+
+    @Test fun pausedStateWithoutAServiceIsStillStopped() {
+        val state = VpnState(true, false, BraveVPNService.State.PAUSED, null)
+        assertEquals(HomeProtectionStatus.Exposed, homeVpnPresentation(state, false, false).status)
+    }
 }

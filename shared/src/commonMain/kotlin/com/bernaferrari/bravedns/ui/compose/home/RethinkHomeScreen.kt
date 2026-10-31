@@ -3,12 +3,15 @@
 /*
  * Copyright 2026 RethinkDNS and its authors
  *
- * Home answers three questions at a glance, in this order of weight:
+ * Home answers two questions at a glance, in this order of weight:
  *  1. Am I protected? One coloured hero: a shape-morphing mark, the state in emphasized display
- *     type, the DNS in use, and the one primary action (Start, or a quieter Stop).
+ *     type, the DNS in use as a tappable line, and the controls (Start; or Pause ▾ · Stop; or
+ *     Resume · Stop while paused). A health banner above it says when protection isn't doing
+ *     what the hero claims (another always-on VPN, Private DNS, a resolver that isn't answering),
+ *     each with its fix; one card below it marks the first start or asks for notifications.
  *  2. What is it doing? The last 24 hours as allowed vs blocked, with a split bar, the lookups
- *     the DNS stopped, and the apps that were stopped most (each one opens its rules).
- *  3. Where do I go next? Apps, Logs and DNS as one connected group of large targets.
+ *     the DNS stopped, and the apps that were stopped most (each one opens its detail).
+ * Apps and Activity are tabs, so Home no longer repeats them as tiles.
  * Phones stack these; wide windows put the hero in one pane and the activity in the other.
  */
 package com.bernaferrari.bravedns.ui.compose.home
@@ -34,11 +37,24 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.material3.ButtonGroupDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.IconButton
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.liveRegion
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkContainedCard
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -103,7 +119,6 @@ import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
-import com.bernaferrari.bravedns.ui.compose.theme.rethinkConnectedRowShape
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillColors
@@ -135,6 +150,41 @@ data class RethinkHomeUiState(
     val topBlocked: List<RethinkHomeBlockedApp> = emptyList(),
     /** The resolver in use, shown in the hero while protected. */
     val dnsName: String = "",
+    /** The hero's DNS line ("DNS: Keepout · Default"); falls back to [dnsName] when blank. */
+    val dnsLine: String = "",
+    val isPaused: Boolean = false,
+    /** The paused hero's subtitle: time left (or "until you resume") and what still applies. */
+    val pausedDetail: String = "",
+)
+
+/** How long the hero's Pause menu pauses protection. */
+enum class RethinkPauseChoice { FifteenMinutes, OneHour, UntilResumed }
+
+/**
+ * A problem that makes the hero's state untrue or unreachable (a conflicting always-on VPN,
+ * Private DNS overriding Keepout, a resolver that isn't answering), with the one action that fixes it.
+ */
+data class RethinkHomeBanner(
+    val title: String,
+    val body: String,
+    val actionLabel: String,
+    val onAction: () -> Unit,
+)
+
+/**
+ * A one-off card under the hero (the first start's "You're protected", the deferred notification
+ * ask): a primary action, an optional quiet one, and an optional dismiss.
+ */
+data class RethinkHomeCard(
+    val title: String,
+    val body: String,
+    val icon: ImageVector,
+    val primaryLabel: String,
+    val onPrimary: () -> Unit,
+    val secondaryLabel: String? = null,
+    val onSecondary: (() -> Unit)? = null,
+    val dismissLabel: String? = null,
+    val onDismiss: (() -> Unit)? = null,
 )
 
 data class RethinkHomeStrings(
@@ -161,23 +211,25 @@ data class RethinkHomeStrings(
     val stoppedMost: String = "Stopped most",
     val nothingStopped: String = "Nothing has been blocked in the last 24 hours.",
     val seeStatistics: String = "Statistics",
-    val apps: String = "Apps",
-    val appsCaption: String = "Wi-Fi and data, app by app",
-    val logs: String = "Logs",
-    val logsCaption: String = "Every connection",
-    val dns: String = "DNS",
-    val dnsCaption: String = "Resolver and blocklists",
     val blockedCount: (Long) -> String = { "$it blocked" },
+    val paused: String = "Paused",
+    val pause: String = "Pause",
+    val pauseFifteenMinutes: String = "15 minutes",
+    val pauseOneHour: String = "1 hour",
+    val pauseUntilResumed: String = "Until I resume",
+    val resume: String = "Resume",
+    val openDns: String = "Open DNS settings",
 )
 
-private enum class ProtectionVisualState { Protected, Recovering, Off }
+private enum class ProtectionVisualState { Protected, Recovering, Paused, Off }
 
 private const val MARK_TURN_MILLIS = 24_000
 private val MarkSizeCompact = 104.dp
 private val MarkSizeExpanded = 232.dp
 private val HeroCorner = 40.dp
 private val SplitBarHeight = 14.dp
-private val QuickTileHeight = 112.dp
+/** Inner corners of the hero's connected button pair (M3 Expressive connected group). */
+private val ConnectedInnerCorner = 8.dp
 
 @Composable
 fun RethinkHomeScreen(
@@ -187,12 +239,16 @@ fun RethinkHomeScreen(
     modifier: Modifier = Modifier,
     /** Kept for hosts that draw their own background; Home itself is opaque now. */
     @Suppress("UNUSED_PARAMETER") showAtmosphere: Boolean = true,
-    /** Opens the full breakdown (Statistics); null hides the link. */
+    /** Opens the full breakdown (Activity › Insights); null hides the link. */
     onActivityClick: (() -> Unit)? = null,
-    onAppsClick: (() -> Unit)? = null,
-    onLogsClick: (() -> Unit)? = null,
+    /** Opens DNS from the hero's DNS line; null leaves the line as plain text. */
     onDnsClick: (() -> Unit)? = null,
     onBlockedAppClick: ((String) -> Unit)? = null,
+    /** Pauses protection; null leaves Stop alone in the hero. */
+    onPause: ((RethinkPauseChoice) -> Unit)? = null,
+    onResume: (() -> Unit)? = null,
+    banner: RethinkHomeBanner? = null,
+    card: RethinkHomeCard? = null,
 ) {
     val visualState = uiState.visualState()
     // The same large title as Stats and Settings, collapsing as the page scrolls. The hero says the
@@ -222,12 +278,11 @@ fun RethinkHomeScreen(
     ) { insets ->
         RethinkAdaptiveWidth(Modifier.fillMaxSize().padding(insets)) { widthClass ->
             val hero: @Composable (Modifier) -> Unit = { heroModifier ->
-                ProtectionHero(uiState, strings, visualState, widthClass, onStartStopClick, heroModifier)
+                ProtectionHero(uiState, strings, visualState, widthClass, onStartStopClick, onPause, onResume, onDnsClick, heroModifier)
             }
             val activity: @Composable ColumnScope.() -> Unit = {
                 TodaySection(uiState, strings, onActivityClick)
                 StoppedMostSection(uiState.topBlocked, strings, onBlockedAppClick)
-                QuickActions(strings, onAppsClick, onLogsClick, onDnsClick)
             }
             if (widthClass.isExpanded) {
                 Row(
@@ -238,8 +293,11 @@ fun RethinkHomeScreen(
                     Column(
                         Modifier.weight(1.05f).fillMaxHeight().verticalScroll(rememberScrollState()),
                         verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXl),
-                        content = activity,
-                    )
+                    ) {
+                        banner?.let { HealthBanner(it) }
+                        card?.let { HomeCard(it) }
+                        activity()
+                    }
                 }
             } else {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
@@ -256,7 +314,10 @@ fun RethinkHomeScreen(
                             ),
                         verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXl),
                     ) {
+                        // The banner sits above the hero, so "Protected" never reads without it.
+                        banner?.let { HealthBanner(it) }
                         hero(Modifier.fillMaxWidth())
+                        card?.let { HomeCard(it) }
                         activity()
                     }
                 }
@@ -271,6 +332,7 @@ private fun HomeStatus(strings: RethinkHomeStrings, state: ProtectionVisualState
         text = when (state) {
             ProtectionVisualState.Protected -> strings.live
             ProtectionVisualState.Recovering -> strings.reconnecting
+            ProtectionVisualState.Paused -> strings.paused
             ProtectionVisualState.Off -> strings.offline
         },
         colors = RethinkPillColors(MaterialTheme.colorScheme.surfaceContainerHigh, MaterialTheme.colorScheme.onSurface),
@@ -278,6 +340,7 @@ private fun HomeStatus(strings: RethinkHomeStrings, state: ProtectionVisualState
         dotColor = when (state) {
             ProtectionVisualState.Protected -> RethinkStatusColors.allowed
             ProtectionVisualState.Recovering -> MaterialTheme.colorScheme.error
+            ProtectionVisualState.Paused -> MaterialTheme.colorScheme.secondary
             ProtectionVisualState.Off -> MaterialTheme.colorScheme.outline
         },
         modifier = modifier,
@@ -298,6 +361,8 @@ private fun heroColors(state: ProtectionVisualState): HeroColors {
     val target = when (state) {
         ProtectionVisualState.Protected -> HeroColors(heroContainer, onHeroContainer, scheme.primary, scheme.onPrimary, onHeroContainer.copy(alpha = 0.12f))
         ProtectionVisualState.Recovering -> HeroColors(scheme.errorContainer, scheme.onErrorContainer, scheme.error, scheme.onError, scheme.onErrorContainer.copy(alpha = 0.12f))
+        // Paused is neutral, like off, so Resume (the call to action) carries the colour.
+        ProtectionVisualState.Paused -> HeroColors(scheme.surfaceContainerHigh, scheme.onSurface, scheme.secondaryContainer, scheme.onSecondaryContainer, scheme.outlineVariant.copy(alpha = 0.5f))
         ProtectionVisualState.Off -> HeroColors(scheme.surfaceContainerHigh, scheme.onSurface, scheme.surfaceContainerHighest, scheme.onSurfaceVariant, scheme.outlineVariant.copy(alpha = 0.5f))
     }
     val spec: AnimationSpec<Color> = if (motion.reducedMotion) snap() else MaterialTheme.motionScheme.defaultEffectsSpec()
@@ -309,7 +374,7 @@ private fun heroColors(state: ProtectionVisualState): HeroColors {
     return HeroColors(container, content, mark, onMark, halo)
 }
 
-/** The protection state as one coloured hero: mark, state, resolver, action. */
+/** The protection state as one coloured hero: mark, state, DNS line, controls. */
 @Composable
 private fun ProtectionHero(
     uiState: RethinkHomeUiState,
@@ -317,51 +382,37 @@ private fun ProtectionHero(
     state: ProtectionVisualState,
     widthClass: WindowWidthClass,
     onStartStopClick: () -> Unit,
+    onPause: ((RethinkPauseChoice) -> Unit)?,
+    onResume: (() -> Unit)?,
+    onDnsClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     val colors = heroColors(state)
     val expanded = widthClass.isExpanded
-    val status = uiState.protectionStatus.ifBlank { if (uiState.isVpnActive) strings.protected else strings.notActive }
+    val status = uiState.protectionStatus.ifBlank {
+        when {
+            uiState.isVpnActive && uiState.isPaused -> strings.paused
+            uiState.isVpnActive -> strings.protected
+            else -> strings.notActive
+        }
+    }
     val subtitle = when (state) {
         ProtectionVisualState.Protected -> strings.protectedSubtitle
         ProtectionVisualState.Recovering -> strings.failingSubtitle
+        ProtectionVisualState.Paused -> uiState.pausedDetail
         ProtectionVisualState.Off -> strings.inactiveSubtitle
     }
     Surface(modifier = modifier, shape = RoundedCornerShape(HeroCorner), color = colors.container, contentColor = colors.content) {
         Column(
             Modifier.padding(if (expanded) SharedDimensions.spacing2xl else SharedDimensions.spacingXl),
         ) {
-            // The resolver in use reads as a caption, not a chip: it informs, it isn't a control.
-            val dnsPill: @Composable () -> Unit = {
-                if (state != ProtectionVisualState.Off && uiState.dnsName.isNotBlank()) {
-                    Row(
-                        Modifier.widthIn(max = 220.dp).semantics(mergeDescendants = true) {},
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
-                    ) {
-                        Icon(MaterialSymbols.Filled.Dns, null, tint = colors.content.copy(alpha = 0.82f), modifier = Modifier.size(SharedDimensions.iconSizeXs))
-                        Text(
-                            uiState.dnsName,
-                            style = MaterialTheme.typography.labelLarge,
-                            color = colors.content.copy(alpha = 0.82f),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                }
-            }
             if (expanded) {
-                // Wide: the mark is the centre of the pane, the words and the action below it.
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) { dnsPill() }
+                // Wide: the mark is the centre of the pane, the words and the controls below it.
                 Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
                     ProtectionMark(state, colors, MarkSizeExpanded)
                 }
             } else {
-                Row(verticalAlignment = Alignment.Top) {
-                    ProtectionMark(state, colors, MarkSizeCompact)
-                    Spacer(Modifier.weight(1f))
-                    dnsPill()
-                }
+                ProtectionMark(state, colors, MarkSizeCompact)
                 Spacer(Modifier.height(SharedDimensions.spacingXl))
             }
             Text(
@@ -375,16 +426,268 @@ private fun ProtectionHero(
                 modifier = Modifier.semantics { heading() },
             )
             Spacer(Modifier.height(SharedDimensions.spacingSm))
-            Text(subtitle, style = MaterialTheme.typography.bodyLarge, color = colors.content.copy(alpha = 0.82f))
-            Spacer(Modifier.height(SharedDimensions.spacingXl))
-            HeroAction(
-                isActive = uiState.isVpnActive,
-                label = if (uiState.isVpnActive) strings.stop else strings.start,
-                stateDescription = status,
-                heroColor = colors.container,
-                contentColor = colors.content,
-                onClick = onStartStopClick,
+            if (subtitle.isNotBlank()) {
+                Text(subtitle, style = MaterialTheme.typography.bodyLarge, color = colors.content.copy(alpha = 0.82f))
+            }
+            val dnsLine = uiState.dnsLine.ifBlank { uiState.dnsName }
+            if (state != ProtectionVisualState.Off && dnsLine.isNotBlank()) {
+                HeroDnsLine(dnsLine, colors.content, strings.openDns, onDnsClick)
+            } else {
+                Spacer(Modifier.height(SharedDimensions.spacingSm))
+            }
+            Spacer(Modifier.height(SharedDimensions.spacingMd))
+            HeroControls(uiState, strings, status, colors, onStartStopClick, onPause, onResume)
+        }
+    }
+}
+
+/**
+ * The resolver in use as one tappable line ("DNS: Keepout · Default ›"): it informs first, and
+ * opens DNS for whoever wants to change it.
+ */
+@Composable
+private fun HeroDnsLine(text: String, contentColor: Color, openLabel: String, onClick: (() -> Unit)?) {
+    val tint = contentColor.copy(alpha = 0.82f)
+    Row(
+        Modifier
+            .heightIn(min = SharedDimensions.touchTargetMin)
+            .clip(CircleShape)
+            .then(
+                if (onClick != null) Modifier.clickable(onClickLabel = openLabel, role = Role.Button, onClick = onClick) else Modifier,
             )
+            .semantics(mergeDescendants = true) {}
+            .padding(end = SharedDimensions.spacingXs),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
+    ) {
+        Icon(MaterialSymbols.Filled.Dns, null, tint = tint, modifier = Modifier.size(SharedDimensions.iconSizeXs))
+        Text(
+            text,
+            style = MaterialTheme.typography.labelLarge,
+            color = tint,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f, fill = false),
+        )
+        if (onClick != null) {
+            Icon(MaterialSymbols.AutoMirrored.Filled.KeyboardArrowRight, null, tint = tint, modifier = Modifier.size(SharedDimensions.iconSizeSm))
+        }
+    }
+}
+
+/**
+ * Off: one large Start. On: a connected pair, Pause ▾ (15 minutes, 1 hour, until I resume) and
+ * Stop. Paused: Resume and Stop. The pair uses a quieter tone of the hero itself, so protection
+ * is never one careless tap from off; Start and Resume are the calls to action.
+ */
+@Composable
+private fun HeroControls(
+    uiState: RethinkHomeUiState,
+    strings: RethinkHomeStrings,
+    status: String,
+    colors: HeroColors,
+    onStartStopClick: () -> Unit,
+    onPause: ((RethinkPauseChoice) -> Unit)?,
+    onResume: (() -> Unit)?,
+) {
+    if (!uiState.isVpnActive) {
+        HeroButton(
+            label = strings.start,
+            icon = MaterialSymbols.Filled.PlayArrow,
+            emphasized = true,
+            heroColor = colors.container,
+            contentColor = colors.content,
+            shape = null,
+            onClick = onStartStopClick,
+            modifier = Modifier.fillMaxWidth().semantics { stateDescription = status },
+        )
+        return
+    }
+    val leading: (@Composable (Modifier) -> Unit)? = when {
+        uiState.isPaused && onResume != null -> { m ->
+            HeroButton(strings.resume, MaterialSymbols.Filled.PlayArrow, emphasized = true, colors.container, colors.content, LeadingShape, onResume, m)
+        }
+        !uiState.isPaused && onPause != null -> { m -> PauseMenuButton(strings, colors, onPause, m) }
+        else -> null
+    }
+    Row(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+    ) {
+        leading?.invoke(Modifier.weight(1f))
+        HeroButton(
+            label = strings.stop,
+            icon = MaterialSymbols.Filled.Stop,
+            emphasized = false,
+            heroColor = colors.container,
+            contentColor = colors.content,
+            shape = if (leading != null) TrailingShape else null,
+            onClick = onStartStopClick,
+            modifier = Modifier.weight(1f).semantics { stateDescription = status },
+        )
+    }
+}
+
+private val LeadingShape = RoundedCornerShape(
+    topStart = CornerSize(50),
+    topEnd = CornerSize(ConnectedInnerCorner),
+    bottomEnd = CornerSize(ConnectedInnerCorner),
+    bottomStart = CornerSize(50),
+)
+
+private val TrailingShape = RoundedCornerShape(
+    topStart = CornerSize(ConnectedInnerCorner),
+    topEnd = CornerSize(50),
+    bottomEnd = CornerSize(50),
+    bottomStart = CornerSize(ConnectedInnerCorner),
+)
+
+@Composable
+private fun PauseMenuButton(
+    strings: RethinkHomeStrings,
+    colors: HeroColors,
+    onPause: (RethinkPauseChoice) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var open by remember { mutableStateOf(false) }
+    // Trigger and menu share one Box so the menu anchors to the button on every target.
+    Box(modifier) {
+        HeroButton(
+            label = strings.pause,
+            icon = MaterialSymbols.Filled.Pause,
+            emphasized = false,
+            heroColor = colors.container,
+            contentColor = colors.content,
+            shape = LeadingShape,
+            onClick = { open = true },
+            modifier = Modifier.fillMaxWidth(),
+            trailingIcon = MaterialSymbols.Filled.KeyboardArrowDown,
+        )
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            listOf(
+                RethinkPauseChoice.FifteenMinutes to strings.pauseFifteenMinutes,
+                RethinkPauseChoice.OneHour to strings.pauseOneHour,
+                RethinkPauseChoice.UntilResumed to strings.pauseUntilResumed,
+            ).forEach { (choice, label) ->
+                DropdownMenuItem(
+                    text = { Text(label) },
+                    leadingIcon = {
+                        Icon(if (choice == RethinkPauseChoice.UntilResumed) MaterialSymbols.Filled.Pause else MaterialSymbols.Filled.Timer, null)
+                    },
+                    onClick = {
+                        open = false
+                        onPause(choice)
+                    },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun HeroButton(
+    label: String,
+    icon: ImageVector,
+    emphasized: Boolean,
+    heroColor: Color,
+    contentColor: Color,
+    shape: Shape?,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    trailingIcon: ImageVector? = null,
+) {
+    val scheme = MaterialTheme.colorScheme
+    val height = ButtonDefaults.MediumContainerHeight
+    val colors = ButtonDefaults.buttonColors(
+        // A quieter tone of the hero itself: lighter on a light hero, deeper on a dark one, so
+        // the hero's own content colour always reads on it.
+        containerColor = when {
+            emphasized -> scheme.primary
+            scheme.surface.luminance() < 0.5f -> lerp(heroColor, Color.Black, 0.35f)
+            else -> lerp(heroColor, Color.White, 0.82f)
+        },
+        contentColor = if (emphasized) scheme.onPrimary else contentColor,
+    )
+    val content: @Composable RowScope.() -> Unit = {
+        Icon(icon, contentDescription = null, modifier = Modifier.size(ButtonDefaults.iconSizeFor(height)))
+        Spacer(Modifier.width(ButtonDefaults.iconSpacingFor(height)))
+        Text(label, style = ButtonDefaults.textStyleFor(height), maxLines = 1, overflow = TextOverflow.Ellipsis)
+        if (trailingIcon != null) {
+            Spacer(Modifier.width(SharedDimensions.spacingXs))
+            Icon(trailingIcon, contentDescription = null, modifier = Modifier.size(SharedDimensions.iconSizeSm))
+        }
+    }
+    val sized = modifier.heightIn(min = height)
+    val padding = ButtonDefaults.contentPaddingFor(height)
+    if (shape == null) {
+        Button(onClick = onClick, shapes = ButtonDefaults.shapesFor(height), modifier = sized, contentPadding = padding, colors = colors, content = content)
+    } else {
+        Button(onClick = onClick, shape = shape, modifier = sized, contentPadding = padding, colors = colors, content = content)
+    }
+}
+
+/** A problem with what the hero says, and its one fix, in the error container. */
+@Composable
+private fun HealthBanner(banner: RethinkHomeBanner) {
+    val scheme = MaterialTheme.colorScheme
+    RethinkContainedCard(
+        color = scheme.errorContainer,
+        contentColor = scheme.onErrorContainer,
+        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
+        modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+    ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd)) {
+            Icon(MaterialSymbols.Filled.Warning, null, tint = scheme.error, modifier = Modifier.size(SharedDimensions.iconSizeMd))
+            Column(Modifier.weight(1f).semantics(mergeDescendants = true) {}, verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
+                Text(banner.title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, modifier = Modifier.semantics { heading() })
+                Text(banner.body, style = MaterialTheme.typography.bodyMedium)
+            }
+        }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+            Button(
+                onClick = banner.onAction,
+                shapes = ButtonDefaults.shapes(),
+                colors = ButtonDefaults.buttonColors(containerColor = scheme.error, contentColor = scheme.onError),
+            ) { Text(banner.actionLabel) }
+        }
+    }
+}
+
+/** The first start's success, or the deferred notification ask: one card, one or two actions. */
+@Composable
+private fun HomeCard(card: RethinkHomeCard) {
+    val scheme = MaterialTheme.colorScheme
+    RethinkContainedCard(
+        color = scheme.secondaryContainer,
+        contentColor = scheme.onSecondaryContainer,
+        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
+    ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd)) {
+            Box(
+                Modifier.size(SharedDimensions.iconContainerMd).background(scheme.secondary, RoundedCornerShape(SharedDimensions.iconContainerRadius)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(card.icon, null, tint = scheme.onSecondary, modifier = Modifier.size(SharedDimensions.iconSizeSm))
+            }
+            Column(Modifier.weight(1f).semantics(mergeDescendants = true) {}, verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
+                Text(card.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.semantics { heading() })
+                Text(card.body, style = MaterialTheme.typography.bodyMedium)
+            }
+            if (card.onDismiss != null) {
+                IconButton(onClick = card.onDismiss, modifier = Modifier.size(SharedDimensions.touchTargetMin).offset(x = SharedDimensions.spacingSm, y = -SharedDimensions.spacingSm)) {
+                    Icon(MaterialSymbols.Filled.Close, card.dismissLabel)
+                }
+            }
+        }
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm, Alignment.End),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (card.secondaryLabel != null && card.onSecondary != null) {
+                TextButton(onClick = card.onSecondary, shapes = ButtonDefaults.shapes()) { Text(card.secondaryLabel) }
+            }
+            Button(onClick = card.onPrimary, shapes = ButtonDefaults.shapes()) { Text(card.primaryLabel) }
         }
     }
 }
@@ -397,7 +700,8 @@ private fun ProtectionHero(
 @Composable
 private fun ProtectionMark(state: ProtectionVisualState, colors: HeroColors, size: Dp) {
     val motion = LocalRethinkMotion.current
-    val active = state != ProtectionVisualState.Off
+    // Paused rests as a still circle, like off, but in the paused hero's colour.
+    val active = state == ProtectionVisualState.Protected || state == ProtectionVisualState.Recovering
     val morphProgress by animateFloatAsState(
         targetValue = if (active) 1f else 0f,
         animationSpec = if (motion.reducedMotion) snap() else MaterialTheme.motionScheme.slowSpatialSpec(),
@@ -426,6 +730,7 @@ private fun ProtectionMark(state: ProtectionVisualState, colors: HeroColors, siz
             imageVector = when (state) {
                 ProtectionVisualState.Protected -> MaterialSymbols.Filled.GppGood
                 ProtectionVisualState.Recovering -> MaterialSymbols.Filled.GppMaybe
+                ProtectionVisualState.Paused -> MaterialSymbols.Filled.Pause
                 ProtectionVisualState.Off -> MaterialSymbols.Filled.RemoveModerator
             },
             contentDescription = null,
@@ -451,43 +756,6 @@ private fun rememberTurn(running: Boolean): State<Float> {
 
 private object StillTurn : State<Float> {
     override val value: Float = 0f
-}
-
-/**
- * Start is the call to action: a large filled button. Stop is deliberately quieter: a light
- * button on the coloured hero, so protection is not one careless tap away from off.
- */
-@Composable
-private fun HeroAction(isActive: Boolean, label: String, stateDescription: String, heroColor: Color, contentColor: Color, onClick: () -> Unit) {
-    val scheme = MaterialTheme.colorScheme
-    val height = ButtonDefaults.MediumContainerHeight
-    Button(
-        onClick = onClick,
-        shapes = ButtonDefaults.shapesFor(height),
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = height)
-            .semantics { this.stateDescription = stateDescription },
-        contentPadding = ButtonDefaults.contentPaddingFor(height),
-        colors = ButtonDefaults.buttonColors(
-            // A quieter tone of the hero itself: lighter on a light hero, deeper on a dark one, so
-            // the hero's own content colour always reads on it.
-            containerColor = when {
-                !isActive -> scheme.primary
-                scheme.surface.luminance() < 0.5f -> lerp(heroColor, Color.Black, 0.35f)
-                else -> lerp(heroColor, Color.White, 0.82f)
-            },
-            contentColor = if (isActive) contentColor else scheme.onPrimary,
-        ),
-    ) {
-        Icon(
-            if (isActive) MaterialSymbols.Filled.Stop else MaterialSymbols.Filled.PlayArrow,
-            contentDescription = null,
-            modifier = Modifier.size(ButtonDefaults.iconSizeFor(height)),
-        )
-        Spacer(Modifier.width(ButtonDefaults.iconSpacingFor(height)))
-        Text(label, style = ButtonDefaults.textStyleFor(height))
-    }
 }
 
 @Composable
@@ -609,54 +877,8 @@ private fun StoppedMostSection(apps: List<RethinkHomeBlockedApp>, strings: Rethi
     }
 }
 
-/** Apps, Logs and DNS as one connected group: big targets, outer corners round, inner ones tight. */
-@Composable
-private fun QuickActions(strings: RethinkHomeStrings, onApps: (() -> Unit)?, onLogs: (() -> Unit)?, onDns: (() -> Unit)?) {
-    val actions = listOfNotNull(
-        onApps?.let { QuickAction(strings.apps, strings.appsCaption, MaterialSymbols.Filled.Apps, it) },
-        onLogs?.let { QuickAction(strings.logs, strings.logsCaption, MaterialSymbols.Filled.FormatListBulleted, it) },
-        onDns?.let { QuickAction(strings.dns, strings.dnsCaption, MaterialSymbols.Filled.Dns, it) },
-    )
-    if (actions.isEmpty()) return
-    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile)) {
-        actions.forEachIndexed { index, action ->
-            QuickTile(action, rethinkConnectedRowShape(index, actions.size), Modifier.weight(1f).fillMaxHeight())
-        }
-    }
-}
-
-private class QuickAction(
-    val label: String,
-    val caption: String,
-    val icon: ImageVector,
-    val onClick: () -> Unit,
-)
-
-@Composable
-private fun QuickTile(action: QuickAction, shape: Shape, modifier: Modifier = Modifier) {
-    Surface(
-        onClick = action.onClick,
-        shape = shape,
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        contentColor = MaterialTheme.colorScheme.onSurface,
-        modifier = modifier.heightIn(min = QuickTileHeight),
-    ) {
-        // Three tiles share a phone's width: a 16dp inset and three caption lines keep captions whole.
-        Column(Modifier.padding(SharedDimensions.spacingMd), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
-            // One well shape for all three, the shared icon-well radius.
-            Box(
-                Modifier.size(SharedDimensions.iconContainerLg).background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(SharedDimensions.iconContainerRadius)),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(action.icon, null, tint = MaterialTheme.colorScheme.onSecondaryContainer, modifier = Modifier.size(SharedDimensions.iconSizeMd))
-            }
-            Text(action.label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, maxLines = 1)
-            Text(action.caption, style = MaterialTheme.typography.bodySmall, maxLines = 3, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-    }
-}
-
 private fun RethinkHomeUiState.visualState(): ProtectionVisualState = when {
+    isVpnActive && isPaused -> ProtectionVisualState.Paused
     isVpnActive && isProtectionFailing -> ProtectionVisualState.Recovering
     isVpnActive -> ProtectionVisualState.Protected
     else -> ProtectionVisualState.Off

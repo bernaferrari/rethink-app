@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- WS3: Home, first run and the protection lifecycle (pause, health banners, cards). -->
+<resources>
+    <!-- Welcome: one path to protection. -->
+    <string name="welcome_headline">Keep unwanted traffic out</string>
+    <string name="welcome_turn_on_protection">Turn on protection</string>
+    <string name="welcome_not_now">Not now</string>
+    <string name="welcome_privacy_note">Keepout filters traffic on this device. Nothing is sent to us.</string>
+    <string name="welcome_feature_blocking">Ad and tracker blocking</string>
+    <string name="welcome_also">Also in Keepout: WireGuard, proxies and Tor for the apps you choose.</string>
+
+    <!-- Home hero: pause and the DNS line. -->
+    <string name="home_pause">Pause</string>
+    <string name="home_pause_15_minutes">15 minutes</string>
+    <string name="home_pause_1_hour">1 hour</string>
+    <string name="home_pause_until_resumed">Until I resume</string>
+    <string name="home_resume">Resume</string>
+    <string name="home_paused">Paused</string>
+    <string name="home_paused_left">%1$s left · Blocked apps stay blocked</string>
+    <string name="home_paused_until_resumed">Until you resume · Blocked apps stay blocked</string>
+    <string name="home_dns_line">DNS: %1$s</string>
+    <string name="home_dns_keepout">Keepout</string>
+    <string name="home_dns_preset_family">Family</string>
+    <string name="home_dns_preset_social_media">Social media</string>
+    <string name="home_dns_preset_custom">Custom</string>
+    <string name="home_open_dns">Open DNS settings</string>
+
+    <!-- Home health banners, one at a time. -->
+    <string name="home_health_dns_failing_title">%1$s isn\'t answering</string>
+    <string name="home_health_dns_keepout">Keepout DNS</string>
+    <string name="home_health_dns_failing_body">Lookups use the fallback DNS for now, so ads and trackers may get through.</string>
+    <string name="home_health_dns_failing_action">Try another server</string>
+    <string name="home_health_open_settings">Open settings</string>
+
+    <!-- Home cards under the hero. -->
+    <string name="home_card_protected_title">You\'re protected</string>
+    <string name="home_card_protected_body_keepout">Ads and trackers are blocked with Keepout DNS.</string>
+    <string name="home_card_protected_body">Keepout is filtering traffic for every app.</string>
+    <string name="home_card_review_apps">Review apps</string>
+    <string name="home_card_choose_blocklists">Choose blocklists</string>
+    <string name="home_card_notifications_title">Get alerts from Keepout</string>
+    <string name="home_card_notifications_body">Get alerts when a new app is installed or protection stops.</string>
+    <string name="home_card_notifications_allow">Allow notifications</string>
+    <string name="home_card_notifications_decline">No thanks</string>
+</resources>

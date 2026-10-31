@@ -23,21 +23,27 @@ import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 import com.bernaferrari.bravedns.ui.icons.keepout.KeepoutIcons
 
-/** Android resource/action adapter for the shared single-screen welcome renderer. */
+/**
+ * Android resource/action adapter for the shared single-screen welcome renderer. [onTurnOn]
+ * starts protection (straight to Android's VPN consent); [onNotNow] only leaves for Home.
+ */
 @Composable
-fun WelcomeScreen(onFinish: () -> Unit) {
+fun WelcomeScreen(onTurnOn: () -> Unit, onNotNow: () -> Unit) {
     RethinkWelcomeScreen(
         content = RethinkWelcomeContent(
-            title = stringResource(R.string.app_name),
+            title = stringResource(R.string.welcome_headline),
             description = stringResource(R.string.slide_2_desc),
             heroIcon = MaterialSymbols.Filled.GppGood,
             features = listOf(
                 RethinkWelcomeFeature(stringResource(R.string.welcome_feature_firewall), KeepoutIcons.Firewall, stringResource(R.string.welcome_feature_firewall_desc)),
-                RethinkWelcomeFeature(stringResource(R.string.welcome_feature_dns), MaterialSymbols.Filled.Dns, stringResource(R.string.welcome_feature_dns_desc)),
-                RethinkWelcomeFeature(stringResource(R.string.welcome_feature_routing), MaterialSymbols.Filled.ConversionPath, stringResource(R.string.welcome_feature_routing_desc)),
+                RethinkWelcomeFeature(stringResource(R.string.welcome_feature_blocking), MaterialSymbols.Filled.Dns, stringResource(R.string.welcome_feature_dns_desc)),
             ),
+            alsoLine = stringResource(R.string.welcome_also),
+            privacyNote = stringResource(R.string.welcome_privacy_note),
         ),
-        ctaLabel = stringResource(R.string.finish),
-        onFinish = onFinish,
+        ctaLabel = stringResource(R.string.welcome_turn_on_protection),
+        onFinish = onTurnOn,
+        secondaryLabel = stringResource(R.string.welcome_not_now),
+        onSecondary = onNotNow,
     )
 }

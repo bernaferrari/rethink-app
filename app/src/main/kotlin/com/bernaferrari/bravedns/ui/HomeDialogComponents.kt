@@ -158,8 +158,9 @@ internal data class HomeDialogHostActions(
     val onDownloadLater: () -> Unit,
     val onAlwaysOnStop: () -> Unit,
     val onOpenVpnProfile: () -> Unit,
+    /** The always-on conflict was dismissed without opening settings: drop the pending start. */
+    val onAlwaysOnConflictDismissed: () -> Unit,
     val onPrivateDnsSettings: () -> Unit,
-    val onFirstTimeVpnProceed: () -> Unit,
     val onCopyStats: (String) -> Unit,
     val onNoLogEmail: () -> Unit,
     val onContactEmail: () -> Unit,
@@ -237,7 +238,7 @@ internal fun HomeDialogHost(
                 title = stringResource(R.string.always_on_dialog_stop_heading),
                 message = dialog.message,
                 stopText = stringResource(R.string.always_on_dialog_positive),
-                openSettingsText = stringResource(R.string.always_on_dialog_neutral),
+                openSettingsText = stringResource(R.string.always_on_dialog_positive_btn),
                 cancelText = stringResource(R.string.lbl_cancel),
                 onStop = {
                     onDismiss()
@@ -252,8 +253,13 @@ internal fun HomeDialogHost(
         }
 
         HomeDialog.AlwaysOnDisable -> {
+            // Open VPN settings keeps the start pending: coming back with always-on off continues it.
+            val cancel = {
+                onDismiss()
+                actions.onAlwaysOnConflictDismissed()
+            }
             HomeConfirmDialog(
-                onDismissRequest = onDismiss,
+                onDismissRequest = cancel,
                 title = stringResource(R.string.always_on_dialog_heading),
                 message = stringResource(R.string.always_on_dialog),
                 confirmText = stringResource(R.string.always_on_dialog_positive_btn),
@@ -262,7 +268,7 @@ internal fun HomeDialogHost(
                     onDismiss()
                     actions.onOpenVpnProfile()
                 },
-                onDismiss = onDismiss
+                onDismiss = cancel
             )
         }
 
@@ -276,21 +282,6 @@ internal fun HomeDialogHost(
                 onConfirm = {
                     onDismiss()
                     actions.onPrivateDnsSettings()
-                },
-                onDismiss = onDismiss
-            )
-        }
-
-        HomeDialog.FirstTimeVpn -> {
-            HomeConfirmDialog(
-                onDismissRequest = onDismiss,
-                title = stringResource(R.string.hsf_vpn_dialog_header),
-                message = stringResource(R.string.hsf_vpn_dialog_message),
-                confirmText = stringResource(R.string.lbl_proceed),
-                dismissText = stringResource(R.string.lbl_cancel),
-                onConfirm = {
-                    onDismiss()
-                    actions.onFirstTimeVpnProceed()
                 },
                 onDismiss = onDismiss
             )

@@ -141,7 +141,12 @@ import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 import com.bernaferrari.bravedns.ui.compose.settings.AppLockScreen
 import com.bernaferrari.bravedns.ui.compose.settings.checkBiometricRequired
 import com.bernaferrari.bravedns.ui.compose.settings.AppLockResult
-import com.bernaferrari.bravedns.ui.compose.home.PauseScreen
+import com.bernaferrari.bravedns.ui.compose.home.HomeEnvironment
+import com.bernaferrari.bravedns.ui.compose.home.HomeHealthIssue
+import com.bernaferrari.bravedns.ui.compose.home.HomePauseDuration
+import com.bernaferrari.bravedns.ui.compose.home.HomeProtectionActions
+import com.bernaferrari.bravedns.ui.compose.home.VpnControllerPauseControls
+import com.bernaferrari.bravedns.ui.compose.home.pauseProtection
 import com.bernaferrari.bravedns.util.BioMetricType
 import com.bernaferrari.bravedns.util.Constants
 import com.bernaferrari.bravedns.util.Constants.Companion.MAX_ENDPOINT
@@ -177,6 +182,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import org.koin.android.ext.android.get
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -246,6 +253,13 @@ class HomeScreenActivity : FragmentActivity() {
 
 
     private var appInBackground = false
+
+    /**
+     * The user pressed Start (or Turn on protection) and another app's always-on VPN stopped it.
+     * Returning from Android's VPN settings with the conflict gone continues the start; nothing
+     * else ever starts protection on resume. In memory only, so it never outlives this session.
+     */
+    private var startPendingAlwaysOnConflict = false
     private val pendingDialog = MutableStateFlow<HomeDialog?>(null)
     private val pendingBugReportSheet = MutableStateFlow(false)
     private var snackbarHostState: SnackbarHostState? = null
@@ -312,6 +326,8 @@ class HomeScreenActivity : FragmentActivity() {
 
         registerForActivityResult()
         backupController.observeRestoreWorker()
+        // Private DNS reads the active network, which changes as protection starts and stops.
+        VpnController.connectionStatus.onEach { refreshHomeEnvironment() }.launchIn(lifecycleScope)
 
         handleIncomingIntents(intent)
 
@@ -367,7 +383,6 @@ class HomeScreenActivity : FragmentActivity() {
                     showBugReportSheet = true
                     pendingBugReportSheet.value = false
                 }
-                val vpnState by VpnController.connectionStatus.collectAsStateWithLifecycle()
 
                 if (!isUnlocked) {
                     AppLockScreen(
@@ -394,7 +409,7 @@ class HomeScreenActivity : FragmentActivity() {
                     PauseOverlayHost {
                         HomeScreenRoot(
                         homeUiState = homeState,
-                        onHomeStartStopClick = { handleMainScreenBtnClickEvent() },
+                        homeActions = homeProtectionActions,
                         summaryViewModel = summaryViewModel,
                         onOpenDetailedStats = { type -> openDetailedStatsUi(type) },
                         startDestination = homeStartDestination,
@@ -578,9 +593,6 @@ class HomeScreenActivity : FragmentActivity() {
                         ),
                         appDatabase = appDatabase
                         )
-                        if (vpnState == BraveVPNService.State.PAUSED) {
-                            PauseScreen(onFinish = { })
-                        }
                     }
                     }
                 }
@@ -611,13 +623,13 @@ class HomeScreenActivity : FragmentActivity() {
                         },
                         onAlwaysOnStop = { stopVpnService() },
                         onOpenVpnProfile = { openVpnProfile(this@HomeScreenActivity) },
+                        onAlwaysOnConflictDismissed = { startPendingAlwaysOnConflict = false },
                         onPrivateDnsSettings = {
                             openNetworkSettings(
                                 this@HomeScreenActivity,
                                 Settings.ACTION_WIRELESS_SETTINGS
                             )
                         },
-                        onFirstTimeVpnProceed = { proceedFirstTimeVpn() },
                         onCopyStats = { dump ->
                             copyToClipboard("stats_dump", dump)
                             showToastUiCentered(
@@ -647,6 +659,8 @@ class HomeScreenActivity : FragmentActivity() {
 
     override fun onResume() {
         super.onResume()
+        refreshHomeEnvironment()
+        continueStartAfterAlwaysOnConflict()
         // if app is coming from background, don't reset the activity stack
         if (appInBackground) {
             appInBackground = false
@@ -919,9 +933,78 @@ class HomeScreenActivity : FragmentActivity() {
         homeNavRequest = detailedStatsRoute(type, category)
     }
 
+    private val homeProtectionActions by lazy {
+        HomeProtectionActions(
+            onStartStop = { handleMainScreenBtnClickEvent() },
+            onTurnOnFromWelcome = { turnOnFromWelcome() },
+            onPause = { duration -> pauseFromHome(duration) },
+            onResume = { VpnController.resumeApp() },
+            onHealthAction = { issue -> fixHealthIssue(issue) },
+            onDismissProtectedCard = { homeViewModel.dismissProtectedCard() },
+            onAllowNotifications = { requestNotificationPermission() },
+            onDeclineNotifications = {
+                persistentState.shouldRequestNotificationPermission = false
+                refreshHomeEnvironment()
+            },
+        )
+    }
+
     private fun handleMainScreenBtnClickEvent() {
         Utilities.delay(TimeUnit.MILLISECONDS.toMillis(500L), lifecycleScope) { }
         handleVpnActivation()
+    }
+
+    /** Welcome's "Turn on protection": the same start as Home's, never a stop. */
+    private fun turnOnFromWelcome() {
+        homeViewModel.armProtectedCard()
+        if (VpnController.hasTunnel() || VpnController.sessionActive.value) return
+        handleVpnActivation()
+    }
+
+    /** The hero's Pause menu: the notification's pause, for 15 minutes, an hour or until resumed. */
+    private fun pauseFromHome(duration: HomePauseDuration) {
+        if (!pauseProtection(duration, VpnControllerPauseControls)) {
+            showToastUiCentered(this, getString(R.string.hsf_pause_vpn_failure), Toast.LENGTH_SHORT)
+        }
+    }
+
+    private fun fixHealthIssue(issue: HomeHealthIssue) {
+        when (issue) {
+            HomeHealthIssue.OtherAlwaysOnVpn -> openVpnProfile(this)
+            HomeHealthIssue.PrivateDnsOverride ->
+                openNetworkSettings(this, Settings.ACTION_WIRELESS_SETTINGS)
+            HomeHealthIssue.DnsFailing -> homeNavRequest = RethinkRoute.DnsDetail()
+        }
+    }
+
+    /**
+     * Facts Home shows as banners and cards: another always-on VPN, Private DNS, and whether the
+     * notification ask applies. The store-capture build pins a protected state with no tunnel;
+     * it reports none of these, so its Home reads as it always has.
+     */
+    private fun refreshHomeEnvironment() {
+        if (VpnController.pinnedState != null) {
+            homeViewModel.updateEnvironment(HomeEnvironment())
+            return
+        }
+        lifecycleScope.launch {
+            val environment = withContext(Dispatchers.IO) {
+                HomeEnvironment(
+                    otherAlwaysOnVpn = Utilities.isOtherVpnHasAlwaysOn(this@HomeScreenActivity),
+                    privateDnsActive = Utilities.isPrivateDnsActive(this@HomeScreenActivity),
+                    canAskForNotifications = canAskForNotifications(),
+                )
+            }
+            homeViewModel.updateEnvironment(environment)
+        }
+    }
+
+    private fun continueStartAfterAlwaysOnConflict() {
+        if (!startPendingAlwaysOnConflict) return
+        if (Utilities.isOtherVpnHasAlwaysOn(this)) return
+        startPendingAlwaysOnConflict = false
+        if (VpnController.hasTunnel() || VpnController.sessionActive.value) return
+        prepareAndStartVpn()
     }
 
     private fun handleVpnActivation() {
@@ -936,6 +1019,9 @@ class HomeScreenActivity : FragmentActivity() {
 
     private fun handleAlwaysOnVpn(): Boolean {
         if (Utilities.isOtherVpnHasAlwaysOn(this)) {
+            // Only a blocked start resumes on return from settings; a stop never does.
+            startPendingAlwaysOnConflict =
+                !(VpnController.hasTunnel() || VpnController.sessionActive.value)
             showAlwaysOnDisableDialog()
             return true
         }
@@ -1040,27 +1126,30 @@ class HomeScreenActivity : FragmentActivity() {
         VpnController.stop("home", this)
     }
 
+    /**
+     * Starts the tunnel. The notification permission is no longer asked here, on top of VPN
+     * consent: Home asks later with a card once protection is on ([canAskForNotifications]).
+     */
     private fun startVpnService() {
-        getNotificationPermissionIfNeeded()
         VpnController.start(this, true)
     }
 
-    private fun getNotificationPermissionIfNeeded() {
-        if (!Utilities.isAtleastT()) {
-            return
-        }
-
+    /** Android 13+, not granted, and the user hasn't declined (the card or the system prompt). */
+    private fun canAskForNotifications(): Boolean {
+        if (!Utilities.isAtleastT()) return false
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) ==
             PackageManager.PERMISSION_GRANTED
         ) {
+            return false
+        }
+        return persistentState.shouldRequestNotificationPermission
+    }
+
+    private fun requestNotificationPermission() {
+        if (!canAskForNotifications()) {
+            refreshHomeEnvironment()
             return
         }
-
-        if (!persistentState.shouldRequestNotificationPermission) {
-            Logger.w(LOG_TAG_VPN, "User rejected notification permission for the app")
-            return
-        }
-
         notificationPermissionResult.launch(Manifest.permission.POST_NOTIFICATIONS)
     }
 
@@ -1075,29 +1164,19 @@ class HomeScreenActivity : FragmentActivity() {
                 return false
             }
         if (prepareVpnIntent != null) {
-            Logger.i(LOG_TAG_VPN, "VPN service is prepared")
-            showFirstTimeVpnDialog()
+            Logger.i(LOG_TAG_VPN, "VPN service needs consent, asking the system")
+            requestVpnConsent(prepareVpnIntent)
             return false
         }
         Logger.i(LOG_TAG_VPN, "VPN service is prepared, starting VPN service")
         return true
     }
 
-    private fun showFirstTimeVpnDialog() {
-        showDialog(HomeDialog.FirstTimeVpn)
-    }
-
-    private fun proceedFirstTimeVpn() {
-        val prepareVpnIntent = try {
-            VpnService.prepare(this)
-        } catch (e: NullPointerException) {
-            Logger.e(LOG_TAG_VPN, "Device does not support system-wide VPN mode.", e)
-            null
-        }
-        if (prepareVpnIntent == null) {
-            startVpnService()
-            return
-        }
+    /**
+     * Android's own VPN consent, with no in-app dialog before it (the Welcome screen carries the
+     * reassurance). The result arrives in [startForResult], which starts the tunnel on OK.
+     */
+    private fun requestVpnConsent(prepareVpnIntent: Intent) {
         try {
             startForResult.launch(prepareVpnIntent)
         } catch (e: ActivityNotFoundException) {
@@ -1119,6 +1198,8 @@ class HomeScreenActivity : FragmentActivity() {
                     }
 
                     Activity.RESULT_CANCELED -> {
+                        // No protection, so no "You're protected" card waiting for a later start.
+                        homeViewModel.dismissProtectedCard()
                         showToastUiCentered(
                             this,
                             getString(R.string.hsf_vpn_prepare_failure),
@@ -1135,6 +1216,7 @@ class HomeScreenActivity : FragmentActivity() {
         notificationPermissionResult =
             registerForActivityResult(ActivityResultContracts.RequestPermission()) {
                 persistentState.shouldRequestNotificationPermission = it
+                refreshHomeEnvironment()
                 if (it) {
                     Logger.i(LOG_TAG_UI, "User accepted notification permission")
                 } else {

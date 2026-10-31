@@ -4,7 +4,8 @@
  * Copyright 2026 RethinkDNS and its authors
  *
  * The welcome flow deliberately has one destination. It introduces the product without making a
- * first-run user complete a carousel before they can protect their connection.
+ * first-run user complete a carousel before they can protect their connection: its button turns
+ * protection on (straight to Android's VPN consent), and "Not now" only leaves.
  */
 package com.bernaferrari.bravedns.ui.compose.home
 
@@ -34,6 +35,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,6 +64,10 @@ data class RethinkWelcomeContent(
     val description: String,
     val heroIcon: ImageVector,
     val features: List<RethinkWelcomeFeature> = emptyList(),
+    /** One line under the features for what Keepout also does ("Also in Keepout: …"). */
+    val alsoLine: String? = null,
+    /** One reassurance line under the button, in place of a separate permission dialog. */
+    val privacyNote: String? = null,
 )
 
 @Composable
@@ -68,6 +75,9 @@ fun RethinkWelcomeScreen(
     content: RethinkWelcomeContent,
     ctaLabel: String,
     onFinish: () -> Unit,
+    /** A quiet second way out ("Not now"); null shows only the main button. */
+    secondaryLabel: String? = null,
+    onSecondary: (() -> Unit)? = null,
 ) {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
@@ -99,17 +109,50 @@ fun RethinkWelcomeScreen(
                 RethinkWelcomeHero(content)
 
                 if (content.features.isNotEmpty()) {
-                    RethinkWelcomeFeatures(content.features)
+                    Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd)) {
+                        RethinkWelcomeFeatures(content.features)
+                        content.alsoLine?.let {
+                            Text(
+                                it,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
+                    }
                 }
 
-                Button(
-                    onClick = onFinish,
-                    shapes = ButtonDefaults.shapes(),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(SharedDimensions.buttonHeight),
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
                 ) {
-                    Text(ctaLabel, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    Button(
+                        onClick = onFinish,
+                        shapes = ButtonDefaults.shapes(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(SharedDimensions.buttonHeight),
+                    ) {
+                        Text(ctaLabel, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    }
+                    content.privacyNote?.let {
+                        Text(
+                            it,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
+                    if (secondaryLabel != null && onSecondary != null) {
+                        TextButton(
+                            onClick = onSecondary,
+                            shapes = ButtonDefaults.shapes(),
+                            modifier = Modifier.heightIn(min = SharedDimensions.touchTargetMin),
+                        ) {
+                            Text(secondaryLabel, style = MaterialTheme.typography.labelLarge)
+                        }
+                    }
                 }
             }
         }

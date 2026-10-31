@@ -18,6 +18,8 @@ internal fun homeVpnPresentation(
     val active = state.on || sessionActive
     val status = when {
         !active -> HomeProtectionStatus.Exposed
+        // Paused is a choice, not a fault: the hero shows the countdown, not "Failing".
+        state.connectionState == BraveVPNService.State.PAUSED -> HomeProtectionStatus.Paused
         noNetwork -> HomeProtectionStatus.NoNetwork
         !state.on -> HomeProtectionStatus.Waiting
         state.connectionState == BraveVPNService.State.WORKING ||
@@ -26,5 +28,6 @@ internal fun homeVpnPresentation(
         else -> HomeProtectionStatus.Failing
     }
     return HomeVpnPresentation(active, status,
-        status != HomeProtectionStatus.Protected && status != HomeProtectionStatus.UltraSecure)
+        status != HomeProtectionStatus.Protected && status != HomeProtectionStatus.UltraSecure &&
+            status != HomeProtectionStatus.Paused)
 }
