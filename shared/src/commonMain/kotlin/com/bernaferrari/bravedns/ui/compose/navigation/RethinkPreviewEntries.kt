@@ -32,7 +32,6 @@ import com.bernaferrari.bravedns.ui.compose.DemoRpnCountriesScreen
 import com.bernaferrari.bravedns.ui.compose.DemoRpnServerDetailsScreen
 import com.bernaferrari.bravedns.ui.compose.DemoRpnSettingsScreen
 import com.bernaferrari.bravedns.ui.compose.DemoTunnelSettingsScreen
-import com.bernaferrari.bravedns.ui.compose.DemoUniversalFirewallScreen
 import com.bernaferrari.bravedns.ui.compose.DemoWireguardScreen
 import com.bernaferrari.bravedns.ui.compose.about.RethinkAboutScreen
 import com.bernaferrari.bravedns.ui.compose.about.RethinkAboutUiState
@@ -208,7 +207,7 @@ fun EntryProviderScope<NavKey>.rethinkPreviewEntries(
         run { DemoCustomRulesScreen(Modifier.fillMaxSize(), nav::popBackStack) }
     }
     entry<RethinkRoute.UniversalFirewall> {
-        run { DemoUniversalFirewallScreen(Modifier.fillMaxSize(), nav::popBackStack) }
+        run { DemoFirewallSettingsScreen(Modifier.fillMaxSize(), nav::popBackStack, onCustomRules = { nav.push(RethinkRoute.CustomRules()) }) }
     }
     entry<RethinkRoute.Blocklists> {
         run { DemoBlocklistEditorScreen(Modifier.fillMaxSize(), nav::popBackStack) }
@@ -225,13 +224,13 @@ fun EntryProviderScope<NavKey>.rethinkPreviewEntries(
     entry<RethinkRoute.ProxySettings> {
         run { DemoProxySettingsScreen(Modifier.fillMaxSize(), nav::popBackStack) }
     }
-    entry<RethinkRoute.FirewallSettings> {
+    entry<RethinkRoute.FirewallSettings> { key ->
         run {
             DemoFirewallSettingsScreen(
                 modifier = Modifier.fillMaxSize(),
                 onBack = nav::popBackStack,
                 onCustomRules = { nav.push(RethinkRoute.CustomRules()) },
-                onUniversalFirewall = { nav.push(RethinkRoute.UniversalFirewall) },
+                initialFocusKey = key.focusKey,
             )
         }
     }

@@ -394,21 +394,15 @@ internal val demoFirewallApps =
     }
 
 internal val demoCustomRulesStrings = RethinkCustomRulesStrings(
-    universalTitle = "IP & port rules",
-    appWiseTitle = "App-wise rules",
-    appRulesTitle = "App IP and domain rules",
-    ipRules = "IP rules",
-    domainRules = "Domain rules",
-    ip = "IP",
-    domain = "Domain",
-    universal = "Universal",
-    appWise = "App-wise",
-    search = "Search",
+    domains = "Domains",
+    ips = "IPs",
+    searchDomains = "Search domains",
+    searchIps = "Search IPs",
     clearSearch = "Clear search",
     loading = "Loading…",
     noIpRules = "No IP rules found",
     noDomainRules = "No domain rules found",
-    add = "Add",
+    add = "Add rule",
     cancel = "Cancel",
     delete = "Delete",
     block = "Blocked",
@@ -416,6 +410,24 @@ internal val demoCustomRulesStrings = RethinkCustomRulesStrings(
     bypass = "Bypass",
     noRule = "No rule",
     uid = { "UID $it" },
+)
+
+internal val demoAddRuleStrings = RethinkAddRuleStrings(
+    title = "Add rule",
+    domainLabel = "Domain",
+    domainHint = "e.g. ads.example.com or *.example.com",
+    ipLabel = "IP or range",
+    ipHint = "e.g. 1.2.3.4 or 1.2.3.0/24, optional :port",
+    action = "Action",
+    block = "Block",
+    trust = "Trust",
+    appliesTo = "Applies to",
+    allApps = "All apps",
+    chooseApp = "Choose app…",
+    confirm = { target, action ->
+        "${if (action == RethinkRuleAction.Trust) "Trust" else "Block"} ${if (target == RethinkRulesTab.IP) "IP" else "domain"}"
+    },
+    cancel = "Cancel",
 )
 
 internal val demoFirewallRules = listOf(
@@ -429,15 +441,15 @@ internal val demoFirewallRules = listOf(
 )
 
 internal val demoUniversalFirewallSettings = listOf(
-    RethinkUniversalFirewallSetting("device-lock", "Block when device is locked", true, RethinkUniversalFirewallIcon.DeviceLock, 14),
-    RethinkUniversalFirewallSetting("background", "Block apps in the background", false, RethinkUniversalFirewallIcon.Background, 6),
-    RethinkUniversalFirewallSetting("unknown", "Block unknown connections", true, RethinkUniversalFirewallIcon.Unknown, 27),
-    RethinkUniversalFirewallSetting("udp", "Block UDP connections", false, RethinkUniversalFirewallIcon.Udp, 3),
-    RethinkUniversalFirewallSetting("dns", "Disallow DNS bypass", true, RethinkUniversalFirewallIcon.Dns, 8),
-    RethinkUniversalFirewallSetting("new-app", "Block newly installed apps", false, RethinkUniversalFirewallIcon.NewApp, 0),
-    RethinkUniversalFirewallSetting("metered", "Block metered connections", false, RethinkUniversalFirewallIcon.Metered, 2),
-    RethinkUniversalFirewallSetting("http", "Block HTTP connections", false, RethinkUniversalFirewallIcon.Http, 9),
-    RethinkUniversalFirewallSetting("lockdown", "Universal lockdown", false, RethinkUniversalFirewallIcon.Lockdown, 0),
+    RethinkUniversalFirewallSetting("new-app", "Block new apps until I allow them", false, RethinkUniversalFirewallIcon.NewApp, 0, "A newly installed app can't use the internet until you allow it."),
+    RethinkUniversalFirewallSetting("device-lock", "Block apps when the screen is locked", true, RethinkUniversalFirewallIcon.DeviceLock, 14, "Every app is cut off while your phone is locked."),
+    RethinkUniversalFirewallSetting("background", "Block apps I'm not using", false, RethinkUniversalFirewallIcon.Background, 6, "An app loses access when it isn't on screen."),
+    RethinkUniversalFirewallSetting("udp", "Block UDP except DNS and NTP", false, RethinkUniversalFirewallIcon.Udp, 3, "Can break calls, games and fast web traffic (QUIC)."),
+    RethinkUniversalFirewallSetting("http", "Block insecure HTTP (port 80)", false, RethinkUniversalFirewallIcon.Http, 9, "Stops unencrypted web traffic."),
+    RethinkUniversalFirewallSetting("unknown", "Block when the app is unknown", true, RethinkUniversalFirewallIcon.Unknown, 27, "Blocks connections Android can't match to an app."),
+    RethinkUniversalFirewallSetting("dns", "Block apps that skip Keepout's DNS", true, RethinkUniversalFirewallIcon.Dns, 8, "Blocks connections to addresses an app didn't look up through Keepout."),
+    RethinkUniversalFirewallSetting("metered", "Block all apps on mobile data", false, RethinkUniversalFirewallIcon.Metered, 2, "Every app, on mobile data and metered Wi‑Fi."),
+    RethinkUniversalFirewallSetting("lockdown", "Block everything except apps and IPs you've allowed", false, RethinkUniversalFirewallIcon.Lockdown, 0, "Only apps that skip filtering, and domains and IPs you trust, can connect."),
 )
 
 internal val demoBlocklistPrivacy = RethinkBlocklistGroup("privacy", "Privacy", "Block trackers and analytics.")

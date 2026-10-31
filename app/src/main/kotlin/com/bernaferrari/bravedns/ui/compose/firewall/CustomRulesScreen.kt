@@ -3,6 +3,7 @@ package com.bernaferrari.bravedns.ui.compose.firewall
 
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -35,7 +36,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/** Android data/service adapter for the common custom-rules renderer. */
+/**
+ * Android adapter for the Rules screen. [uid] "everybody" opens the full screen with its scope chip
+ * ([initialMode]: every rule, or the all-apps ones); an app uid keeps the list to that app and names
+ * it in the title. Adds go through [AddRuleSheetHost] (Block or Trust, for all apps or one), deletes
+ * through [IpRulesManager] / [DomainRulesManager]. [initialQuery] prefills the opened tab's search.
+ */
 @Composable
 fun CustomRulesScreen(
     uid: Int = UID_EVERYBODY,
@@ -44,45 +50,65 @@ fun CustomRulesScreen(
     domainViewModel: CustomDomainViewModel,
     ipViewModel: CustomIpViewModel,
     eventLogger: EventLogger,
+    initialQuery: String = "",
     onBackClick: (() -> Unit)? = null,
 ) {
     val scope = rememberCoroutineScope()
-    val invalidIpMessage = stringResource(R.string.ci_dialog_error_invalid_ip)
-    val invalidDomainMessage = stringResource(R.string.custom_url_error_invalid_url)
+    val lockedToApp = uid != UID_EVERYBODY
     var selectedTab by rememberSaveable(uid, initialTab) { mutableStateOf(initialTab) }
-    var selectedMode by rememberSaveable(uid, initialMode) { mutableStateOf(initialMode) }
-    var ipQuery by rememberSaveable(uid) { mutableStateOf("") }
-    var domainQuery by rememberSaveable(uid) { mutableStateOf("") }
-    val appNames = remember { mutableStateMapOf<Int, String>() }
-    val effectiveMode = if (uid == UID_EVERYBODY) selectedMode else RethinkRulesMode.SELECTED_UID
-    val query = if (selectedTab == RethinkRulesTab.IP) ipQuery else domainQuery
-
-    LaunchedEffect(uid, effectiveMode) {
-        val rulesUid = if (effectiveMode == RethinkRulesMode.SELECTED_UID) uid else UID_EVERYBODY
-        ipViewModel.setUid(rulesUid)
-        domainViewModel.setUid(rulesUid)
+    var ipQuery by rememberSaveable(uid) { mutableStateOf(if (initialTab == RethinkRulesTab.IP) initialQuery else "") }
+    var domainQuery by rememberSaveable(uid) { mutableStateOf(if (initialTab == RethinkRulesTab.DOMAIN) initialQuery else "") }
+    var lockedAppName by remember(uid) { mutableStateOf("") }
+    var chosenScope by remember(uid, initialMode) {
+        mutableStateOf(
+            when {
+                lockedToApp -> RethinkRulesScope.App(uid, "")
+                initialMode == RethinkRulesMode.ALL_APPS -> RethinkRulesScope.All
+                else -> RethinkRulesScope.AllApps
+            },
+        )
     }
-    LaunchedEffect(selectedTab, effectiveMode, query) {
+    val rulesScope = (chosenScope as? RethinkRulesScope.App)?.takeIf { lockedToApp }?.copy(label = lockedAppName) ?: chosenScope
+    val appNames = remember { mutableStateMapOf<Int, String>() }
+    val query = if (selectedTab == RethinkRulesTab.IP) ipQuery else domainQuery
+    val picker = rememberRuleAppPicker()
+    var showAddSheet by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(uid) {
+        if (lockedToApp) lockedAppName = withContext(Dispatchers.IO) { FirewallManager.getAppNameByUid(uid).orEmpty() }
+    }
+    val listUid = (rulesScope as? RethinkRulesScope.App)?.uid ?: UID_EVERYBODY
+    LaunchedEffect(listUid) {
+        ipViewModel.setUid(listUid)
+        domainViewModel.setUid(listUid)
+    }
+    LaunchedEffect(selectedTab, rulesScope, query) {
         delay(250)
         if (selectedTab == RethinkRulesTab.IP) ipViewModel.setFilter(query) else domainViewModel.setFilter(query)
     }
 
     val feed: RethinkFirewallRulesFeed = when (selectedTab) {
         RethinkRulesTab.IP -> {
-            val items = when (effectiveMode) {
-                RethinkRulesMode.SELECTED_UID -> ipViewModel.customIpDetails.collectAsLazyPagingItems()
-                RethinkRulesMode.ALL_APPS -> ipViewModel.allIpRules.collectAsLazyPagingItems()
+            val items = when (rulesScope) {
+                RethinkRulesScope.All -> ipViewModel.everyIpRule.collectAsLazyPagingItems()
+                else -> ipViewModel.customIpDetails.collectAsLazyPagingItems()
             }
             AndroidRulesFeed(items) { it.toRethinkRule(appNames[it.uid]) }
         }
         RethinkRulesTab.DOMAIN -> {
-            val items = when (effectiveMode) {
-                RethinkRulesMode.SELECTED_UID -> domainViewModel.customDomains.collectAsLazyPagingItems()
-                RethinkRulesMode.ALL_APPS -> domainViewModel.allDomainRules.collectAsLazyPagingItems()
+            val items = when (rulesScope) {
+                RethinkRulesScope.All -> domainViewModel.everyDomainRule.collectAsLazyPagingItems()
+                else -> domainViewModel.customDomains.collectAsLazyPagingItems()
             }
             AndroidRulesFeed(items) { it.toRethinkRule(appNames[it.uid]) }
         }
     }
+    val domainCount by remember(rulesScope is RethinkRulesScope.All, listUid) {
+        if (rulesScope is RethinkRulesScope.All) domainViewModel.everyDomainRuleCount() else domainViewModel.domainRulesCount(listUid)
+    }.collectAsState(initial = null)
+    val ipCount by remember(rulesScope is RethinkRulesScope.All, listUid) {
+        if (rulesScope is RethinkRulesScope.All) ipViewModel.everyIpRuleCount() else ipViewModel.ipRulesCount(listUid)
+    }.collectAsState(initial = null)
 
     fun loadOwnerName(ruleUid: Int) {
         if (ruleUid == UID_EVERYBODY || appNames.containsKey(ruleUid)) return
@@ -92,57 +118,25 @@ fun CustomRulesScreen(
         }
     }
 
+    val rulesTitle = stringResource(R.string.lbl_rules)
     RethinkCustomRulesScreen(
-        importAction = { RulesImportAction(uid, selectedTab) },
-        uid = uid,
+        title = if (lockedToApp && lockedAppName.isNotBlank()) stringResource(R.string.rules_title_app, lockedAppName) else rulesTitle,
         selectedTab = selectedTab,
-        selectedMode = effectiveMode,
+        scope = rulesScope,
         query = query,
         rules = feed,
         strings = androidCustomRulesStrings(),
+        domainCount = domainCount,
+        ipCount = ipCount,
+        // Import writes to one owner: the app on its own screen, otherwise the all-apps rules.
+        importAction = { RulesImportAction(listUid, selectedTab) },
         onTabChange = { selectedTab = it },
-        onModeChange = { selectedMode = it },
+        onScopeChange = if (lockedToApp) null else ({ chosenScope = it }),
+        onChooseApp = if (lockedToApp) null else ({ picker.open { app -> chosenScope = RethinkRulesScope.App(app.uid, app.label) } }),
         onQueryChange = { value ->
             if (selectedTab == RethinkRulesTab.IP) ipQuery = value else domainQuery = value
         },
-        onAddRule = { tab, value ->
-            when (tab) {
-                RethinkRulesTab.IP -> ipRuleAddResult(value, invalidIpMessage) { address, port ->
-                    scope.launch(Dispatchers.IO) {
-                        IpRulesManager.addIpRule(uid, address, port, IpRulesManager.IpRuleStatus.BLOCK, "", "")
-                        eventLogger.log(
-                            EventType.FW_RULE_MODIFIED,
-                            Severity.LOW,
-                            "Added IP rule",
-                            EventSource.UI,
-                            false,
-                            "IP: $value",
-                        )
-                    }
-                }
-                RethinkRulesTab.DOMAIN -> {
-                    val domain = com.bernaferrari.bravedns.rules.DomainRuleInput.normalize(value)
-                        ?: return@RethinkCustomRulesScreen RethinkRulesAddResult(false, invalidDomainMessage)
-                    scope.launch(Dispatchers.IO) {
-                        DomainRulesManager.addDomainRule(
-                            domain,
-                            DomainRulesManager.Status.BLOCK,
-                            if (domain.startsWith("*.")) DomainRulesManager.DomainType.WILDCARD else DomainRulesManager.DomainType.DOMAIN,
-                            uid = uid,
-                        )
-                        eventLogger.log(
-                            EventType.FW_RULE_MODIFIED,
-                            Severity.LOW,
-                            "Added domain rule",
-                            EventSource.UI,
-                            false,
-                            "Domain: $value",
-                        )
-                    }
-                    RethinkRulesAddResult.Success
-                }
-            }
-        },
+        onAddRule = { showAddSheet = true },
         onDeleteRule = { tab, rule ->
             scope.launch(Dispatchers.IO) {
                 when (tab) {
@@ -167,6 +161,20 @@ fun CustomRulesScreen(
         onRuleOwnerVisible = ::loadOwnerName,
         onBackClick = onBackClick,
     )
+
+    if (showAddSheet) {
+        val app = rulesScope as? RethinkRulesScope.App
+        AddRuleSheetHost(
+            target = selectedTab,
+            // The sheet starts on the scope being looked at; All rules starts on all apps.
+            initialScope = app?.let { RethinkAddRuleScope.App(it.uid, it.label.ifBlank { stringResource(R.string.rules_this_app) }) }
+                ?: RethinkAddRuleScope.AllApps,
+            eventLogger = eventLogger,
+            onDismiss = { showAddSheet = false },
+            onChooseApp = if (lockedToApp) null else picker::open,
+        )
+    }
+    RuleAppPickerHost(picker, selectedUid = (rulesScope as? RethinkRulesScope.App)?.uid)
 }
 
 private class AndroidRulesFeed<T : Any>(
@@ -214,38 +222,36 @@ private fun androidCustomRulesStrings(): RethinkCustomRulesStrings {
 }
 
 @Composable
-private fun androidCustomRulesStrings(port: (Int) -> String) = RethinkCustomRulesStrings(
-    port = port,
-    universalTitle = stringResource(R.string.univ_view_blocked_ip),
-    appWiseTitle = stringResource(R.string.lbl_app_wise),
-    appRulesTitle = stringResource(R.string.app_ip_domain_rules),
-    ipRules = stringResource(R.string.lbl_ip_rules),
-    domainRules = stringResource(R.string.lbl_domain_rules),
-    ip = stringResource(R.string.lbl_ip),
-    domain = stringResource(R.string.lbl_domain),
-    universal = stringResource(R.string.firewall_act_universal_tab),
-    appWise = stringResource(R.string.lbl_app_wise),
-    search = stringResource(R.string.lbl_search),
-    clearSearch = stringResource(R.string.cd_clear_search),
-    loading = stringResource(R.string.lbl_loading),
-    noIpRules = stringResource(R.string.ci_no_rules_text),
-    noDomainRules = stringResource(R.string.cd_no_rules_text),
-    add = stringResource(R.string.lbl_add),
-    cancel = stringResource(R.string.lbl_cancel),
-    delete = stringResource(R.string.lbl_delete),
-    block = stringResource(R.string.ci_block),
-    trust = stringResource(R.string.ci_trust_rule),
-    bypass = stringResource(R.string.firewall_status_whitelisted),
-    noRule = stringResource(R.string.ci_no_rule),
-    uid = { value -> "UID $value" },
-    deleteRuleTitle = stringResource(R.string.custom_rule_delete_title),
-    deleteSelectedTitle = { count -> pluralStringResource(R.plurals.custom_rules_delete_selected_title, count, count) },
-    selectedCount = { count -> pluralStringResource(R.plurals.custom_rules_selected_count, count, count) },
-    clearSelection = stringResource(R.string.custom_rules_clear_selection),
-    select = stringResource(R.string.custom_rules_select),
-    deleteRule = stringResource(R.string.custom_rules_delete_rule),
-    addIpRuleTitle = stringResource(R.string.custom_rules_add_ip_title),
-    addDomainRuleTitle = stringResource(R.string.custom_rules_add_domain_title),
-    ipHint = stringResource(R.string.custom_rules_ip_hint),
-    domainHint = stringResource(R.string.custom_rules_domain_hint),
-)
+private fun androidCustomRulesStrings(port: (Int) -> String): RethinkCustomRulesStrings {
+    val countFormat = stringResource(R.string.rules_tab_count)
+    return RethinkCustomRulesStrings(
+        port = port,
+        domains = stringResource(R.string.rules_tab_domains),
+        ips = stringResource(R.string.rules_tab_ips),
+        withCount = { label, count -> countFormat.format(label, count) },
+        searchDomains = stringResource(R.string.rules_search_domains),
+        searchIps = stringResource(R.string.rules_search_ips),
+        clearSearch = stringResource(R.string.cd_clear_search),
+        loading = stringResource(R.string.lbl_loading),
+        noIpRules = stringResource(R.string.ci_no_rules_text),
+        noDomainRules = stringResource(R.string.cd_no_rules_text),
+        add = stringResource(R.string.add_rule_title),
+        cancel = stringResource(R.string.lbl_cancel),
+        delete = stringResource(R.string.lbl_delete),
+        block = stringResource(R.string.ci_block),
+        trust = stringResource(R.string.ci_trust_rule),
+        bypass = stringResource(R.string.firewall_status_whitelisted),
+        noRule = stringResource(R.string.ci_no_rule),
+        uid = { value -> "UID $value" },
+        scopeAll = stringResource(R.string.rules_scope_all),
+        scopeAllApps = stringResource(R.string.rules_scope_all_apps),
+        scopeChooseApp = stringResource(R.string.add_rule_choose_app),
+        allAppsHeader = stringResource(R.string.lbl_all_apps),
+        deleteRuleTitle = stringResource(R.string.custom_rule_delete_title),
+        deleteSelectedTitle = { count -> pluralStringResource(R.plurals.custom_rules_delete_selected_title, count, count) },
+        selectedCount = { count -> pluralStringResource(R.plurals.custom_rules_selected_count, count, count) },
+        clearSelection = stringResource(R.string.custom_rules_clear_selection),
+        select = stringResource(R.string.custom_rules_select),
+        deleteRule = stringResource(R.string.custom_rules_delete_rule),
+    )
+}

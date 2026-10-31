@@ -222,50 +222,42 @@ internal fun DemoFirewallSettingsScreen(
     modifier: Modifier,
     onBack: () -> Unit,
     onCustomRules: () -> Unit,
-    onUniversalFirewall: () -> Unit,
+    initialFocusKey: String? = null,
 ) {
+    var settings by remember { mutableStateOf(demoUniversalFirewallSettings) }
     RethinkFirewallSettingsScreen(
         strings = RethinkFirewallSettingsStrings(
             title = "Firewall",
-            universalSection = "Universal rules",
-            universalTitle = "Universal firewall",
-            universalDescription = "Set network-wide rules that apply before app-specific decisions.",
-            blockedTitle = "Blocked IPs and domains",
-            blockedDescription = "Review and refine universal blocks.",
-            appWiseSection = "App-wise",
-            appWiseTitle = "App IP and domain rules",
-            appWiseDescription = "Create exceptions for individual apps.",
-        ),
-        onUniversalFirewallClick = onUniversalFirewall,
-        onCustomIpDomainClick = onCustomRules,
-        onAppWiseIpDomainClick = onCustomRules,
-        onBackClick = onBack,
-        modifier = modifier,
-    )
-}
-
-@Composable
-internal fun DemoUniversalFirewallScreen(modifier: Modifier, onBack: () -> Unit) {
-    var settings by remember { mutableStateOf(demoUniversalFirewallSettings) }
-    RethinkUniversalFirewallSettingsScreen(
-        settings = settings,
-        strings = RethinkUniversalFirewallStrings(
-            title = "Universal firewall",
-            explanation = "Rules that apply before app-specific decisions.",
+            explanation = "Rules that apply to every app.",
+            rulesTitle = "Rules",
+            rulesDescription = "Block or trust domains and IPs, for one app or all.",
+            rulesWithCount = { "Rules · $it" },
+            everydaySection = "Everyday",
+            strictSection = "Strict",
+            lockdownSection = "Lockdown",
             blocked = { "Blocked: $it" },
-            loading = "Loading…",
+            lockdownConfirmTitle = "Turn on lockdown?",
+            lockdownConfirmMessage = "Every app loses internet access unless it skips filtering or universal rules, or connects to a domain or IP you trust. To undo it, turn Lockdown off here.",
+            lockdownConfirm = "Turn on lockdown",
+            cancel = "Cancel",
             accessibilityTitle = "Accessibility permission",
             accessibilityDescription = "Enable accessibility to block apps while they are in the background.",
             accessibilityConfirm = "Open settings",
             accessibilityDismiss = "Cancel",
         ),
+        everyday = settings.take(3),
+        strict = settings.drop(3).dropLast(1),
+        lockdown = settings.last(),
+        rulesCount = demoFirewallRules.size,
         isLoadingStats = false,
         onSettingChange = { id, checked ->
             settings = settings.map { if (it.id == id) it.copy(checked = checked) else it }
             RethinkUniversalFirewallChange.Applied
         },
+        onRulesClick = onCustomRules,
         onLogsClick = {},
         onOpenAccessibilitySettings = {},
+        initialFocusKey = initialFocusKey,
         onBackClick = onBack,
         modifier = modifier,
     )
@@ -273,47 +265,63 @@ internal fun DemoUniversalFirewallScreen(modifier: Modifier, onBack: () -> Unit)
 
 @Composable
 internal fun DemoCustomRulesScreen(modifier: Modifier, onBack: () -> Unit) {
-    var tab by remember { mutableStateOf(RethinkRulesTab.IP) }
-    var mode by remember { mutableStateOf(RethinkRulesMode.SELECTED_UID) }
+    var tab by remember { mutableStateOf(RethinkRulesTab.DOMAIN) }
+    var scope by remember { mutableStateOf<RethinkRulesScope>(RethinkRulesScope.All) }
     var ipQuery by remember { mutableStateOf("") }
     var domainQuery by remember { mutableStateOf("") }
     var rules by remember { mutableStateOf(demoFirewallRules) }
+    var adding by remember { mutableStateOf(false) }
     val query = if (tab == RethinkRulesTab.IP) ipQuery else domainQuery
-    val visible = rules.filter { rule ->
-        val tabMatches = rule.tab == tab
-        val modeMatches = mode == RethinkRulesMode.ALL_APPS || rule.uid == -1000
-        tabMatches && modeMatches && (query.isBlank() || rule.value.contains(query, ignoreCase = true))
+    fun inScope(rule: RethinkFirewallRule) = when (val s = scope) {
+        RethinkRulesScope.All -> true
+        RethinkRulesScope.AllApps -> rule.uid == -1000
+        is RethinkRulesScope.App -> rule.uid == s.uid
     }
+    val visible = rules.filter { rule ->
+        rule.tab == tab && inScope(rule) && (query.isBlank() || rule.value.contains(query, ignoreCase = true))
+    }.sortedWith(compareBy({ it.uid != -1000 }, { it.uid }))
     RethinkCustomRulesScreen(
-        uid = -1000,
+        title = "Rules",
         selectedTab = tab,
-        selectedMode = mode,
+        scope = scope,
         query = query,
         rules = RethinkInMemoryFirewallRulesFeed(visible),
         strings = demoCustomRulesStrings,
+        domainCount = rules.count { it.tab == RethinkRulesTab.DOMAIN && inScope(it) },
+        ipCount = rules.count { it.tab == RethinkRulesTab.IP && inScope(it) },
         onTabChange = { tab = it },
-        onModeChange = { mode = it },
+        onScopeChange = { scope = it },
         onQueryChange = { if (tab == RethinkRulesTab.IP) ipQuery = it else domainQuery = it },
-        onAddRule = { selectedTab, value ->
-            val isIp = selectedTab == RethinkRulesTab.IP
-            if (isIp && value.none { it.isDigit() }) {
-                RethinkRulesAddResult(false, "Enter a valid IP address.")
-            } else {
-                rules = rules + RethinkFirewallRule(
-                    id = "demo-rule-${rules.size}",
-                    uid = -1000,
-                    value = value,
-                    tab = selectedTab,
-                    port = if (isIp) 443 else null,
-                    status = RethinkFirewallRuleStatus.Block,
-                )
-                RethinkRulesAddResult.Success
-            }
-        },
+        onAddRule = { adding = true },
         onDeleteRule = { _, rule -> rules = rules.filterNot { it.id == rule.id } },
         onBackClick = onBack,
         modifier = modifier,
     )
+    if (adding) {
+        var ruleScope by remember { mutableStateOf<RethinkAddRuleScope>(RethinkAddRuleScope.AllApps) }
+        RethinkAddRuleSheet(
+            target = tab,
+            scope = ruleScope,
+            strings = demoAddRuleStrings,
+            onScopeChange = { ruleScope = it },
+            onDismiss = { adding = false },
+            onAdd = { value, action, added ->
+                val isIp = tab == RethinkRulesTab.IP
+                if (isIp && value.none { it.isDigit() }) {
+                    RethinkRulesAddResult(false, "Enter a valid IP address.")
+                } else {
+                    rules = rules + RethinkFirewallRule(
+                        id = "demo-rule-${rules.size}",
+                        uid = (added as? RethinkAddRuleScope.App)?.uid ?: -1000,
+                        value = value,
+                        tab = tab,
+                        status = if (action == RethinkRuleAction.Trust) RethinkFirewallRuleStatus.Trust else RethinkFirewallRuleStatus.Block,
+                    )
+                    RethinkRulesAddResult.Success
+                }
+            },
+        )
+    }
 }
 
 @Composable

@@ -40,6 +40,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
+import androidx.compose.material3.DropdownMenuItem
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkMenuChip
+import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -66,7 +70,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedRowTopGap
 
-/** The portable custom-rules screen supports both universal and app-specific rule scopes. */
+/** The Rules screen's tabs. Values are navigation ints and must stay stable. */
 enum class RethinkRulesTab(val value: Int) {
     IP(0),
     DOMAIN(1);
@@ -77,21 +81,29 @@ enum class RethinkRulesTab(val value: Int) {
 }
 
 /**
- * Which rules the screen lists. Values are the persisted/navigation ints and must stay stable.
+ * The scope a Rules route opens with. Values are navigation ints and must stay stable.
+ * On the all-apps screen (uid "everybody") [ALL_APPS] lists every rule and [SELECTED_UID] the
+ * all-apps (universal) rules; with an app uid, [SELECTED_UID] is that app's rules.
  */
 enum class RethinkRulesMode(val value: Int) {
-    /** Every app's rules, grouped by owning app ("App-wise"). Only offered on the universal screen. */
     ALL_APPS(0),
-
-    /**
-     * Rules owned by the screen's own uid: the universal rules on the universal screen
-     * ("Universal"), or one app's rules on an app screen.
-     */
     SELECTED_UID(1);
 
     companion object {
         fun fromValue(value: Int): RethinkRulesMode = entries.firstOrNull { it.value == value } ?: SELECTED_UID
     }
+}
+
+/** Which rules the Rules list shows: every rule, the all-apps ones, or one app's. */
+@Immutable
+sealed interface RethinkRulesScope {
+    /** Every rule: all-apps rules first, then each app's under its name. */
+    data object All : RethinkRulesScope
+
+    /** Rules that apply to every app (the universal uid). */
+    data object AllApps : RethinkRulesScope
+
+    data class App(val uid: Int, val label: String) : RethinkRulesScope
 }
 
 data class RethinkFirewallRule(
@@ -136,20 +148,17 @@ data class RethinkRulesAddResult(
 data class RethinkCustomRulesStrings(
     /** "Port %s"-style label for the port line under an IP rule. */
     val port: (Int) -> String = { "Port $it" },
-    val universalTitle: String,
-    val appWiseTitle: String,
-    val appRulesTitle: String,
-    val ipRules: String,
-    val domainRules: String,
-    val ip: String,
-    val domain: String,
-    val universal: String,
-    val appWise: String,
-    val search: String,
+    /** "Domains" / "IPs", and with a count: "Domains · 3". */
+    val domains: String,
+    val ips: String,
+    val withCount: (String, Int) -> String = { label, count -> "$label · $count" },
+    val searchDomains: String,
+    val searchIps: String,
     val clearSearch: String,
     val loading: String,
     val noIpRules: String,
     val noDomainRules: String,
+    /** "Add rule" (the FAB and the empty state). */
     val add: String,
     val cancel: String,
     val delete: String,
@@ -158,6 +167,11 @@ data class RethinkCustomRulesStrings(
     val bypass: String,
     val noRule: String,
     val uid: (Int) -> String,
+    /** Scope chip: "All rules", "For all apps", "Choose app…", and the all-apps group header. */
+    val scopeAll: String = "All rules",
+    val scopeAllApps: String = "For all apps",
+    val scopeChooseApp: String = "Choose app…",
+    val allAppsHeader: String = "All apps",
     /** Title of the per-rule delete confirmation; the message is the rule itself. */
     val deleteRuleTitle: String = "Delete rule?",
     val deleteSelectedTitle: @Composable (Int) -> String = { "Delete $it rules?" },
@@ -165,46 +179,40 @@ data class RethinkCustomRulesStrings(
     val clearSelection: String = "Clear selection",
     val select: String = "Select",
     val deleteRule: String = "Delete rule",
-    val addIpRuleTitle: String = "Add IP rule",
-    val addDomainRuleTitle: String = "Add domain rule",
-    val ipHint: String = "192.168.1.1 or 10.0.0.0/24",
-    val domainHint: String = "example.com",
 )
 
 /**
- * Complete, platform-neutral custom firewall-rules UI. Its host owns persistence and validation
- * policy; paging, list composition, grouping, inputs, dialogs, and selection controls are shared.
+ * The one Rules screen: a rule is a target (domain or IP), an action and a scope.
+ *
+ * Labelled **Domains · IPs** tabs with counts, a scope chip (All rules · For all apps · one app) when
+ * [onScopeChange] is set (a screen opened for one app keeps that app and names it in [title]),
+ * search, and an **Add rule** FAB. The host owns the Add sheet ([onAddRule]) and the app picker
+ * ([onChooseApp]), plus persistence; paging, grouping, selection and delete are shared.
  */
 @Composable
 fun RethinkCustomRulesScreen(
-    uid: Int,
+    title: String,
     selectedTab: RethinkRulesTab,
-    selectedMode: RethinkRulesMode,
+    scope: RethinkRulesScope,
     query: String,
     rules: RethinkFirewallRulesFeed,
     strings: RethinkCustomRulesStrings,
     onTabChange: (RethinkRulesTab) -> Unit,
-    onModeChange: (RethinkRulesMode) -> Unit,
     onQueryChange: (String) -> Unit,
-    onAddRule: (RethinkRulesTab, String) -> RethinkRulesAddResult,
+    onAddRule: () -> Unit,
     onDeleteRule: (RethinkRulesTab, RethinkFirewallRule) -> Unit,
+    modifier: Modifier = Modifier,
+    domainCount: Int? = null,
+    ipCount: Int? = null,
+    onScopeChange: ((RethinkRulesScope) -> Unit)? = null,
+    onChooseApp: (() -> Unit)? = null,
     onRuleOwnerVisible: (Int) -> Unit = {},
     onBackClick: (() -> Unit)? = null,
-    modifier: Modifier = Modifier,
     importAction: (@Composable () -> Unit)? = null,
 ) {
-    val canSwitchScope = uid == RETHINK_UID_EVERYBODY
-    val effectiveMode = if (canSwitchScope) selectedMode else RethinkRulesMode.SELECTED_UID
-    var showAddDialog by rememberSaveable(uid) { mutableStateOf(false) }
-    // The scope switch is a view of the same screen, so the title holds still when it flips.
-    val title = if (canSwitchScope) strings.universalTitle else strings.appRulesTitle
-
-    LaunchedEffect(effectiveMode) {
-        if (effectiveMode == RethinkRulesMode.ALL_APPS) showAddDialog = false
-    }
     // Long-press enters multi-select; tap opens a per-rule action sheet; swipe is a shortcut.
     // Selection resets when the list it refers to changes.
-    var selection by remember(uid, selectedTab, effectiveMode) { mutableStateOf(emptyMap<String, RethinkFirewallRule>()) }
+    var selection by remember(selectedTab, scope) { mutableStateOf(emptyMap<String, RethinkFirewallRule>()) }
     var actionRule by remember { mutableStateOf<RethinkFirewallRule?>(null) }
     var pendingDelete by remember { mutableStateOf<List<RethinkFirewallRule>>(emptyList()) }
     val selecting = selection.isNotEmpty()
@@ -218,39 +226,37 @@ fun RethinkCustomRulesScreen(
         topBar = {
             RethinkRulesTopBar(selection.size, title, strings, onBackClick,
                 { selection = emptyMap() }, { pendingDelete = selection.values.toList() },
-                effectiveMode == RethinkRulesMode.SELECTED_UID, importAction)
+                importAction)
         },
         floatingActionButton = {
-            RethinkRulesAddButton(selecting, effectiveMode, rules.isLoading, rules.itemCount, strings.add) { showAddDialog = true }
+            RethinkRulesAddButton(selecting, rules.isLoading, rules.itemCount, strings.add, onAddRule)
         },
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
             RethinkRulesControlDeck(
                 selectedTab = selectedTab,
-                selectedMode = effectiveMode,
-                canSwitchScope = canSwitchScope,
+                scope = scope,
                 query = query,
                 strings = strings,
+                domainCount = domainCount,
+                ipCount = ipCount,
                 onTabChange = onTabChange,
-                onModeChange = onModeChange,
+                onScopeChange = onScopeChange,
+                onChooseApp = onChooseApp,
                 onQueryChange = onQueryChange,
             )
             RethinkRulesContent(
                 modifier = Modifier.weight(1f),
                 rules = rules,
                 selectedTab = selectedTab,
-                selectedMode = effectiveMode,
+                grouped = scope == RethinkRulesScope.All,
                 strings = strings,
                 selection = selection.keys,
                 onRuleClick = { rule -> if (selecting) toggle(rule) else actionRule = rule },
                 onRuleLongClick = ::toggle,
                 onRequestDelete = { pendingDelete = listOf(it) },
                 onRuleOwnerVisible = onRuleOwnerVisible,
-                onAddRule = if (effectiveMode == RethinkRulesMode.SELECTED_UID) {
-                    { showAddDialog = true }
-                } else {
-                    null
-                },
+                onAddRule = onAddRule,
             )
         }
     }
@@ -273,30 +279,19 @@ fun RethinkCustomRulesScreen(
             pendingDelete = emptyList()
         },
     )
-
-    if (showAddDialog && effectiveMode == RethinkRulesMode.SELECTED_UID) {
-        RethinkAddFirewallRuleDialog(
-            tab = selectedTab,
-            strings = strings,
-            onDismiss = { showAddDialog = false },
-            onAdd = { value ->
-                onAddRule(selectedTab, value).also { result ->
-                    if (result.accepted) showAddDialog = false
-                }
-            },
-        )
-    }
 }
 
 @Composable
 private fun RethinkRulesControlDeck(
     selectedTab: RethinkRulesTab,
-    selectedMode: RethinkRulesMode,
-    canSwitchScope: Boolean,
+    scope: RethinkRulesScope,
     query: String,
     strings: RethinkCustomRulesStrings,
+    domainCount: Int?,
+    ipCount: Int?,
     onTabChange: (RethinkRulesTab) -> Unit,
-    onModeChange: (RethinkRulesMode) -> Unit,
+    onScopeChange: ((RethinkRulesScope) -> Unit)?,
+    onChooseApp: (() -> Unit)?,
     onQueryChange: (String) -> Unit,
 ) {
     Column(
@@ -307,88 +302,66 @@ private fun RethinkRulesControlDeck(
         ),
         verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
     ) {
-        // Scope and rule type share one row as two separate groups: every segment keeps its
-        // label and only the selected one adds its icon, and the gap plus each group's own
-        // rounded ends keep them from reading as one 4-segment control.
-        Row(
+        // Domains lead: they're what people block and trust most.
+        RethinkConnectedChoiceGroup(
+            options = listOf(
+                RethinkChoiceOption(RethinkRulesTab.DOMAIN, domainCount?.let { strings.withCount(strings.domains, it) } ?: strings.domains, MaterialSymbols.Filled.Link),
+                RethinkChoiceOption(RethinkRulesTab.IP, ipCount?.let { strings.withCount(strings.ips, it) } ?: strings.ips, MaterialSymbols.Filled.Pin),
+            ),
+            selected = selectedTab,
+            onSelect = onTabChange,
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
-        ) {
-            if (canSwitchScope) {
-                RethinkRuleScopeSelector(
-                    selected = selectedMode,
-                    strings = strings,
-                    onSelected = onModeChange,
-                    modifier = Modifier.weight(1f),
-                )
-            }
-            RethinkRuleTabSelector(
-                selectedTab,
-                strings,
-                onSelected = onTabChange,
-                modifier = Modifier.weight(1f),
-            )
-        }
+        )
         RethinkSearchField(
             query = query,
             onQueryChange = onQueryChange,
-            placeholder = "${strings.search}: ${if (selectedTab == RethinkRulesTab.IP) strings.ipRules else strings.domainRules}",
+            placeholder = if (selectedTab == RethinkRulesTab.IP) strings.searchIps else strings.searchDomains,
             clearQueryContentDescription = strings.clearSearch,
             modifier = Modifier.fillMaxWidth(),
         )
+        if (onScopeChange != null) {
+            RethinkMenuChip(
+                label = when (scope) {
+                    RethinkRulesScope.All -> strings.scopeAll
+                    RethinkRulesScope.AllApps -> strings.scopeAllApps
+                    is RethinkRulesScope.App -> scope.label
+                },
+                selected = scope != RethinkRulesScope.All,
+            ) { dismiss ->
+                DropdownMenuItem(
+                    text = { Text(strings.scopeAll) },
+                    leadingIcon = { Icon(MaterialSymbols.Filled.Rule, null) },
+                    onClick = { dismiss(); onScopeChange(RethinkRulesScope.All) },
+                )
+                DropdownMenuItem(
+                    text = { Text(strings.scopeAllApps) },
+                    leadingIcon = { Icon(MaterialSymbols.Filled.Public, null) },
+                    onClick = { dismiss(); onScopeChange(RethinkRulesScope.AllApps) },
+                )
+                if (onChooseApp != null) {
+                    DropdownMenuItem(
+                        text = { Text(strings.scopeChooseApp) },
+                        leadingIcon = { Icon(MaterialSymbols.Filled.Android, null) },
+                        onClick = { dismiss(); onChooseApp() },
+                    )
+                }
+            }
+        }
     }
-}
-
-@Composable
-private fun RethinkRuleTabSelector(
-    selected: RethinkRulesTab,
-    strings: RethinkCustomRulesStrings,
-    modifier: Modifier = Modifier,
-    onSelected: (RethinkRulesTab) -> Unit,
-) {
-    RethinkConnectedChoiceGroup(
-        options = listOf(
-            // The screen title already says "rules"; the short type names fit every locale at
-            // phone width without truncating.
-            RethinkChoiceOption(RethinkRulesTab.IP, strings.ip, MaterialSymbols.Filled.Pin),
-            RethinkChoiceOption(RethinkRulesTab.DOMAIN, strings.domain, MaterialSymbols.Filled.Link),
-        ),
-        selected = selected,
-        onSelect = onSelected,
-        modifier = modifier,
-    )
-}
-
-@Composable
-private fun RethinkRuleScopeSelector(
-    selected: RethinkRulesMode,
-    strings: RethinkCustomRulesStrings,
-    modifier: Modifier = Modifier,
-    onSelected: (RethinkRulesMode) -> Unit,
-) {
-    RethinkConnectedChoiceGroup(
-        options = listOf(
-            RethinkChoiceOption(RethinkRulesMode.SELECTED_UID, strings.universal, MaterialSymbols.Filled.Public),
-            RethinkChoiceOption(RethinkRulesMode.ALL_APPS, strings.appWise, MaterialSymbols.Filled.Apps),
-        ),
-        selected = selected,
-        onSelect = onSelected,
-        modifier = modifier,
-    )
 }
 
 @Composable
 private fun RethinkRulesContent(
     rules: RethinkFirewallRulesFeed,
     selectedTab: RethinkRulesTab,
-    selectedMode: RethinkRulesMode,
+    grouped: Boolean,
     strings: RethinkCustomRulesStrings,
     selection: Set<String>,
     onRuleClick: (RethinkFirewallRule) -> Unit,
     onRuleLongClick: (RethinkFirewallRule) -> Unit,
     onRequestDelete: (RethinkFirewallRule) -> Unit,
     onRuleOwnerVisible: (Int) -> Unit,
-    onAddRule: (() -> Unit)?,
+    onAddRule: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     when {
@@ -400,14 +373,14 @@ private fun RethinkRulesContent(
                 start = SharedDimensions.screenPaddingHorizontal,
                 end = SharedDimensions.screenPaddingHorizontal,
                 top = SharedDimensions.spacingSm,
-                bottom = if (selectedMode == RethinkRulesMode.SELECTED_UID) SharedDimensions.fabClearance else SharedDimensions.spacing3xl,
+                bottom = SharedDimensions.fabClearance,
             ),
         ) {
             items(rules.itemCount, key = { index -> rules[index]?.id ?: "rule-$index" }) { index ->
                 val rule = rules[index] ?: return@items
                 val previous = rules.getOrNull(index - 1)
                 val next = rules.getOrNull(index + 1)
-                val isGrouped = selectedMode == RethinkRulesMode.ALL_APPS
+                val isGrouped = grouped
                 if (isGrouped && (previous == null || previous.uid != rule.uid)) {
                     if (index > 0) Spacer(Modifier.height(SharedDimensions.spacingSm))
                     RethinkRuleOwnerHeader(rule, strings, onRuleOwnerVisible)
@@ -452,7 +425,7 @@ private fun RethinkRulesInfo(text: String, modifier: Modifier) {
 private fun RethinkRulesEmptyState(
     tab: RethinkRulesTab,
     strings: RethinkCustomRulesStrings,
-    onAddRule: (() -> Unit)?,
+    onAddRule: () -> Unit,
     modifier: Modifier,
 ) {
     Column(
@@ -475,15 +448,14 @@ private fun RethinkRuleOwnerHeader(
     strings: RethinkCustomRulesStrings,
     onRuleOwnerVisible: (Int) -> Unit,
 ) {
+    if (rule.uid == RETHINK_UID_EVERYBODY) {
+        SectionHeader(strings.allAppsHeader)
+        return
+    }
     LaunchedEffect(rule.uid) { onRuleOwnerVisible(rule.uid) }
     val uidLabel = strings.uid(rule.uid)
     val owner = rule.ownerName?.takeIf { it.isNotBlank() } ?: uidLabel
-    RethinkListItem(
-        headline = owner,
-        supporting = uidLabel.takeIf { it != owner },
-        leadingIcon = MaterialSymbols.Filled.Apps,
-        position = CardPosition.Single,
-    )
+    SectionHeader(owner)
 }
 
 @Composable
@@ -601,43 +573,6 @@ private fun RethinkRuleActionsSheet(
                 destructive = true,
                 position = CardPosition.Last,
                 onClick = { onDelete(); dismiss() },
-            )
-        }
-    }
-}
-
-@Composable
-private fun RethinkAddFirewallRuleDialog(
-    tab: RethinkRulesTab,
-    strings: RethinkCustomRulesStrings,
-    onDismiss: () -> Unit,
-    onAdd: (String) -> RethinkRulesAddResult,
-) {
-    var value by remember(tab) { mutableStateOf("") }
-    var error by remember(tab) { mutableStateOf<String?>(null) }
-    val isIp = tab == RethinkRulesTab.IP
-    val title = if (isIp) strings.addIpRuleTitle else strings.addDomainRuleTitle
-    RethinkModalBottomSheet(
-        onDismissRequest = onDismiss,
-        expandOnShow = true,
-    ) {
-        Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd)) {
-            RethinkSheetHeader(title)
-            RethinkFormTextField(
-                value = value,
-                onValueChange = { value = it; error = null },
-                label = if (isIp) strings.ip else strings.domain,
-                placeholder = if (isIp) strings.ipHint else strings.domainHint,
-                isError = error != null,
-                supportingText = error?.let { { Text(it) } },
-                singleLine = true,
-            )
-            RethinkFormActionRow(
-                confirmLabel = strings.add,
-                onConfirm = { error = onAdd(value.trim()).error },
-                dismissLabel = strings.cancel,
-                onDismiss = onDismiss,
-                confirmEnabled = value.isNotBlank(),
             )
         }
     }

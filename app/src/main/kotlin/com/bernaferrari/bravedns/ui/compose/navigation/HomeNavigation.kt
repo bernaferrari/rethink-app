@@ -128,7 +128,6 @@ import com.bernaferrari.bravedns.database.ConnectionTrackerRepository
 import com.bernaferrari.bravedns.database.DnsLogRepository
 import com.bernaferrari.bravedns.ui.compose.dns.ConfigureOtherDnsScreen
 import com.bernaferrari.bravedns.ui.compose.dns.DnsScreenType
-import com.bernaferrari.bravedns.ui.compose.firewall.UniversalFirewallSettingsScreen
 import com.bernaferrari.bravedns.ui.compose.settings.CheckoutScreen
 import com.bernaferrari.bravedns.database.AppDatabase
 import com.bernaferrari.bravedns.viewmodel.DoHEndpointViewModel
@@ -255,18 +254,23 @@ fun configureRethinkBasicRoute(
  * Where the Connection sheet's links lead, pushed on the stack that opened the sheet (so the tab
  * stays highlighted). WS2+ screens that open the sheet (App detail's Recent activity) use this.
  *
- * - Universal rules: the universal firewall list. The sheet passes the deciding rule's id as a
- *   focus key; the list can't highlight a row yet (WS5's Firewall screen takes it over).
- * - Rules: the app's (or all apps') rule list on the domain or IP tab. The query is not applied
- *   yet ([RethinkRoute.CustomRules] has no search argument; WS5).
+ * - Universal rules: the Firewall screen, scrolled to the deciding rule's row (its id is the focus key).
+ * - Rules: the app's (or all apps') rule list on the domain or IP tab, searched for the address.
  */
 fun connectionSheetNavigation(nav: RethinkNavOps) = ConnectionSheetNavigation(
-    onOpenUniversalRules = { _ -> nav.push(RethinkRoute.UniversalFirewall) },
+    onOpenUniversalRules = { focusKey -> nav.push(RethinkRoute.FirewallSettings(focusKey)) },
     onOpenProxySettings = { nav.push(RethinkRoute.ProxySettings()) },
-    onOpenRules = { uid, tab, _ ->
-        nav.push(RethinkRoute.CustomRules(uid = uid, tab = tab.value, mode = RethinkRulesMode.SELECTED_UID.value))
+    onOpenRules = { uid, tab, query ->
+        nav.push(RethinkRoute.CustomRules(uid = uid, tab = tab.value, mode = RethinkRulesMode.SELECTED_UID.value, query = query))
     },
     onOpenApp = { uid -> nav.push(RethinkRoute.AppInfo(uid)) },
+)
+
+/** The Firewall screen's Rules entry: every rule, domains first. */
+private val allRulesRoute = RethinkRoute.CustomRules(
+    uid = UID_EVERYBODY,
+    tab = RethinkRulesTab.DOMAIN.value,
+    mode = RethinkRulesMode.ALL_APPS.value,
 )
 
 private fun RethinkRoute.forAndroid(): RethinkRoute = when (this) {
@@ -584,15 +588,22 @@ fun HomeScreenRoot(
                     onBackClick = { nav.popBackStack() }
                 )
             }
-            entry<RethinkRoute.FirewallSettings> { args ->
+            val firewallContent: @Composable (focusKey: String) -> Unit = { focusKey ->
                 FirewallSettingsScreen(
-                    onUniversalFirewallClick = configureActions.onFirewallUniversalClick,
-                    onCustomIpDomainClick = configureActions.onFirewallCustomIpClick,
-                    onAppWiseIpDomainClick = configureActions.onFirewallAppWiseIpClick,
-                    initialFocusKey = args.focusKey.takeIf { it.isNotBlank() },
-                    onBackClick = { nav.popBackStack() }
+                    persistentState = persistentState,
+                    eventLogger = appInfoEventLogger,
+                    connTrackerRepository = connectionTrackerRepository,
+                    onRulesClick = { nav.push(allRulesRoute) },
+                    // A rule row lists what that rule blocked, on this tab's stack.
+                    onNavigateToLogs = { ruleId -> nav.push(RethinkRoute.NetworkLogs(ruleId)) },
+                    onOpenAccessibilitySettings = configureActions.onOpenAccessibilitySettings,
+                    initialFocusKey = focusKey.takeIf { it.isNotBlank() },
+                    onBackClick = { nav.popBackStack() },
                 )
             }
+            entry<RethinkRoute.FirewallSettings> { args -> firewallContent(args.focusKey) }
+            // The universal toggles moved onto the Firewall screen; old stacks and intents land there.
+            entry<RethinkRoute.UniversalFirewall> { firewallContent("") }
             entry<RethinkRoute.AdvancedSettings> {
                 AdvancedSettingsScreen(
                     persistentState = persistentState,
@@ -686,6 +697,7 @@ fun HomeScreenRoot(
                     domainViewModel = appInfoDomainRulesViewModel,
                     ipViewModel = appInfoIpRulesViewModel,
                     eventLogger = appInfoEventLogger,
+                    initialQuery = args.query,
                     onBackClick = { nav.popBackStack() }
                 )
             }
@@ -1001,16 +1013,6 @@ fun HomeScreenRoot(
                     dnsCryptViewModel = dnsCryptViewModel,
                     dnsCryptRelayViewModel = dnsCryptRelayViewModel,
                     oDohViewModel = oDohViewModel,
-                    onBackClick = { nav.popBackStack() }
-                )
-            }
-            entry<RethinkRoute.UniversalFirewall> {
-                UniversalFirewallSettingsScreen(
-                    persistentState = persistentState,
-                    eventLogger = appInfoEventLogger,
-                    connTrackerRepository = connectionTrackerRepository,
-                    onNavigateToLogs = configureActions.onNavigateToLogs,
-                    onOpenAccessibilitySettings = configureActions.onOpenAccessibilitySettings,
                     onBackClick = { nav.popBackStack() }
                 )
             }

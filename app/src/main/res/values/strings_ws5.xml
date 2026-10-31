@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- UX overhaul, WS5: Firewall, Rules, the Settings hub, App lock, Proxy & VPN. -->
+<resources>
+    <!-- Firewall: one entry into Rules, then universal rules in three tiers -->
+    <string name="firewall_rules_count">Rules · %1$d</string>
+    <string name="firewall_section_everyday">Everyday</string>
+    <string name="firewall_section_strict">Strict</string>
+    <string name="firewall_section_lockdown">Lockdown</string>
+    <string name="univ_rule_new_apps">Block new apps until I allow them</string>
+    <string name="univ_rule_new_apps_desc">A newly installed app can\'t use the internet until you allow it.</string>
+    <string name="univ_rule_screen_locked">Block apps when the screen is locked</string>
+    <string name="univ_rule_screen_locked_desc">Every app is cut off while your phone is locked.</string>
+    <string name="univ_rule_not_in_use_desc">An app loses access when it isn\'t on screen. Needs accessibility access.</string>
+    <string name="univ_rule_udp_desc">Can break calls, games and fast web traffic (QUIC).</string>
+    <string name="univ_rule_http">Block insecure HTTP (port 80)</string>
+    <string name="univ_rule_http_desc">Stops unencrypted web traffic.</string>
+    <string name="univ_rule_unknown">Block when the app is unknown</string>
+    <string name="univ_rule_unknown_desc">Blocks connections Android can\'t match to an app.</string>
+    <string name="univ_rule_dns_bypass_desc">Blocks connections to addresses an app didn\'t look up through Keepout.</string>
+    <string name="univ_rule_mobile_data_desc">Every app, on mobile data and metered Wi‑Fi.</string>
+    <string name="univ_rule_lockdown">Block everything except apps and IPs you\'ve allowed</string>
+    <string name="univ_rule_lockdown_desc">Only apps that skip filtering, and domains and IPs you trust, can connect.</string>
+    <string name="firewall_lockdown_confirm_title">Turn on lockdown?</string>
+    <string name="firewall_lockdown_confirm_message">Every app loses internet access unless it skips filtering or universal rules, or connects to a domain or IP you trust. To undo it, turn Lockdown off here.</string>
+    <string name="firewall_lockdown_confirm">Turn on lockdown</string>
+
+    <!-- Rules: one screen, Domains · IPs tabs, a scope chip, Add rule -->
+    <string name="rules_title_app">%1$s · rules</string>
+    <string name="rules_tab_domains">Domains</string>
+    <string name="rules_tab_ips">IPs</string>
+    <string name="rules_tab_count">%1$s · %2$d</string>
+    <string name="rules_search_domains">Search domains</string>
+    <string name="rules_search_ips">Search IPs</string>
+    <string name="rules_scope_all">All rules</string>
+    <string name="rules_scope_all_apps">For all apps</string>
+    <string name="rules_this_app">This app</string>
+    <string name="rules_choose_app_title">Choose app</string>
+    <string name="rules_choose_app_search">Search apps</string>
+    <string name="rules_choose_app_empty">No matching apps</string>
+
+    <!-- Settings hub: Protection · App · Advanced · About -->
+    <string name="settings_section_app">App</string>
+    <string name="settings_proxy_vpn">Proxy &amp; VPN</string>
+    <string name="settings_proxy_vpn_desc">WireGuard, SOCKS5, HTTP proxy and Tor</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_logging_title">Logging</string>
+    <string name="settings_logging_section">On this device</string>
+    <string name="settings_developer_title">Developer</string>
+    <string name="settings_about_keepout">About %1$s</string>
+
+    <!-- Diagnostics -->
+    <string name="diagnostics_desc">Event logs, app logs and connectivity checks</string>
+    <string name="diagnostics_section_troubleshoot">Troubleshooting</string>
+    <string name="diagnostics_event_logs_desc">What Keepout did and when: starts, stops, setting changes</string>
+    <string name="diagnostics_app_logs_desc">Technical logs to attach to a bug report</string>
+
+    <!-- App lock -->
+    <string name="app_lock_title">App lock</string>
+    <string name="app_lock_explanation">Ask for your fingerprint, face or screen lock when Keepout opens. While Keepout is locked, its notification hides the Pause and Stop actions.</string>
+    <string name="app_lock_section">Ask for the screen lock</string>
+    <string name="app_lock_off">Off</string>
+    <string name="app_lock_every_time">Every time</string>
+    <string name="app_lock_every_time_desc">Whenever you open Keepout</string>
+    <string name="app_lock_after_minutes">After %1$d minutes</string>
+    <string name="app_lock_after_desc">When Keepout opens and you haven't unlocked it in that long</string>
+    <string name="app_lock_unavailable">Set a screen lock in Android settings first. App lock uses it, so you can't be locked out.</string>
+    <string name="app_lock_confirm_title">Turn on app lock</string>
+
+    <!-- Proxy & VPN: each row names the service and says its state -->
+    <string name="proxy_row_wireguard">WireGuard</string>
+    <string name="proxy_row_socks5">SOCKS5 proxy</string>
+    <string name="proxy_row_http">HTTP proxy</string>
+    <string name="proxy_row_orbot">Tor via Orbot</string>
+    <string name="proxy_state_off_not_set_up">Off · Not set up</string>
+    <string name="proxy_state_off_host">Off · %1$s</string>
+    <plurals name="proxy_wireguard_tunnels">
+        <item quantity="one">%1$d tunnel</item>
+        <item quantity="other">%1$d tunnels</item>
+    </plurals>
+    <string name="proxy_wireguard_tunnels_none_on">%1$s, none on</string>
+    <string name="proxy_wireguard_empty">Not set up · Import a file, scan a QR code or create one</string>
+    <string name="wireguard_empty_message">Send chosen apps through your own VPN server. Import its config file, scan its QR code or type it in.</string>
+    <string name="proxy_orbot_explainer">Routes chosen apps through Tor. Requires Orbot.</string>
+</resources>

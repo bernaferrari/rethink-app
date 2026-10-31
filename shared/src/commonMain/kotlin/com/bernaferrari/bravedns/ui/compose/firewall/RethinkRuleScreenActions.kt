@@ -14,21 +14,22 @@ import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 internal fun RethinkRulesTopBar(
     selectionCount: Int, title: String, strings: RethinkCustomRulesStrings,
     onBackClick: (() -> Unit)?, onClearSelection: () -> Unit, onDeleteSelection: () -> Unit,
-    canImport: Boolean, importAction: (@Composable () -> Unit)?,
+    importAction: (@Composable () -> Unit)?,
 ) {
     if (selectionCount > 0) {
         RethinkTopBar(title = strings.selectedCount(selectionCount), onBackClick = onClearSelection,
             backDescription = strings.clearSelection, navigationIcon = MaterialSymbols.Filled.Close,
             containerColor = MaterialTheme.colorScheme.surfaceContainer,
             actions = { IconButton(onClick = onDeleteSelection) { Icon(MaterialSymbols.Filled.DeleteOutline, strings.delete) } })
-    } else RethinkTopBar(title = title, onBackClick = onBackClick, actions = { if (canImport) importAction?.invoke() })
+    } else RethinkTopBar(title = title, onBackClick = onBackClick, actions = { importAction?.invoke() })
 }
 
 @Composable
 internal fun RethinkRulesAddButton(
-    selecting: Boolean, mode: RethinkRulesMode, loading: Boolean, count: Int, label: String, onAdd: () -> Unit,
+    selecting: Boolean, loading: Boolean, count: Int, label: String, onAdd: () -> Unit,
 ) {
-    if (selecting || mode != RethinkRulesMode.SELECTED_UID) return
+    if (selecting) return
+    // An empty list carries its own Add button; the FAB would repeat it.
     if (loading || count > 0) {
         ExtendedFloatingActionButton(onClick = onAdd,
             icon = { Icon(MaterialSymbols.Filled.Add, null) }, text = { Text(label) })
