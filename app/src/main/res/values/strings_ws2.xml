@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- UX overhaul, WS2 (App detail + Apps list). -->
+<resources>
+    <!-- App detail: the one status line -->
+    <string name="app_status_no_internet">Can\'t use the internet</string>
+    <string name="app_status_can_use_internet">Can use the internet</string>
+    <string name="app_status_trusted_only">Only reaches domains and IPs you trust</string>
+    <string name="app_status_skips_universal">Can use the internet · skips universal rules</string>
+    <string name="app_status_excluded">Goes around Keepout</string>
+    <plurals name="app_status_temp_allowed">
+        <item quantity="one">Allowed for %d more minute</item>
+        <item quantity="other">Allowed for %d more minutes</item>
+    </plurals>
+
+    <!-- App detail: Internet access -->
+    <string name="app_internet_access">Internet access</string>
+    <string name="app_metered_footnote">Metered Wi‑Fi counts as mobile data.</string>
+    <plurals name="app_stop_temp_access">
+        <item quantity="one">Stop temporary access · %d min left</item>
+        <item quantity="other">Stop temporary access · %d min left</item>
+    </plurals>
+    <string name="app_temp_access_ended">Temporary access ended</string>
+    <string name="app_done_blocked_wifi">%1$s blocked on Wi‑Fi</string>
+    <string name="app_done_blocked_mobile">%1$s blocked on mobile data</string>
+    <string name="app_state_wifi_allowed">Wi‑Fi: allowed</string>
+    <string name="app_state_wifi_blocked">Wi‑Fi: blocked</string>
+    <string name="app_state_mobile_allowed">Mobile data: allowed</string>
+    <string name="app_state_mobile_blocked">Mobile data: blocked</string>
+
+    <!-- App detail: Recent activity (blocked first) -->
+    <string name="app_recent_activity">Recent activity</string>
+    <string name="app_see_all_activity">See all activity</string>
+    <string name="app_no_recent_activity">Nothing in the last 24 hours</string>
+    <plurals name="app_activity_count">
+        <item quantity="one">%d connection</item>
+        <item quantity="other">%d connections</item>
+    </plurals>
+
+    <!-- App detail: Special handling (the five modes, behind an explicit Apply) -->
+    <string name="app_special_handling">Special handling</string>
+    <string name="app_mode_exclude_warning">Keepout won\'t filter or log this app, and none of its rules apply.</string>
+    <string name="app_mode_skip_all_warning">DNS blocking and firewall rules stop applying to this app.</string>
+    <string name="app_mode_changed">%1$s: %2$s</string>
+    <string name="app_more">More</string>
+
+    <!-- Apps list -->
+    <string name="apps_search_hint">Search apps</string>
+    <string name="apps_select">Select</string>
+    <string name="apps_exit_select">Exit selection</string>
+    <plurals name="apps_selected_count">
+        <item quantity="one">%d selected</item>
+        <item quantity="other">%d selected</item>
+    </plurals>
+    <string name="apps_action_block_wifi">Block Wi‑Fi</string>
+    <string name="apps_action_block_mobile">Block mobile data</string>
+    <string name="apps_action_allow_all">Allow all</string>
+    <string name="apps_action_allow_wifi">Allow Wi‑Fi</string>
+    <string name="apps_action_allow_mobile">Allow mobile data</string>
+    <plurals name="apps_confirm_block_wifi">
+        <item quantity="one">Block Wi‑Fi for %d app?</item>
+        <item quantity="other">Block Wi‑Fi for %d apps?</item>
+    </plurals>
+    <plurals name="apps_confirm_block_mobile">
+        <item quantity="one">Block mobile data for %d app?</item>
+        <item quantity="other">Block mobile data for %d apps?</item>
+    </plurals>
+    <plurals name="apps_confirm_allow_all">
+        <item quantity="one">Allow %d app everywhere?</item>
+        <item quantity="other">Allow %d apps everywhere?</item>
+    </plurals>
+    <plurals name="apps_confirm_allow_wifi">
+        <item quantity="one">Allow Wi‑Fi for %d app?</item>
+        <item quantity="other">Allow Wi‑Fi for %d apps?</item>
+    </plurals>
+    <plurals name="apps_confirm_allow_mobile">
+        <item quantity="one">Allow mobile data for %d app?</item>
+        <item quantity="other">Allow mobile data for %d apps?</item>
+    </plurals>
+    <plurals name="apps_confirm_mode">
+        <item quantity="one">Set %1$d app to %2$s?</item>
+        <item quantity="other">Set %1$d apps to %2$s?</item>
+    </plurals>
+    <string name="apps_confirm_network_message">Only the apps you selected change. Any special handling they have goes back to Normal.</string>
+    <string name="apps_confirm_mode_message">Only the apps you selected change. Their Wi‑Fi and mobile data blocks are cleared.</string>
+    <string name="apps_also_affects">Also affects apps that share their ID: %1$s</string>
+    <plurals name="apps_bulk_done">
+        <item quantity="one">%d app updated</item>
+        <item quantity="other">%d apps updated</item>
+    </plurals>
+    <string name="apps_action_allow_on_wifi">Allow on Wi‑Fi</string>
+    <string name="apps_action_block_on_wifi">Block on Wi‑Fi</string>
+    <string name="apps_action_allow_on_mobile">Allow on mobile data</string>
+    <string name="apps_action_block_on_mobile">Block on mobile data</string>
+</resources>

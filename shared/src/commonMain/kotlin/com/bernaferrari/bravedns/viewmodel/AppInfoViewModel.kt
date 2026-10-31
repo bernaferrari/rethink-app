@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bernaferrari.bravedns.database.AppInfo
 import com.bernaferrari.bravedns.database.AppInfoDAO
+import com.bernaferrari.bravedns.ui.compose.firewall.RethinkAppSelectionAction
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkFirewallFilter
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkFirewallFilters
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkFirewallTopLevelFilter
@@ -20,7 +21,10 @@ import kotlinx.coroutines.sync.withLock
 import org.koin.core.annotation.KoinViewModel
 import org.koin.core.annotation.Provided
 
-/** Shared filtering and bulk-rule state for the app firewall list. */
+/** One app's firewall rule before a Select-mode change, for Undo. */
+data class AppRuleSnapshot(val uid: Int, val firewall: AppFirewallStatus, val connection: AppConnectionStatus)
+
+/** Shared filtering and Select-mode rule changes for the app firewall list. */
 @OptIn(FlowPreview::class)
 @KoinViewModel
 class AppInfoViewModel(
@@ -38,57 +42,37 @@ class AppInfoViewModel(
             base.copy(query = debouncedSearch.trim())
         }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultFilters)
 
-    val appInfo: StateFlow<List<AppInfo>> =
+    /** The filtered, sorted apps; null until the first load completes (never an "empty" flash). */
+    val appInfo: StateFlow<List<AppInfo>?> =
         combine(appInfoDAO.getAllAppDetailsFlow(), effectiveFilters) { apps, filters ->
             filterAndSortApps(apps, filters)
-        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     fun setFilter(filters: RethinkFirewallFilters) {
         baseFilters.value = filters.copy(query = "")
         searchInput.value = filters.query
     }
 
-    suspend fun updateUnmeteredStatus(blocked: Boolean) = updateFilteredApps { uid ->
-        val connection = firewallRules.connectionStatus(uid)
-        wifiState(blocked, connection)
+    /**
+     * Apply [action] to exactly [uids] (Select mode), never to whatever the filter shows. Returns
+     * each app's previous rule so [restore] can undo it. Network actions keep the other network's
+     * flag and return the app to Normal handling; mode actions clear both network flags, as the
+     * per-app controls always have.
+     */
+    suspend fun applyToSelected(uids: Set<Int>, action: RethinkAppSelectionAction): List<AppRuleSnapshot> =
+        bulkUpdateMutex.withLock {
+            uids.map { uid ->
+                val before = AppRuleSnapshot(uid, firewallRules.firewallStatus(uid), firewallRules.connectionStatus(uid))
+                val next = selectionRule(action, before.connection)
+                firewallRules.updateFirewallStatus(uid, next.firewall, next.connection)
+                before
+            }
+        }
+
+    /** Put back the rules [applyToSelected] replaced. */
+    suspend fun restore(snapshots: List<AppRuleSnapshot>) = bulkUpdateMutex.withLock {
+        snapshots.forEach { firewallRules.updateFirewallStatus(it.uid, it.firewall, it.connection) }
     }
-
-    suspend fun updateMeteredStatus(blocked: Boolean) = updateFilteredApps { uid ->
-        val connection = firewallRules.connectionStatus(uid)
-        mobileState(blocked, connection)
-    }
-
-    suspend fun updateBypassStatus(bypass: Boolean) =
-        updateFilteredApps {
-            AppRuleState(
-                if (bypass) AppFirewallStatus.BypassUniversal else AppFirewallStatus.None,
-                AppConnectionStatus.Allow,
-            )
-        }
-
-    suspend fun updateBypassDnsFirewall(bypass: Boolean) =
-        updateFilteredApps {
-            AppRuleState(
-                if (bypass) AppFirewallStatus.BypassDnsFirewall else AppFirewallStatus.None,
-                AppConnectionStatus.Allow,
-            )
-        }
-
-    suspend fun updateExcludeStatus(exclude: Boolean) =
-        updateFilteredApps {
-            AppRuleState(
-                if (exclude) AppFirewallStatus.Exclude else AppFirewallStatus.None,
-                AppConnectionStatus.Allow,
-            )
-        }
-
-    suspend fun updateLockdownStatus(lockdown: Boolean) =
-        updateFilteredApps {
-            AppRuleState(
-                if (lockdown) AppFirewallStatus.Isolate else AppFirewallStatus.None,
-                AppConnectionStatus.Allow,
-            )
-        }
 
     suspend fun getAppCount(): Int = appInfoDAO.getAppCount()
 
@@ -131,7 +115,8 @@ class AppInfoViewModel(
                     status == AppFirewallStatus.None.id && connection in setOf(AppConnectionStatus.Unmetered.id, AppConnectionStatus.Both.id)
                 RethinkFirewallFilter.BlockedMobile ->
                     status == AppFirewallStatus.None.id && connection in setOf(AppConnectionStatus.Metered.id, AppConnectionStatus.Both.id)
-                RethinkFirewallFilter.Bypass -> status in BYPASS_STATUS_IDS
+                RethinkFirewallFilter.Bypass -> status == AppFirewallStatus.BypassUniversal.id
+                RethinkFirewallFilter.SkipAllFiltering -> status == AppFirewallStatus.BypassDnsFirewall.id
                 RethinkFirewallFilter.Excluded -> status == AppFirewallStatus.Exclude.id
                 RethinkFirewallFilter.Lockdown -> status == AppFirewallStatus.Isolate.id
             }
@@ -141,15 +126,16 @@ class AppInfoViewModel(
     private fun matchesSearch(app: AppInfo, query: String): Boolean =
         query.isBlank() || app.appName.contains(query.trim(), ignoreCase = true)
 
-    private suspend fun updateFilteredApps(ruleForUid: suspend (Int) -> AppRuleState) {
-        bulkUpdateMutex.withLock {
-            appInfo.value
-                .distinctBy { it.uid }
-                .forEach { app ->
-                    val state = ruleForUid(app.uid)
-                    firewallRules.updateFirewallStatus(app.uid, state.firewall, state.connection)
-                }
-        }
+    private fun selectionRule(action: RethinkAppSelectionAction, connection: AppConnectionStatus): AppRuleState = when (action) {
+        RethinkAppSelectionAction.BlockWifi -> wifiState(blocked = true, connection)
+        RethinkAppSelectionAction.BlockMobile -> mobileState(blocked = true, connection)
+        RethinkAppSelectionAction.AllowWifi -> wifiState(blocked = false, connection)
+        RethinkAppSelectionAction.AllowMobile -> mobileState(blocked = false, connection)
+        RethinkAppSelectionAction.AllowAll -> AppRuleState(AppFirewallStatus.None, AppConnectionStatus.Allow)
+        RethinkAppSelectionAction.TrustedOnly -> AppRuleState(AppFirewallStatus.Isolate, AppConnectionStatus.Allow)
+        RethinkAppSelectionAction.SkipUniversalRules -> AppRuleState(AppFirewallStatus.BypassUniversal, AppConnectionStatus.Allow)
+        RethinkAppSelectionAction.SkipAllFiltering -> AppRuleState(AppFirewallStatus.BypassDnsFirewall, AppConnectionStatus.Allow)
+        RethinkAppSelectionAction.Exclude -> AppRuleState(AppFirewallStatus.Exclude, AppConnectionStatus.Allow)
     }
 
     private fun wifiState(blocked: Boolean, connection: AppConnectionStatus): AppRuleState =
@@ -184,10 +170,6 @@ class AppInfoViewModel(
             AppConnectionStatus.Unmetered.id,
             AppConnectionStatus.Metered.id,
             AppConnectionStatus.Both.id,
-        )
-        val BYPASS_STATUS_IDS = setOf(
-            AppFirewallStatus.BypassUniversal.id,
-            AppFirewallStatus.BypassDnsFirewall.id,
         )
     }
 }

@@ -19,6 +19,8 @@ enum class AppConnectionStatus(val id: Int) {
 
 /** Host boundary for changing live firewall state. */
 interface AppFirewallRuleMutator {
+    suspend fun firewallStatus(uid: Int): AppFirewallStatus
+
     suspend fun connectionStatus(uid: Int): AppConnectionStatus
 
     suspend fun updateFirewallStatus(

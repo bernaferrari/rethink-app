@@ -3,9 +3,28 @@
 /* Copyright 2026 RethinkDNS and its authors */
 package com.bernaferrari.bravedns.ui.compose.firewall
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.ripple
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
+import com.bernaferrari.bravedns.ui.compose.common.RethinkLoadingState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkIconWell
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillDefaults
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillSize
@@ -77,11 +96,8 @@ import com.bernaferrari.bravedns.ui.compose.components.RethinkFastScrollerMark
 import com.bernaferrari.bravedns.ui.compose.components.RethinkIndexedFastScroller
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFilterChip
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormActionRow
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkModalBottomSheet
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkToolbarIconToggle
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSearchField
@@ -90,7 +106,6 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSheetHeader
-import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListShape
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedRow
@@ -113,12 +128,13 @@ data class RethinkFirewallApp(
     val technicalIdentity: String? = null,
 )
 
-enum class RethinkFirewallAppStatus { Allowed, Blocked, Bypass, Excluded, Lockdown, Unknown }
+/** [Bypass] skips universal rules; [SkipAllFiltering] skips DNS blocking and the firewall too. */
+enum class RethinkFirewallAppStatus { Allowed, Blocked, Bypass, SkipAllFiltering, Excluded, Lockdown, Unknown }
 
 /** The app shown beside the list in a list–detail layout; its row is drawn selected. */
 val LocalSelectedFirewallAppUid = androidx.compose.runtime.compositionLocalOf<Int?> { null }
 
-enum class RethinkFirewallFilter { All, Allowed, Blocked, Bypass, Excluded, Lockdown, BlockedWifi, BlockedMobile }
+enum class RethinkFirewallFilter { All, Allowed, Blocked, BlockedWifi, BlockedMobile, Lockdown, Bypass, SkipAllFiltering, Excluded }
 
 enum class RethinkAppSort { Name, Package, Uid }
 
@@ -128,7 +144,16 @@ data class RethinkAppSorting(val order: RethinkAppSort = RethinkAppSort.Name, va
 
 enum class RethinkFirewallTopLevelFilter { Installed, System, All }
 
-enum class RethinkFirewallBulkAction { Wifi, Mobile, Bypass, BypassDns, Exclude, Lockdown }
+/**
+ * What Select mode can do to the selected apps (and only those). The first three sit on the action
+ * bar; the rest live under More.
+ */
+enum class RethinkAppSelectionAction {
+    BlockWifi, BlockMobile, AllowAll, AllowWifi, AllowMobile, TrustedOnly, SkipUniversalRules, SkipAllFiltering, Exclude;
+
+    /** Network actions return apps to Normal handling; the rest are handling modes. */
+    val isNetwork: Boolean get() = this in setOf(BlockWifi, BlockMobile, AllowAll, AllowWifi, AllowMobile)
+}
 
 data class RethinkFirewallFilters(
     val categories: Set<String> = emptySet(),
@@ -137,14 +162,15 @@ data class RethinkFirewallFilters(
     val query: String = "",
 )
 
-data class RethinkFirewallBulkDialogCopy(val title: String, val message: String)
-
 data class RethinkFirewallAppListStrings(
     val title: String,
+    /** "Search 214 apps", once the list has loaded. */
     val searchHint: @Composable (Int) -> String,
+    /** "Search apps", while the first load runs. */
+    val searchHintLoading: String,
+    val loading: String,
     val refresh: String,
     val filter: String,
-    val rules: String,
     val clearSearch: String,
     val emptyTitle: String,
     val emptyDescription: String,
@@ -155,24 +181,32 @@ data class RethinkFirewallAppListStrings(
     val status: String,
     val categories: String,
     val clear: String,
-    val noCategories: String,
-    val apply: String,
     val cancel: String,
     val close: String,
-    val enabled: String,
-    val disabled: String,
     val proxy: String,
+    /** The network segment's state, "Wi‑Fi: blocked" (what TalkBack reads). */
+    val wifiStateLabel: @Composable (blocked: Boolean) -> String,
+    val mobileStateLabel: @Composable (blocked: Boolean) -> String,
+    /** What a double-tap does, "Allow on Wi‑Fi". */
     val wifiActionLabel: @Composable (blocked: Boolean) -> String,
     val mobileActionLabel: @Composable (blocked: Boolean) -> String,
-    val bulkDescription: String,
-    val selectedApps: @Composable (Int) -> String,
-    val actionLabel: @Composable (RethinkFirewallBulkAction) -> String,
-    val actionDescription: @Composable (RethinkFirewallBulkAction) -> String,
-    val bulkDialogCopy: (RethinkFirewallBulkAction, Boolean) -> RethinkFirewallBulkDialogCopy,
+    val select: String,
+    val exitSelect: String,
+    val selectAll: String,
+    val selectedCount: @Composable (Int) -> String,
+    val selectionActionLabel: @Composable (RethinkAppSelectionAction) -> String,
+    /** "Block Wi‑Fi for 6 apps?" */
+    val selectionConfirmTitle: @Composable (RethinkAppSelectionAction, Int) -> String,
+    val selectionNetworkMessage: String,
+    val selectionModeMessage: String,
+    /** "Also affects apps that share their ID: …" */
+    val alsoAffects: @Composable (String) -> String,
     val filterLabel: @Composable (RethinkFirewallFilter) -> String,
     val statusLabel: @Composable (RethinkFirewallAppStatus) -> String,
-    /** Content description of the top-bar overflow button that holds the bulk-rules entry. */
+    /** Content description of the top-bar overflow button (Refresh lives there). */
     val moreOptions: String = "More options",
+    /** The Select-mode bar's overflow label. */
+    val more: String = "More",
     val sortLabels: List<String> = emptyList(),
     val sortTitle: String = "Sort apps",
     val uidLabel: @Composable (Int) -> String = { "UID $it" },
@@ -190,21 +224,25 @@ private const val FAST_SCROLLER_MIN_MARKS = 4
 
 /**
  * Full target-neutral app firewall UI. Hosts own installed-app discovery, package icons, shared
- * UID confirmation, and persistence; this renderer owns every list, filter and bulk-action
- * surface so Android and the web demo do not drift visually.
+ * UID lookups, and persistence; this renderer owns every list, filter and Select-mode surface so
+ * Android and the web demo do not drift visually.
+ *
+ * [apps] is null until the first load completes: the list shows loading, never "No apps found"
+ * or "Search 0 apps". Select mode (top-bar Select, or long-press a row) acts on the checked apps
+ * only, after a confirm sheet that names them.
  */
 @Composable
 fun RethinkFirewallAppListScreen(
-    apps: List<RethinkFirewallApp>,
+    apps: List<RethinkFirewallApp>?,
     filterState: RethinkAppListFilterState,
-    activeBulkActions: Set<RethinkFirewallBulkAction>,
     strings: RethinkFirewallAppListStrings,
     isRefreshing: Boolean,
     onQueryChange: (String) -> Unit,
     onRefresh: () -> Unit,
     onFiltersChange: (RethinkFirewallFilters) -> Unit,
     onQuickFilterChange: (RethinkFirewallFilter) -> Unit,
-    onBulkAction: (RethinkFirewallBulkAction) -> Unit,
+    /** Apply [RethinkAppSelectionAction] to exactly these apps (already confirmed). */
+    onSelectionAction: (RethinkAppSelectionAction, List<RethinkFirewallApp>) -> Unit,
     loadCategories: suspend (RethinkFirewallTopLevelFilter) -> List<String>,
     onAppClick: (RethinkFirewallApp) -> Unit,
     onWifiToggle: (RethinkFirewallApp) -> Unit,
@@ -213,24 +251,42 @@ fun RethinkFirewallAppListScreen(
     onBackClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     sorting: RethinkAppSorting = RethinkAppSorting(),
+    /** Other apps sharing a selected app's UID (a change applies to the whole UID). */
+    loadAlsoAffects: suspend (List<RethinkFirewallApp>) -> List<String> = { emptyList() },
+    snackbarHostState: SnackbarHostState? = null,
+    /** Platform back: leaves Select mode instead of the screen while it's on. */
+    selectionBackHandler: @Composable (enabled: Boolean, onBack: () -> Unit) -> Unit = { _, _ -> },
 ) {
     val query = filterState.query
     val selectedQuickFilter = filterState.selectedQuickFilter
     val filters = filterState.filters
     val sortOrder = sorting.order
     var showFilters by remember { mutableStateOf(false) }
-    var showRules by remember { mutableStateOf(false) }
-    var pendingBulkAction by remember { mutableStateOf<RethinkFirewallBulkAction?>(null) }
+    var selecting by remember { mutableStateOf(false) }
+    // Keyed by row id; kept even when a filter hides the row, so nothing changes off-screen unseen
+    // (the confirm sheet names every app it will change).
+    var selected by remember { mutableStateOf(emptyMap<String, RethinkFirewallApp>()) }
+    var pendingAction by remember { mutableStateOf<RethinkAppSelectionAction?>(null) }
     val hasActiveFilters = selectedQuickFilter != RethinkFirewallFilter.All ||
         filters.topLevel != RethinkFirewallTopLevelFilter.Installed ||
         filters.categories.isNotEmpty()
 
+    fun exitSelection() {
+        selecting = false
+        selected = emptyMap()
+    }
+    fun toggle(app: RethinkFirewallApp) {
+        if (!app.canToggleConnections) return
+        selected = if (app.id in selected) selected - app.id else selected + (app.id to app)
+    }
+    selectionBackHandler(selecting) { exitSelection() }
+
     // Hosts may return packages in install/UID order. Keep the renderer deterministic so the
     // letter headers, fast scroller, and rows always describe the same alphabetical sequence.
-    val orderedApps = remember(apps, sortOrder) { orderFirewallApps(apps, sortOrder) }
+    val orderedApps = remember(apps, sortOrder) { apps?.let { orderFirewallApps(it, sortOrder) } }
     val alphabetical = sortOrder == RethinkAppSort.Name
     val scrollerMarks = remember(orderedApps, alphabetical) {
-        if (alphabetical) rethinkFirewallScrollerMarks(orderedApps) else emptyList()
+        if (alphabetical && orderedApps != null) rethinkFirewallScrollerMarks(orderedApps) else emptyList()
     }
     // The search row and the list share one end inset so their right edges line up, whether or
     // not the fast scroller is shown.
@@ -240,25 +296,53 @@ fun RethinkFirewallAppListScreen(
         modifier = modifier,
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
-            RethinkTopBar(
-                title = strings.title,
-                onBackClick = onBackClick,
-                actions = {
-                    RethinkAppSortMenu(strings.sortTitle, strings.sortLabels, sorting)
-                    RethinkFirewallTopBarActions(
-                        isRefreshing = isRefreshing,
-                        strings = strings,
-                        onRefresh = onRefresh,
-                        onOpenRules = { showRules = true },
-                    )
-                },
-            )
+            if (selecting) {
+                RethinkTopBar(
+                    title = strings.selectedCount(selected.size),
+                    onBackClick = ::exitSelection,
+                    backDescription = strings.exitSelect,
+                    navigationIcon = MaterialSymbols.Filled.Close,
+                    actions = {
+                        val selectable = orderedApps.orEmpty().filter { it.canToggleConnections }
+                        TextButton(
+                            onClick = { selected = selected + selectable.associateBy { it.id } },
+                            enabled = selectable.any { it.id !in selected },
+                        ) { Text(strings.selectAll) }
+                    },
+                )
+            } else {
+                RethinkTopBar(
+                    title = strings.title,
+                    onBackClick = onBackClick,
+                    actions = {
+                        IconButton(onClick = { selecting = true }, enabled = !orderedApps.isNullOrEmpty()) {
+                            Icon(MaterialSymbols.Filled.Checklist, strings.select)
+                        }
+                        RethinkAppSortMenu(strings.sortTitle, strings.sortLabels, sorting)
+                        RethinkFirewallOverflowMenu(isRefreshing = isRefreshing, strings = strings, onRefresh = onRefresh)
+                    },
+                )
+            }
         },
+        bottomBar = {
+            AnimatedVisibility(
+                visible = selecting,
+                enter = fadeIn() + expandVertically(expandFrom = Alignment.Top),
+                exit = fadeOut() + shrinkVertically(shrinkTowards = Alignment.Top),
+            ) {
+                RethinkAppSelectionBar(
+                    enabled = selected.isNotEmpty(),
+                    strings = strings,
+                    onAction = { pendingAction = it },
+                )
+            }
+        },
+        snackbarHost = { snackbarHostState?.let { SnackbarHost(it) } },
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
             RethinkFirewallAppControls(
                 query = query,
-                count = apps.size,
+                count = apps?.size,
                 hasActiveFilters = hasActiveFilters,
                 endGutter = endGutter,
                 strings = strings,
@@ -273,8 +357,15 @@ fun RethinkFirewallAppListScreen(
                 endGutter = endGutter,
                 query = query,
                 strings = strings,
+                selection = if (selecting) selected.keys else null,
                 appIcon = appIcon,
-                onAppClick = onAppClick,
+                onAppClick = { app -> if (selecting) toggle(app) else onAppClick(app) },
+                onAppLongClick = { app ->
+                    if (app.canToggleConnections) {
+                        selecting = true
+                        toggle(app)
+                    }
+                },
                 onWifiToggle = onWifiToggle,
                 onMobileToggle = onMobileToggle,
             )
@@ -292,56 +383,209 @@ fun RethinkFirewallAppListScreen(
             onQuickFilterChange = onQuickFilterChange,
         )
     }
-    if (showRules) {
-        RethinkFirewallRulesDialog(
-            appsCount = apps.size,
-            activeActions = activeBulkActions,
+    pendingAction?.let { action ->
+        val targets = selected.values.sortedBy { it.appName.ifBlank { it.packageName }.lowercase() }
+        RethinkAppSelectionConfirmSheet(
+            action = action,
+            apps = targets,
             strings = strings,
-            onDismiss = { showRules = false },
-            onAction = { action ->
-                showRules = false
-                pendingBulkAction = action
+            loadAlsoAffects = loadAlsoAffects,
+            onDismiss = { pendingAction = null },
+            onConfirm = {
+                pendingAction = null
+                onSelectionAction(action, targets)
+                exitSelection()
             },
-        )
-    }
-    pendingBulkAction?.let { action ->
-        val copy = strings.bulkDialogCopy(action, activeBulkActions.contains(action))
-        RethinkConfirmDialog(
-            onDismissRequest = { pendingBulkAction = null },
-            title = copy.title,
-            message = copy.message,
-            confirmText = strings.apply,
-            dismissText = strings.cancel,
-            onConfirm = { pendingBulkAction = null; onBulkAction(action) },
-            onDismiss = { pendingBulkAction = null },
         )
     }
 }
 
-/** Refresh and the bulk-rules sheet as two direct actions: an overflow holding one item hid it. */
+/** Sort sits beside Select; Refresh, a rare action, moves into the overflow. */
 @Composable
-private fun RethinkFirewallTopBarActions(
+private fun RethinkFirewallOverflowMenu(
     isRefreshing: Boolean,
     strings: RethinkFirewallAppListStrings,
     onRefresh: () -> Unit,
-    onOpenRules: () -> Unit,
 ) {
-    IconButton(onClick = onRefresh, enabled = !isRefreshing) {
-        if (isRefreshing) {
-            LoadingIndicator(Modifier.size(SharedDimensions.iconSizeMd))
-        } else {
-            Icon(MaterialSymbols.Filled.Refresh, strings.refresh)
+    var open by remember { mutableStateOf(false) }
+    Box {
+        IconButton(onClick = { open = true }) {
+            if (isRefreshing) {
+                LoadingIndicator(Modifier.size(SharedDimensions.iconSizeMd))
+            } else {
+                Icon(MaterialSymbols.Filled.MoreVert, strings.moreOptions)
+            }
+        }
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            DropdownMenuItem(
+                text = { Text(strings.refresh) },
+                leadingIcon = { Icon(MaterialSymbols.Filled.Refresh, null) },
+                enabled = !isRefreshing,
+                onClick = { open = false; onRefresh() },
+            )
         }
     }
-    IconButton(onClick = onOpenRules) {
-        Icon(MaterialSymbols.Filled.Rule, strings.rules)
+}
+
+private fun RethinkAppSelectionAction.icon(): ImageVector = when (this) {
+    RethinkAppSelectionAction.BlockWifi -> MaterialSymbols.Filled.WifiOff
+    RethinkAppSelectionAction.BlockMobile -> MaterialSymbols.Filled.MobiledataOff
+    RethinkAppSelectionAction.AllowAll -> MaterialSymbols.Filled.CheckCircle
+    RethinkAppSelectionAction.AllowWifi -> MaterialSymbols.Filled.Wifi
+    RethinkAppSelectionAction.AllowMobile -> MaterialSymbols.Filled.MobiledataArrows
+    RethinkAppSelectionAction.TrustedOnly -> MaterialSymbols.Filled.Verified
+    RethinkAppSelectionAction.SkipUniversalRules -> MaterialSymbols.Filled.PublicOff
+    RethinkAppSelectionAction.SkipAllFiltering -> KeepoutIcons.FirewallOff
+    RethinkAppSelectionAction.Exclude -> MaterialSymbols.Filled.RemoveModerator
+}
+
+private val SelectionBarActions = listOf(
+    RethinkAppSelectionAction.BlockWifi,
+    RethinkAppSelectionAction.BlockMobile,
+    RethinkAppSelectionAction.AllowAll,
+)
+
+/** Block Wi‑Fi · Block mobile data · Allow all · More, for the checked apps. */
+@Composable
+private fun RethinkAppSelectionBar(
+    enabled: Boolean,
+    strings: RethinkFirewallAppListStrings,
+    onAction: (RethinkAppSelectionAction) -> Unit,
+) {
+    var moreOpen by remember { mutableStateOf(false) }
+    Surface(color = MaterialTheme.colorScheme.surfaceContainer, modifier = Modifier.fillMaxWidth()) {
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = SharedDimensions.spacingSm, vertical = SharedDimensions.spacingXs),
+            horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
+        ) {
+            SelectionBarActions.forEach { action ->
+                RethinkSelectionBarButton(
+                    label = strings.selectionActionLabel(action),
+                    icon = action.icon(),
+                    enabled = enabled,
+                    modifier = Modifier.weight(1f),
+                    onClick = { onAction(action) },
+                )
+            }
+            Box(Modifier.weight(1f)) {
+                RethinkSelectionBarButton(
+                    label = strings.more,
+                    icon = MaterialSymbols.Filled.MoreHoriz,
+                    enabled = enabled,
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = { moreOpen = true },
+                )
+                DropdownMenu(expanded = moreOpen, onDismissRequest = { moreOpen = false }) {
+                    RethinkAppSelectionAction.entries.filterNot { it in SelectionBarActions }.forEachIndexed { index, action ->
+                        if (index > 0 && !action.isNetwork && RethinkAppSelectionAction.entries.filterNot { it in SelectionBarActions }[index - 1].isNetwork) {
+                            HorizontalDivider()
+                        }
+                        DropdownMenuItem(
+                            text = { Text(strings.selectionActionLabel(action)) },
+                            leadingIcon = { Icon(action.icon(), null) },
+                            onClick = { moreOpen = false; onAction(action) },
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RethinkSelectionBarButton(
+    label: String,
+    icon: ImageVector,
+    enabled: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    Surface(
+        onClick = onClick,
+        enabled = enabled,
+        shape = RoundedCornerShape(SharedDimensions.cornerRadiusLg),
+        color = Color.Transparent,
+        contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = if (enabled) 1f else .38f),
+        modifier = modifier.heightIn(min = SelectionBarHeight),
+    ) {
+        Column(
+            Modifier.padding(vertical = SharedDimensions.spacingSm, horizontal = SharedDimensions.spacingXs),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
+        ) {
+            Icon(icon, null, Modifier.size(SharedDimensions.iconSizeMd))
+            Text(
+                label,
+                style = MaterialTheme.typography.labelMedium,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
+            )
+        }
+    }
+}
+
+private val SelectionBarHeight = 64.dp
+
+/**
+ * "Block Wi‑Fi for 6 apps?": what changes, for exactly which apps (by name), and which other apps
+ * share their UID. Nothing is written until the confirm button.
+ */
+@Composable
+private fun RethinkAppSelectionConfirmSheet(
+    action: RethinkAppSelectionAction,
+    apps: List<RethinkFirewallApp>,
+    strings: RethinkFirewallAppListStrings,
+    loadAlsoAffects: suspend (List<RethinkFirewallApp>) -> List<String>,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+) {
+    var alsoAffects by remember(apps) { mutableStateOf(emptyList<String>()) }
+    LaunchedEffect(apps) { alsoAffects = loadAlsoAffects(apps) }
+    RethinkModalBottomSheet(
+        onDismissRequest = onDismiss,
+        contentPadding = PaddingValues(SharedDimensions.spacingLg),
+        verticalSpacing = SharedDimensions.spacingMd,
+        includeBottomSpacer = false,
+        expandOnShow = true,
+    ) { dismiss ->
+        Column(
+            Modifier.fillMaxWidth().heightIn(max = SharedDimensions.sheetContentMaxHeight).verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
+        ) {
+            RethinkSheetHeader(
+                title = strings.selectionConfirmTitle(action, apps.size),
+                subtitle = if (action.isNetwork) strings.selectionNetworkMessage else strings.selectionModeMessage,
+            )
+            Text(
+                apps.joinToString(", ") { it.appName.ifBlank { it.packageName } },
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            if (alsoAffects.isNotEmpty()) {
+                Text(
+                    strings.alsoAffects(alsoAffects.joinToString(", ")),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+        RethinkFormActionRow(
+            confirmLabel = strings.selectionActionLabel(action),
+            onConfirm = {
+                dismiss()
+                onConfirm()
+            },
+            dismissLabel = strings.cancel,
+            onDismiss = dismiss,
+        )
     }
 }
 
 @Composable
 private fun RethinkFirewallAppControls(
     query: String,
-    count: Int,
+    count: Int?,
     hasActiveFilters: Boolean,
     endGutter: Dp,
     strings: RethinkFirewallAppListStrings,
@@ -361,7 +605,8 @@ private fun RethinkFirewallAppControls(
         RethinkSearchField(
             query = query,
             onQueryChange = onQueryChange,
-            placeholder = strings.searchHint(count),
+            // The count waits for the load: "Search 0 apps" is only true once the list says so.
+            placeholder = if (count == null) strings.searchHintLoading else strings.searchHint(count),
             clearQueryContentDescription = strings.clearSearch,
             modifier = Modifier.weight(1f),
         )
@@ -381,18 +626,24 @@ private fun RethinkFirewallAppControls(
 
 @Composable
 private fun RethinkFirewallAppList(
-    apps: List<RethinkFirewallApp>,
+    apps: List<RethinkFirewallApp>?,
     scrollerMarks: List<RethinkFastScrollerMark>,
     sortOrder: RethinkAppSort,
     endGutter: Dp,
     query: String,
     strings: RethinkFirewallAppListStrings,
+    selection: Set<String>?,
     appIcon: @Composable (RethinkFirewallApp) -> Unit,
     onAppClick: (RethinkFirewallApp) -> Unit,
+    onAppLongClick: (RethinkFirewallApp) -> Unit,
     onWifiToggle: (RethinkFirewallApp) -> Unit,
     onMobileToggle: (RethinkFirewallApp) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    if (apps == null) {
+        RethinkLoadingState(label = strings.loading, modifier = modifier.fillMaxSize())
+        return
+    }
     if (apps.isEmpty()) {
         RethinkEmptyState(
             icon = MaterialSymbols.Filled.Apps,
@@ -413,8 +664,10 @@ private fun RethinkFirewallAppList(
             endGutter = endGutter,
             query = query,
             strings = strings,
+            selection = selection,
             appIcon = appIcon,
             onAppClick = onAppClick,
+            onAppLongClick = onAppLongClick,
             onWifiToggle = onWifiToggle,
             onMobileToggle = onMobileToggle,
         )
@@ -435,8 +688,10 @@ private fun RethinkFirewallAppRows(
     endGutter: Dp,
     query: String,
     strings: RethinkFirewallAppListStrings,
+    selection: Set<String>?,
     appIcon: @Composable (RethinkFirewallApp) -> Unit,
     onAppClick: (RethinkFirewallApp) -> Unit,
+    onAppLongClick: (RethinkFirewallApp) -> Unit,
     onWifiToggle: (RethinkFirewallApp) -> Unit,
     onMobileToggle: (RethinkFirewallApp) -> Unit,
 ) {
@@ -473,11 +728,15 @@ private fun RethinkFirewallAppRows(
                     query = query,
                     statusLabel = strings.statusLabel(app.status),
                     position = position,
+                    selected = selection?.let { app.id in it },
                     appIcon = { appIcon(app) },
                     onClick = { onAppClick(app) },
+                    onLongClick = { onAppLongClick(app) },
                     onWifiToggle = { onWifiToggle(app) },
                     onMobileToggle = { onMobileToggle(app) },
                     proxyLabel = strings.proxy,
+                    wifiStateLabel = strings.wifiStateLabel(app.wifiBlocked),
+                    mobileStateLabel = strings.mobileStateLabel(app.mobileBlocked),
                     wifiActionLabel = strings.wifiActionLabel(app.wifiBlocked),
                     mobileActionLabel = strings.mobileActionLabel(app.mobileBlocked),
                 )
@@ -492,11 +751,16 @@ private fun RethinkFirewallAppRow(
     query: String,
     statusLabel: String,
     position: CardPosition,
+    /** Null outside Select mode; otherwise whether this row is checked. */
+    selected: Boolean?,
     appIcon: @Composable () -> Unit,
     onClick: () -> Unit,
+    onLongClick: () -> Unit,
     onWifiToggle: () -> Unit,
     onMobileToggle: () -> Unit,
     proxyLabel: String,
+    wifiStateLabel: String,
+    mobileStateLabel: String,
     wifiActionLabel: String,
     mobileActionLabel: String,
 ) {
@@ -512,15 +776,41 @@ private fun RethinkFirewallAppRow(
     val accent = statusColor(app.status, app.wifiBlocked || app.mobileBlocked)
     val usage = app.dataUsage?.takeIf { it.isNotBlank() }
     val hasSupportingLine = statusLabel.isNotBlank() || app.proxyEnabled || usage != null
+    val checked = selected == true
+    val containerColor = when {
+        checked -> MaterialTheme.colorScheme.secondaryContainer
+        selected == null && LocalSelectedFirewallAppUid.current == app.uid -> MaterialTheme.colorScheme.secondaryContainer
+        else -> MaterialTheme.colorScheme.surfaceContainerLow
+    }
     Surface(
-        onClick = onClick,
-        interactionSource = interaction,
         modifier = Modifier.scale(scale).rethinkGroupedRow(position),
         shape = shape,
-        color = if (LocalSelectedFirewallAppUid.current == app.uid) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerLow,
+        color = containerColor,
     ) {
         Row(
-            Modifier.fillMaxWidth().padding(horizontal = SharedDimensions.spacingMd, vertical = SharedDimensions.spacingSm),
+            Modifier
+                .fillMaxWidth()
+                .then(
+                    if (selected != null) {
+                        // Select mode: the whole row is one checkbox.
+                        Modifier.toggleable(
+                            value = checked,
+                            enabled = app.canToggleConnections,
+                            role = Role.Checkbox,
+                            interactionSource = interaction,
+                            indication = ripple(),
+                            onValueChange = { onClick() },
+                        )
+                    } else {
+                        Modifier.combinedClickable(
+                            interactionSource = interaction,
+                            indication = ripple(),
+                            onClick = onClick,
+                            onLongClick = onLongClick,
+                        )
+                    },
+                )
+                .padding(horizontal = SharedDimensions.spacingMd, vertical = SharedDimensions.spacingSm),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
         ) {
@@ -570,14 +860,17 @@ private fun RethinkFirewallAppRow(
                     }
                 }
             }
-            if (app.canToggleConnections) {
-                RethinkNetworkSegmentPair(
+            when {
+                selected != null -> Checkbox(checked = checked, onCheckedChange = null, enabled = app.canToggleConnections)
+                app.canToggleConnections -> RethinkNetworkSegmentPair(
                     wifiBlocked = app.wifiBlocked,
                     mobileBlocked = app.mobileBlocked,
-                    wifiDescription = wifiActionLabel,
-                    mobileDescription = mobileActionLabel,
+                    wifiDescription = wifiStateLabel,
+                    mobileDescription = mobileStateLabel,
                     onWifiToggle = onWifiToggle,
                     onMobileToggle = onMobileToggle,
+                    wifiActionLabel = wifiActionLabel,
+                    mobileActionLabel = mobileActionLabel,
                 )
             }
         }
@@ -594,15 +887,19 @@ private fun RethinkFirewallAppRow(
 fun RethinkNetworkSegmentPair(
     wifiBlocked: Boolean,
     mobileBlocked: Boolean,
+    /** What TalkBack reads for each segment: its state ("Wi‑Fi: blocked"), never the action. */
     wifiDescription: String,
     mobileDescription: String,
     onWifiToggle: () -> Unit,
     onMobileToggle: () -> Unit,
     modifier: Modifier = Modifier,
+    /** "Allow on Wi‑Fi": announced as the double-tap action. */
+    wifiActionLabel: String? = null,
+    mobileActionLabel: String? = null,
 ) {
     Row(modifier, horizontalArrangement = Arrangement.spacedBy(NetworkSegmentGap)) {
-        RethinkNetworkSegment(wifiBlocked, MaterialSymbols.Filled.Wifi, MaterialSymbols.Filled.WifiOff, wifiDescription, leading = true, onWifiToggle)
-        RethinkNetworkSegment(mobileBlocked, MaterialSymbols.Filled.MobiledataArrows, MaterialSymbols.Filled.MobiledataOff, mobileDescription, leading = false, onMobileToggle)
+        RethinkNetworkSegment(wifiBlocked, MaterialSymbols.Filled.Wifi, MaterialSymbols.Filled.WifiOff, wifiDescription, wifiActionLabel, leading = true, onWifiToggle)
+        RethinkNetworkSegment(mobileBlocked, MaterialSymbols.Filled.MobiledataArrows, MaterialSymbols.Filled.MobiledataOff, mobileDescription, mobileActionLabel, leading = false, onMobileToggle)
     }
 }
 
@@ -611,7 +908,8 @@ private fun RethinkNetworkSegment(
     blocked: Boolean,
     allowedIcon: ImageVector,
     blockedIcon: ImageVector,
-    contentDescription: String,
+    stateDescription: String,
+    actionLabel: String?,
     leading: Boolean,
     onClick: () -> Unit,
 ) {
@@ -634,19 +932,24 @@ private fun RethinkNetworkSegment(
         RoundedCornerShape(topStart = inner, bottomStart = inner, topEnd = outer, bottomEnd = outer)
     }
     Surface(
-        onClick = onClick,
         shape = shape,
         color = container,
         modifier = Modifier.size(width = NetworkSegmentWidth, height = NetworkSegmentHeight),
     ) {
-        Box(contentAlignment = Alignment.Center) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .clickable(onClickLabel = actionLabel, role = Role.Button, onClick = onClick)
+                .semantics { contentDescription = stateDescription },
+            contentAlignment = Alignment.Center,
+        ) {
             DiagonalWipeIcon(
                 blocked = blocked,
                 allowedIcon = allowedIcon,
                 blockedIcon = blockedIcon,
                 allowedTint = scheme.onSurfaceVariant,
                 blockedTint = scheme.onErrorContainer,
-                contentDescription = contentDescription,
+                contentDescription = null,
                 modifier = Modifier.size(SharedDimensions.iconSizeSm),
             )
         }
@@ -883,10 +1186,11 @@ private fun RethinkFirewallFilterDialog(
                         onSelect = { option -> status = option; publish(selectedStatus = option) },
                     )
                 }
-                RethinkFirewallFilterSection("${strings.categories} · ${selectedCategories.size}") {
-                    if (categories.isEmpty()) {
-                        Text(strings.noCategories, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    } else {
+                // One category (or none) is no choice: hide the section rather than show "· 0".
+                if (categories.size > 1) RethinkFirewallFilterSection(
+                    if (selectedCategories.isEmpty()) strings.categories else "${strings.categories} · ${selectedCategories.size}",
+                ) {
+                    run {
                         FlowRow(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
@@ -947,85 +1251,13 @@ private fun <T> RethinkFirewallFilterOptions(
     }
 }
 
-@Composable
-private fun RethinkFirewallRulesDialog(
-    appsCount: Int,
-    activeActions: Set<RethinkFirewallBulkAction>,
-    strings: RethinkFirewallAppListStrings,
-    onDismiss: () -> Unit,
-    onAction: (RethinkFirewallBulkAction) -> Unit,
-) {
-    RethinkModalBottomSheet(
-        onDismissRequest = onDismiss,
-        contentPadding = PaddingValues(SharedDimensions.spacingLg),
-        verticalSpacing = SharedDimensions.spacingMd,
-        includeBottomSpacer = false,
-        expandOnShow = true,
-    ) { dismissSheet ->
-        Column(
-            modifier = Modifier.fillMaxWidth().heightIn(max = SharedDimensions.sheetContentMaxHeight).verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
-        ) {
-            RethinkSheetHeader(strings.rules)
-            Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
-                Text(strings.selectedApps(appsCount), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
-                Text(strings.bulkDescription, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                HorizontalDivider()
-                RethinkListGroup {
-                    RethinkFirewallBulkAction.entries.forEachIndexed { index, action ->
-                        val active = action in activeActions
-                        RethinkListItem(
-                            headline = strings.actionLabel(action),
-                            supporting = strings.actionDescription(action),
-                            leadingContent = { RethinkFirewallBulkIcon(action) },
-                            position = cardPositionFor(index, RethinkFirewallBulkAction.entries.lastIndex),
-                            highlighted = active,
-                            onClick = { onAction(action) },
-                            trailing = {
-                                Text(
-                                    if (active) strings.enabled else strings.disabled,
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            },
-                        )
-                    }
-                }
-            }
-        }
-        RethinkFormActionRow(
-            confirmLabel = strings.close,
-            onConfirm = dismissSheet,
-        )
-    }
-}
-
-@Composable
-private fun RethinkFirewallBulkIcon(action: RethinkFirewallBulkAction) {
-    val icon = when (action) {
-        RethinkFirewallBulkAction.Wifi -> MaterialSymbols.Filled.WifiOff
-        RethinkFirewallBulkAction.Mobile -> MaterialSymbols.Filled.MobiledataOff
-        RethinkFirewallBulkAction.Bypass -> MaterialSymbols.Filled.PublicOff
-        RethinkFirewallBulkAction.BypassDns -> KeepoutIcons.FirewallOff
-        RethinkFirewallBulkAction.Exclude -> MaterialSymbols.Filled.RemoveModerator
-        RethinkFirewallBulkAction.Lockdown -> MaterialSymbols.Filled.Lock
-    }
-    RethinkIconWell(
-        icon = icon,
-        tint = MaterialTheme.colorScheme.onSurface,
-        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-        size = SharedDimensions.iconContainerSm,
-        iconSize = SharedDimensions.iconSizeXs,
-        shape = CircleShape,
-    )
-}
-
 /** Leading chip icon per filter; "All" is the neutral reset and carries no icon. */
 private fun RethinkFirewallFilter.icon(): ImageVector? = when (this) {
     RethinkFirewallFilter.All -> null
     RethinkFirewallFilter.Allowed -> MaterialSymbols.Filled.CheckCircle
     RethinkFirewallFilter.Blocked -> MaterialSymbols.Filled.DoNotDisturbOn
     RethinkFirewallFilter.Bypass -> MaterialSymbols.Filled.PublicOff
+    RethinkFirewallFilter.SkipAllFiltering -> KeepoutIcons.FirewallOff
     RethinkFirewallFilter.Excluded -> MaterialSymbols.Filled.RemoveModerator
     RethinkFirewallFilter.Lockdown -> MaterialSymbols.Filled.Lock
     RethinkFirewallFilter.BlockedWifi -> MaterialSymbols.Filled.WifiOff
@@ -1088,6 +1320,6 @@ private fun findSubsequenceMatchIndices(text: String, query: String): Set<Int>? 
 private fun statusColor(status: RethinkFirewallAppStatus, hasBlockedNetwork: Boolean): Color = when (status) {
     RethinkFirewallAppStatus.Allowed -> if (hasBlockedNetwork) RethinkStatusColors.mixed else RethinkStatusColors.allowed
     RethinkFirewallAppStatus.Blocked, RethinkFirewallAppStatus.Lockdown -> RethinkStatusColors.blocked
-    RethinkFirewallAppStatus.Bypass, RethinkFirewallAppStatus.Excluded -> RethinkStatusColors.mixed
+    RethinkFirewallAppStatus.Bypass, RethinkFirewallAppStatus.SkipAllFiltering, RethinkFirewallAppStatus.Excluded -> RethinkStatusColors.mixed
     RethinkFirewallAppStatus.Unknown -> RethinkStatusColors.idle
 }

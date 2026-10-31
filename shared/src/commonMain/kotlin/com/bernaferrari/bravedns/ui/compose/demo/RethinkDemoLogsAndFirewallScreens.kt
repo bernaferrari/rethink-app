@@ -334,7 +334,6 @@ internal fun DemoFirewallAppListScreen(
     var isRefreshing by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
     var filters by remember { mutableStateOf(RethinkFirewallFilters()) }
-    var activeBulkActions by remember { mutableStateOf(emptySet<RethinkFirewallBulkAction>()) }
     val refreshScope = androidx.compose.runtime.rememberCoroutineScope()
     val catalogByPackage = remember {
         RethinkWebDemoAppCatalog.entries.associateBy { it.packageName }
@@ -353,6 +352,7 @@ internal fun DemoFirewallAppListScreen(
             RethinkFirewallFilter.Allowed -> app.status == RethinkFirewallAppStatus.Allowed
             RethinkFirewallFilter.Blocked -> app.status == RethinkFirewallAppStatus.Blocked
             RethinkFirewallFilter.Bypass -> app.status == RethinkFirewallAppStatus.Bypass
+            RethinkFirewallFilter.SkipAllFiltering -> app.status == RethinkFirewallAppStatus.SkipAllFiltering
             RethinkFirewallFilter.Excluded -> app.status == RethinkFirewallAppStatus.Excluded
             RethinkFirewallFilter.Lockdown -> app.status == RethinkFirewallAppStatus.Lockdown
             RethinkFirewallFilter.BlockedWifi -> app.wifiBlocked
@@ -366,7 +366,6 @@ internal fun DemoFirewallAppListScreen(
     RethinkFirewallAppListScreen(
         filterState = com.bernaferrari.bravedns.ui.compose.firewall.RethinkAppListFilterState(query, filters.status, filters),
         apps = visibleApps,
-        activeBulkActions = activeBulkActions,
         strings = demoFirewallAppListStrings,
         isRefreshing = isRefreshing,
         onQueryChange = { query = it; filters = filters.copy(query = it) },
@@ -382,8 +381,22 @@ internal fun DemoFirewallAppListScreen(
         },
         onFiltersChange = { filters = it; query = it.query },
         onQuickFilterChange = { filters = filters.copy(status = it) },
-        onBulkAction = { action ->
-            activeBulkActions = if (action in activeBulkActions) activeBulkActions - action else activeBulkActions + action
+        onSelectionAction = { action, selected ->
+            val ids = selected.map { it.id }.toSet()
+            apps = apps.map { app ->
+                if (app.id !in ids) return@map app
+                when (action) {
+                    RethinkAppSelectionAction.BlockWifi -> app.copy(wifiBlocked = true, status = RethinkFirewallAppStatus.Blocked)
+                    RethinkAppSelectionAction.BlockMobile -> app.copy(mobileBlocked = true, status = RethinkFirewallAppStatus.Blocked)
+                    RethinkAppSelectionAction.AllowAll -> app.copy(wifiBlocked = false, mobileBlocked = false, status = RethinkFirewallAppStatus.Allowed)
+                    RethinkAppSelectionAction.AllowWifi -> app.copy(wifiBlocked = false, status = if (app.mobileBlocked) RethinkFirewallAppStatus.Blocked else RethinkFirewallAppStatus.Allowed)
+                    RethinkAppSelectionAction.AllowMobile -> app.copy(mobileBlocked = false, status = if (app.wifiBlocked) RethinkFirewallAppStatus.Blocked else RethinkFirewallAppStatus.Allowed)
+                    RethinkAppSelectionAction.TrustedOnly -> app.copy(wifiBlocked = false, mobileBlocked = false, status = RethinkFirewallAppStatus.Lockdown)
+                    RethinkAppSelectionAction.SkipUniversalRules -> app.copy(wifiBlocked = false, mobileBlocked = false, status = RethinkFirewallAppStatus.Bypass)
+                    RethinkAppSelectionAction.SkipAllFiltering -> app.copy(wifiBlocked = false, mobileBlocked = false, status = RethinkFirewallAppStatus.SkipAllFiltering)
+                    RethinkAppSelectionAction.Exclude -> app.copy(wifiBlocked = false, mobileBlocked = false, status = RethinkFirewallAppStatus.Excluded)
+                }
+            }
         },
         loadCategories = { topLevel ->
             RethinkWebDemoAppCatalog.entries
@@ -413,85 +426,84 @@ internal fun DemoAppInfoScreen(modifier: Modifier, app: RethinkFirewallApp?, onB
     val current = app ?: demoFirewallApps.first()
     var wifiBlocked by remember(current.id) { mutableStateOf(current.wifiBlocked) }
     var mobileBlocked by remember(current.id) { mutableStateOf(current.mobileBlocked) }
-    var isolated by remember(current.id) { mutableStateOf(current.status == RethinkFirewallAppStatus.Lockdown) }
-    var bypassDns by remember(current.id) { mutableStateOf(false) }
-    var bypassUniversal by remember(current.id) { mutableStateOf(current.status == RethinkFirewallAppStatus.Bypass) }
-    var excluded by remember(current.id) { mutableStateOf(current.status == RethinkFirewallAppStatus.Excluded) }
+    var mode by remember(current.id) {
+        mutableStateOf(
+            when (current.status) {
+                RethinkFirewallAppStatus.Lockdown -> RethinkAppMode.TrustedOnly
+                RethinkFirewallAppStatus.Bypass -> RethinkAppMode.SkipUniversalRules
+                RethinkFirewallAppStatus.SkipAllFiltering -> RethinkAppMode.SkipAllFiltering
+                RethinkFirewallAppStatus.Excluded -> RethinkAppMode.Excluded
+                else -> RethinkAppMode.Normal
+            },
+        )
+    }
     var proxyExcluded by remember(current.id) { mutableStateOf(false) }
     var tempAllowed by remember(current.id) { mutableStateOf(false) }
-    val rows = listOf(
-        RethinkAppInfoLogItem("0", "1.1.1.1", "cloudflare-dns.com"),
-        RethinkAppInfoLogItem("1", "142.250.184.14", "www.google.com"),
-    )
-    val status = when {
-        isolated -> "Isolated"
-        excluded -> "Excluded"
-        bypassUniversal -> "Bypasses universal firewall"
-        bypassDns -> "Bypasses DNS firewall"
-        wifiBlocked && mobileBlocked -> "Blocked"
-        wifiBlocked -> "Wi‑Fi blocked"
-        mobileBlocked -> "Mobile data blocked"
-        else -> "Allowed"
+    val (status, tone) = when {
+        tempAllowed -> "Allowed for 15 more minutes" to RethinkAppStatusTone.Temporary
+        mode == RethinkAppMode.TrustedOnly -> "Only reaches domains and IPs you trust" to RethinkAppStatusTone.Blocked
+        mode == RethinkAppMode.Excluded -> "Goes around Keepout" to RethinkAppStatusTone.Partial
+        mode == RethinkAppMode.SkipUniversalRules -> "Can use the internet · skips universal rules" to RethinkAppStatusTone.Partial
+        mode == RethinkAppMode.SkipAllFiltering -> "Skips all filtering" to RethinkAppStatusTone.Partial
+        wifiBlocked && mobileBlocked -> "Can't use the internet" to RethinkAppStatusTone.Blocked
+        wifiBlocked -> "Blocked on Wi‑Fi" to RethinkAppStatusTone.Blocked
+        mobileBlocked -> "Blocked on mobile data" to RethinkAppStatusTone.Blocked
+        else -> "Can use the internet" to RethinkAppStatusTone.Allowed
     }
     RethinkAppInfoScreen(
         modifier = modifier,
         state = RethinkAppInfoState(
+            loading = false,
             appAvailable = true,
             title = current.appName,
             subtitle = current.packageName,
             status = status,
-            temporaryAllowed = tempAllowed,
-            proxyDetails = if (proxyExcluded) "Excluded from proxy routing" else "Uses default proxy routing",
+            statusTone = tone,
             wifiBlocked = wifiBlocked,
             mobileBlocked = mobileBlocked,
-            isolated = isolated,
-            bypassDnsFirewall = bypassDns,
-            bypassUniversalFirewall = bypassUniversal,
-            excluded = excluded,
+            mode = mode,
+            tempAllowMinutesLeft = if (tempAllowed) 15 else null,
             proxyExcluded = proxyExcluded,
-            tempAllowed = tempAllowed,
-            activeConnections = RethinkAppInfoLogSection("Top active connections", 2, loading = false, empty = false, entries = rows),
-            domainLogs = RethinkAppInfoLogSection("Most contacted domains", 2, loading = false, empty = false, entries = rows.map { it.copy(title = it.subtitle.orEmpty(), subtitle = it.title) }),
-            ipLogs = RethinkAppInfoLogSection("Most contacted IPs", 2, loading = false, empty = false, entries = rows),
+            activity = listOf(
+                RethinkAppInfoActivityItem("b:ads.example.com", "ads.example.com", "Blocked · 09:38 · 4 connections", blocked = true),
+                RethinkAppInfoActivityItem("a:www.google.com", "www.google.com", "Allowed · 09:41 · 12 connections", blocked = false),
+                RethinkAppInfoActivityItem("a:1.1.1.1", "1.1.1.1", "Allowed · 09:12 · 2 connections", blocked = false),
+            ),
+            domainRuleCount = 2,
+            ipRuleCount = 0,
         ),
         strings = RethinkAppInfoStrings(
-            unavailable = "This app is no longer available.", status = "Status", temporaryAllow = "Temporarily allowed",
-            firewall = "Firewall", wifi = "Wi‑Fi", mobile = "Mobile data",
-            allowed = "Allowed", blocked = "Blocked",
-            modeTitle = "How Keepout treats this app", normal = "Normal", normalDescription = "Follows your firewall and DNS rules",
-            isolate = "Allow only trusted", isolateDescription = "Blocks everything except the domains and IPs you trust",
-            bypassDns = "Bypass DNS and firewall", bypassDnsDescription = "Skips DNS blocking and firewall rules",
-            bypassUniversal = "Bypass universal rules", bypassUniversalDescription = "Ignores the rules that apply to every app",
-            exclude = "Exclude from Keepout", excludeDescription = "Its traffic goes around Keepout entirely",
-            advanced = "Advanced", proxyExclude = "Exclude from proxy", proxyExcludeDescription = "Keep this app outside proxy routing.",
-            temporaryAllowDescription = "Allow traffic temporarily.", rules = "Rules", systemAppInfo = "System app info", ipRules = "IP rules", domainRules = "Domain rules", loading = "Loading", empty = "No activity yet.",
+            unavailable = "This app is no longer installed", loading = "Loading",
+            internetAccess = "Internet access", wifi = "Wi‑Fi", mobile = "Mobile data",
+            allowed = "Allowed", blocked = "Blocked", meteredFootnote = "Metered Wi‑Fi counts as mobile data.",
+            temporaryAllow = "Allow for 15 minutes", stopTemporaryAccess = { "Stop temporary access · $it min left" },
+            recentActivity = "Recent activity", seeAllActivity = "See all activity", noRecentActivity = "Nothing in the last 24 hours",
+            rules = "Rules", ipRules = "IP rules", domainRules = "Domain rules",
+            specialHandling = "Special handling", modeTitle = "How Keepout treats this app",
+            normal = "Normal", normalDescription = "Follows your firewall and DNS rules",
+            trustedOnly = "Trusted only", trustedOnlyDescription = "Only reaches domains and IPs you trust",
+            skipAllFiltering = "Skip all filtering", skipAllFilteringDescription = "No DNS blocking or firewall rules. Still logged.",
+            skipUniversalRules = "Skip universal rules", skipUniversalRulesDescription = "Ignores the rules that apply to every app",
+            exclude = "Exclude from Keepout", excludeDescription = "Goes around Keepout. Not filtered or logged.",
+            excludeWarning = "Keepout won't filter or log this app, and none of its rules apply.",
+            skipAllFilteringWarning = "DNS blocking and firewall rules stop applying to this app.",
+            apply = "Apply", cancel = "Cancel", more = "More",
+            proxyExclude = "Bypass all proxies", proxyExcludeDescription = "This app connects directly, never through a proxy.",
+            systemAppInfo = "App info",
         ),
-        onBackClick = onBack,
-        onWifiClick = { wifiBlocked = !wifiBlocked },
-        onMobileClick = { mobileBlocked = !mobileBlocked },
-        onIsolateClick = {
-            val next = !isolated
-            isolated = next
-            if (next) { bypassDns = false; bypassUniversal = false; excluded = false }
-        },
-        onBypassDnsClick = {
-            val next = !bypassDns
-            bypassDns = next
-            if (next) { isolated = false; bypassUniversal = false; excluded = false }
-        },
-        onBypassUniversalClick = {
-            val next = !bypassUniversal
-            bypassUniversal = next
-            if (next) { isolated = false; bypassDns = false; excluded = false }
-        },
-        onExcludeClick = {
-            val next = !excluded
-            excluded = next
-            if (next) { isolated = false; bypassDns = false; bypassUniversal = false }
-        },
-        onProxyExcludedChange = { proxyExcluded = it },
-        onTempAllowChange = { tempAllowed = it },
-        onSystemAppInfo = {}, onIpRules = {}, onDomainRules = {}, logActions = com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoLogsActions(com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoLogActions(), com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoLogActions(), com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoLogActions()),
+        actions = RethinkAppInfoActions(
+            onBackClick = onBack,
+            onWifiClick = { wifiBlocked = !wifiBlocked; mode = RethinkAppMode.Normal },
+            onMobileClick = { mobileBlocked = !mobileBlocked; mode = RethinkAppMode.Normal },
+            onModeChange = { next ->
+                mode = next
+                if (next != RethinkAppMode.Normal) { wifiBlocked = false; mobileBlocked = false }
+            },
+            onTempAllowChange = { tempAllowed = it },
+            onProxyExcludedChange = { proxyExcluded = it },
+            onSystemAppInfo = {}, onIpRules = {}, onDomainRules = {},
+            onActivityClick = {}, onSeeAllActivity = {},
+        ),
         titleLeading = {
             RethinkWebDemoAppIcon(
                 current.packageName,

@@ -7,6 +7,9 @@ import com.bernaferrari.bravedns.viewmodel.AppFirewallStatus
 
 /** Android adapter from portable app rules to the live VPN firewall. */
 object AndroidAppFirewallRuleMutator : AppFirewallRuleMutator {
+    override suspend fun firewallStatus(uid: Int): AppFirewallStatus =
+        FirewallManager.appStatus(uid).toShared()
+
     override suspend fun connectionStatus(uid: Int): AppConnectionStatus =
         FirewallManager.connectionStatus(uid).toShared()
 

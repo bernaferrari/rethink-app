@@ -15,61 +15,65 @@
  */
 package com.bernaferrari.bravedns.ui.compose.app
 
-import android.content.Context
 import android.widget.Toast
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.bernaferrari.bravedns.R
-import com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoLogItem
-import com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoLogSection
-import com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoScreen
-import com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoState
-import com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoStrings
-import com.bernaferrari.bravedns.ui.compose.apps.CloseConnsDialog
-import com.bernaferrari.bravedns.ui.compose.apps.commaList
-import com.bernaferrari.bravedns.data.AppConnection
 import com.bernaferrari.bravedns.database.AppInfo
+import com.bernaferrari.bravedns.database.ConnectionTracker
 import com.bernaferrari.bravedns.database.EventSource
 import com.bernaferrari.bravedns.database.EventType
 import com.bernaferrari.bravedns.database.Severity
 import com.bernaferrari.bravedns.service.EventLogger
 import com.bernaferrari.bravedns.service.FirewallManager
+import com.bernaferrari.bravedns.service.FirewallManager.ConnectionStatus
+import com.bernaferrari.bravedns.service.FirewallManager.FirewallStatus
 import com.bernaferrari.bravedns.service.ProxyManager
 import com.bernaferrari.bravedns.service.ProxyManager.ID_NONE
-import com.bernaferrari.bravedns.service.VpnController
-import com.bernaferrari.bravedns.ui.compose.firewall.AppDomainRulesSheet
-import com.bernaferrari.bravedns.ui.compose.firewall.AppIpRulesSheet
+import com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoActions
+import com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoActivityItem
+import com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoScreen
+import com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoState
+import com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoStrings
+import com.bernaferrari.bravedns.ui.compose.apps.RethinkAppMode
 import com.bernaferrari.bravedns.ui.compose.common.AppIcon
+import com.bernaferrari.bravedns.ui.compose.firewall.launchReversibleRuleMutation
+import com.bernaferrari.bravedns.ui.compose.logs.ConnectionSheetHost
+import com.bernaferrari.bravedns.ui.compose.logs.ConnectionSheetNavigation
+import com.bernaferrari.bravedns.ui.compose.logs.connectionLogModel
+import com.bernaferrari.bravedns.ui.compose.logs.toConnectionSheetRequest
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.util.Constants.Companion.INVALID_UID
-import com.bernaferrari.bravedns.util.Constants.Companion.RETHINK_PACKAGE
+import com.bernaferrari.bravedns.util.Constants.Companion.TIME_FORMAT_1
 import com.bernaferrari.bravedns.util.UIUtils.openAndroidAppInfo
+import com.bernaferrari.bravedns.util.Utilities
 import com.bernaferrari.bravedns.util.Utilities.showToastUiCentered
 import com.bernaferrari.bravedns.viewmodel.AppConnectionsViewModel
 import com.bernaferrari.bravedns.viewmodel.CustomDomainViewModel
 import com.bernaferrari.bravedns.viewmodel.CustomIpViewModel
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * App detail for one uid: reads the app's firewall flags, temporary access and recent traffic,
+ * and writes every change through [FirewallManager] with an Undo snackbar. Recent activity rows
+ * open the Connection sheet ([connectionSheetNavigation] says where its links lead).
+ */
 @Composable
 fun AppInfoScreen(
     uid: Int,
@@ -78,448 +82,347 @@ fun AppInfoScreen(
     domainRulesViewModel: CustomDomainViewModel,
     networkLogsViewModel: AppConnectionsViewModel,
     onBackClick: () -> Unit,
-    onAppWiseIpLogsClick: (Int, Boolean) -> Unit,
-    onAppWiseDomainLogsClick: (Int) -> Unit,
     onCustomIpRulesClick: (Int) -> Unit,
-    onCustomDomainRulesClick: (Int) -> Unit
+    onCustomDomainRulesClick: (Int) -> Unit,
+    /** The Activity log filtered to this app ([query] is its name). */
+    onSeeAllActivity: ((query: String) -> Unit)? = null,
+    connectionSheetNavigation: ConnectionSheetNavigation = ConnectionSheetNavigation(),
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val snackbar = remember { SnackbarHostState() }
 
+    var loaded by remember(uid) { mutableStateOf(false) }
     var appInfo by remember(uid) { mutableStateOf<AppInfo?>(null) }
-    var appStatus by remember(uid) { mutableStateOf(FirewallManager.FirewallStatus.NONE) }
-    var connStatus by remember(uid) { mutableStateOf(FirewallManager.ConnectionStatus.ALLOW) }
-    var baselineConnStatus by remember(uid) { mutableStateOf(FirewallManager.ConnectionStatus.ALLOW) }
-    var firewallStatusText by remember(uid) { mutableStateOf("") }
-    var firewallUpdateVersion by remember(uid) { mutableIntStateOf(0) }
+    var appStatus by remember(uid) { mutableStateOf(FirewallStatus.NONE) }
+    var connStatus by remember(uid) { mutableStateOf(ConnectionStatus.ALLOW) }
+    // The network flags to restore when a mode goes back to Normal (modes clear them).
+    var baselineConnStatus by remember(uid) { mutableStateOf(ConnectionStatus.ALLOW) }
     var isProxyExcluded by remember(uid) { mutableStateOf(false) }
-    var isTempAllowed by remember(uid) { mutableStateOf(false) }
+    var tempAllowExpiry by remember(uid) { mutableLongStateOf(0L) }
     var proxyDetails by remember(uid) { mutableStateOf("") }
-    var showNoAppFoundDialog by remember(uid) { mutableStateOf(false) }
-
-    var showDomainRulesSheet by remember { mutableStateOf(false) }
-    var selectedDomain by remember { mutableStateOf("") }
-    var showIpRulesSheet by remember { mutableStateOf(false) }
-    var selectedIp by remember { mutableStateOf("") }
-    var selectedDomains by remember { mutableStateOf("") }
-
-    var refreshToken by remember(uid) { mutableIntStateOf(0) }
-    var closeDialogConn by remember(uid) { mutableStateOf<com.bernaferrari.bravedns.data.AppConnection?>(null) }
+    var reloadToken by remember(uid) { mutableIntStateOf(0) }
+    var busy by remember(uid) { mutableStateOf(false) }
+    var epoch by remember(uid) { mutableIntStateOf(0) }
+    var selectedConnection by remember(uid) { mutableStateOf<ConnectionTracker?>(null) }
 
     val wireguardAppsProxyMapDesc = stringResource(R.string.wireguard_apps_proxy_map_desc)
     val excludeNoPackageErrToast = stringResource(R.string.exclude_no_package_err_toast)
-    val adaAppStatusBlockMd = stringResource(R.string.ada_app_status_block_md)
-    val adaAppStatusBlockWifi = stringResource(R.string.ada_app_status_block_wifi)
-    val adaAppStatusBlock = stringResource(R.string.ada_app_status_block)
-    val adaAppStatusAllow = stringResource(R.string.ada_app_status_allow)
-    val adaAppStatusExclude = stringResource(R.string.ada_app_status_exclude)
-    val adaAppStatusWhitelist = stringResource(R.string.ada_app_status_whitelist)
-    val adaAppStatusIsolate = stringResource(R.string.ada_app_status_isolate)
-    val adaAppStatusBypassDnsFirewall = stringResource(R.string.ada_app_status_bypass_dns_firewall)
-    val adaAppStatusUnknown = stringResource(R.string.ada_app_status_unknown)
-    val getFirewallStatusText: (FirewallManager.FirewallStatus, FirewallManager.ConnectionStatus) -> String =
-        { firewallStatus, connectionStatus ->
-            when (firewallStatus) {
-                FirewallManager.FirewallStatus.NONE -> {
-                    when (connectionStatus) {
-                        FirewallManager.ConnectionStatus.METERED -> adaAppStatusBlockMd
-                        FirewallManager.ConnectionStatus.UNMETERED -> adaAppStatusBlockWifi
-                        FirewallManager.ConnectionStatus.BOTH -> adaAppStatusBlock
-                        FirewallManager.ConnectionStatus.ALLOW -> adaAppStatusAllow
-                    }
-                }
-                FirewallManager.FirewallStatus.EXCLUDE -> adaAppStatusExclude
-                FirewallManager.FirewallStatus.BYPASS_UNIVERSAL -> adaAppStatusWhitelist
-                FirewallManager.FirewallStatus.ISOLATE -> adaAppStatusIsolate
-                FirewallManager.FirewallStatus.BYPASS_DNS_FIREWALL -> adaAppStatusBypassDnsFirewall
-                FirewallManager.FirewallStatus.UNTRACKED -> adaAppStatusUnknown
+
+    LaunchedEffect(uid, reloadToken) {
+        if (uid != INVALID_UID) {
+            ipRulesViewModel.setUid(uid)
+            domainRulesViewModel.setUid(uid)
+            networkLogsViewModel.setUid(uid)
+        }
+        val load = if (uid == INVALID_UID) null else withContext(Dispatchers.IO) { loadAppInfo(uid, wireguardAppsProxyMapDesc) }
+        appInfo = load?.info
+        if (load != null) {
+            appStatus = load.appStatus
+            connStatus = load.connStatus
+            if (load.appStatus == FirewallStatus.NONE) baselineConnStatus = load.connStatus
+            isProxyExcluded = load.isProxyExcluded
+            tempAllowExpiry = load.tempAllowExpiry
+            proxyDetails = load.proxyDetails
+        }
+        loaded = true
+    }
+
+    // Live countdown from the stored expiry; when it passes, re-read what the firewall now holds.
+    var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(tempAllowExpiry) {
+        while (tempAllowExpiry > 0L) {
+            now = System.currentTimeMillis()
+            if (now >= tempAllowExpiry) {
+                tempAllowExpiry = withContext(Dispatchers.IO) { FirewallManager.tempAllowExpiry(uid) }
+                break
             }
+            delay(1_000L)
         }
+    }
+    val minutesLeft = minutesLeft(tempAllowExpiry, now)
 
-    LaunchedEffect(uid) {
-        if (uid == INVALID_UID) {
-            showNoAppFoundDialog = true
-            return@LaunchedEffect
-        }
-        ipRulesViewModel.setUid(uid)
-        domainRulesViewModel.setUid(uid)
-        networkLogsViewModel.setUid(uid)
-        loadAppInfo(
-            uid = uid,
-            wireguardAppsProxyMapDesc = wireguardAppsProxyMapDesc,
-            getFirewallStatusText = getFirewallStatusText,
-            onLoaded = {
-                appInfo = it.info
-                appStatus = it.appStatus
-                connStatus = it.connStatus
-                if (it.appStatus == FirewallManager.FirewallStatus.NONE) {
-                    baselineConnStatus = it.connStatus
-                }
-                isProxyExcluded = it.isProxyExcluded
-                isTempAllowed = it.isTempAllowed
-                proxyDetails = it.proxyDetails
-                firewallStatusText = it.firewallStatusText
-            },
-            onMissing = { showNoAppFoundDialog = true }
-        )
-    }
+    val recentFlow = remember(uid) { networkLogsViewModel.recentConnections(uid) }
+    val recent by recentFlow.collectAsState(initial = null)
+    val activityRows = remember(recent) { recent?.let { foldRecentActivity(it) } }
+    val domainCountFlow = remember(uid) { domainRulesViewModel.domainRulesCount(uid) }
+    val domainRuleCount by domainCountFlow.collectAsState(initial = null)
+    val ipCountFlow = remember(uid) { ipRulesViewModel.ipRulesCount(uid) }
+    val ipRuleCount by ipCountFlow.collectAsState(initial = null)
 
-    // CloseConnsDialog opens when an active connection is tapped
-    closeDialogConn?.let { conn ->
-        CloseConnsDialog(
-            conn = conn,
-            onConfirm = {
-                closeDialogConn = null
-                refreshToken++
-            },
-            onDismiss = { closeDialogConn = null }
-        )
-    }
-
-    if (showNoAppFoundDialog) {
-        RethinkConfirmDialog(
-            onDismissRequest = { showNoAppFoundDialog = false },
-            title = stringResource(id = R.string.ada_noapp_dialog_title),
-            message = stringResource(id = R.string.ada_noapp_dialog_message),
-            confirmText = stringResource(id = R.string.fapps_info_dialog_positive_btn),
-            onConfirm = {
-                showNoAppFoundDialog = false
-                onBackClick()
-            }
-        )
-    }
-
-    if (showDomainRulesSheet && selectedDomain.isNotEmpty()) {
-        AppDomainRulesSheet(
-            uid = uid,
-            domain = selectedDomain,
-            eventLogger = eventLogger,
-            onDismiss = { showDomainRulesSheet = false },
-            onUpdated = { refreshToken++ }
-        )
-    }
-    if (showIpRulesSheet && selectedIp.isNotEmpty()) {
-        AppIpRulesSheet(
-            uid = uid,
-            ipAddress = selectedIp,
-            domains = selectedDomains,
-            eventLogger = eventLogger,
-            onDismiss = { showIpRulesSheet = false },
-            onUpdated = { refreshToken++ }
-        )
-    }
-
-    val isRethink = appInfo?.packageName == RETHINK_PACKAGE
-    // Build each paging flow once per app: a new Flow on every recomposition restarts the pager,
-    // and the sections never leave "Loading".
-    val activeConns = remember(uid, isRethink) {
-        val uptime = VpnController.uptimeMs()
-        if (isRethink) {
-            networkLogsViewModel.getRethinkActiveConnsLimited(uptime)
-        } else {
-            networkLogsViewModel.fetchTopActiveConnections(uid, uptime)
-        }
-    }
-    // Short previews (a few rows each): plain lists, so "empty" is a state of its own instead of
-    // a paging load that never settles.
-    val activeList by activeConns.collectAsState(initial = null)
-    val domainFlow = remember(uid, isRethink) {
-        if (isRethink) networkLogsViewModel.getRethinkDomainLogsLimited() else networkLogsViewModel.getDomainLogsLimited(uid)
-    }
-    val domainList by domainFlow.collectAsState(initial = null)
-    val ipFlow = remember(uid, isRethink) {
-        if (isRethink) networkLogsViewModel.getRethinkIpLogsLimited() else networkLogsViewModel.getIpLogsLimited(uid)
-    }
-    val ipList by ipFlow.collectAsState(initial = null)
-    val activePreview =
-        remember(activeList, refreshToken) {
-            activeList.orEmpty().take(8)
-        }
-    val domainPreview =
-        remember(domainList, refreshToken) {
-            domainList.orEmpty().take(8)
-        }
-    val ipPreview =
-        remember(ipList, refreshToken) {
-            ipList.orEmpty().take(8)
-        }
-    val density = LocalDensity.current
-    val bottomInset = with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val info = appInfo
-    val title = info?.appName?.takeIf { it.isNotBlank() } ?: stringResource(id = R.string.bsct_app_info)
-    val subtitle = info?.packageName?.takeIf { it.isNotBlank() }
-    val wifiBlocked =
-        connStatus == FirewallManager.ConnectionStatus.UNMETERED ||
-            connStatus == FirewallManager.ConnectionStatus.BOTH
-    val mobileBlocked =
-        connStatus == FirewallManager.ConnectionStatus.METERED ||
-            connStatus == FirewallManager.ConnectionStatus.BOTH
-    val isIsolated = appStatus == FirewallManager.FirewallStatus.ISOLATE
-    val isBypassDnsFirewall = appStatus == FirewallManager.FirewallStatus.BYPASS_DNS_FIREWALL
-    val isBypassUniversal = appStatus == FirewallManager.FirewallStatus.BYPASS_UNIVERSAL
-    val isExcluded = appStatus == FirewallManager.FirewallStatus.EXCLUDE
-    fun applyFirewallRule(
-        firewallStatus: FirewallManager.FirewallStatus,
-        connectionStatus: FirewallManager.ConnectionStatus
-    ) {
-        val requestVersion = firewallUpdateVersion + 1
-        firewallUpdateVersion = requestVersion
+    val appName = info?.appName?.takeIf { it.isNotBlank() } ?: info?.packageName.orEmpty()
+    val undoLabel = stringResource(R.string.lbl_undo)
 
-        // Optimistic update to keep UI deterministic and avoid stale rapid-tap states.
-        val optimisticText = getFirewallStatusText(firewallStatus, connectionStatus)
-        firewallStatusText = optimisticText
-        appStatus = firewallStatus
-        connStatus = connectionStatus
-        if (firewallStatus == FirewallManager.FirewallStatus.NONE) {
-            baselineConnStatus = connectionStatus
+    /** Write [status]/[connection] now (optimistically), then offer Undo back to what it was. */
+    fun applyFirewallRule(status: FirewallStatus, connection: ConnectionStatus, message: String) {
+        val app = info ?: return
+        if (status == FirewallStatus.EXCLUDE && FirewallManager.isUnknownPackage(uid)) {
+            showToastUiCentered(context, excludeNoPackageErrToast, Toast.LENGTH_LONG)
+            return
         }
-
-        updateFirewallStatus(
-            scope = scope,
-            context = context,
-            uid = uid,
-            appInfo = info,
-            aStat = firewallStatus,
-            cStat = connectionStatus,
-            eventLogger = eventLogger,
-            excludeNoPackageErrToast = excludeNoPackageErrToast,
-            getFirewallStatusText = getFirewallStatusText
-        ) { statusText, updatedAppStatus, updatedConnStatus ->
-            if (requestVersion != firewallUpdateVersion) return@updateFirewallStatus
-            firewallStatusText = statusText
-            appStatus = updatedAppStatus
-            connStatus = updatedConnStatus
-            if (updatedAppStatus == FirewallManager.FirewallStatus.NONE) {
-                baselineConnStatus = updatedConnStatus
-            }
+        val previous = appStatus to connStatus
+        val previousBaseline = baselineConnStatus
+        fun show(s: FirewallStatus, c: ConnectionStatus) {
+            appStatus = s
+            connStatus = c
+            if (s == FirewallStatus.NONE) baselineConnStatus = c
         }
+        show(status, connection)
+        val next = epoch + 1
+        epoch = next
+        snackbar.currentSnackbarData?.dismiss()
+        scope.launchReversibleRuleMutation(
+            snackbarHostState = snackbar,
+            editedMessage = message,
+            undoLabel = undoLabel,
+            epoch = next,
+            currentEpoch = { epoch },
+            setApplying = { busy = it },
+            apply = {
+                withContext(Dispatchers.IO + NonCancellable) { FirewallManager.updateFirewallStatus(app.uid, status, connection) }
+                logChange(eventLogger, app, status, connection)
+                true
+            },
+            undo = {
+                show(previous.first, previous.second)
+                baselineConnStatus = previousBaseline
+                withContext(Dispatchers.IO + NonCancellable) { FirewallManager.updateFirewallStatus(app.uid, previous.first, previous.second) }
+                logChange(eventLogger, app, previous.first, previous.second, undo = true)
+            },
+        )
     }
 
-    fun toggleExclusiveStatus(target: FirewallManager.FirewallStatus) {
-        val turningOff = appStatus == target
-        if (!turningOff && appStatus == FirewallManager.FirewallStatus.NONE) {
-            baselineConnStatus = connStatus
-        }
-        val nextStatus =
-            if (turningOff) {
-                FirewallManager.FirewallStatus.NONE
-            } else {
-                target
-            }
-        val nextConnStatus =
-            if (nextStatus == FirewallManager.FirewallStatus.NONE) {
-                baselineConnStatus
-            } else {
-                FirewallManager.ConnectionStatus.ALLOW
-            }
-        applyFirewallRule(nextStatus, nextConnStatus)
+    val blockedWifiMessage = stringResource(R.string.app_done_blocked_wifi, appName)
+    val allowedWifiMessage = stringResource(R.string.connection_done_allowed_wifi, appName)
+    val blockedMobileMessage = stringResource(R.string.app_done_blocked_mobile, appName)
+    val allowedMobileMessage = stringResource(R.string.connection_done_allowed_mobile, appName)
+    val tempAllowedMessage = stringResource(R.string.connection_done_allowed_temporarily, appName)
+    val tempEndedMessage = stringResource(R.string.app_temp_access_ended)
+
+    val strings = appInfoStrings()
+    val kind = appStatusKind(appStatus, connStatus, minutesLeft != null)
+    val status = when (kind) {
+        AppStatusKind.TemporarilyAllowed -> pluralStringResource(R.plurals.app_status_temp_allowed, minutesLeft ?: 0, minutesLeft ?: 0)
+        AppStatusKind.NoInternet -> stringResource(R.string.app_status_no_internet)
+        AppStatusKind.BlockedOnWifi -> stringResource(R.string.ada_app_status_block_wifi)
+        AppStatusKind.BlockedOnMobileData -> stringResource(R.string.ada_app_status_block_md)
+        AppStatusKind.CanUseInternet -> stringResource(R.string.app_status_can_use_internet)
+        AppStatusKind.TrustedOnly -> stringResource(R.string.app_status_trusted_only)
+        AppStatusKind.SkipsAllFiltering -> stringResource(R.string.ada_app_status_bypass_dns_firewall)
+        AppStatusKind.SkipsUniversalRules -> stringResource(R.string.app_status_skips_universal)
+        AppStatusKind.Excluded -> stringResource(R.string.app_status_excluded)
+        AppStatusKind.Unknown -> stringResource(R.string.ada_app_status_unknown)
     }
+    val blockedLabel = stringResource(R.string.lbl_blocked)
+    val allowedLabel = stringResource(R.string.lbl_allowed)
+    val activity = activityRows?.map { row ->
+        RethinkAppInfoActivityItem(
+            id = row.key,
+            title = row.destination,
+            subtitle = listOf(
+                if (row.blocked) blockedLabel else allowedLabel,
+                Utilities.convertLongToTime(row.latest.timeStamp, TIME_FORMAT_1),
+                pluralStringResource(R.plurals.app_activity_count, row.count, row.count),
+            ).joinToString(" · "),
+            blocked = row.blocked,
+        )
+    }
+    val modeLabels = mapOf(
+        RethinkAppMode.Normal to strings.normal,
+        RethinkAppMode.TrustedOnly to strings.trustedOnly,
+        RethinkAppMode.SkipAllFiltering to strings.skipAllFiltering,
+        RethinkAppMode.SkipUniversalRules to strings.skipUniversalRules,
+        RethinkAppMode.Excluded to strings.exclude,
+    )
+    val modeChangedFormat = stringResource(R.string.app_mode_changed)
 
     RethinkAppInfoScreen(
-        logActions = com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoLogsActions(
-        ips = com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoLogActions(
-            onOpen = { onAppWiseIpLogsClick(uid, false) },
-            onEntry = { entry -> ipPreview.getOrNull(entry.id.toIntOrNull() ?: -1)?.let { selectedIp = it.ipAddress; selectedDomains = it.appOrDnsName.orEmpty(); showIpRulesSheet = true } },
+        state = RethinkAppInfoState(
+            loading = !loaded,
+            appAvailable = info != null,
+            title = if (!loaded) "" else appName.ifBlank { stringResource(R.string.bsct_app_info) },
+            subtitle = info?.packageName?.takeIf { it.isNotBlank() && it != appName },
+            status = status,
+            statusTone = kind.tone,
+            statusDetail = proxyDetails.takeIf { it.isNotBlank() },
+            wifiBlocked = connStatus.wifiBlocked,
+            mobileBlocked = connStatus.mobileBlocked,
+            mode = appStatus.toAppMode(),
+            tempAllowMinutesLeft = minutesLeft,
+            proxyExcluded = isProxyExcluded,
+            activity = activity,
+            domainRuleCount = domainRuleCount,
+            ipRuleCount = ipRuleCount,
+            enabled = !busy,
         ),
-        domains = com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoLogActions(
-            onOpen = { onAppWiseDomainLogsClick(uid) },
-            onEntry = { entry -> domainPreview.getOrNull(entry.id.toIntOrNull() ?: -1)?.let { selectedDomain = it.appOrDnsName.orEmpty(); showDomainRulesSheet = true } },
-        ),
-        active = com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoLogActions(
-            onOpen = { onAppWiseIpLogsClick(uid, false) },
-            onEntry = { entry -> activePreview.getOrNull(entry.id.toIntOrNull() ?: -1)?.let { closeDialogConn = it } },
-        ),
+        strings = strings,
+        actions = RethinkAppInfoActions(
+            onBackClick = onBackClick,
+            onWifiClick = {
+                val next = connStatus.toggledWifi()
+                applyFirewallRule(FirewallStatus.NONE, next, if (next.wifiBlocked) blockedWifiMessage else allowedWifiMessage)
+            },
+            onMobileClick = {
+                val next = connStatus.toggledMobile()
+                applyFirewallRule(FirewallStatus.NONE, next, if (next.mobileBlocked) blockedMobileMessage else allowedMobileMessage)
+            },
+            onModeChange = { mode ->
+                modeChange(appStatus, connStatus, baselineConnStatus, mode)?.let { (status, connection) ->
+                    if (appStatus == FirewallStatus.NONE) baselineConnStatus = connStatus
+                    applyFirewallRule(status, connection, modeChangedFormat.format(appName, modeLabels.getValue(mode)))
+                }
+            },
+            onTempAllowChange = { enabled ->
+                if (enabled) {
+                    val next = epoch + 1
+                    epoch = next
+                    snackbar.currentSnackbarData?.dismiss()
+                    scope.launchReversibleRuleMutation(
+                        snackbarHostState = snackbar,
+                        editedMessage = tempAllowedMessage,
+                        undoLabel = undoLabel,
+                        epoch = next,
+                        currentEpoch = { epoch },
+                        setApplying = { busy = it },
+                        apply = {
+                            tempAllowExpiry = withContext(Dispatchers.IO + NonCancellable) {
+                                FirewallManager.updateTempAllow(uid, true)
+                                FirewallManager.tempAllowExpiry(uid)
+                            }
+                            tempAllowExpiry > 0L
+                        },
+                        undo = {
+                            withContext(Dispatchers.IO + NonCancellable) { FirewallManager.updateTempAllow(uid, false) }
+                            tempAllowExpiry = 0L
+                        },
+                    )
+                } else {
+                    epoch++
+                    snackbar.currentSnackbarData?.dismiss()
+                    scope.launch {
+                        busy = true
+                        withContext(Dispatchers.IO + NonCancellable) { FirewallManager.updateTempAllow(uid, false) }
+                        tempAllowExpiry = 0L
+                        busy = false
+                        snackbar.showSnackbar(tempEndedMessage)
+                    }
+                }
+            },
+            onProxyExcludedChange = { enabled ->
+                isProxyExcluded = enabled
+                scope.launch(Dispatchers.IO) { FirewallManager.updateIsProxyExcluded(uid, enabled) }
+            },
+            onSystemAppInfo = { info?.let { openAndroidAppInfo(context, it.packageName) } },
+            onIpRules = { onCustomIpRulesClick(uid) },
+            onDomainRules = { onCustomDomainRulesClick(uid) },
+            onActivityClick = { item -> activityRows?.firstOrNull { it.key == item.id }?.let { selectedConnection = it.latest } },
+            onSeeAllActivity = onSeeAllActivity?.let { open -> { open(appName) } }?.takeIf { appName.isNotBlank() },
         ),
         appNotes = info?.let { app -> { AppNotesSection(uid, app) } },
-        state = RethinkAppInfoState(
-            appAvailable = info != null,
-            title = title,
-            subtitle = subtitle,
-            status = firewallStatusText,
-            temporaryAllowed = isTempAllowed,
-            proxyDetails = proxyDetails,
-            wifiBlocked = wifiBlocked,
-            mobileBlocked = mobileBlocked,
-            isolated = isIsolated,
-            bypassDnsFirewall = isBypassDnsFirewall,
-            bypassUniversalFirewall = isBypassUniversal,
-            excluded = isExcluded,
-            proxyExcluded = isProxyExcluded,
-            tempAllowed = isTempAllowed,
-            activeConnections = RethinkAppInfoLogSection(
-                title = stringResource(R.string.top_active_conns),
-                count = activeList?.size ?: 0,
-                loading = activeList == null,
-                empty = activeList.isNullOrEmpty(),
-                entries = activePreview.mapIndexed { index, item ->
-                    RethinkAppInfoLogItem(index.toString(), commaList(item.ipAddress), commaList(item.appOrDnsName))
-                },
-            ),
-            domainLogs = RethinkAppInfoLogSection(
-                title = stringResource(R.string.ssv_most_contacted_domain_heading),
-                count = domainList?.size ?: 0,
-                loading = domainList == null,
-                empty = domainList.isNullOrEmpty(),
-                entries = domainPreview.mapIndexed { index, item ->
-                    val domain = commaList(item.appOrDnsName).ifBlank { commaList(item.ipAddress) }
-                    val address = commaList(item.ipAddress)
-                    RethinkAppInfoLogItem(index.toString(), domain, address.takeIf { it.isNotBlank() && it != commaList(item.appOrDnsName) })
-                },
-            ),
-            ipLogs = RethinkAppInfoLogSection(
-                title = stringResource(R.string.ssv_most_contacted_ips_heading),
-                count = ipList?.size ?: 0,
-                loading = ipList == null,
-                empty = ipList.isNullOrEmpty(),
-                entries = ipPreview.mapIndexed { index, item ->
-                    RethinkAppInfoLogItem(index.toString(), commaList(item.ipAddress), commaList(item.appOrDnsName))
-                },
-            ),
-        ),
-        strings = RethinkAppInfoStrings(
-            unavailable = stringResource(R.string.ada_noapp_dialog_message),
-            status = stringResource(R.string.lbl_status),
-            temporaryAllow = stringResource(R.string.temp_allow_label),
-            firewall = stringResource(R.string.lbl_firewall),
-            wifi = stringResource(R.string.ada_app_unmetered),
-            mobile = stringResource(R.string.lbl_mobile_data),
-            allowed = stringResource(R.string.lbl_allowed),
-            blocked = stringResource(R.string.lbl_blocked),
-            modeTitle = stringResource(R.string.ada_app_mode_title),
-            normal = stringResource(R.string.ada_app_mode_normal),
-            normalDescription = stringResource(R.string.ada_app_mode_normal_desc),
-            isolate = stringResource(R.string.ada_app_isolate),
-            isolateDescription = stringResource(R.string.ada_app_isolate_desc),
-            bypassDns = stringResource(R.string.ada_app_bypass_dns_firewall),
-            bypassDnsDescription = stringResource(R.string.ada_app_bypass_dns_firewall_desc),
-            bypassUniversal = stringResource(R.string.ada_app_bypass_univ),
-            bypassUniversalDescription = stringResource(R.string.ada_app_bypass_univ_desc),
-            exclude = stringResource(R.string.ada_app_exclude),
-            excludeDescription = stringResource(R.string.ada_app_exclude_desc),
-            advanced = stringResource(R.string.lbl_advanced),
-            proxyExclude = stringResource(R.string.exclude_apps_from_proxy),
-            proxyExcludeDescription = stringResource(R.string.exclude_apps_from_proxy_desc),
-            temporaryAllowDescription = stringResource(R.string.temp_allow_desc),
-            rules = stringResource(R.string.lbl_rules),
-            systemAppInfo = stringResource(R.string.about_settings_app_info),
-            ipRules = stringResource(R.string.lbl_ip_rules),
-            domainRules = stringResource(R.string.lbl_domain_rules),
-            loading = stringResource(R.string.lbl_loading),
-            empty = stringResource(R.string.ada_no_activity),
-        ),
-        onBackClick = onBackClick,
-        onWifiClick = {
-            val next = when (connStatus) {
-                FirewallManager.ConnectionStatus.UNMETERED -> FirewallManager.ConnectionStatus.ALLOW
-                FirewallManager.ConnectionStatus.BOTH -> FirewallManager.ConnectionStatus.METERED
-                FirewallManager.ConnectionStatus.METERED -> FirewallManager.ConnectionStatus.BOTH
-                FirewallManager.ConnectionStatus.ALLOW -> FirewallManager.ConnectionStatus.UNMETERED
-            }
-            applyFirewallRule(FirewallManager.FirewallStatus.NONE, next)
-        },
-        onMobileClick = {
-            val next = when (connStatus) {
-                FirewallManager.ConnectionStatus.METERED -> FirewallManager.ConnectionStatus.ALLOW
-                FirewallManager.ConnectionStatus.UNMETERED -> FirewallManager.ConnectionStatus.BOTH
-                FirewallManager.ConnectionStatus.BOTH -> FirewallManager.ConnectionStatus.UNMETERED
-                FirewallManager.ConnectionStatus.ALLOW -> FirewallManager.ConnectionStatus.METERED
-            }
-            applyFirewallRule(FirewallManager.FirewallStatus.NONE, next)
-        },
-        onIsolateClick = { toggleExclusiveStatus(FirewallManager.FirewallStatus.ISOLATE) },
-        onBypassDnsClick = { toggleExclusiveStatus(FirewallManager.FirewallStatus.BYPASS_DNS_FIREWALL) },
-        onBypassUniversalClick = { toggleExclusiveStatus(FirewallManager.FirewallStatus.BYPASS_UNIVERSAL) },
-        onExcludeClick = { toggleExclusiveStatus(FirewallManager.FirewallStatus.EXCLUDE) },
-        onProxyExcludedChange = { enabled ->
-            isProxyExcluded = enabled
-            scope.launch(Dispatchers.IO) { FirewallManager.updateIsProxyExcluded(uid, enabled) }
-        },
-        onTempAllowChange = { enabled ->
-            isTempAllowed = enabled
-            scope.launch(Dispatchers.IO) { FirewallManager.updateTempAllow(uid, enabled) }
-        },
-        onSystemAppInfo = { info?.let { openAndroidAppInfo(context, it.packageName) } },
-        onIpRules = { onCustomIpRulesClick(uid) },
-        onDomainRules = { onCustomDomainRulesClick(uid) },
+        snackbarHostState = snackbar,
         // The page header: a step up from the 40dp list rows.
-        titleLeading = { AppIcon(info?.packageName.orEmpty(), appName = info?.appName, size = SharedDimensions.iconContainerLg) },
+        titleLeading = info?.let { app -> { AppIcon(app.packageName, appName = app.appName, size = SharedDimensions.iconContainerLg) } },
     )
 
+    selectedConnection?.let { ct ->
+        val model = connectionLogModel(ct)
+        ConnectionSheetHost(
+            request = ct.toConnectionSheetRequest(model.timeLabel, model.typeLabel, model.details),
+            eventLogger = eventLogger,
+            onDismiss = {
+                selectedConnection = null
+                reloadToken++
+            },
+            // Already on this app's page: no "Open <app>".
+            navigation = connectionSheetNavigation.copy(onOpenApp = null),
+            onRulesChanged = { reloadToken++ },
+        )
+    }
+}
+
+@Composable
+private fun appInfoStrings(): RethinkAppInfoStrings {
+    val wifiAllowed = stringResource(R.string.app_state_wifi_allowed)
+    val wifiBlocked = stringResource(R.string.app_state_wifi_blocked)
+    val mobileAllowed = stringResource(R.string.app_state_mobile_allowed)
+    val mobileBlocked = stringResource(R.string.app_state_mobile_blocked)
+    val resources = LocalContext.current.resources
+    return RethinkAppInfoStrings(
+        unavailable = stringResource(R.string.ada_noapp_dialog_message),
+        loading = stringResource(R.string.lbl_loading),
+        internetAccess = stringResource(R.string.app_internet_access),
+        wifi = stringResource(R.string.ada_app_unmetered),
+        mobile = stringResource(R.string.lbl_mobile_data),
+        allowed = stringResource(R.string.lbl_allowed),
+        blocked = stringResource(R.string.lbl_blocked),
+        meteredFootnote = stringResource(R.string.app_metered_footnote),
+        temporaryAllow = stringResource(R.string.temp_allow_label),
+        stopTemporaryAccess = { minutes -> resources.getQuantityString(R.plurals.app_stop_temp_access, minutes, minutes) },
+        recentActivity = stringResource(R.string.app_recent_activity),
+        seeAllActivity = stringResource(R.string.app_see_all_activity),
+        noRecentActivity = stringResource(R.string.app_no_recent_activity),
+        rules = stringResource(R.string.lbl_rules),
+        ipRules = stringResource(R.string.lbl_ip_rules),
+        domainRules = stringResource(R.string.lbl_domain_rules),
+        specialHandling = stringResource(R.string.app_special_handling),
+        modeTitle = stringResource(R.string.ada_app_mode_title),
+        normal = stringResource(R.string.ada_app_mode_normal),
+        normalDescription = stringResource(R.string.ada_app_mode_normal_desc),
+        trustedOnly = stringResource(R.string.ada_app_isolate),
+        trustedOnlyDescription = stringResource(R.string.ada_app_isolate_desc),
+        skipAllFiltering = stringResource(R.string.ada_app_bypass_dns_firewall),
+        skipAllFilteringDescription = stringResource(R.string.ada_app_bypass_dns_firewall_desc),
+        skipUniversalRules = stringResource(R.string.ada_app_bypass_univ),
+        skipUniversalRulesDescription = stringResource(R.string.ada_app_bypass_univ_desc),
+        exclude = stringResource(R.string.ada_app_exclude),
+        excludeDescription = stringResource(R.string.ada_app_exclude_desc),
+        excludeWarning = stringResource(R.string.app_mode_exclude_warning),
+        skipAllFilteringWarning = stringResource(R.string.app_mode_skip_all_warning),
+        apply = stringResource(R.string.lbl_apply),
+        cancel = stringResource(R.string.lbl_cancel),
+        more = stringResource(R.string.app_more),
+        proxyExclude = stringResource(R.string.exclude_apps_from_proxy),
+        proxyExcludeDescription = stringResource(R.string.exclude_apps_from_proxy_desc),
+        systemAppInfo = stringResource(R.string.about_settings_app_info),
+        wifiState = { blocked -> if (blocked) wifiBlocked else wifiAllowed },
+        mobileState = { blocked -> if (blocked) mobileBlocked else mobileAllowed },
+    )
 }
 
 private data class AppInfoLoad(
     val info: AppInfo,
-    val appStatus: FirewallManager.FirewallStatus,
-    val connStatus: FirewallManager.ConnectionStatus,
+    val appStatus: FirewallStatus,
+    val connStatus: ConnectionStatus,
     val isProxyExcluded: Boolean,
-    val isTempAllowed: Boolean,
+    val tempAllowExpiry: Long,
     val proxyDetails: String,
-    val firewallStatusText: String
 )
 
-private suspend fun loadAppInfo(
-    uid: Int,
-    wireguardAppsProxyMapDesc: String,
-    getFirewallStatusText: (FirewallManager.FirewallStatus, FirewallManager.ConnectionStatus) -> String,
-    onLoaded: (AppInfoLoad) -> Unit,
-    onMissing: () -> Unit
-) {
-    val info = withContext(Dispatchers.IO) { FirewallManager.getAppInfoByUid(uid) }
-    if (info == null || uid == INVALID_UID || info.tombstoneTs > 0) {
-        onMissing()
-        return
-    }
-    val status = FirewallManager.appStatus(info.uid)
-    val conn = FirewallManager.connectionStatus(info.uid)
-    val proxy =
-        ProxyManager.getProxyIdForApp(uid).takeIf { it.isNotEmpty() && it != ID_NONE }
-            ?.let { wireguardAppsProxyMapDesc.format(it) }
-            .orEmpty()
-    val firewallStatusText = getFirewallStatusText(status, conn)
-    onLoaded(
-        AppInfoLoad(
-            info = info,
-            appStatus = status,
-            connStatus = conn,
-            isProxyExcluded = info.isProxyExcluded,
-            isTempAllowed = FirewallManager.isTempAllowed(info.uid),
-            proxyDetails = proxy,
-            firewallStatusText = firewallStatusText
-        )
+/** The app behind [uid], or null when it isn't installed (or was uninstalled). */
+private suspend fun loadAppInfo(uid: Int, wireguardAppsProxyMapDesc: String): AppInfoLoad? {
+    val info = FirewallManager.getAppInfoByUid(uid)
+    if (info == null || info.tombstoneTs > 0) return null
+    val proxy = ProxyManager.getProxyIdForApp(uid).takeIf { it.isNotEmpty() && it != ID_NONE }
+        ?.let { wireguardAppsProxyMapDesc.format(it) }
+        .orEmpty()
+    return AppInfoLoad(
+        info = info,
+        appStatus = FirewallManager.appStatus(info.uid),
+        connStatus = FirewallManager.connectionStatus(info.uid),
+        isProxyExcluded = info.isProxyExcluded,
+        tempAllowExpiry = FirewallManager.tempAllowExpiry(info.uid),
+        proxyDetails = proxy,
     )
 }
 
-private fun updateFirewallStatus(
-    scope: CoroutineScope,
-    context: Context,
-    uid: Int,
-    appInfo: AppInfo?,
-    aStat: FirewallManager.FirewallStatus,
-    cStat: FirewallManager.ConnectionStatus,
-    eventLogger: EventLogger,
-    excludeNoPackageErrToast: String,
-    getFirewallStatusText: (FirewallManager.FirewallStatus, FirewallManager.ConnectionStatus) -> String,
-    onUpdated: (String, FirewallManager.FirewallStatus, FirewallManager.ConnectionStatus) -> Unit
-) {
-    val info = appInfo ?: return
-    if (aStat == FirewallManager.FirewallStatus.EXCLUDE && FirewallManager.isUnknownPackage(uid)) {
-        showToastUiCentered(context, excludeNoPackageErrToast, Toast.LENGTH_LONG)
-        return
-    }
-    scope.launch(Dispatchers.IO) {
-        FirewallManager.updateFirewallStatus(info.uid, aStat, cStat)
-        val statusText = getFirewallStatusText(aStat, cStat)
-        withContext(Dispatchers.Main) {
-            onUpdated(statusText, aStat, cStat)
-        }
-        eventLogger.log(
-            type = EventType.FW_RULE_MODIFIED,
-            severity = Severity.LOW,
-            message = "Firewall status changed",
-            source = EventSource.MANAGER,
-            userAction = true,
-            details = "Firewall status changed for ${info.appName} (${info.uid}), new status: $aStat, conn status: $cStat"
-        )
-    }
+private fun logChange(eventLogger: EventLogger, app: AppInfo, status: FirewallStatus, connection: ConnectionStatus, undo: Boolean = false) {
+    eventLogger.log(
+        type = EventType.FW_RULE_MODIFIED,
+        severity = Severity.LOW,
+        message = if (undo) "Firewall status restored" else "Firewall status changed",
+        source = EventSource.MANAGER,
+        userAction = true,
+        details = "Firewall status ${if (undo) "restored" else "changed"} for ${app.appName} (${app.uid}), new status: $status, conn status: $connection",
+    )
 }

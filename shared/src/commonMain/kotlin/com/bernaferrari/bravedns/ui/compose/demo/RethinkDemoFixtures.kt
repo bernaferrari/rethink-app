@@ -290,77 +290,78 @@ internal val demoRetryOptions = listOf(
 internal val demoFirewallAppListStrings = RethinkFirewallAppListStrings(
     title = "Apps",
     searchHint = { count -> "Search $count apps" },
+    searchHintLoading = "Search apps",
+    loading = "Loading…",
     refresh = "Refresh",
     filter = "Filter",
-    rules = "Rules",
     clearSearch = "Clear search",
     emptyTitle = "No apps found",
     emptyDescription = "Try another filter or search term.",
     view = "View",
-    installed = "Installed",
-    system = "System",
+    installed = "Your apps",
+    system = "System apps",
     all = "All",
     status = "Status",
-    categories = "Categories",
+    categories = "Category",
     clear = "Clear",
-    noCategories = "No categories available.",
-    apply = "Apply",
     cancel = "Cancel",
-    close = "Close",
-    enabled = "Enabled",
-    disabled = "Disabled",
+    close = "Done",
     proxy = "Proxy",
-    wifiActionLabel = { blocked -> if (blocked) "Allow on Wi-Fi" else "Block on Wi-Fi" },
+    wifiStateLabel = { blocked -> if (blocked) "Wi‑Fi: blocked" else "Wi‑Fi: allowed" },
+    mobileStateLabel = { blocked -> if (blocked) "Mobile data: blocked" else "Mobile data: allowed" },
+    wifiActionLabel = { blocked -> if (blocked) "Allow on Wi‑Fi" else "Block on Wi‑Fi" },
     mobileActionLabel = { blocked -> if (blocked) "Allow on mobile data" else "Block on mobile data" },
-    bulkDescription = "Apply a rule to all apps currently shown in this demo.",
-    selectedApps = { count -> "$count apps" },
-    actionLabel = { action -> when (action) {
-        RethinkFirewallBulkAction.Wifi -> "Wi-Fi"
-        RethinkFirewallBulkAction.Mobile -> "Mobile data"
-        RethinkFirewallBulkAction.Bypass -> "Bypass firewall"
-        RethinkFirewallBulkAction.BypassDns -> "Bypass DNS + firewall"
-        RethinkFirewallBulkAction.Exclude -> "Exclude"
-        RethinkFirewallBulkAction.Lockdown -> "Lockdown"
-    } },
-    actionDescription = { action -> when (action) {
-        RethinkFirewallBulkAction.Wifi -> "Allow or block this group on Wi-Fi."
-        RethinkFirewallBulkAction.Mobile -> "Allow or block this group on mobile data."
-        RethinkFirewallBulkAction.Bypass -> "Ignore universal firewall rules."
-        RethinkFirewallBulkAction.BypassDns -> "Ignore DNS and firewall rules."
-        RethinkFirewallBulkAction.Exclude -> "Exclude this group from DNS and firewall handling."
-        RethinkFirewallBulkAction.Lockdown -> "Block all traffic except trusted addresses."
-    } },
-    bulkDialogCopy = { action, active ->
-        val verb = if (active) "Disable" else "Enable"
-        RethinkFirewallBulkDialogCopy("$verb ${demoFirewallActionName(action)}?", "This updates the demo state only.")
+    select = "Select",
+    exitSelect = "Exit selection",
+    selectAll = "Select all",
+    selectedCount = { count -> "$count selected" },
+    selectionActionLabel = { action -> demoSelectionActionLabel(action) },
+    selectionConfirmTitle = { action, count ->
+        val apps = if (count == 1) "1 app" else "$count apps"
+        when (action) {
+            RethinkAppSelectionAction.BlockWifi -> "Block Wi‑Fi for $apps?"
+            RethinkAppSelectionAction.BlockMobile -> "Block mobile data for $apps?"
+            RethinkAppSelectionAction.AllowAll -> "Allow $apps everywhere?"
+            RethinkAppSelectionAction.AllowWifi -> "Allow Wi‑Fi for $apps?"
+            RethinkAppSelectionAction.AllowMobile -> "Allow mobile data for $apps?"
+            else -> "Set $apps to ${demoSelectionActionLabel(action)}?"
+        }
     },
+    selectionNetworkMessage = "Only the apps you selected change. Any special handling they have goes back to Normal.",
+    selectionModeMessage = "Only the apps you selected change. Their Wi‑Fi and mobile data blocks are cleared.",
+    alsoAffects = { names -> "Also affects apps that share their ID: $names" },
     filterLabel = { filter -> when (filter) {
         RethinkFirewallFilter.All -> "All"
         RethinkFirewallFilter.Allowed -> "Allowed"
         RethinkFirewallFilter.Blocked -> "Blocked"
-        RethinkFirewallFilter.Bypass -> "Bypass"
+        RethinkFirewallFilter.Bypass -> "Skips universal rules"
+        RethinkFirewallFilter.SkipAllFiltering -> "Skips all filtering"
         RethinkFirewallFilter.Excluded -> "Excluded"
-        RethinkFirewallFilter.Lockdown -> "Lockdown"
-        RethinkFirewallFilter.BlockedWifi -> "Wi-Fi blocked"
-        RethinkFirewallFilter.BlockedMobile -> "Mobile blocked"
+        RethinkFirewallFilter.Lockdown -> "Trusted only"
+        RethinkFirewallFilter.BlockedWifi -> "Blocked on Wi‑Fi"
+        RethinkFirewallFilter.BlockedMobile -> "Blocked on mobile data"
     } },
     statusLabel = { status -> when (status) {
         RethinkFirewallAppStatus.Allowed -> ""
         RethinkFirewallAppStatus.Blocked -> "Blocked"
-        RethinkFirewallAppStatus.Bypass -> "Bypass"
+        RethinkFirewallAppStatus.Bypass -> "Skips universal rules"
+        RethinkFirewallAppStatus.SkipAllFiltering -> "Skips all filtering"
         RethinkFirewallAppStatus.Excluded -> "Excluded"
-        RethinkFirewallAppStatus.Lockdown -> "Lockdown"
+        RethinkFirewallAppStatus.Lockdown -> "Trusted only"
         RethinkFirewallAppStatus.Unknown -> "Unknown"
     } },
 )
 
-internal fun demoFirewallActionName(action: RethinkFirewallBulkAction) = when (action) {
-    RethinkFirewallBulkAction.Wifi -> "Wi-Fi rule"
-    RethinkFirewallBulkAction.Mobile -> "mobile rule"
-    RethinkFirewallBulkAction.Bypass -> "firewall bypass"
-    RethinkFirewallBulkAction.BypassDns -> "DNS + firewall bypass"
-    RethinkFirewallBulkAction.Exclude -> "exclusion"
-    RethinkFirewallBulkAction.Lockdown -> "lockdown"
+internal fun demoSelectionActionLabel(action: RethinkAppSelectionAction) = when (action) {
+    RethinkAppSelectionAction.BlockWifi -> "Block Wi‑Fi"
+    RethinkAppSelectionAction.BlockMobile -> "Block mobile data"
+    RethinkAppSelectionAction.AllowAll -> "Allow all"
+    RethinkAppSelectionAction.AllowWifi -> "Allow Wi‑Fi"
+    RethinkAppSelectionAction.AllowMobile -> "Allow mobile data"
+    RethinkAppSelectionAction.TrustedOnly -> "Trusted only"
+    RethinkAppSelectionAction.SkipUniversalRules -> "Skip universal rules"
+    RethinkAppSelectionAction.SkipAllFiltering -> "Skip all filtering"
+    RethinkAppSelectionAction.Exclude -> "Exclude from Keepout"
 }
 
 internal val demoFirewallApps =
