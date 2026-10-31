@@ -77,6 +77,7 @@ import com.bernaferrari.bravedns.viewmodel.ProxyAppsMappingViewModel
 import com.bernaferrari.bravedns.ui.compose.apps.AppListScreen
 import com.bernaferrari.bravedns.ui.compose.firewall.CustomRulesScreen
 import com.bernaferrari.bravedns.ui.compose.home.WelcomeScreen
+import com.bernaferrari.bravedns.ui.compose.home.HomeProtectionActions
 import com.bernaferrari.bravedns.ui.compose.home.HomeScreenUiState
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRulesMode
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkRulesTab
@@ -341,7 +342,7 @@ data class HomeWgActions(
 @Composable
 fun HomeScreenRoot(
     homeUiState: HomeScreenUiState,
-    onHomeStartStopClick: () -> Unit,
+    homeActions: HomeProtectionActions,
     summaryViewModel: SummaryStatisticsViewModel,
     onOpenDetailedStats: (SummaryStatisticsType) -> Unit,
     startDestination: RethinkRoute,
@@ -493,12 +494,12 @@ fun HomeScreenRoot(
             entry<RethinkRoute.Home> {
                 HomeScreen(
                     uiState = latestHomeUiState.value,
-                    onStartStopClick = onHomeStartStopClick,
+                    actions = homeActions,
                     onActivityClick = { nav.open(RethinkRoute.Statistics) },
-                    onAppsClick = { nav.open(RethinkRoute.AppList) },
-                    onLogsClick = { nav.open(RethinkRoute.NetworkLogs()) },
                     onDnsClick = { nav.push(RethinkRoute.DnsSettings) },
                     onAppClick = { uid -> nav.push(RethinkRoute.AppInfo(uid)) },
+                    onReviewApps = { nav.open(RethinkRoute.AppList) },
+                    onChooseBlocklists = { nav.push(RethinkRoute.Blocklists) },
                 )
             }
             val sheetNavigation = connectionSheetNavigation(nav)
@@ -723,10 +724,15 @@ fun HomeScreenRoot(
             }
             entry<RethinkRoute.Welcome> {
                 WelcomeScreen(
-                    onFinish = {
+                    onTurnOn = {
                         persistentState.firstTimeLaunch = false
                         nav.open(RethinkRoute.Home)
-                    }
+                        homeActions.onTurnOnFromWelcome()
+                    },
+                    onNotNow = {
+                        persistentState.firstTimeLaunch = false
+                        nav.open(RethinkRoute.Home)
+                    },
                 )
             }
             entry<RethinkRoute.AppLock> {
