@@ -33,6 +33,7 @@ object MaterialSymbols {
         val ChatBubble: ImageVector get() = filledChatBubble
         val Check: ImageVector get() = filledCheck
         val CheckCircle: ImageVector get() = filledCheckCircle
+        val Checklist: ImageVector get() = filledChecklist
         val Close: ImageVector get() = filledClose
         val Cloud: ImageVector get() = filledCloud
         val Code: ImageVector get() = filledCode
@@ -80,6 +81,7 @@ object MaterialSymbols {
         val Notifications: ImageVector get() = filledNotifications
         val NotificationsOff: ImageVector get() = filledNotificationsOff
         val Palette: ImageVector get() = filledPalette
+        val Pause: ImageVector get() = filledPause
         val PauseCircle: ImageVector get() = filledPauseCircle
         val PhoneAndroid: ImageVector get() = filledPhoneAndroid
         val PhotoLibrary: ImageVector get() = filledPhotoLibrary
@@ -106,12 +108,14 @@ object MaterialSymbols {
         val Shop: ImageVector get() = filledShop
         val ShoppingCart: ImageVector get() = filledShoppingCart
         val SignalCellularAlt: ImageVector get() = filledSignalCellularAlt
+        val Sort: ImageVector get() = filledSort
         val Star: ImageVector get() = filledStar
         val Stop: ImageVector get() = filledStop
         val SyncAlt: ImageVector get() = filledSyncAlt
         val SystemUpdate: ImageVector get() = filledSystemUpdate
         val Terminal: ImageVector get() = filledTerminal
         val Timer: ImageVector get() = filledTimer
+        val TimerOff: ImageVector get() = filledTimerOff
         val Tune: ImageVector get() = filledTune
         val Verified: ImageVector get() = filledVerified
         val VisibilityOff: ImageVector get() = filledVisibilityOff

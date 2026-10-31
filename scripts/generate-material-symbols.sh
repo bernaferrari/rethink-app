@@ -15,7 +15,7 @@ BASE_URL="https://fonts.gstatic.com/render/v1/Material+Symbols+Rounded/24dp"
 readonly FILLED_ICONS=(
   add android apps arrow_back arrow_downward arrow_forward article auto_awesome auto_stories backup
   block brightness_auto bug_report business_center calendar_month call_split camera_alt
-  cancel cell_tower chat chat_bubble check check_circle close cloud code content_copy
+  cancel cell_tower chat chat_bubble check check_circle checklist close cloud code content_copy
   conversion_path dark_mode database delete_outline dns do_not_disturb_on domino_mask
   download edit edit_location_alt email filter_list format_list_bulleted forum gpp_good
   gpp_maybe group headset help_outline history home http info insert_chart
@@ -24,8 +24,8 @@ readonly FILLED_ICONS=(
   new_releases notifications notifications_off palette pause_circle phone_android
   photo_library pin play_arrow policy public public_off refresh remove remove_moderator
   report restore rule science screen_lock_portrait search send settings
-  settings_ethernet share shield shield_moon shop shopping_cart signal_cellular_alt
-  star stop sync_alt system_update terminal timer tune verified visibility_off vpn_key
+  settings_ethernet share shield shield_moon shop shopping_cart signal_cellular_alt sort
+  star stop sync_alt system_update terminal timer timer_off tune verified visibility_off vpn_key
   vpn_lock warning wb_sunny wifi wifi_off work
 )
 # Keep outline counterparts for selection-state components such as the root
