@@ -85,13 +85,16 @@ with d:
         d.scroll_to('Most blocked apps', .12)
         shot('06-blocked-apps')
 
-        # The log is the Activity tab's other view; Connections / DNS lookups is a labelled row
-        # over the filters.
+        # The log is the Activity tab's other view. It opens on All: connections and DNS lookups as
+        # one timeline. Type lives in the Filters sheet (All · Connections · DNS lookups); the
+        # verdict group (All · Allowed · Blocked) shares the one control row with the Filters button.
         for _ in range(3):  # back to the top: the collapsed bar swaps the switch for the 1h/24h/7d tabs
             d.scroll(.6, up=True)
         tap('Log')
         shot('02-logs')
-        tap('DNS lookups', above=.3)
+        tap('Filters', above=.3)
+        tap('DNS lookups')
+        d.back(1.8)  # close the sheet: the "DNS lookups" chip now shows under the controls
         tap('Blocked', above=.35)
         shot('04-dns-blocked')
 
