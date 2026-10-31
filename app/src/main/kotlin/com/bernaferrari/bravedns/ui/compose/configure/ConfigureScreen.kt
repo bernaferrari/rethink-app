@@ -65,14 +65,14 @@ fun ConfigureScreen(
             entry("firewall", stringResource(R.string.lbl_firewall), KeepoutIcons.Firewall, SettingsSearchDestination.Firewall(), ConfigureAccents.firewall, listOf("firewall", "rules", "allow", "block")),
             entry("proxy", stringResource(R.string.settings_proxy_vpn), MaterialSymbols.Filled.ConversionPath, SettingsSearchDestination.Proxy(), ConfigureAccents.proxy, listOf("proxy", "socks5", "orbot", "wireguard", "vpn")),
         ), RethinkConfigureLayout.GridFour),
-        // App: how Keepout itself looks and behaves. Rows, each with its colored well.
+        // App: how Keepout itself looks and behaves, as tiles like the other groups.
         RethinkConfigureSection(stringResource(R.string.settings_section_app), listOf(
             entry("appearance", stringResource(R.string.settings_theme_heading), MaterialSymbols.Filled.Palette, SettingsSearchDestination.Appearance, ConfigureAccents.appearance, listOf("theme", "dark", "color")),
             entry("app_lock", stringResource(R.string.app_lock_title), MaterialSymbols.Filled.Lock, SettingsSearchDestination.AppLock, ConfigureAccents.appLock, listOf("lock", "biometric", "fingerprint")),
             entry("notifications", stringResource(R.string.settings_notifications), MaterialSymbols.Filled.Notifications, SettingsSearchDestination.Notifications, ConfigureAccents.notifications, listOf("notifications", "alerts")),
             entry("backup", stringResource(R.string.brbs_title), MaterialSymbols.Filled.Backup, SettingsSearchDestination.Backup, ConfigureAccents.backup, listOf("backup", "restore")),
             entry("general", stringResource(R.string.settings_general_header).replaceFirstChar { it.titlecase() }, MaterialSymbols.Filled.Tune, SettingsSearchDestination.General(), ConfigureAccents.settings, listOf("general", "boot", "updates")),
-        ), RethinkConfigureLayout.List),
+        ), RethinkConfigureLayout.GridFour),
         // Advanced: engine knobs and troubleshooting, as tiles like Protection.
         RethinkConfigureSection(stringResource(R.string.lbl_advanced), buildList {
             add(entry("network", stringResource(R.string.lbl_network), MaterialSymbols.Filled.VpnLock, SettingsSearchDestination.Network(), ConfigureAccents.network, listOf("network", "vpn", "tunnel")))
