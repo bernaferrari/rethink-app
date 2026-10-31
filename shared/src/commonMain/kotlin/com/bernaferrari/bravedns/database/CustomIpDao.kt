@@ -104,6 +104,15 @@ interface CustomIpDao {
     )
     fun getAllCustomIpRules(query: String): PagingSource<Int, CustomIp>
 
+    /** Every active rule, all-apps ones first, then grouped by app (the Rules screen's "All rules"). */
+    @Query(
+        "select * from CustomIp where ipAddress like :query and isActive = 1 order by (uid != $UID_EVERYBODY), uid, modifiedDateTime desc"
+    )
+    fun getEveryIpRule(query: String): PagingSource<Int, CustomIp>
+
+    @Query("select count(*) from CustomIp where isActive = 1")
+    fun observeEveryIpRuleCount(): Flow<Int>
+
     @Transaction
     suspend fun updateUid(uid: Int, newUid: Int) {
         // Use INSERT OR REPLACE to handle conflicts properly

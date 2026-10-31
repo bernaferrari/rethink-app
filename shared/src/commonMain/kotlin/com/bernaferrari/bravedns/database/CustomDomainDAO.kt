@@ -94,6 +94,15 @@ interface CustomDomainDAO {
     )
     fun getAllDomainRules(query: String): PagingSource<Int, CustomDomain>
 
+    /** Every rule, all-apps ones first, then grouped by app (the Rules screen's "All rules"). */
+    @Query(
+        "select * from CustomDomain where domain like :query order by (uid != ${Constants.UID_EVERYBODY}), uid, modifiedTs desc"
+    )
+    fun getEveryDomainRule(query: String): PagingSource<Int, CustomDomain>
+
+    @Query("select count(*) from CustomDomain")
+    fun observeEveryDomainRuleCount(): Flow<Int>
+
     @Query("SELECT * FROM CustomDomain WHERE uid = :uid AND domain = :domain")
     suspend fun getCustomDomain(uid: Int, domain: String): CustomDomain?
 

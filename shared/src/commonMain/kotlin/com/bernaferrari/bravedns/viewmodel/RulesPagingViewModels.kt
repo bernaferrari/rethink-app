@@ -95,6 +95,17 @@ class CustomDomainViewModel(
 
     fun domainRulesCount(uid: Int): Flow<Int> = dao.getAppWiseDomainRulesCount(uid)
 
+    /** Every rule, all-apps first then by app, filtered by the search ("All rules"). */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val everyDomainRule: Flow<PagingData<CustomDomain>> =
+        query.flatMapLatest { state ->
+            Pager(PagingConfig(PAGING_PAGE_SIZE)) { dao.getEveryDomainRule("%${state.search}%") }
+                .flow
+                .cachedIn(viewModelScope)
+        }
+
+    fun everyDomainRuleCount(): Flow<Int> = dao.observeEveryDomainRuleCount()
+
     fun allDomainRulesCount(): Flow<Int> = dao.getAllDomainRulesCount()
 
     fun setUid(uid: Int) {
@@ -135,6 +146,17 @@ class CustomIpViewModel(
         }
 
     fun ipRulesCount(uid: Int): Flow<Int> = dao.getAppWiseIpRulesCount(uid)
+
+    /** Every active rule, all-apps first then by app, filtered by the search ("All rules"). */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val everyIpRule: Flow<PagingData<CustomIp>> =
+        query.flatMapLatest { state ->
+            Pager(PagingConfig(PAGING_PAGE_SIZE)) { dao.getEveryIpRule("%${state.search}%") }
+                .flow
+                .cachedIn(viewModelScope)
+        }
+
+    fun everyIpRuleCount(): Flow<Int> = dao.observeEveryIpRuleCount()
 
     fun allIpRulesCount(): Flow<Int> = dao.getIpRulesCountInt()
 
