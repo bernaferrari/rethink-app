@@ -242,6 +242,15 @@ interface ConnectionTrackerDAO : StatsRebuildDao {
     @Query("select connId from ConnectionTracker where uid = :uid and ipAddress = :ipAddress and timeStamp >= :to and message = '' and uploadBytes = 0 and downloadBytes = 0 and synack = 0")
     suspend fun getConnIdByUidIpAddress(uid: Int, ipAddress: String, to: Long): List<String>
 
+    /**
+     * The newest connection to [domain] (trailing dot ignored) or [ip] with this verdict since
+     * [since]. Insights opens its Connection sheet on it. Empty [domain] / [ip] never match.
+     */
+    @Query(
+        "select * from ConnectionTracker where timeStamp > :since and isBlocked = :blocked and ((:domain != '' and rtrim(dnsQuery, '.') = rtrim(:domain, '.')) or (:ip != '' and ipAddress = :ip)) order by id desc limit 1"
+    )
+    suspend fun latestConnectionTo(domain: String, ip: String, blocked: Boolean, since: Long): ConnectionTracker?
+
     @Query(
         "SELECT uid, SUM(uploadBytes) AS uploadBytes, SUM(downloadBytes) AS downloadBytes FROM ConnectionTracker where timeStamp >= :from and timeStamp <= :to GROUP BY uid"
     )

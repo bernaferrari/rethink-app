@@ -108,6 +108,9 @@ class ConnectionTrackerRepository(private val connectionTrackerDAO: ConnectionTr
         return connectionTrackerDAO.getLeastLoggedTime()
     }
 
+    suspend fun latestConnectionTo(domain: String, ip: String, blocked: Boolean, since: Long): ConnectionTracker? =
+        connectionTrackerDAO.latestConnectionTo(domain, ip, blocked, since)
+
     suspend fun getConnIdByUidIpAddress(uid: Int, ipAddress: String, to: Long): List<String> {
         return connectionTrackerDAO.getConnIdByUidIpAddress(uid, ipAddress, to)
     }

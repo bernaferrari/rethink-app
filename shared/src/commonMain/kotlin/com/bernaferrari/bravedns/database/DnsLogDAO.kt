@@ -94,6 +94,12 @@ interface DnsLogDAO : StatsRebuildDao {
 
     @Query("select count(id) from DNSLogs") fun logsCount(): Flow<Long>
 
+    /** The newest lookup of [domain] (trailing dot ignored) with this verdict since [since]. */
+    @Query(
+        "select * from DNSLogs where time > :since and isBlocked = :blocked and rtrim(queryStr, '.') = rtrim(:domain, '.') order by id desc limit 1"
+    )
+    suspend fun latestLookupOf(domain: String, blocked: Boolean, since: Long): DnsLog?
+
     @Query(
         "SELECT appName AS appName, packageName AS packageName, COUNT(id) AS count FROM DNSLogs WHERE TRIM(appName) != '' GROUP BY appName, packageName ORDER BY count DESC"
     )

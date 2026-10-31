@@ -39,6 +39,9 @@ class DnsLogRepository(private val dnsLogDAO: DnsLogDAO) {
         return dnsLogDAO.logsCount()
     }
 
+    suspend fun latestLookupOf(domain: String, blocked: Boolean, since: Long): DnsLog? =
+        dnsLogDAO.latestLookupOf(domain, blocked, since)
+
     fun observeRecentLatencies(limit: Int = 24): Flow<List<Long>> = dnsLogDAO.observeRecentLatencies(limit)
 
     fun observeBlockedSince(since: Long): Flow<Long> = dnsLogDAO.observeBlockedSince(since)
