@@ -62,6 +62,9 @@ class RethinkNavStackTest {
         assertEquals(RethinkRootDestination.Activity, RethinkRoute.Statistics.tabRoot())
         assertEquals(RethinkRootDestination.Apps, RethinkRoute.AppList.tabRoot())
         assertNull(RethinkRoute.AppInfo(1).tabRoot())
+        // Keepout's own log is a screen inside Apps, under its App detail.
+        assertNull(RethinkRoute.KeepoutConnections.tabRoot())
+        assertEquals(listOf(RethinkRoute.AppList, RethinkRoute.KeepoutConnections), canonicalStackFor(RethinkRoute.KeepoutConnections))
         assertNull(RethinkRoute.Welcome.tabRoot())
     }
 

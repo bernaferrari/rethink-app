@@ -28,6 +28,8 @@ sealed interface RethinkRoute : NavKey {
     @Serializable data object Alerts : RethinkRoute
     @Serializable data object Events : RethinkRoute
     @Serializable data object AppList : RethinkRoute
+    /** Connections Keepout itself makes (its own App detail's "See all activity"). */
+    @Serializable data object KeepoutConnections : RethinkRoute
     /**
      * The log searched for [query], or one app's log: [uid] filters by app (names collide, uids
      * don't) and [appName] titles it. Neither set is the Activity tab's log itself.
@@ -121,7 +123,7 @@ enum class RethinkRootDestination(val route: RethinkRoute) {
  */
 fun RethinkRoute.rootDestination(): RethinkRootDestination? = when (this) {
     RethinkRoute.Home, RethinkRoute.Welcome, RethinkRoute.AppLock -> RethinkRootDestination.Home
-    RethinkRoute.AppList, is RethinkRoute.AppInfo -> RethinkRootDestination.Apps
+    RethinkRoute.AppList, is RethinkRoute.AppInfo, RethinkRoute.KeepoutConnections -> RethinkRootDestination.Apps
     RethinkRoute.Activity, RethinkRoute.Statistics, is RethinkRoute.NetworkLogs,
     is RethinkRoute.DetailedStatistics, is RethinkRoute.DomainConnections -> RethinkRootDestination.Activity
     RethinkRoute.Configure, RethinkRoute.About, RethinkRoute.Alerts, RethinkRoute.Events,
@@ -254,6 +256,7 @@ val rethinkNavSavedStateConfiguration =
                     subclass(RethinkRoute.Alerts::class, RethinkRoute.Alerts.serializer())
                     subclass(RethinkRoute.Events::class, RethinkRoute.Events.serializer())
                     subclass(RethinkRoute.AppList::class, RethinkRoute.AppList.serializer())
+                    subclass(RethinkRoute.KeepoutConnections::class, RethinkRoute.KeepoutConnections.serializer())
                     subclass(RethinkRoute.NetworkLogs::class, RethinkRoute.NetworkLogs.serializer())
                     subclass(RethinkRoute.ConsoleLogs::class, RethinkRoute.ConsoleLogs.serializer())
                     subclass(RethinkRoute.DnsList::class, RethinkRoute.DnsList.serializer())

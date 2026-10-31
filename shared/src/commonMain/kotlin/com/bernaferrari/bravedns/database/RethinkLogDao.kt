@@ -58,13 +58,9 @@ interface RethinkLogDao {
     // ref: https://stackoverflow.com/a/50776662 (auto covering index)
     // explain QUERY plan SELECT * from RethinkLog ORDER by timeStamp desc
     // add LIMIT 35000 (Constants.MAX_LOGS) to the query to avoid the query to be slow
+    /** Keepout's own connections, newest first: its log in App detail. */
     @Query("select * from RethinkLog order by id desc LIMIT $MAX_LOGS")
-    fun getRethinkLogByName(): PagingSource<Int, RethinkLog>
-
-    @Query(
-        "select * from RethinkLog where (appName like :query or ipAddress like :query or dnsQuery like :query or flag like :query) order by id desc LIMIT $MAX_LOGS"
-    )
-    fun getRethinkLogByName(query: String): PagingSource<Int, RethinkLog>
+    fun pagedLogs(): PagingSource<Int, RethinkLog>
 
     @Query("select * from RethinkLog where isBlocked = 1 order by id desc LIMIT $MAX_LOGS")
     fun getBlockedConnections(): PagingSource<Int, RethinkLog>

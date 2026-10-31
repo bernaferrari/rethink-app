@@ -16,17 +16,24 @@
 package com.bernaferrari.bravedns.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import androidx.paging.map
 import com.bernaferrari.bravedns.database.ConnectionTracker
 import com.bernaferrari.bravedns.database.ConnectionTrackerDAO
 import com.bernaferrari.bravedns.database.RethinkLog
 import com.bernaferrari.bravedns.database.RethinkLogDao
+import com.bernaferrari.bravedns.util.Constants.Companion.PAGING_PAGE_SIZE
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlin.time.Clock
 import org.koin.core.annotation.KoinViewModel
 import org.koin.core.annotation.Provided
 
-/** App detail's Recent activity: one app's connections in the last 24 hours. */
+/** App detail's Recent activity (one app's last 24 hours), and Keepout's own connection log. */
 @KoinViewModel
 class AppConnectionsViewModel(
     @Provided private val nwlogDao: ConnectionTrackerDAO,
@@ -55,7 +62,14 @@ class AppConnectionsViewModel(
      */
     fun recentKeepoutConnections(limit: Int = RECENT_ACTIVITY_SCAN_LIMIT): Flow<List<ConnectionTracker>> =
         rinrDao.observeRecentLogs(nowMillis() - RECENT_ACTIVITY_WINDOW_MS, limit)
-            .map { logs -> logs.map { it.toRecentConnection() } }
+            .map { logs -> logs.map { it.toConnection() } }
+
+    /** Every connection Keepout itself made that's still kept, newest first, as connection rows. */
+    val keepoutConnections: Flow<PagingData<ConnectionTracker>> =
+        Pager(PagingConfig(pageSize = PAGING_PAGE_SIZE, enablePlaceholders = false)) { rinrDao.pagedLogs() }
+            .flow
+            .map { page -> page.map { it.toConnection() } }
+            .cachedIn(viewModelScope)
 
     private companion object {
         const val RECENT_ACTIVITY_WINDOW_MS = 24 * 60 * 60 * 1000L
@@ -63,8 +77,10 @@ class AppConnectionsViewModel(
     }
 }
 
-/** The fields Recent activity reads; RethinkLog shares ConnectionTracker's columns. */
-private fun RethinkLog.toRecentConnection(): ConnectionTracker = ConnectionTracker().also {
+/** RethinkLog shares ConnectionTracker's columns: Keepout's rows read as connection rows. */
+private fun RethinkLog.toConnection(): ConnectionTracker = ConnectionTracker().also {
+    // RethinkLog's own id: row keys and expansion state, never a ConnectionTracker row.
+    it.id = id
     it.appName = appName
     it.uid = uid
     it.usrId = usrId

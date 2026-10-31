@@ -89,6 +89,8 @@ fun AppInfoScreen(
     onCustomDomainRulesClick: (Int) -> Unit,
     /** The Activity log for this app, by uid; the String is its name, which titles the log. */
     onSeeAllActivity: ((query: String) -> Unit)? = null,
+    /** Keepout's own App detail: its own connections, which the Activity log never holds. */
+    onSeeKeepoutConnections: (() -> Unit)? = null,
     connectionSheetNavigation: ConnectionSheetNavigation = ConnectionSheetNavigation(),
 ) {
     val context = LocalContext.current
@@ -332,8 +334,8 @@ fun AppInfoScreen(
                 Unit
             }.takeUnless { isKeepout },
             onSeeAllActivity = onSeeAllActivity?.let { open -> { open(appName) } }?.takeIf { appName.isNotBlank() },
-        // The activity log reads the connection log, which never holds Keepout's own uid.
-        ).let { if (isKeepout) it.copy(onSeeAllActivity = null) else it },
+        // The Activity log never holds Keepout's own uid: its See all opens Keepout's own log.
+        ).let { if (isKeepout) it.copy(onSeeAllActivity = onSeeKeepoutConnections) else it },
         appNotes = info?.let { app -> { AppNotesSection(uid, app) } },
         snackbarHostState = snackbar,
         // The page header: a step up from the 40dp list rows.

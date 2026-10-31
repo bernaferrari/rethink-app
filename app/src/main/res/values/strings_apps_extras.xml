@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Keepout's own App detail: "See all activity" opens the log of connections Keepout itself makes. -->
+    <string name="keepout_connections_title">Keepout\'s own connections</string>
+    <string name="keepout_connections_explainer">Connections Keepout itself makes, like DNS and update checks.</string>
+    <string name="keepout_connections_empty">Keepout hasn\'t made any connections yet.</string>
+</resources>

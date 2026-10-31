@@ -48,6 +48,7 @@ import com.bernaferrari.bravedns.ui.compose.alerts.AlertsScreen
 import com.bernaferrari.bravedns.ui.compose.about.AboutScreen
 import com.bernaferrari.bravedns.ui.compose.about.AboutUiState
 import com.bernaferrari.bravedns.ui.compose.app.AppInfoScreen
+import com.bernaferrari.bravedns.ui.compose.app.KeepoutConnectionsScreen
 import com.bernaferrari.bravedns.ui.compose.configure.ConfigureScreen
 import com.bernaferrari.bravedns.ui.compose.configure.SettingsSearchDestination
 import com.bernaferrari.bravedns.ui.compose.configure.route
@@ -467,6 +468,7 @@ fun HomeScreenRoot(
                     networkLogsViewModel = appInfoNetworkLogsViewModel,
                     onBackClick = onBack,
                     onSeeAllActivity = { appName -> nav.open(RethinkRoute.NetworkLogs(uid = uid, appName = appName)) },
+                    onSeeKeepoutConnections = { nav.push(RethinkRoute.KeepoutConnections) },
                     connectionSheetNavigation = connectionSheetNavigation(nav),
                     onCustomIpRulesClick = { u ->
                         nav.push(
@@ -795,6 +797,9 @@ fun HomeScreenRoot(
             }
             entry<RethinkRoute.AppInfo> { args ->
                 appInfoContent(args.uid) { nav.popBackStack() }
+            }
+            entry<RethinkRoute.KeepoutConnections> {
+                KeepoutConnectionsScreen(viewModel = appInfoNetworkLogsViewModel, onBackClick = { nav.popBackStack() })
             }
             entry<RethinkRoute.DnsList> {
                 DnsListScreen(

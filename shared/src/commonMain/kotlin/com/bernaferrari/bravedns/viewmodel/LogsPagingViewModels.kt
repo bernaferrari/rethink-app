@@ -29,8 +29,6 @@ import com.bernaferrari.bravedns.database.ActivityLogEntry
 import com.bernaferrari.bravedns.database.ActivityLogQuery
 import com.bernaferrari.bravedns.database.loggedApps
 import com.bernaferrari.bravedns.database.timeline
-import com.bernaferrari.bravedns.database.RethinkLog
-import com.bernaferrari.bravedns.database.RethinkLogDao
 import com.bernaferrari.bravedns.util.Constants.Companion.PAGING_PAGE_SIZE
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -72,26 +70,4 @@ class ActivityLogViewModel(
 
     /** The app filter's options for [state]'s kinds, verdict and reasons. */
     suspend fun loggedApps(state: ActivityLogQuery): List<ActivityAppCount> = dao.loggedApps(state)
-}
-
-@KoinViewModel
-class RethinkLogViewModel(
-    @Provided private val dao: RethinkLogDao,
-) : ViewModel() {
-    private val filter = MutableStateFlow("")
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val rlogList: Flow<PagingData<RethinkLog>> =
-        filter.flatMapLatest { search ->
-            Pager(logsPagingConfig) {
-                    if (search.isBlank()) dao.getRethinkLogByName()
-                    else dao.getRethinkLogByName("%$search%")
-                }
-                .flow
-                .cachedIn(viewModelScope)
-        }
-
-    fun setFilter(searchString: String) {
-        filter.value = searchString
-    }
 }
