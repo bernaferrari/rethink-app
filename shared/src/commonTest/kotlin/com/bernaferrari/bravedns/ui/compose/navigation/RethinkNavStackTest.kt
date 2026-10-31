@@ -57,6 +57,8 @@ class RethinkNavStackTest {
         assertEquals(RethinkActivityView.Insights, RethinkRoute.Statistics.activityView())
         assertEquals(RethinkActivityView.Log, RethinkRoute.NetworkLogs().activityView())
         assertNull(RethinkRoute.NetworkLogs("clock").activityView())
+        // One app's log is a screen pushed on the Activity tab, not the tab's own log.
+        assertNull(RethinkRoute.NetworkLogs(uid = 10_123, appName = "Clock").activityView())
         assertEquals(RethinkRootDestination.Activity, RethinkRoute.Statistics.tabRoot())
         assertEquals(RethinkRootDestination.Apps, RethinkRoute.AppList.tabRoot())
         assertNull(RethinkRoute.AppInfo(1).tabRoot())

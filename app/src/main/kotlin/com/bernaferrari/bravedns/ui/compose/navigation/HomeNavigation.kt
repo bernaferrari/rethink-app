@@ -466,7 +466,7 @@ fun HomeScreenRoot(
                     domainRulesViewModel = appInfoDomainRulesViewModel,
                     networkLogsViewModel = appInfoNetworkLogsViewModel,
                     onBackClick = onBack,
-                    onSeeAllActivity = { query -> nav.open(RethinkRoute.NetworkLogs(query)) },
+                    onSeeAllActivity = { appName -> nav.open(RethinkRoute.NetworkLogs(uid = uid, appName = appName)) },
                     connectionSheetNavigation = connectionSheetNavigation(nav),
                     onCustomIpRulesClick = { u ->
                         nav.push(
@@ -643,8 +643,8 @@ fun HomeScreenRoot(
                     onBackClick = { nav.popBackStack() }
                 )
             }
-            // The unfiltered log is the Activity tab; this entry is the log searched for one app,
-            // domain or address, pushed on whichever tab asked (App detail, Insights, rules).
+            // The unfiltered log is the Activity tab; this entry is one app's log (by uid) or the log
+            // searched for a domain or address, pushed on whichever tab asked (App detail, Insights, rules).
             entry<RethinkRoute.NetworkLogs> { args ->
                 NetworkLogsScreen(
                     connectionTrackerRepository = connectionTrackerRepository,
@@ -655,6 +655,8 @@ fun HomeScreenRoot(
                     onBackClick = { nav.popBackStack() },
                     sheetNavigation = sheetNavigation,
                     query = args.query,
+                    appUid = args.uid,
+                    appName = args.appName,
                 )
             }
 

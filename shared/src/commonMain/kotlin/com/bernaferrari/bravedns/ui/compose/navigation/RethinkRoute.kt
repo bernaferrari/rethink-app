@@ -28,7 +28,15 @@ sealed interface RethinkRoute : NavKey {
     @Serializable data object Alerts : RethinkRoute
     @Serializable data object Events : RethinkRoute
     @Serializable data object AppList : RethinkRoute
-    @Serializable data class NetworkLogs(val query: String = "") : RethinkRoute
+    /**
+     * The log searched for [query], or one app's log: [uid] filters by app (names collide, uids
+     * don't) and [appName] titles it. Neither set is the Activity tab's log itself.
+     */
+    @Serializable data class NetworkLogs(
+        val query: String = "",
+        val uid: Int? = null,
+        val appName: String = "",
+    ) : RethinkRoute
     @Serializable data object ConsoleLogs : RethinkRoute
     @Serializable data object DnsList : RethinkRoute
     @Serializable data class DnsDetail(val focusKey: String = "") : RethinkRoute
@@ -143,7 +151,7 @@ enum class RethinkActivityView { Log, Insights }
  */
 fun RethinkRoute.activityView(): RethinkActivityView? = when (this) {
     RethinkRoute.Statistics -> RethinkActivityView.Insights
-    is RethinkRoute.NetworkLogs -> RethinkActivityView.Log.takeIf { query.isBlank() }
+    is RethinkRoute.NetworkLogs -> RethinkActivityView.Log.takeIf { query.isBlank() && uid == null }
     else -> null
 }
 
