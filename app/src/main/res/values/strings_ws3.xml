@@ -19,7 +19,7 @@
     <string name="home_paused_left">%1$s left · Blocked apps stay blocked</string>
     <string name="home_paused_until_resumed">Until you resume · Blocked apps stay blocked</string>
     <string name="home_dns_line">DNS: %1$s</string>
-    <string name="home_dns_keepout">Keepout</string>
+    <string name="home_dns_keepout">Rethink DNS</string>
     <string name="home_dns_preset_family">Family</string>
     <string name="home_dns_preset_social_media">Social media</string>
     <string name="home_dns_preset_custom">Custom</string>
