@@ -2,77 +2,94 @@
 package com.bernaferrari.bravedns.ui.compose.dns
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.data.AppConfig
 import com.bernaferrari.bravedns.service.BlockFreeDnsMode
 
-/** Android preference/resolver adapter for the common DNS-settings renderer. */
+/** Android resources for the shared DNS screen: hero, the three choices, on-device blocking. */
 @Composable
 fun DnsSettingsScreen(
     uiState: DnsSettingsUiState,
+    navigation: RethinkDnsSettingsNavigation,
     initialFocusKey: String? = null,
-    onRefreshClick: () -> Unit,
-    onSystemDnsClick: () -> Unit,
-    onSystemDnsInfoClick: () -> Unit,
-    onCustomDnsClick: () -> Unit,
-    onRethinkPlusDnsClick: () -> Unit,
-    onSmartDnsClick: () -> Unit,
-    onSmartDnsInfoClick: () -> Unit,
-    onLocalBlocklistClick: () -> Unit,
-    onCustomDownloaderChange: (Boolean) -> Unit,
-    onPeriodicUpdateChange: (Boolean) -> Unit,
-    onDnsAlgChange: (Boolean) -> Unit,
-    onSplitDnsChange: (Boolean) -> Unit,
-    onBypassDnsBlockChange: (Boolean) -> Unit,
-    onAllowedRecordTypesClick: () -> Unit,
-    onFavIconChange: (Boolean) -> Unit,
-    onDnsCacheChange: (Boolean) -> Unit,
-    onProxyDnsChange: (Boolean) -> Unit,
-    onUndelegatedDomainsChange: (Boolean) -> Unit,
-    onFallbackChange: (Boolean) -> Unit,
-    onBlockFreeDnsModeChange: (BlockFreeDnsMode) -> Unit,
-    onBlockFreeDnsClick: () -> Unit,
-    onPreventLeaksChange: (Boolean) -> Unit,
     onBackClick: (() -> Unit)? = null,
 ) {
     RethinkDnsSettingsScreen(
-        navigation = com.bernaferrari.bravedns.ui.compose.dns.RethinkDnsSettingsNavigation(
-            onRefresh = onRefreshClick,
-            onSystemDns = onSystemDnsClick,
-            onSystemDnsInfo = onSystemDnsInfoClick,
-            onCustomDns = onCustomDnsClick,
-            onRethinkDns = onRethinkPlusDnsClick,
-            onSmartDns = onSmartDnsClick,
-            onSmartDnsInfo = onSmartDnsInfoClick,
-            onLocalBlocklists = onLocalBlocklistClick,
-            onRecordTypes = onAllowedRecordTypesClick,
-            onTrustedEndpoint = onBlockFreeDnsClick,
-        ),
-        additionalSettings = {
-            if (uiState.isSmartDnsEnabled) SmartDnsProfileSetting()
-            CaptivePortalSetting()
-        },
-        state = uiState.toRethinkDnsSettingsState(),
+        state = uiState.toRethinkDnsSettingsState(rethinkPresetLabel(uiState)),
         strings = androidDnsSettingsStrings(),
-        onCustomDownloaderChange = onCustomDownloaderChange,
-        onPeriodicUpdateChange = onPeriodicUpdateChange,
-        onDnsAlgChange = onDnsAlgChange,
-        onSplitDnsChange = onSplitDnsChange,
-        onRulesAsFirewallChange = onBypassDnsBlockChange,
-        onFaviconsChange = onFavIconChange,
-        onDnsCacheChange = onDnsCacheChange,
-        onProxyDnsChange = onProxyDnsChange,
-        onUndelegatedDomainsChange = onUndelegatedDomainsChange,
-        onFallbackDnsChange = onFallbackChange,
-        onBlockFreeModeChange = { onBlockFreeDnsModeChange(it.toAndroidBlockFreeDnsMode()) },
-        onPreventLeaksChange = onPreventLeaksChange,
+        navigation = navigation,
         onBackClick = onBackClick,
         focusedSettingId = initialFocusKey,
     )
 }
 
-private fun DnsSettingsUiState.toRethinkDnsSettingsState() = RethinkDnsSettingsState(
+/** Android preferences behind DNS › Advanced. */
+@Composable
+fun DnsAdvancedSettingsScreen(
+    uiState: DnsSettingsUiState,
+    navigation: RethinkDnsSettingsNavigation,
+    viewModel: DnsSettingsViewModel,
+    initialFocusKey: String? = null,
+    onBackClick: (() -> Unit)? = null,
+) {
+    RethinkDnsAdvancedScreen(
+        state = uiState.toRethinkDnsSettingsState(rethinkPresetLabel(uiState)),
+        strings = androidDnsSettingsStrings(),
+        navigation = navigation,
+        onCustomDownloaderChange = { viewModel.setUseCustomDownloadManager(it) },
+        onPeriodicUpdateChange = { viewModel.setPeriodicallyCheckBlocklistUpdate(it) },
+        onDnsAlgChange = { viewModel.setDnsAlgEnabled(it) },
+        onSplitDnsChange = { viewModel.setSplitDns(it) },
+        onRulesAsFirewallChange = { viewModel.setBypassBlockInDns(it) },
+        onFaviconsChange = { viewModel.setFavIconEnabled(it) },
+        onDnsCacheChange = { viewModel.setEnableDnsCache(it) },
+        onProxyDnsChange = { viewModel.setProxyDns(it) },
+        onUndelegatedDomainsChange = { viewModel.setUseSystemDnsForUndelegatedDomains(it) },
+        onFallbackDnsChange = { viewModel.setUseFallbackDnsToBypass(it) },
+        onBlockFreeModeChange = { viewModel.setBlockFreeDnsMode(it.toAndroidBlockFreeDnsMode()) },
+        onPreventLeaksChange = { viewModel.setPreventDnsLeaksEnabled(it) },
+        onBackClick = onBackClick,
+        focusedSettingId = initialFocusKey,
+        smartDnsSettings = { SmartDnsProfileSetting() },
+        additionalSettings = { CaptivePortalSetting() },
+    )
+}
+
+/**
+ * The name people see for a Rethink DNS endpoint: "Default", "Family", "Custom" for the stock
+ * ones, the stored name otherwise. Display only; stored names and URLs are unchanged.
+ */
+@Composable
+fun rethinkPresetName(storedName: String): String =
+    RethinkDnsPreset.fromStoredName(storedName)?.let { stringResource(it.labelRes()) } ?: storedName
+
+@Composable
+private fun rethinkPresetLabel(uiState: DnsSettingsUiState): String =
+    if (uiState.isRethinkDnsConnected) rethinkPresetName(connectedDnsDisplayName(uiState.connectedDnsName)) else ""
+
+internal fun RethinkDnsPreset.labelRes(): Int = when (this) {
+    RethinkDnsPreset.Default -> R.string.rethink_preset_default
+    RethinkDnsPreset.Family -> R.string.rethink_preset_family
+    RethinkDnsPreset.Piracy -> R.string.rethink_preset_piracy
+    RethinkDnsPreset.SocialMedia -> R.string.rethink_preset_social
+    RethinkDnsPreset.Security -> R.string.rethink_preset_security
+    RethinkDnsPreset.Privacy -> R.string.rethink_preset_privacy
+    RethinkDnsPreset.Custom -> R.string.rethink_preset_custom
+}
+
+internal fun RethinkDnsPreset.descriptionRes(): Int = when (this) {
+    RethinkDnsPreset.Default -> R.string.rethink_preset_default_desc
+    RethinkDnsPreset.Family -> R.string.rethink_preset_family_desc
+    RethinkDnsPreset.Piracy -> R.string.rethink_preset_piracy_desc
+    RethinkDnsPreset.SocialMedia -> R.string.rethink_preset_social_desc
+    RethinkDnsPreset.Security -> R.string.rethink_preset_security_desc
+    RethinkDnsPreset.Privacy -> R.string.rethink_preset_privacy_desc
+    RethinkDnsPreset.Custom -> R.string.rethink_preset_custom_desc
+}
+
+private fun DnsSettingsUiState.toRethinkDnsSettingsState(presetLabel: String) = RethinkDnsSettingsState(
     recentLatencies = recentLatencies,
     connectedDnsName = connectedDnsName,
     dnsLatency = dnsLatency,
@@ -99,6 +116,11 @@ private fun DnsSettingsUiState.toRethinkDnsSettingsState() = RethinkDnsSettingsS
     showSplitDns = isShowSplitDns,
     showBypassDnsBlock = isShowBypassDnsBlock,
     isRefreshing = isRefreshing,
+    rethinkPresetLabel = presetLabel,
+    isDnsFailing = isDnsFailing,
+    isRethinkMax = isRethinkMax,
+    fallbackDnsName = fallbackDnsName,
+    localBlocklistsDownloaded = localBlocklistsDownloaded,
 )
 
 private fun AppConfig.DnsType.toRethinkDnsType() = when (this) {
@@ -134,14 +156,14 @@ private fun androidDnsSettingsStrings() = RethinkDnsSettingsStrings(
     customDns = stringResource(R.string.dc_custom_dns_radio),
     customDnsDescription = stringResource(R.string.dns_mode_other_desc),
     rethinkDns = stringResource(R.string.dc_rethink_dns_radio),
-    rethinkDnsDescription = stringResource(R.string.dns_mode_rethink_desc),
+    rethinkDnsDescription = stringResource(R.string.dns_choice_rethink_desc),
     smartDns = stringResource(R.string.smart_dns),
     smartDnsDescription = stringResource(R.string.dns_mode_smart_desc),
     connectedDescription = stringResource(R.string.rethink_sky_desc),
     blockSection = stringResource(R.string.dc_block_heading),
     localBlocklists = stringResource(R.string.dc_local_block_heading),
-    localBlocklistsDescription = { stringResource(R.string.settings_local_blocklist_in_use, it) },
-    localBlocklistsDisabledDescription = stringResource(R.string.dc_local_block_desc_1),
+    localBlocklistsDescription = { pluralStringResource(R.plurals.dns_device_on_desc, it, it) },
+    localBlocklistsDisabledDescription = stringResource(R.string.dns_device_off_desc),
     enabled = stringResource(R.string.dc_local_block_enabled),
     disabled = stringResource(R.string.lbl_disabled),
     customDownloader = stringResource(R.string.settings_custom_downloader_heading),
@@ -181,7 +203,49 @@ private fun androidDnsSettingsStrings() = RethinkDnsSettingsStrings(
     medianLookup = stringResource(R.string.dns_median_lookup),
     recentLookups = stringResource(R.string.dns_recent_lookups),
     noLookupsYet = stringResource(R.string.dns_no_lookups_yet),
+    choiceSection = stringResource(R.string.dns_choice_section),
+    recommended = stringResource(R.string.dns_choice_recommended),
+    rethinkDetail = rethinkDetailFormatter(),
+    providerDetail = providerDetailFormatter(),
+    smartNote = stringResource(R.string.dns_choice_smart_note),
+    heroFailing = stringResource(R.string.dns_hero_failing),
+    tryAnotherServer = stringResource(R.string.dns_hero_try_another),
+    deviceSection = stringResource(R.string.dns_device_section),
+    deviceOn = stringResource(R.string.dns_device_on),
+    deviceOff = stringResource(R.string.dns_device_off),
+    deviceSetUp = stringResource(R.string.dns_device_set_up),
+    deviceTurnOn = stringResource(R.string.dns_device_turn_on),
+    deviceChoose = stringResource(R.string.dns_device_choose),
+    deviceManage = stringResource(R.string.dns_device_manage),
+    advancedDescription = stringResource(R.string.dns_adv_row_desc),
+    advancedTitle = stringResource(R.string.dns_adv_title),
+    serversSection = stringResource(R.string.dns_adv_servers),
+    autoSelect = stringResource(R.string.dns_adv_auto_select),
+    autoSelectDescription = stringResource(R.string.dns_adv_auto_select_desc),
+    use = stringResource(R.string.dns_adv_use),
+    rethinkNetwork = stringResource(R.string.dns_adv_rethink_network),
+    rethinkFastest = stringResource(R.string.dns_adv_rethink_fastest),
+    rethinkFastestDescription = stringResource(R.string.dns_adv_rethink_fastest_desc),
+    rethinkPrivate = stringResource(R.string.dns_adv_rethink_private),
+    rethinkPrivateDescription = stringResource(R.string.dns_adv_rethink_private_desc),
+    downloadsSection = stringResource(R.string.dns_adv_downloads),
+    fallbackSection = stringResource(R.string.dns_adv_fallback),
+    fallbackServer = stringResource(R.string.settings_default_dns_heading),
+    fallbackServerDescription = stringResource(R.string.settings_default_dns_desc),
+    moreSection = stringResource(R.string.dns_adv_more),
 )
+
+@Composable
+private fun rethinkDetailFormatter(): (String) -> String {
+    val template = stringResource(R.string.dns_choice_rethink_detail)
+    return { preset -> template.format(preset) }
+}
+
+@Composable
+private fun providerDetailFormatter(): (String, String) -> String {
+    val template = stringResource(R.string.dns_choice_provider_detail)
+    return { name, protocol -> template.format(name, protocol) }
+}
 
 private fun RethinkBlockFreeDnsMode.blockFreeLabelRes() = when (this) {
     RethinkBlockFreeDnsMode.Auto -> R.string.bfdm_option_auto_label

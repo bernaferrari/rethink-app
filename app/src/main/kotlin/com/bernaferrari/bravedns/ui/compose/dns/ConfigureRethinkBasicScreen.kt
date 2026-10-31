@@ -26,6 +26,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
+import com.bernaferrari.bravedns.customdownloader.RemoteBlocklistCoordinator
+import com.bernaferrari.bravedns.scheduler.WorkScheduler
+import com.bernaferrari.bravedns.util.workInfosByTagFlow
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -114,6 +121,7 @@ fun ConfigureRethinkBasicScreen(
     var showConfigure by remember { mutableStateOf(false) }
     var isDownloading by remember { mutableStateOf(false) }
     var showRemoteProgress by remember { mutableStateOf(false) }
+    var downloadFailed by remember { mutableStateOf(false) }
     var activeView by remember { mutableStateOf(RethinkBlocklistState.BlocklistView.PACKS) }
     var updateAvailable by remember { mutableStateOf(false) }
     var checkUpdateVisible by remember { mutableStateOf(false) }
@@ -189,12 +197,14 @@ fun ConfigureRethinkBasicScreen(
     }
 
     fun onDownloadStart() {
+        downloadFailed = false
         isDownloading = true
         showDownload = true
         showConfigure = false
     }
 
     fun onDownloadFail() {
+        downloadFailed = true
         isDownloading = false
         showDownload = true
         showConfigure = false
@@ -202,6 +212,7 @@ fun ConfigureRethinkBasicScreen(
     }
 
     fun onDownloadSuccess() {
+        downloadFailed = false
         isDownloading = false
         showDownload = false
         showConfigure = true
@@ -241,21 +252,35 @@ fun ConfigureRethinkBasicScreen(
                 }
                 handleDownloadStatus(status)
             } else {
-                withContext(Dispatchers.IO) {
+                // Only the list of blocklists (about 50 KB) is fetched, by a worker; the effect
+                // below follows it to the editor or to Retry.
+                downloadFailed = false
+                showRemoteProgress = true
+                val started = withContext(Dispatchers.IO) {
                     appDownloadManager.downloadRemoteBlocklist(
                         persistentState.remoteBlocklistTimestamp,
                         isRedownload = true
                     )
                 }
-                showRemoteProgress = false
-                // Refresh blocklist availability
+                val running = withContext(Dispatchers.IO) {
+                    WorkScheduler.isWorkScheduled(context, RemoteBlocklistCoordinator.REMOTE_DOWNLOAD_WORKER) ||
+                        WorkScheduler.isWorkRunning(context, RemoteBlocklistCoordinator.REMOTE_DOWNLOAD_WORKER)
+                }
                 val blocklistsExist = withContext(Dispatchers.IO) { hasBlocklists() }
-                if (blocklistsExist) {
-                    showConfigure = true
-                    showDownload = false
-                } else {
-                    showConfigure = false
-                    showDownload = true
+                when {
+                    blocklistsExist -> {
+                        showRemoteProgress = false
+                        showConfigure = true
+                        showDownload = false
+                    }
+                    started || running -> Unit
+                    else -> {
+                        // The update check itself failed (offline, server down): say so, offer Retry.
+                        showRemoteProgress = false
+                        downloadFailed = true
+                        showConfigure = false
+                        showDownload = true
+                    }
                 }
             }
         }
@@ -271,7 +296,8 @@ fun ConfigureRethinkBasicScreen(
     }
 
     fun cancelDownload() {
-        appDownloadManager.cancelDownload(type = RethinkBlocklistManager.DownloadType.LOCAL)
+        val type = if (blocklistType.isLocal()) RethinkBlocklistManager.DownloadType.LOCAL else RethinkBlocklistManager.DownloadType.REMOTE
+        appDownloadManager.cancelDownload(type = type)
     }
 
     fun refreshBlocklistAvailability() {
@@ -362,6 +388,36 @@ fun ConfigureRethinkBasicScreen(
         }
     }
 
+    // The remote list of blocklists comes from a worker; follow it while this editor waits.
+    if (screenType == ConfigureRethinkScreenType.REMOTE) {
+        val remoteWork by WorkManager.getInstance(context)
+            .workInfosByTagFlow(RemoteBlocklistCoordinator.REMOTE_DOWNLOAD_WORKER)
+            .collectAsState(initial = emptyList())
+        LaunchedEffect(remoteWork) {
+            val state = remoteWork.getOrNull(0)?.state ?: return@LaunchedEffect
+            if (!showRemoteProgress && !showDownload) return@LaunchedEffect
+            when (state) {
+                WorkInfo.State.ENQUEUED, WorkInfo.State.RUNNING, WorkInfo.State.BLOCKED -> {
+                    downloadFailed = false
+                    showRemoteProgress = true
+                }
+                WorkInfo.State.SUCCEEDED -> if (showRemoteProgress) {
+                    val blocklistsExist = withContext(Dispatchers.IO) { hasBlocklists() }
+                    showRemoteProgress = false
+                    showConfigure = blocklistsExist
+                    showDownload = !blocklistsExist
+                    downloadFailed = !blocklistsExist
+                }
+                WorkInfo.State.FAILED, WorkInfo.State.CANCELLED -> if (showRemoteProgress) {
+                    showRemoteProgress = false
+                    showConfigure = false
+                    showDownload = true
+                    downloadFailed = true
+                }
+            }
+        }
+    }
+
     // Back handler for unsaved changes
     if (screenType != ConfigureRethinkScreenType.DB_LIST) {
         BackHandler {
@@ -423,7 +479,7 @@ fun ConfigureRethinkBasicScreen(
     val subtitle = when (screenType) {
         ConfigureRethinkScreenType.LOCAL,
         ConfigureRethinkScreenType.REMOTE -> stringResource(R.string.dns_desc)
-        else -> null
+        ConfigureRethinkScreenType.DB_LIST -> stringResource(R.string.rethink_list_subtitle)
     }
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -503,6 +559,7 @@ fun ConfigureRethinkBasicScreen(
                             activeView = activeView,
                             filterLabelText = filterLabelText,
                             plusFilterTags = plusFilterTags,
+                            downloadFailed = downloadFailed,
                         ),
                         actions = RethinkBlocklistActions(
                             onActiveViewChanged = { activeView = it },

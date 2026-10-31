@@ -28,7 +28,7 @@ import com.bernaferrari.bravedns.ui.components.DnsRowAction
 private const val TAG = "DnsCryptEndpointRow"
 
 @Composable
-fun DnsCryptRow(endpoint: DnsCryptEndpoint, appConfig: AppConfig) {
+fun DnsCryptRow(endpoint: DnsCryptEndpoint, appConfig: AppConfig, badge: String? = null) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val failingToast = stringResource(R.string.status_failing)
@@ -43,6 +43,7 @@ fun DnsCryptRow(endpoint: DnsCryptEndpoint, appConfig: AppConfig) {
         )
 
     DnsEndpointManagedRow(
+        badge = badge,
         key = endpoint.id,
         title = endpoint.dnsCryptName,
         supporting = explanation.ifEmpty { null },

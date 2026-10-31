@@ -30,6 +30,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFilterChip
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFormActionRow
@@ -69,6 +72,11 @@ data class RethinkBlocklistEditorStrings(
     val empty: String = "",
     /** Content description for a blocklist's source-link action. */
     val openSource: String,
+    /** Shown while the download runs, with its real size ("Getting the list of blocklists (about 50 KB)…"). */
+    val downloadingDescription: String = downloadDescription,
+    /** Shown when the download failed, above Retry. */
+    val downloadFailedDescription: String = downloadDescription,
+    val retry: String = download,
 )
 
 /** Complete target-neutral packs/advanced blocklist editor body. */
@@ -97,6 +105,8 @@ fun RethinkBlocklistEditor(
     onApply: () -> Unit,
     onDiscard: () -> Unit,
     modifier: Modifier = Modifier,
+    /** The last download failed: say so and offer Retry instead of a bare Download. */
+    downloadFailed: Boolean = false,
 ) {
     Column(modifier.fillMaxSize()) {
         if (showDownload) {
@@ -109,7 +119,17 @@ fun RethinkBlocklistEditor(
                     modifier = Modifier.fillMaxWidth().padding(SharedDimensions.cardPadding),
                     verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
                 ) {
-                    Text(strings.downloadDescription, style = MaterialTheme.typography.bodyMedium)
+                    val description = when {
+                        isDownloading -> strings.downloadingDescription
+                        downloadFailed -> strings.downloadFailedDescription
+                        else -> strings.downloadDescription
+                    }
+                    Text(
+                        description,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (downloadFailed && !isDownloading) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                    )
                     if (isDownloading) {
                         // Downloading is one clear state: a full-width progress line and the way
                         // out, not a stray spinner beside a greyed-out Download button.
@@ -119,7 +139,7 @@ fun RethinkBlocklistEditor(
                         }
                     } else {
                         RethinkFormActionRow(
-                            confirmLabel = strings.download,
+                            confirmLabel = if (downloadFailed) strings.retry else strings.download,
                             onConfirm = onDownload,
                             dismissLabel = strings.cancel,
                             onDismiss = onCancelDownload,

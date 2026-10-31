@@ -22,7 +22,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -93,8 +93,6 @@ fun ConfigureOtherDnsScreen(
     oDohViewModel: ODoHEndpointViewModel,
     onBackClick: () -> Unit
 ) {
-    val scope = rememberCoroutineScope()
-
     RethinkEndpointConfigurationScaffold(
         title = getDnsTypeName(dnsType),
         subtitle = getDnsTypeSubtitle(dnsType),
@@ -111,7 +109,6 @@ fun ConfigureOtherDnsScreen(
             dnsCryptViewModel = dnsCryptViewModel,
             dnsCryptRelayViewModel = dnsCryptRelayViewModel,
             oDohViewModel = oDohViewModel,
-            scope = scope,
         )
     }
 }
@@ -155,28 +152,27 @@ private fun OtherDnsListContent(
     dnsCryptViewModel: DnsCryptEndpointViewModel,
     dnsCryptRelayViewModel: DnsCryptRelayEndpointViewModel,
     oDohViewModel: ODoHEndpointViewModel,
-    scope: CoroutineScope
 ) {
+    val scope = rememberCoroutineScope()
+    var showAddDialog by remember { mutableStateOf(false) }
+    val onAdd = { showAddDialog = true }
     when (dnsType) {
-        DnsScreenType.DOH -> DohListContent(paddingValues, appConfig, dohViewModel, scope)
-        DnsScreenType.DNS_PROXY -> DnsProxyListContent(
-            paddingValues,
-            appConfig,
-            persistentState,
-            dnsProxyViewModel,
-            scope
-        )
-
-        DnsScreenType.DNS_CRYPT -> DnsCryptListContent(
-            paddingValues,
-            appConfig,
-            dnsCryptViewModel,
-            dnsCryptRelayViewModel,
-            scope
-        )
-
-        DnsScreenType.DOT -> DotListContent(paddingValues, appConfig, dotViewModel, scope)
-        DnsScreenType.ODOH -> OdohListContent(paddingValues, appConfig, oDohViewModel, scope)
+        DnsScreenType.DOH -> DnsEndpointListWithFab(paddingValues, dohViewModel.dohEndpointList.collectAsLazyPagingItems(), onAdd) {
+            DoHEndpointRow(it, appConfig)
+        }
+        DnsScreenType.DNS_PROXY -> DnsEndpointListWithFab(paddingValues, dnsProxyViewModel.dnsProxyEndpointList.collectAsLazyPagingItems(), onAdd) {
+            DnsProxyEndpointRow(it, appConfig)
+        }
+        DnsScreenType.DNS_CRYPT -> DnsCryptListContent(paddingValues, appConfig, dnsCryptViewModel, dnsCryptRelayViewModel, onAdd)
+        DnsScreenType.DOT -> DnsEndpointListWithFab(paddingValues, dotViewModel.dohEndpointList.collectAsLazyPagingItems(), onAdd) {
+            DoTEndpointRow(it, appConfig)
+        }
+        DnsScreenType.ODOH -> DnsEndpointListWithFab(paddingValues, oDohViewModel.dohEndpointList.collectAsLazyPagingItems(), onAdd) {
+            ODoHEndpointRow(it, appConfig)
+        }
+    }
+    if (showAddDialog) {
+        AddDnsEndpointDialog(dnsType, appConfig, persistentState, scope, onDismiss = { showAddDialog = false })
     }
 }
 
@@ -206,69 +202,293 @@ private class AndroidEndpointFeed<T : Any>(private val items: LazyPagingItems<T>
     override fun get(index: Int): T? = items[index]
 }
 
+/**
+ * The "add a server" form for one protocol, the same editors and inserts the per-protocol lists
+ * always used. Shared by those lists and by the provider list's "Add server" sheet.
+ */
 @Composable
-private fun DohListContent(
-    paddingValues: PaddingValues,
+internal fun AddDnsEndpointDialog(
+    type: DnsScreenType,
     appConfig: AppConfig,
-    dohViewModel: DoHEndpointViewModel,
-    scope: CoroutineScope
+    persistentState: PersistentState,
+    /** Outlives the dialog: the insert runs after the dialog closes. */
+    scope: CoroutineScope,
+    onDismiss: () -> Unit,
 ) {
-    val items = dohViewModel.dohEndpointList.collectAsLazyPagingItems()
-    var showDialog by remember { mutableStateOf(false) }
+    when (type) {
+        DnsScreenType.DOH -> AddDohDialog(appConfig, scope, onDismiss)
+        DnsScreenType.DOT -> AddDotDialog(appConfig, scope, onDismiss)
+        DnsScreenType.DNS_PROXY -> AddDnsProxyDialog(appConfig, persistentState, scope, onDismiss)
+        DnsScreenType.DNS_CRYPT -> AddDnsCryptDialog(appConfig, scope, onDismiss)
+        DnsScreenType.ODOH -> AddOdohDialog(appConfig, scope, onDismiss)
+    }
+}
+
+@Composable
+private fun AddDohDialog(appConfig: AppConfig, scope: CoroutineScope, onDismiss: () -> Unit) {
     val heading = stringResource(R.string.cd_doh_dialog_heading)
     val nameLabel = stringResource(R.string.cd_doh_dialog_resolver_name)
     val urlLabel = stringResource(R.string.cd_doh_dialog_resolver_url)
-    val defaultName = stringResource(R.string.cd_custom_doh_url_name_default)
     val dohNameTemplate = stringResource(R.string.cd_custom_doh_url_name)
     val checkboxLabel = stringResource(R.string.cd_doh_dialog_checkbox_desc)
     val invalidUrlMessage = stringResource(R.string.custom_url_error_invalid_url)
     val bootstrapLabel = stringResource(R.string.doh_bootstrap_ips_label)
     val bootstrapDescription = stringResource(R.string.doh_bootstrap_ips_description)
     val invalidBootstrap = stringResource(R.string.doh_bootstrap_ips_invalid)
-    var dialogName by remember { mutableStateOf(defaultName) }
+    val dialogName by produceState<String?>(null) {
+        value = withContext(Dispatchers.IO) { String.format(dohNameTemplate, appConfig.getDohCount().plus(1).toString()) }
+    }
+    val name = dialogName ?: return
 
-    DnsEndpointListWithFab(
-        paddingValues = paddingValues,
-        items = items,
-        onFabClick = {
-            scope.launch {
-                dialogName = withContext(Dispatchers.IO) { String.format(dohNameTemplate, appConfig.getDohCount().plus(1).toString()) }
-                showDialog = true
-            }
+    RethinkEndpointEditorDialog(onDismiss = onDismiss) {
+        RethinkDohEndpointEditor(
+            title = heading,
+            nameLabel = nameLabel,
+            endpointLabel = urlLabel,
+            defaultName = name,
+            initialEndpoint = "https://",
+            insecureLabel = checkboxLabel,
+            strings = endpointEditorStrings(),
+            bootstrapLabel = bootstrapLabel,
+            bootstrapDescription = bootstrapDescription,
+            onSubmit = { name, url, isSecure, bootstrap ->
+                val ips = com.bernaferrari.bravedns.data.DnsBootstrapAddresses.parse(bootstrap)
+                when {
+                    !checkUrl(url) -> invalidUrlMessage
+                    ips == null -> invalidBootstrap
+                    else -> {
+                        scope.launch(Dispatchers.IO) {
+                            insertDoHEndpoint(appConfig, name, url, isSecure, ips)
+                        }
+                        onDismiss()
+                        null
+                    }
+                }
+            },
+            onDismiss = onDismiss
+        )
+    }
+}
+
+@Composable
+private fun AddDotDialog(appConfig: AppConfig, scope: CoroutineScope, onDismiss: () -> Unit) {
+    val heading = stringResource(
+        R.string.two_argument_space,
+        stringResource(R.string.lbl_add).replaceFirstChar(Char::titlecase),
+        stringResource(R.string.lbl_dot)
+    )
+    val nameLabel = stringResource(R.string.cd_doh_dialog_resolver_name)
+    val urlLabel = stringResource(R.string.cd_doh_dialog_resolver_url)
+    val dotName = stringResource(R.string.lbl_dot)
+    val checkboxLabel = stringResource(R.string.cd_doh_dialog_checkbox_desc)
+    val dialogName by produceState<String?>(null) {
+        value = withContext(Dispatchers.IO) { dotName + appConfig.getDoTCount().plus(1).toString() }
+    }
+    val name = dialogName ?: return
+
+    RethinkEndpointEditorDialog(onDismiss = onDismiss) {
+        RethinkUrlEndpointEditor(
+            title = heading,
+            nameLabel = nameLabel,
+            endpointLabel = urlLabel,
+            defaultName = name,
+            initialEndpoint = "",
+            insecureLabel = checkboxLabel,
+            strings = endpointEditorStrings(),
+            onSubmit = { name, url, isSecure ->
+                scope.launch(Dispatchers.IO) {
+                    insertDotEndpoint(appConfig, name, url, isSecure)
+                }
+                onDismiss()
+                null
+            },
+            onDismiss = onDismiss
+        )
+    }
+}
+
+@Composable
+private fun AddDnsProxyDialog(appConfig: AppConfig, persistentState: PersistentState, scope: CoroutineScope, onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    val defaultAppName = stringResource(R.string.settings_app_list_default_app)
+    val loaded by produceState<Pair<List<String>, Int>?>(null) {
+        value = withContext(Dispatchers.IO) {
+            val list: MutableList<String> = ArrayList()
+            list.add(defaultAppName)
+            list.addAll(FirewallManager.getAllAppNamesSortedByVpnPermission(context))
+            list to appConfig.getDnsProxyCount().plus(1)
         }
-    ) { endpoint ->
-        DoHEndpointRow(endpoint, appConfig)
+    }
+    val (appNames, nextIndex) = loaded ?: return
+    if (appNames.isEmpty()) return
+
+    val invalidIpMessage = stringResource(R.string.cd_dns_proxy_error_text_1)
+    val invalidPortMessage = stringResource(R.string.cd_dns_proxy_error_text_3)
+    val invalidLanPortMessage = stringResource(R.string.cd_dns_proxy_error_text_2)
+    val mode = stringResource(R.string.cd_dns_proxy_mode_external)
+    RethinkEndpointEditorDialog(onDismiss = onDismiss) {
+        RethinkDnsProxyEndpointEditor(
+            appNames = appNames,
+            defaultName = String.format(stringResource(R.string.cd_custom_dns_proxy_name), nextIndex.toString()),
+            defaultIpAddress = stringResource(R.string.cd_custom_dns_proxy_default_ip),
+            initialExcludeApps = !persistentState.excludeAppsInProxy,
+            isLockdown = VpnController.isVpnLockdown(),
+            strings = RethinkDnsProxyEditorStrings(
+                title = stringResource(R.string.dns_proxy_dialog_header_dns),
+                lockdownMessage = stringResource(R.string.settings_lock_down_mode_desc),
+                app = stringResource(R.string.settings_dns_proxy_dialog_app),
+                name = stringResource(R.string.dns_proxy_name),
+                ipAddress = stringResource(R.string.dns_proxy_ip_address),
+                port = stringResource(R.string.dns_proxy_port),
+                excludeApps = stringResource(R.string.settings_exclude_proxy_apps_heading),
+                cancel = stringResource(R.string.lbl_cancel),
+                add = stringResource(R.string.lbl_add),
+            ),
+            onOpenVpnProfile = { onDismiss(); UIUtils.openVpnProfile(context) },
+            onSubmit = proxySubmit@{ input ->
+                val ipAddresses = input.ipAddress.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+                if (ipAddresses.isEmpty()) return@proxySubmit invalidIpMessage
+                val invalidIps = ipAddresses.filterNot { IPAddressString(it).isIPAddress }
+                if (invalidIps.isNotEmpty()) return@proxySubmit "$invalidIpMessage: ${invalidIps.joinToString(", ")}"
+                val port = input.port.toIntOrNull() ?: return@proxySubmit invalidPortMessage
+                if (ipAddresses.any { Utilities.isLanIpv4(it) && !Utilities.isValidLocalPort(port) }) {
+                    return@proxySubmit invalidLanPortMessage
+                }
+                scope.launch(Dispatchers.IO) {
+                    insertDNSProxyEndpointDB(
+                        appConfig = appConfig,
+                        mode = mode,
+                        name = input.name,
+                        appName = input.appName,
+                        ip = ipAddresses.joinToString(","),
+                        port = port,
+                        defaultApp = appNames.firstOrNull().orEmpty(),
+                        isInternalMode = false,
+                    )
+                }
+                persistentState.excludeAppsInProxy = !input.excludeApps
+                onDismiss()
+                null
+            },
+            onDismiss = onDismiss,
+        )
+    }
+}
+
+@Composable
+private fun DnsCryptListContent(
+    paddingValues: PaddingValues,
+    appConfig: AppConfig,
+    dnsCryptViewModel: DnsCryptEndpointViewModel,
+    dnsCryptRelayViewModel: DnsCryptRelayEndpointViewModel,
+    onAdd: () -> Unit,
+) {
+    val items = dnsCryptViewModel.dnsCryptEndpointList.collectAsLazyPagingItems()
+    var showRelaysDialog by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier.fillMaxSize().padding(paddingValues),
+        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd)
+    ) {
+        RethinkDnsCryptRelayShortcut(
+            sectionTitle = stringResource(R.string.cd_dns_crypt_title),
+            relayTitle = stringResource(R.string.cd_dnscrypt_relay_heading),
+            configureLabel = stringResource(R.string.lbl_configure),
+            onConfigure = { showRelaysDialog = true },
+        )
+        DnsEndpointListWithFab(
+            paddingValues = PaddingValues(0.dp),
+            items = items,
+            onFabClick = onAdd,
+        ) { endpoint ->
+            DnsCryptRow(endpoint, appConfig)
+        }
     }
 
-    if (showDialog) {
-        RethinkEndpointEditorDialog(onDismiss = { showDialog = false }) {
-            RethinkDohEndpointEditor(
-                title = heading,
-                nameLabel = nameLabel,
-                endpointLabel = urlLabel,
-                defaultName = dialogName,
-                initialEndpoint = "https://",
-                insecureLabel = checkboxLabel,
-                strings = endpointEditorStrings(),
-                bootstrapLabel = bootstrapLabel,
-                bootstrapDescription = bootstrapDescription,
-                onSubmit = { name, url, isSecure, bootstrap ->
-                    val ips = com.bernaferrari.bravedns.data.DnsBootstrapAddresses.parse(bootstrap)
-                    when {
-                        !checkUrl(url) -> invalidUrlMessage
-                        ips == null -> invalidBootstrap
-                        else -> {
-                            scope.launch(Dispatchers.IO) {
-                                insertDoHEndpoint(appConfig, name, url, isSecure, ips)
-                            }
-                            showDialog = false
-                            null
-                        }
-                    }
-                },
-                onDismiss = { showDialog = false }
-            )
+    if (showRelaysDialog) {
+        DnsCryptRelaysDialog(
+            appConfig = appConfig,
+            relays = dnsCryptRelayViewModel.dnsCryptRelayEndpointList,
+            onDismiss = { showRelaysDialog = false }
+        )
+    }
+}
+
+@Composable
+private fun AddDnsCryptDialog(appConfig: AppConfig, scope: CoroutineScope, onDismiss: () -> Unit) {
+    val resolverNameTemplate = stringResource(R.string.cd_dns_crypt_name)
+    val relayNameTemplate = stringResource(R.string.cd_dns_crypt_relay_name)
+    val names by produceState<Pair<String, String>?>(null) {
+        value = withContext(Dispatchers.IO) {
+            String.format(resolverNameTemplate, appConfig.getDnscryptCount().plus(1).toString()) to
+                String.format(relayNameTemplate, appConfig.getDnscryptRelayCount().plus(1).toString())
         }
+    }
+    val (resolverDialogName, relayDialogName) = names ?: return
+
+    RethinkEndpointEditorDialog(onDismiss = onDismiss) {
+        RethinkDnsCryptEndpointEditor(
+            title = stringResource(R.string.cd_dns_crypt_dialog_heading),
+            resolverLabel = stringResource(R.string.cd_dns_crypt_resolver_heading),
+            relayLabel = stringResource(R.string.cd_dns_crypt_relay_heading),
+            nameLabel = stringResource(R.string.cd_dns_crypt_dialog_name),
+            stampLabel = stringResource(R.string.cd_dns_crypt_dialog_stamp),
+            descriptionLabel = stringResource(R.string.cd_dns_crypt_dialog_desc),
+            resolverDefaultName = resolverDialogName,
+            relayDefaultName = relayDialogName,
+            invalidInputMessage = stringResource(R.string.custom_url_error_invalid_url),
+            strings = endpointEditorStrings(),
+            onSubmit = { kind, name, stamp, description ->
+                scope.launch(Dispatchers.IO) {
+                    if (kind == RethinkDnsCryptEndpointKind.Resolver) insertDnsCrypt(appConfig, name, stamp, description) else insertDnsCryptRelay(appConfig, name, stamp, description)
+                }
+                onDismiss()
+                null
+            },
+            onDismiss = onDismiss,
+        )
+    }
+}
+
+@Composable
+private fun AddOdohDialog(appConfig: AppConfig, scope: CoroutineScope, onDismiss: () -> Unit) {
+    val title = stringResource(
+        R.string.two_argument_space,
+        stringResource(R.string.lbl_add).replaceFirstChar(Char::uppercase),
+        stringResource(R.string.lbl_odoh)
+    )
+    val nameLabel = stringResource(R.string.cd_doh_dialog_resolver_name)
+    val proxyLabel = stringResource(R.string.settings_proxy_header) + stringResource(R.string.lbl_optional)
+    val resolverLabel = stringResource(R.string.cd_doh_dialog_resolver_url)
+    val defaultName = stringResource(R.string.lbl_odoh)
+    val invalidUrlMessage = stringResource(R.string.custom_url_error_invalid_url)
+    val dialogName by produceState<String?>(null) {
+        value = withContext(Dispatchers.IO) { defaultName + appConfig.getODoHCount().plus(1).toString() }
+    }
+    val name = dialogName ?: return
+
+    RethinkEndpointEditorDialog(onDismiss = onDismiss) {
+        RethinkODoHEndpointEditor(
+            title = title,
+            nameLabel = nameLabel,
+            proxyLabel = proxyLabel,
+            resolverLabel = resolverLabel,
+            defaultName = name,
+            initialResolver = "https://",
+            strings = endpointEditorStrings(),
+            onSubmit = { name, proxy, resolver ->
+                if (checkUrl(resolver)) {
+                    scope.launch(Dispatchers.IO) {
+                        insertOdoh(appConfig, name, proxy, resolver)
+                    }
+                    onDismiss()
+                    null
+                } else {
+                    invalidUrlMessage
+                }
+            },
+            onDismiss = onDismiss
+        )
     }
 }
 
@@ -305,63 +525,6 @@ private fun checkUrl(url: String): Boolean {
     }
 }
 
-@Composable
-private fun DotListContent(
-    paddingValues: PaddingValues,
-    appConfig: AppConfig,
-    dotViewModel: DoTEndpointViewModel,
-    scope: CoroutineScope
-) {
-    val items = dotViewModel.dohEndpointList.collectAsLazyPagingItems()
-    var showDialog by remember { mutableStateOf(false) }
-    val heading = stringResource(
-        R.string.two_argument_space,
-        stringResource(R.string.lbl_add).replaceFirstChar(Char::titlecase),
-        stringResource(R.string.lbl_dot)
-    )
-    val nameLabel = stringResource(R.string.cd_doh_dialog_resolver_name)
-    val urlLabel = stringResource(R.string.cd_doh_dialog_resolver_url)
-    val dotName = stringResource(R.string.lbl_dot)
-    val checkboxLabel = stringResource(R.string.cd_doh_dialog_checkbox_desc)
-    var dialogName by remember { mutableStateOf(dotName) }
-
-    DnsEndpointListWithFab(
-        paddingValues = paddingValues,
-        items = items,
-        onFabClick = {
-            scope.launch {
-                dialogName = withContext(Dispatchers.IO) { dotName + appConfig.getDoTCount().plus(1).toString() }
-                showDialog = true
-            }
-        }
-    ) { endpoint ->
-        DoTEndpointRow(endpoint, appConfig)
-    }
-
-    if (showDialog) {
-        val title = heading
-        RethinkEndpointEditorDialog(onDismiss = { showDialog = false }) {
-            RethinkUrlEndpointEditor(
-                title = title,
-                nameLabel = nameLabel,
-                endpointLabel = urlLabel,
-                defaultName = dialogName,
-                initialEndpoint = "",
-                insecureLabel = checkboxLabel,
-                strings = endpointEditorStrings(),
-                onSubmit = { name, url, isSecure ->
-                    scope.launch(Dispatchers.IO) {
-                        insertDotEndpoint(appConfig, name, url, isSecure)
-                    }
-                    showDialog = false
-                    null
-                },
-                onDismiss = { showDialog = false }
-            )
-        }
-    }
-}
-
 private suspend fun insertDotEndpoint(appConfig: AppConfig, name: String, url: String, isSecure: Boolean) {
     var dotName = name
     if (name.isBlank()) {
@@ -379,96 +542,6 @@ private suspend fun insertDotEndpoint(appConfig: AppConfig, name: String, url: S
         latency = 0
     )
     appConfig.insertDoTEndpoint(endpoint)
-}
-
-@Composable
-private fun DnsProxyListContent(
-    paddingValues: PaddingValues,
-    appConfig: AppConfig,
-    persistentState: PersistentState,
-    dnsProxyViewModel: DnsProxyEndpointViewModel,
-    scope: CoroutineScope
-) {
-    val context = LocalContext.current
-    val items = dnsProxyViewModel.dnsProxyEndpointList.collectAsLazyPagingItems()
-    var showDialog by remember { mutableStateOf(false) }
-    var appNames by remember { mutableStateOf<List<String>>(emptyList()) }
-    var nextIndex by remember { mutableIntStateOf(0) }
-    val defaultAppName = stringResource(R.string.settings_app_list_default_app)
-
-    DnsEndpointListWithFab(
-        paddingValues = paddingValues,
-        items = items,
-        onFabClick = {
-            scope.launch {
-                val names = withContext(Dispatchers.IO) {
-                    val list: MutableList<String> = ArrayList()
-                    list.add(defaultAppName)
-                    list.addAll(FirewallManager.getAllAppNamesSortedByVpnPermission(context))
-                    list
-                }
-                appNames = names
-                nextIndex = appConfig.getDnsProxyCount().plus(1)
-                showDialog = true
-            }
-        }
-    ) { endpoint ->
-        DnsProxyEndpointRow(endpoint, appConfig)
-    }
-
-    if (showDialog && appNames.isNotEmpty()) {
-        val invalidIpMessage = stringResource(R.string.cd_dns_proxy_error_text_1)
-        val invalidPortMessage = stringResource(R.string.cd_dns_proxy_error_text_3)
-        val invalidLanPortMessage = stringResource(R.string.cd_dns_proxy_error_text_2)
-        val mode = stringResource(R.string.cd_dns_proxy_mode_external)
-        RethinkEndpointEditorDialog(onDismiss = { showDialog = false }) {
-            RethinkDnsProxyEndpointEditor(
-                appNames = appNames,
-                defaultName = String.format(stringResource(R.string.cd_custom_dns_proxy_name), nextIndex.toString()),
-                defaultIpAddress = stringResource(R.string.cd_custom_dns_proxy_default_ip),
-                initialExcludeApps = !persistentState.excludeAppsInProxy,
-                isLockdown = VpnController.isVpnLockdown(),
-                strings = RethinkDnsProxyEditorStrings(
-                    title = stringResource(R.string.dns_proxy_dialog_header_dns),
-                    lockdownMessage = stringResource(R.string.settings_lock_down_mode_desc),
-                    app = stringResource(R.string.settings_dns_proxy_dialog_app),
-                    name = stringResource(R.string.dns_proxy_name),
-                    ipAddress = stringResource(R.string.dns_proxy_ip_address),
-                    port = stringResource(R.string.dns_proxy_port),
-                    excludeApps = stringResource(R.string.settings_exclude_proxy_apps_heading),
-                    cancel = stringResource(R.string.lbl_cancel),
-                    add = stringResource(R.string.lbl_add),
-                ),
-                onOpenVpnProfile = { showDialog = false; UIUtils.openVpnProfile(context) },
-                onSubmit = proxySubmit@{ input ->
-                    val ipAddresses = input.ipAddress.split(",").map { it.trim() }.filter { it.isNotEmpty() }
-                    if (ipAddresses.isEmpty()) return@proxySubmit invalidIpMessage
-                    val invalidIps = ipAddresses.filterNot { IPAddressString(it).isIPAddress }
-                    if (invalidIps.isNotEmpty()) return@proxySubmit "$invalidIpMessage: ${invalidIps.joinToString(", ")}"
-                    val port = input.port.toIntOrNull() ?: return@proxySubmit invalidPortMessage
-                    if (ipAddresses.any { Utilities.isLanIpv4(it) && !Utilities.isValidLocalPort(port) }) {
-                        return@proxySubmit invalidLanPortMessage
-                    }
-                    scope.launch(Dispatchers.IO) {
-                        insertDNSProxyEndpointDB(
-                            appConfig = appConfig,
-                            mode = mode,
-                            name = input.name,
-                            appName = input.appName,
-                            ip = ipAddresses.joinToString(","),
-                            port = port,
-                            defaultApp = appNames.firstOrNull().orEmpty(),
-                            isInternalMode = false,
-                        )
-                    }
-                    persistentState.excludeAppsInProxy = !input.excludeApps
-                    showDialog = false
-                    null
-                },
-                onDismiss = { showDialog = false },
-            )
-        }
-    }
 }
 
 private suspend fun insertDNSProxyEndpointDB(
@@ -509,85 +582,6 @@ private suspend fun insertDNSProxyEndpointDB(
     appConfig.insertDnsproxyEndpoint(endpoint)
 }
 
-@Composable
-private fun DnsCryptListContent(
-    paddingValues: PaddingValues,
-    appConfig: AppConfig,
-    dnsCryptViewModel: DnsCryptEndpointViewModel,
-    dnsCryptRelayViewModel: DnsCryptRelayEndpointViewModel,
-    scope: CoroutineScope
-) {
-    val items = dnsCryptViewModel.dnsCryptEndpointList.collectAsLazyPagingItems()
-    var showDialog by remember { mutableStateOf(false) }
-    var showRelaysDialog by remember { mutableStateOf(false) }
-    val resolverNameTemplate = stringResource(R.string.cd_dns_crypt_name)
-    val relayNameTemplate = stringResource(R.string.cd_dns_crypt_relay_name)
-    var resolverDialogName by remember { mutableStateOf("") }
-    var relayDialogName by remember { mutableStateOf("") }
-
-    Column(
-        modifier = Modifier.fillMaxSize().padding(paddingValues),
-        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd)
-    ) {
-        RethinkDnsCryptRelayShortcut(
-            sectionTitle = stringResource(R.string.cd_dns_crypt_title),
-            relayTitle = stringResource(R.string.cd_dnscrypt_relay_heading),
-            configureLabel = stringResource(R.string.lbl_configure),
-            onConfigure = { showRelaysDialog = true },
-        )
-        DnsEndpointListWithFab(
-            paddingValues = PaddingValues(0.dp),
-            items = items,
-            onFabClick = {
-                scope.launch {
-                    val names = withContext(Dispatchers.IO) {
-                        String.format(resolverNameTemplate, appConfig.getDnscryptCount().plus(1).toString()) to
-                            String.format(relayNameTemplate, appConfig.getDnscryptRelayCount().plus(1).toString())
-                    }
-                    resolverDialogName = names.first
-                    relayDialogName = names.second
-                    showDialog = true
-                }
-            }
-        ) { endpoint ->
-            DnsCryptRow(endpoint, appConfig)
-        }
-    }
-
-    if (showDialog) {
-        RethinkEndpointEditorDialog(onDismiss = { showDialog = false }) {
-            RethinkDnsCryptEndpointEditor(
-                title = stringResource(R.string.cd_dns_crypt_dialog_heading),
-                resolverLabel = stringResource(R.string.cd_dns_crypt_resolver_heading),
-                relayLabel = stringResource(R.string.cd_dns_crypt_relay_heading),
-                nameLabel = stringResource(R.string.cd_dns_crypt_dialog_name),
-                stampLabel = stringResource(R.string.cd_dns_crypt_dialog_stamp),
-                descriptionLabel = stringResource(R.string.cd_dns_crypt_dialog_desc),
-                resolverDefaultName = resolverDialogName,
-                relayDefaultName = relayDialogName,
-                invalidInputMessage = stringResource(R.string.custom_url_error_invalid_url),
-                strings = endpointEditorStrings(),
-                onSubmit = { kind, name, stamp, description ->
-                    scope.launch(Dispatchers.IO) {
-                        if (kind == RethinkDnsCryptEndpointKind.Resolver) insertDnsCrypt(appConfig, name, stamp, description) else insertDnsCryptRelay(appConfig, name, stamp, description)
-                    }
-                    showDialog = false
-                    null
-                },
-                onDismiss = { showDialog = false },
-            )
-        }
-    }
-
-    if (showRelaysDialog) {
-        DnsCryptRelaysDialog(
-            appConfig = appConfig,
-            relays = dnsCryptRelayViewModel.dnsCryptRelayEndpointList,
-            onDismiss = { showRelaysDialog = false }
-        )
-    }
-}
-
 private suspend fun insertDnsCrypt(appConfig: AppConfig, name: String, url: String, desc: String) {
     var dnscryptName = name
     if (name.isBlank()) {
@@ -622,67 +616,6 @@ private suspend fun insertDnsCryptRelay(appConfig: AppConfig, name: String, url:
         latency = 0
     )
     appConfig.insertDnscryptRelayEndpoint(endpoint)
-}
-
-@Composable
-private fun OdohListContent(
-    paddingValues: PaddingValues,
-    appConfig: AppConfig,
-    oDohViewModel: ODoHEndpointViewModel,
-    scope: CoroutineScope
-) {
-    val items = oDohViewModel.dohEndpointList.collectAsLazyPagingItems()
-    var showDialog by remember { mutableStateOf(false) }
-    val title = stringResource(
-        R.string.two_argument_space,
-        stringResource(R.string.lbl_add).replaceFirstChar(Char::uppercase),
-        stringResource(R.string.lbl_odoh)
-    )
-    val nameLabel = stringResource(R.string.cd_doh_dialog_resolver_name)
-    val proxyLabel = stringResource(R.string.settings_proxy_header) + stringResource(R.string.lbl_optional)
-    val resolverLabel = stringResource(R.string.cd_doh_dialog_resolver_url)
-    val defaultName = stringResource(R.string.lbl_odoh)
-    val invalidUrlMessage = stringResource(R.string.custom_url_error_invalid_url)
-    var dialogName by remember { mutableStateOf(defaultName) }
-
-    DnsEndpointListWithFab(
-        paddingValues = paddingValues,
-        items = items,
-        onFabClick = {
-            scope.launch {
-                dialogName = withContext(Dispatchers.IO) { defaultName + appConfig.getODoHCount().plus(1).toString() }
-                showDialog = true
-            }
-        }
-    ) { endpoint ->
-        ODoHEndpointRow(endpoint, appConfig)
-    }
-
-    if (showDialog) {
-        RethinkEndpointEditorDialog(onDismiss = { showDialog = false }) {
-            RethinkODoHEndpointEditor(
-                title = title,
-                nameLabel = nameLabel,
-                proxyLabel = proxyLabel,
-                resolverLabel = resolverLabel,
-                defaultName = dialogName,
-                initialResolver = "https://",
-                strings = endpointEditorStrings(),
-                onSubmit = { name, proxy, resolver ->
-                    if (checkUrl(resolver)) {
-                        scope.launch(Dispatchers.IO) {
-                            insertOdoh(appConfig, name, proxy, resolver)
-                        }
-                        showDialog = false
-                        null
-                    } else {
-                        invalidUrlMessage
-                    }
-                },
-                onDismiss = { showDialog = false }
-            )
-        }
-    }
 }
 
 private suspend fun insertOdoh(appConfig: AppConfig, name: String, proxy: String, resolver: String) {

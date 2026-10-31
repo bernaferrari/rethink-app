@@ -28,7 +28,7 @@ import com.bernaferrari.bravedns.ui.components.DnsRowAction
 private const val TAG = "ODoHEndpointRow"
 
 @Composable
-fun ODoHEndpointRow(endpoint: ODoHEndpoint, appConfig: AppConfig) {
+fun ODoHEndpointRow(endpoint: ODoHEndpoint, appConfig: AppConfig, badge: String? = null) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val failingToast = stringResource(R.string.status_failing)
@@ -43,6 +43,7 @@ fun ODoHEndpointRow(endpoint: ODoHEndpoint, appConfig: AppConfig) {
         )
 
     DnsEndpointManagedRow(
+        badge = badge,
         key = endpoint.id,
         title = endpoint.name,
         supporting = explanation.ifEmpty { null },

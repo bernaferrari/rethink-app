@@ -336,24 +336,36 @@ internal fun DemoBlockFreeDnsScreen(modifier: Modifier, onBack: () -> Unit) {
 
 @Composable
 internal fun DemoDnsListScreen(modifier: Modifier, onBack: () -> Unit) {
-    var selectedProtocolId by remember { mutableStateOf(1) }
+    // Provider first, protocol as a pill; picking a row never moves it.
+    val servers = listOf(
+        Triple("cf-doh", "Cloudflare", "DoH"), Triple("cf-dot", "Cloudflare", "DoT"),
+        Triple("cf-family", "Cloudflare Family", "DoH"), Triple("q9", "Quad9 Secure", "DoH"),
+        Triple("q9-crypt", "Quad9", "DNSCrypt"), Triple("ag", "AdGuard", "DNSCrypt"),
+    )
+    var selected by remember { mutableStateOf("cf-doh") }
+    val groups = servers.groupBy { dnsProviderKey(it.second) }.map { (_, rows) ->
+        RethinkDnsProviderGroup(dnsProviderDisplayName(rows.first().second), rows.map { it.first })
+    }
     RethinkDnsListScreen(
-        protocols = demoDnsProtocols,
-        selectedProtocolId = selectedProtocolId,
-        selectedProtocolWorking = true,
-        strings = RethinkDnsListStrings(
-            title = "DNS servers",
-            subtitle = "Choose how Keepout resolves domain names.",
-            configure = "Protocol",
-            fast = "Fast",
-            private = "Private",
-            secure = "Secure",
-            anonymous = "Anonymous",
-        ),
-        onProtocolClick = { selectedProtocolId = it.id },
+        groups = groups,
+        protocols = demoDnsProtocols.filter { it.id != 4 },
+        strings = RethinkDnsListStrings(title = "DNS servers", subtitle = "Choose a provider"),
+        onProtocolClick = {},
+        onAddProtocol = {},
         onBackClick = onBack,
         modifier = modifier,
-    )
+    ) { key ->
+        val (_, name, protocol) = servers.first { it.first == key }
+        DnsEndpointRow(
+            title = name,
+            supporting = if (key == selected) "Connected" else null,
+            selected = key == selected,
+            action = DnsRowAction.Info,
+            badge = protocol,
+            onActionClick = {},
+            onSelectionChange = { selected = key },
+        )
+    }
 }
 
 /** Web preview for the common tunnel-settings renderer; system actions remain intentionally inert. */
@@ -634,21 +646,30 @@ internal fun DemoProxySettingsScreen(modifier: Modifier, onBack: () -> Unit) {
 
 @Composable
 internal fun DemoDnsSettingsScreen(modifier: Modifier, onBack: () -> Unit, onCustomDns: () -> Unit) {
-    var state by remember { mutableStateOf(demoDnsSettingsState) }
+    var state by remember { mutableStateOf(demoDnsSettingsState.copy(rethinkPresetLabel = "Default")) }
+    var showAdvanced by remember { mutableStateOf(false) }
     fun update(transform: (RethinkDnsSettingsState) -> RethinkDnsSettingsState) { state = transform(state) }
-    RethinkDnsSettingsScreen(
-        navigation = com.bernaferrari.bravedns.ui.compose.dns.RethinkDnsSettingsNavigation(
-            onRefresh = {},
-            onSystemDns = { update { it.copy(isSystemDnsEnabled = true, isSmartDnsEnabled = false, isRethinkDnsConnected = false) } },
-            onSystemDnsInfo = {},
-            onCustomDns = { update { it.copy(isSystemDnsEnabled = false, isSmartDnsEnabled = false, isRethinkDnsConnected = false) }; onCustomDns() },
-            onRethinkDns = { update { it.copy(isSystemDnsEnabled = false, isSmartDnsEnabled = false, isRethinkDnsConnected = true) } },
-            onSmartDns = { update { it.copy(isSystemDnsEnabled = false, isSmartDnsEnabled = true, isRethinkDnsConnected = false) } },
-            onSmartDnsInfo = {},
-            onLocalBlocklists = {},
-            onRecordTypes = { update { it.copy(dnsRecordTypesAutoMode = !it.dnsRecordTypesAutoMode) } },
-            onTrustedEndpoint = {},
-        ),
+    val navigation = com.bernaferrari.bravedns.ui.compose.dns.RethinkDnsSettingsNavigation(
+        onRefresh = {},
+        onSystemDns = { update { it.copy(isSystemDnsEnabled = true, isSmartDnsEnabled = false, isRethinkDnsConnected = false) } },
+        onSystemDnsInfo = {},
+        onCustomDns = { update { it.copy(isSystemDnsEnabled = false, isSmartDnsEnabled = false, isRethinkDnsConnected = false) }; onCustomDns() },
+        onRethinkDns = { update { it.copy(isSystemDnsEnabled = false, isSmartDnsEnabled = false, isRethinkDnsConnected = true) } },
+        onSmartDns = { update { it.copy(isSystemDnsEnabled = false, isSmartDnsEnabled = true, isRethinkDnsConnected = false) } },
+        onSmartDnsInfo = {},
+        onLocalBlocklists = {},
+        onRecordTypes = { update { it.copy(dnsRecordTypesAutoMode = !it.dnsRecordTypesAutoMode) } },
+        onTrustedEndpoint = {},
+        onAdvanced = { showAdvanced = true },
+        onLocalBlocklistSetUp = { update { it.copy(blocklistEnabled = true, localBlocklistsDownloaded = true) } },
+        onRethinkNetwork = { max -> update { it.copy(isRethinkMax = max) } },
+    )
+    if (!showAdvanced) {
+        RethinkDnsSettingsScreen(state = state, strings = demoDnsSettingsStrings, navigation = navigation, onBackClick = onBack, modifier = modifier)
+        return
+    }
+    RethinkDnsAdvancedScreen(
+        navigation = navigation,
         state = state,
         strings = demoDnsSettingsStrings,
         onCustomDownloaderChange = { value -> update { it.copy(useCustomDownloadManager = value) } },
@@ -663,7 +684,7 @@ internal fun DemoDnsSettingsScreen(modifier: Modifier, onBack: () -> Unit, onCus
         onFallbackDnsChange = { value -> update { it.copy(useFallbackDnsToBypass = value) } },
         onBlockFreeModeChange = { value -> update { it.copy(blockFreeDnsMode = value) } },
         onPreventLeaksChange = { value -> update { it.copy(preventDnsLeaks = value) } },
-        onBackClick = onBack,
+        onBackClick = { showAdvanced = false },
         modifier = modifier,
     )
 }

@@ -126,6 +126,8 @@ internal fun DnsEndpointManagedRow(
     delete: DnsDeleteDialogModel? = null,
     onDelete: (Int) -> Unit = {},
     selection: DnsRowSelection = DnsRowSelection.Radio,
+    badge: String? = null,
+    description: String? = null,
 ) {
     var infoDialog by remember(key) { mutableStateOf<DnsInfoDialogModel?>(null) }
     var deleteDialog by remember(key) { mutableStateOf<DnsDeleteDialogModel?>(null) }
@@ -136,6 +138,13 @@ internal fun DnsEndpointManagedRow(
         selected = selected,
         action = action,
         selection = selection,
+        badge = badge,
+        description = description,
+        actionLabel = when (action) {
+            DnsRowAction.Delete -> stringResource(R.string.lbl_delete)
+            DnsRowAction.Edit -> stringResource(R.string.rt_edit_dialog_positive)
+            DnsRowAction.Info -> stringResource(R.string.cd_about_item, title)
+        },
         onActionClick = {
             if (action == DnsRowAction.Delete && delete != null) {
                 deleteDialog = delete

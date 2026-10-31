@@ -23,6 +23,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillSize
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 
 /** The host chooses the action behavior; commonMain owns the expressive endpoint row itself. */
@@ -41,6 +43,12 @@ fun DnsEndpointRow(
     onSelectionChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
     trailing: (@Composable () -> Unit)? = null,
+    /** A short fact beside the title, e.g. the protocol on a provider list ("DoH"). */
+    badge: String? = null,
+    /** What the server does, above the live status in [supporting]. */
+    description: String? = null,
+    /** Accessibility label for the trailing action (info, edit or delete). */
+    actionLabel: String? = null,
 ) {
     val shape = RoundedCornerShape(SharedDimensions.groupCornerRadius)
     Surface(
@@ -54,14 +62,28 @@ fun DnsEndpointRow(
             horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSmMd),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Column(Modifier.weight(1f)) {
-                Text(title, style = MaterialTheme.typography.bodyLarge)
-                if (!supporting.isNullOrEmpty()) Text(supporting, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile)) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(title, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f, fill = false))
+                    if (!badge.isNullOrEmpty()) RethinkPill(badge, size = RethinkPillSize.Small)
+                }
+                if (!description.isNullOrEmpty()) Text(description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (!supporting.isNullOrEmpty()) {
+                    // The live status of the chosen server, distinct from its description.
+                    Text(
+                        supporting,
+                        style = if (description.isNullOrEmpty()) MaterialTheme.typography.bodySmall else MaterialTheme.typography.labelMedium,
+                        color = if (description.isNullOrEmpty()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.primary,
+                    )
+                }
             }
             if (trailing != null) {
                 trailing()
             } else {
-                DnsEndpointActionButton(action, onActionClick)
+                DnsEndpointActionButton(action, actionLabel, onActionClick)
                 when (selection) {
                     DnsRowSelection.Radio -> RadioButton(selected, onClick = { onSelectionChange(true) })
                     DnsRowSelection.Checkbox -> Checkbox(selected, onCheckedChange = onSelectionChange)
@@ -73,7 +95,7 @@ fun DnsEndpointRow(
 
 /** A bare icon button: a different tinted plate per action read as three kinds of row. */
 @Composable
-private fun DnsEndpointActionButton(action: DnsRowAction, onClick: () -> Unit) {
+private fun DnsEndpointActionButton(action: DnsRowAction, label: String?, onClick: () -> Unit) {
     val contentColor = if (action == DnsRowAction.Delete) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
     val icon = when (action) {
         DnsRowAction.Delete -> MaterialSymbols.Filled.DeleteOutline
@@ -85,6 +107,6 @@ private fun DnsEndpointActionButton(action: DnsRowAction, onClick: () -> Unit) {
         colors = IconButtonDefaults.iconButtonColors(contentColor = contentColor),
         modifier = Modifier.size(SharedDimensions.touchTargetMin),
     ) {
-        Icon(icon, contentDescription = null, modifier = Modifier.size(SharedDimensions.iconSizeMd))
+        Icon(icon, contentDescription = label, modifier = Modifier.size(SharedDimensions.iconSizeMd))
     }
 }

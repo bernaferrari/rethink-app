@@ -66,10 +66,21 @@ fun RethinkEndpointRow(
             }
         )
     val editEnabled = endpoint.isEditable(context)
+    // Stock endpoints show as presets ("Family", not "RDNS Adult"); the stored name stays.
+    val preset = RethinkDnsPreset.fromStoredName(endpoint.name)
+    val description = when {
+        preset == RethinkDnsPreset.Custom && endpoint.blocklistCount > 0 ->
+            stringResource(R.string.rethink_preset_custom_count, endpoint.blocklistCount)
+        preset != null -> stringResource(preset.descriptionRes())
+        else -> endpoint.desc
+    }
+
+    val displayName = rethinkPresetName(endpoint.name)
 
     DnsEndpointManagedRow(
         key = endpoint.url,
-        title = endpoint.name,
+        title = displayName,
+        description = description,
         supporting = explanation.ifEmpty { null },
         selected = endpoint.isActive,
         action = if (editEnabled) DnsRowAction.Edit else DnsRowAction.Info,
@@ -82,7 +93,7 @@ fun RethinkEndpointRow(
         onInfo = { show ->
             show(
                 DnsInfoDialogModel(
-                    title = endpoint.name,
+                    title = displayName,
                     message = endpoint.url + "\n\n" + endpoint.desc,
                     copyValue = endpoint.url,
                     confirmTextRes =

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- UX overhaul, WS4 (DNS): provider-first DNS screen, DNS · Advanced, provider list, Rethink presets. -->
+<resources>
+    <!-- DNS screen: who answers lookups -->
+    <string name="dns_choice_section">Who answers your lookups</string>
+    <string name="dns_choice_rethink_desc">Encrypted. You pick what it blocks: malware, ads, trackers or adult sites.</string>
+    <string name="dns_choice_recommended">Recommended</string>
+    <string name="dns_choice_rethink_detail">Blocklist: %1$s</string>
+    <string name="dns_choice_provider_detail">%1$s · %2$s</string>
+    <string name="dns_choice_smart_note">Automatic server selection is on. Change it in Advanced.</string>
+
+    <!-- DNS screen: hero -->
+    <string name="dns_hero_failing">Not answering. Lookups use the fallback DNS for now.</string>
+    <string name="dns_hero_try_another">Try another server</string>
+
+    <!-- DNS screen: blocking on this device -->
+    <string name="dns_device_section">Blocking on this device</string>
+    <string name="dns_device_off_desc">Works with any provider. The lists are downloaded and checked on this phone.</string>
+    <plurals name="dns_device_on_desc">
+        <item quantity="one">%1$d list checked on this phone, whatever the provider.</item>
+        <item quantity="other">%1$d lists checked on this phone, whatever the provider.</item>
+    </plurals>
+    <string name="dns_device_off">Off</string>
+    <string name="dns_device_on">On</string>
+    <string name="dns_device_set_up">Download lists (about 60 MB)</string>
+    <string name="dns_device_turn_on">Turn on</string>
+    <string name="dns_device_choose">Choose lists</string>
+    <string name="dns_device_manage">Manage</string>
+
+    <!-- DNS screen: Advanced entry and the DNS · Advanced screen -->
+    <string name="dns_adv_row_desc">Filtering, trusted domains, fallback DNS and more</string>
+    <string name="dns_adv_title">Advanced DNS</string>
+    <string name="dns_adv_servers">Servers</string>
+    <string name="dns_adv_auto_select">Automatic server selection</string>
+    <string name="dns_adv_auto_select_desc">Picks from a rotating set of resolvers (Smart DNS).</string>
+    <string name="dns_adv_use">Use</string>
+    <string name="dns_adv_rethink_network">Rethink DNS network</string>
+    <string name="dns_adv_rethink_fastest">Fastest</string>
+    <string name="dns_adv_rethink_fastest_desc">280+ locations, higher uptime. Runs on Cloudflare.</string>
+    <string name="dns_adv_rethink_private">Most private</string>
+    <string name="dns_adv_rethink_private_desc">50+ locations, more private. Runs its own resolver on Fly.io.</string>
+    <string name="dns_adv_downloads">Blocklist downloads</string>
+    <string name="dns_adv_fallback">Fallback</string>
+    <string name="dns_adv_more">More</string>
+
+    <!-- Provider list (Another provider) -->
+    <string name="dns_providers_subtitle">Choose a provider</string>
+    <string name="dns_providers_yours">Your servers</string>
+    <string name="dns_providers_add">Add server</string>
+    <string name="dns_providers_loading">Loading servers…</string>
+    <string name="dns_providers_add_title">Add a server</string>
+    <string name="dns_providers_add_desc">How should this phone talk to it?</string>
+    <string name="dns_providers_by_protocol">Servers by protocol</string>
+    <string name="dns_providers_by_protocol_desc">Every server of one kind, and DNSCrypt relays.</string>
+    <string name="dns_protocol_doh_desc">Encrypted over HTTPS. Most providers offer it.</string>
+    <string name="dns_protocol_dot_desc">Encrypted over TLS.</string>
+    <string name="dns_protocol_dnscrypt_desc">Encrypted, with optional relays that hide your IP.</string>
+    <string name="dns_protocol_proxy_desc">An IP address and port. Not encrypted.</string>
+    <string name="dns_protocol_odoh_desc">Encrypted and relayed, so the provider never sees your IP.</string>
+    <string name="dns_protocol_plain">Not encrypted</string>
+
+    <!-- Rethink DNS presets: display names over the stored endpoint names (RDNS Default…) -->
+    <string name="rethink_list_subtitle">Pick what it blocks. The lists run on Rethink\'s servers and take no space on this phone.</string>
+    <string name="rethink_preset_default">Default</string>
+    <string name="rethink_preset_family">Family</string>
+    <string name="rethink_preset_piracy">Piracy</string>
+    <string name="rethink_preset_social">Social media</string>
+    <string name="rethink_preset_security">Security</string>
+    <string name="rethink_preset_privacy">Privacy</string>
+    <string name="rethink_preset_custom">Custom</string>
+    <string name="rethink_preset_default_desc">Blocks malware, phishing and other threats</string>
+    <string name="rethink_preset_family_desc">Blocks adult websites</string>
+    <string name="rethink_preset_piracy_desc">Blocks torrent, dubious streaming and file-sharing sites</string>
+    <string name="rethink_preset_social_desc">Blocks Facebook, Instagram, WhatsApp and other social media</string>
+    <string name="rethink_preset_security_desc">Blocks malware, ransomware and phishing</string>
+    <string name="rethink_preset_privacy_desc">Blocks ads, trackers and spyware</string>
+    <string name="rethink_preset_custom_desc">Lists you choose from 190+</string>
+    <string name="rethink_preset_custom_count">%1$d lists you chose</string>
+
+    <!-- Blocklist editor downloads: honest sizes, and a way to retry -->
+    <string name="blocklist_fetch_remote">Getting the list of blocklists (about 50 KB)…</string>
+    <string name="blocklist_fetch_remote_failed">Couldn\'t get the list of blocklists. Check your connection and try again.</string>
+    <string name="blocklist_fetch_local">Download the on-device blocklists (about 60 MB) to choose which ones to use.</string>
+    <string name="blocklist_fetch_local_progress">Downloading the on-device blocklists (about 60 MB)…</string>
+    <string name="blocklist_fetch_local_failed">The download didn\'t finish. Check your connection and try again.</string>
+</resources>

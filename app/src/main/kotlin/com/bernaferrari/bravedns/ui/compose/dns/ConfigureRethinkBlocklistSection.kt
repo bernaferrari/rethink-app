@@ -51,6 +51,7 @@ internal data class RethinkBlocklistUiFlags(
     val activeView: RethinkBlocklistState.BlocklistView,
     val filterLabelText: String,
     val plusFilterTags: List<FileTag>,
+    val downloadFailed: Boolean = false,
 )
 
 internal data class RethinkBlocklistActions(
@@ -149,7 +150,8 @@ private fun RethinkBlocklistEditorPane(
         showDownload = flags.showDownload,
         showEditor = flags.showConfigure,
         isDownloading = flags.isDownloading || flags.showRemoteProgress,
-        strings = rethinkBlocklistEditorStrings(flags.filterLabelText),
+        downloadFailed = flags.downloadFailed,
+        strings = rethinkBlocklistEditorStrings(flags.filterLabelText, blocklistType.isLocal()),
         onViewChange = { actions.onActiveViewChanged(blocklistViewOf(it)) },
         onQueryChange = { query ->
             if (!restoreStampIfPresent(query, context, scope, actions.onProcessSelectedFileTags)) {
@@ -253,11 +255,16 @@ private fun updateBlocklistSelection(
 }
 
 @Composable
-private fun rethinkBlocklistEditorStrings(filterLabelText: String): RethinkBlocklistEditorStrings {
+private fun rethinkBlocklistEditorStrings(filterLabelText: String, isLocal: Boolean): RethinkBlocklistEditorStrings {
     val blocklistCountTemplate = stringResource(R.string.rsv_blocklist_count_text)
     val entriesTemplate = stringResource(R.string.dc_entries)
     return RethinkBlocklistEditorStrings(
-        downloadDescription = stringResource(R.string.rt_download_desc),
+        // Honest sizes: the on-device lists are about 60 MB; Rethink DNS only needs the list of
+        // blocklists (about 50 KB), fetched automatically.
+        downloadDescription = stringResource(if (isLocal) R.string.blocklist_fetch_local else R.string.blocklist_fetch_remote),
+        downloadingDescription = stringResource(if (isLocal) R.string.blocklist_fetch_local_progress else R.string.blocklist_fetch_remote),
+        downloadFailedDescription = stringResource(if (isLocal) R.string.blocklist_fetch_local_failed else R.string.blocklist_fetch_remote_failed),
+        retry = stringResource(R.string.lbl_retry),
         download = stringResource(R.string.rt_download),
         cancel = stringResource(R.string.lbl_cancel),
         packs = stringResource(R.string.rt_list_simple_btn_txt),

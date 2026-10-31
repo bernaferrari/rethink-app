@@ -87,6 +87,14 @@ import com.bernaferrari.bravedns.util.Utilities.convertLongToTime
 import com.bernaferrari.bravedns.util.Utilities.deleteRecursive
 import com.bernaferrari.bravedns.util.Utilities.tos
 import com.celzero.firestack.backend.Backend
+import com.bernaferrari.bravedns.database.EventSource
+import com.bernaferrari.bravedns.database.EventType
+import com.bernaferrari.bravedns.database.Severity
+import com.bernaferrari.bravedns.service.EventLogger
+import com.bernaferrari.bravedns.ui.compose.settings.RethinkSelectionDialog
+import com.bernaferrari.bravedns.ui.compose.settings.RethinkSelectionOption
+import kotlinx.coroutines.delay
+import org.koin.compose.koinInject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -114,7 +122,10 @@ fun DnsDetailScreen(
     onRethinkPlusDnsClick: () -> Unit,
     onLocalBlocklistConfigureClick: () -> Unit,
     onBlockFreeDnsClick: () -> Unit,
-    onBackClick: (() -> Unit)? = null
+    onBackClick: (() -> Unit)? = null,
+    /** Show DNS › Advanced instead of the DNS screen (same state, sheets and dialogs). */
+    advanced: Boolean = false,
+    onAdvancedClick: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -128,6 +139,7 @@ fun DnsDetailScreen(
     var showSmartDnsDialog by remember { mutableStateOf(false) }
     var smartDnsDialogText by remember { mutableStateOf("") }
     var showLocalBlocklistsSheet by remember { mutableStateOf(false) }
+    var showFallbackDnsDialog by remember { mutableStateOf(false) }
 
     // Local blocklist state
     var showDownloadDialog by remember { mutableStateOf(false) }
@@ -340,6 +352,7 @@ fun DnsDetailScreen(
 
             updateLocalBlocklistUi()
             showCheckUpdateUi()
+            viewModel.updateUiState()
             Utilities.showToastUiCentered(
                 context,
                 configAddSuccessToastText,
@@ -362,10 +375,12 @@ fun DnsDetailScreen(
 
     fun setBraveDnsLocal() {
         persistentState.blocklistEnabled = true
+        viewModel.updateUiState()
     }
 
     fun removeBraveDnsLocal() {
         persistentState.blocklistEnabled = false
+        viewModel.updateUiState()
     }
 
     fun enableBlocklist() {
@@ -554,13 +569,19 @@ fun DnsDetailScreen(
         onPauseOrDispose { }
     }
 
-    // Main content
-    DnsSettingsScreen(
-        uiState = uiState,
-        initialFocusKey = initialFocusKey,
-        onRefreshClick = { viewModel.refreshDns() },
-        onSystemDnsClick = { viewModel.enableSystemDns() },
-        onSystemDnsInfoClick = {
+    // The hero turns into an error while the resolver isn't answering, and back when it recovers.
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(DNS_STATUS_POLL_MS)
+            viewModel.refreshDnsStatus()
+        }
+    }
+
+    // Main content: the DNS screen, or DNS › Advanced. Both share this host's sheets and dialogs.
+    val navigation = RethinkDnsSettingsNavigation(
+        onRefresh = { viewModel.refreshDns() },
+        onSystemDns = { viewModel.enableSystemDns() },
+        onSystemDnsInfo = {
             scope.launch(Dispatchers.IO) {
                 val sysDns = VpnController.getSystemDns()
                 withContext(Dispatchers.Main) {
@@ -568,27 +589,44 @@ fun DnsDetailScreen(
                 }
             }
         },
-        onCustomDnsClick = onCustomDnsClick,
-        onRethinkPlusDnsClick = onRethinkPlusDnsClick,
-        onSmartDnsClick = { viewModel.enableSmartDns() },
-        onSmartDnsInfoClick = { showSmartDnsInfoDialog() },
-        onLocalBlocklistClick = { openLocalBlocklist() },
-        onCustomDownloaderChange = { viewModel.setUseCustomDownloadManager(it) },
-        onPeriodicUpdateChange = { viewModel.setPeriodicallyCheckBlocklistUpdate(it) },
-        onDnsAlgChange = { viewModel.setDnsAlgEnabled(it) },
-        onSplitDnsChange = { viewModel.setSplitDns(it) },
-        onBypassDnsBlockChange = { viewModel.setBypassBlockInDns(it) },
-        onAllowedRecordTypesClick = { showRecordTypesSheet = true },
-        onFavIconChange = { viewModel.setFavIconEnabled(it) },
-        onDnsCacheChange = { viewModel.setEnableDnsCache(it) },
-        onProxyDnsChange = { viewModel.setProxyDns(it) },
-        onUndelegatedDomainsChange = { viewModel.setUseSystemDnsForUndelegatedDomains(it) },
-        onFallbackChange = { viewModel.setUseFallbackDnsToBypass(it) },
-        onBlockFreeDnsModeChange = { viewModel.setBlockFreeDnsMode(it) },
-        onBlockFreeDnsClick = onBlockFreeDnsClick,
-        onPreventLeaksChange = { viewModel.setPreventDnsLeaksEnabled(it) },
-        onBackClick = onBackClick,
+        onCustomDns = onCustomDnsClick,
+        onRethinkDns = onRethinkPlusDnsClick,
+        onSmartDns = { viewModel.enableSmartDns() },
+        onSmartDnsInfo = { showSmartDnsInfoDialog() },
+        onLocalBlocklists = { openLocalBlocklist() },
+        onRecordTypes = { showRecordTypesSheet = true },
+        onTrustedEndpoint = onBlockFreeDnsClick,
+        onAdvanced = onAdvancedClick,
+        // The sheet's own toggle: download when missing, turn on when present.
+        onLocalBlocklistSetUp = { enableBlocklist() },
+        onLocalBlocklistChoose = { invokeLocalBlocklistActivity() },
+        onFallbackDns = { showFallbackDnsDialog = true },
+        onRethinkNetwork = { viewModel.setRethinkMax(it) },
     )
+    if (advanced) {
+        DnsAdvancedSettingsScreen(
+            uiState = uiState,
+            navigation = navigation,
+            viewModel = viewModel,
+            initialFocusKey = initialFocusKey,
+            onBackClick = onBackClick,
+        )
+    } else {
+        DnsSettingsScreen(
+            uiState = uiState,
+            navigation = navigation,
+            initialFocusKey = initialFocusKey,
+            onBackClick = onBackClick,
+        )
+    }
+
+    if (showFallbackDnsDialog) {
+        FallbackDnsDialog(
+            selectedUrl = persistentState.defaultDnsUrl,
+            onDismiss = { showFallbackDnsDialog = false },
+            onConfirm = { url -> viewModel.setDefaultDnsUrl(url) },
+        )
+    }
 
     // DNS Record Types Sheet
     if (showRecordTypesSheet) {
@@ -751,6 +789,32 @@ fun DnsDetailScreen(
             }
         )
     }
+}
+
+private const val DNS_STATUS_POLL_MS = 3_000L
+
+/** Fallback DNS, moved here from Network › Advanced: the same list and preference. */
+@Composable
+private fun FallbackDnsDialog(
+    selectedUrl: String,
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit,
+) {
+    val eventLogger = koinInject<EventLogger>()
+    val options = Constants.DEFAULT_DNS_LIST
+    RethinkSelectionDialog(
+        title = stringResource(R.string.settings_default_dns_heading),
+        options = options.map { RethinkSelectionOption(it.url, it.name) },
+        initialSelectedId = options.firstOrNull { it.url == selectedUrl }?.url ?: options.firstOrNull()?.url.orEmpty(),
+        confirm = stringResource(R.string.fapps_info_dialog_positive_btn),
+        cancel = stringResource(R.string.lbl_cancel),
+        onDismiss = onDismiss,
+        onConfirm = { option ->
+            onConfirm(option.id)
+            eventLogger.log(EventType.TUN_ESTABLISHED, Severity.LOW, "default dns changed", EventSource.UI, false, "Default DNS changed")
+            onDismiss()
+        },
+    )
 }
 
 private fun getInitialRecordSelection(persistentState: PersistentState): List<String> {

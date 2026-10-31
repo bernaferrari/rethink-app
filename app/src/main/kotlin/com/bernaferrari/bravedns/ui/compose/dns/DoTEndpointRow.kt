@@ -28,7 +28,7 @@ import com.bernaferrari.bravedns.ui.components.DnsRowAction
 private const val TAG = "DoTEndpointRow"
 
 @Composable
-fun DoTEndpointRow(endpoint: DoTEndpoint, appConfig: AppConfig) {
+fun DoTEndpointRow(endpoint: DoTEndpoint, appConfig: AppConfig, badge: String? = null) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val failingToast = stringResource(R.string.status_failing)
@@ -43,6 +43,7 @@ fun DoTEndpointRow(endpoint: DoTEndpoint, appConfig: AppConfig) {
         )
 
     DnsEndpointManagedRow(
+        badge = badge,
         key = endpoint.id,
         title = dnsEndpointTitle(endpoint.name, endpoint.isSecure),
         supporting = explanation.ifEmpty { null },

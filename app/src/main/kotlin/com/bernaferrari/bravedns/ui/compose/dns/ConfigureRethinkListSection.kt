@@ -18,8 +18,6 @@
 package com.bernaferrari.bravedns.ui.compose.dns
 
 import androidx.compose.material3.LoadingIndicator
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkChoiceOption
-import com.bernaferrari.bravedns.ui.compose.theme.RethinkConnectedChoiceGroup
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
@@ -30,6 +28,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
@@ -38,7 +37,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -58,8 +56,6 @@ import com.bernaferrari.bravedns.viewmodel.RethinkEndpointViewModel
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import Logger
 import Logger.LOG_TAG_UI
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 @Composable
 internal fun RethinkListContent(
@@ -98,6 +94,12 @@ internal fun RethinkListContent(
         onUpdateInProgressChanged = onUpdateInProgressChanged,
     )
 
+    // The table sorts the active endpoint first; keep the order the screen opened with so the
+    // row you pick stays under your finger.
+    val loaded = (0 until pagingItems.itemCount).mapNotNull { pagingItems[it] }
+    val byKey = loaded.associateBy { "${it.name}|${it.uid}" }
+    val order = rememberStableOrder(loaded.map { "${it.name}|${it.uid}" })
+
     // The update card scrolls away with the list instead of pinning above it.
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -123,8 +125,8 @@ internal fun RethinkListContent(
                 localBlocklistVersionTemplate = localBlocklistVersionTemplate,
             )
         }
-        items(count = pagingItems.itemCount) { index ->
-            val item = pagingItems[index] ?: return@items
+        items(order, key = { it }) { key ->
+            val item = byKey[key] ?: return@items
             RethinkEndpointRow(endpoint = item, appConfig = appConfig, onEditConfiguration = onEditConfiguration)
         }
     }
@@ -187,32 +189,13 @@ private fun RethinkListUpdateCard(
     onDownload: (Long, Boolean) -> Unit,
     localBlocklistVersionTemplate: String,
 ) {
-    val scope = rememberCoroutineScope()
     val actionText = rethinkListActionText(updateUi)
     val actionInProgress = rethinkListActionInProgress(updateUi)
 
-    // One card at the top, no section header: the large title already says "Rethink DNS".
-    // Sky/Max leads (it is the choice), its description follows, then the blocklist version and
-    // its update action.
+    // Only the blocklist version and its update action: the Sky/Max network moved to
+    // DNS › Advanced ("Rethink DNS network"), so the presets are the first thing here.
+    if (persistentState.remoteBlocklistTimestamp == Constants.INIT_TIME_MS && actionText == null) return
     RethinkContainedCard(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd)) {
-        RethinkSkyMaxToggleRow(
-            skyLabel = stringResource(id = R.string.radio_sky_btn),
-            maxLabel = stringResource(id = R.string.radio_max_btn),
-            isMax = updateUi.isMax,
-            onSky = {
-                scope.launch(Dispatchers.IO) { appConfig.switchRethinkDnsToSky() }
-                onMaxChanged(false)
-            },
-            onMax = {
-                scope.launch(Dispatchers.IO) { appConfig.switchRethinkDnsToMax() }
-                onMaxChanged(true)
-            },
-        )
-        Text(
-            text = stringResource(if (updateUi.isMax) R.string.rethink_max_desc else R.string.rethink_sky_desc),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
         if (persistentState.remoteBlocklistTimestamp != Constants.INIT_TIME_MS || actionText != null) {
             Text(
                 text = localBlocklistVersionTemplate.format(
@@ -292,20 +275,4 @@ private fun RethinkListUpdateActionButton(
         }
         Text(text = actionText)
     }
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-private fun RethinkSkyMaxToggleRow(
-    skyLabel: String,
-    maxLabel: String,
-    isMax: Boolean,
-    onSky: () -> Unit,
-    onMax: () -> Unit,
-) {
-    RethinkConnectedChoiceGroup(
-        options = listOf(RethinkChoiceOption(false, skyLabel), RethinkChoiceOption(true, maxLabel)),
-        selected = isMax,
-        onSelect = { max -> if (max) onMax() else onSky() },
-    )
 }
