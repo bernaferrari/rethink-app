@@ -33,6 +33,8 @@ sealed interface RethinkRoute : NavKey {
     @Serializable data object DnsList : RethinkRoute
     @Serializable data class DnsDetail(val focusKey: String = "") : RethinkRoute
     @Serializable data object DnsSettings : RethinkRoute
+    /** DNS › Advanced: filtering, trusted domains, fallback DNS, Smart DNS, Rethink DNS network. */
+    @Serializable data class DnsAdvanced(val focusKey: String = "") : RethinkRoute
     @Serializable data class ConfigureOtherDns(val dnsType: Int = 0) : RethinkRoute
     @Serializable data object BlockFreeDns : RethinkRoute
     @Serializable data object Blocklists : RethinkRoute
@@ -119,7 +121,7 @@ fun RethinkRoute.rootDestination(): RethinkRootDestination? = when (this) {
     is RethinkRoute.DetailedStatistics, is RethinkRoute.DomainConnections -> RethinkRootDestination.Activity
     RethinkRoute.Configure, RethinkRoute.About, RethinkRoute.Alerts, RethinkRoute.Events,
     RethinkRoute.ConsoleLogs, RethinkRoute.DnsList,
-    is RethinkRoute.DnsDetail, RethinkRoute.DnsSettings, is RethinkRoute.ConfigureOtherDns,
+    is RethinkRoute.DnsDetail, RethinkRoute.DnsSettings, is RethinkRoute.DnsAdvanced, is RethinkRoute.ConfigureOtherDns,
     RethinkRoute.BlockFreeDns, RethinkRoute.Blocklists, is RethinkRoute.FirewallSettings,
     RethinkRoute.UniversalFirewall, is RethinkRoute.CustomRules, is RethinkRoute.ProxySettings,
     RethinkRoute.OrbotAppSelect, RethinkRoute.TcpProxy, is RethinkRoute.TunnelSettings,
@@ -252,6 +254,7 @@ val rethinkNavSavedStateConfiguration =
                     subclass(RethinkRoute.DnsList::class, RethinkRoute.DnsList.serializer())
                     subclass(RethinkRoute.DnsDetail::class, RethinkRoute.DnsDetail.serializer())
                     subclass(RethinkRoute.DnsSettings::class, RethinkRoute.DnsSettings.serializer())
+                    subclass(RethinkRoute.DnsAdvanced::class, RethinkRoute.DnsAdvanced.serializer())
                     subclass(RethinkRoute.ConfigureOtherDns::class, RethinkRoute.ConfigureOtherDns.serializer())
                     subclass(RethinkRoute.BlockFreeDns::class, RethinkRoute.BlockFreeDns.serializer())
                     subclass(RethinkRoute.Blocklists::class, RethinkRoute.Blocklists.serializer())
