@@ -82,7 +82,6 @@ object MaterialSymbols {
         val NotificationsOff: ImageVector get() = filledNotificationsOff
         val Palette: ImageVector get() = filledPalette
         val Pause: ImageVector get() = filledPause
-        val Pause: ImageVector get() = filledPause
         val PauseCircle: ImageVector get() = filledPauseCircle
         val PhoneAndroid: ImageVector get() = filledPhoneAndroid
         val PhotoLibrary: ImageVector get() = filledPhotoLibrary
