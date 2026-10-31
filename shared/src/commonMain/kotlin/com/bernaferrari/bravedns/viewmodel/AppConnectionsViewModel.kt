@@ -76,6 +76,10 @@ class AppConnectionsViewModel(
         ACTIVE_CONNECTIONS
     }
 
+    /** This app's connections in the last 24 hours, blocked first (App detail's Recent activity). */
+    fun recentConnections(uid: Int, limit: Int = RECENT_ACTIVITY_SCAN_LIMIT): Flow<List<com.bernaferrari.bravedns.database.ConnectionTracker>> =
+        nwlogDao.observeRecentConnectionsForUid(uid, nowMillis() - RECENT_ACTIVITY_WINDOW_MS, limit)
+
     fun timeCategoryChanged(category: TimeCategory, isDomain: Boolean) {
         timeCategory = category
         startTime.value = nowMillis() - category.durationMillis
@@ -225,5 +229,7 @@ class AppConnectionsViewModel(
         const val ONE_HOUR_MILLIS = 60 * 60 * 1000L
         const val ONE_DAY_MILLIS = 24 * ONE_HOUR_MILLIS
         const val ONE_WEEK_MILLIS = 7 * ONE_DAY_MILLIS
+        const val RECENT_ACTIVITY_WINDOW_MS = ONE_DAY_MILLIS
+        const val RECENT_ACTIVITY_SCAN_LIMIT = 200
     }
 }

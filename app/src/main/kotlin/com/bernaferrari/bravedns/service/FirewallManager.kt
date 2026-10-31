@@ -731,6 +731,9 @@ object FirewallManager : KoinComponent {
 
     suspend fun isTempAllowed(uid: Int): Boolean = temporaryAllowances.isAllowed(uid)
 
+    /** When [uid]'s temporary allowance ends (epoch ms), or 0 when it has none. */
+    suspend fun tempAllowExpiry(uid: Int): Long = temporaryAllowances.expiry(uid)
+
     suspend fun expireTemporaryAllows(now: Long): Int = temporaryAllowances.expire(now)
 
     suspend fun updateTempAllow(uid: Int, enabled: Boolean) {

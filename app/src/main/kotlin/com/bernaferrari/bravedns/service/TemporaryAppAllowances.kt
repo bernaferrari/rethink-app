@@ -16,13 +16,16 @@ internal class TemporaryAppAllowances(
     // Zero is a cached denial. Normal connections must not query Room on every Go callback.
     private val cache = ExpiringCache<Int, Long>(10_000, TimeUnit.HOURS.toMillis(1))
 
-    suspend fun isAllowed(uid: Int): Boolean = mutex.withLock {
+    suspend fun isAllowed(uid: Int): Boolean = expiry(uid) > 0L
+
+    /** The stored expiry while the allowance is live, else 0. UI countdowns read this. */
+    suspend fun expiry(uid: Int): Long = mutex.withLock {
         val timestamp = now()
         val expiry = cache.getIfPresent(uid) ?: repository.getAppInfoByUid(uid).let { app ->
             (if (app?.tempAllowEnabled == true) app.tempAllowExpiryTime else 0L)
                 .also { cache.put(uid, it) }
         }
-        expiry > timestamp
+        if (expiry > timestamp) expiry else 0L
     }
 
     suspend fun grant(uid: Int, minutes: Int) = mutex.withLock {

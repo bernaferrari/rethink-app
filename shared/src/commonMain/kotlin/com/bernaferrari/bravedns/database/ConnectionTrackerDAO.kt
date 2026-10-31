@@ -251,6 +251,15 @@ interface ConnectionTrackerDAO : StatsRebuildDao {
     )
     suspend fun latestConnectionTo(domain: String, ip: String, blocked: Boolean, since: Long): ConnectionTracker?
 
+    /**
+     * This app's connections since [since], blocked first and newest first within each verdict;
+     * App detail folds them into one Recent activity row per destination.
+     */
+    @Query(
+        "select * from ConnectionTracker where uid = :uid and timeStamp > :since order by isBlocked desc, id desc limit :limit"
+    )
+    fun observeRecentConnectionsForUid(uid: Int, since: Long, limit: Int): Flow<List<ConnectionTracker>>
+
     @Query(
         "SELECT uid, SUM(uploadBytes) AS uploadBytes, SUM(downloadBytes) AS downloadBytes FROM ConnectionTracker where timeStamp >= :from and timeStamp <= :to GROUP BY uid"
     )
