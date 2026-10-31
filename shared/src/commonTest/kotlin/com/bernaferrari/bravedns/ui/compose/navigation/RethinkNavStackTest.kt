@@ -10,10 +10,10 @@ class RethinkNavStackTest {
 
     @Test
     fun open_sameRoot_pushesWithoutClearing() {
-        val current = listOf(RethinkRoute.Configure, RethinkRoute.AppList)
+        val current = listOf(RethinkRoute.Configure, RethinkRoute.FirewallSettings())
         assertEquals(
-            listOf(RethinkRoute.Configure, RethinkRoute.AppList, RethinkRoute.AppInfo(5)),
-            stackAfterOpen(current, RethinkRoute.AppInfo(5)),
+            listOf(RethinkRoute.Configure, RethinkRoute.FirewallSettings(), RethinkRoute.UniversalFirewall),
+            stackAfterOpen(current, RethinkRoute.UniversalFirewall),
         )
     }
 
@@ -21,24 +21,53 @@ class RethinkNavStackTest {
     fun open_sameRoot_popsBackToExistingInsteadOfDuplicating() {
         val current = listOf(
             RethinkRoute.Configure,
-            RethinkRoute.AppList,
-            RethinkRoute.AppInfo(5),
+            RethinkRoute.FirewallSettings(),
+            RethinkRoute.UniversalFirewall,
         )
         assertEquals(
-            listOf(RethinkRoute.Configure, RethinkRoute.AppList),
-            stackAfterOpen(current, RethinkRoute.AppList),
+            listOf(RethinkRoute.Configure, RethinkRoute.FirewallSettings()),
+            stackAfterOpen(current, RethinkRoute.FirewallSettings()),
         )
     }
 
     @Test
     fun open_differentRoot_usesCanonicalStack() {
         assertEquals(
-            listOf(RethinkRoute.Configure, RethinkRoute.AppList),
-            stackAfterOpen(listOf(RethinkRoute.Home), RethinkRoute.AppList),
+            listOf(RethinkRoute.AppList, RethinkRoute.AppInfo(5)),
+            stackAfterOpen(listOf(RethinkRoute.Home), RethinkRoute.AppInfo(5)),
         )
         assertEquals(
-            listOf(RethinkRoute.Configure, RethinkRoute.AppList),
-            stackAfterOpen(listOf(RethinkRoute.Statistics), RethinkRoute.AppList),
+            listOf(RethinkRoute.Activity, RethinkRoute.NetworkLogs("example.com")),
+            stackAfterOpen(listOf(RethinkRoute.Configure), RethinkRoute.NetworkLogs("example.com")),
+        )
+    }
+
+    @Test
+    fun tabs_areHomeAppsActivitySettings() {
+        assertEquals(
+            listOf(RethinkRoute.Home, RethinkRoute.AppList, RethinkRoute.Activity, RethinkRoute.Configure),
+            RethinkRootDestination.entries.map { it.route },
+        )
+    }
+
+    @Test
+    fun statsAndUnfilteredLogs_openTheActivityTab() {
+        assertEquals(listOf(RethinkRoute.Activity), canonicalStackFor(RethinkRoute.Statistics))
+        assertEquals(listOf(RethinkRoute.Activity), canonicalStackFor(RethinkRoute.NetworkLogs()))
+        assertEquals(RethinkActivityView.Insights, RethinkRoute.Statistics.activityView())
+        assertEquals(RethinkActivityView.Log, RethinkRoute.NetworkLogs().activityView())
+        assertNull(RethinkRoute.NetworkLogs("clock").activityView())
+        assertEquals(RethinkRootDestination.Activity, RethinkRoute.Statistics.tabRoot())
+        assertEquals(RethinkRootDestination.Apps, RethinkRoute.AppList.tabRoot())
+        assertNull(RethinkRoute.AppInfo(1).tabRoot())
+        assertNull(RethinkRoute.Welcome.tabRoot())
+    }
+
+    @Test
+    fun openFromApp_tabRoot_resetsThatTab() {
+        assertEquals(
+            listOf(RethinkRoute.Activity),
+            stackAfterOpenFromApp(listOf(RethinkRoute.Activity, RethinkRoute.NetworkLogs("x")), RethinkRoute.Statistics),
         )
     }
 
@@ -65,9 +94,11 @@ class RethinkNavStackTest {
     }
 
     @Test
-    fun pop_configureOrStatisticsRoot_goesHome() {
+    fun pop_otherTabRoots_goHome() {
         assertEquals(listOf(RethinkRoute.Home), stackAfterPop(listOf(RethinkRoute.Configure)))
         assertEquals(listOf(RethinkRoute.Home), stackAfterPop(listOf(RethinkRoute.Statistics)))
+        assertEquals(listOf(RethinkRoute.Home), stackAfterPop(listOf(RethinkRoute.AppList)))
+        assertEquals(listOf(RethinkRoute.Home), stackAfterPop(listOf(RethinkRoute.Activity)))
     }
 
     @Test
@@ -77,13 +108,14 @@ class RethinkNavStackTest {
 
     @Test
     fun shouldPushExternal_sameNestedRootOnly() {
-        assertTrue(shouldPushExternal(RethinkRoute.Configure, RethinkRoute.AppList))
+        assertTrue(shouldPushExternal(RethinkRoute.Configure, RethinkRoute.FirewallSettings()))
         assertTrue(
             shouldPushExternal(
                 RethinkRoute.AppList,
                 RethinkRoute.AppInfo(2),
             ),
         )
+        assertFalse(shouldPushExternal(RethinkRoute.Configure, RethinkRoute.AppList))
         assertFalse(shouldPushExternal(RethinkRoute.Home, RethinkRoute.AppList))
         assertFalse(shouldPushExternal(null, RethinkRoute.AppList))
         assertFalse(shouldPushExternal(RethinkRoute.Welcome, RethinkRoute.Home))
@@ -92,9 +124,9 @@ class RethinkNavStackTest {
     @Test
     fun openFromApp_sameRoot_pushes() {
         assertEquals(
-            listOf(RethinkRoute.Configure, RethinkRoute.AppList, RethinkRoute.AppInfo(5)),
+            listOf(RethinkRoute.AppList, RethinkRoute.AppInfo(5)),
             stackAfterOpenFromApp(
-                listOf(RethinkRoute.Configure, RethinkRoute.AppList),
+                listOf(RethinkRoute.AppList),
                 RethinkRoute.AppInfo(5),
             ),
         )
@@ -103,8 +135,8 @@ class RethinkNavStackTest {
     @Test
     fun openFromApp_differentRoot_usesCanonicalStack() {
         assertEquals(
-            listOf(RethinkRoute.Configure, RethinkRoute.AppList),
-            stackAfterOpenFromApp(listOf(RethinkRoute.Home), RethinkRoute.AppList),
+            listOf(RethinkRoute.AppList, RethinkRoute.AppInfo(5)),
+            stackAfterOpenFromApp(listOf(RethinkRoute.Home), RethinkRoute.AppInfo(5)),
         )
     }
 

@@ -15,7 +15,13 @@ import kotlinx.serialization.modules.subclass
 @Serializable
 sealed interface RethinkRoute : NavKey {
     @Serializable data object Home : RethinkRoute
+    /**
+     * Kept for saved back stacks and external requests: Stats became the Insights view of the
+     * Activity tab. Opening it lands on [Activity] with Insights selected ([activityView]).
+     */
     @Serializable data object Statistics : RethinkRoute
+    /** The Activity tab: the log (connections and DNS lookups) and Insights (former Stats). */
+    @Serializable data object Activity : RethinkRoute
     @Serializable data object Configure : RethinkRoute
     @Serializable data object About : RethinkRoute
     @Serializable data object Welcome : RethinkRoute
@@ -78,18 +84,30 @@ sealed interface RethinkRoute : NavKey {
     ) : RethinkRoute
 }
 
+/**
+ * The bottom-bar tabs, in order. Each owns a back stack. [Configure] is the Settings tab (the
+ * name is kept so saved state and ids stay stable).
+ */
 enum class RethinkRootDestination(val route: RethinkRoute) {
     Home(RethinkRoute.Home),
-    Statistics(RethinkRoute.Statistics),
+    Apps(RethinkRoute.AppList),
+    Activity(RethinkRoute.Activity),
     Configure(RethinkRoute.Configure),
 }
 
+/**
+ * The tab a route *belongs to* when it is opened from outside a stack (a notification, an intent,
+ * [RethinkNavOps.open]). Routes pushed with [RethinkNavOps.push] stay on whatever tab pushed them,
+ * and the bar highlights that tab, not this one (App detail opened from Home highlights Home).
+ */
 fun RethinkRoute.rootDestination(): RethinkRootDestination? = when (this) {
     RethinkRoute.Home, RethinkRoute.Welcome, RethinkRoute.AppLock -> RethinkRootDestination.Home
-    RethinkRoute.Statistics, is RethinkRoute.DetailedStatistics, is RethinkRoute.DomainConnections ->
-        RethinkRootDestination.Statistics
+    RethinkRoute.AppList, is RethinkRoute.AppInfo, is RethinkRoute.AppWiseIpLogs,
+    is RethinkRoute.AppWiseDomainLogs -> RethinkRootDestination.Apps
+    RethinkRoute.Activity, RethinkRoute.Statistics, is RethinkRoute.NetworkLogs,
+    is RethinkRoute.DetailedStatistics, is RethinkRoute.DomainConnections -> RethinkRootDestination.Activity
     RethinkRoute.Configure, RethinkRoute.About, RethinkRoute.Alerts, RethinkRoute.Events,
-    RethinkRoute.AppList, is RethinkRoute.NetworkLogs, RethinkRoute.ConsoleLogs, RethinkRoute.DnsList,
+    RethinkRoute.ConsoleLogs, RethinkRoute.DnsList,
     is RethinkRoute.DnsDetail, RethinkRoute.DnsSettings, is RethinkRoute.ConfigureOtherDns,
     RethinkRoute.BlockFreeDns, RethinkRoute.Blocklists, is RethinkRoute.FirewallSettings,
     RethinkRoute.UniversalFirewall, is RethinkRoute.CustomRules, is RethinkRoute.ProxySettings,
@@ -97,19 +115,44 @@ fun RethinkRoute.rootDestination(): RethinkRootDestination? = when (this) {
     is RethinkRoute.MiscSettings, RethinkRoute.AdvancedSettings, RethinkRoute.AntiCensorship,
     RethinkRoute.PingTest, RethinkRoute.Database, RethinkRoute.WireGuard,
     RethinkRoute.RpnAvailability, RethinkRoute.RpnCountries, RethinkRoute.RpnAccount,
-    RethinkRoute.RpnSettings, RethinkRoute.Checkout, is RethinkRoute.AppInfo,
-    is RethinkRoute.AppWiseIpLogs, is RethinkRoute.AppWiseDomainLogs,
+    RethinkRoute.RpnSettings, RethinkRoute.Checkout,
     is RethinkRoute.WireGuardDetail, is RethinkRoute.WireGuardEditor,
     is RethinkRoute.CountryProxy, is RethinkRoute.RpnServerDetails,
     is RethinkRoute.ConfigureRethinkBasic -> RethinkRootDestination.Configure
 }
 
+/** The two views of the Activity tab. */
+enum class RethinkActivityView { Log, Insights }
+
+/**
+ * The Activity view a request asks for, or null when it doesn't name one: Stats (and its "Show
+ * all" lists) mean Insights; the unfiltered log means Log. Hosts keep the selected view as state
+ * and apply this when a request arrives, so the tab's root stays one key.
+ */
+fun RethinkRoute.activityView(): RethinkActivityView? = when (this) {
+    RethinkRoute.Statistics -> RethinkActivityView.Insights
+    is RethinkRoute.NetworkLogs -> RethinkActivityView.Log.takeIf { query.isBlank() }
+    else -> null
+}
+
+/**
+ * The tab whose root this route *is* (Home, Apps, Activity, Settings, and the aliases that open
+ * them: Stats and the unfiltered log), or null for a screen inside a tab. Pushing one switches tab.
+ */
+fun RethinkRoute.tabRoot(): RethinkRootDestination? {
+    val root = rootDestination() ?: return null
+    return root.takeIf { canonicalStackFor(this) == listOf(root.route) }
+}
+
 fun RethinkRoute.showsNavigationChrome(): Boolean =
     this !is RethinkRoute.Welcome && this !is RethinkRoute.AppLock
 
-fun canonicalStackFor(destination: RethinkRoute): List<RethinkRoute> = when (destination) {
-    RethinkRoute.Home, RethinkRoute.Statistics, RethinkRoute.Configure,
-    RethinkRoute.Welcome, RethinkRoute.AppLock -> listOf(destination)
+fun canonicalStackFor(destination: RethinkRoute): List<RethinkRoute> = when {
+    destination == RethinkRoute.Home || destination == RethinkRoute.Configure ||
+        destination == RethinkRoute.AppList || destination == RethinkRoute.Activity ||
+        destination == RethinkRoute.Welcome || destination == RethinkRoute.AppLock -> listOf(destination)
+    // Aliases of the Activity root: the view they name is applied by the host ([activityView]).
+    destination.activityView() != null -> listOf(RethinkRoute.Activity)
     else -> {
         val root = destination.rootDestination()?.route ?: RethinkRoute.Home
         listOf(root, destination)
@@ -142,6 +185,8 @@ fun stackAfterOpenFromApp(
     current: List<RethinkRoute>,
     destination: RethinkRoute,
 ): List<RethinkRoute> {
+    // A tab root (or an alias of one) resets that tab instead of stacking a second root on it.
+    if (destination.tabRoot() != null) return canonicalStackFor(destination)
     val currentRoot = current.lastOrNull()?.rootDestination()
     if (currentRoot != null && currentRoot == destination.rootDestination()) {
         return if (current.lastOrNull() == destination) current else current + destination
@@ -151,12 +196,13 @@ fun stackAfterOpenFromApp(
 
 /**
  * Stack after a back press, or null to leave the stack so the host can finish
- * (Home as the only entry). Configure/Statistics roots go to Home instead of no-op.
+ * (Home as the only entry). The other tab roots go to Home instead of no-op.
  */
 fun stackAfterPop(current: List<RethinkRoute>): List<RethinkRoute>? {
     if (current.size > 1) return current.dropLast(1)
     return when (current.singleOrNull()) {
-        RethinkRoute.Configure, RethinkRoute.Statistics -> listOf(RethinkRoute.Home)
+        RethinkRoute.Configure, RethinkRoute.Statistics, RethinkRoute.AppList, RethinkRoute.Activity ->
+            listOf(RethinkRoute.Home)
         else -> null
     }
 }
@@ -225,6 +271,7 @@ val rethinkNavSavedStateConfiguration =
                     subclass(RethinkRoute.CountryProxy::class, RethinkRoute.CountryProxy.serializer())
                     subclass(RethinkRoute.RpnServerDetails::class, RethinkRoute.RpnServerDetails.serializer())
                     subclass(RethinkRoute.ConfigureRethinkBasic::class, RethinkRoute.ConfigureRethinkBasic.serializer())
+                    subclass(RethinkRoute.Activity::class, RethinkRoute.Activity.serializer())
                 }
             }
     }

@@ -34,6 +34,8 @@ fun DomainConnectionsScreen(
     isBlocked: Boolean,
     timeCategory: DomainConnectionsViewModel.TimeCategory,
     onBackClick: () -> Unit,
+    onOpenApp: ((uid: Int) -> Unit)? = null,
+    onOpenLogs: ((query: String) -> Unit)? = null,
 ) {
     val title = when (type) {
         DomainConnectionsInputType.DOMAIN -> domain
@@ -76,7 +78,7 @@ fun DomainConnectionsScreen(
         ) {
             items(count = items.itemCount) { index ->
                 val connection = items[index] ?: return@items
-                ConnectionRow(connection, cardPositionFor(index, items.itemCount - 1))
+                ConnectionRow(connection, cardPositionFor(index, items.itemCount - 1), onOpenApp, onOpenLogs)
             }
         }
     }

@@ -40,10 +40,16 @@ internal val demoNavigationItems = listOf(
         unselectedIcon = MaterialSymbols.Outlined.Home,
     ),
     RethinkNavigationItem(
-        id = RethinkRootDestination.Statistics.name,
-        label = "Statistics",
-        selectedIcon = MaterialSymbols.Filled.InsertChart,
-        unselectedIcon = MaterialSymbols.Outlined.InsertChart,
+        id = RethinkRootDestination.Apps.name,
+        label = "Apps",
+        selectedIcon = MaterialSymbols.Filled.Apps,
+        unselectedIcon = MaterialSymbols.Outlined.Apps,
+    ),
+    RethinkNavigationItem(
+        id = RethinkRootDestination.Activity.name,
+        label = "Activity",
+        selectedIcon = MaterialSymbols.Filled.Monitoring,
+        unselectedIcon = MaterialSymbols.Outlined.Monitoring,
     ),
     RethinkNavigationItem(
         id = RethinkRootDestination.Configure.name,
@@ -122,6 +128,8 @@ internal val demoLogsStrings = RethinkLogsStrings(
     moreActions = "More actions",
     refresh = "Refresh",
     clear = "Clear logs",
+    connections = "Connections",
+    lookups = "DNS lookups",
 )
 
 internal val demoLogListStrings = RethinkLogListStrings(

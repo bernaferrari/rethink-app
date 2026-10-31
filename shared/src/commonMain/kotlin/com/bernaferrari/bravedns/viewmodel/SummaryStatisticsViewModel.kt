@@ -42,7 +42,8 @@ class SummaryStatisticsViewModel(
     private val nowMillis: () -> Long = { Clock.System.now().toEpochMilliseconds() }
 ) : ViewModel() {
     private val uiStateMutable = MutableStateFlow(SummaryStatisticsUiState())
-    private val startTime = MutableStateFlow(nowMillis() - ONE_HOUR_MILLIS)
+    // Insights opens on the last 24 hours, the same window as Home's counts.
+    private val startTime = MutableStateFlow(nowMillis() - ONE_DAY_MILLIS)
     private val topActiveConnsTick = MutableStateFlow(uptimeProvider.uptimeMs())
     private val refreshTick = MutableStateFlow(0L)
 
@@ -59,7 +60,7 @@ class SummaryStatisticsViewModel(
     }
 
     data class SummaryStatisticsUiState(
-        val timeCategory: TimeCategory = TimeCategory.ONE_HOUR,
+        val timeCategory: TimeCategory = TimeCategory.TWENTY_FOUR_HOUR,
         val dataUsage: DataUsageSummary = DataUsageSummary(0, 0, 0, 0)
     )
 

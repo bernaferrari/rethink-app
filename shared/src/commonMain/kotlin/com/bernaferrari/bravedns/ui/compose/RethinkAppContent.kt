@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -20,7 +21,9 @@ import com.bernaferrari.bravedns.ui.compose.home.RethinkHomeUiState
 import com.bernaferrari.bravedns.ui.compose.home.RethinkWelcomeContent
 import com.bernaferrari.bravedns.ui.compose.home.RethinkWelcomeFeature
 import com.bernaferrari.bravedns.ui.compose.home.RethinkWelcomeScreen
+import com.bernaferrari.bravedns.ui.compose.navigation.RethinkActivityView
 import com.bernaferrari.bravedns.ui.compose.navigation.RethinkAppNavigation
+import com.bernaferrari.bravedns.ui.compose.navigation.activityView
 import com.bernaferrari.bravedns.ui.compose.navigation.RethinkRoute
 import com.bernaferrari.bravedns.ui.compose.navigation.rethinkPreviewEntries
 import com.bernaferrari.bravedns.ui.compose.settings.RethinkAppearanceMode
@@ -55,6 +58,10 @@ fun RethinkAppContent(
     var appearanceMode by remember { mutableStateOf(RethinkAppearanceMode.System) }
     var appearancePresetId by remember { mutableIntStateOf(2) }
     val statisticsWindow = remember { mutableStateOf(RethinkStatisticsWindow.TwentyFourHours) }
+    val activityView = remember { mutableStateOf(RethinkActivityView.Log) }
+    LaunchedEffect(pendingRoute, startRoute) {
+        (pendingRoute ?: startRoute).activityView()?.let { activityView.value = it }
+    }
     val configureSearchOpen = remember { mutableStateOf(false) }
     val configureQuery = remember { mutableStateOf("") }
     val seedColor = rethinkAppearancePresets
@@ -120,6 +127,7 @@ fun RethinkAppContent(
                             demoDependencies = demoDependencies,
                             vpnOn = vpnOn,
                             statisticsWindow = statisticsWindow,
+                            activityView = activityView,
                             configureSearchOpen = configureSearchOpen,
                             configureQuery = configureQuery,
                             appearanceContent = {

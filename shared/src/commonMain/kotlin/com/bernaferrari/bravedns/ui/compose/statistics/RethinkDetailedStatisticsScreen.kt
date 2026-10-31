@@ -49,6 +49,8 @@ data class RethinkDetailedStatistic(
     val supporting: String,
     val countryFlag: String? = null,
     val leadingContent: (@Composable () -> Unit)? = null,
+    /** As in the summary: apps open App detail, domains and IPs their Connection sheet. */
+    val onClick: (() -> Unit)? = null,
 )
 
 /**
@@ -152,6 +154,8 @@ private fun RethinkDetailedStatisticRow(
         supporting = item.supporting,
         position = position,
         singleLineHeadline = true,
+        onClick = item.onClick,
+        showTrailingChevron = false,
         leadingContent = when {
             item.leadingContent != null -> item.leadingContent
             !item.countryFlag.isNullOrBlank() -> {

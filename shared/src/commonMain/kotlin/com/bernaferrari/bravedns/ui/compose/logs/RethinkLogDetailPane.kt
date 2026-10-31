@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -25,7 +26,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -65,6 +69,8 @@ data class RethinkLogPaneStrings(
     /** Shown when nothing is selected yet. */
     val emptySelection: String,
     val detailsTitle: String,
+    /** The button that opens the entry's Connection sheet (why, and the fix). */
+    val openSheet: String? = null,
 )
 
 /**
@@ -79,6 +85,8 @@ fun RethinkLogDetailPane(
     groups: List<RethinkLogGroup>,
     strings: RethinkLogPaneStrings,
     modifier: Modifier = Modifier,
+    /** Opens the selected entry's Connection sheet; null hides the button. */
+    onOpenSheet: (() -> Unit)? = null,
 ) {
     val motion = LocalRethinkMotion.current
     val fadeSpec = if (motion.reducedMotion) snap() else MaterialTheme.motionScheme.defaultEffectsSpec<Float>()
@@ -98,14 +106,19 @@ fun RethinkLogDetailPane(
                     Text(strings.emptySelection, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             } else {
-                PaneContent(selected, groups, strings)
+                PaneContent(selected, groups, strings, onOpenSheet)
             }
         }
     }
 }
 
 @Composable
-private fun PaneContent(model: RethinkLogRowModel, groups: List<RethinkLogGroup>, strings: RethinkLogPaneStrings) {
+private fun PaneContent(
+    model: RethinkLogRowModel,
+    groups: List<RethinkLogGroup>,
+    strings: RethinkLogPaneStrings,
+    onOpenSheet: (() -> Unit)?,
+) {
     val scheme = MaterialTheme.colorScheme
     Column(
         Modifier
@@ -145,6 +158,18 @@ private fun PaneContent(model: RethinkLogRowModel, groups: List<RethinkLogGroup>
             )
             RethinkPill(model.typeLabel, size = RethinkPillSize.Large, fontWeight = FontWeight.Bold)
             RethinkPill(model.timeLabel, size = RethinkPillSize.Large)
+        }
+        if (onOpenSheet != null && strings.openSheet != null) {
+            // The pane reads; the fixes (allow the app, trust or block the domain) live in the sheet.
+            FilledTonalButton(
+                onClick = onOpenSheet,
+                shapes = ButtonDefaults.shapes(),
+                modifier = Modifier.fillMaxWidth().heightIn(min = SharedDimensions.buttonHeightSm),
+            ) {
+                Icon(MaterialSymbols.Filled.Tune, contentDescription = null, modifier = Modifier.size(SharedDimensions.iconSizeXs))
+                Spacer(Modifier.size(SharedDimensions.spacingSm))
+                Text(strings.openSheet)
+            }
         }
         HorizontalDivider(color = scheme.outlineVariant.copy(alpha = 0.5f))
         SectionTitle(strings.detailsTitle)

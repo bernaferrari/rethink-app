@@ -49,15 +49,25 @@ data class RethinkLogsStrings(
     val moreActions: String,
     val refresh: String,
     val clear: String,
+    /** Labels of the full-width type switch ([viewSwitch] screens): "Connections" / "DNS lookups". */
+    val connections: String = network,
+    val lookups: String = dns,
 )
 
-/** Shared top-level Logs navigation, tabs, and overflow behaviour. */
+/**
+ * Shared top-level Logs navigation, tabs, and overflow behaviour.
+ *
+ * As the Activity tab's Log view, [viewSwitch] (Log · Insights) takes the top bar and the
+ * connections/lookups switch moves to a labelled row over the filters. Without it (a log pushed
+ * with a search, e.g. from Insights) the compact switch stays in the top bar.
+ */
 @Composable
 fun RethinkLogsScreenShell(
     strings: RethinkLogsStrings,
     onBackClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     additionalOverflowItems: List<RethinkOverflowItem> = emptyList(),
+    viewSwitch: (@Composable () -> Unit)? = null,
     networkContent: @Composable (onToolbarActionsChange: (RethinkLogToolbarActions) -> Unit) -> Unit,
     dnsContent: @Composable (onToolbarActionsChange: (RethinkLogToolbarActions) -> Unit) -> Unit,
 ) {
@@ -78,18 +88,30 @@ fun RethinkLogsScreenShell(
                 onBackClick = onBackClick,
                 scrollBehavior = scrollBehavior,
                 actions = {
-                    RethinkLogsTabSwitch(
-                        selected = tab,
-                        networkLabel = strings.network,
-                        dnsLabel = strings.dns,
-                        onTabSelected = { tabIndex = it.ordinal },
-                    )
+                    if (viewSwitch != null) {
+                        viewSwitch()
+                    } else {
+                        RethinkLogsTabSwitch(
+                            selected = tab,
+                            networkLabel = strings.network,
+                            dnsLabel = strings.dns,
+                            onTabSelected = { tabIndex = it.ordinal },
+                        )
+                    }
                     RethinkLogsOverflow(toolbarActions, strings, additionalOverflowItems)
                 },
             )
         },
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
+            if (viewSwitch != null) {
+                RethinkLogTypeSwitch(
+                    selected = tab,
+                    onSelect = { tabIndex = it.ordinal },
+                    connectionsLabel = strings.connections,
+                    lookupsLabel = strings.lookups,
+                )
+            }
             when (tab) {
                 RethinkLogTab.Network -> networkContent { toolbarActions = it }
                 RethinkLogTab.Dns -> dnsContent { toolbarActions = it }

@@ -31,7 +31,12 @@ import com.bernaferrari.bravedns.ui.compose.wireguard.*
 import kotlinx.coroutines.launch
 
 @Composable
-internal fun DemoLogsScreen(modifier: Modifier, onBack: () -> Unit) {
+internal fun DemoLogsScreen(
+    modifier: Modifier,
+    onBack: (() -> Unit)?,
+    viewSwitch: (@Composable () -> Unit)? = null,
+    title: String? = null,
+) {
     var networkFilter by remember { mutableStateOf(RethinkLogFilter.All) }
     var dnsFilter by remember { mutableStateOf(RethinkLogFilter.All) }
     var selectedNetworkApp by remember { mutableStateOf<String?>(null) }
@@ -51,9 +56,10 @@ internal fun DemoLogsScreen(modifier: Modifier, onBack: () -> Unit) {
     val visibleDnsLogs = dnsLogs.filterFor(dnsFilter, selectedDnsApp)
 
     RethinkLogsScreenShell(
-        strings = demoLogsStrings,
+        strings = if (title != null) demoLogsStrings.copy(title = title) else demoLogsStrings,
         onBackClick = onBack,
         modifier = modifier,
+        viewSwitch = viewSwitch,
         networkContent = { onToolbarActionsChange ->
             LaunchedEffect(networkLogs) {
                 onToolbarActionsChange(
@@ -74,7 +80,7 @@ internal fun DemoLogsScreen(modifier: Modifier, onBack: () -> Unit) {
                         )
                         RethinkToolbarIconToggle(
                             icon = MaterialSymbols.Filled.FilterList,
-                            contentDescription = "Filter rules",
+                            contentDescription = "Reason",
                             selected = selectedRules.isNotEmpty(),
                             count = selectedRules.size,
                             onClick = { showRulesPicker = true },

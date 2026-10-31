@@ -49,6 +49,7 @@ import com.bernaferrari.bravedns.ui.compose.home.RethinkHomeBlockedApp
 import com.bernaferrari.bravedns.ui.compose.home.RethinkHomeScreen
 import com.bernaferrari.bravedns.ui.compose.home.RethinkHomeUiState
 import com.bernaferrari.bravedns.ui.compose.statistics.RethinkStatisticsWindow
+import com.bernaferrari.bravedns.ui.compose.logs.RethinkActivityViewSwitch
 import com.bernaferrari.bravedns.ui.compose.statistics.RethinkSummaryStatisticsRow
 import com.bernaferrari.bravedns.ui.compose.statistics.RethinkSummaryStatisticsScreen
 import com.bernaferrari.bravedns.ui.compose.statistics.RethinkSummaryStatisticsSection
@@ -65,6 +66,8 @@ fun EntryProviderScope<NavKey>.rethinkPreviewEntries(
     demoDependencies: RethinkWebDemoDependencies,
     vpnOn: MutableState<Boolean>,
     statisticsWindow: MutableState<RethinkStatisticsWindow>,
+    /** The Activity tab's view; hosts set it from [RethinkRoute.activityView] on requests. */
+    activityView: MutableState<RethinkActivityView>,
     configureSearchOpen: MutableState<Boolean>,
     configureQuery: MutableState<String>,
     appearanceContent: @Composable () -> Unit,
@@ -91,103 +94,29 @@ fun EntryProviderScope<NavKey>.rethinkPreviewEntries(
                 strings = demoHomeStrings,
                 onStartStopClick = { vpnOn.value = !vpnOn.value },
                 showAtmosphere = false,
-                onActivityClick = { nav.selectRoot(RethinkRootDestination.Statistics) },
+                onActivityClick = {
+                    activityView.value = RethinkActivityView.Insights
+                    nav.open(RethinkRoute.Activity)
+                },
             )
         }
     }
-    entry<RethinkRoute.Statistics> {
-        run {
-            RethinkSummaryStatisticsScreen(
-                overview = RethinkUsageOverview(download = "1.8 GB", upload = "248 MB", connections = "4,320"),
-                selectedWindow = statisticsWindow.value,
-                onWindowSelected = { statisticsWindow.value = it },
-                strings = RethinkSummaryStatisticsStrings(
-                    title = "Statistics",
-                    overall = "Overall",
-                    download = "Download",
-                    upload = "Upload",
-                    connections = "Connections",
-                    oneHour = "1h",
-                    twentyFourHours = "24h",
-                    sevenDays = "7d",
-                    noLogs = "No activity in this time range",
-                    seeMore = "See more",
-                    seeLess = "See less",
-                ),
-                sections = listOf(
-                    RethinkSummaryStatisticsSection(
-                        id = "connected-apps",
-                        title = "Most connected apps",
-                        accentColor = MaterialTheme.colorScheme.primary,
-                        canSeeMore = true,
-                        rows = listOf(
-                            RethinkSummaryStatisticsRow(
-                                "browser", "Browser", "1,240 connections", "684 MB",
-                                share = 1f,
-                                leadingContent = {
-                                    RethinkWebDemoAppIcon(
-                                        "com.demo.browser",
-                                        "Browser",
-                                        Modifier.size(SharedDimensions.iconContainerSm),
-                                    )
-                                },
-                            ),
-                            RethinkSummaryStatisticsRow(
-                                "messenger", "Messenger", "684 connections", "248 MB",
-                                share = 248f / 684f,
-                                leadingContent = {
-                                    RethinkWebDemoAppIcon(
-                                        "com.demo.messenger",
-                                        "Messenger",
-                                        Modifier.size(SharedDimensions.iconContainerSm),
-                                    )
-                                },
-                            ),
-                            RethinkSummaryStatisticsRow(
-                                "mail", "Mail", "312 connections", "96 MB",
-                                share = 96f / 684f,
-                                leadingContent = {
-                                    RethinkWebDemoAppIcon(
-                                        "com.google.android.gm",
-                                        "Mail",
-                                        Modifier.size(SharedDimensions.iconContainerSm),
-                                    )
-                                },
-                            ),
-                        ),
-                    ),
-                    RethinkSummaryStatisticsSection(
-                        id = "blocked-domains",
-                        title = "Most blocked domains",
-                        accentColor = MaterialTheme.colorScheme.error,
-                        canSeeMore = true,
-                        rows = listOf(
-                            RethinkSummaryStatisticsRow("tracker", "tracker.example", "Browser · News", "326", share = 1f),
-                            RethinkSummaryStatisticsRow("ads", "ads.example", "Browser · Social", "214", share = 214f / 326f),
-                            RethinkSummaryStatisticsRow("metrics", "metrics.example", "Mail", "88", share = 88f / 326f),
-                        ),
-                    ),
-                    RethinkSummaryStatisticsSection(
-                        id = "countries",
-                        title = "Most contacted countries",
-                        accentColor = MaterialTheme.colorScheme.tertiary,
-                        rows = listOf(
-                            demoCountryStatistic("us", "United States", "🇺🇸", "1,240", "512 MB", listOf("Browser" to "612", "Messenger" to "384", "Mail" to "244")),
-                            demoCountryStatistic("de", "Germany", "🇩🇪", "866", "406 MB", listOf("Browser" to "411", "RethinkDNS" to "248", "Mail" to "207")),
-                            demoCountryStatistic("nl", "Netherlands", "🇳🇱", "508", "198 MB", listOf("Browser" to "278", "Messenger" to "146", "Cloud sync" to "84")),
-                            demoCountryStatistic("sg", "Singapore", "🇸🇬", "276", "124 MB", listOf("Messenger" to "158", "Browser" to "72", "Mail" to "46")),
-                            demoCountryStatistic("br", "Brazil", "🇧🇷", "204", "86 MB", listOf("Browser" to "114", "Social" to "56", "Mail" to "34")),
-                            demoCountryStatistic("ca", "Canada", "🇨🇦", "128", "64 MB", listOf("Browser" to "69", "Cloud sync" to "34", "Messenger" to "25")),
-                            demoCountryStatistic("gb", "United Kingdom", "🇬🇧", "96", "42 MB", listOf("Media" to "47", "Browser" to "31", "Mail" to "18")),
-                            demoCountryStatistic("jp", "Japan", "🇯🇵", "72", "31 MB", listOf("Browser" to "39", "Messenger" to "21", "Cloud sync" to "12")),
-                            demoCountryStatistic("fr", "France", "🇫🇷", "58", "24 MB", listOf("Browser" to "29", "Mail" to "18", "RethinkDNS" to "11")),
-                            demoCountryStatistic("au", "Australia", "🇦🇺", "41", "18 MB", listOf("Cloud sync" to "19", "Browser" to "14", "Messenger" to "8")),
-                        ),
-                    ),
-                ),
-            )
+    val viewSwitch: @Composable () -> Unit = {
+        RethinkActivityViewSwitch(
+            selected = activityView.value,
+            onSelect = { activityView.value = it },
+            logLabel = "Log",
+            insightsLabel = "Insights",
+        )
+    }
+    val activityContent: @Composable () -> Unit = {
+        when (activityView.value) {
+            RethinkActivityView.Log -> DemoLogsScreen(Modifier.fillMaxSize(), onBack = null, viewSwitch = viewSwitch, title = "Activity")
+            RethinkActivityView.Insights -> DemoInsights(statisticsWindow, viewSwitch)
         }
     }
+    entry<RethinkRoute.Activity> { activityContent() }
+    entry<RethinkRoute.Statistics> { activityContent() }
     entry<RethinkRoute.Configure> {
         run {
             val sections = demoConfigureSections(nav::push)
@@ -330,4 +259,103 @@ fun EntryProviderScope<NavKey>.rethinkPreviewEntries(
     entry<RethinkRoute.BlockFreeDns> {
         run { DemoBlockFreeDnsScreen(Modifier.fillMaxSize(), nav::popBackStack) }
     }
+}
+
+
+/** The Activity tab's Insights view (former Stats) with fixture rows. */
+@Composable
+private fun DemoInsights(
+    statisticsWindow: MutableState<RethinkStatisticsWindow>,
+    viewSwitch: @Composable () -> Unit,
+) {
+    RethinkSummaryStatisticsScreen(
+        overview = RethinkUsageOverview(download = "1.8 GB", upload = "248 MB", connections = "4,320"),
+        selectedWindow = statisticsWindow.value,
+        onWindowSelected = { statisticsWindow.value = it },
+        viewSwitch = viewSwitch,
+        strings = RethinkSummaryStatisticsStrings(
+            title = "Activity",
+            overall = "Overall",
+            download = "Download",
+            upload = "Upload",
+            connections = "Connections",
+            oneHour = "1h",
+            twentyFourHours = "24h",
+            sevenDays = "7d",
+            noLogs = "No activity in this time range",
+            seeMore = "See more",
+            seeLess = "See less",
+        ),
+        sections = listOf(
+            RethinkSummaryStatisticsSection(
+                id = "connected-apps",
+                title = "Most connected apps",
+                accentColor = MaterialTheme.colorScheme.primary,
+                canSeeMore = true,
+                rows = listOf(
+                    RethinkSummaryStatisticsRow(
+                        "browser", "Browser", "1,240 connections", "684 MB",
+                        share = 1f,
+                        leadingContent = {
+                            RethinkWebDemoAppIcon(
+                                "com.demo.browser",
+                                "Browser",
+                                Modifier.size(SharedDimensions.iconContainerSm),
+                            )
+                        },
+                    ),
+                    RethinkSummaryStatisticsRow(
+                        "messenger", "Messenger", "684 connections", "248 MB",
+                        share = 248f / 684f,
+                        leadingContent = {
+                            RethinkWebDemoAppIcon(
+                                "com.demo.messenger",
+                                "Messenger",
+                                Modifier.size(SharedDimensions.iconContainerSm),
+                            )
+                        },
+                    ),
+                    RethinkSummaryStatisticsRow(
+                        "mail", "Mail", "312 connections", "96 MB",
+                        share = 96f / 684f,
+                        leadingContent = {
+                            RethinkWebDemoAppIcon(
+                                "com.google.android.gm",
+                                "Mail",
+                                Modifier.size(SharedDimensions.iconContainerSm),
+                            )
+                        },
+                    ),
+                ),
+            ),
+            RethinkSummaryStatisticsSection(
+                id = "blocked-domains",
+                title = "Most blocked domains",
+                accentColor = MaterialTheme.colorScheme.error,
+                canSeeMore = true,
+                rows = listOf(
+                    RethinkSummaryStatisticsRow("tracker", "tracker.example", "Browser · News", "326", share = 1f),
+                    RethinkSummaryStatisticsRow("ads", "ads.example", "Browser · Social", "214", share = 214f / 326f),
+                    RethinkSummaryStatisticsRow("metrics", "metrics.example", "Mail", "88", share = 88f / 326f),
+                ),
+            ),
+            RethinkSummaryStatisticsSection(
+                id = "countries",
+                title = "Most contacted countries",
+                accentColor = MaterialTheme.colorScheme.tertiary,
+                rows = listOf(
+                    demoCountryStatistic("us", "United States", "🇺🇸", "1,240", "512 MB", listOf("Browser" to "612", "Messenger" to "384", "Mail" to "244")),
+                    demoCountryStatistic("de", "Germany", "🇩🇪", "866", "406 MB", listOf("Browser" to "411", "RethinkDNS" to "248", "Mail" to "207")),
+                    demoCountryStatistic("nl", "Netherlands", "🇳🇱", "508", "198 MB", listOf("Browser" to "278", "Messenger" to "146", "Cloud sync" to "84")),
+                    demoCountryStatistic("sg", "Singapore", "🇸🇬", "276", "124 MB", listOf("Messenger" to "158", "Browser" to "72", "Mail" to "46")),
+                    demoCountryStatistic("br", "Brazil", "🇧🇷", "204", "86 MB", listOf("Browser" to "114", "Social" to "56", "Mail" to "34")),
+                    demoCountryStatistic("ca", "Canada", "🇨🇦", "128", "64 MB", listOf("Browser" to "69", "Cloud sync" to "34", "Messenger" to "25")),
+                    demoCountryStatistic("gb", "United Kingdom", "🇬🇧", "96", "42 MB", listOf("Media" to "47", "Browser" to "31", "Mail" to "18")),
+                    demoCountryStatistic("jp", "Japan", "🇯🇵", "72", "31 MB", listOf("Browser" to "39", "Messenger" to "21", "Cloud sync" to "12")),
+                    demoCountryStatistic("fr", "France", "🇫🇷", "58", "24 MB", listOf("Browser" to "29", "Mail" to "18", "RethinkDNS" to "11")),
+                    demoCountryStatistic("au", "Australia", "🇦🇺", "41", "18 MB", listOf("Cloud sync" to "19", "Browser" to "14", "Messenger" to "8")),
+                ),
+            ),
+        ),
+    )
 }

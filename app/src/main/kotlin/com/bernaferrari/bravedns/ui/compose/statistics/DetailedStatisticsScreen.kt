@@ -31,7 +31,9 @@ fun DetailedStatisticsScreen(
     type: SummaryStatisticsType,
     timeCategory: TimeCategory,
     onBackClick: () -> Unit,
+    rowActions: InsightsRowActions? = null,
 ) {
+    val rows = rememberInsightsRowHandler(rowActions)
     val pagingItems = when (type) {
         SummaryStatisticsType.TOP_ACTIVE_CONNS -> viewModel.getAllActiveConns
         SummaryStatisticsType.MOST_CONNECTED_APPS -> viewModel.getAllAllowedAppNetworkActivity
@@ -61,8 +63,13 @@ fun DetailedStatisticsScreen(
             empty = stringResource(R.string.lbl_no_logs),
         ),
         onBackClick = onBackClick,
-        itemAt = { index -> pagingItems[index]?.toRethinkDetailedStatistic(type) },
+        itemAt = { index ->
+            pagingItems[index]?.let { item ->
+                item.toRethinkDetailedStatistic(type).copy(onClick = rows.onClick(type, item, timeCategory))
+            }
+        },
     )
+    rows.Sheet()
 }
 
 @Composable

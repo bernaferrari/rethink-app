@@ -29,14 +29,22 @@ import com.bernaferrari.bravedns.ui.compose.common.AppIcon
 import com.bernaferrari.bravedns.viewmodel.SummaryStatisticsViewModel
 import com.bernaferrari.bravedns.viewmodel.SummaryStatisticsViewModel.TimeCategory
 
-/** Android paging, database, resources, and app-icon adapter for the shared statistics screen. */
+/**
+ * Android paging, database, resources, and app-icon adapter for the shared statistics screen: the
+ * Activity tab's Insights view. [rowActions] makes rows lead somewhere ([InsightsRowActions]);
+ * [viewSwitch] is the tab's Log · Insights switch.
+ */
 @Composable
 fun SummaryStatisticsScreen(
     viewModel: SummaryStatisticsViewModel,
     persistentState: PersistentState,
     onSeeMoreClick: (SummaryStatisticsType) -> Unit,
+    rowActions: InsightsRowActions? = null,
+    title: String? = null,
+    viewSwitch: (@Composable () -> Unit)? = null,
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val rows = rememberInsightsRowHandler(rowActions)
     val topActiveConns = viewModel.getTopActiveConns.collectAsLazyPagingItems()
     val mostConnectedApps = viewModel.getAllowedAppNetworkActivity.collectAsLazyPagingItems()
     val mostBlockedApps = viewModel.getBlockedAppNetworkActivity.collectAsLazyPagingItems()
@@ -61,6 +69,7 @@ fun SummaryStatisticsScreen(
             viewModel = viewModel,
             refreshToken = uiState.timeCategory,
             onSeeMoreClick = onSeeMoreClick,
+            rows = rows,
     )
     sections += summarySection(
             title = stringResource(R.string.ssv_app_blocked_heading),
@@ -70,6 +79,7 @@ fun SummaryStatisticsScreen(
             viewModel = viewModel,
             refreshToken = uiState.timeCategory,
             onSeeMoreClick = onSeeMoreClick,
+            rows = rows,
     )
     sections += summarySection(
             title = stringResource(R.string.ssv_most_contacted_countries_heading),
@@ -79,19 +89,20 @@ fun SummaryStatisticsScreen(
             viewModel = viewModel,
             refreshToken = uiState.timeCategory,
             onSeeMoreClick = onSeeMoreClick,
+            rows = rows,
     )
     if (persistentState.downloadIpInfo && shouldShowOptionalSection(mostConnectedAsn)) {
-        sections += summarySection(stringResource(R.string.most_contacted_asn), SummaryStatisticsType.MOST_CONNECTED_ASN, mostConnectedAsn, neutral, viewModel, uiState.timeCategory, onSeeMoreClick)
+        sections += summarySection(stringResource(R.string.most_contacted_asn), SummaryStatisticsType.MOST_CONNECTED_ASN, mostConnectedAsn, neutral, viewModel, uiState.timeCategory, onSeeMoreClick, rows)
     }
     if (persistentState.downloadIpInfo && shouldShowOptionalSection(mostBlockedAsn)) {
-        sections += summarySection(stringResource(R.string.most_blocked_asn), SummaryStatisticsType.MOST_BLOCKED_ASN, mostBlockedAsn, blocked, viewModel, uiState.timeCategory, onSeeMoreClick)
+        sections += summarySection(stringResource(R.string.most_blocked_asn), SummaryStatisticsType.MOST_BLOCKED_ASN, mostBlockedAsn, blocked, viewModel, uiState.timeCategory, onSeeMoreClick, rows)
     }
-    sections += summarySection(stringResource(R.string.ssv_most_contacted_domain_heading), SummaryStatisticsType.MOST_CONTACTED_DOMAINS, mostContactedDomains, neutral, viewModel, uiState.timeCategory, onSeeMoreClick)
-    sections += summarySection(stringResource(R.string.ssv_most_blocked_domain_heading), SummaryStatisticsType.MOST_BLOCKED_DOMAINS, mostBlockedDomains, blocked, viewModel, uiState.timeCategory, onSeeMoreClick)
-    sections += summarySection(stringResource(R.string.ssv_most_contacted_ips_heading), SummaryStatisticsType.MOST_CONTACTED_IPS, mostContactedIps, neutral, viewModel, uiState.timeCategory, onSeeMoreClick)
-    sections += summarySection(stringResource(R.string.ssv_most_blocked_ips_heading), SummaryStatisticsType.MOST_BLOCKED_IPS, mostBlockedIps, blocked, viewModel, uiState.timeCategory, onSeeMoreClick)
+    sections += summarySection(stringResource(R.string.ssv_most_contacted_domain_heading), SummaryStatisticsType.MOST_CONTACTED_DOMAINS, mostContactedDomains, neutral, viewModel, uiState.timeCategory, onSeeMoreClick, rows)
+    sections += summarySection(stringResource(R.string.ssv_most_blocked_domain_heading), SummaryStatisticsType.MOST_BLOCKED_DOMAINS, mostBlockedDomains, blocked, viewModel, uiState.timeCategory, onSeeMoreClick, rows)
+    sections += summarySection(stringResource(R.string.ssv_most_contacted_ips_heading), SummaryStatisticsType.MOST_CONTACTED_IPS, mostContactedIps, neutral, viewModel, uiState.timeCategory, onSeeMoreClick, rows)
+    sections += summarySection(stringResource(R.string.ssv_most_blocked_ips_heading), SummaryStatisticsType.MOST_BLOCKED_IPS, mostBlockedIps, blocked, viewModel, uiState.timeCategory, onSeeMoreClick, rows)
     if (shouldShowOptionalSection(topActiveConns)) {
-        sections += summarySection(stringResource(R.string.top_active_conns), SummaryStatisticsType.TOP_ACTIVE_CONNS, topActiveConns, neutral, viewModel, uiState.timeCategory, onSeeMoreClick)
+        sections += summarySection(stringResource(R.string.top_active_conns), SummaryStatisticsType.TOP_ACTIVE_CONNS, topActiveConns, neutral, viewModel, uiState.timeCategory, onSeeMoreClick, rows)
     }
 
     RethinkSummaryStatisticsScreen(
@@ -99,7 +110,7 @@ fun SummaryStatisticsScreen(
         selectedWindow = uiState.timeCategory.toRethinkWindow(),
         sections = sections,
         strings = RethinkSummaryStatisticsStrings(
-            title = stringResource(R.string.title_statistics),
+            title = title ?: stringResource(R.string.title_statistics),
             overall = stringResource(R.string.lbl_overall),
             download = stringResource(R.string.lbl_download),
             upload = stringResource(R.string.lbl_upload),
@@ -115,7 +126,9 @@ fun SummaryStatisticsScreen(
         ),
         onWindowSelected = { viewModel.timeCategoryChanged(it.toAndroidTimeCategory()) },
         actions = { CloseAllConnectionsAction() },
+        viewSwitch = viewSwitch,
     )
+    rows.Sheet()
 }
 
 @Composable
@@ -127,20 +140,22 @@ private fun summarySection(
     viewModel: SummaryStatisticsViewModel,
     refreshToken: TimeCategory,
     onSeeMoreClick: (SummaryStatisticsType) -> Unit,
+    rows: InsightsRowHandler,
 ): RethinkSummaryStatisticsSection {
     val items = pagingItems.itemSnapshotList.items.filterNotNull()
     // Rank against the same unit the trailing metric shows: bytes when every row has them,
     // otherwise connection counts (mixing the two would make the bars meaningless).
     val useBytes = items.isNotEmpty() && items.all { (it.totalBytes ?: 0L) > 0L }
     val shares = rethinkRelativeShares(items.map { if (useBytes) it.totalBytes ?: 0L else it.count.toLong() })
-    val rows = items.mapIndexed { index, item ->
-        item.toRethinkSummaryRow(type, accentColor, viewModel, refreshToken).copy(share = shares[index])
+    val sectionRows = items.mapIndexed { index, item ->
+        item.toRethinkSummaryRow(type, accentColor, viewModel, refreshToken)
+            .copy(share = shares[index], onClick = rows.onClick(type, item, refreshToken))
     }
     return RethinkSummaryStatisticsSection(
         id = type.name,
         title = title,
         accentColor = accentColor,
-        rows = rows,
+        rows = sectionRows,
         isLoading = pagingItems.loadState.refresh is LoadState.Loading,
         canSeeMore = pagingItems.itemCount > 5,
         onSeeMore = { onSeeMoreClick(type) },

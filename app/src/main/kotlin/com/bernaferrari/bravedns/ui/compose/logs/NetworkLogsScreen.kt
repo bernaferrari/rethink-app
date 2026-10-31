@@ -65,6 +65,7 @@ import com.bernaferrari.bravedns.database.DnsLog
 import com.bernaferrari.bravedns.database.DnsLogRepository
 import com.bernaferrari.bravedns.database.LogAppCount
 import com.bernaferrari.bravedns.service.FirewallRuleset
+import com.bernaferrari.bravedns.service.EventLogger
 import com.bernaferrari.bravedns.service.PersistentState
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkOverflowItem
@@ -83,11 +84,15 @@ import kotlinx.coroutines.withContext
 
 enum class LogTab { CONNECTION, DNS }
 
-private data class LogsTabSpec(
-    val tab: LogTab,
-    val title: Int
-)
-
+/**
+ * The log: connections or DNS lookups, filtered by verdict, reason and app. Every row opens the
+ * Connection sheet (why it was allowed or blocked, and the fix); at Expanded width rows select into
+ * a pane that opens the same sheet.
+ *
+ * As the Activity tab's Log view the host passes [viewSwitch] (Log · Insights) and a null
+ * [onBackClick]. Pushed with a [query] (e.g. from App detail or Insights) it lists only matching
+ * entries, titled by the query.
+ */
 @OptIn(ExperimentalMaterial3Api::class, FlowPreview::class)
 @Composable
 fun NetworkLogsScreen(
@@ -96,20 +101,29 @@ fun NetworkLogsScreen(
     connectionTrackerRepository: ConnectionTrackerRepository,
     dnsLogRepository: DnsLogRepository,
     persistentState: PersistentState,
+    eventLogger: EventLogger,
     onAppLogsClick: () -> Unit,
-    onBackClick: (() -> Unit)? = null
+    onBackClick: (() -> Unit)? = null,
+    sheetNavigation: ConnectionSheetNavigation = ConnectionSheetNavigation(),
+    query: String = "",
+    title: String? = null,
+    viewSwitch: (@Composable () -> Unit)? = null,
 ) {
-    var selectedDns by remember { mutableStateOf<DnsLog?>(null) }
+    var sheetTarget by remember { mutableStateOf<LogSheetTarget?>(null) }
+    val openSheet: (LogSheetTarget) -> Unit = { sheetTarget = it }
     RethinkLogsScreenShell(
         strings = RethinkLogsStrings(
-            title = stringResource(R.string.lbl_logs),
+            title = title ?: query.ifBlank { stringResource(R.string.lbl_logs) },
             network = stringResource(R.string.firewall_act_network_monitor_tab),
             dns = stringResource(R.string.dns_mode_info_title),
             moreActions = stringResource(R.string.wireguard_fab_more_actions),
             refresh = stringResource(R.string.cd_refresh),
             clear = stringResource(R.string.fapps_filter_clear_btn),
+            connections = stringResource(R.string.activity_type_connections),
+            lookups = stringResource(R.string.activity_type_lookups),
         ),
         onBackClick = onBackClick,
+        viewSwitch = viewSwitch,
         additionalOverflowItems = listOf(
             RethinkOverflowItem(stringResource(R.string.console_log_title), MaterialSymbols.Filled.Terminal, onClick = onAppLogsClick),
         ),
@@ -118,6 +132,8 @@ fun NetworkLogsScreen(
                 viewModel = connectionTrackerViewModel,
                 repository = connectionTrackerRepository,
                 persistentState = persistentState,
+                query = query,
+                onOpenSheet = { openSheet(LogSheetTarget.Connection(it)) },
                 onTopBarActionsChange = { refresh, clear ->
                     onToolbarActionsChange(RethinkLogToolbarActions(refresh, clear))
                 },
@@ -128,18 +144,22 @@ fun NetworkLogsScreen(
                 viewModel = dnsLogViewModel,
                 repository = dnsLogRepository,
                 persistentState = persistentState,
+                query = query,
                 onTopBarActionsChange = { refresh, clear ->
                     onToolbarActionsChange(RethinkLogToolbarActions(refresh, clear))
                 },
-                onShowDnsLog = { selectedDns = it },
+                onOpenSheet = { openSheet(LogSheetTarget.Lookup(it)) },
             )
         },
     )
 
-    if (selectedDns != null) {
-        DnsLogDetailsSheet(
-            log = selectedDns!!,
-            onDismiss = { selectedDns = null }
+    sheetTarget?.let { target ->
+        LogConnectionSheet(
+            target = target,
+            eventLogger = eventLogger,
+            navigation = sheetNavigation,
+            loadFavIcon = persistentState.fetchFavIcon,
+            onDismiss = { sheetTarget = null },
         )
     }
 }
@@ -150,6 +170,8 @@ private fun ConnectionLogsContent(
     viewModel: ConnectionTrackerViewModel,
     repository: ConnectionTrackerRepository,
     persistentState: PersistentState,
+    query: String,
+    onOpenSheet: (ConnectionTracker) -> Unit,
     onTopBarActionsChange: (refreshAction: (() -> Unit)?, clearAction: (() -> Unit)?) -> Unit
 ) {
     // Local mirror of the pref so the inline "Enable logs" action recomposes immediately.
@@ -160,12 +182,13 @@ private fun ConnectionLogsContent(
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showRulesDialog by remember { mutableStateOf(false) }
     var showAppFilterDialog by remember { mutableStateOf(false) }
-    var selectedAppFilter by remember { mutableStateOf<String?>(null) }
+    // Filters survive switching tabs and views (saveable), not only recomposition.
+    var selectedAppFilter by rememberSaveable { mutableStateOf<String?>(null) }
     var appPickerQuery by remember { mutableStateOf("") }
     var appFilterOptions by remember { mutableStateOf<List<LogAppCount>>(emptyList()) }
     var appFilterOptionsLoading by remember { mutableStateOf(false) }
-    var parentFilter by remember { mutableStateOf(ConnectionTrackerViewModel.TopLevelFilter.ALL) }
-    var childFilters by remember { mutableStateOf(setOf<String>()) }
+    var parentFilter by rememberSaveable { mutableStateOf(ConnectionTrackerViewModel.TopLevelFilter.ALL) }
+    var childFilters by rememberSaveable { mutableStateOf(emptyList<String>()) }
 
     val refreshAction = remember(items) { { items.refresh() } }
     val clearAction = remember { { showDeleteDialog = true } }
@@ -183,16 +206,16 @@ private fun ConnectionLogsContent(
     }
 
     LaunchedEffect(Unit) {
-        // Reset stale filters when re-entering the screen to avoid empty/hidden results.
-        viewModel.setFilter("", emptySet(), ConnectionTrackerViewModel.TopLevelFilter.ALL)
+        // The view model is shared by every log screen: re-apply this screen's filters on entry.
+        viewModel.setFilter(selectedAppFilter ?: query, childFilters.toSet(), parentFilter)
     }
 
     LaunchedEffect(Unit) {
-        snapshotFlow { Triple(selectedAppFilter.orEmpty(), parentFilter, childFilters) }
+        snapshotFlow { Triple(selectedAppFilter ?: query, parentFilter, childFilters) }
             .debounce(300)
             .distinctUntilChanged()
             .collect { (q, type, filters) ->
-                viewModel.setFilter(q, filters, type)
+                viewModel.setFilter(q, filters.toSet(), type)
             }
     }
 
@@ -214,15 +237,16 @@ private fun ConnectionLogsContent(
     LaunchedEffect(showAppFilterDialog, parentFilter, childFilters, logsEnabled) {
         if (!showAppFilterDialog || !logsEnabled) return@LaunchedEffect
         appFilterOptionsLoading = true
+        val rules = childFilters.toSet()
         appFilterOptions =
             withContext(Dispatchers.IO) {
                 when (parentFilter) {
                     ConnectionTrackerViewModel.TopLevelFilter.ALL ->
-                        repository.getAllLoggedAppsWithCount(childFilters)
+                        repository.getAllLoggedAppsWithCount(rules)
                     ConnectionTrackerViewModel.TopLevelFilter.ALLOWED ->
-                        repository.getAllowedLoggedAppsWithCount(childFilters)
+                        repository.getAllowedLoggedAppsWithCount(rules)
                     ConnectionTrackerViewModel.TopLevelFilter.BLOCKED ->
-                        repository.getBlockedLoggedAppsWithCount(childFilters)
+                        repository.getBlockedLoggedAppsWithCount(rules)
                 }
             }
         appFilterOptionsLoading = false
@@ -242,14 +266,14 @@ private fun ConnectionLogsContent(
                             strings = logListStrings(),
                             onSelected = { filterType ->
                                 parentFilter = filterType.toConnectionFilter()
-                                childFilters = emptySet()
+                                childFilters = emptyList()
                             },
                             modifier = Modifier.weight(1f)
                         )
 
                         RethinkToolbarIconToggle(
                             icon = MaterialSymbols.Filled.FilterList,
-                            contentDescription = stringResource(R.string.lbl_rules),
+                            contentDescription = stringResource(R.string.log_filter_reason),
                             selected = childFilters.isNotEmpty(),
                             enabled = hasRulesFilter,
                             count = childFilters.size,
@@ -258,7 +282,7 @@ private fun ConnectionLogsContent(
 
                         RethinkToolbarIconToggle(
                             icon = MaterialSymbols.Filled.Apps,
-                            contentDescription = stringResource(R.string.lbl_apps),
+                            contentDescription = stringResource(R.string.log_filter_app),
                             selected = selectedAppFilter != null,
                             enabled = true,
                             onClick = { openAppFilterAction() }
@@ -270,6 +294,7 @@ private fun ConnectionLogsContent(
                 LogsPagedListContent(
                     items = items,
                     listState = listState,
+                    emptyMessage = emptyLogMessage(parentFilter.toRethinkLogFilter(), selectedAppFilter ?: query),
                     modifier = listModifier
                 ) { item, index, itemCount ->
                     val selected = twoPane && item.id.toLong() == (selectedId ?: items.firstLoadedId { it.id.toLong() })
@@ -278,12 +303,12 @@ private fun ConnectionLogsContent(
                         index = index,
                         itemCount = itemCount,
                         selected = selected,
-                        onSelect = if (twoPane) ({ selectedId = item.id.toLong() }) else null,
+                        onSelect = if (twoPane) ({ selectedId = item.id.toLong() }) else ({ onOpenSheet(item) }),
                     )
                 }
             },
             pane = { paneModifier ->
-                ConnectionLogPane(items.loadedOrFirst(selectedId) { it.id.toLong() }, repository, paneModifier)
+                ConnectionLogPane(items.loadedOrFirst(selectedId) { it.id.toLong() }, repository, onOpenSheet, paneModifier)
             },
         )
 
@@ -297,9 +322,9 @@ private fun ConnectionLogsContent(
                         leadingIcon = { tint -> PlatformLogRuleIcon(rule.id, tint) },
                     )
                 },
-                selectedIds = childFilters,
+                selectedIds = childFilters.toSet(),
                 strings = RethinkLogRulesStrings(
-                    title = stringResource(R.string.lbl_rules),
+                    title = stringResource(R.string.log_filter_reason),
                     clear = stringResource(R.string.fapps_filter_clear_btn),
                     dismissDescription = stringResource(R.string.lbl_dismiss),
                 ),
@@ -308,7 +333,7 @@ private fun ConnectionLogsContent(
                         if (childFilters.contains(ruleId)) childFilters - ruleId
                         else childFilters + ruleId
                 },
-                onClear = { childFilters = emptySet() },
+                onClear = { childFilters = emptyList() },
                 onDismiss = { showRulesDialog = false }
             )
         }
@@ -346,8 +371,9 @@ private fun DnsLogsContent(
     viewModel: DnsLogViewModel,
     repository: DnsLogRepository,
     persistentState: PersistentState,
+    query: String,
     onTopBarActionsChange: (refreshAction: (() -> Unit)?, clearAction: (() -> Unit)?) -> Unit,
-    onShowDnsLog: (DnsLog) -> Unit
+    onOpenSheet: (DnsLog) -> Unit
 ) {
     // Local mirror of the pref so the inline "Enable logs" action recomposes immediately.
     var logsEnabled by remember { mutableStateOf(persistentState.logsEnabled) }
@@ -356,11 +382,11 @@ private fun DnsLogsContent(
 
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showAppFilterDialog by remember { mutableStateOf(false) }
-    var selectedAppFilter by remember { mutableStateOf<String?>(null) }
+    var selectedAppFilter by rememberSaveable { mutableStateOf<String?>(null) }
     var appPickerQuery by remember { mutableStateOf("") }
     var appFilterOptions by remember { mutableStateOf<List<LogAppCount>>(emptyList()) }
     var appFilterOptionsLoading by remember { mutableStateOf(false) }
-    var filterType by remember { mutableStateOf(DnsLogViewModel.DnsLogFilter.ALL) }
+    var filterType by rememberSaveable { mutableStateOf(DnsLogViewModel.DnsLogFilter.ALL) }
 
     val refreshAction = remember(items) { { items.refresh() } }
     val clearAction = remember { { showDeleteDialog = true } }
@@ -377,12 +403,12 @@ private fun DnsLogsContent(
     }
 
     LaunchedEffect(Unit) {
-        // Reset stale filters when re-entering the screen to avoid empty/hidden results.
-        viewModel.setFilter("", DnsLogViewModel.DnsLogFilter.ALL)
+        // The view model is shared by every log screen: re-apply this screen's filters on entry.
+        viewModel.setFilter(selectedAppFilter ?: query, filterType)
     }
 
     LaunchedEffect(Unit) {
-        snapshotFlow { Pair(selectedAppFilter.orEmpty(), filterType) }
+        snapshotFlow { Pair(selectedAppFilter ?: query, filterType) }
             .debounce(300)
             .distinctUntilChanged()
             .collect { (q, type) ->
@@ -423,22 +449,23 @@ private fun DnsLogsContent(
             LogsPagedListContent(
                 items = items,
                 listState = listState,
+                emptyMessage = emptyLogMessage(filterType.toRethinkLogFilter(), selectedAppFilter ?: query),
                 modifier = listModifier
             ) { item, index, itemCount ->
                 DnsLogRow(
                     log = item,
                     loadFavIcon = persistentState.fetchFavIcon,
                     isRethinkDns = false,
-                    onShowBlocklist = onShowDnsLog,
+                    onShowBlocklist = onOpenSheet,
                     index = index,
                     itemCount = itemCount,
                     selected = twoPane && item.id.toLong() == (selectedId ?: items.firstLoadedId { it.id.toLong() }),
-                    onSelect = if (twoPane) ({ selectedId = item.id.toLong() }) else null,
+                    onSelect = if (twoPane) ({ selectedId = item.id.toLong() }) else ({ onOpenSheet(item) }),
                 )
             }
         },
         pane = { paneModifier ->
-            DnsLogPane(items.loadedOrFirst(selectedId) { it.id.toLong() }, repository, persistentState.fetchFavIcon, onShowDnsLog, paneModifier)
+            DnsLogPane(items.loadedOrFirst(selectedId) { it.id.toLong() }, repository, persistentState.fetchFavIcon, onOpenSheet, paneModifier)
         },
     )
 
@@ -468,10 +495,20 @@ private fun DnsLogsContent(
     )
 }
 
+/** The empty list says what the filters ruled out, instead of a generic "no logs". */
+@Composable
+private fun emptyLogMessage(filter: RethinkLogFilter, search: String): String = when {
+    search.isNotBlank() -> stringResource(R.string.log_empty_search, search)
+    filter == RethinkLogFilter.Blocked -> stringResource(R.string.log_empty_blocked)
+    filter == RethinkLogFilter.Allowed -> stringResource(R.string.log_empty_allowed)
+    else -> stringResource(R.string.lbl_no_logs)
+}
+
 @Composable
 private fun <T : Any> LogsPagedListContent(
     items: LazyPagingItems<T>,
     listState: LazyListState,
+    emptyMessage: String,
     modifier: Modifier = Modifier,
     rowContent: @Composable (item: T, index: Int, itemCount: Int) -> Unit
 ) {
@@ -492,7 +529,7 @@ private fun <T : Any> LogsPagedListContent(
     RethinkPagedLogList(
         itemCount = itemCount,
         state = listContentState,
-        strings = logListStrings(),
+        strings = logListStrings().copy(empty = emptyMessage),
         listState = listState,
         modifier = modifier,
         bottomPadding = SharedDimensions.screenPaddingHorizontal + navBarBottomInset,
@@ -560,7 +597,7 @@ private fun DnsLogControls(filter: RethinkLogFilter, onFilter: (RethinkLogFilter
             )
             RethinkToolbarIconToggle(
                 icon = MaterialSymbols.Filled.Apps,
-                contentDescription = stringResource(R.string.lbl_apps),
+                contentDescription = stringResource(R.string.log_filter_app),
                 selected = appFiltered,
                 enabled = true,
                 onClick = onApps,
@@ -569,9 +606,14 @@ private fun DnsLogControls(filter: RethinkLogFilter, onFilter: (RethinkLogFilter
     }
 }
 
-/** Wide layout: the selected connection, and where its app connects. */
+/** Wide layout: the selected connection, and where its app connects. Its fixes open in the sheet. */
 @Composable
-private fun ConnectionLogPane(selected: ConnectionTracker?, repository: ConnectionTrackerRepository, modifier: Modifier) {
+private fun ConnectionLogPane(
+    selected: ConnectionTracker?,
+    repository: ConnectionTrackerRepository,
+    onOpenSheet: (ConnectionTracker) -> Unit,
+    modifier: Modifier,
+) {
     var groups by remember { mutableStateOf<List<RethinkLogGroup>>(emptyList()) }
     LaunchedEffect(selected?.uid) {
         val uid = selected?.uid ?: return@LaunchedEffect
@@ -583,6 +625,7 @@ private fun ConnectionLogPane(selected: ConnectionTracker?, repository: Connecti
         groups = groups,
         strings = logPaneStrings(R.string.log_pane_network_hosts),
         modifier = modifier,
+        onOpenSheet = selected?.let { ct -> { onOpenSheet(ct) } },
     )
 }
 
@@ -592,7 +635,7 @@ private fun DnsLogPane(
     selected: DnsLog?,
     repository: DnsLogRepository,
     loadFavIcon: Boolean,
-    onShowDnsLog: (DnsLog) -> Unit,
+    onOpenSheet: (DnsLog) -> Unit,
     modifier: Modifier,
 ) {
     var groups by remember { mutableStateOf<List<RethinkLogGroup>>(emptyList()) }
@@ -602,10 +645,11 @@ private fun DnsLogPane(
             .map { group -> RethinkLogGroup(group.label, group.count, group.blocked, icon = { AppIcon(group.packageName, appName = group.label, size = Dp.Unspecified) }) }
     }
     RethinkLogDetailPane(
-        model = selected?.let { dnsLogModel(it, loadFavIcon, false, onShowDnsLog) },
+        model = selected?.let { dnsLogModel(it, loadFavIcon, false, onOpenSheet) },
         groups = groups,
         strings = logPaneStrings(R.string.log_pane_dns_apps),
         modifier = modifier,
+        onOpenSheet = selected?.let { log -> { onOpenSheet(log) } },
     )
 }
 
@@ -623,6 +667,7 @@ private fun logPaneStrings(groupsTitle: Int) = RethinkLogPaneStrings(
     groupsTitle = stringResource(groupsTitle),
     emptySelection = stringResource(R.string.log_pane_empty),
     detailsTitle = stringResource(R.string.log_pane_details),
+    openSheet = stringResource(R.string.log_pane_fix),
 )
 
 /** The one log-list string set: filter chips and paging states, shared by every log screen. */
@@ -789,55 +834,6 @@ private fun ConfirmClearLogsDialog(
         onConfirm = onConfirm,
         onDismiss = onDismiss,
         isConfirmDestructive = true
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun DnsLogDetailsSheet(
-    log: DnsLog,
-    onDismiss: () -> Unit
-) {
-    val status = if (log.isBlocked) stringResource(R.string.lbl_blocked) else stringResource(R.string.lbl_allowed)
-    val response = log.responseIps.ifEmpty { stringResource(R.string.settings_app_list_default_app) }
-    LogDetailsSheet(
-        title = log.queryStr,
-        appPackageName = log.packageName,
-        appDisplayName = log.appName,
-        details = listOf(
-            LogDetailEntry(stringResource(R.string.log_detail_app_name), log.appName),
-            LogDetailEntry(stringResource(R.string.log_detail_response), response),
-            LogDetailEntry(stringResource(R.string.dns_detail_latency), "${log.latency}ms"),
-            LogDetailEntry(stringResource(R.string.lbl_status), status, isError = log.isBlocked)
-        ),
-        onDismiss = onDismiss,
-        actions = { DnsLogRuleActions(log) },
-    )
-}
-
-private data class LogDetailEntry(
-    val label: String,
-    val value: String,
-    val isError: Boolean = false
-)
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun LogDetailsSheet(
-    title: String,
-    appPackageName: String,
-    appDisplayName: String,
-    details: List<LogDetailEntry>,
-    onDismiss: () -> Unit,
-    actions: (@Composable () -> Unit)? = null,
-) {
-    RethinkLogDetailsSheet(
-        title = title,
-        details = details.map { RethinkLogDetailEntry(it.label, it.value, it.isError) },
-        dismissLabel = stringResource(R.string.lbl_dismiss),
-        onDismiss = onDismiss,
-        appIcon = { AppIcon(appPackageName, appName = appDisplayName) },
-        actions = actions,
     )
 }
 

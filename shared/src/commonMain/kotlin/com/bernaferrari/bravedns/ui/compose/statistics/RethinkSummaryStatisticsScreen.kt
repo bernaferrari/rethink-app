@@ -78,6 +78,11 @@ data class RethinkSummaryStatisticsRow(
     val expandedContent: (@Composable () -> Unit)? = null,
     /** This row's value relative to the section's largest (0..1); drives the ranking bar. */
     val share: Float? = null,
+    /**
+     * Where the row leads: an app to App detail, a domain or IP to its Connection sheet. Country
+     * rows expand in place instead ([expandedContent]).
+     */
+    val onClick: (() -> Unit)? = null,
 )
 
 /**
@@ -137,6 +142,11 @@ fun RethinkSummaryStatisticsScreen(
     onWindowSelected: (RethinkStatisticsWindow) -> Unit,
     modifier: Modifier = Modifier,
     actions: (@Composable () -> Unit)? = null,
+    /**
+     * The Activity tab's Log · Insights switch. It shares the top bar with the compact window
+     * tabs: the switch while the full-width tabs are on screen, the tabs once they scroll away.
+     */
+    viewSwitch: (@Composable () -> Unit)? = null,
 ) {
     // Once the window selector scrolls away, the window rides in the top bar so it stays visible and switchable.
     val listState = rememberLazyListState()
@@ -148,7 +158,15 @@ fun RethinkSummaryStatisticsScreen(
             modifier = Modifier.fillMaxWidth(),
             listState = listState,
             topBarActions = {
-                actions?.invoke()
+                if (viewSwitch != null) {
+                    AnimatedVisibility(
+                        visible = !selectorHidden,
+                        enter = if (reducedMotion) EnterTransition.None else fadeIn() + scaleIn(initialScale = 0.9f),
+                        exit = if (reducedMotion) ExitTransition.None else fadeOut() + scaleOut(targetScale = 0.9f),
+                    ) {
+                        viewSwitch()
+                    }
+                }
                 AnimatedVisibility(
                     visible = selectorHidden,
                     enter = if (reducedMotion) EnterTransition.None else fadeIn() + scaleIn(initialScale = 0.9f),
@@ -162,6 +180,7 @@ fun RethinkSummaryStatisticsScreen(
                         inTopBar = true,
                     )
                 }
+                actions?.invoke()
             },
         ) {
             // The window scopes everything below it, including the usage totals, so it leads.
@@ -297,7 +316,7 @@ private fun RethinkSummaryStatisticsSectionCard(
                         showTrailingChevron = false,
                         onClick = if (!row.countryFlag.isNullOrBlank()) {
                             { expandedCountryId = if (isExpanded) null else row.id }
-                        } else null,
+                        } else row.onClick,
                         trailing = {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 RethinkStatisticsMetric(row.metric, row.share, section.accentColor)

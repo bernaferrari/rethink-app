@@ -115,8 +115,11 @@ internal class HomeIntentRouter {
                 }
             }
 
+            // No query: the Activity tab's log. With one: the log searched for it.
             HomeScreenActivity.NAV_TARGET_NETWORK_LOGS ->
-                HomeIntentResult.Navigate(RethinkRoute.NetworkLogs())
+                HomeIntentResult.Navigate(
+                    RethinkRoute.NetworkLogs(intent.getStringExtra(Constants.SEARCH_QUERY).orEmpty())
+                )
 
             HomeScreenActivity.NAV_TARGET_WG_MAIN ->
                 HomeIntentResult.Navigate(RethinkRoute.WireGuard)

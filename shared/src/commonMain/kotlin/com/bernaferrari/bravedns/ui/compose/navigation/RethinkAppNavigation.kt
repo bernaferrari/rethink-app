@@ -63,7 +63,8 @@ fun RethinkAppNavigation(
     var activeRootName by rememberSaveable(startRoute) {
         mutableStateOf((startRoute.rootDestination() ?: RethinkRootDestination.Home).name)
     }
-    val activeRoot = RethinkRootDestination.entries.first { it.name == activeRootName }
+    // A saved name from an older tab set (Statistics) falls back to Home.
+    val activeRoot = RethinkRootDestination.entries.firstOrNull { it.name == activeRootName } ?: RethinkRootDestination.Home
     val backStack = backStacks.getValue(activeRoot)
     val motion = LocalRethinkMotion.current
     // Tab bar switches replace the entry list; they must not inherit the detail slide.
@@ -77,7 +78,7 @@ fun RethinkAppNavigation(
     // than closing over this composition's `backStack`; otherwise a push from Settings lands on
     // the hidden Home stack.
     fun liveActiveRoot(): RethinkRootDestination =
-        RethinkRootDestination.entries.first { it.name == activeRootName }
+        RethinkRootDestination.entries.firstOrNull { it.name == activeRootName } ?: RethinkRootDestination.Home
 
     fun liveBackStack(): NavBackStack<NavKey> = backStacks.getValue(liveActiveRoot())
 
@@ -104,7 +105,7 @@ fun RethinkAppNavigation(
     fun popBackStack() {
         val current = currentStack()
         val next = stackAfterPop(current) ?: return
-        // Configure/Statistics roots exit through Home instead of finishing.
+        // The other tab roots exit through Home instead of finishing.
         if (liveActiveRoot() != RethinkRootDestination.Home && next == listOf(RethinkRoute.Home)) {
             tabTransition = true
             activeRootName = RethinkRootDestination.Home.name
@@ -114,14 +115,6 @@ fun RethinkAppNavigation(
         applyStackOn(liveBackStack(), current, next)
     }
 
-    fun push(destination: RethinkRoute) {
-        tabTransition = false
-        val stack = liveBackStack()
-        if (stack.lastOrNull() != destination) {
-            stack.add(destination)
-        }
-    }
-
     fun open(destination: RethinkRoute) {
         val targetRoot = destination.rootDestination() ?: RethinkRootDestination.Home
         val target = backStacks.getValue(targetRoot)
@@ -129,6 +122,19 @@ fun RethinkAppNavigation(
         tabTransition = targetRoot != liveActiveRoot()
         activeRootName = targetRoot.name
         applyStackOn(target, current, stackAfterOpen(current, destination))
+    }
+
+    fun push(destination: RethinkRoute) {
+        // A tab's root (Apps, Activity, Stats…) is never stacked on another tab: switch to it.
+        if (destination.tabRoot() != null) {
+            open(destination)
+            return
+        }
+        tabTransition = false
+        val stack = liveBackStack()
+        if (stack.lastOrNull() != destination) {
+            stack.add(destination)
+        }
     }
 
     fun openFromApp(destination: RethinkRoute) {
@@ -155,7 +161,9 @@ fun RethinkAppNavigation(
     }
 
     val currentKey = backStack.lastOrNull() as? RethinkRoute
-    val selectedRoot = currentKey?.rootDestination() ?: activeRoot
+    // The bar shows the stack the screen was pushed on, not the route's canonical tab: App detail
+    // opened from Home keeps Home highlighted.
+    val selectedRoot = activeRoot
     val showNavigation = currentKey?.showsNavigationChrome() != false
 
     // Fresh closures each composition so entry bodies always see the latest stack.
@@ -254,7 +262,7 @@ fun RethinkAppNavigation(
 
 /** Routes whose screens switch to multi-column layouts at Expanded width. */
 private fun RethinkRoute.hasAdaptiveLayout(): Boolean = when (this) {
-    RethinkRoute.Home, RethinkRoute.Statistics, RethinkRoute.Configure, RethinkRoute.DnsList -> true
+    RethinkRoute.Home, RethinkRoute.Statistics, RethinkRoute.Activity, RethinkRoute.Configure, RethinkRoute.DnsList -> true
     is RethinkRoute.NetworkLogs, is RethinkRoute.AppInfo, RethinkRoute.AppList -> true
     else -> false
 }

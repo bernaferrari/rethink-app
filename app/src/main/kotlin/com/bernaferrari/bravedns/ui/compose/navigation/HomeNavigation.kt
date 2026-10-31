@@ -65,6 +65,9 @@ import com.bernaferrari.bravedns.ui.compose.settings.ConsoleLogScreen
 import com.bernaferrari.bravedns.ui.compose.settings.ProxySettingsScreen
 import com.bernaferrari.bravedns.ui.compose.proxy.TcpProxyMainScreen
 import com.bernaferrari.bravedns.ui.compose.logs.NetworkLogsScreen
+import com.bernaferrari.bravedns.ui.compose.logs.ActivityScreen
+import com.bernaferrari.bravedns.ui.compose.logs.ConnectionSheetNavigation
+import com.bernaferrari.bravedns.ui.compose.statistics.InsightsRowActions
 import com.bernaferrari.bravedns.ui.compose.settings.PingTestScreen
 import com.bernaferrari.bravedns.ui.compose.theme.CompactEmptyState
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBarLazyColumnScreen
@@ -156,11 +159,17 @@ enum class HomeDestination(
         MaterialSymbols.Filled.Home,
         MaterialSymbols.Outlined.Home,
     ),
-    STATS(
-        RethinkRootDestination.Statistics,
-        R.string.title_statistics,
-        MaterialSymbols.Filled.InsertChart,
-        MaterialSymbols.Outlined.InsertChart,
+    APPS(
+        RethinkRootDestination.Apps,
+        R.string.nav_apps,
+        MaterialSymbols.Filled.Apps,
+        MaterialSymbols.Outlined.Apps,
+    ),
+    ACTIVITY(
+        RethinkRootDestination.Activity,
+        R.string.nav_activity,
+        MaterialSymbols.Filled.Monitoring,
+        MaterialSymbols.Outlined.Monitoring,
     ),
     CONFIGURE(
         RethinkRootDestination.Configure,
@@ -239,6 +248,24 @@ fun configureRethinkBasicRoute(
     remoteName = remoteName,
     remoteUrl = remoteUrl,
     uid = uid,
+)
+
+/**
+ * Where the Connection sheet's links lead, pushed on the stack that opened the sheet (so the tab
+ * stays highlighted). WS2+ screens that open the sheet (App detail's Recent activity) use this.
+ *
+ * - Universal rules: the universal firewall list. The sheet passes the deciding rule's id as a
+ *   focus key; the list can't highlight a row yet (WS5's Firewall screen takes it over).
+ * - Rules: the app's (or all apps') rule list on the domain or IP tab. The query is not applied
+ *   yet ([RethinkRoute.CustomRules] has no search argument; WS5).
+ */
+fun connectionSheetNavigation(nav: RethinkNavOps) = ConnectionSheetNavigation(
+    onOpenUniversalRules = { _ -> nav.push(RethinkRoute.UniversalFirewall) },
+    onOpenProxySettings = { nav.push(RethinkRoute.ProxySettings()) },
+    onOpenRules = { uid, tab, _ ->
+        nav.push(RethinkRoute.CustomRules(uid = uid, tab = tab.value, mode = RethinkRulesMode.SELECTED_UID.value))
+    },
+    onOpenApp = { uid -> nav.push(RethinkRoute.AppInfo(uid)) },
 )
 
 private fun RethinkRoute.forAndroid(): RethinkRoute = when (this) {
@@ -375,6 +402,9 @@ fun HomeScreenRoot(
     appDatabase: AppDatabase
 ) {
     val latestHomeUiState = rememberUpdatedState(homeUiState)
+    // The Activity tab's view (Log or Insights) is host state: Stats links and intents select
+    // Insights without a second root key ([RethinkRoute.activityView]).
+    var activityView by rememberSaveable { mutableStateOf(RethinkActivityView.Log) }
     val navigationItems = HomeDestination.entries.map { destination ->
         RethinkNavigationItem(
             id = destination.root.name,
@@ -389,6 +419,7 @@ fun HomeScreenRoot(
     // the stack on a different-root / cold-start open().
     var pendingRoute by remember { mutableStateOf<RethinkRoute?>(null) }
     LaunchedEffect(homeNavRequest) {
+        homeNavRequest?.activityView()?.let { activityView = it }
         pendingRoute = homeNavRequest?.forAndroid()
     }
 
@@ -410,8 +441,14 @@ fun HomeScreenRoot(
         entryBuilder = { hostNav ->
             val nav = RethinkNavOps(
                 pop = { hostNav.popBackStack() },
-                pushRoute = { hostNav.push(it.forAndroid()) },
-                openRoute = { hostNav.open(it.forAndroid()) },
+                pushRoute = { route ->
+                    route.activityView()?.let { activityView = it }
+                    hostNav.push(route.forAndroid())
+                },
+                openRoute = { route ->
+                    route.activityView()?.let { activityView = it }
+                    hostNav.open(route.forAndroid())
+                },
                 selectRootTab = { hostNav.selectRoot(it) },
                 current = hostNav.current,
             )
@@ -457,23 +494,72 @@ fun HomeScreenRoot(
                 HomeScreen(
                     uiState = latestHomeUiState.value,
                     onStartStopClick = onHomeStartStopClick,
-                    onActivityClick = { nav.selectRoot(RethinkRootDestination.Statistics) },
-                    onAppsClick = { nav.push(RethinkRoute.AppList) },
-                    onLogsClick = { nav.push(RethinkRoute.NetworkLogs()) },
+                    onActivityClick = { nav.open(RethinkRoute.Statistics) },
+                    onAppsClick = { nav.open(RethinkRoute.AppList) },
+                    onLogsClick = { nav.open(RethinkRoute.NetworkLogs()) },
                     onDnsClick = { nav.push(RethinkRoute.DnsSettings) },
                     onAppClick = { uid -> nav.push(RethinkRoute.AppInfo(uid)) },
                 )
             }
-            entry<RethinkRoute.Statistics> {
-                BackHandler(enabled = nav.current() is RethinkRoute.Statistics) {
+            val sheetNavigation = connectionSheetNavigation(nav)
+            val insightsRowActions = InsightsRowActions(
+                eventLogger = appInfoEventLogger,
+                connections = connectionTrackerRepository,
+                lookups = dnsLogRepository,
+                onOpenApp = { uid -> nav.push(RethinkRoute.AppInfo(uid)) },
+                onOpenAsn = { asn, blocked, window ->
+                    nav.push(
+                        RethinkRoute.DomainConnections(
+                            typeId = DomainConnectionsInputType.ASN.type,
+                            flag = "",
+                            domain = "",
+                            asn = asn,
+                            ip = "",
+                            isBlocked = blocked,
+                            timeCategory = window.value,
+                        )
+                    )
+                },
+                sheetNavigation = sheetNavigation,
+                loadFavIcon = persistentState.fetchFavIcon,
+            )
+            val activityContent: @Composable () -> Unit = {
+                BackHandler(enabled = nav.current().let { it == RethinkRoute.Activity || it == RethinkRoute.Statistics }) {
                     nav.popBackStack()
                 }
-                SummaryStatisticsScreen(
-                    viewModel = summaryViewModel,
-                    persistentState = persistentState,
-                    onSeeMoreClick = onOpenDetailedStats
+                val title = stringResource(R.string.nav_activity)
+                ActivityScreen(
+                    view = activityView,
+                    onViewChange = { activityView = it },
+                    log = { viewSwitch ->
+                        NetworkLogsScreen(
+                            connectionTrackerViewModel = connectionTrackerViewModel,
+                            dnsLogViewModel = dnsLogViewModel,
+                            connectionTrackerRepository = connectionTrackerRepository,
+                            dnsLogRepository = dnsLogRepository,
+                            persistentState = persistentState,
+                            eventLogger = appInfoEventLogger,
+                            onAppLogsClick = { nav.push(RethinkRoute.ConsoleLogs) },
+                            sheetNavigation = sheetNavigation,
+                            title = title,
+                            viewSwitch = viewSwitch,
+                        )
+                    },
+                    insights = { viewSwitch ->
+                        SummaryStatisticsScreen(
+                            viewModel = summaryViewModel,
+                            persistentState = persistentState,
+                            onSeeMoreClick = onOpenDetailedStats,
+                            rowActions = insightsRowActions,
+                            title = title,
+                            viewSwitch = viewSwitch,
+                        )
+                    },
                 )
             }
+            entry<RethinkRoute.Activity> { activityContent() }
+            // Only a back stack saved before Stats moved into Activity still holds this key.
+            entry<RethinkRoute.Statistics> { activityContent() }
             entry<RethinkRoute.Alerts> {
                 AlertsScreen(onBackClick = { nav.popBackStack() })
             }
@@ -554,19 +640,28 @@ fun HomeScreenRoot(
                     onBackClick = { nav.popBackStack() }
                 )
             }
-            entry<RethinkRoute.NetworkLogs> {
+            // The unfiltered log is the Activity tab; this entry is the log searched for one app,
+            // domain or address, pushed on whichever tab asked (App detail, Insights, rules).
+            entry<RethinkRoute.NetworkLogs> { args ->
                 NetworkLogsScreen(
                     connectionTrackerViewModel = connectionTrackerViewModel,
                     dnsLogViewModel = dnsLogViewModel,
                     connectionTrackerRepository = connectionTrackerRepository,
                     dnsLogRepository = dnsLogRepository,
                     persistentState = persistentState,
+                    eventLogger = appInfoEventLogger,
                     onAppLogsClick = { nav.push(RethinkRoute.ConsoleLogs) },
-                    onBackClick = { nav.popBackStack() }
+                    onBackClick = { nav.popBackStack() },
+                    sheetNavigation = sheetNavigation,
+                    query = args.query,
                 )
             }
 
             entry<RethinkRoute.AppList> {
+                // The Apps tab's root: no back arrow; back goes Home like the other tabs.
+                BackHandler(enabled = nav.current() is RethinkRoute.AppList) {
+                    nav.popBackStack()
+                }
                 AppListWithDetail(
                     appList = { onAppClick ->
                         AppListScreen(
@@ -574,7 +669,7 @@ fun HomeScreenRoot(
                             eventLogger = appInfoEventLogger,
                             refreshDatabase = refreshDatabase,
                             onAppClick = onAppClick,
-                            onBackClick = { nav.popBackStack() }
+                            onBackClick = null,
                         )
                     },
                     appInfo = appInfoContent,
@@ -728,7 +823,9 @@ fun HomeScreenRoot(
                     ip = args.ip,
                     isBlocked = args.isBlocked,
                     timeCategory = timeCategory,
-                    onBackClick = { nav.popBackStack() }
+                    onBackClick = { nav.popBackStack() },
+                    onOpenApp = { uid -> nav.push(RethinkRoute.AppInfo(uid)) },
+                    onOpenLogs = { query -> nav.push(RethinkRoute.NetworkLogs(query)) },
                 )
             }
 
@@ -740,7 +837,8 @@ fun HomeScreenRoot(
                     type = type,
                     timeCategory = timeCategory ?: SummaryStatisticsViewModel.TimeCategory.TWENTY_FOUR_HOUR,
                     viewModel = detailedStatsViewModel,
-                    onBackClick = { nav.popBackStack() }
+                    onBackClick = { nav.popBackStack() },
+                    rowActions = insightsRowActions,
                 )
             }
 
@@ -773,14 +871,15 @@ fun HomeScreenRoot(
                 }
                 ConfigureScreen(
                     isDebug = isDebug,
-                    onAppsClick = { nav.push(RethinkRoute.AppList) },
+                    // Apps and the log are tabs now: these entries switch to them (WS5 drops them).
+                    onAppsClick = { nav.open(RethinkRoute.AppList) },
                     // Private-DNS dialog lives on the Activity; consume via same-root push.
                     onDnsClick = configureActions.onConfigureDnsClick,
                     onFirewallClick = { nav.push(RethinkRoute.FirewallSettings()) },
                     onProxyClick = { nav.push(RethinkRoute.ProxySettings()) },
                     onNetworkClick = { nav.push(RethinkRoute.TunnelSettings()) },
                     onOthersClick = { nav.push(RethinkRoute.MiscSettings()) },
-                    onLogsClick = { nav.push(RethinkRoute.NetworkLogs()) },
+                    onLogsClick = { nav.open(RethinkRoute.NetworkLogs()) },
                     onAntiCensorshipClick = { nav.push(RethinkRoute.AntiCensorship) },
                     onAdvancedClick = { nav.push(RethinkRoute.AdvancedSettings) },
                     persistentState = persistentState,
@@ -789,7 +888,7 @@ fun HomeScreenRoot(
                     onThemeColorChanged = onThemeColorChanged,
                     onSearchDestinationClick = { destination ->
                         when (destination) {
-                            SettingsSearchDestination.Apps -> nav.push(RethinkRoute.AppList)
+                            SettingsSearchDestination.Apps -> nav.open(RethinkRoute.AppList)
                             is SettingsSearchDestination.Dns -> nav.push(
                                 RethinkRoute.DnsDetail(destination.focusKey)
                             )
@@ -808,7 +907,7 @@ fun HomeScreenRoot(
                                     nav.push(RethinkRoute.MiscSettings(destination.focusKey))
                                 }
                             }
-                            SettingsSearchDestination.Logs -> nav.push(RethinkRoute.NetworkLogs())
+                            SettingsSearchDestination.Logs -> nav.open(RethinkRoute.NetworkLogs())
                             SettingsSearchDestination.AntiCensorship -> nav.push(RethinkRoute.AntiCensorship)
                             SettingsSearchDestination.Advanced -> nav.push(RethinkRoute.AdvancedSettings)
                         }

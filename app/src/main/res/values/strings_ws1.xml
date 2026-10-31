@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- UX overhaul, WS1 (navigation + Activity): the Apps and Activity tabs, Log and Insights. -->
+<resources>
+    <!-- Bottom bar / rail -->
+    <string name="nav_apps">Apps</string>
+    <string name="nav_activity">Activity</string>
+
+    <!-- Activity: the two views, and the log's type switch -->
+    <string name="activity_view_log">Log</string>
+    <string name="activity_view_insights">Insights</string>
+    <string name="activity_type_connections">Connections</string>
+    <string name="activity_type_lookups">DNS lookups</string>
+
+    <!-- Log filters: why a connection was allowed or blocked (the "Rules" key is shared elsewhere) -->
+    <string name="log_filter_reason">Reason</string>
+    <string name="log_filter_app">App</string>
+    <string name="log_empty_blocked">Nothing blocked yet</string>
+    <string name="log_empty_allowed">Nothing allowed yet</string>
+    <string name="log_empty_search">Nothing logged for %1$s</string>
+
+    <!-- Wide log layout: the selected row's fixes live in the Connection sheet -->
+    <string name="log_pane_fix">Why and fix</string>
+</resources>
