@@ -471,12 +471,8 @@ fun HomeScreenRoot(
                     domainRulesViewModel = appInfoDomainRulesViewModel,
                     networkLogsViewModel = appInfoNetworkLogsViewModel,
                     onBackClick = onBack,
-                    onAppWiseIpLogsClick = { u, isAsn ->
-                        nav.push(RethinkRoute.AppWiseIpLogs(u, isAsn))
-                    },
-                    onAppWiseDomainLogsClick = { u ->
-                        nav.push(RethinkRoute.AppWiseDomainLogs(u))
-                    },
+                    onSeeAllActivity = { query -> nav.open(RethinkRoute.NetworkLogs(query)) },
+                    connectionSheetNavigation = connectionSheetNavigation(nav),
                     onCustomIpRulesClick = { u ->
                         nav.push(
                             RethinkRoute.CustomRules(
