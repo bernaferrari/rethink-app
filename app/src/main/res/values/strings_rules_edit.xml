@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Rules › tap a rule: who it applies to, under the domain or IP. %1$s is the app's name. -->
+    <string name="rules_edit_only_app">Only %1$s</string>
+    <!-- Snackbars after changing a rule from its sheet (each with Undo). %1$s is the domain or IP. -->
+    <string name="rules_edit_blocked">Blocked %1$s</string>
+    <string name="rules_edit_trusted">Trusted %1$s</string>
+    <string name="rules_edit_deleted">Deleted the rule for %1$s</string>
+    <string name="rules_edit_failed">Couldn\'t change the rule</string>
+</resources>

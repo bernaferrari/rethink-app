@@ -11,6 +11,8 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkSheetHeader
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPill
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkPillDefaults
 import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import androidx.compose.ui.text.style.TextOverflow
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListShape
@@ -179,6 +181,9 @@ data class RethinkCustomRulesStrings(
     val clearSelection: String = "Clear selection",
     val select: String = "Select",
     val deleteRule: String = "Delete rule",
+    /** The tap sheet: its "Action" section title, and who the rule applies to ("Only Chrome"). */
+    val action: String = "Action",
+    val onlyApp: (String) -> String = { "Only $it" },
 )
 
 /**
@@ -209,8 +214,11 @@ fun RethinkCustomRulesScreen(
     onRuleOwnerVisible: (Int) -> Unit = {},
     onBackClick: (() -> Unit)? = null,
     importAction: (@Composable () -> Unit)? = null,
+    onEditRule: ((RethinkFirewallRule, RethinkRuleEdit) -> Unit)? = null,
+    snackbarHostState: SnackbarHostState? = null,
 ) {
-    // Long-press enters multi-select; tap opens a per-rule action sheet; swipe is a shortcut.
+    // Long-press enters multi-select; tap opens the rule's sheet (Block · Trust, Delete); swipe is
+    // a shortcut to delete.
     // Selection resets when the list it refers to changes.
     var selection by remember(selectedTab, scope) { mutableStateOf(emptyMap<String, RethinkFirewallRule>()) }
     var actionRule by remember { mutableStateOf<RethinkFirewallRule?>(null) }
@@ -228,6 +236,7 @@ fun RethinkCustomRulesScreen(
                 { selection = emptyMap() }, { pendingDelete = selection.values.toList() },
                 importAction)
         },
+        snackbarHost = { snackbarHostState?.let { SnackbarHost(it) } },
         floatingActionButton = {
             RethinkRulesAddButton(selecting, rules.isLoading, rules.itemCount, strings.add, onAddRule)
         },
@@ -262,11 +271,16 @@ fun RethinkCustomRulesScreen(
     }
 
     actionRule?.let { rule ->
-        RethinkRuleActionsSheet(
+        val app = scope as? RethinkRulesScope.App
+        val owner = rule.ownerName?.takeIf { it.isNotBlank() }
+            ?: app?.takeIf { it.uid == rule.uid }?.label?.takeIf { it.isNotBlank() }
+            ?: strings.uid(rule.uid)
+        RethinkRuleEditSheet(
             rule = rule,
+            scopeLabel = if (rule.uid == RETHINK_RULES_UID_EVERYBODY) strings.allAppsHeader else strings.onlyApp(owner),
             strings = strings,
             onDismiss = { actionRule = null },
-            onSelect = { toggle(rule) },
+            onEdit = onEditRule?.let { edit -> { change -> edit(rule, change) } },
             onDelete = { pendingDelete = listOf(rule) },
         )
     }
@@ -448,7 +462,7 @@ private fun RethinkRuleOwnerHeader(
     strings: RethinkCustomRulesStrings,
     onRuleOwnerVisible: (Int) -> Unit,
 ) {
-    if (rule.uid == RETHINK_UID_EVERYBODY) {
+    if (rule.uid == RETHINK_RULES_UID_EVERYBODY) {
         SectionHeader(strings.allAppsHeader)
         return
     }
@@ -524,59 +538,3 @@ private fun RethinkFirewallRuleRow(
         )
     }
 }
-
-private fun RethinkFirewallRuleStatus.label(strings: RethinkCustomRulesStrings): String = when (this) {
-    RethinkFirewallRuleStatus.Block -> strings.block
-    RethinkFirewallRuleStatus.Trust -> strings.trust
-    RethinkFirewallRuleStatus.Bypass -> strings.bypass
-    RethinkFirewallRuleStatus.None -> strings.noRule
-}
-
-/** Per-rule actions: the discoverable home of Delete (and the entry into multi-select). */
-@Composable
-private fun RethinkRuleActionsSheet(
-    rule: RethinkFirewallRule,
-    strings: RethinkCustomRulesStrings,
-    onDismiss: () -> Unit,
-    onSelect: () -> Unit,
-    onDelete: () -> Unit,
-) {
-    val accent = rule.status.accent()
-    RethinkModalBottomSheet(onDismissRequest = onDismiss) { dismiss ->
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
-        ) {
-            Column(Modifier.weight(1f)) {
-                Text(
-                    rule.value,
-                    style = MaterialTheme.typography.titleLarge,
-                    maxLines = 1,
-                    overflow = TextOverflow.MiddleEllipsis,
-                )
-                rule.port?.let {
-                    Text(strings.port(it), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-            RethinkPill(rule.status.label(strings), colors = RethinkPillDefaults.status(accent))
-        }
-        RethinkListGroup {
-            RethinkListItem(
-                headline = strings.select,
-                leadingIcon = MaterialSymbols.Filled.CheckCircle,
-                position = CardPosition.First,
-                onClick = { onSelect(); dismiss() },
-            )
-            RethinkListItem(
-                headline = strings.deleteRule,
-                leadingIcon = MaterialSymbols.Filled.DeleteOutline,
-                destructive = true,
-                position = CardPosition.Last,
-                onClick = { onDelete(); dismiss() },
-            )
-        }
-    }
-}
-
-/** commonMain has no dependency on Android's constants module in the standalone WASM build. */
-private const val RETHINK_UID_EVERYBODY = -1000

@@ -7,7 +7,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -27,11 +29,13 @@ import com.bernaferrari.bravedns.service.DomainRulesManager
 import com.bernaferrari.bravedns.service.EventLogger
 import com.bernaferrari.bravedns.service.FirewallManager
 import com.bernaferrari.bravedns.service.IpRulesManager
+import Logger
 import com.bernaferrari.bravedns.util.Constants.Companion.UNSPECIFIED_PORT
 import com.bernaferrari.bravedns.util.Constants.Companion.UID_EVERYBODY
 import com.bernaferrari.bravedns.viewmodel.CustomDomainViewModel
 import com.bernaferrari.bravedns.viewmodel.CustomIpViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -73,6 +77,8 @@ fun CustomRulesScreen(
     val query = if (selectedTab == RethinkRulesTab.IP) ipQuery else domainQuery
     val picker = rememberRuleAppPicker()
     var showAddSheet by rememberSaveable { mutableStateOf(false) }
+    val snackbar = remember { SnackbarHostState() }
+    val editRule = rememberRuleEditAction(snackbar, eventLogger)
 
     LaunchedEffect(uid) {
         if (lockedToApp) lockedAppName = withContext(Dispatchers.IO) { FirewallManager.getAppNameByUid(uid).orEmpty() }
@@ -160,6 +166,8 @@ fun CustomRulesScreen(
         },
         onRuleOwnerVisible = ::loadOwnerName,
         onBackClick = onBackClick,
+        onEditRule = editRule,
+        snackbarHostState = snackbar,
     )
 
     if (showAddSheet) {
@@ -175,6 +183,59 @@ fun CustomRulesScreen(
         )
     }
     RuleAppPickerHost(picker, selectedUid = (rulesScope as? RethinkRulesScope.App)?.uid)
+}
+
+/**
+ * A tapped rule's Block · Trust · Delete, written through the managers by [applyRuleEdit], then an
+ * Undo snackbar that restores the exact previous rule. A newer edit retires an older Undo.
+ */
+@Composable
+private fun rememberRuleEditAction(
+    snackbar: SnackbarHostState,
+    eventLogger: EventLogger,
+): (RethinkFirewallRule, RethinkRuleEdit) -> Unit {
+    val scope = rememberCoroutineScope()
+    val undoLabel = stringResource(R.string.lbl_undo)
+    val failed = stringResource(R.string.rules_edit_failed)
+    val blocked = stringResource(R.string.rules_edit_blocked)
+    val trusted = stringResource(R.string.rules_edit_trusted)
+    val deleted = stringResource(R.string.rules_edit_deleted)
+    var epoch by remember { mutableIntStateOf(0) }
+    return { rule, edit ->
+        val next = ++epoch
+        snackbar.currentSnackbarData?.dismiss()
+        val message = when (edit) {
+            RethinkRuleEdit.Delete -> deleted
+            is RethinkRuleEdit.SetAction -> if (edit.action == RethinkRuleAction.Trust) trusted else blocked
+        }.format(rule.value)
+        val log = "${rule.tab.name} ${rule.value}, ${rule.uid}: $edit"
+        var undo: (suspend () -> Unit)? = null
+        scope.launchReversibleRuleMutation(
+            snackbarHostState = snackbar,
+            editedMessage = message,
+            undoLabel = undoLabel,
+            epoch = next,
+            currentEpoch = { epoch },
+            setApplying = {},
+            apply = {
+                val result = runCatching {
+                    withContext(Dispatchers.IO + NonCancellable) { applyRuleEdit(ManagerRuleEditStore, rule, edit) }
+                }
+                result.exceptionOrNull()?.let { error ->
+                    Logger.e(Logger.LOG_TAG_UI, "rules: edit failed, $log", error as? Exception)
+                    scope.launch { snackbar.showSnackbar(failed) }
+                }
+                undo = result.getOrNull()
+                if (undo != null) logFirewallRuleChange(eventLogger, "Changed rule", log)
+                undo != null
+            },
+            undo = {
+                runCatching { withContext(Dispatchers.IO + NonCancellable) { undo?.invoke() } }
+                    .onFailure { Logger.e(Logger.LOG_TAG_UI, "rules: undo failed, $log", it as? Exception) }
+                logFirewallRuleChange(eventLogger, "Changed rule", "undo: $log")
+            },
+        )
+    }
 }
 
 private class AndroidRulesFeed<T : Any>(
@@ -224,6 +285,7 @@ private fun androidCustomRulesStrings(): RethinkCustomRulesStrings {
 @Composable
 private fun androidCustomRulesStrings(port: (Int) -> String): RethinkCustomRulesStrings {
     val countFormat = stringResource(R.string.rules_tab_count)
+    val onlyApp = stringResource(R.string.rules_edit_only_app)
     return RethinkCustomRulesStrings(
         port = port,
         domains = stringResource(R.string.rules_tab_domains),
@@ -253,5 +315,7 @@ private fun androidCustomRulesStrings(port: (Int) -> String): RethinkCustomRules
         clearSelection = stringResource(R.string.custom_rules_clear_selection),
         select = stringResource(R.string.custom_rules_select),
         deleteRule = stringResource(R.string.custom_rules_delete_rule),
+        action = stringResource(R.string.lbl_action),
+        onlyApp = { app -> onlyApp.format(app) },
     )
 }
