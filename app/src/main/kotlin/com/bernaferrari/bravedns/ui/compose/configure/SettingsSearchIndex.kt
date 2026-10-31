@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.service.FirewallRuleset
+import com.bernaferrari.bravedns.ui.compose.dns.isDnsAdvancedFocusKey
 import com.bernaferrari.bravedns.ui.compose.firewall.FIREWALL_FOCUS_RULES
 import com.bernaferrari.bravedns.ui.compose.navigation.RethinkRoute
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
@@ -48,7 +49,9 @@ sealed interface SettingsSearchDestination {
 
 /** The screen a destination opens, or null for one handled in place (Notifications, Backup). */
 fun SettingsSearchDestination.route(): RethinkRoute? = when (this) {
-    is SettingsSearchDestination.Dns -> RethinkRoute.DnsDetail(focusKey)
+    // Expert DNS settings live on DNS › Advanced (WS4); the rest on the DNS screen.
+    is SettingsSearchDestination.Dns ->
+        if (isDnsAdvancedFocusKey(focusKey)) RethinkRoute.DnsAdvanced(focusKey) else RethinkRoute.DnsDetail(focusKey)
     is SettingsSearchDestination.Firewall -> RethinkRoute.FirewallSettings(focusKey)
     is SettingsSearchDestination.Proxy -> RethinkRoute.ProxySettings(focusKey)
     SettingsSearchDestination.Appearance -> RethinkRoute.AppearanceSettings
@@ -160,7 +163,7 @@ fun buildSettingsSearchIndex(isDebug: Boolean): List<SettingsSearchIndexEntry> {
             searchEntry("network.all_networks", R.string.settings_network_all_networks, R.string.lbl_network, "$advanced > $network > ${stringResource(R.string.lbl_network)}", MaterialSymbols.Filled.Settings, SettingsSearchDestination.Network("network_all_networks")),
             searchEntry("network.exclude_apps_proxy", R.string.settings_exclude_apps_in_proxy, R.string.lbl_network, "$advanced > $network > ${stringResource(R.string.lbl_network)}", MaterialSymbols.Filled.Settings, SettingsSearchDestination.Network("network_exclude_apps_proxy")),
             searchEntry("network.protocol_translation", R.string.settings_protocol_translation, R.string.lbl_network, "$advanced > $network > ${stringResource(R.string.lbl_network)}", MaterialSymbols.Filled.Settings, SettingsSearchDestination.Network("network_protocol_translation")),
-            searchEntry("network.default_dns", R.string.settings_default_dns_heading, R.string.lbl_advanced, "$advanced > $network > ${stringResource(R.string.lbl_advanced)}", MaterialSymbols.Filled.Settings, SettingsSearchDestination.Network("network_default_dns")),
+            searchEntry("dns.advanced.default_dns", R.string.settings_default_dns_heading, R.string.lbl_advanced, "$protection > $dns > ${stringResource(R.string.lbl_advanced)}", MaterialSymbols.Filled.Dns, SettingsSearchDestination.Dns("dns_advanced_default_dns"), listOf("fallback dns", "default dns")),
             searchEntry("network.vpn_policy", R.string.vpn_policy_title, R.string.lbl_advanced, "$advanced > $network > ${stringResource(R.string.lbl_advanced)}", MaterialSymbols.Filled.Settings, SettingsSearchDestination.Network("network_vpn_policy")),
             searchEntry("network.ip_protocol", R.string.settings_ip_dialog_title, R.string.lbl_advanced, "$advanced > $network > ${stringResource(R.string.lbl_advanced)}", MaterialSymbols.Filled.Settings, SettingsSearchDestination.Network("network_ip_protocol")),
             searchEntry("network.connectivity_checks", R.string.settings_connectivity_checks, R.string.lbl_advanced, "$advanced > $network > ${stringResource(R.string.lbl_advanced)}", MaterialSymbols.Filled.Settings, SettingsSearchDestination.Network("network_connectivity_checks")),

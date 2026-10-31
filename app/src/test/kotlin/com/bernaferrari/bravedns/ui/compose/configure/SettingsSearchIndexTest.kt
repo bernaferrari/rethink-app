@@ -16,6 +16,8 @@ class SettingsSearchIndexTest {
         assertEquals(RethinkRoute.FirewallSettings("Rule #3"), SettingsSearchDestination.Firewall("Rule #3").route())
         assertEquals(RethinkRoute.LoggingSettings("general_logs"), SettingsSearchDestination.Logging("general_logs").route())
         assertEquals(RethinkRoute.MiscSettings("general_autostart"), SettingsSearchDestination.General("general_autostart").route())
+        assertEquals(RethinkRoute.DnsAdvanced("dns_advanced_default_dns"), SettingsSearchDestination.Dns("dns_advanced_default_dns").route())
+        assertEquals(RethinkRoute.DnsDetail("dns_mode_rethink"), SettingsSearchDestination.Dns("dns_mode_rethink").route())
         assertEquals(RethinkRoute.AppearanceSettings, SettingsSearchDestination.Appearance.route())
         assertEquals(RethinkRoute.AppLockSettings, SettingsSearchDestination.AppLock.route())
         assertEquals(RethinkRoute.Diagnostics, SettingsSearchDestination.Diagnostics.route())

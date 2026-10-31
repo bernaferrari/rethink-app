@@ -99,7 +99,6 @@ private fun tunnelFocusTarget(
         row++
     }
 
-    addAdvancedRow("network_default_dns")
     addAdvancedRow("network_vpn_policy")
     addAdvancedRow("network_ip_protocol")
     addAdvancedRow("network_connectivity_checks", showConnectivityChecksOption)
@@ -142,7 +141,6 @@ private fun tunnelFocusIndex(focusKey: String, isLockdown: Boolean): Int? {
         "network_exclude_apps_proxy",
         "network_protocol_translation" -> networkIndex
         "network_advanced",
-        "network_default_dns",
         "network_vpn_policy",
         "network_ip_protocol",
         "network_connectivity_checks",
@@ -197,7 +195,6 @@ fun TunnelSettingsScreen(
     var connectivityChecks by remember { mutableStateOf(persistentState.connectivityChecks) }
     var showCustomLanIpSheet by remember { mutableStateOf(false) }
     var showReachabilitySheet by remember { mutableStateOf(false) }
-    var showDefaultDnsDialog by remember { mutableStateOf(false) }
     var showVpnPolicyDialog by remember { mutableStateOf(false) }
     var showIpDialog by remember { mutableStateOf(false) }
     var showConnectivityChecksDialog by remember { mutableStateOf(false) }
@@ -242,15 +239,6 @@ fun TunnelSettingsScreen(
             stringResource(R.string.vpn_policy_title),
             vpnPolicyDesc
         )
-
-    // Default DNS Dialog
-    if (showDefaultDnsDialog) {
-        DefaultDnsDialog(
-            persistentState = persistentState,
-            onDismiss = { showDefaultDnsDialog = false },
-            onConfirm = { logEvent("default dns changed", "Default DNS changed") }
-        )
-    }
 
     // VPN Policy Dialog
     if (showVpnPolicyDialog) {
@@ -382,7 +370,7 @@ fun TunnelSettingsScreen(
         ),
     )
     val advancedRows = buildList {
-        add(RethinkTunnelSettingRow("network_default_dns", stringResource(R.string.settings_default_dns_heading), stringResource(R.string.settings_default_dns_desc), RethinkTunnelSettingKind.Action))
+        // Fallback DNS lives in DNS › Advanced (same defaultDnsUrl preference).
         add(RethinkTunnelSettingRow("network_vpn_policy", stringResource(R.string.vpn_policy_title), vpnPolicyDesc, RethinkTunnelSettingKind.Action))
         add(RethinkTunnelSettingRow("network_ip_protocol", stringResource(R.string.settings_ip_dialog_title), stringResource(R.string.settings_selected_ip_desc, ipDesc), RethinkTunnelSettingKind.Action, enabled = vpnPolicy != POLICY_FIXED))
         if (showConnectivityChecksOption) {
@@ -425,7 +413,6 @@ fun TunnelSettingsScreen(
         onLockdownClick = onOpenVpnProfile,
         onActionClick = { id ->
             when (id) {
-                "network_default_dns" -> showDefaultDnsDialog = true
                 "network_vpn_policy" -> showVpnPolicyDialog = true
                 "network_ip_protocol" -> if (vpnPolicy != POLICY_FIXED) showIpDialog = true
                 "network_connectivity_checks" -> showConnectivityChecksDialog = true
@@ -537,28 +524,6 @@ fun TunnelSettingsScreen(
     if (showReachabilitySheet) {
         NetworkReachabilitySheet(persistentState = persistentState, onDismiss = { showReachabilitySheet = false })
     }
-}
-
-@Composable
-private fun DefaultDnsDialog(
-    persistentState: PersistentState,
-    onDismiss: () -> Unit,
-    onConfirm: () -> Unit
-) {
-    val options = Constants.DEFAULT_DNS_LIST
-    RethinkSelectionDialog(
-        title = stringResource(R.string.settings_default_dns_heading),
-        options = options.map { RethinkSelectionOption(it.url, it.name) },
-        initialSelectedId = options.firstOrNull { it.url == persistentState.defaultDnsUrl }?.url ?: options.firstOrNull()?.url.orEmpty(),
-        confirm = stringResource(R.string.fapps_info_dialog_positive_btn),
-        cancel = stringResource(R.string.lbl_cancel),
-        onDismiss = onDismiss,
-        onConfirm = { option ->
-            persistentState.defaultDnsUrl = option.id
-            onConfirm()
-            onDismiss()
-        },
-    )
 }
 
 @Composable
