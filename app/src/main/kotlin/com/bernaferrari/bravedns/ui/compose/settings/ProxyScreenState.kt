@@ -29,6 +29,9 @@ internal data class ProxyScreenState(
     val canEnableProxy: Boolean,
     val socks5Enabled: Boolean,
     val httpEnabled: Boolean,
+    /** A server has been saved (it can be switched on without filling the form again). */
+    val socks5Configured: Boolean,
+    val httpConfigured: Boolean,
     val orbotEnabled: Boolean,
     val wireguardDescription: String,
     val socks5Description: String,
@@ -54,16 +57,22 @@ internal suspend fun buildProxyScreenState(
     statusFailingText: String,
     statusWaitingText: String,
     wireguardVersionTemplate: String,
-    ciIpLabelTemplate: String
+    ciIpLabelTemplate: String,
+    offCopy: ProxyOffCopy,
 ): ProxyScreenState {
     val canEnableProxy = appConfig.canEnableProxy()
     val socks5Enabled = appConfig.isCustomSocks5Enabled()
     val httpEnabled = appConfig.isCustomHttpProxyEnabled()
     val orbotEnabled = appConfig.isOrbotProxyEnabled()
 
+    val socks5Endpoint = runCatching { appConfig.getSocks5ProxyDetails() }.getOrNull()
+    val socks5Configured = !socks5Endpoint?.proxyIP.isNullOrBlank()
+    val httpEndpoint = runCatching { appConfig.getHttpProxyDetails() }.getOrNull()
+    val httpConfigured = !httpEndpoint?.proxyIP.isNullOrBlank()
+
     val socks5Description =
         if (!socks5Enabled) {
-            defaultSocks5Description
+            offCopy.describe(socks5Endpoint?.proxyIP?.let { "$it:${socks5Endpoint.proxyPort}" })
         } else {
             formatSocks5Description(
                 runCatching { appConfig.getSocks5ProxyDetails() }.getOrNull(),
@@ -75,7 +84,7 @@ internal suspend fun buildProxyScreenState(
 
     val httpDescription =
         if (!httpEnabled) {
-            defaultHttpDescription
+            offCopy.describe(httpEndpoint?.proxyIP)
         } else {
             val endpoint = runCatching { appConfig.getHttpProxyDetails() }.getOrNull()
             val host = endpoint?.proxyIP ?: ""
@@ -98,6 +107,7 @@ internal suspend fun buildProxyScreenState(
         )
     val wireguardDescription =
         formatWireguardDescription(
+            offCopy,
             defaultWireguardDescription,
             statusTextById,
             statusWaitingText,
@@ -110,6 +120,8 @@ internal suspend fun buildProxyScreenState(
         canEnableProxy = canEnableProxy,
         socks5Enabled = socks5Enabled,
         httpEnabled = httpEnabled,
+        socks5Configured = socks5Configured,
+        httpConfigured = httpConfigured,
         orbotEnabled = orbotEnabled,
         wireguardDescription = wireguardDescription,
         socks5Description = socks5Description,
@@ -118,7 +130,22 @@ internal suspend fun buildProxyScreenState(
     )
 }
 
+/** The state line of a proxy row that is off (or a WireGuard list with none on). */
+internal data class ProxyOffCopy(
+    /** "Off · 10.0.0.2:1080"-style line for a saved server. */
+    val offWithHost: (String) -> String,
+    /** "Off · Not set up". */
+    val offNotSetUp: String,
+    /** "2 tunnels, none on". */
+    val tunnelsNoneOn: (Int) -> String,
+    /** "Not set up · Import a file, scan a QR code or create one". */
+    val noTunnels: String,
+) {
+    fun describe(host: String?): String = if (host.isNullOrBlank()) offNotSetUp else offWithHost(host)
+}
+
 internal suspend fun formatWireguardDescription(
+    offCopy: ProxyOffCopy,
     defaultDescription: String,
     statusTextById: Map<Int, String>,
     statusWaitingText: String,
@@ -128,7 +155,8 @@ internal suspend fun formatWireguardDescription(
 ): String {
     val activeWgs = WireguardManager.getActiveConfigs()
     if (activeWgs.isEmpty()) {
-        return defaultDescription
+        val tunnels = WireguardManager.getNumberOfMappings()
+        return if (tunnels == 0) offCopy.noTunnels else offCopy.tunnelsNoneOn(tunnels)
     }
 
     val details = StringBuilder()

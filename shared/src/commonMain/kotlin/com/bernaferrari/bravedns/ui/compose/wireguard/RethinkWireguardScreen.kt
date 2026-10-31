@@ -13,6 +13,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButtonMenu
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Button
 import androidx.compose.material3.FloatingActionButtonMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -63,6 +70,8 @@ data class RethinkWireguardStrings(
     val disableMessage: String,
     val disableConfirm: String,
     val cancel: String,
+    /** Under the empty title: what a tunnel is for and the three ways to add one. */
+    val noConfigurationsMessage: String = "",
 )
 
 /** Full target-neutral WireGuard landing screen; hosts retain config operations and row behavior. */
@@ -105,13 +114,37 @@ fun <T> RethinkWireguardScreen(
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding)) {
             if (isEmpty) {
-                // No in-place Create button: the FAB menu below is the one way to add (create,
-                // import or scan), so the empty screen doesn't offer two entry points.
-                RethinkEmptyState(
-                    title = strings.noConfigurations,
-                    icon = MaterialSymbols.Filled.VpnKey,
-                    modifier = Modifier.align(Alignment.Center).padding(bottom = bottomInset),
-                )
+                // The first tunnel: the three ways to add one, in the open, instead of a lone FAB.
+                Column(
+                    Modifier.align(Alignment.Center)
+                        .padding(horizontal = SharedDimensions.screenPaddingHorizontal)
+                        .padding(bottom = bottomInset),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
+                ) {
+                    RethinkEmptyState(
+                        title = strings.noConfigurations,
+                        message = strings.noConfigurationsMessage,
+                        icon = MaterialSymbols.Filled.VpnKey,
+                    )
+                    Button(onClick = onImport) {
+                        Icon(MaterialSymbols.Filled.Download, null, Modifier.size(ButtonDefaults.IconSize))
+                        Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                        Text(strings.import)
+                    }
+                    if (onQrCode != null) {
+                        FilledTonalButton(onClick = onQrCode) {
+                            Icon(MaterialSymbols.Filled.CameraAlt, null, Modifier.size(ButtonDefaults.IconSize))
+                            Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                            Text(strings.qrCode)
+                        }
+                    }
+                    TextButton(onClick = onCreate) {
+                        Icon(MaterialSymbols.Filled.Edit, null, Modifier.size(ButtonDefaults.IconSize))
+                        Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                        Text(strings.create)
+                    }
+                }
             } else {
                 Column(Modifier.fillMaxSize()) {
                     RethinkWgOverview(overview)
@@ -133,7 +166,7 @@ fun <T> RethinkWireguardScreen(
                     }
                 }
             }
-            RethinkWgFabMenu(
+            if (!isEmpty) RethinkWgFabMenu(
                 modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = bottomInset),
                 strings = strings,
                 onCreate = onCreate,

@@ -148,6 +148,7 @@ fun WgMainScreen(
             disableMessage = stringResource(R.string.wireguard_disable_message),
             disableConfirm = stringResource(R.string.always_on_dialog_positive),
             cancel = stringResource(R.string.lbl_cancel),
+            noConfigurationsMessage = stringResource(R.string.wireguard_empty_message),
         ),
         bottomInset = navBarBottomInset,
         confirmDisable = showDisableDialog,

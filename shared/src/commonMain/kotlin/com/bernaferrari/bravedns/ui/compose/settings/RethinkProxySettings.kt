@@ -44,6 +44,12 @@ data class RethinkProxySettingsState(
     val orbotConnecting: Boolean,
     val orbotDescription: String,
     val orbotAppCount: Int? = null,
+    /**
+     * A SOCKS5 / HTTP server has been saved. Until then the row has no switch: tapping it opens the
+     * setup form, which turns the proxy on when saved (the switch would do the same, unexplained).
+     */
+    val socks5Configured: Boolean = true,
+    val httpConfigured: Boolean = true,
 )
 
 data class RethinkProxySettingsStrings(
@@ -66,6 +72,8 @@ data class RethinkProxySettingsStrings(
     val serversSection: String,
     /** Header above the Orbot group; must not repeat the "Orbot" row title. */
     val torSection: String,
+    /** One line under the Tor header saying what Orbot does ("Routes chosen apps through Tor…"). */
+    val torExplainer: String? = null,
 )
 
 /** Shared proxy-settings shell. Hosts keep proxy services, Orbot availability, and form dialogs. */
@@ -86,7 +94,7 @@ fun RethinkProxySettingsScreen(
     onOrbotChange: (Boolean) -> Unit,
     onOrbotAppsClick: (() -> Unit)? = null,
     onOpenOrbotApp: () -> Unit,
-    onOrbotInfo: () -> Unit,
+    onOrbotInfo: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     RethinkTopBarLazyColumnScreen(
@@ -122,6 +130,7 @@ fun RethinkProxySettingsScreen(
                 RethinkProxyToggleRow(
                     title = strings.socks5,
                     description = state.socks5Description,
+                    showSwitch = state.socks5Enabled || state.socks5Configured,
                     checked = state.socks5Enabled,
                     enabled = state.canEnableProxy || !state.socks5Enabled,
                     highlighted = activeFocusKey == "proxy_socks",
@@ -133,6 +142,7 @@ fun RethinkProxySettingsScreen(
                 RethinkProxyToggleRow(
                     title = strings.http,
                     description = state.httpDescription,
+                    showSwitch = state.httpEnabled || state.httpConfigured,
                     checked = state.httpEnabled,
                     enabled = state.canEnableProxy || !state.httpEnabled,
                     highlighted = activeFocusKey == "proxy_http",
@@ -143,7 +153,7 @@ fun RethinkProxySettingsScreen(
                 )
             }
         }
-        rethinkSection(strings.torSection) {
+        rethinkSection(strings.torSection, description = strings.torExplainer) {
             RethinkOrbotPanel(
                 state = state,
                 strings = strings,
@@ -172,6 +182,7 @@ private fun RethinkProxyWarning(message: String, highlighted: Boolean) {
 private fun RethinkProxyToggleRow(
     title: String,
     description: String,
+    showSwitch: Boolean,
     checked: Boolean,
     enabled: Boolean,
     highlighted: Boolean,
@@ -187,16 +198,21 @@ private fun RethinkProxyToggleRow(
         position = position,
         highlighted = highlighted,
         enabled = enabled,
-        trailing = {
-            // The row opens configuration; the switch is a separate action. The divider makes the
-            // two targets visually distinct.
-            RethinkSplitSwitch(
-                checked = checked,
-                enabled = enabled,
-                onCheckedChange = onCheckedChange,
-                contentDescription = title,
-            )
+        trailing = if (showSwitch) {
+            {
+                // The row opens configuration; the switch is a separate action. The divider makes
+                // the two targets visually distinct.
+                RethinkSplitSwitch(
+                    checked = checked,
+                    enabled = enabled,
+                    onCheckedChange = onCheckedChange,
+                    contentDescription = title,
+                )
+            }
+        } else {
+            null
         },
+        showTrailingChevron = !showSwitch,
         onClick = onRowClick,
     )
 }
@@ -210,7 +226,7 @@ private fun RethinkOrbotPanel(
     onCheckedChange: (Boolean) -> Unit,
     onAppsClick: (() -> Unit)?,
     onOpenAppClick: () -> Unit,
-    onInfoClick: () -> Unit,
+    onInfoClick: (() -> Unit)?,
 ) {
     val highlighted = highlightedKey == "proxy_orbot"
     val enabled = state.canEnableProxy && !state.orbotConnecting
@@ -219,7 +235,7 @@ private fun RethinkOrbotPanel(
         state.orbotEnabled -> strings.active to RethinkStatusColors.allowed
         else -> strings.inactive to RethinkStatusColors.idle
     }
-    val actionCount = if (enabled) 1 + (if (state.orbotAppCount != null && onAppsClick != null) 1 else 0) + 2 else 1
+    val actionCount = if (enabled) 1 + (if (state.orbotAppCount != null && onAppsClick != null) 1 else 0) + 1 + (if (onInfoClick != null) 1 else 0) else 1
     RethinkListGroup {
         RethinkListItem(
             headline = strings.orbot,
@@ -266,14 +282,16 @@ private fun RethinkOrbotPanel(
                 showTrailingChevron = true,
                 onClick = onOpenAppClick,
             )
-            RethinkListItem(
-                headline = strings.info,
-                leadingIcon = MaterialSymbols.Filled.Info,
-                position = cardPositionFor(row, actionCount - 1),
-                highlighted = highlightedKey == "proxy_orbot_info",
-                // Opens an explanation dialog in place; chevrons are reserved for navigation.
-                onClick = onInfoClick,
-            )
+            onInfoClick?.let { info ->
+                RethinkListItem(
+                    headline = strings.info,
+                    leadingIcon = MaterialSymbols.Filled.Info,
+                    position = cardPositionFor(row, actionCount - 1),
+                    highlighted = highlightedKey == "proxy_orbot_info",
+                    // Opens an explanation dialog in place; chevrons are reserved for navigation.
+                    onClick = info,
+                )
+            }
         }
     }
 }

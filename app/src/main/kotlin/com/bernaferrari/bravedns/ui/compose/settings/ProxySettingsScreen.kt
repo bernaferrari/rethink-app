@@ -117,6 +117,19 @@ fun ProxySettingsScreen(
     val wireguardStatusWaitingText = stringResource(R.string.status_waiting)
     val wireguardVersionTemplate = stringResource(R.string.about_version_install_source)
     val wireguardIpLabelTemplate = stringResource(R.string.ci_ip_label)
+    val offHostTemplate = stringResource(R.string.proxy_state_off_host)
+    val offNotSetUp = stringResource(R.string.proxy_state_off_not_set_up)
+    val tunnelsNoneOnTemplate = stringResource(R.string.proxy_wireguard_tunnels_none_on)
+    val noTunnels = stringResource(R.string.proxy_wireguard_empty)
+    val resources = context.resources
+    val offCopy = ProxyOffCopy(
+        offWithHost = { host -> offHostTemplate.format(host) },
+        offNotSetUp = offNotSetUp,
+        tunnelsNoneOn = { count ->
+            tunnelsNoneOnTemplate.format(resources.getQuantityString(R.plurals.proxy_wireguard_tunnels, count, count))
+        },
+        noTunnels = noTunnels,
+    )
     val proxyStatusLabelById = mutableMapOf<Int, String>().apply {
         for (status in UIUtils.ProxyStatus.entries) {
             put(
@@ -143,6 +156,9 @@ fun ProxySettingsScreen(
     var canEnableProxy by remember { mutableStateOf(appConfig.canEnableProxy()) }
     var socks5Enabled by remember { mutableStateOf(appConfig.isCustomSocks5Enabled()) }
     var httpEnabled by remember { mutableStateOf(appConfig.isCustomHttpProxyEnabled()) }
+    // Assume saved until the first state load says otherwise, so a switch never pops in late.
+    var socks5Configured by remember { mutableStateOf(true) }
+    var httpConfigured by remember { mutableStateOf(true) }
     var orbotEnabled by remember { mutableStateOf(appConfig.isOrbotProxyEnabled()) }
     val orbotConnecting =
         remember { persistentState.orbotConnectionStatus }.collectAsState(initial = false).value
@@ -357,13 +373,16 @@ fun ProxySettingsScreen(
                     statusFailingText = wireguardStatusFailingText,
                     statusWaitingText = wireguardStatusWaitingText,
                     wireguardVersionTemplate = wireguardVersionTemplate,
-                    ciIpLabelTemplate = wireguardIpLabelTemplate
+                    ciIpLabelTemplate = wireguardIpLabelTemplate,
+                    offCopy = offCopy,
                 )
             }
 
         canEnableProxy = state.canEnableProxy
         socks5Enabled = state.socks5Enabled
         httpEnabled = state.httpEnabled
+        socks5Configured = state.socks5Configured
+        httpConfigured = state.httpConfigured
         orbotEnabled = state.orbotEnabled
         wireguardDescription = state.wireguardDescription
         socks5Description = state.socks5Description
@@ -437,15 +456,17 @@ fun ProxySettingsScreen(
             orbotConnecting = orbotConnecting,
             orbotDescription = if (orbotConnecting) stringResource(R.string.orbot_bs_status_trying_connect) else orbotDescription,
             orbotAppCount = if (mappingViewModel != null) orbotAppCount else null,
+            socks5Configured = socks5Configured,
+            httpConfigured = httpConfigured,
         ),
         strings = RethinkProxySettingsStrings(
-            title = stringResource(R.string.settings_proxy_header),
+            title = stringResource(R.string.settings_proxy_vpn),
             refresh = stringResource(R.string.dc_refresh_toast),
             warning = stringResource(R.string.settings_lock_down_proxy_desc),
-            wireguard = stringResource(R.string.setup_wireguard),
-            socks5 = stringResource(R.string.settings_socks5_heading),
-            http = stringResource(R.string.settings_https_heading),
-            orbot = stringResource(R.string.orbot),
+            wireguard = stringResource(R.string.proxy_row_wireguard),
+            socks5 = stringResource(R.string.proxy_row_socks5),
+            http = stringResource(R.string.proxy_row_http),
+            orbot = stringResource(R.string.proxy_row_orbot),
             active = stringResource(R.string.lbl_active),
             inactive = stringResource(R.string.lbl_inactive),
             waiting = stringResource(R.string.status_waiting),
@@ -455,6 +476,7 @@ fun ProxySettingsScreen(
             info = stringResource(R.string.lbl_info),
             serversSection = stringResource(R.string.proxy_servers_section),
             torSection = stringResource(R.string.proxy_tor_section),
+            torExplainer = stringResource(R.string.proxy_orbot_explainer),
         ),
         activeFocusKey = activeFocusKey,
         onBackClick = onBackClick,
@@ -494,7 +516,8 @@ fun ProxySettingsScreen(
         onOrbotChange = { checked -> if (checked) enableOrbotFlow() else stopOrbotForwarding(showDialog = true) },
         onOrbotAppsClick = if (mappingViewModel != null && onOpenOrbotApps != null) ({ onOpenOrbotApps() }) else null,
         onOpenOrbotApp = { orbotHelper.openOrbotApp() },
-        onOrbotInfo = { showOrbotInfoDialog = true },
+        // The explainer is a line under the Tor header now, not a dialog behind an Info row.
+        onOrbotInfo = null,
     )
     ProxyOrbotDialogs(
         ui = ProxyOrbotDialogUi(
