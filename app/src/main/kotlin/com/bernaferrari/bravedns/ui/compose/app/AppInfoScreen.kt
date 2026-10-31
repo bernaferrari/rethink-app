@@ -87,7 +87,7 @@ fun AppInfoScreen(
     onBackClick: () -> Unit,
     onCustomIpRulesClick: (Int) -> Unit,
     onCustomDomainRulesClick: (Int) -> Unit,
-    /** The Activity log filtered to this app ([query] is its name). */
+    /** The Activity log for this app, by uid; the String is its name, which titles the log. */
     onSeeAllActivity: ((query: String) -> Unit)? = null,
     connectionSheetNavigation: ConnectionSheetNavigation = ConnectionSheetNavigation(),
 ) {
