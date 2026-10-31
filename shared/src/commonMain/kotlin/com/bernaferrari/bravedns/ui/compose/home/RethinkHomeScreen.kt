@@ -6,7 +6,7 @@
  * Home answers two questions at a glance, in this order of weight:
  *  1. Am I protected? One coloured hero: a shape-morphing mark, the state in emphasized display
  *     type, the DNS in use as a tappable line, and the controls (Start; or Pause ▾ · Stop; or
- *     Resume · Stop while paused). A health banner above it says when protection isn't doing
+ *     Resume · Stop while paused, with the pause's time adjustable in place). A health banner above it says when protection isn't doing
  *     what the hero claims (another always-on VPN, Private DNS, a resolver that isn't answering),
  *     each with its fix; one card below it marks the first start or asks for notifications.
  *  2. What is it doing? The last 24 hours as allowed vs blocked, with a split bar, the lookups
@@ -38,6 +38,7 @@ import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.shape.CornerSize
@@ -52,6 +53,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.liveRegion
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkContainedCard
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -99,6 +102,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
@@ -155,10 +159,20 @@ data class RethinkHomeUiState(
     val isPaused: Boolean = false,
     /** The paused hero's subtitle: time left (or "until you resume") and what still applies. */
     val pausedDetail: String = "",
+    /** The pause has a countdown; false while paused means it lasts until resumed. */
+    val pauseTimed: Boolean = false,
+    /** More than 15 minutes are left, so "−15 min" can't end the pause outright. */
+    val pauseCanShorten: Boolean = false,
 )
 
 /** How long the hero's Pause menu pauses protection. */
 enum class RethinkPauseChoice { FifteenMinutes, OneHour, UntilResumed }
+
+/**
+ * Changes to a pause in progress, from the paused hero: a timed pause moves by 15 minutes or
+ * drops its timer; one that lasts until resumed gets a timer (15 minutes or an hour from now).
+ */
+enum class RethinkPauseAdjustment { RemoveFifteenMinutes, AddFifteenMinutes, UntilResumed, FifteenMinutes, OneHour }
 
 /**
  * A problem that makes the hero's state untrue or unreachable (a conflicting always-on VPN,
@@ -217,6 +231,14 @@ data class RethinkHomeStrings(
     val pauseFifteenMinutes: String = "15 minutes",
     val pauseOneHour: String = "1 hour",
     val pauseUntilResumed: String = "Until I resume",
+    val pauseRemoveFifteenMinutes: String = "\u221215 min",
+    val pauseRemoveFifteenMinutesDescription: String = "15 minutes less",
+    val pauseAddFifteenMinutes: String = "+15 min",
+    val pauseAddFifteenMinutesDescription: String = "15 minutes more",
+    val pauseNoTimer: String = "No timer",
+    val pauseNoTimerDescription: String = "Pause until I resume",
+    val pauseResumeInFifteenMinutesDescription: String = "Resume in 15 minutes",
+    val pauseResumeInOneHourDescription: String = "Resume in 1 hour",
     val resume: String = "Resume",
     val openDns: String = "Open DNS settings",
 )
@@ -247,6 +269,8 @@ fun RethinkHomeScreen(
     /** Pauses protection; null leaves Stop alone in the hero. */
     onPause: ((RethinkPauseChoice) -> Unit)? = null,
     onResume: (() -> Unit)? = null,
+    /** Changes the time left on a pause; null hides the paused hero's adjustments. */
+    onAdjustPause: ((RethinkPauseAdjustment) -> Unit)? = null,
     banner: RethinkHomeBanner? = null,
     card: RethinkHomeCard? = null,
 ) {
@@ -278,7 +302,7 @@ fun RethinkHomeScreen(
     ) { insets ->
         RethinkAdaptiveWidth(Modifier.fillMaxSize().padding(insets)) { widthClass ->
             val hero: @Composable (Modifier) -> Unit = { heroModifier ->
-                ProtectionHero(uiState, strings, visualState, widthClass, onStartStopClick, onPause, onResume, onDnsClick, heroModifier)
+                ProtectionHero(uiState, strings, visualState, widthClass, onStartStopClick, onPause, onResume, onAdjustPause, onDnsClick, heroModifier)
             }
             val activity: @Composable ColumnScope.() -> Unit = {
                 TodaySection(uiState, strings, onActivityClick)
@@ -384,6 +408,7 @@ private fun ProtectionHero(
     onStartStopClick: () -> Unit,
     onPause: ((RethinkPauseChoice) -> Unit)?,
     onResume: (() -> Unit)?,
+    onAdjustPause: ((RethinkPauseAdjustment) -> Unit)?,
     onDnsClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
@@ -428,6 +453,10 @@ private fun ProtectionHero(
             Spacer(Modifier.height(SharedDimensions.spacingSm))
             if (subtitle.isNotBlank()) {
                 Text(subtitle, style = MaterialTheme.typography.bodyLarge, color = colors.content.copy(alpha = 0.82f))
+            }
+            if (state == ProtectionVisualState.Paused && onAdjustPause != null) {
+                Spacer(Modifier.height(SharedDimensions.spacingSm))
+                PauseAdjustments(uiState, strings, colors, onAdjustPause)
             }
             val dnsLine = uiState.dnsLine.ifBlank { uiState.dnsName }
             if (state != ProtectionVisualState.Off && dnsLine.isNotBlank()) {
@@ -599,13 +628,7 @@ private fun HeroButton(
     val scheme = MaterialTheme.colorScheme
     val height = ButtonDefaults.MediumContainerHeight
     val colors = ButtonDefaults.buttonColors(
-        // A quieter tone of the hero itself: lighter on a light hero, deeper on a dark one, so
-        // the hero's own content colour always reads on it.
-        containerColor = when {
-            emphasized -> scheme.primary
-            scheme.surface.luminance() < 0.5f -> lerp(heroColor, Color.Black, 0.35f)
-            else -> lerp(heroColor, Color.White, 0.82f)
-        },
+        containerColor = if (emphasized) scheme.primary else quietTone(heroColor),
         contentColor = if (emphasized) scheme.onPrimary else contentColor,
     )
     val content: @Composable RowScope.() -> Unit = {
@@ -618,11 +641,92 @@ private fun HeroButton(
         }
     }
     val sized = modifier.heightIn(min = height)
-    val padding = ButtonDefaults.contentPaddingFor(height)
+    // Narrower sides than the medium default, so "Resume" fits half the hero on a 360dp phone.
+    val padding = PaddingValues(horizontal = SharedDimensions.spacingMd, vertical = ButtonDefaults.contentPaddingFor(height).calculateTopPadding())
     if (shape == null) {
         Button(onClick = onClick, shapes = ButtonDefaults.shapesFor(height), modifier = sized, contentPadding = padding, colors = colors, content = content)
     } else {
         Button(onClick = onClick, shape = shape, modifier = sized, contentPadding = padding, colors = colors, content = content)
+    }
+}
+
+/**
+ * A quieter tone of the hero itself: lighter on a light hero, deeper on a dark one, so the hero's
+ * own content colour always reads on it.
+ */
+@Composable
+private fun quietTone(heroColor: Color): Color =
+    if (MaterialTheme.colorScheme.surface.luminance() < 0.5f) lerp(heroColor, Color.Black, 0.35f)
+    else lerp(heroColor, Color.White, 0.82f)
+
+/**
+ * The paused hero's time controls, right under the time they change. Timed: −15 min (only while
+ * more than 15 minutes are left, so it never ends the pause by surprise), +15 min, and No timer
+ * (until I resume). Until resumed: a timer of 15 minutes or an hour from now. Small buttons in the
+ * hero's quiet tone, so Resume stays the call to action; short labels keep them on one line on a
+ * 360dp phone, and each says in full what it does to a screen reader.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun PauseAdjustments(
+    uiState: RethinkHomeUiState,
+    strings: RethinkHomeStrings,
+    colors: HeroColors,
+    onAdjust: (RethinkPauseAdjustment) -> Unit,
+) {
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
+        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
+    ) {
+        @Composable
+        fun chip(adjustment: RethinkPauseAdjustment, label: String, description: String, icon: ImageVector? = null, enabled: Boolean = true) =
+            PauseAdjustButton(label, description, icon, enabled, colors) { onAdjust(adjustment) }
+        if (uiState.pauseTimed) {
+            chip(
+                RethinkPauseAdjustment.RemoveFifteenMinutes, strings.pauseRemoveFifteenMinutes,
+                strings.pauseRemoveFifteenMinutesDescription, enabled = uiState.pauseCanShorten,
+            )
+            chip(RethinkPauseAdjustment.AddFifteenMinutes, strings.pauseAddFifteenMinutes, strings.pauseAddFifteenMinutesDescription)
+            chip(RethinkPauseAdjustment.UntilResumed, strings.pauseNoTimer, strings.pauseNoTimerDescription)
+        } else {
+            chip(
+                RethinkPauseAdjustment.FifteenMinutes, strings.pauseFifteenMinutes,
+                strings.pauseResumeInFifteenMinutesDescription, MaterialSymbols.Filled.Timer,
+            )
+            chip(RethinkPauseAdjustment.OneHour, strings.pauseOneHour, strings.pauseResumeInOneHourDescription, MaterialSymbols.Filled.Timer)
+        }
+    }
+}
+
+@Composable
+private fun PauseAdjustButton(
+    label: String,
+    description: String,
+    icon: ImageVector?,
+    enabled: Boolean,
+    colors: HeroColors,
+    onClick: () -> Unit,
+) {
+    val height = ButtonDefaults.ExtraSmallContainerHeight
+    val tone = quietTone(colors.container)
+    Button(
+        onClick = onClick,
+        enabled = enabled,
+        shapes = ButtonDefaults.shapesFor(height),
+        modifier = Modifier.heightIn(min = height).semantics { contentDescription = description },
+        contentPadding = ButtonDefaults.contentPaddingFor(height),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = tone,
+            contentColor = colors.content,
+            disabledContainerColor = tone.copy(alpha = 0.5f),
+            disabledContentColor = colors.content.copy(alpha = 0.38f),
+        ),
+    ) {
+        if (icon != null) {
+            Icon(icon, contentDescription = null, modifier = Modifier.size(ButtonDefaults.iconSizeFor(height)))
+            Spacer(Modifier.width(ButtonDefaults.iconSpacingFor(height)))
+        }
+        Text(label, style = ButtonDefaults.textStyleFor(height), maxLines = 1)
     }
 }
 
@@ -937,4 +1041,15 @@ internal fun RethinkHomeAtmosphere(
             modifier = Modifier.fillMaxSize(),
         )
     }
+}
+
+/** "14:32" under an hour, "1:02:05" above; what the paused hero shows beside "left". */
+fun formatPauseRemaining(millis: Long): String {
+    val totalSeconds = millis.coerceAtLeast(0) / 1000
+    val hours = totalSeconds / 3600
+    val minutes = (totalSeconds % 3600) / 60
+    val seconds = totalSeconds % 60
+    val mm = minutes.toString().padStart(2, '0')
+    val ss = seconds.toString().padStart(2, '0')
+    return if (hours > 0) "$hours:$mm:$ss" else "$minutes:$ss"
 }

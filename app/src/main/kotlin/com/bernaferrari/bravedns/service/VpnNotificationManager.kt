@@ -61,6 +61,8 @@ class VpnNotificationManager(
         private const val NOTIF_ACTION_MODE_DNS_FIREWALL = 102
 
         private const val NOTIF_ID_ACCESSIBILITY_FAILURE = 104
+        // A broadcast request code beside 98-102; RefreshDatabase's actions use 103-105.
+        private const val NOTIF_ACTION_MODE_PAUSE_HOUR = 110
     }
 
     private val notificationManager =
@@ -128,40 +130,32 @@ class VpnNotificationManager(
 
         when (notifActionType) {
             NotificationActionType.PAUSE_STOP -> {
-                // Add the action based on AppState (PAUSE/ACTIVE)
-                val openIntent1 =
-                    makeVpnIntent(NOTIF_ACTION_MODE_STOP, Constants.NOTIF_ACTION_STOP_VPN)
-                val notificationAction1 =
-                    NotificationCompat.Action(
-                        0,
-                        context.resources.getString(R.string.notification_action_stop_vpn),
-                        openIntent1
-                    )
-                builder.addAction(notificationAction1)
-                // set content title for notifications which has actions
+                // Home's choices: paused offers Resume; protected offers Pause for 15 minutes or
+                // an hour (Android shows at most three actions). Stop comes last, as on Home.
                 builder.setContentTitle(contentTitle)
-
                 if (isAppPaused()) {
-                    val openIntent2 =
+                    builder.addAction(
+                        0,
+                        context.resources.getString(R.string.notification_action_resume_vpn),
                         makeVpnIntent(NOTIF_ACTION_MODE_RESUME, Constants.NOTIF_ACTION_RESUME_VPN)
-                    val notificationAction2 =
-                        NotificationCompat.Action(
-                            0,
-                            context.resources.getString(R.string.notification_action_resume_vpn),
-                            openIntent2
-                        )
-                    builder.addAction(notificationAction2)
+                    )
                 } else {
-                    val openIntent2 =
+                    builder.addAction(
+                        0,
+                        context.resources.getString(R.string.notification_action_pause_15_minutes),
                         makeVpnIntent(NOTIF_ACTION_MODE_PAUSE, Constants.NOTIF_ACTION_PAUSE_VPN)
-                    val notificationAction2 =
-                        NotificationCompat.Action(
-                            0,
-                            context.resources.getString(R.string.notification_action_pause_vpn),
-                            openIntent2
-                        )
-                    builder.addAction(notificationAction2)
+                    )
+                    builder.addAction(
+                        0,
+                        context.resources.getString(R.string.notification_action_pause_1_hour),
+                        makeVpnIntent(NOTIF_ACTION_MODE_PAUSE_HOUR, Constants.NOTIF_ACTION_PAUSE_VPN_HOUR)
+                    )
                 }
+                builder.addAction(
+                    0,
+                    context.resources.getString(R.string.notification_action_stop_vpn),
+                    makeVpnIntent(NOTIF_ACTION_MODE_STOP, Constants.NOTIF_ACTION_STOP_VPN)
+                )
             }
 
             NotificationActionType.DNS_FIREWALL -> {

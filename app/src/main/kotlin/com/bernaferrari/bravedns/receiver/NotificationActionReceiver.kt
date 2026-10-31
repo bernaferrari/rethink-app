@@ -28,6 +28,9 @@ import com.bernaferrari.bravedns.database.RefreshDatabase
 import com.bernaferrari.bravedns.service.FirewallManager
 import com.bernaferrari.bravedns.service.FirewallManager.NOTIF_CHANNEL_ID_FIREWALL_ALERTS
 import com.bernaferrari.bravedns.service.VpnController
+import com.bernaferrari.bravedns.ui.compose.home.HomePauseDuration
+import com.bernaferrari.bravedns.ui.compose.home.VpnControllerPauseControls
+import com.bernaferrari.bravedns.ui.compose.home.pauseProtection
 import com.bernaferrari.bravedns.util.Constants
 import com.bernaferrari.bravedns.util.OrbotHelper
 import com.bernaferrari.bravedns.util.OrbotHelper.Companion.NOTIF_CHANNEL_ID_PROXY_ALERTS
@@ -56,7 +59,10 @@ class NotificationActionReceiver : BroadcastReceiver(), KoinComponent {
                 manager.cancel(NOTIF_CHANNEL_ID_PROXY_ALERTS, OrbotHelper.ORBOT_SERVICE_ID)
             }
             Constants.NOTIF_ACTION_PAUSE_VPN -> {
-                pauseApp(context)
+                pauseApp(context, HomePauseDuration.FifteenMinutes)
+            }
+            Constants.NOTIF_ACTION_PAUSE_VPN_HOUR -> {
+                pauseApp(context, HomePauseDuration.OneHour)
             }
             Constants.NOTIF_ACTION_RESUME_VPN -> {
                 resumeApp()
@@ -116,17 +122,15 @@ class NotificationActionReceiver : BroadcastReceiver(), KoinComponent {
         VpnController.stop("notif", context)
     }
 
-    private fun pauseApp(context: Context) {
-        if (!VpnController.hasTunnel()) {
+    /** The same pause as Home's Pause menu, so both resume after the same time. */
+    private fun pauseApp(context: Context, duration: HomePauseDuration) {
+        if (!pauseProtection(duration, VpnControllerPauseControls)) {
             Utilities.showToastUiCentered(
                 context,
                 context.getString(R.string.hsf_pause_vpn_failure),
                 Toast.LENGTH_SHORT
             )
-            return
         }
-
-        VpnController.pauseApp()
     }
 
     private fun resumeApp() {

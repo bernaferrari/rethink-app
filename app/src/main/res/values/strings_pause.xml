@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Pause: the paused hero's time controls and the notification's Pause actions. -->
+<resources>
+    <!-- Paused hero: move a timed pause, or switch between timed and until resumed. -->
+    <string name="home_pause_remove_15_minutes">−15 min</string>
+    <string name="home_pause_remove_15_minutes_description">15 minutes less</string>
+    <string name="home_pause_add_15_minutes">+15 min</string>
+    <string name="home_pause_add_15_minutes_description">15 minutes more</string>
+    <string name="home_pause_no_timer">No timer</string>
+    <string name="home_pause_no_timer_description">Pause until I resume</string>
+    <string name="home_pause_resume_in_15_minutes">Resume in 15 minutes</string>
+    <string name="home_pause_resume_in_1_hour">Resume in 1 hour</string>
+
+    <!-- Foreground notification: the same durations as Home's Pause menu. -->
+    <string name="notification_action_pause_15_minutes">Pause 15 min</string>
+    <string name="notification_action_pause_1_hour">Pause 1 hour</string>
+</resources>

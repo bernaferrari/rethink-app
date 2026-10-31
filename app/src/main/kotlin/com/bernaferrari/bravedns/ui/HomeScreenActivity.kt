@@ -146,6 +146,7 @@ import com.bernaferrari.bravedns.ui.compose.home.HomeHealthIssue
 import com.bernaferrari.bravedns.ui.compose.home.HomePauseDuration
 import com.bernaferrari.bravedns.ui.compose.home.HomeProtectionActions
 import com.bernaferrari.bravedns.ui.compose.home.VpnControllerPauseControls
+import com.bernaferrari.bravedns.ui.compose.home.adjustPause
 import com.bernaferrari.bravedns.ui.compose.home.pauseProtection
 import com.bernaferrari.bravedns.util.BioMetricType
 import com.bernaferrari.bravedns.util.Constants
@@ -946,6 +947,7 @@ class HomeScreenActivity : FragmentActivity() {
                 persistentState.shouldRequestNotificationPermission = false
                 refreshHomeEnvironment()
             },
+            onAdjustPause = { adjustment -> adjustPause(adjustment, VpnControllerPauseControls) },
         )
     }
 

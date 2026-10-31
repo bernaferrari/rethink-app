@@ -61,6 +61,8 @@ data class HomeProtectionActions(
     val onDismissProtectedCard: () -> Unit,
     val onAllowNotifications: () -> Unit,
     val onDeclineNotifications: () -> Unit,
+    /** The paused hero's time controls (±15 min, until resumed, a fresh timer). */
+    val onAdjustPause: (HomePauseAdjustment) -> Unit = {},
 ) {
     companion object {
         val None = HomeProtectionActions({}, {}, {}, {}, {}, {}, {}, {})
@@ -86,6 +88,7 @@ fun HomeScreen(
         onBlockedAppClick = onAppClick?.let { open -> { id: String -> id.toIntOrNull()?.let(open) } },
         onPause = { choice -> actions.onPause(choice.toHomePauseDuration()) },
         onResume = actions.onResume,
+        onAdjustPause = { adjustment -> actions.onAdjustPause(adjustment.toHomePauseAdjustment()) },
         banner = uiState.health?.let { healthBanner(it, uiState, actions, onDnsClick) },
         card = uiState.card?.let { homeCard(it, uiState, actions, onReviewApps, onChooseBlocklists) },
     )
@@ -95,6 +98,14 @@ private fun RethinkPauseChoice.toHomePauseDuration() = when (this) {
     RethinkPauseChoice.FifteenMinutes -> HomePauseDuration.FifteenMinutes
     RethinkPauseChoice.OneHour -> HomePauseDuration.OneHour
     RethinkPauseChoice.UntilResumed -> HomePauseDuration.UntilResumed
+}
+
+private fun RethinkPauseAdjustment.toHomePauseAdjustment() = when (this) {
+    RethinkPauseAdjustment.RemoveFifteenMinutes -> HomePauseAdjustment.RemoveFifteenMinutes
+    RethinkPauseAdjustment.AddFifteenMinutes -> HomePauseAdjustment.AddFifteenMinutes
+    RethinkPauseAdjustment.UntilResumed -> HomePauseAdjustment.UntilResumed
+    RethinkPauseAdjustment.FifteenMinutes -> HomePauseAdjustment.FifteenMinutes
+    RethinkPauseAdjustment.OneHour -> HomePauseAdjustment.OneHour
 }
 
 @Composable
@@ -194,6 +205,8 @@ private fun HomeScreenUiState.toCommonUiState() = RethinkHomeUiState(
     } else {
         stringResource(R.string.home_paused_until_resumed)
     },
+    pauseTimed = pauseRemainingMillis > 0,
+    pauseCanShorten = canShortenPause(pauseRemainingMillis),
 )
 
 @Composable
@@ -255,6 +268,14 @@ private fun androidHomeStrings() = RethinkHomeStrings(
     pauseFifteenMinutes = stringResource(R.string.home_pause_15_minutes),
     pauseOneHour = stringResource(R.string.home_pause_1_hour),
     pauseUntilResumed = stringResource(R.string.home_pause_until_resumed),
+    pauseRemoveFifteenMinutes = stringResource(R.string.home_pause_remove_15_minutes),
+    pauseRemoveFifteenMinutesDescription = stringResource(R.string.home_pause_remove_15_minutes_description),
+    pauseAddFifteenMinutes = stringResource(R.string.home_pause_add_15_minutes),
+    pauseAddFifteenMinutesDescription = stringResource(R.string.home_pause_add_15_minutes_description),
+    pauseNoTimer = stringResource(R.string.home_pause_no_timer),
+    pauseNoTimerDescription = stringResource(R.string.home_pause_no_timer_description),
+    pauseResumeInFifteenMinutesDescription = stringResource(R.string.home_pause_resume_in_15_minutes),
+    pauseResumeInOneHourDescription = stringResource(R.string.home_pause_resume_in_1_hour),
     resume = stringResource(R.string.home_resume),
     openDns = stringResource(R.string.home_open_dns),
 )

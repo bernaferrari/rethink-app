@@ -200,6 +200,7 @@ class Constants {
         const val NOTIFICATION_ACTION = "NOTIFICATION_VALUE"
         const val NOTIF_ACTION_STOP_VPN = "RETHINK_STOP" // stop vpn service
         const val NOTIF_ACTION_PAUSE_VPN = "RETHINK_PAUSE" // pause vpn
+        const val NOTIF_ACTION_PAUSE_VPN_HOUR = "RETHINK_PAUSE_HOUR" // pause vpn for an hour
         const val NOTIF_ACTION_RESUME_VPN = "RETHINK_RESUME" // resume vpn
         const val NOTIF_ACTION_DNS_VPN = "RETHINK_DNSONLY" // battery-saver dns-only
         const val NOTIF_ACTION_DNS_FIREWALL_VPN = "RETHINK_FULLMODE" // default dns+firewall
