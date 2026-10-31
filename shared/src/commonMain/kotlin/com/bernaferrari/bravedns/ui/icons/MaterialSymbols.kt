@@ -70,6 +70,7 @@ object MaterialSymbols {
         val Map: ImageVector get() = filledMap
         val MobiledataArrows: ImageVector get() = filledMobiledataArrows
         val MobiledataOff: ImageVector get() = filledMobiledataOff
+        val Monitoring: ImageVector get() = filledMonitoring
         val MoreHoriz: ImageVector get() = filledMoreHoriz
         val MoreVert: ImageVector get() = filledMoreVert
         val Movie: ImageVector get() = filledMovie
@@ -124,8 +125,10 @@ object MaterialSymbols {
     }
 
     object Outlined {
+        val Apps: ImageVector get() = outlinedApps
         val Home: ImageVector get() = outlinedHome
         val InsertChart: ImageVector get() = outlinedInsertChart
+        val Monitoring: ImageVector get() = outlinedMonitoring
         val Settings: ImageVector get() = outlinedSettings
         val Star: ImageVector get() = outlinedStar
     }
