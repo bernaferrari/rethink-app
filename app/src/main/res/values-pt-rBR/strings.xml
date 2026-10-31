@@ -138,8 +138,6 @@
     <string name="download_update_dialog_message">Uma nova versão do aplicativo está disponível para download no site. Continuar?</string>
     <string name="download_update_dialog_message_success">Download da lista de bloqueio bem-sucedido.</string>
     <string name="download_update_dialog_trylater_title">Não é possível atualizar agora</string>
-    <string name="search_universal_ips">Buscar IPs</string>
-    <string name="search_custom_domains">Buscar nomes de domínio</string>
     <string name="universal_firewall_explanation">Aplicar regras de firewall para todos os aplicativos baseado em eventos no dispositivo, p.ex., usar firewall quando o dispositivo estiver bloqueado ou quando um determinado aplicativo não estiver em uso.</string>
     <string name="settings_allow_bypass_desc">Permitir a solicitação de aplicativos para acessar todas as redes disponíveis. Esses aplicativos podem ignorar o túnel VPN sob demanda do Keepout. Alguns aplicativos de conferência de áudio/vídeo, como Zoom e Meet, podem exigir que isso funcione corretamente.</string>
     <string name="orbot_status_arg_2">TCP</string>
@@ -701,7 +699,6 @@
     <string name="memory_notification_text">Keepout está com pouca memória. As ações do sistema podem ser limitadas.</string>
     <string name="lbl_test" translatable="true">Testar</string>
     <string name="lbl_experimental" translatable="true">(experimental)</string>
-    <string name="lbl_service_providers" translatable="true">Provedores de serviços</string>
     <string name="lbl_manual" translatable="true">Manual</string>
     <string name="lbl_fallback" translatable="true">Fallback</string>
     <string name="dns_desc" translatable="true">Escolha entre mais de 190 listas para bloquear anúncios, rastreadores e malware.</string>
@@ -781,7 +778,6 @@
     <string name="ac_toast_retry_disabled" translatable="true">Escolha qualquer opção anticensura para definir a estratégia.</string>
     <string name="anti_censorship_title" translatable="true">Anticensura</string>
     <string name="blocklist_not_available_toast" translatable="true">Para atualizar as listas de bloqueio, baixe a versão mais recente do aplicativo.</string>
-    <string name="close_conns_dialog_desc" translatable="true">Feche todas as conexões para%1$s?</string>
     <string name="config_invalid_desc" translatable="true">Configuração WireGuard Inválida</string>
     <string name="copied_clipboard" translatable="true">Copiado(a)</string>
     <string name="download_ip_info_title" translatable="true">Mostrar informações do provedor</string>

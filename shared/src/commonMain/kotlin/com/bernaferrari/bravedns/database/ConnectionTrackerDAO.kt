@@ -110,21 +110,6 @@ interface ConnectionTrackerDAO : StatsRebuildDao {
     fun getBlockedConnections(query: String): PagingSource<Int, ConnectionTracker>
 
     @Query(
-        "SELECT uid, ipAddress, port, COUNT(ipAddress) as count, flag as flag, 0 as blocked, GROUP_CONCAT(DISTINCT dnsQuery) as appOrDnsName, SUM(downloadBytes) as downloadBytes, SUM(uploadBytes) as uploadBytes, SUM(downloadBytes + uploadBytes) as totalBytes FROM ConnectionTracker WHERE uid = :uid and timeStamp > :to GROUP BY uid, ipAddress, port ORDER BY count DESC"
-    )
-    fun getAppIpLogs(uid: Int, to: Long): PagingSource<Int, AppConnection>
-
-    @Query(
-        "SELECT uid, ipAddress, port, COUNT(ipAddress) as count, flag as flag, 0 as blocked, '' as appOrDnsName, SUM(downloadBytes) as downloadBytes, SUM(uploadBytes) as uploadBytes, SUM(downloadBytes + uploadBytes) as totalBytes FROM ConnectionTracker WHERE uid = :uid and timeStamp > :to GROUP BY uid, ipAddress, port ORDER BY count DESC LIMIT 3"
-    )
-    fun getAppIpLogsLimited(uid: Int, to: Long): Flow<List<AppConnection>>
-
-    @Query(
-        "SELECT uid, ipAddress, port, COUNT(ipAddress) as count, flag as flag, 0 as blocked, GROUP_CONCAT(DISTINCT dnsQuery) as appOrDnsName, SUM(downloadBytes) as downloadBytes, SUM(uploadBytes) as uploadBytes, SUM(downloadBytes + uploadBytes) as totalBytes FROM ConnectionTracker WHERE uid = :uid and timeStamp > :to and ipAddress like :query GROUP BY  uid, ipAddress, port ORDER BY count DESC"
-    )
-    fun getAppIpLogsFiltered(uid: Int, to: Long, query: String): PagingSource<Int, AppConnection>
-
-    @Query(
         "select * from ConnectionTracker where blockedByRule in (:filter) and isBlocked = 1 order by id desc LIMIT $MAX_LOGS"
     )
     fun getBlockedConnectionsFiltered(filter: Set<String>): PagingSource<Int, ConnectionTracker>
@@ -155,9 +140,6 @@ interface ConnectionTrackerDAO : StatsRebuildDao {
     @Query("delete from ConnectionTracker where uid = :uid") suspend fun clearLogsByUidRaw(uid: Int)
 
     @Query("delete from ConnectionTracker where blockedByRule = :rule") suspend fun clearLogsByRuleRaw(rule: String)
-
-    @Query("delete from ConnectionTracker where uid = :uid and timeStamp > :time")
-    suspend fun clearLogsByTimeRaw(uid: Int, time: Long)
 
     @Query("DELETE FROM ConnectionTracker WHERE  timeStamp < :date") suspend fun purgeLogsByDate(date: Long)
 
@@ -344,12 +326,6 @@ interface ConnectionTrackerDAO : StatsRebuildDao {
     @Transaction
     suspend fun clearLogsByRule(rule: String) {
         clearLogsByRuleRaw(rule)
-        rebuildStats()
-    }
-
-    @Transaction
-    suspend fun clearLogsByTime(uid: Int, time: Long) {
-        clearLogsByTimeRaw(uid, time)
         rebuildStats()
     }
 }

@@ -45,8 +45,6 @@
     <string name="refresh_complete">Programėlių sąrašo pakartotinė sinchronizacija baigta.</string>
     <string name="http_proxy_dialog_heading">Nustatyti HTTP(S) įgaliotąjį serverį</string>
     <string name="download_update_dialog_message_success">Blokavimo sąrašas atsisiųstas sėkmingai.</string>
-    <string name="search_universal_ips">Ieškoti IP adresų</string>
-    <string name="search_custom_domains">Ieškoti domenų vardų</string>
     <string name="settings_enable_logs">Įgalinti registravimą įrenginyje</string>
     <string name="connection_http3">HTTP3</string>
     <string name="settings_allow_bypass_heading">Leisti apeiti</string>

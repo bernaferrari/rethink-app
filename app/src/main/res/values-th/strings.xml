@@ -78,7 +78,6 @@
     <string name="dns_proxy_remove_success" translatable="true">ลบพร็อกซี DNS แล้ว</string>
     <string name="blocklist_update_check_failure" translatable="true">มีบางอย่างผิดพลาด โปรดลองอีกครั้งในภายหลัง!</string>
     <string name="local_blocklist_redownload_desc" translatable="true">รายการบล็อคบนอุปกรณ์มีเวอร์ชันล่าสุดแล้ว v%1$s</string>
-    <string name="search_custom_domains" translatable="true">ค้นหาชื่อโดเมน</string>
     <string name="search_proxy_add_apps" translatable="true">ค้นหาแอปตามชื่อ</string>
     <string name="info_dialog_url_copy_toast_msg" translatable="true">คัดลอก URL แล้ว</string>
     <string name="orbot_socks5" translatable="true">พร็อกซี TCP เท่านั้น</string>
@@ -429,7 +428,6 @@
     <string name="http_proxy_dialog_desc" translatable="true">ตั้งค่า URL ของฟอร์ม &lt;โปรโตคอล&gt;://&lt;ชื่อผู้ใช้&gt;:&lt;รหัสผ่าน&gt;@&lt;โดเมนหรือไอพี&gt;:&lt;พอร์ต&gt;&lt;เส้นทาง&gt; ตัวอย่าง: http://proxy.example.com:8080/</string>
     <string name="download_update_dialog_trylater_title" translatable="true">ไม่สามารถอัปเดตได้ในขณะนี้</string>
     <string name="download_update_dialog_trylater_message" translatable="true">ไม่สามารถดำเนินการอัปเดตได้ในขณะนี้ โปรดลองอีกครั้งในภายหลัง</string>
-    <string name="search_universal_ips" translatable="true">ค้นหา IP</string>
     <string name="info_dialog_copy_toast_msg" translatable="true">คัดลอกที่อยู่ IP แล้ว</string>
     <string name="connection_http3" translatable="true">HTTP3</string>
     <string name="settings_allow_lan_heading" translatable="true">อย่ากำหนดเส้นทาง IP ส่วนตัว (ทดลอง)</string>

@@ -284,7 +284,6 @@
     <string name="http_proxy_dialog_heading">Establecer CONEXIÓN proxy HTTP(S)</string>
     <string name="download_update_dialog_trylater_message">La actualización no puede ejecutarse en este momento, por favor inténtelo de nuevo más tarde.</string>
     <string name="blocklist_update_check_failure">Algo ha ido mal. ¡Vuelve a intentarlo de nuevo!</string>
-    <string name="search_custom_domains">Buscar nombres de dominio</string>
     <string name="info_dialog_copy_toast_msg">Dirección IP copiada.</string>
     <string name="info_dialog_url_copy_toast_msg">URL copiada</string>
     <string name="info_dialog_rethink_toast_msg">Copiada URL como RDNS+ DNS-sobre-HTTPS</string>
@@ -461,7 +460,6 @@
     <string name="orbot_website_link">https://guardianproject.info/apps/org.torproject.android/</string>
     <string name="settings_allow_bypass_heading">Habilitar la visibilidad de la red</string>
     <string name="settings_ip_dialog_ipv6">IPv6 (en pruebas)</string>
-    <string name="search_universal_ips">Buscar IPs</string>
     <string name="title_about">Acerca de</string>
     <string name="about_version_install_source">v%1$s (%2$s)</string>
     <string name="about_telegram_link">https://telegram.me/rethinkdns</string>
@@ -701,7 +699,6 @@
     <string name="memory_notification_text">Keepout tiene poca memoria. Las acciones del sistema pueden estar limitadas.</string>
     <string name="lbl_test" translatable="true">Prueba</string>
     <string name="lbl_experimental" translatable="true">(experimental)</string>
-    <string name="lbl_service_providers" translatable="true">Provedores de servicio</string>
     <string name="lbl_manual" translatable="true">Manual</string>
     <string name="dns_desc" translatable="true">Elige entre más de 190 listas para bloquear anuncios, rastreadores y malware.</string>
     <string name="status_no_network" translatable="true">Sin conexión</string>
@@ -720,8 +717,6 @@
     <string name="most_contacted_asn" translatable="true">Proveedores más contactados</string>
     <string name="most_blocked_asn" translatable="true">Proveedores más bloqueados</string>
     <string name="download_ip_info_title" translatable="true">Mostrar información del proveedor</string>
-    <string name="close_conns_dialog_title" translatable="true">Cerrar Conexiones</string>
-    <string name="close_conns_dialog_desc" translatable="true">¿Cerrar todas las conexiones para %1$s?</string>
     <string name="about_license" translatable="true">Licencia bajo Apache-2.0</string>
     <string name="smart_dns" translatable="true">DNS Inteligente</string>
     <string name="vpn_policy_relaxed" translatable="true">Relajado</string>

@@ -98,7 +98,6 @@
     <string name="dns_crypt_custom_url_remove_dialog_title" translatable="true">Törli a DNSCrypt feloldót?</string>
     <string name="download_update_dialog_message" translatable="true">Az alkalmazás új verziója letölthető a weboldalról. Szeretné folytatni?</string>
     <string name="settings_ip_dialog_title" translatable="true">IP verzió kiválasztása</string>
-    <string name="search_universal_ips" translatable="true">IP-címek keresése</string>
     <string name="always_on_dialog_positive" translatable="true">Leállítás</string>
     <string name="private_dns_dialog_desc" translatable="true">A Rethink DNS beállításait felülírja az Android \"Privát DNS\" funkciója.\n\nA Rethink DNS használatához nyissa meg az Android Beállításokat, és kapcsolja ki a \"Privát DNS\" funkciót.</string>
     <string name="dns_crypt_url_remove_success" translatable="true">A DNSCrypt feloldó törölve.</string>
@@ -202,7 +201,6 @@
     <string name="download_update_dialog_message_ok_title" translatable="true">Naprakész!</string>
     <string name="download_update_dialog_message_success" translatable="true">A blokklista letöltése sikerült.</string>
     <string name="download_update_dialog_trylater_title" translatable="true">Jelenleg nem frissíthető</string>
-    <string name="search_custom_domains" translatable="true">Domain nevek keresése</string>
     <string name="public_key_copy_toast_msg" translatable="true">Nyilvános kulcs másolva.</string>
     <string name="info_dialog_rethink_toast_msg" translatable="true">RDNS+ DNS-over-HTTPS URL-ként másolva</string>
     <string name="settings_enable_logs_desc" translatable="true">A DNS- és tűzfal-naplók helyi tárolása az eszközön.</string>
@@ -667,7 +665,6 @@
     <string name="crypt_relay_singapore" translatable="true">Névtelenített DNS átjátszó (relay) Szingapúrban.</string>
     <string name="cd_toast_edit" translatable="true">Szerkesztve</string>
     <string name="lbl_test" translatable="true">Teszt</string>
-    <string name="lbl_service_providers" translatable="true">Szolgáltatók</string>
     <string name="dns_desc" translatable="true">Válasszon több mint 190 listából a hirdetések, nyomkövetők és kártevők blokkolásához.</string>
     <string name="status_no_network" translatable="true">Nincs hálózati kapcsolat</string>
     <string name="dc_use_sys_dns_undelegated_heading" translatable="true">A rendszer DNS használata a nem delegált tartományokhoz</string>
@@ -722,8 +719,6 @@
     <string name="download_ip_info_title" translatable="true">Szolgáltató információinak megjelenítése</string>
     <string name="download_ip_info_desc" translatable="true">Lekéri a weboldalak szolgáltatói adatait a rethinkdns.com oldalról, a következő által működtetve: %1$s</string>
     <string name="top_active_conns" translatable="true">Top aktív kapcsolatok</string>
-    <string name="close_conns_dialog_title" translatable="true">Kapcsolatok bezárása</string>
-    <string name="close_conns_dialog_desc" translatable="true">Bezárja az összes kapcsolatot ehhez: %1$s?</string>
     <string name="local_blocklist_delete_desc" translatable="true">Törli az eszközön tárolt tiltólistákat?</string>
     <string name="fail_open_network_title" translatable="true">A hálózati kapcsolat elvesztése esetén megállítás</string>
     <string name="fail_open_network_desc" translatable="true">Ha engedélyezve van, a Keepout minden adatforgalmat leállít, amikor nincs elérhető hálózati kapcsolat, például repülőgép üzemmódban.</string>

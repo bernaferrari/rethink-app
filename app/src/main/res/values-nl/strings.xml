@@ -14,9 +14,7 @@
     <string name="settings_general_header">algemeen</string>
     <string name="download_update_dialog_failure_message">Onze servers liggen plat of de verbinding kon niet tot stand worden gebracht. Probeer het na enige tijd opnieuw.</string>
     <string name="download_update_dialog_trylater_message">De update kan nu niet worden uitgevoerd, probeer het later nog eens.</string>
-    <string name="search_universal_ips">IP\'s zoeken</string>
     <string name="settings_enable_logs">On-device logging inschakelen</string>
-    <string name="search_custom_domains">Domeinnamen zoeken</string>
     <string name="settings_socks5_vpn_disabled_error">Start RethinkDNS om verder te gaan.</string>
     <string name="settings_network_all_networks_desc">Indien ingeschakeld, gebruikt RethinkDNS alle beschikbare netwerken om verbinding te maken met het internet. Indien niet, gebruikt het netwerk dat door Android als actief wordt beschouwd.</string>
     <string name="settings_https_heading">HTTP(S)-proxy instellen</string>

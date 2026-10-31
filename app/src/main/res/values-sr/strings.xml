@@ -3,7 +3,6 @@
     <string name="local_blocklist_redownload_desc" translatable="true">Блоклиста на уређају је већ на последњој верзији v%1$s.</string>
     <string name="download_update_dialog_message" translatable="true">Нова верзија апликације је доступна за преузимање са веб сајта. Да ли желите да наставите?</string>
     <string name="download_update_dialog_message_ok" translatable="true">Већ сте на последњој верзији.</string>
-    <string name="search_universal_ips" translatable="true">Претражи IP-јеве</string>
     <string name="title_about" translatable="true">О програму</string>
     <string name="title_settings" translatable="true">Подешавања</string>
     <string name="title_statistics" translatable="true">Статистика</string>
@@ -118,7 +117,6 @@
     <string name="download_update_dialog_failure_message" translatable="true">Или наши сервери нису доступни или конекција није могла бити успостављена. Молим вас покушајте поново после неког времена.</string>
     <string name="download_update_dialog_trylater_title" translatable="true">Надоградња није могућа у овом тренутку</string>
     <string name="download_update_dialog_trylater_message" translatable="true">Надоградња се тренутно не може извршити, молим вас покушајте поново касније.</string>
-    <string name="search_custom_domains" translatable="true">Претражи имена домена</string>
     <string name="search_proxy_add_apps" translatable="true">Претражи апликације по називу</string>
     <string name="info_dialog_copy_toast_msg" translatable="true">IP адреса је ископирана.</string>
     <string name="info_dialog_url_copy_toast_msg" translatable="true">URL је ископиран</string>

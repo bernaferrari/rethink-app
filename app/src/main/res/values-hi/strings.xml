@@ -43,8 +43,6 @@
     <string name="download_update_dialog_message_ok" translatable="true">आप पहले से ही नवीनतम संस्करण पर हैं।</string>
     <string name="download_update_dialog_message_success" translatable="true">ब्लॉकलिस्ट डाउनलोड सफल।</string>
     <string name="download_update_dialog_trylater_message" translatable="true">अपडेट अभी नही किया जा सकता है, कृपया बाद में पुन: प्रयास करें।</string>
-    <string name="search_universal_ips" translatable="true"> आईपी खोजें </string>
-    <string name="search_custom_domains" translatable="true"> डोमेन नाम खोजें </string>
     <string name="title_statistics" translatable="true">आँकड़े</string>
     <string name="lbl_cancel" translatable="true">रद्द करे</string>
     <string name="notification_action_resume_vpn" translatable="true">जारी रखे</string>

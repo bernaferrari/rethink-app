@@ -161,7 +161,6 @@
     <string name="download_update_dialog_message_success" translatable="true">Изтеглянето на блоковия списък е успешно.</string>
     <string name="download_update_dialog_failure_title" translatable="true">Нещо се обърка!</string>
     <string name="download_update_dialog_trylater_message" translatable="true">Актуализацията не може да бъде изпълнена в момента, моля, опитайте отново по-късно.</string>
-    <string name="search_universal_ips" translatable="true">Търсене на IP адреси</string>
     <string name="search_proxy_add_apps" translatable="true">Търсене на приложения по име</string>
     <string name="info_dialog_rethink_toast_msg" translatable="true">Копиран като RDNS+ DNS-over-HTTPS URL</string>
     <string name="settings_connectivity_checks_desc" translatable="true">Проверките за свързаност се изпращат, за да се установи достъпността.</string>
@@ -187,7 +186,6 @@
     <string name="orbot_none" translatable="true">Няма (по подразбиране)</string>
     <string name="memory_notification_text">Keepout има недостатъчна памет. Системните действия може да са ограничени.</string>
     <string name="dns_proxy_remove_dialog_title" translatable="true">Изтриване на DNS прокси?</string>
-    <string name="search_custom_domains" translatable="true">Търсене на имена на домейни</string>
     <string name="settings_enable_logs_desc" translatable="true">Съхранявайте логовете на DNS и защитната стена локално в устройството.</string>
     <string name="settings_proxy_header" translatable="true">прокси</string>
     <string name="settings_socks5_heading" translatable="true">Настройка на прокси сървър SOCKS5</string>

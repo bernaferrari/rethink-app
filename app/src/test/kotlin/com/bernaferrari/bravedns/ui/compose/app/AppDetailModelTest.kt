@@ -5,7 +5,9 @@ import com.bernaferrari.bravedns.service.FirewallManager.ConnectionStatus
 import com.bernaferrari.bravedns.service.FirewallManager.FirewallStatus
 import com.bernaferrari.bravedns.ui.compose.apps.RethinkAppMode
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AppDetailModelTest {
@@ -88,5 +90,13 @@ class AppDetailModelTest {
         assertEquals(1, minutesLeft(expiry = 61_000L, now = 59_000L))
         assertNull(minutesLeft(expiry = 1_000L, now = 1_000L))
         assertNull(minutesLeft(expiry = 0L, now = 5L))
+    }
+
+    @Test
+    fun bypassAllProxiesShowsWithAProxyOrWhileTheAppBypasses() {
+        assertFalse(showProxyExclude(anyProxySetUp = false, proxyExcluded = false))
+        assertTrue(showProxyExclude(anyProxySetUp = true, proxyExcluded = false))
+        // Already bypassing with no proxy left: still offered, so it can be turned off.
+        assertTrue(showProxyExclude(anyProxySetUp = false, proxyExcluded = true))
     }
 }

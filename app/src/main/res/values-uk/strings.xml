@@ -297,10 +297,8 @@
     <string name="download_update_dialog_failure_title" translatable="true">Щось пішло не так!</string>
     <string name="download_update_dialog_failure_message" translatable="true">Або наші сервери не працюють, або не вдалося встановити з\'єднання. Будь ласка, спробуйте ще раз через деякий час.</string>
     <string name="download_update_dialog_trylater_message" translatable="true">Оновлення неможливо виконати зараз, будь ласка, спробуйте пізніше.</string>
-    <string name="search_custom_domains" translatable="true">Пошук доменів</string>
     <string name="download_update_dialog_trylater_title" translatable="true">Неможливо оновити зараз</string>
     <string name="download_update_dialog_message_ok" translatable="true">Ви вже використовуєте останню версію.</string>
-    <string name="search_universal_ips" translatable="true">Пошук IP</string>
     <string name="download_update_dialog_message_ok_title" translatable="true">Актуально!</string>
     <string name="info_dialog_url_copy_toast_msg" translatable="true">URL-адреса скопійована</string>
     <string name="orbot_install_dialog_positive" translatable="true">Встановлення</string>
@@ -679,7 +677,6 @@
     <string name="bad_config_reason_missing_section" translatable="true">Відсутній атрибут</string>
     <string name="lbl_test" translatable="true">тест</string>
     <string name="lbl_experimental" translatable="true">(експериментальний)</string>
-    <string name="lbl_service_providers" translatable="true">Постачальники послуг</string>
     <string name="lbl_manual" translatable="true">Ручний</string>
     <string name="dns_desc" translatable="true">Оберіть один із понад 190 списків, щоб зупинити рекламу, трекери та шкідливе програмне забезпечення.</string>
     <string name="status_no_network" translatable="true">Немає мережі</string>
@@ -733,8 +730,6 @@
     <string name="download_ip_info_title" translatable="true">Показати інформацію про постачальника</string>
     <string name="download_ip_info_desc" translatable="true">Отримує інформацію про постачальників послуг для веб-сайтів з rethinkdns.com, що працює на %1$s</string>
     <string name="top_active_conns" translatable="true">Найактивніші з\'єднання</string>
-    <string name="close_conns_dialog_title" translatable="true">Тісні зв\'язки</string>
-    <string name="close_conns_dialog_desc" translatable="true">Закрити всі з’єднання для %1$s?</string>
     <string name="local_blocklist_delete_desc" translatable="true">Видалити списки блокування на пристрої?</string>
     <string name="fail_open_network_title" translatable="true">Зупинка через втрату мережі</string>
     <string name="fail_open_network_desc" translatable="true">Коли функцію ввімкнено, Keepout зупиняє всі дані, коли немає з’єднання, наприклад, у режимі У літаку.</string>

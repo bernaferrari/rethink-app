@@ -143,8 +143,6 @@
     <string name="dot_custom_url_remove_dialog_message" translatable="true">Smazat DNS over TLS endpoint z uložené konfigurace.</string>
     <string name="blocklist_update_check_failure" translatable="true">Něco se pokazilo. Zkuste to prosím později!</string>
     <string name="blocklist_update_check_not_required" translatable="true">Blokovací seznamy jsou již v nejnovější verzi.</string>
-    <string name="search_universal_ips" translatable="true">Hledat IP adresy</string>
-    <string name="search_custom_domains" translatable="true">Hledat názvy domén</string>
     <string name="settings_exclude_proxy_apps_heading" translatable="true">Loopback proxy forwarder aplikace</string>
     <string name="settings_allow_bypass_heading" translatable="true">Povolit viditelnost sítě</string>
     <string name="settings_lock_down_mode_desc" translatable="true">Některé možnosti jsou zakázány, když je VPN v režimu lockdown. Viz nastavení VPN.</string>
@@ -737,7 +735,6 @@
     <string name="blocklist_not_available_toast" translatable="true">Pro aktualizaci seznamů blokování si stáhněte nejnovější verzi aplikace.</string>
     <string name="cd_split_dns_desc" translatable="true">Přeposílat DNS dotazy z aplikací přes proxy na DNS servery dané proxy.</string>
     <string name="cd_split_dns_heading" translatable="true">Rozdělené DNS (experimentální)</string>
-    <string name="close_conns_dialog_desc" translatable="true">Uzavřít všechna připojení pro %1$s?</string>
     <string name="config_invalid_desc" translatable="true">Neplatná konfigurace WireGuard</string>
     <string name="copied_clipboard" translatable="true">Zkopírováno</string>
     <string name="dc_filtering_heading" translatable="true">Filtrování</string>

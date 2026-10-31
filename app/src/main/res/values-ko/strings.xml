@@ -112,7 +112,6 @@
     <string name="local_blocklist_redownload_desc" translatable="true">기기 내 차단 목록이 이미 최신 버전 v%1$s입니다.</string>
     <string name="download_update_dialog_message_success" translatable="true">차단 목록 다운로드에 성공했습니다.</string>
     <string name="download_update_dialog_failure_title" translatable="true">뭔가 잘못되었습니다!</string>
-    <string name="search_custom_domains" translatable="true">도메인 명 검색</string>
     <string name="search_proxy_add_apps" translatable="true">이름으로 앱 검색</string>
     <string name="settings_enable_logs_desc" translatable="true">DNS와 방화벽 로그를 기기 내에 저장합니다.</string>
     <string name="settings_allow_bypass_heading" translatable="true">네트워크 가시성 활성화</string>
@@ -156,7 +155,6 @@
     <string name="download_update_dialog_failure_message" translatable="true">서버가 다운되었거나 연결 설정을 할 수 없습니다. 나중에 다시 시도해주세요.</string>
     <string name="download_update_dialog_trylater_message" translatable="true">지금은 업데이트를 수행할 수 없습니다. 나중에 다시 시도해주세요.</string>
     <string name="download_update_dialog_trylater_title" translatable="true">지금은 업데이트 할 수 없습니다</string>
-    <string name="search_universal_ips" translatable="true">IP 검색</string>
     <string name="info_dialog_rethink_toast_msg" translatable="true">RDNS+ DNS-over-HTTPS URL 복사됨</string>
     <string name="settings_enable_logs" translatable="true">기기 내 로깅 활성화</string>
     <string name="connection_http3" translatable="true">HTTP3</string>
@@ -571,7 +569,6 @@
     <string name="ci_trust_rule" translatable="true">신뢰</string>
     <string name="cleanbrowsing_adult_dns_desc" translatable="true">성인 필터는 모든 성인, 음란물, 노골적인 사이트에 대한 접속을 차단합니다. 프록시나 VPN, 일반 콘텐츠와 성인 콘텐츠가 섞인 사이트는 차단하지 않습니다. Reddit같은 사이트는 허용됩니다. Google 및 Bing은 안전 모드로 설정됩니다.</string>
     <string name="cleanbrowsing_family_dns_desc" translatable="true">가족 필터는 모든 성인, 음란물, 노골적인 사이트로의 접속을 차단합니다. 필터를 우회할 때 쓰이는 프록시 및 VPN 도메인도 차단합니다. 일반 콘텐츠와 성인 콘텐츠가 섞인 (Reddit같은) 사이트도 차단합니다. Google, Bing, YouTube는 안전 모드로 설정됩니다.</string>
-    <string name="close_conns_dialog_desc" translatable="true">%1$s의 모든 연결을 닫습니까?</string>
     <string name="cloudflare_dns_desc" translatable="true">어떤 DNS 요청도 차단하지 않습니다. Cloudflare의 1.1.1.1 DNS 엔드포인트를 사용합니다.</string>
     <string name="cloudflare_family_dns_desc" translatable="true">맬웨어 및 성인물을 차단합니다. Cloudflare의 1.1.1.3 DNS 엔드포인트를 사용합니다.</string>
     <string name="cloudflare_security_dns_desc" translatable="true">유해한 콘텐츠를 차단합니다. CloudFlare의 1.1.1.2 DNS 엔드포인트를 사용합니다.</string>

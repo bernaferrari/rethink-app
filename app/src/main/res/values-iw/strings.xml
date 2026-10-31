@@ -241,9 +241,7 @@
     <string name="refresh_complete" translatable="true"><!-- use dc_refresh_toast -->סנכרון רשימת האפליקציות הושלם.</string>
     <string name="dns_crypt_relay_remove_dialog_title" translatable="true">האם למחוק את DNSCrypt?</string>
     <string name="info_dialog_rethink_toast_msg" translatable="true">הועתק ככתובת DNS-over-HTTPS של RDNS+</string>
-    <string name="search_universal_ips" translatable="true">חפש כתובות IP</string>
     <string name="search_proxy_add_apps" translatable="true">חפש אפליקציות באמצעות שם</string>
-    <string name="search_custom_domains" translatable="true">חפש שמות דומיינים</string>
     <string name="public_key_copy_toast_msg" translatable="true">מפתח ציבורי הועתק.</string>
     <string name="connection_http3" translatable="true">HTTP3</string>
     <string name="settings_allow_lan_heading" translatable="true">לא לנתב כתובות IP פרטיות(ניסיוני)</string>

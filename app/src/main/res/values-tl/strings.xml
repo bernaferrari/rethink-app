@@ -31,7 +31,6 @@
     <string name="bypass_universal" translatable="true">lusutan ang pangkalahatan</string>
     <string name="universal_firewall_explanation" translatable="true">Mag-apply ng mga patakaran ng firewall sa lahat ng mga aplikasyon batay sa mga pangyayari sa device, halimbawa, mag-apply ng firewall kapag nakalock ang device o kapag hindi ginagamit ang partikular na app.</string>
     <string name="firewall_act_universal_tab" translatable="true">pangkalahatan</string>
-    <string name="search_universal_ips" translatable="true">Maghanap ng mga IP</string>
     <string name="firewall_rule_block_univ_ip" translatable="true">IP / Port (Pangkalahatan)</string>
     <string name="fapps_bypass_dns_firewall_dialog_message" translatable="true">Malagpasan ba ang universal DNS &amp; firewall na mga patakaran para sa mga nakalista na mga apps\?</string>
     <string name="firewall_rule_bypass_universal_ip" translatable="true">Na-bypass ang IP</string>

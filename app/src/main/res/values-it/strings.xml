@@ -74,8 +74,6 @@
     <string name="download_update_dialog_failure_message">I nostri server potrebbero non funzionare al momento o non è stato possibile stabilire una connessione. Riprova più tardi.</string>
     <string name="download_update_dialog_trylater_title">Impossibile aggiornare ora</string>
     <string name="download_update_dialog_trylater_message">L\'aggiornamento non può essere eseguito al momento, riprova più tardi.</string>
-    <string name="search_universal_ips">Cerca IP</string>
-    <string name="search_custom_domains">Cerca nomi di dominio</string>
     <string name="info_dialog_copy_toast_msg">Indirizzo IP copiato.</string>
     <string name="info_dialog_url_copy_toast_msg">URL copiato</string>
     <string name="info_dialog_rethink_toast_msg">Copiato come URL RDNS+ DNS-over-HTTPS</string>

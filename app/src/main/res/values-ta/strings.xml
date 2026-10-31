@@ -542,8 +542,6 @@
     <string name="download_update_dialog_message_success" translatable="true">பிளாக்லிச்ட் பதிவிறக்கம் வெற்றிகரமாக.</string>
     <string name="download_update_dialog_failure_title" translatable="true">ஏதோ தவறு நடந்துவிட்டது!</string>
     <string name="download_update_dialog_trylater_message" translatable="true">புதுப்பிப்பை இப்போது செயல்படுத்த முடியாது, தயவுசெய்து பின்னர் மீண்டும் முயற்சிக்கவும்.</string>
-    <string name="search_universal_ips" translatable="true"> ஐபிஎச் தேடல் </string>
-    <string name="search_custom_domains" translatable="true"> தேடல் டொமைன் பெயர்கள் </string>
     <string name="public_key_copy_toast_msg" translatable="true">பொது விசை நகலெடுக்கப்பட்டது.</string>
     <string name="info_dialog_rethink_toast_msg" translatable="true">Rdns+ dns-over-https முகவரி ஆக நகலெடுக்கப்பட்டது</string>
     <string name="settings_enable_logs_desc" translatable="true">டி.என்.எச் மற்றும் ஃபயர்வால் பதிவுகளை உள்நாட்டில் சாதனத்தில் சேமிக்கவும்.</string>
@@ -669,7 +667,6 @@
     <string name="memory_notification_text">ரீடிங்க் குறைந்த நினைவகத்தை அனுபவிக்கிறது. கணினி நடவடிக்கைகள் குறைவாக இருக்கலாம்.</string>
     <string name="lbl_test" translatable="true">தேர்வு</string>
     <string name="lbl_experimental" translatable="true">(சோதனை)</string>
-    <string name="lbl_service_providers" translatable="true">பணி வழங்குநர்கள்</string>
     <string name="lbl_manual" translatable="true">கையேடு</string>
     <string name="dns_desc" translatable="true">விளம்பரங்கள், டிராக்கர்கள் மற்றும் தீம்பொருளை நிறுத்த 190+ பட்டியல்களிலிருந்து தேர்வு செய்யவும்.</string>
     <string name="status_no_network" translatable="true">பிணையம் இல்லை</string>
@@ -722,8 +719,6 @@
     <string name="download_ip_info_title" translatable="true">வழங்குநரின் தகவலைக் காட்டு</string>
     <string name="download_ip_info_desc" translatable="true"> rethinkdns.com  இலிருந்து வலைத்தளங்களுக்கான பணி வழங்குநரின் விவரங்களைப் பெறுகிறது, %1$s  ஆல் இயக்கப்படுகிறது</string>
     <string name="top_active_conns" translatable="true">சிறந்த செயலில் உள்ள இணைப்புகள்</string>
-    <string name="close_conns_dialog_title" translatable="true">இணைப்புகளை மூடு</string>
-    <string name="close_conns_dialog_desc" translatable="true">%1$s க்கான அனைத்து இணைப்புகளையும் மூடவா?</string>
     <string name="local_blocklist_delete_desc" translatable="true">ஆன்-டெவிச் பிளாக்லிச்ட்களை நீக்கவா?</string>
     <string name="fail_open_network_title" translatable="true">பிணைய இழப்பை நிறுத்த வேண்டாம்</string>
     <string name="fail_open_network_desc" translatable="true">முடக்கப்படும்போது,  விமானப் பயன்முறை  ஐப் போல, இணைப்பு எதுவும் கிடைக்காதபோது எல்லா தரவையும் மறுபரிசீலனை செய்கிறது.</string>

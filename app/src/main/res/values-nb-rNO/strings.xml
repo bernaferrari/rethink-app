@@ -107,11 +107,9 @@
     <string name="dns_proxy_remove_dialog_message">Slett DNS-mellomtjeneren fra lagret oppsett.</string>
     <string name="about_dialog_neutral_button">Foreslå funksjoner</string>
     <string name="dns_proxy_remove_success">DNS-mellomtjener slettet.</string>
-    <string name="search_custom_domains">Søk etter domenenavn</string>
     <string name="cd_custom_doh_url_name_default">DoH</string>
     <string name="cd_dns_proxy_error_text_3">Ugyldig port</string>
     <string name="univ_view_blocked_ip">IP og port-regler</string>
-    <string name="search_universal_ips">Søk etter IP-er</string>
     <string name="cd_dns_crypt_dialog_name">Navn</string>
     <string name="hs_download_positive_default">OK</string>
     <string name="local_blocklist_download">Last ned svartelister</string>

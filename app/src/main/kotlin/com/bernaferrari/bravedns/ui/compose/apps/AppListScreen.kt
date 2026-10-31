@@ -20,7 +20,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkAppSort
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.R
@@ -47,12 +49,11 @@ import com.bernaferrari.bravedns.ui.compose.firewall.rethinkUsageText
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.util.Utilities
 import com.bernaferrari.bravedns.util.formatByteCount
+import com.bernaferrari.bravedns.viewmodel.AppConnectionStatus
 import com.bernaferrari.bravedns.viewmodel.AppInfoViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 private fun defaultAppFilters() =
@@ -143,13 +144,32 @@ fun AppListScreen(
     val portableApps = remember(loadedApps, context) {
         loadedApps?.map { it.toRethinkFirewallApp(context) }
     }
+    val haptics = LocalHapticFeedback.current
+
+    /** One row's Wi‑Fi / mobile data tap: write it now, then offer Undo back to the app's exact rule. */
+    fun commitConnectionToggle(app: RethinkFirewallApp, wifi: Boolean) {
+        // As App detail's tiles: the toggle haptic follows the state being left.
+        val wasBlocked = if (wifi) app.wifiBlocked else app.mobileBlocked
+        haptics.performHapticFeedback(if (wasBlocked) HapticFeedbackType.ToggleOn else HapticFeedbackType.ToggleOff)
+        scope.launch {
+            val change = withContext(Dispatchers.IO + NonCancellable) { viewModel.toggleNetwork(app.uid, wifi) }
+            logToggle(eventLogger, app, change.after.connection.name)
+            val message = resources.getString(networkToggleMessage(change.after.connection, wifi), app.appName)
+            snackbar.currentSnackbarData?.dismiss()
+            if (snackbar.showRuleUndoSnackbar(message, undoLabel)) {
+                val restored = withContext(Dispatchers.IO + NonCancellable) { viewModel.undo(change) }
+                if (restored) logToggle(eventLogger, app, change.before.connection.name, undo = true)
+            }
+        }
+    }
+
     fun requestConnectionToggle(app: RethinkFirewallApp, wifi: Boolean) {
-        scope.launch(Dispatchers.IO) {
-            val packages = FirewallManager.getAppNamesByUid(app.uid)
+        scope.launch {
+            val packages = withContext(Dispatchers.IO) { FirewallManager.getAppNamesByUid(app.uid) }
             if (packages.size > 1) {
-                withContext(Dispatchers.Main) { pendingToggle = AndroidFirewallToggleRequest(app, wifi, packages) }
+                pendingToggle = AndroidFirewallToggleRequest(app, wifi, packages)
             } else {
-                toggleFirewallConnection(eventLogger, app, wifi)
+                commitConnectionToggle(app, wifi)
             }
         }
     }
@@ -203,7 +223,7 @@ fun AppListScreen(
             },
             onConfirm = {
                 pendingToggle = null
-                scope.launch(Dispatchers.IO) { toggleFirewallConnection(eventLogger, request.app, request.wifi) }
+                commitConnectionToggle(request.app, request.wifi)
             },
             onDismiss = { pendingToggle = null },
         )
@@ -352,34 +372,21 @@ private fun dataUsageText(app: AppInfo): String? {
     )
 }
 
-private val AndroidFirewallToggleMutex = Mutex()
+/** The snackbar line for a row tap that left the app with [connection]. */
+private fun networkToggleMessage(connection: AppConnectionStatus, wifi: Boolean): Int = when {
+    wifi && (connection == AppConnectionStatus.Unmetered || connection == AppConnectionStatus.Both) -> R.string.app_done_blocked_wifi
+    wifi -> R.string.connection_done_allowed_wifi
+    connection == AppConnectionStatus.Metered || connection == AppConnectionStatus.Both -> R.string.app_done_blocked_mobile
+    else -> R.string.connection_done_allowed_mobile
+}
 
-private suspend fun toggleFirewallConnection(eventLogger: EventLogger, app: RethinkFirewallApp, wifi: Boolean) {
-    AndroidFirewallToggleMutex.withLock {
-        val current = FirewallManager.connectionStatus(app.uid)
-        val next = if (wifi) {
-            when (current) {
-                FirewallManager.ConnectionStatus.METERED -> FirewallManager.ConnectionStatus.BOTH
-                FirewallManager.ConnectionStatus.UNMETERED -> FirewallManager.ConnectionStatus.ALLOW
-                FirewallManager.ConnectionStatus.BOTH -> FirewallManager.ConnectionStatus.METERED
-                FirewallManager.ConnectionStatus.ALLOW -> FirewallManager.ConnectionStatus.UNMETERED
-            }
-        } else {
-            when (current) {
-                FirewallManager.ConnectionStatus.METERED -> FirewallManager.ConnectionStatus.ALLOW
-                FirewallManager.ConnectionStatus.UNMETERED -> FirewallManager.ConnectionStatus.BOTH
-                FirewallManager.ConnectionStatus.BOTH -> FirewallManager.ConnectionStatus.UNMETERED
-                FirewallManager.ConnectionStatus.ALLOW -> FirewallManager.ConnectionStatus.METERED
-            }
-        }
-        FirewallManager.updateFirewallStatus(app.uid, FirewallManager.FirewallStatus.NONE, next)
-        eventLogger.log(
-            EventType.FW_RULE_MODIFIED,
-            Severity.LOW,
-            "App list, rule change",
-            EventSource.UI,
-            false,
-            "UID: ${app.uid}, App: ${app.appName}, New FW status: $next",
-        )
-    }
+private fun logToggle(eventLogger: EventLogger, app: RethinkFirewallApp, connection: String, undo: Boolean = false) {
+    eventLogger.log(
+        EventType.FW_RULE_MODIFIED,
+        Severity.LOW,
+        "App list, rule change",
+        EventSource.UI,
+        true,
+        "${if (undo) "Undo: " else ""}UID: ${app.uid}, App: ${app.appName}, New FW status: $connection",
+    )
 }

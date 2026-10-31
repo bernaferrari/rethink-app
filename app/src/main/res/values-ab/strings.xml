@@ -98,8 +98,6 @@
     <string name="download_update_dialog_failure_message" translatable="true">Або ауга сэуакуа зыхьыуа ауасара, мамзацәа акьырызхуаз акьыра. Азыҳәа, ашьҭахь иагьырхәа.</string>
     <string name="download_update_dialog_trylater_title" translatable="true">Алашьахау иашвҭалымшны</string>
     <string name="download_update_dialog_trylater_message" translatable="true">Ашәахьа ауи иалацәажәаşan, аха акралра ашәаҳә уахтәатәыҟа.</string>
-    <string name="search_universal_ips" translatable="true">IP-қәа ашәахә</string>
-    <string name="search_custom_domains" translatable="true">Аҧсуа абиԥшқәа</string>
     <string name="info_dialog_copy_toast_msg" translatable="true">IP адрес аҭаххьит.</string>
     <string name="info_dialog_url_copy_toast_msg" translatable="true">АURL ахцәахәыхьлеит</string>
     <string name="info_dialog_rethink_toast_msg" translatable="true">RDNS+ DNS-asala-HTTPS URL ra-ihəyətsiz</string>
@@ -638,7 +636,6 @@
     <string name="memory_notification_text">Keepout- implementação ашәашәрала ацәымҵыра амҩаԥгара. Асистема аҟны амҩаԥгарақәа ры mulighed ашәашәрала иаҳа иаазбан.</string>
     <string name="lbl_test" translatable="true">тест</string>
     <string name="lbl_experimental" translatable="true">(аҧсуа)</string>
-    <string name="lbl_service_providers" translatable="true">А služибаҳәатқәа</string>
     <string name="lbl_manual" translatable="true">Аурок</string>
     <string name="dns_desc" translatable="true">190+ жәабаққәк иаҟоу ашәымақәа рахьтә дырхәа, ацыҧҧцәа, аус баҟа аҟаҵәцәа рыцәыуааит.</string>
     <string name="status_no_network" translatable="true">Аныҿакым</string>
@@ -690,7 +687,6 @@
     <string name="download_ip_info_title" translatable="true">Аҿыхгаҩ идыртәқәа ирбоит</string>
     <string name="download_ip_info_desc" translatable="true">Иуаахык информация аиуаахык аҵыхәтқәа а веб-саитқәа рзы rethinkdns.com иҟоу, %1$s аҟынтә иаахәҟьоуп</string>
     <string name="top_active_conns" translatable="true">Аҧшныла амҩыларақәа рхыԥш</string>
-    <string name="close_conns_dialog_title" translatable="true">Еицаталарақәа аахәымҧш</string>
     <string name="local_blocklist_delete_desc" translatable="true">Аҧсуажәырла аҵыхлақәа даацәымшра?</string>
     <string name="fail_open_network_title" translatable="true">Амшынра аҵыхәтәи аиҩымҵмра</string>
     <string name="fail_open_network_desc" translatable="true">Уаахыжьуа, Риthink аушьааит жьынчъеижьыр адгьыл ауахьтәи, иахьатәи ауахьтәи ауахьтәи ауахь ауахь ауахь ауахь ауахь ахь анхыжьуа, еиԥш Авиаҩылатә режим аҟны.</string>

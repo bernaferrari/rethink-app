@@ -156,8 +156,6 @@
     <string name="always_on_dialog_stop_heading" translatable="true">VPN Permanent</string>
     <string name="firewall_act_universal_tab" translatable="true">Universal</string>
     <string name="download_update_dialog_trylater_message" translatable="true">Nu se poate actualiza acum, încearcă din nou mai târziu.</string>
-    <string name="search_universal_ips" translatable="true">Caută IP-uri</string>
-    <string name="search_custom_domains" translatable="true">Caută nume de domeniu</string>
     <string name="search_proxy_add_apps" translatable="true">Caută aplicații după nume</string>
     <string name="info_dialog_copy_toast_msg" translatable="true">Adresă IP copiată.</string>
     <string name="info_dialog_url_copy_toast_msg" translatable="true">URL copiat</string>
@@ -669,7 +667,6 @@
     <string name="lbl_fallback" translatable="true">Rezervă</string>
     <string name="lbl_test" translatable="true">Test</string>
     <string name="lbl_experimental" translatable="true">(experimental)</string>
-    <string name="lbl_service_providers" translatable="true">Furnizori de Internet</string>
     <string name="dns_desc" translatable="true">Alege din peste 190 liste pentru a bloca reclame, trackers și malware.</string>
     <string name="status_no_network" translatable="true">Fără rețea</string>
     <string name="dc_use_sys_dns_undelegated_heading" translatable="true">Utilizează DNS de sistem pentru domenii nedelegate</string>
@@ -723,8 +720,6 @@
     <string name="download_ip_info_title" translatable="true">Arată informații despre ISP</string>
     <string name="download_ip_info_desc" translatable="true">Oferă detalii ISP-ului pentru website-uri de la rethinkdns.com, cu sprijinul %1$s</string>
     <string name="top_active_conns" translatable="true">Top conexiuni active</string>
-    <string name="close_conns_dialog_title" translatable="true">Închide conexiunile</string>
-    <string name="close_conns_dialog_desc" translatable="true">Închizi toate conexiunile pentru %1$s?</string>
     <string name="local_blocklist_delete_desc" translatable="true">Ștergi listele de blocat de pe dispozitiv?</string>
     <string name="fail_open_network_title" translatable="true">Blocare la pierderea rețelei</string>
     <string name="fail_open_network_desc" translatable="true">Când este activat, Keepout blochează toate datele când conectivitatea este întreruptă, ca în Modul Avion.</string>

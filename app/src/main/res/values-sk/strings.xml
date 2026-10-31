@@ -154,8 +154,6 @@
     <string name="download_update_dialog_failure_message" translatable="true">Buď naše servery sú dole alebo pripojenie nemôže byť stanovená. Skúste prosím znova po nejakom čase.</string>
     <string name="download_update_dialog_trylater_title" translatable="true">Teraz sa nedá aktualizovať</string>
     <string name="download_update_dialog_trylater_message" translatable="true">Aktualizácie nie je možné vykonať hneď, skúste to znova neskôr.</string>
-    <string name="search_universal_ips" translatable="true"> Hľadať IP adresy</string>
-    <string name="search_custom_domains" translatable="true">Hľadať názvy domén</string>
     <string name="search_proxy_add_apps" translatable="true">Hľadať aplikácie podľa názvu</string>
     <string name="info_dialog_copy_toast_msg" translatable="true">IP adresa skopírovaná.</string>
     <string name="info_dialog_url_copy_toast_msg" translatable="true">URL skopírované</string>

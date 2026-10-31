@@ -22,7 +22,9 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -114,5 +116,47 @@ class AppInfoFilterTest {
         model.applyToSelected(setOf(20), RethinkAppSelectionAction.BlockMobile)
         model.applyToSelected(setOf(20), RethinkAppSelectionAction.AllowAll)
         assertEquals(AppFirewallStatus.None to AppConnectionStatus.Allow, rules.state[20])
+    }
+
+    @Test
+    fun rowToggleFlipsOnlyItsNetworkAndUndoRestoresTheExactRule() = runTest(dispatcher) {
+        rules.state[30] = AppFirewallStatus.None to AppConnectionStatus.Metered
+
+        val wifi = model.toggleNetwork(30, wifi = true)
+        assertEquals(AppFirewallStatus.None to AppConnectionStatus.Both, rules.state[30])
+        assertEquals(AppRuleSnapshot(30, AppFirewallStatus.None, AppConnectionStatus.Metered), wifi.before)
+        assertEquals(AppRuleSnapshot(30, AppFirewallStatus.None, AppConnectionStatus.Both), wifi.after)
+
+        assertTrue(model.undo(wifi))
+        assertEquals(AppFirewallStatus.None to AppConnectionStatus.Metered, rules.state[30])
+
+        val mobile = model.toggleNetwork(30, wifi = false)
+        assertEquals(AppFirewallStatus.None to AppConnectionStatus.Allow, rules.state[30])
+        assertTrue(model.undo(mobile))
+        assertEquals(AppFirewallStatus.None to AppConnectionStatus.Metered, rules.state[30])
+    }
+
+    @Test
+    fun rowToggleUndoPutsBackTheModeItLeft() = runTest(dispatcher) {
+        rules.state[31] = AppFirewallStatus.Isolate to AppConnectionStatus.Allow
+
+        val change = model.toggleNetwork(31, wifi = false)
+        assertEquals(AppFirewallStatus.None to AppConnectionStatus.Metered, rules.state[31])
+
+        assertTrue(model.undo(change))
+        assertEquals(AppFirewallStatus.Isolate to AppConnectionStatus.Allow, rules.state[31])
+    }
+
+    @Test
+    fun rowToggleUndoLeavesALaterChangeAlone() = runTest(dispatcher) {
+        rules.state[32] = AppFirewallStatus.None to AppConnectionStatus.Allow
+
+        val first = model.toggleNetwork(32, wifi = true)
+        model.toggleNetwork(32, wifi = false)
+        assertEquals(AppFirewallStatus.None to AppConnectionStatus.Both, rules.state[32])
+
+        // The first tap's Undo would rewind the second: it does nothing.
+        assertFalse(model.undo(first))
+        assertEquals(AppFirewallStatus.None to AppConnectionStatus.Both, rules.state[32])
     }
 }

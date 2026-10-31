@@ -79,8 +79,6 @@
     <string name="download_update_dialog_message_ok" translatable="true">すでに最新バージョンを使用しています。</string>
     <string name="download_update_dialog_message_success" translatable="true">ブロックリストのダウンロードに成功しました。</string>
     <string name="download_update_dialog_failure_title" translatable="true">何かの問題が発生しました!</string>
-    <string name="search_universal_ips" translatable="true">IPで検索</string>
-    <string name="search_custom_domains" translatable="true">ドメイン名で検索</string>
     <string name="info_dialog_rethink_toast_msg" translatable="true">RDNS+ DNS over HTTPS URL としてコピー</string>
     <string name="connection_http3" translatable="true">HTTP3</string>
     <string name="settings_lock_down_proxy_desc" translatable="true">VPNがDNSのみモードまたはロックダウンモードで実行されている場合、プロキシを設定できません。VPN設定に移動</string>

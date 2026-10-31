@@ -76,7 +76,6 @@ import com.bernaferrari.bravedns.ui.compose.settings.PingTestScreen
 import com.bernaferrari.bravedns.ui.compose.theme.CompactEmptyState
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBarLazyColumnScreen
 import com.bernaferrari.bravedns.ui.compose.wireguard.WgIncludeAppsScreen
-import com.bernaferrari.bravedns.ui.compose.logs.AppWiseIpLogsScreen
 import com.bernaferrari.bravedns.viewmodel.ProxyAppsMappingViewModel
 import com.bernaferrari.bravedns.ui.compose.apps.AppListScreen
 import com.bernaferrari.bravedns.ui.compose.firewall.CustomRulesScreen
@@ -146,7 +145,6 @@ import com.bernaferrari.bravedns.viewmodel.ManagePurchaseViewModel
 import com.bernaferrari.bravedns.viewmodel.PurchaseHistoryViewModel
 import com.bernaferrari.bravedns.viewmodel.ServerOrderHistoryViewModel
 import com.bernaferrari.bravedns.viewmodel.BlockFreeDnsViewModel
-import com.bernaferrari.bravedns.ui.compose.logs.AppWiseDomainLogsScreen
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 import com.bernaferrari.bravedns.viewmodel.WgConfigViewModel
 import com.bernaferrari.bravedns.ui.compose.wireguard.WgMainScreen
@@ -817,16 +815,6 @@ fun HomeScreenRoot(
                     onBackClick = { nav.popBackStack() }
                 )
             }
-            entry<RethinkRoute.AppWiseIpLogs> { args ->
-                AppWiseIpLogsScreen(
-                    uid = args.uid,
-                    isAsn = args.isAsn,
-                    viewModel = appInfoNetworkLogsViewModel,
-                    eventLogger = appInfoEventLogger,
-                    onBackClick = { nav.popBackStack() }
-                )
-            }
-
             entry<RethinkRoute.CountryProxy> { args ->
                 RpnWinProxyDetailsScreen(
                     countryCode = args.countryCode,
@@ -1069,14 +1057,6 @@ fun HomeScreenRoot(
                     ordersViewModel = serverOrderHistoryViewModel,
                     onBackClick = { nav.popBackStack() },
                     onViewPlans = viewPlansAction(checkoutViewModel != null, nav),
-                )
-            }
-            entry<RethinkRoute.AppWiseDomainLogs> { args ->
-                AppWiseDomainLogsScreen(
-                    uid = args.uid,
-                    viewModel = appInfoNetworkLogsViewModel,
-                    eventLogger = appInfoEventLogger,
-                    onBackClick = { nav.popBackStack() }
                 )
             }
             entry<RethinkRoute.WireGuard> {

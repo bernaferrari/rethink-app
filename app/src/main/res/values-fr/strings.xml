@@ -181,7 +181,6 @@
     <string name="rt_dialog_message">Voulez-vous appliquer les listes de blocage nouvellement configurées ?</string>
     <string name="radio_max_btn">🪂 Max</string>
     <string name="about_bug_report_dialog_positive_btn">Envoyer le courriel</string>
-    <string name="search_universal_ips">Recherche d’IP</string>
     <string name="orbot_http">Proxy HTTP</string>
     <string name="orbot_bs_status_4">Configuration de Tor-as-a-Proxy (Orbot) en un clic.</string>
     <string name="about_github_link">https://github.com/celzero/rethink-app</string>
@@ -321,7 +320,6 @@
     <string name="hsf_pause_vpn_failure">Impossible de mettre en pause : Keepout n’est pas actif</string>
     <string name="dns_crypt_relay_remove_success">Relais DNSCrypt supprimé.</string>
     <string name="download_update_dialog_failure_title">Il y a eu un problème !</string>
-    <string name="search_custom_domains">Recherche de noms de domaine</string>
     <string name="about_website">Visiter rethinkdns.com</string>
     <string name="about_whats_new">Quoi de neuf dans %1$s</string>
     <string name="about_app_update_check">Vérifiez les mises à jour de l’application</string>
@@ -707,7 +705,6 @@
     <string name="settings_jumbo_packets_desc" translatable="true">Utilise des paquets jumbo dans le tunnel VPN de Keepout.</string>
     <string name="stability_program_toast" translatable="true">Inscrit au programme de stabilité pour les fonctionnalités expérimentales.</string>
     <string name="lbl_experimental" translatable="true">(expérimental)</string>
-    <string name="lbl_service_providers" translatable="true">Fournisseurs de service</string>
     <string name="lbl_manual" translatable="true">Manuel</string>
     <string name="lbl_fallback" translatable="true">Alternative</string>
     <string name="ac_split_tcp" translatable="true">TCP</string>
@@ -768,8 +765,6 @@
     <string name="download_ip_info_title" translatable="true">Afficher les informations du fournisseur</string>
     <string name="download_ip_info_desc" translatable="true">Récupère les informations du fournisseur de services pour les sites web depuis rethinkdns.com, propulsé par %1$s</string>
     <string name="top_active_conns" translatable="true">Connexions actives principales</string>
-    <string name="close_conns_dialog_title" translatable="true">Fermer les connexions</string>
-    <string name="close_conns_dialog_desc" translatable="true">Fermer toutes les connexions pour %1$s ?</string>
     <string name="local_blocklist_delete_desc" translatable="true">Supprimer les listes de blocage sur l\'appareil ?</string>
     <string name="fail_open_network_title" translatable="true">Blocage dû à une perte de réseau</string>
     <string name="fail_open_network_desc" translatable="true">Lorsqu\'il est activé, Keepout bloque toutes les données lorsqu\'aucune connectivité n\'est disponible, comme en mode avion.</string>

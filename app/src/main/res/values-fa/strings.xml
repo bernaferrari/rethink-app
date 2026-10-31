@@ -110,7 +110,6 @@
     <string name="download_update_dialog_message_ok" translatable="true">شما در حال حاضر در آخرین نسخه هستید.</string>
     <string name="download_update_dialog_message_success" translatable="true">دانلود فهرست بلاک با موفقیت انجام شد.</string>
     <string name="download_update_dialog_failure_title" translatable="true">مشکلی پیش آمد!</string>
-    <string name="search_universal_ips" translatable="true">جستجوی آی‌پی‌ها</string>
     <string name="info_dialog_url_copy_toast_msg" translatable="true">URL کپی شد</string>
     <string name="info_dialog_copy_toast_msg" translatable="true">آدرس IP کپی شد.</string>
     <string name="info_dialog_rethink_toast_msg" translatable="true">به عنوان URL RDNS+ DNS-over-HTTPS کپی شد</string>
@@ -119,7 +118,6 @@
     <string name="download_update_dialog_failure_message" translatable="true">یا سرورهای ما قطع است یا اتصال برقرار نشد. لطفا بعد از مدتی دوباره امتحان کنید.</string>
     <string name="download_update_dialog_trylater_title" translatable="true">در حال حاضر نمی توان به روز رسانی کرد</string>
     <string name="download_update_dialog_trylater_message" translatable="true">به روز رسانی در حال حاضر قابل اجرا نیست، لطفاً بعداً دوباره امتحان کنید.</string>
-    <string name="search_custom_domains" translatable="true">جستجوی نامهای دامنه</string>
     <string name="settings_enable_logs" translatable="true">فعال کردن گزارش‌گیری روی دستگاه</string>
     <string name="download_update_dialog_title" translatable="true">به‌روزرسانی جدید!</string>
     <string name="whats_new_version_update" translatable="true"><b>حداکثر تلاش</b> \u0020 \u0020 
@@ -319,7 +317,6 @@
     <string name="about_twitter" translatable="true">ما را در توییتر دنبال کنید</string>
     <string name="lbl_test" translatable="true">آزمایش</string>
     <string name="lbl_experimental" translatable="true">(آزمایشی)</string>
-    <string name="lbl_service_providers" translatable="true">ارائه دهندگان خدمات</string>
     <string name="lbl_manual" translatable="true">دستی</string>
     <string name="lbl_fallback" translatable="true">عقب‌گرد</string>
     <string name="lbl_action" translatable="true">عمل</string>
@@ -435,8 +432,6 @@
     <string name="cleanbrowsing_adult_dns_desc" translatable="true">فیلتر بزرگسالان دسترسی به تمام سایت‌های بزرگسالان، مستهجن و سایت‌های با محتوای نامناسب را مسدود می‌کند. این فیلتر، پروکسی یا VPN و سایت‌های با محتوای ترکیبی را مسدود نمی‌کند. سایت‌هایی مانند Reddit مجاز هستند. گوگل و بینگ در حالت ایمن (Safe Mode) تنظیم شده‌اند.</string>
     <string name="cleanbrowsing_family_dns_desc" translatable="true">فیلتر خانواده دسترسی به تمام سایت‌های بزرگسالان، مستهجن و سایت‌های حاوی محتوای نامناسب را مسدود می‌کند. همچنین دامنه‌های پروکسی و VPN را که می‌توانند برای دور زدن فیلترهای ما استفاده شوند، مسدود می‌کند. سایت‌های محتوای ترکیبی (مانند ردیت) نیز مسدود شده‌اند. گوگل، بینگ و یوتیوب در حالت ایمن تنظیم شده‌اند.</string>
     <string name="ci_dialog_error_invalid_ip" translatable="true">آدرس IP، subnet یا port نامعتبر است.</string>
-    <string name="close_conns_dialog_desc" translatable="true">تمام اتصالات برای %1$s بسته شود؟</string>
-    <string name="close_conns_dialog_title" translatable="true">بستن اتصالات</string>
     <string name="cloudflare_dns_desc" translatable="true">هیچ درخواست DNS را مسدود نمی‌کند. از نقطه پایانی DNS 1.1.1.1 کلودفلر استفاده می‌کند.</string>
     <string name="cloudflare_family_dns_desc" translatable="true">بدافزارها و محتوای بزرگسالان را مسدود می‌کند. از نقطه پایانی DNS 1.1.1.3 کلودفلر استفاده می‌کند.</string>
     <string name="cloudflare_security_dns_desc" translatable="true">محتوای مخرب را مسدود می‌کند. از نقطه پایانی DNS 1.1.1.2 کلودفلر استفاده می‌کند.</string>

@@ -83,8 +83,6 @@ sealed interface RethinkRoute : NavKey {
         val isBlocked: Boolean,
         val timeCategory: Int,
     ) : RethinkRoute
-    @Serializable data class AppWiseIpLogs(val uid: Int, val isAsn: Boolean) : RethinkRoute
-    @Serializable data class AppWiseDomainLogs(val uid: Int) : RethinkRoute
     @Serializable data class WireGuardDetail(val configId: Int, val wgType: Int) : RethinkRoute
     @Serializable data class WireGuardEditor(val configId: Int, val wgType: Int) : RethinkRoute
     @Serializable data class CountryProxy(val countryCode: String) : RethinkRoute
@@ -115,8 +113,7 @@ enum class RethinkRootDestination(val route: RethinkRoute) {
  */
 fun RethinkRoute.rootDestination(): RethinkRootDestination? = when (this) {
     RethinkRoute.Home, RethinkRoute.Welcome, RethinkRoute.AppLock -> RethinkRootDestination.Home
-    RethinkRoute.AppList, is RethinkRoute.AppInfo, is RethinkRoute.AppWiseIpLogs,
-    is RethinkRoute.AppWiseDomainLogs -> RethinkRootDestination.Apps
+    RethinkRoute.AppList, is RethinkRoute.AppInfo -> RethinkRootDestination.Apps
     RethinkRoute.Activity, RethinkRoute.Statistics, is RethinkRoute.NetworkLogs,
     is RethinkRoute.DetailedStatistics, is RethinkRoute.DomainConnections -> RethinkRootDestination.Activity
     RethinkRoute.Configure, RethinkRoute.About, RethinkRoute.Alerts, RethinkRoute.Events,
@@ -280,8 +277,6 @@ val rethinkNavSavedStateConfiguration =
                     subclass(RethinkRoute.AppInfo::class, RethinkRoute.AppInfo.serializer())
                     subclass(RethinkRoute.DetailedStatistics::class, RethinkRoute.DetailedStatistics.serializer())
                     subclass(RethinkRoute.DomainConnections::class, RethinkRoute.DomainConnections.serializer())
-                    subclass(RethinkRoute.AppWiseIpLogs::class, RethinkRoute.AppWiseIpLogs.serializer())
-                    subclass(RethinkRoute.AppWiseDomainLogs::class, RethinkRoute.AppWiseDomainLogs.serializer())
                     subclass(RethinkRoute.WireGuardDetail::class, RethinkRoute.WireGuardDetail.serializer())
                     subclass(RethinkRoute.WireGuardEditor::class, RethinkRoute.WireGuardEditor.serializer())
                     subclass(RethinkRoute.CountryProxy::class, RethinkRoute.CountryProxy.serializer())

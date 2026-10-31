@@ -228,7 +228,6 @@
     <string name="brbs_restore_title">استعادة</string>
     <string name="brbs_restore_dialog_failure_title">فشلت الاستعادة</string>
     <string name="http_proxy_dialog_heading">قم بتعيين وكيل HTTP(S) CONNECT</string>
-    <string name="search_universal_ips"> بحث في عناوين IP </string>
     <string name="settings_socks5_heading">إعداد وكيل SOCKS5</string>
     <string name="orbot_install_dialog_message">يجلب Orbot ميزات ووظائف Tor إلى Android.</string>
     <string name="about_bug_no_log_dialog_positive_btn">أرسل بريد الكتروني</string>
@@ -437,7 +436,6 @@
     <string name="info_dialog_rethink_toast_msg">تم نسخه كـ RDNS + DNS-over-HTTPS URL</string>
     <string name="orbot_stop_dialog_dns_message">تم إعداد Keepout لإعادة توجيه استعلامات DNS إلى Orbot. قم بالتغيير على النحو المطلوب.</string>
     <string name="download_update_dialog_message">يتوفر إصدار جديد من التطبيق للتنزيل من موقع الويب. هل تريد المتابعة؟</string>
-    <string name="search_custom_domains"> البحث في أسماء المجالات </string>
     <string name="settings_check_update_heading">تحقق من وجود تحديثات التطبيق</string>
     <string name="settings_ip_dialog_title">اختر إصدار IP</string>
     <string name="settings_protocol_translation_dns_inactive">حول إلى وضع DNS/DNS+Firewall لتفعيل هذا الإعداد</string>
@@ -630,7 +628,6 @@
     <string name="lbl_split" translatable="true">منقسم</string>
     <string name="lbl_test" translatable="true">اختبار</string>
     <string name="lbl_experimental" translatable="true">)تجريبي(</string>
-    <string name="lbl_service_providers" translatable="true">مقدموا الخدمة</string>
     <string name="lbl_manual" translatable="true">يدوي</string>
     <string name="dns_desc" translatable="true">اختر من بين أكثر من 190 قائمة لإيقاف الإعلانات وأدوات التتبع والبرامج الضارة.</string>
     <string name="status_no_network" translatable="true">لا توجد شبكة</string>

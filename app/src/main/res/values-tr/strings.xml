@@ -112,7 +112,6 @@
     <string name="brbs_backup_dialog_failure_message">Yedekleme yapılamadı. Tekrar deneyelim mi\?</string>
     <string name="dns_proxy_desc_no_app">%1$s:%2$s</string>
     <string name="dns_crypt_relay_remove_dialog_message">DNSCrypt aktarıcısını kayıtlı yapılandırmadan silin.</string>
-    <string name="search_custom_domains">Alan adlarını arama</string>
     <string name="orbot_bs_status_3">%1$s adresinden Orbot\'a yönlendirme, HTTP Proxy de ayarlandı.</string>
     <string name="orbot_install_dialog_neutral">web sitesi</string>
     <string name="settings_orbot_notification_action">Açık Orbot</string>
@@ -170,7 +169,6 @@
     <string name="dns_crypt_relay_remove_dialog_title">DNSCrypt Aktarıcısı Silinsin mi\?</string>
     <string name="http_proxy_dialog_heading">HTTP(S) BAĞLANMA Vekilini ayarla</string>
     <string name="download_update_dialog_title">Yeni Güncelleme!</string>
-    <string name="search_universal_ips">IP\'leri arayın</string>
     <string name="info_dialog_copy_toast_msg">IP adresi kopyalandı.</string>
     <string name="orbot_install_dialog_title">Orbot kurulsun mu?</string>
     <string name="dc_entries">%1$s girişler</string>
@@ -701,7 +699,6 @@
     <string name="exclude_apps_from_proxy_failure_toast">Bu uygulama proxy\'leri atlar (bypass)</string>
     <string name="lbl_test" translatable="true">Test</string>
     <string name="lbl_experimental" translatable="true">(deneysel)</string>
-    <string name="lbl_service_providers" translatable="true">Hizmet Sağlayıcıları</string>
     <string name="lbl_manual" translatable="true">Talimatlar</string>
     <string name="dns_desc" translatable="true">Reklamlar, izleyiciler ve kötücül yazılımları engellemek için 190+ listeden seçimini yap.</string>
     <string name="status_no_network" translatable="true">Ağ yok</string>
@@ -762,8 +759,6 @@
     <string name="download_ip_info_title" translatable="true">Sağlayıcı bilgilerini göster</string>
     <string name="download_ip_info_desc" translatable="true">Web siteleri için hizmet sağlayıcı bilgilerini rethinkdns.com\'dan alır, %1$s tarafından desteklenir</string>
     <string name="top_active_conns" translatable="true">En aktif bağlantılar</string>
-    <string name="close_conns_dialog_title" translatable="true">Bağlantıları Kapat</string>
-    <string name="close_conns_dialog_desc" translatable="true">%1$s için tüm bağlantıları kapatmak ister misiniz?</string>
     <string name="local_blocklist_delete_desc" translatable="true">Cihazdaki engelleme listelerini silmek ister misiniz?</string>
     <string name="fail_open_network_title" translatable="true">Ağ kaybında durma</string>
     <string name="fail_open_network_desc" translatable="true">Etkinleştirildiğinde, Keepout Uçak Modu\'nda olduğu gibi bağlantı bulunmadığında tüm veriyi durdurur.</string>

@@ -128,3 +128,9 @@ internal const val RECENT_ACTIVITY_ROWS = 8
 /** Whole minutes left (rounded up) until [expiry], or null once it has passed (or there is none). */
 internal fun minutesLeft(expiry: Long, now: Long): Int? =
     if (expiry <= now) null else ((expiry - now + 59_999L) / 60_000L).toInt()
+
+/**
+ * "Bypass all proxies" shows once a proxy is set up, and always while the app already bypasses,
+ * so the user can turn it back off.
+ */
+internal fun showProxyExclude(anyProxySetUp: Boolean, proxyExcluded: Boolean): Boolean = anyProxySetUp || proxyExcluded

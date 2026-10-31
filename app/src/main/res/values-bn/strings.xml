@@ -31,7 +31,6 @@
     <string name="lbl_add">যোগ করুন</string>
     <string name="default_dns_name">RDNS ডিফল্ট</string>
     <string name="blocklist_update_check_not_required">ব্লকলিস্টগুলি ইতিমধ্যেই সর্বশেষ সংস্করণে রয়েছে৷</string>
-    <string name="search_custom_domains">ডোমেন নাম অনুসন্ধান করুন</string>
     <string name="settings_dns_proxy_dialog_header">SOCKS5 (TCP) প্রক্সি সেট করুন</string>
     <string name="firewall_status_unknown">অজানা</string>
     <string name="lbl_proceed">আরম্ভ করুন</string>
@@ -54,7 +53,6 @@
     <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">ব্যর্থ</string>
     <string name="notification_action_pause_vpn">বিরতি</string>
     <string name="apps_info_title">অ্যাপস</string>
-    <string name="search_universal_ips">আইপি অনুসন্ধান করুন</string>
     <string name="info_dialog_rethink_toast_msg">RDNS+ DNS-over-HTTPS URL হিসেবে কপি করা হয়েছে</string>
     <string name="settings_orbot_disabled_error">Tor-as-a-proxy সেটআপ চালিয়ে যেতে HTTP(S) এবং/অথবা SOCKS5 প্রক্সি বন্ধ করুন।</string>
     <string name="settings_general_header">সাধারণ</string>

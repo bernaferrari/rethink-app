@@ -106,6 +106,10 @@ interface RethinkLogDao {
     @Query("select * from RethinkLog where isBlocked = 0 order by id desc LIMIT $MAX_LOGS")
     fun getAllowedConnections(): PagingSource<Int, RethinkLog>
 
+    /** Keepout's own connections since [since], blocked first, newest first within each. */
+    @Query("select * from RethinkLog where timeStamp > :since order by isBlocked desc, id desc limit :limit")
+    fun observeRecentLogs(since: Long, limit: Int): Flow<List<RethinkLog>>
+
     @Query("select count(id) from RethinkLog") fun logsCount(): Flow<Long>
 
     @Query("select timeStamp from RethinkLog where id = (select min(id) from RethinkLog)")
@@ -115,36 +119,4 @@ interface RethinkLogDao {
         "SELECT uid, SUM(uploadBytes) AS uploadBytes, SUM(downloadBytes) AS downloadBytes FROM RethinkLog where timeStamp >= :fromTime and timeStamp <= :toTime"
     )
     suspend fun getDataUsage(fromTime: Long, toTime: Long): DataUsage?
-
-    @Query(
-        "SELECT uid, '' as ipAddress, port, COUNT(dnsQuery) as count, flag as flag, 0 as blocked, dnsQuery as appOrDnsName, SUM(downloadBytes) as downloadBytes, SUM(uploadBytes) as uploadBytes, SUM(downloadBytes + uploadBytes) as totalBytes FROM RethinkLog WHERE timeStamp > :to and dnsQuery != '' GROUP BY dnsQuery ORDER BY count DESC LIMIT 3"
-    )
-    fun getDomainLogsLimited(to: Long): Flow<List<AppConnection>>
-
-    @Query(
-        "SELECT uid, ipAddress, port, COUNT(ipAddress) as count, flag as flag, 0 as blocked, '' as appOrDnsName, SUM(downloadBytes) as downloadBytes, SUM(uploadBytes) as uploadBytes, SUM(downloadBytes + uploadBytes) as totalBytes FROM RethinkLog WHERE timeStamp > :to GROUP BY uid, ipAddress, port ORDER BY count DESC LIMIT 3"
-    )
-    fun getIpLogsLimited(to: Long): Flow<List<AppConnection>>
-
-    @Query(
-        "SELECT uid, ipAddress, port, COUNT(ipAddress) as count, flag as flag, 0 as blocked, GROUP_CONCAT(DISTINCT dnsQuery) as appOrDnsName, SUM(downloadBytes) as downloadBytes, SUM(uploadBytes) as uploadBytes, SUM(downloadBytes + uploadBytes) as totalBytes FROM RethinkLog WHERE timeStamp > :to GROUP BY uid, ipAddress, port ORDER BY count DESC"
-    )
-    fun getIpLogs(to: Long): PagingSource<Int, AppConnection>
-
-    @Query(
-        "SELECT uid, ipAddress, port, COUNT(ipAddress) as count, flag as flag, 0 as blocked, GROUP_CONCAT(DISTINCT dnsQuery) as appOrDnsName, SUM(downloadBytes) as downloadBytes, SUM(uploadBytes) as uploadBytes, SUM(downloadBytes + uploadBytes) as totalBytes FROM RethinkLog WHERE timeStamp > :to and ipAddress like :query GROUP BY  uid, ipAddress, port ORDER BY count DESC"
-    )
-    fun getIpLogsFiltered(to: Long, query: String): PagingSource<Int, AppConnection>
-
-    @Query(
-        "SELECT uid, GROUP_CONCAT(DISTINCT ipAddress) as ipAddress, port, COUNT(dnsQuery) as count, flag as flag, 0 as blocked, dnsQuery as appOrDnsName, SUM(downloadBytes) as downloadBytes, SUM(uploadBytes) as uploadBytes, SUM(downloadBytes + uploadBytes) as totalBytes FROM RethinkLog WHERE timeStamp > :to and dnsQuery != '' GROUP BY dnsQuery ORDER BY count DESC"
-    )
-    fun getDomainLogs(to: Long): PagingSource<Int, AppConnection>
-
-
-    @Query(
-        "SELECT uid, GROUP_CONCAT(DISTINCT ipAddress) as ipAddress, port, COUNT(dnsQuery) as count, flag as flag, 0 as blocked, dnsQuery as appOrDnsName, SUM(downloadBytes) as downloadBytes, SUM(uploadBytes) as uploadBytes, SUM(downloadBytes + uploadBytes) as totalBytes FROM RethinkLog WHERE timeStamp > :to and dnsQuery != '' and dnsQuery like :query GROUP BY dnsQuery ORDER BY count DESC"
-    )
-    fun getDomainLogsFiltered(to: Long, query: String): PagingSource<Int, AppConnection>
-
 }

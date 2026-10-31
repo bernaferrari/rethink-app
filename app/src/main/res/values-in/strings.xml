@@ -37,7 +37,6 @@
     <string name="download_update_dialog_failure_title">Terjadi kesalahan!</string>
     <string name="always_on_dialog_stop_message">Keepout diatur sebagai VPN Selalu-Menyala. Apakah Anda yakin untuk menghentikan Keepout\?</string>
     <string name="download_update_dialog_message">Versi baru tersedia untuk diunduh dari situs web. Apakah Anda ingin melanjutkan?</string>
-    <string name="search_universal_ips">Cari IP</string>
     <string name="orbot_stop_dialog_dns_message">Keepout disiapkan untuk meneruskan permintaan DNS ke Orbot. Silahkan ubah sesuai kebutuhan.</string>
     <string name="orbot_bs_status_1">Meneruskan koneksi %1$s ke Orbot.</string>
     <string name="orbot_website_link">https://guardianproject.info/apps/org.torproject.android/</string>
@@ -168,7 +167,6 @@
     <string name="dns_proxy_desc_no_app">%1$s:%2$s</string>
     <string name="about_docs">Baca documentasi</string>
     <string name="doh_custom_url_remove_dialog_message">Menghapus titik-akhir DNS melalui Https dari konfigurasi yang tersimpan.</string>
-    <string name="search_custom_domains">Mencari nama-nama domain</string>
     <string name="cd_dns_proxy_error_text_2">Port harus dalam rentang 1024-65535</string>
     <string name="brbs_backup_title">Cadangkan</string>
     <string name="univ_view_blocked_ip">Aturan IP &amp; Port</string>
@@ -701,7 +699,6 @@
     <string name="memory_notification_text">Keepout mengalami memori rendah. Tindakan sistem mungkin terbatas.</string>
     <string name="lbl_test" translatable="true">Uji</string>
     <string name="lbl_experimental" translatable="true">(pengujian)</string>
-    <string name="lbl_service_providers" translatable="true">Penyedia Layanan</string>
     <string name="lbl_manual" translatable="true">Manual</string>
     <string name="dns_desc" translatable="true">Pilih dari 190+ daftar untuk memblokir iklan, pelacak, dan malware.</string>
     <string name="status_no_network" translatable="true">Tidak ada jaringan</string>
@@ -738,7 +735,6 @@
     <string name="bypasses_network_restrictions" translatable="true">Pemeriksaan jangkauan melewati semua batasan jaringan. Dalam mode Otomatis, Keepout secara acak menggunakan IP dan nama host yang terhubung sebelumnya.</string>
     <string name="most_contacted_asn" translatable="true">Penyedia yang paling banyak dihubungi</string>
     <string name="download_ip_info_desc" translatable="true">Mengambil detail penyedia layanan untuk situs web dari rethinkdns.com, didukung oleh %1$s</string>
-    <string name="close_conns_dialog_desc" translatable="true">Tutup semua koneksi untuk %1$s?</string>
     <string name="local_blocklist_delete_desc" translatable="true">Hapus daftar blokir pada perangkat?</string>
     <string name="fail_open_network_desc" translatable="true">Ketika diaktifkan, Keepout akan menghentikan semua data saat tidak ada konektivitas yang tersedia, seperti pada Mode Pesawat.</string>
     <string name="smart_dns" translatable="true">DNS Pintar</string>
@@ -772,7 +768,6 @@
     <string name="download_ip_info_title" translatable="true">Tampilkan informasi penyedia</string>
     <string name="top_active_conns" translatable="true">Koneksi aktif teratas</string>
     <string name="hop_failure_toast" translatable="true">Kesalahan relay: %1$s -&gt; %2$s</string>
-    <string name="close_conns_dialog_title" translatable="true">Tutup Koneksi</string>
     <string name="fail_open_network_title" translatable="true">Terhenti saat jaringan hilang</string>
     <string name="about_license" translatable="true">Dilindungi lisensi Apache-2.0</string>
     <string name="lbl_action" translatable="true">Tindakan</string>

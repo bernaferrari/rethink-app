@@ -110,7 +110,6 @@
     <string name="ci_trust_rule" translatable="true">ເຊື່ອຖື</string>
     <string name="cleanbrowsing_adult_dns_desc" translatable="true">ຕົວກັ່ນຕອງຜູ້ໃຫຍ່ບລັອກການເຂົ້າເຖິງເວັບໄຊສຳລັບຜູ້ໃຫຍ່, ລາມົກ ແລະ ສື່ລາມົກອະນາຈານທັງໝົດ. ມັນຈະບໍ່ບລັອກພຣັອກຊີ, VPN ຫຼື ເວັບໄຊເນື້ອຫາປະສົມ. ເວັບໄຊເຊັ່ນ Reddit ຈະຖືກອະນຸຍາດໃຫ້ເຂົ້າເຖິງ. Google ແລະ Bing ຈະຖືກຕັ້ງເປັນໂໝດປອດໄພ (Safe Mode).</string>
     <string name="cleanbrowsing_family_dns_desc" translatable="true">ຕົວກັ່ນຕອງຄອບຄົວບລັອກການເຂົ້າເຖິງເວັບໄຊສຳລັບຜູ້ໃຫຍ່, ລາມົກ ແລະ ສື່ລາມົກອະນາຈານທັງໝົດ. ມັນຍັງບລັອກໂດເມນພຣັອກຊີ ແລະ VPN ທີ່ອາດຈະຖືກໃຊ້ເພື່ອຂ້າມຕົວກັ່ນຕອງຂອງພວກເຮົາ. ເວັບໄຊທີ່ມີເນື້ອຫາປະສົມ (ເຊັ່ນ Reddit) ກໍ່ຖືກບລັອກເຊັ່ນກັນ. Google, Bing ແລະ Youtube ຈະຖືກຕັ້ງເປັນໂໝດປອດໄພ (Safe Mode).</string>
-    <string name="close_conns_dialog_desc" translatable="true">ປິດການເຊື່ອມຕໍ່ທັງໝົດສຳລັບ %1$s ບໍ?</string>
     <string name="cloudflare_dns_desc" translatable="true">ບໍ່ບລັອກຄຳຂໍ DNS ໃດໆ. ໃຊ້ຈຸດສິ້ນສຸດ DNS 1.1.1.1 ຂອງ Cloudflare.</string>
     <string name="cloudflare_family_dns_desc" translatable="true">ບລັອກມັນແວ ແລະ ເນື້ອຫາສຳລັບຜູ້ໃຫຍ່. ໃຊ້ຈຸດສິ້ນສຸດ DNS 1.1.1.3 ຂອງ Cloudflare.</string>
     <string name="cloudflare_security_dns_desc" translatable="true">ບລັອກເນື້ອຫາທີ່ເປັນອັນຕະລາຍ. ໃຊ້ຈຸດສິ້ນສຸດ DNS 1.1.1.2 ຂອງ Cloudflare.</string>

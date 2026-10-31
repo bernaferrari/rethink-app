@@ -35,7 +35,6 @@
     <string name="download_update_dialog_failure_message">Ou os servidores estão em baixo ou não foi possível estabelecer a ligação. Por favor tente mais tarde.</string>
     <string name="download_update_dialog_trylater_title">Não foi possível atualizar</string>
     <string name="download_update_dialog_trylater_message">Não foi possível efetuar a atualização. Por favor tente mais tarde.</string>
-    <string name="search_custom_domains">Pesquisar nomes de domínio</string>
     <string name="info_dialog_copy_toast_msg">Endereço IP copiado.</string>
     <string name="info_dialog_rethink_toast_msg">Copiado como RDNS+ DNS-over-HTTPS URL</string>
     <string name="settings_enable_logs_desc">Guardar registos de DNS e de firewall no dispositivo.</string>
@@ -98,7 +97,6 @@
     <string name="download_update_dialog_message_ok">Já tem a versão mais recente.</string>
     <string name="download_update_dialog_message_success">Lista de bloqueios descarregada com sucesso.</string>
     <string name="download_update_dialog_failure_title">Algo correu mal!</string>
-    <string name="search_universal_ips">Pesquisar IPs</string>
     <string name="settings_enable_logs">Ativar registo no dispositivo</string>
     <string name="connection_http3">HTTP3</string>
     <string name="settings_http_proxy_error_text1">O intervalo de portas deve ser entre 1024 e 65535</string>

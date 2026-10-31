@@ -143,7 +143,6 @@
     <string name="lbl_reddit" translatable="false">Reddit</string>
     <string name="lbl_test" translatable="true">Test</string>
     <string name="lbl_experimental" translatable="true">(experimental)</string>
-    <string name="lbl_service_providers" translatable="true">Service providers</string>
     <string name="lbl_search" translatable="false">Search</string>
     <string name="lbl_ipinfo_inc" translatable="false">IPinfo</string>
     <string name="lbl_manual" translatable="true">Manual</string>
@@ -341,8 +340,6 @@
     <string name="download_update_dialog_trylater_message" translatable="true">The update can\'t run right now. Try again later.</string>
 
     <string name="search_event_logs" translatable="false">Search events and messages</string>
-    <string name="search_universal_ips" translatable="true">Search IPs</string>
-    <string name="search_custom_domains" translatable="true">Search domain names</string>
     <string name="search_proxy_add_apps" translatable="true">Search apps</string>
     <string name="search_apps_count_placeholder" translatable="true" tools:ignore="PluralsCandidate">Search %1$d apps</string>
 
@@ -1418,8 +1415,6 @@
 
     <string name="top_active_conns" translatable="true">Top active connections</string>
 
-    <string name="close_conns_dialog_title" translatable="true">Close connections</string>
-    <string name="close_conns_dialog_desc" translatable="true">Close all connections for %1$s?</string>
 
     <string name="local_blocklist_delete_desc" translatable="true">Delete on-device blocklists?</string>
 

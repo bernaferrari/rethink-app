@@ -211,7 +211,6 @@
     <string name="ada_app_status_unknown">未知</string>
     <string name="allow">放行</string>
     <string name="bypass_universal">无条件放行</string>
-    <string name="search_universal_ips">搜索 IP</string>
     <string name="settings_autostart_bootup_desc">Keepout 若在关机前运行，开机时则自动启动。</string>
     <string name="settings_network_all_networks">使用所有可用网络（实验性）</string>
     <string name="settings_socks_forwarding_default_desc">正转发连接至 SOCKS5 端点。</string>
@@ -353,7 +352,6 @@
     <string name="dc_doh">Dns over HTTPS</string>
     <string name="custom_url_error_invalid_url">无效 URL</string>
     <string name="firewall_act_universal_tab">全局</string>
-    <string name="search_custom_domains">搜索域名</string>
     <string name="settings_general_header">一般设置</string>
     <string name="settings_check_update_desc">每周一次自动检查应用是否有可用更新。</string>
     <string name="settings_http_proxy_error_text3">域名为空</string>
@@ -699,7 +697,6 @@
     <string name="exclude_apps_from_proxy_failure_toast">此应用绕行代理</string>
     <string name="lbl_test" translatable="true">测试</string>
     <string name="lbl_experimental" translatable="true">（实验性）</string>
-    <string name="lbl_service_providers" translatable="true">服务供应商</string>
     <string name="dns_desc" translatable="true">从逾 190 条屏蔽名单中选择以拦截广告、追踪器与恶意软件。</string>
     <string name="status_no_network" translatable="true">无网络连接</string>
     <string name="dc_use_sys_dns_undelegated_heading" translatable="true">对未委任域名使用系统 DNS</string>
@@ -776,7 +773,6 @@
     <string name="ac_toast_retry_disabled" translatable="true">选择任意反审查选项以确定策略。</string>
     <string name="anti_censorship_title" translatable="true">反审查</string>
     <string name="blocklist_not_available_toast" translatable="true">要更新拦截列表，请下载最新版本的应用。</string>
-    <string name="close_conns_dialog_desc" translatable="true">是否关闭 %1$s 的所有连接？</string>
     <string name="config_invalid_desc" translatable="true">无效的 WireGuard 配置</string>
     <string name="copied_clipboard" translatable="true">已复制</string>
     <string name="download_ip_info_title" translatable="true">显示服务商信息</string>

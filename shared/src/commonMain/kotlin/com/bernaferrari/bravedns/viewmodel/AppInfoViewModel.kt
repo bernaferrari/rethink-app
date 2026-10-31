@@ -24,6 +24,9 @@ import org.koin.core.annotation.Provided
 /** One app's firewall rule before a Select-mode change, for Undo. */
 data class AppRuleSnapshot(val uid: Int, val firewall: AppFirewallStatus, val connection: AppConnectionStatus)
 
+/** One row's Wi‑Fi or mobile data tap: the rule it replaced and the rule it wrote. */
+data class AppRuleChange(val before: AppRuleSnapshot, val after: AppRuleSnapshot)
+
 /** Shared filtering and Select-mode rule changes for the app firewall list. */
 @OptIn(FlowPreview::class)
 @KoinViewModel
@@ -73,6 +76,36 @@ class AppInfoViewModel(
     suspend fun restore(snapshots: List<AppRuleSnapshot>) = bulkUpdateMutex.withLock {
         snapshots.forEach { firewallRules.updateFirewallStatus(it.uid, it.firewall, it.connection) }
     }
+
+    /**
+     * A row's Wi‑Fi (or mobile data) tap: flip that network's flag, keep the other's, and return
+     * the app to Normal handling, as App detail's tiles do. Returns what it replaced for [undo].
+     */
+    suspend fun toggleNetwork(uid: Int, wifi: Boolean): AppRuleChange = bulkUpdateMutex.withLock {
+        val before = snapshot(uid)
+        val next = if (wifi) {
+            wifiState(blocked = !before.connection.blocksWifi, before.connection)
+        } else {
+            mobileState(blocked = !before.connection.blocksMobile, before.connection)
+        }
+        firewallRules.updateFirewallStatus(uid, next.firewall, next.connection)
+        AppRuleChange(before, AppRuleSnapshot(uid, next.firewall, next.connection))
+    }
+
+    /**
+     * Put back the exact rule [change] replaced, mode included. Only while the app still holds
+     * what [change] wrote: a later edit (another tap, App detail, Select mode) stands. True when
+     * it restored.
+     */
+    suspend fun undo(change: AppRuleChange): Boolean = bulkUpdateMutex.withLock {
+        if (snapshot(change.after.uid) != change.after) return@withLock false
+        val before = change.before
+        firewallRules.updateFirewallStatus(before.uid, before.firewall, before.connection)
+        true
+    }
+
+    private suspend fun snapshot(uid: Int) =
+        AppRuleSnapshot(uid, firewallRules.firewallStatus(uid), firewallRules.connectionStatus(uid))
 
     suspend fun getAppCount(): Int = appInfoDAO.getAppCount()
 
@@ -159,6 +192,9 @@ class AppInfoViewModel(
                 else -> AppConnectionStatus.Unmetered
             },
         )
+
+    private val AppConnectionStatus.blocksWifi get() = this == AppConnectionStatus.Unmetered || this == AppConnectionStatus.Both
+    private val AppConnectionStatus.blocksMobile get() = this == AppConnectionStatus.Metered || this == AppConnectionStatus.Both
 
     private data class AppRuleState(
         val firewall: AppFirewallStatus,

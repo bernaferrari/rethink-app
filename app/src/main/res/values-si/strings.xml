@@ -64,7 +64,6 @@
     <string name="lbl_split" translatable="true">බෙදන්න</string>
     <string name="lbl_test" translatable="true">පරීක්ෂනය</string>
     <string name="lbl_experimental" translatable="true">(අත්හදා බැලීම)</string>
-    <string name="lbl_service_providers" translatable="true">සේවා සපයන්නෝ</string>
     <string name="lbl_manual" translatable="true">මැනුවල්</string>
     <string name="lbl_fallback" translatable="true">පසුපසට යන්න</string>
     <string name="lbl_action" translatable="true">ක්‍රියාව</string>

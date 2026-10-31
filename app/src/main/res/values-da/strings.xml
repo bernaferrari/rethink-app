@@ -64,7 +64,6 @@
     <string name="lbl_split" translatable="true">Opdel</string>
     <string name="lbl_test" translatable="true">test</string>
     <string name="lbl_experimental" translatable="true">(eksperimentel)</string>
-    <string name="lbl_service_providers" translatable="true">Serviceudbydere</string>
     <string name="lbl_manual" translatable="true">Vejledning</string>
     <string name="lbl_action" translatable="true">Handling</string>
     <string name="lbl_connect" translatable="true">Tilslut</string>

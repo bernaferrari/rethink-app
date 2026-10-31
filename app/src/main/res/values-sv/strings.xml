@@ -109,7 +109,6 @@
     <string name="ci_trust_rule" translatable="true">Lita på</string>
     <string name="cleanbrowsing_adult_dns_desc" translatable="true">Vuxenfiltret blockerar åtkomst till vuxen-, pornografiska och explicita webbplatser. Det blockerar inte proxyer, VPN:er eller webbplatser med blandat innehåll. Webbplatser som Reddit tillåts. Google och Bing är inställda på säkert läge.</string>
     <string name="cleanbrowsing_family_dns_desc" translatable="true">Familjefiltret blockerar åtkomst till vuxen-, pornografiska och explicita webbplatser. Det blockerar även proxy- och VPN-domäner som kan användas för att kringgå filtren. Webbplatser med blandat innehåll (som Reddit) blockeras också. Google, Bing och YouTube är inställda på säkert läge.</string>
-    <string name="close_conns_dialog_desc" translatable="true">Stäng alla anslutningar för %1$s?</string>
     <string name="cloudflare_dns_desc" translatable="true">Blockerar inga DNS-förfrågningar. Använder Cloudflares DNS-slutpunkt 1.1.1.1.</string>
     <string name="cloudflare_family_dns_desc" translatable="true">Blockerar skadlig programvara och vuxeninnehåll. Använder Cloudflares DNS-slutpunkt 1.1.1.3.</string>
     <string name="cloudflare_security_dns_desc" translatable="true">Blockerar skadligt innehåll. Använder Cloudflares DNS-slutpunkt 1.1.1.2.</string>

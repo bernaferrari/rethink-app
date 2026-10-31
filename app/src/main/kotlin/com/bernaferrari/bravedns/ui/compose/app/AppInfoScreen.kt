@@ -31,6 +31,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.bernaferrari.bravedns.R
+import com.bernaferrari.bravedns.data.AppConfig
 import com.bernaferrari.bravedns.database.AppInfo
 import com.bernaferrari.bravedns.database.ConnectionTracker
 import com.bernaferrari.bravedns.database.EventSource
@@ -42,6 +43,7 @@ import com.bernaferrari.bravedns.service.FirewallManager.ConnectionStatus
 import com.bernaferrari.bravedns.service.FirewallManager.FirewallStatus
 import com.bernaferrari.bravedns.service.ProxyManager
 import com.bernaferrari.bravedns.service.ProxyManager.ID_NONE
+import com.bernaferrari.bravedns.service.WireguardManager
 import com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoActions
 import com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoActivityItem
 import com.bernaferrari.bravedns.ui.compose.apps.RethinkAppInfoScreen
@@ -68,6 +70,7 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.koin.compose.koinInject
 
 /**
  * App detail for one uid: reads the app's firewall flags, temporary access and recent traffic,
@@ -101,6 +104,7 @@ fun AppInfoScreen(
     var isProxyExcluded by remember(uid) { mutableStateOf(false) }
     var tempAllowExpiry by remember(uid) { mutableLongStateOf(0L) }
     var proxyDetails by remember(uid) { mutableStateOf("") }
+    var anyProxySetUp by remember(uid) { mutableStateOf(false) }
     var reloadToken by remember(uid) { mutableIntStateOf(0) }
     var busy by remember(uid) { mutableStateOf(false) }
     var epoch by remember(uid) { mutableIntStateOf(0) }
@@ -108,14 +112,16 @@ fun AppInfoScreen(
 
     val wireguardAppsProxyMapDesc = stringResource(R.string.wireguard_apps_proxy_map_desc)
     val excludeNoPackageErrToast = stringResource(R.string.exclude_no_package_err_toast)
+    val appConfig = koinInject<AppConfig>()
+    // Keepout's own traffic is logged apart from every other app's.
+    val isKeepout = uid == context.applicationInfo.uid
 
     LaunchedEffect(uid, reloadToken) {
         if (uid != INVALID_UID) {
             ipRulesViewModel.setUid(uid)
             domainRulesViewModel.setUid(uid)
-            networkLogsViewModel.setUid(uid)
         }
-        val load = if (uid == INVALID_UID) null else withContext(Dispatchers.IO) { loadAppInfo(uid, wireguardAppsProxyMapDesc) }
+        val load = if (uid == INVALID_UID) null else withContext(Dispatchers.IO) { loadAppInfo(uid, wireguardAppsProxyMapDesc, appConfig) }
         appInfo = load?.info
         if (load != null) {
             appStatus = load.appStatus
@@ -124,6 +130,7 @@ fun AppInfoScreen(
             isProxyExcluded = load.isProxyExcluded
             tempAllowExpiry = load.tempAllowExpiry
             proxyDetails = load.proxyDetails
+            anyProxySetUp = load.anyProxySetUp
         }
         loaded = true
     }
@@ -142,7 +149,9 @@ fun AppInfoScreen(
     }
     val minutesLeft = minutesLeft(tempAllowExpiry, now)
 
-    val recentFlow = remember(uid) { networkLogsViewModel.recentConnections(uid) }
+    val recentFlow = remember(uid) {
+        if (isKeepout) networkLogsViewModel.recentKeepoutConnections() else networkLogsViewModel.recentConnections(uid)
+    }
     val recent by recentFlow.collectAsState(initial = null)
     val activityRows = remember(recent) { recent?.let { foldRecentActivity(it) } }
     val domainCountFlow = remember(uid) { domainRulesViewModel.domainRulesCount(uid) }
@@ -251,6 +260,7 @@ fun AppInfoScreen(
             mode = appStatus.toAppMode(),
             tempAllowMinutesLeft = minutesLeft,
             proxyExcluded = isProxyExcluded,
+            showProxyExclude = showProxyExclude(anyProxySetUp, isProxyExcluded),
             activity = activity,
             domainRuleCount = domainRuleCount,
             ipRuleCount = ipRuleCount,
@@ -316,9 +326,14 @@ fun AppInfoScreen(
             onSystemAppInfo = { info?.let { openAndroidAppInfo(context, it.packageName) } },
             onIpRules = { onCustomIpRulesClick(uid) },
             onDomainRules = { onCustomDomainRulesClick(uid) },
-            onActivityClick = { item -> activityRows?.firstOrNull { it.key == item.id }?.let { selectedConnection = it.latest } },
+            // Keepout's own rows aren't in the connection log the Connection sheet edits.
+            onActivityClick = { item: RethinkAppInfoActivityItem ->
+                activityRows?.firstOrNull { it.key == item.id }?.let { selectedConnection = it.latest }
+                Unit
+            }.takeUnless { isKeepout },
             onSeeAllActivity = onSeeAllActivity?.let { open -> { open(appName) } }?.takeIf { appName.isNotBlank() },
-        ),
+        // The activity log reads the connection log, which never holds Keepout's own uid.
+        ).let { if (isKeepout) it.copy(onSeeAllActivity = null) else it },
         appNotes = info?.let { app -> { AppNotesSection(uid, app) } },
         snackbarHostState = snackbar,
         // The page header: a step up from the 40dp list rows.
@@ -397,10 +412,11 @@ private data class AppInfoLoad(
     val isProxyExcluded: Boolean,
     val tempAllowExpiry: Long,
     val proxyDetails: String,
+    val anyProxySetUp: Boolean,
 )
 
 /** The app behind [uid], or null when it isn't installed (or was uninstalled). */
-private suspend fun loadAppInfo(uid: Int, wireguardAppsProxyMapDesc: String): AppInfoLoad? {
+private suspend fun loadAppInfo(uid: Int, wireguardAppsProxyMapDesc: String, appConfig: AppConfig): AppInfoLoad? {
     val info = FirewallManager.getAppInfoByUid(uid)
     if (info == null || info.tombstoneTs > 0) return null
     val proxy = ProxyManager.getProxyIdForApp(uid).takeIf { it.isNotEmpty() && it != ID_NONE }
@@ -413,8 +429,20 @@ private suspend fun loadAppInfo(uid: Int, wireguardAppsProxyMapDesc: String): Ap
         isProxyExcluded = info.isProxyExcluded,
         tempAllowExpiry = FirewallManager.tempAllowExpiry(info.uid),
         proxyDetails = proxy,
+        anyProxySetUp = anyProxySetUp(appConfig),
     )
 }
+
+/**
+ * Whether any proxy is set up or on, from the same reads as the Proxy & VPN screen: a WireGuard
+ * tunnel exists, a SOCKS5 or HTTP server is saved, or a proxy (Orbot included) is on.
+ */
+private suspend fun anyProxySetUp(appConfig: AppConfig): Boolean =
+    appConfig.isProxyEnabled() ||
+        appConfig.isOrbotProxyEnabled() ||
+        WireguardManager.getNumberOfMappings() > 0 ||
+        !runCatching { appConfig.getSocks5ProxyDetails() }.getOrNull()?.proxyIP.isNullOrBlank() ||
+        !runCatching { appConfig.getHttpProxyDetails() }.getOrNull()?.proxyIP.isNullOrBlank()
 
 private fun logChange(eventLogger: EventLogger, app: AppInfo, status: FirewallStatus, connection: ConnectionStatus, undo: Boolean = false) {
     eventLogger.log(

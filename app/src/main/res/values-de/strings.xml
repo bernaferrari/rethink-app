@@ -88,8 +88,6 @@
     <string name="download_update_dialog_failure_message">Entweder sind unsere Server ausgefallen oder die Verbindung konnte nicht hergestellt werden. Bitte versuche es nach einiger Zeit erneut.</string>
     <string name="download_update_dialog_trylater_title">Kann im Moment nicht aktualisieren</string>
     <string name="download_update_dialog_trylater_message">Das Update kann im Moment nicht ausgeführt werden, bitte versuche es später noch einmal.</string>
-    <string name="search_universal_ips">IPs suchen</string>
-    <string name="search_custom_domains">Domänennamen suchen</string>
     <string name="whats_new_version_update">&lt;b&gt;Don\'t Panic 2&lt;/b&gt;&lt;br/&gt;&lt;br/&gt; \n1. Neu: Netzwerk-Engine-Fehler können nun für Nutzermeldungen erfasst werden.&lt;br/&gt; \n2. Neu: System-DNS wird nun für nicht delegierte Domainnamen verwendet, wenn „DNS-Leaks verhindern“ aktiviert ist.&lt;br/&gt; \n3. Verbesserung: Dual-Stack-Verbindung (IPv4 + IPv6) mit WireGuard.&lt;br/&gt; \n4. Verbesserung: UI-Elemente werden nicht mehr blockiert, wenn die Netzwerk-Engine nicht reagiert.&lt;br/&gt; \n5. Fehlerbehebung: Verbindungsabbrüche bei aktiviertem erweitertem DNS-Filter.&lt;br/&gt; \n6. Fehlerbehebung: WireGuard-Endpunkte mit Domainnamen hängen bei Netzwerkänderungen fest.&lt;br/&gt;&lt;br/&gt; \n&lt;a href=https://svc.rethinkdns.com/r/translate&gt;Hilf mit, diese App zu übersetzen&lt;/a&gt;</string>
     <string name="connection_http3">HTTP3</string>
     <string name="orbot_install_dialog_message">Orbot bringt die Eigenschaften und Funktionen von Tor auf Android.</string>
@@ -692,7 +690,6 @@
     <string name="crypt_relay_sweden" translatable="true">Anonymisiertes DNS-Relay, gehostet in Schweden und bereitgestellt von https://cryptostrom.is/.</string>
     <string name="lbl_last" translatable="true">Letzte</string>
     <string name="lbl_test" translatable="true">Test</string>
-    <string name="lbl_service_providers" translatable="true">Service Provider</string>
     <string name="status_no_network" translatable="true">Kein Netzwerk</string>
     <string name="cd_split_dns_heading" translatable="true">Split DNS (experimentell)</string>
     <string name="cd_treat_dns_rules_firewall_heading" translatable="true">DNS-Regeln als Firewall-Regeln behandeln (experimentell)</string>
@@ -749,8 +746,6 @@
     <string name="download_ip_info_title" translatable="true">Providerinformationen anzeigen</string>
     <string name="download_ip_info_desc" translatable="true">Ruft Details zu Dienstanbietern für Websites von rethinkdns.com ab, bereitgestellt von %1$s</string>
     <string name="top_active_conns" translatable="true">Top aktive Verbindungen</string>
-    <string name="close_conns_dialog_title" translatable="true">Verbindungen schließen</string>
-    <string name="close_conns_dialog_desc" translatable="true">Alle Verbindungen für %1$s schließen?</string>
     <string name="local_blocklist_delete_desc" translatable="true">Geräteseitige Blockierlisten löschen?</string>
     <string name="fail_open_network_title" translatable="true">Bei Netzwerkverlust blockieren</string>
     <string name="fail_open_network_desc" translatable="true">Wenn aktiviert, stoppt Keepout alle Daten, wenn keine Konnektivität verfügbar ist, z. B. im Flugmodus.</string>

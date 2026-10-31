@@ -99,8 +99,6 @@
     <string name="http_proxy_dialog_heading" translatable="true">Ustawienie HTTP(S) CONNECT Proxy</string>
     <string name="download_update_dialog_title" translatable="true">Nowa aktualizacja!</string>
     <string name="download_update_dialog_trylater_message" translatable="true">Aktualizacja nie może zostać wykonana teraz, spróbuj ponownie później.</string>
-    <string name="search_universal_ips" translatable="true"> Wyszukiwanie adresów IP</string>
-    <string name="search_custom_domains" translatable="true">Wyszukaj nazwy domen</string>
     <string name="download_update_dialog_message" translatable="true">Nowa wersja aplikacji jest dostępna do pobrania ze strony internetowej. Czy chcesz kontynuować?</string>
     <string name="download_update_dialog_failure_message" translatable="true">Albo nasze serwery są wyłączone, albo nie można nawiązać połączenia. Spróbuj ponownie za jakiś czas.</string>
     <string name="info_dialog_copy_toast_msg" translatable="true">Zkopiowano adres IP.</string>

@@ -108,8 +108,6 @@
     <string name="download_update_dialog_message_success">攔截清單下載成功。</string>
     <string name="download_update_dialog_failure_title">似乎有啲咩出咗錯！</string>
     <string name="download_update_dialog_trylater_title">而家冇得更新</string>
-    <string name="search_universal_ips">搵 IP</string>
-    <string name="search_custom_domains">搵網域</string>
     <string name="info_dialog_url_copy_toast_msg">複製咗 URL</string>
     <string name="connection_http3">HTTP3</string>
     <string name="settings_allow_bypass_heading">啓用網絡可見性</string>
