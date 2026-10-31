@@ -50,6 +50,8 @@ abstract class LogDatabase : RoomDatabase() {
 
     abstract fun dnsLogDAO(): DnsLogDAO
 
+    abstract fun activityLogDAO(): ActivityLogDAO
+
     abstract fun appStatsDAO(): AppStatsDao
 
     abstract fun asnStatsDAO(): AsnStatsDao

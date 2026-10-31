@@ -32,6 +32,8 @@ import com.bernaferrari.bravedns.util.Constants.Companion.INVALID_UID
             Index(value = arrayOf("isBlocked"), unique = false),
             Index(value = arrayOf("blockLists"), unique = false),
             Index(value = arrayOf("time"), unique = false),
+            // One app's Activity log (App detail › See all activity) walks this in time order.
+            Index(value = arrayOf("uid", "time"), unique = false),
         ]
 )
 class DnsLog {

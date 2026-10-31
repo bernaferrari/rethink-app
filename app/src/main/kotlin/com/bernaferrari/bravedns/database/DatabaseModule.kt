@@ -48,6 +48,7 @@ class DatabaseModule {
     @Single fun subscriptionStateHistoryDao(database: AppDatabase) = database.subscriptionStateHistoryDao()
     @Single fun connectionTrackerDao(database: LogDatabase) = database.connectionTrackerDAO()
     @Single fun dnsLogDao(database: LogDatabase) = database.dnsLogDAO()
+    @Single fun activityLogDao(database: LogDatabase) = database.activityLogDAO()
     @Single fun rethinkLogDao(database: LogDatabase) = database.rethinkConnectionLogDAO()
     @Single fun appStatsDao(database: LogDatabase) = database.appStatsDAO()
     @Single fun asnStatsDao(database: LogDatabase) = database.asnStatsDAO()

@@ -231,8 +231,6 @@ class HomeScreenActivity : FragmentActivity() {
     private val remoteBlocklistPacksMapViewModel by viewModel<com.bernaferrari.bravedns.viewmodel.RemoteBlocklistPacksMapViewModel>()
     private val localBlocklistPacksMapViewModel by viewModel<com.bernaferrari.bravedns.viewmodel.LocalBlocklistPacksMapViewModel>()
     private val appInfoViewModel by viewModel<com.bernaferrari.bravedns.viewmodel.AppInfoViewModel>()
-    private val connectionTrackerViewModel by viewModel<com.bernaferrari.bravedns.viewmodel.ConnectionTrackerViewModel>()
-    private val dnsLogViewModel by viewModel<com.bernaferrari.bravedns.viewmodel.DnsLogViewModel>()
     private val connectionTrackerRepository by inject<com.bernaferrari.bravedns.database.ConnectionTrackerRepository>()
     private val dnsLogRepository by inject<com.bernaferrari.bravedns.database.DnsLogRepository>()
 
@@ -566,8 +564,6 @@ class HomeScreenActivity : FragmentActivity() {
                         localBlocklistPacksMapViewModel = localBlocklistPacksMapViewModel,
                         appInfoViewModel = appInfoViewModel,
                         refreshDatabase = rdb,
-                        connectionTrackerViewModel = connectionTrackerViewModel,
-                        dnsLogViewModel = dnsLogViewModel,
                         connectionTrackerRepository = connectionTrackerRepository,
                         dnsLogRepository = dnsLogRepository,
                         dohViewModel = dohViewModel,

@@ -60,6 +60,9 @@ data class RethinkLogsStrings(
  * As the Activity tab's Log view, [viewSwitch] (Log · Insights) takes the top bar and the
  * connections/lookups switch moves to a labelled row over the filters. Without it (a log pushed
  * with a search, e.g. from Insights) the compact switch stays in the top bar.
+ *
+ * A host that filters by type itself (the Activity log: type lives in its Filters sheet) passes
+ * [content] instead of [networkContent]/[dnsContent], and the shell shows no type switch at all.
  */
 @Composable
 fun RethinkLogsScreenShell(
@@ -68,8 +71,9 @@ fun RethinkLogsScreenShell(
     modifier: Modifier = Modifier,
     additionalOverflowItems: List<RethinkOverflowItem> = emptyList(),
     viewSwitch: (@Composable () -> Unit)? = null,
-    networkContent: @Composable (onToolbarActionsChange: (RethinkLogToolbarActions) -> Unit) -> Unit,
-    dnsContent: @Composable (onToolbarActionsChange: (RethinkLogToolbarActions) -> Unit) -> Unit,
+    content: (@Composable (onToolbarActionsChange: (RethinkLogToolbarActions) -> Unit) -> Unit)? = null,
+    networkContent: @Composable (onToolbarActionsChange: (RethinkLogToolbarActions) -> Unit) -> Unit = {},
+    dnsContent: @Composable (onToolbarActionsChange: (RethinkLogToolbarActions) -> Unit) -> Unit = {},
 ) {
     // Saved as an ordinal so the selected tab survives rotation/process death on every target.
     var tabIndex by rememberSaveable { mutableIntStateOf(RethinkLogTab.Network.ordinal) }
@@ -90,7 +94,7 @@ fun RethinkLogsScreenShell(
                 actions = {
                     if (viewSwitch != null) {
                         viewSwitch()
-                    } else {
+                    } else if (content == null) {
                         RethinkLogsTabSwitch(
                             selected = tab,
                             networkLabel = strings.network,
@@ -104,17 +108,21 @@ fun RethinkLogsScreenShell(
         },
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
-            if (viewSwitch != null) {
-                RethinkLogTypeSwitch(
-                    selected = tab,
-                    onSelect = { tabIndex = it.ordinal },
-                    connectionsLabel = strings.connections,
-                    lookupsLabel = strings.lookups,
-                )
-            }
-            when (tab) {
-                RethinkLogTab.Network -> networkContent { toolbarActions = it }
-                RethinkLogTab.Dns -> dnsContent { toolbarActions = it }
+            if (content != null) {
+                content { toolbarActions = it }
+            } else {
+                if (viewSwitch != null) {
+                    RethinkLogTypeSwitch(
+                        selected = tab,
+                        onSelect = { tabIndex = it.ordinal },
+                        connectionsLabel = strings.connections,
+                        lookupsLabel = strings.lookups,
+                    )
+                }
+                when (tab) {
+                    RethinkLogTab.Network -> networkContent { toolbarActions = it }
+                    RethinkLogTab.Dns -> dnsContent { toolbarActions = it }
+                }
             }
         }
     }

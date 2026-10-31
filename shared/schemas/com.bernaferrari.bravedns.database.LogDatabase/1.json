@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "3090a78aca3dd480c0b0ecb4d28b9628",
+    "identityHash": "5f86fef47927c711faa87956ce0c3fdc",
     "entities": [
       {
         "tableName": "ConnectionTracker",
@@ -474,6 +474,16 @@
             ],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_DNSLogs_time` ON `${TABLE_NAME}` (`time`)"
+          },
+          {
+            "name": "index_DNSLogs_uid_time",
+            "unique": false,
+            "columnNames": [
+              "uid",
+              "time"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_DNSLogs_uid_time` ON `${TABLE_NAME}` (`uid`, `time`)"
           }
         ]
       },
@@ -1197,7 +1207,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '3090a78aca3dd480c0b0ecb4d28b9628')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '5f86fef47927c711faa87956ce0c3fdc')"
     ]
   }
 }

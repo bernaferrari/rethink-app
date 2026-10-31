@@ -126,8 +126,6 @@ import com.bernaferrari.bravedns.viewmodel.RethinkLocalFileTagViewModel
 import com.bernaferrari.bravedns.viewmodel.RethinkRemoteFileTagViewModel
 import com.bernaferrari.bravedns.viewmodel.AppInfoViewModel
 import com.bernaferrari.bravedns.database.RefreshDatabase
-import com.bernaferrari.bravedns.viewmodel.ConnectionTrackerViewModel
-import com.bernaferrari.bravedns.viewmodel.DnsLogViewModel
 import com.bernaferrari.bravedns.database.ConnectionTrackerRepository
 import com.bernaferrari.bravedns.database.DnsLogRepository
 import com.bernaferrari.bravedns.ui.compose.dns.ConfigureOtherDnsScreen
@@ -390,8 +388,6 @@ fun HomeScreenRoot(
     localBlocklistPacksMapViewModel: LocalBlocklistPacksMapViewModel,
     appInfoViewModel: AppInfoViewModel,
     refreshDatabase: RefreshDatabase,
-    connectionTrackerViewModel: ConnectionTrackerViewModel,
-    dnsLogViewModel: DnsLogViewModel,
     connectionTrackerRepository: ConnectionTrackerRepository,
     dnsLogRepository: DnsLogRepository,
     dohViewModel: DoHEndpointViewModel,
@@ -537,8 +533,6 @@ fun HomeScreenRoot(
                     onViewChange = { activityView = it },
                     log = { viewSwitch ->
                         NetworkLogsScreen(
-                            connectionTrackerViewModel = connectionTrackerViewModel,
-                            dnsLogViewModel = dnsLogViewModel,
                             connectionTrackerRepository = connectionTrackerRepository,
                             dnsLogRepository = dnsLogRepository,
                             persistentState = persistentState,
@@ -653,8 +647,6 @@ fun HomeScreenRoot(
             // domain or address, pushed on whichever tab asked (App detail, Insights, rules).
             entry<RethinkRoute.NetworkLogs> { args ->
                 NetworkLogsScreen(
-                    connectionTrackerViewModel = connectionTrackerViewModel,
-                    dnsLogViewModel = dnsLogViewModel,
                     connectionTrackerRepository = connectionTrackerRepository,
                     dnsLogRepository = dnsLogRepository,
                     persistentState = persistentState,

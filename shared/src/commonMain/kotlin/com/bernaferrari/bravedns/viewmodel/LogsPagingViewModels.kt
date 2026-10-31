@@ -23,21 +23,20 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import com.bernaferrari.bravedns.database.ConnectionTracker
-import com.bernaferrari.bravedns.database.ConnectionTrackerDAO
-import com.bernaferrari.bravedns.database.DnsLog
-import com.bernaferrari.bravedns.database.DnsLogDAO
+import com.bernaferrari.bravedns.database.ActivityAppCount
+import com.bernaferrari.bravedns.database.ActivityLogDAO
+import com.bernaferrari.bravedns.database.ActivityLogEntry
+import com.bernaferrari.bravedns.database.ActivityLogQuery
+import com.bernaferrari.bravedns.database.loggedApps
+import com.bernaferrari.bravedns.database.timeline
 import com.bernaferrari.bravedns.database.RethinkLog
 import com.bernaferrari.bravedns.database.RethinkLogDao
 import com.bernaferrari.bravedns.util.Constants.Companion.PAGING_PAGE_SIZE
-import com.bernaferrari.bravedns.util.ResourceRecordTypes.Companion.getHandledTypes
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.launch
 
 private val logsPagingConfig =
     PagingConfig(
@@ -48,148 +47,31 @@ private val logsPagingConfig =
         pageSize = PAGING_PAGE_SIZE * 2,
     )
 
+/**
+ * The Activity log's rows: connections, DNS lookups or both as one timeline ([ActivityLogDAO]).
+ * Each log screen (the Activity tab, a log pushed for one app or search) owns an instance, scoped to
+ * its navigation entry, so their filters never leak into each other.
+ */
 @KoinViewModel
-class DnsLogViewModel(
-    @Provided private val dao: DnsLogDAO,
+class ActivityLogViewModel(
+    @Provided private val dao: ActivityLogDAO,
 ) : ViewModel() {
-    private val query = MutableStateFlow(DnsLogQuery())
+    // Null until the screen applies its filters, so nothing loads unfiltered first.
+    private val query = MutableStateFlow<ActivityLogQuery?>(null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val dnsLogsList: Flow<PagingData<DnsLog>> = query.flatMapLatest(::fetchDnsLogs)
-
-    fun setFilter(searchString: String, type: DnsLogFilter) {
-        query.value = query.value.copy(search = searchString, filter = type)
-    }
-
-    fun setIsWireGuardLogs(isWgLogs: Boolean, wgId: String) {
-        query.value = query.value.copy(isWireGuardLogs = isWgLogs, wgDnsId = "%$wgId%")
-    }
-
-    private fun fetchDnsLogs(state: DnsLogQuery): Flow<PagingData<DnsLog>> =
-        Pager(logsPagingConfig) {
-                when {
-                    state.isWireGuardLogs -> dao.getDnsLogsForWireGuard(state.wgDnsId)
-                    state.filter == DnsLogFilter.ALL && state.search.isBlank() -> dao.getAllDnsLogs()
-                    state.filter == DnsLogFilter.ALL -> dao.getDnsLogsByName("%${state.search}%")
-                    state.filter == DnsLogFilter.ALLOWED && state.search.isBlank() ->
-                        dao.getAllowedDnsLogs()
-                    state.filter == DnsLogFilter.ALLOWED ->
-                        dao.getAllowedDnsLogsByName("%${state.search}%")
-                    state.filter == DnsLogFilter.BLOCKED && state.search.isBlank() ->
-                        dao.getBlockedDnsLogs()
-                    state.filter == DnsLogFilter.BLOCKED ->
-                        dao.getBlockedDnsLogsByName("%${state.search}%")
-                    state.filter == DnsLogFilter.MAYBE_BLOCKED && state.search.isBlank() ->
-                        dao.getMaybeBlockedDnsLogs()
-                    state.filter == DnsLogFilter.MAYBE_BLOCKED ->
-                        dao.getMaybeBlockedDnsLogsByName("%${state.search}%")
-                    state.search.isBlank() -> dao.getUnknownRecordDnsLogs(getHandledTypes())
-                    else -> dao.getUnknownRecordDnsLogsByName("%${state.search}%", getHandledTypes())
-                }
-            }
-            .flow
+    val entries: Flow<PagingData<ActivityLogEntry>> =
+        query
+            .filterNotNull()
+            .flatMapLatest { state -> Pager(logsPagingConfig) { dao.timeline(state) }.flow }
             .cachedIn(viewModelScope)
 
-    private data class DnsLogQuery(
-        val search: String = "",
-        val filter: DnsLogFilter = DnsLogFilter.ALL,
-        val isWireGuardLogs: Boolean = false,
-        val wgDnsId: String = ""
-    )
-
-    enum class DnsLogFilter(val id: Int) {
-        ALL(0),
-        ALLOWED(1),
-        BLOCKED(2),
-        MAYBE_BLOCKED(3),
-        UNKNOWN_RECORDS(4)
-    }
-}
-
-@KoinViewModel
-class ConnectionTrackerViewModel(
-    @Provided private val dao: ConnectionTrackerDAO,
-) : ViewModel() {
-    companion object {
-        const val PROTOCOL_FILTER_PREFIX = "P:"
+    fun setQuery(state: ActivityLogQuery) {
+        query.value = state
     }
 
-    private val query = MutableStateFlow(ConnectionQuery())
-    private var debounceJob: Job? = null
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val connectionTrackerList: Flow<PagingData<ConnectionTracker>> =
-        query.flatMapLatest(::fetchNetworkLogs)
-
-    fun setFilter(searchString: String, filter: Set<String>, type: TopLevelFilter) {
-        debounceJob?.cancel()
-        debounceJob =
-            viewModelScope.launch {
-                delay(300)
-                query.value = ConnectionQuery(searchString, filter.toSet(), type)
-            }
-    }
-
-    private fun fetchNetworkLogs(state: ConnectionQuery): Flow<PagingData<ConnectionTracker>> {
-        val normalizedSearch = state.search.trim()
-        val protocolPrefix = PROTOCOL_FILTER_PREFIX.lowercase()
-        if (normalizedSearch.lowercase().startsWith(protocolPrefix)) {
-            val protocol = normalizedSearch.substringAfter(protocolPrefix)
-            return Pager(logsPagingConfig) {
-                    if (state.rules.isEmpty()) dao.getProtocolFilteredConnections(protocol)
-                    else dao.getProtocolFilteredConnections(protocol, state.rules)
-                }
-                .flow
-                .cachedIn(viewModelScope)
-        }
-
-        return Pager(logsPagingConfig) {
-                val search = normalizedSearch.takeIf(String::isNotBlank)?.let { "%$it%" }
-                when (state.filter) {
-                    TopLevelFilter.ALL ->
-                        if (state.rules.isEmpty()) {
-                            if (search == null) dao.getConnectionTrackerByName()
-                            else dao.getConnectionTrackerByName(search)
-                        } else if (search == null) {
-                            dao.getConnectionsFiltered(state.rules)
-                        } else {
-                            dao.getConnectionsFiltered(search, state.rules)
-                        }
-                    TopLevelFilter.ALLOWED ->
-                        if (state.rules.isEmpty()) {
-                            if (search == null) dao.getAllowedConnections()
-                            else dao.getAllowedConnections(search)
-                        } else if (search == null) {
-                            dao.getAllowedConnectionsFiltered(state.rules)
-                        } else {
-                            dao.getAllowedConnectionsFiltered(search, state.rules)
-                        }
-                    TopLevelFilter.BLOCKED ->
-                        if (state.rules.isEmpty()) {
-                            if (search == null) dao.getBlockedConnections()
-                            else dao.getBlockedConnections(search)
-                        } else if (search == null) {
-                            dao.getBlockedConnectionsFiltered(state.rules)
-                        } else {
-                            dao.getBlockedConnectionsFiltered(search, state.rules)
-                        }
-                }
-            }
-            .flow
-            .cachedIn(viewModelScope)
-    }
-
-    private data class ConnectionQuery(
-        val search: String = "",
-        val rules: Set<String> = emptySet(),
-        val filter: TopLevelFilter = TopLevelFilter.ALL
-    )
-
-    enum class TopLevelFilter(val id: Int) {
-        ALL(0),
-        ALLOWED(1),
-        BLOCKED(2)
-    }
+    /** The app filter's options for [state]'s kinds, verdict and reasons. */
+    suspend fun loggedApps(state: ActivityLogQuery): List<ActivityAppCount> = dao.loggedApps(state)
 }
 
 @KoinViewModel

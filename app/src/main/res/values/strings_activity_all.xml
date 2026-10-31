@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Activity log: the merged timeline of connections and DNS lookups. -->
+<resources>
+    <!-- The log's Filters sheet: Type (All · Connections · DNS lookups), App, Reason -->
+    <string name="activity_filters">Filters</string>
+    <string name="activity_filter_type">Type</string>
+    <string name="activity_type_all">All</string>
+    <string name="activity_filter_all_apps">All apps</string>
+    <string name="activity_filter_any_reason">Any reason</string>
+
+    <!-- Active filters, as removable chips under the log's controls -->
+    <string name="activity_filter_reason_chip">Reason: %1$s</string>
+    <string name="activity_filter_remove">Remove filter %1$s</string>
+
+    <!-- Clearing the log from the overflow, per type shown -->
+    <string name="activity_clear_all_title">Delete all connections and DNS lookups?</string>
+    <string name="activity_clear_lookups_title">Delete all DNS lookups?</string>
+</resources>
