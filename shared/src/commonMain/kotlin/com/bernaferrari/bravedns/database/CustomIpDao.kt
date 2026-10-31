@@ -42,6 +42,10 @@ interface CustomIpDao {
     @Query("select * from CustomIp order by uid")
     suspend fun getCustomIpRules(): List<CustomIp>
 
+    /** Puts back a rule's place in the modified-time ordering (an in-place edit, or its undo). */
+    @Query("update CustomIp set modifiedDateTime = :modified where ipAddress = :ipAddress and uid = :uid and port = :port")
+    suspend fun setModifiedTime(uid: Int, ipAddress: String, port: Int, modified: Long): Int
+
     @Query("select * from CustomIp where ipAddress = :ipAddress and uid = :uid and port = :port")
     suspend fun getCustomIpDetail(uid: Int, ipAddress: String, port: Int): CustomIp?
 

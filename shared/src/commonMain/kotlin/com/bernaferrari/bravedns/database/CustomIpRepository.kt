@@ -39,6 +39,10 @@ class CustomIpRepository(private val customIpDao: CustomIpDao) {
         return customIpDao.getCustomIpDetail(uid, ipAddress, port)
     }
 
+    suspend fun setModifiedTime(uid: Int, ipAddress: String, port: Int, modified: Long) {
+        customIpDao.setModifiedTime(uid, ipAddress, port, modified)
+    }
+
     suspend fun deleteRule(uid: Int, ipAddress: String, port: Int): Int {
         return customIpDao.deleteRule(uid, ipAddress, port)
     }

@@ -46,6 +46,10 @@ class CustomDomainRepository(private val customDomainDAO: CustomDomainDAO) {
         return customDomainDAO.getCustomDomain(uid, domain)
     }
 
+    suspend fun setModifiedTime(uid: Int, domain: String, modified: Long) {
+        customDomainDAO.setModifiedTime(uid, domain, modified)
+    }
+
     suspend fun getDomainsByUID(uid: Int): List<CustomDomain> {
         return customDomainDAO.getDomainsByUID(uid)
     }

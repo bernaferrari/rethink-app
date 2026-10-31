@@ -103,6 +103,10 @@ interface CustomDomainDAO {
     @Query("select count(*) from CustomDomain")
     fun observeEveryDomainRuleCount(): Flow<Int>
 
+    /** Puts back a rule's place in the modified-time ordering (an in-place edit, or its undo). */
+    @Query("UPDATE CustomDomain SET modifiedTs = :modified WHERE uid = :uid AND domain = :domain")
+    suspend fun setModifiedTime(uid: Int, domain: String, modified: Long): Int
+
     @Query("SELECT * FROM CustomDomain WHERE uid = :uid AND domain = :domain")
     suspend fun getCustomDomain(uid: Int, domain: String): CustomDomain?
 
